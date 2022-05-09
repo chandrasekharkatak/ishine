@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.model;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -61,7 +62,7 @@ public class Employee {
 	private Timestamp createdOn;
 	
 	//@Column(columnDefinition="TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP")
-	private Timestamp updatedOn;
+	private LocalDateTime updatedOn;
 	
 	private int createdBy;	
 	private int updatedBy;	
@@ -229,10 +230,10 @@ public class Employee {
 	public void setCreatedBy(int createdBy) {
 		this.createdBy = createdBy;
 	}
-	public Timestamp getUpdatedOn() {
+	public LocalDateTime getUpdatedOn() {
 		return updatedOn;
 	}
-	public void setUpdatedOn(Timestamp updatedOn) {
+	public void setUpdatedOn(LocalDateTime updatedOn) {
 		this.updatedOn = updatedOn;
 	}
 	public int getUpdatedBy() {

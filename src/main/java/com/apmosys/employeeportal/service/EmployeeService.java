@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
@@ -102,14 +103,92 @@ public class EmployeeService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			Optional<Employee> employee = employeeRepository.findById(employeedto.getEmpId());
-
-			Employee employeeToBeDeleted = employee.get();
-
-			employeeRepository.deleteById(employeeToBeDeleted.getEmp_id());
+			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			if (employeeObject.isPresent()) {
+				Employee employeeToBeDeleted = employeeObject.get();				
+				employeeRepository.deleteById(employeeToBeDeleted.getEmp_id());				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Employee Profile Deleted");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not Found");
+			}			
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse updateEmployeeByEmpId(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+		DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+		String date = LocalDateTime.now().format(formatter1);
+		LocalDateTime updateTime = LocalDateTime.parse(date, formatter1);
+		
+		
+		try
+		{
+			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			if (employeeObject.isPresent()) {
+				Employee employee = employeeObject.get();
+			
+				employee.setUpdatedOn(updateTime);
+				employee.setName(employeedto.getName());
+				LocalDate dateOfBirth = LocalDate.parse(employeedto.getDateOfBirth(), formatter2);
+				employee.setDateOfBirth(dateOfBirth);
+				LocalDate dateOfJoining = LocalDate.parse(employeedto.getDateOfJoining(), formatter2);
+				employee.setDateOfJoining(dateOfJoining);
+				employee.setManagerId(employeedto.getManagerId());
+				employee.setEmail(employeedto.getEmail());
+				employee.setGender(employeedto.getGender());
+				employee.setBloodGroup(employeedto.getBloodGroup());
+				employee.setMaritalStatus(employeedto.getMaritalStatus());
+				employee.setFatherName(employeedto.getFatherName());
+				employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
+				employee.setMotherTongue(employeedto.getMotherTongue());
+				employee.setPassportNumber(employeedto.getPassportNumber());
+				employee.setAadhar(employeedto.getAadhar());
+				employee.setPanNumber(employeedto.getPanNumber());
+				employee.setMobileNo(employeedto.getMobileNo());
+				employee.setLandline(employeedto.getLandline());
+				employee.setAddress(employeedto.getAddress());
+				employee.setCity(employeedto.getCity());
+				employee.setState(employeedto.getState());
+				employee.setCountry(employeedto.getCountry());
+				employee.setPincode(employeedto.getPincode());
+				employee.setOfficialMobileNo(employeedto.getOfficialMobileNo());
+				employee.setPermanentAddress(employeedto.getPermanentAddress());
+				employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
+				employee.setRelation(employeedto.getRelation());
+				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+				employee.setNoticePeriod(employeedto.getNoticePeriod());
+				employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+				
+				Employee dbResponse = employeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Profile Updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Profile Updation Failed.");
+				}
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not Found");
+			}	
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
