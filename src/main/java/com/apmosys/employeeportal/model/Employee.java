@@ -26,7 +26,7 @@ public class Employee {
 
 	private String name;
 
-	
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfBirth;
 	private String email;
 	private String gender;
@@ -53,6 +53,7 @@ public class Employee {
 	private String relation;
 	private Long emergencyContactMobile;
 
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfJoining;
 	private String employmentstatus;
 	private short noticePeriod;
@@ -62,6 +63,7 @@ public class Employee {
 	private Timestamp createdOn;
 	
 	//@Column(columnDefinition="TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP")
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
 	private int createdBy;	

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,6 +183,31 @@ public class EmployeeService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Profile Not Found");
 			}	
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllEmployees() {
+		
+		ServiceResponse response = new ServiceResponse();
+		try
+		{
+			List<Employee> allEmployeeList = employeeRepository.findAll();
+			
+			if (allEmployeeList != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(allEmployeeList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is null");
+			}
 		}
 		catch(Exception e)
 		{

@@ -31,6 +31,14 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value="/getAllEmployees" , method = RequestMethod.GET)
+	public ServiceResponse getAllEmployees() {		
+		
+		ServiceResponse response =employeeService.getAllEmployees();
+		return response;
+		
+	}
+	
 	@RequestMapping(value="/updateEmployeeByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {		
 		
