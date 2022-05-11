@@ -51,7 +51,6 @@ public class EmployeeController {
 		
 		ServiceResponse response =employeeService.deleteEmployeeByEmpId(employeedto);
 		return response;
-		
 	}
 
 }
