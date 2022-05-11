@@ -11,6 +11,7 @@ import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
+@RequestMapping(path = "/api")
 public class EmployeeController {
 	
 	
