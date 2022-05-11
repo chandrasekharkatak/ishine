@@ -206,7 +206,7 @@ public class EmployeeService {
 				response.setServiceResponse(allEmployeeList);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee List is null");
+				response.setServiceResponse("Employee List is null.");
 			}
 		}
 		catch(Exception e)
