@@ -2,7 +2,9 @@ package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 @Entity
@@ -21,7 +24,7 @@ public class Department {
 	
 	private String name;
 	
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne
 	@JoinColumn(name = "hodId")
 	private Employee hod;
 	
@@ -33,6 +36,9 @@ public class Department {
 	private LocalDateTime updatedOn;
 	
 	private int updatedBy;
+	
+//	@OneToMany(mappedBy = "department")
+//	private List<JobRole> jobRole;
 
 	public Long getDept_id() {
 		return dept_id;
@@ -89,6 +95,14 @@ public class Department {
 	public void setUpdatedBy(int updatedBy) {
 		this.updatedBy = updatedBy;
 	}
+
+//	public List<JobRole> getJobRole() {
+//		return jobRole;
+//	}
+//
+//	public void setJobRole(List<JobRole> jobRole) {
+//		this.jobRole = jobRole;
+//	}
 	
 	
 

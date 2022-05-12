@@ -1,9 +1,6 @@
 package com.apmosys.employeeportal.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,25 +11,25 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
 
 	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			
 			Employee employee = new Employee();
-
 			employee.setName(employeedto.getName());
-			LocalDate dateOfBirth = LocalDate.parse(employeedto.getDateOfBirth(), formatter);
-			employee.setDateOfBirth(dateOfBirth);
-			LocalDate dateOfJoining = LocalDate.parse(employeedto.getDateOfJoining(), formatter);
-			employee.setDateOfJoining(dateOfJoining);
+			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth()));
+			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining()));
 			employee.setManagerId(employeedto.getManagerId());
 			employee.setEmail(employeedto.getEmail());
 			employee.setGender(employeedto.getGender());
@@ -107,7 +104,7 @@ public class EmployeeService {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
 				Employee employeeToBeDeleted = employeeObject.get();				
-				employeeRepository.deleteById(employeeToBeDeleted.getEmp_id());				
+				employeeRepository.deleteById(employeeToBeDeleted.getEmpId());				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Employee Profile Deleted");
 			} else {
@@ -126,24 +123,18 @@ public class EmployeeService {
 
 	public ServiceResponse updateEmployeeByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-		DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-		String date = LocalDateTime.now().format(formatter1);
-		LocalDateTime updateTime = LocalDateTime.parse(date, formatter1);
 		
-		
+			
 		try
 		{
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
 				Employee employee = employeeObject.get();
 			
-				employee.setUpdatedOn(updateTime);
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setName(employeedto.getName());
-				LocalDate dateOfBirth = LocalDate.parse(employeedto.getDateOfBirth(), formatter2);
-				employee.setDateOfBirth(dateOfBirth);
-				LocalDate dateOfJoining = LocalDate.parse(employeedto.getDateOfJoining(), formatter2);
-				employee.setDateOfJoining(dateOfJoining);
+				employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth()));
+				employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfJoining()));
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
 				employee.setGender(employeedto.getGender());

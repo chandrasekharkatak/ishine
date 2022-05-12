@@ -22,7 +22,7 @@ public class Employee {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long emp_id;
+	private Long empId;
 
 	private String name;
 
@@ -70,11 +70,12 @@ public class Employee {
 	private int updatedBy;	
 	private int managerId;
 	
-	public Long getEmp_id() {
-		return emp_id;
+	
+	public Long getEmpId() {
+		return empId;
 	}
-	public void setEmp_id(Long emp_id) {
-		this.emp_id = emp_id;
+	public void setEmpId(Long empId) {
+		this.empId = empId;
 	}
 	public String getName() {
 		return name;
@@ -270,7 +271,7 @@ public class Employee {
 	}
 	@Override
 	public String toString() {
-		return "Employee [emp_id=" + emp_id + ", name=" + name + ", dateOfBirth=" + dateOfBirth + ", email=" + email
+		return "Employee [emp_id=" + empId + ", name=" + name + ", dateOfBirth=" + dateOfBirth + ", email=" + email
 				+ ", gender=" + gender + ", bloodGroup=" + bloodGroup + ", maritalStatus=" + maritalStatus
 				+ ", fatherName=" + fatherName + ", placeOfBirth=" + placeOfBirth + ", motherTongue=" + motherTongue
 				+ ", passportNumber=" + passportNumber + ", aadhar=" + aadhar + ", panNumber=" + panNumber

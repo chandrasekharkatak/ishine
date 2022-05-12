@@ -31,6 +31,7 @@ public class EmployeeDTO {
 	private Long emergencyContactMobile;
 	private String employmentstatus;
 	private short noticePeriod;
+	private boolean isDraft = false;
 	
 	
 	public Long getEmpId() {
@@ -265,6 +266,14 @@ public class EmployeeDTO {
 		this.noticePeriod = noticePeriod;
 	}
 
+	public boolean getDraft() {
+		return isDraft;
+	}
+
+	public void setDraft(boolean isDraft) {
+		this.isDraft = isDraft;
+	}
+
 	@Override
 	public String toString() {
 		return "EmployeeDTO [empId=" + empId + ", name=" + name + ", managerId=" + managerId + ", dateOfJoining="
@@ -276,8 +285,11 @@ public class EmployeeDTO {
 				+ ", country=" + country + ", pincode=" + pincode + ", officialMobileNo=" + officialMobileNo
 				+ ", permanentAddress=" + permanentAddress + ", emergencyContactPerson=" + emergencyContactPerson
 				+ ", relation=" + relation + ", emergencyContactMobile=" + emergencyContactMobile
-				+ ", employmentstatus=" + employmentstatus + ", noticePeriod=" + noticePeriod + "]";
+				+ ", employmentstatus=" + employmentstatus + ", noticePeriod=" + noticePeriod + ", isDraft=" + isDraft
+				+ "]";
 	}
+
+	
 	
 	
 
