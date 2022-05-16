@@ -32,6 +32,14 @@ public class EmployeeDTO {
 	private String employmentstatus;
 	private short noticePeriod;
 	private boolean isDraft = false;
+	private Long jobRoleId;
+	private String bankName;
+	private String bankAccountNo;
+	private String bankIFSCCode;
+	private String pfAccountNumber;
+	private String previousPfAccountNumber;
+	private String uan;
+	private String esicNumber;
 	
 	
 	public Long getEmpId() {
@@ -273,21 +281,70 @@ public class EmployeeDTO {
 	public void setDraft(boolean isDraft) {
 		this.isDraft = isDraft;
 	}
-
-	@Override
-	public String toString() {
-		return "EmployeeDTO [empId=" + empId + ", name=" + name + ", managerId=" + managerId + ", dateOfJoining="
-				+ dateOfJoining + ", dateOfBirth=" + dateOfBirth + ", email=" + email + ", gender=" + gender
-				+ ", bloodGroup=" + bloodGroup + ", maritalStatus=" + maritalStatus + ", fatherName=" + fatherName
-				+ ", placeOfBirth=" + placeOfBirth + ", motherTongue=" + motherTongue + ", passportNumber="
-				+ passportNumber + ", aadhar=" + aadhar + ", panNumber=" + panNumber + ", mobileNo=" + mobileNo
-				+ ", landline=" + landline + ", address=" + address + ", city=" + city + ", state=" + state
-				+ ", country=" + country + ", pincode=" + pincode + ", officialMobileNo=" + officialMobileNo
-				+ ", permanentAddress=" + permanentAddress + ", emergencyContactPerson=" + emergencyContactPerson
-				+ ", relation=" + relation + ", emergencyContactMobile=" + emergencyContactMobile
-				+ ", employmentstatus=" + employmentstatus + ", noticePeriod=" + noticePeriod + ", isDraft=" + isDraft
-				+ "]";
+	public Long getJobRoleId() {
+		return jobRoleId;
 	}
+
+	public void setJobRoleId(Long jobRoleId) {
+		this.jobRoleId = jobRoleId;
+	}
+
+	public String getBankName() {
+		return bankName;
+	}
+
+	public void setBankName(String bankName) {
+		this.bankName = bankName;
+	}
+
+	public String getBankAccountNo() {
+		return bankAccountNo;
+	}
+
+	public void setBankAccountNo(String bankAccountNo) {
+		this.bankAccountNo = bankAccountNo;
+	}
+
+	public String getBankIFSCCode() {
+		return bankIFSCCode;
+	}
+
+	public void setBankIFSCCode(String bankIFSCCode) {
+		this.bankIFSCCode = bankIFSCCode;
+	}
+
+	public String getPfAccountNumber() {
+		return pfAccountNumber;
+	}
+
+	public void setPfAccountNumber(String pfAccountNumber) {
+		this.pfAccountNumber = pfAccountNumber;
+	}
+
+	public String getPreviousPfAccountNumber() {
+		return previousPfAccountNumber;
+	}
+
+	public void setPreviousPfAccountNumber(String previousPfAccountNumber) {
+		this.previousPfAccountNumber = previousPfAccountNumber;
+	}	
+	public String getUan() {
+		return uan;
+	}
+
+	public void setUan(String uan) {
+		this.uan = uan;
+	}
+
+	public String getEsicNumber() {
+		return esicNumber;
+	}
+
+	public void setEsicNumber(String esicNumber) {
+		this.esicNumber = esicNumber;
+	}
+
+	
 
 	
 	

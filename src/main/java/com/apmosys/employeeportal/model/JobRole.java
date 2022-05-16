@@ -14,35 +14,40 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 @Entity
 public class JobRole {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long jobRoleId;
+	private Long id;
 	
 	private String name;
 	
-	@OneToOne
-	@JoinColumn(name = "deptId")
-	private Department department;
+//	@OneToOne(fetch = FetchType.EAGER)
+//	@JoinColumn(name = "deptId")
+	private Long departmentId;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
 	private int createdBy;
 	
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
 	private int updatedBy;
 	
 
-	public Long getJobRoleId() {
-		return jobRoleId;
+	
+
+	public Long getId() {
+		return id;
 	}
 
-	public void setJobRoleId(Long jobRoleId) {
-		this.jobRoleId = jobRoleId;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String getName() {
@@ -51,14 +56,14 @@ public class JobRole {
 
 	public void setName(String name) {
 		this.name = name;
+	}	
+
+	public Long getDepartmentId() {
+		return departmentId;
 	}
 
-	public Department getDepartment() {
-		return department;
-	}
-
-	public void setDepartment(Department department) {
-		this.department = department;
+	public void setDepartmentId(Long departmentId) {
+		this.departmentId = departmentId;
 	}
 
 	public Timestamp getCreatedOn() {

@@ -15,7 +15,15 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 @Entity
+@JsonIdentityInfo(
+		  generator =  ObjectIdGenerators.PropertyGenerator.class,
+		  property = "dept_id")
 public class Department {
 	
 	@Id
@@ -24,15 +32,16 @@ public class Department {
 	
 	private String name;
 	
-	@OneToOne
-	@JoinColumn(name = "hodId")
-	private Employee hod;
+//	@OneToOne
+//	@JoinColumn(name = "hodId")	
+	private Long hodId;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
 	private int createdBy;
 	
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
 	private int updatedBy;
@@ -54,14 +63,13 @@ public class Department {
 
 	public void setName(String name) {
 		this.name = name;
+	}	
+	public Long getHodId() {
+		return hodId;
 	}
 
-	public Employee getHod() {
-		return hod;
-	}
-
-	public void setHod(Employee hod) {
-		this.hod = hod;
+	public void setHodId(Long hodId) {
+		this.hodId = hodId;
 	}
 
 	public Timestamp getCreatedOn() {

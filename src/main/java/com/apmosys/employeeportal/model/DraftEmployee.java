@@ -1,10 +1,8 @@
 package com.apmosys.employeeportal.model;
 
-
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,12 +13,13 @@ import javax.persistence.Id;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 
-@Entity
-public class Employee {
 
+@Entity
+public class DraftEmployee {
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long empId;
+	private Long draftEmpId;
 
 	private String name;
 
@@ -78,14 +77,14 @@ public class Employee {
 	private String pfAccountNumber;
 	private String previousPfAccountNumber;
 	private String uan;
-	private String esicNumber;
+	private String esicNumber;	
 	
 	
-	public Long getEmpId() {
-		return empId;
+	public Long getDraftEmpId() {
+		return draftEmpId;
 	}
-	public void setEmpId(Long empId) {
-		this.empId = empId;
+	public void setDraftEmpId(Long draftEmpId) {
+		this.draftEmpId = draftEmpId;
 	}
 	public String getName() {
 		return name;
@@ -327,22 +326,5 @@ public class Employee {
 	public void setEsicNumber(String esicNumber) {
 		this.esicNumber = esicNumber;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
-	
-	
 }

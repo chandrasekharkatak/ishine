@@ -28,10 +28,10 @@ public class DepartmentService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			Department newDepartment = new Department();
-			Employee hod = new Employee();
+		//	Employee hod = new Employee();
 			newDepartment.setName(departmentDTO.getName());
-			hod.setEmpId(departmentDTO.getHodId());
-			newDepartment.setHod(hod);
+		//	hod.setEmpId(departmentDTO.getHodId());
+			newDepartment.setHodId(departmentDTO.getHodId());
 			newDepartment.setCreatedBy(departmentDTO.getCreatedBy());
 			
 			Department dbResponse = departmentRepository.save(newDepartment);
@@ -84,11 +84,11 @@ public class DepartmentService {
 			if(departmentObject.isPresent())
 			{
 				Department departmentToBeUpdated = departmentObject.get();
-				Employee hod = new Employee();
-				hod.setEmpId(departmentDTO.getHodId());
+		//		Employee hod = new Employee();
+		//		hod.setEmpId(departmentDTO.getHodId());
 				departmentToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				departmentToBeUpdated.setName(departmentDTO.getName());
-				departmentToBeUpdated.setHod(hod);
+				departmentToBeUpdated.setHodId(departmentDTO.getHodId());
 				
 				Department dbResponse = departmentRepository.save(departmentToBeUpdated);
 				

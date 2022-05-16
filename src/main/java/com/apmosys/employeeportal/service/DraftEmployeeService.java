@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-
 import java.util.List;
 import java.util.Optional;
 
@@ -9,27 +8,24 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
-import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
-import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
-public class EmployeeService {
-
+public class DraftEmployeeService {
+	
 	@Autowired
-	EmployeeRepository employeeRepository;	
+	DraftEmployeeRepository draftEmployeeRepository;
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
-
-	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
+	
+	public ServiceResponse createDraftEmployee(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Employee employee = new Employee();
+			DraftEmployee employee = new DraftEmployee();			
 			
 			employee.setName(employeedto.getName());
 			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth()));
@@ -67,14 +63,15 @@ public class EmployeeService {
 			employee.setUan(employeedto.getUan());
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			
-			Employee dbResponse = employeeRepository.save(employee);
+			
+			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 			
 			if (dbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Employee Profile Created.");
+				response.setServiceResponse("Draft Employee Profile Created.");
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Creation Failed.");
+				response.setServiceResponse("Draft Employee Profile Creation Failed.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -83,12 +80,12 @@ public class EmployeeService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
-	}	
-
-	public ServiceResponse getEmployeeByEmpId(EmployeeDTO employeedto) {
+	}
+	
+	public ServiceResponse getDraftEmployeeById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
 
 			if (employeeObject.isPresent()) {
 
@@ -96,7 +93,7 @@ public class EmployeeService {
 				response.setServiceResponse(employeeObject.get());
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Not Found");
+				response.setServiceResponse("Draft Employee Profile Not Found");
 			}
 
 		} catch (Exception e) {
@@ -108,19 +105,19 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse deleteEmployeeByEmpId(EmployeeDTO employeedto) {
+	public ServiceResponse deleteDraftEmployeeById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
-				Employee employeeToBeDeleted = employeeObject.get();				
-				employeeRepository.deleteById(employeeToBeDeleted.getEmpId());				
+				DraftEmployee employeeToBeDeleted = employeeObject.get();				
+				draftEmployeeRepository.deleteById(employeeToBeDeleted.getDraftEmpId());				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Employee Profile Deleted");
+				response.setServiceResponse("Draft Employee Profile Deleted");
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Not Found");
+				response.setServiceResponse("Draft Employee Profile Not Found");
 			}			
 
 		} catch (Exception e) {
@@ -132,15 +129,15 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse updateEmployeeByEmpId(EmployeeDTO employeedto) {
+	public ServiceResponse updateDraftEmployeeById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		
 			
 		try
 		{
-			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
-				Employee employee = employeeObject.get();
+				DraftEmployee employee = employeeObject.get();
 			
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setName(employeedto.getName());
@@ -179,18 +176,18 @@ public class EmployeeService {
 				employee.setUan(employeedto.getUan());
 				employee.setJobRoleId(employeedto.getJobRoleId());
 				
-				Employee dbResponse = employeeRepository.save(employee);
+				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Employee Profile Updated.");
+					response.setServiceResponse("Draft Employee Profile Updated.");
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Employee Profile Updation Failed.");
+					response.setServiceResponse("Draft Employee Profile Updation Failed.");
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Not Found");
+				response.setServiceResponse("Draft Employee Profile Not Found");
 			}	
 		}
 		catch(Exception e)
@@ -203,19 +200,19 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse getAllEmployees() {
+	public ServiceResponse getAllDraftEmployees() {
 		
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			List<Employee> allEmployeeList = employeeRepository.findAll();
+			List<DraftEmployee> allEmployeeList = draftEmployeeRepository.findAll();
 			
 			if (allEmployeeList != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(allEmployeeList);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee List is null.");
+				response.setServiceResponse("Draft Employee List is null.");
 			}
 		}
 		catch(Exception e)
@@ -227,5 +224,6 @@ public class EmployeeService {
 		}
 		return response;
 	}
+
 
 }

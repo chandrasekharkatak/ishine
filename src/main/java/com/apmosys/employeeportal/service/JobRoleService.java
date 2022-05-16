@@ -31,11 +31,11 @@ public class JobRoleService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			JobRole newJobRole = new JobRole();
-			Department department = new Department();
+		//	Department department = new Department();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedBy());
 			newJobRole.setName(jobRoleDTO.getName());
-			department.setDept_id(jobRoleDTO.getDepartmentId());
-			newJobRole.setDepartment(department);
+		//	department.setDept_id(jobRoleDTO.getDepartmentId());
+			newJobRole.setDepartmentId(jobRoleDTO.getDepartmentId());
 
 			JobRole dbResponse = jobRoleRepository.save(newJobRole);
 			if (dbResponse != null) {
@@ -83,11 +83,11 @@ public class JobRoleService {
 			if(jobRoleObject.isPresent())
 			{
 				JobRole jobRoleToBeUpdated = jobRoleObject.get();
-				Department department = new Department();
-				department.setDept_id(jobRoleDTO.getDepartmentId());
+		//		Department department = new Department();
+		//		department.setDept_id(jobRoleDTO.getDepartmentId());
 				jobRoleToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				jobRoleToBeUpdated.setName(jobRoleDTO.getName());
-				jobRoleToBeUpdated.setDepartment(department);
+				jobRoleToBeUpdated.setDepartmentId(jobRoleDTO.getDepartmentId());
 				
 				JobRole dbResponse = jobRoleRepository.save(jobRoleToBeUpdated);
 				
@@ -121,7 +121,7 @@ public class JobRoleService {
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isPresent()) {
 				JobRole jobRoleToBeDeleted = jobRoleObject.get();				
-				jobRoleRepository.deleteById(jobRoleToBeDeleted.getJobRoleId());				
+				jobRoleRepository.deleteById(jobRoleToBeDeleted.getId());				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Job Role Deleted.");
 			} else {
