@@ -61,6 +61,13 @@ public class DraftEmployeeService {
 			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
 			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
 			employee.setUan(employeedto.getUan());
+			employee.setGraduation(employeedto.getGraduation());
+			employee.setYearOfGrad(employeedto.getYearOfGrad());
+			employee.setPostGraduation(employeedto.getPostGraduation());
+			employee.setYearOfPostGrad(employeedto.getYearOfPostGrad());
+			employee.setHobbies(employeedto.getHobbies());
+			employee.setAboutMe("Add about yourself.");
+			employee.setViewsOnOrganisation("Add your views.");
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			
 			
@@ -174,6 +181,13 @@ public class DraftEmployeeService {
 				employee.setPfAccountNumber(employeedto.getPfAccountNumber());
 				employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
 				employee.setUan(employeedto.getUan());
+				employee.setGraduation(employeedto.getGraduation());
+				employee.setYearOfGrad(employeedto.getYearOfGrad());
+				employee.setPostGraduation(employeedto.getPostGraduation());
+				employee.setYearOfPostGrad(employeedto.getYearOfPostGrad());
+				employee.setHobbies(employeedto.getHobbies());
+				employee.setAboutMe("Add about yourself.");
+				employee.setViewsOnOrganisation("Add your views.");
 				employee.setJobRoleId(employeedto.getJobRoleId());
 				
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);

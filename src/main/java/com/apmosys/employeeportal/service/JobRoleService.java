@@ -1,8 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,10 +34,10 @@ public class JobRoleService {
 		try {
 			JobRole newJobRole = new JobRole();
 		//	Department department = new Department();
-			newJobRole.setCreatedBy(jobRoleDTO.getCreatedBy());
+			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
 			newJobRole.setName(jobRoleDTO.getName());
 		//	department.setDept_id(jobRoleDTO.getDepartmentId());
-			newJobRole.setDepartmentId(jobRoleDTO.getDepartmentId());
+			newJobRole.setDeptId(jobRoleDTO.getDepartmentId());
 
 			JobRole dbResponse = jobRoleRepository.save(newJobRole);
 			if (dbResponse != null) {
@@ -58,13 +60,23 @@ public class JobRoleService {
 	public ServiceResponse getAllJobRole() {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<JobRole> allJobRoleList = jobRoleRepository.findAll();
-			if (allJobRoleList != null) {
+			List<Object[]> allJobRoleList = jobRoleRepository.getAllJobRoles();
+			List<JobRoleDTO> dtoList = new ArrayList<>();
+			if (!allJobRoleList.isEmpty()) {
+				
+				for(Object[] object:allJobRoleList)
+				{
+					JobRoleDTO jobRoleDTO = new JobRoleDTO();
+					jobRoleDTO.setName(object[0].toString());
+					jobRoleDTO.setCreatedBy(object[1].toString());
+					jobRoleDTO.setCreatedOn(object[2].toString());
+					dtoList.add(jobRoleDTO);
+				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(allJobRoleList);
+				response.setServiceResponse(dtoList);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Job Role List is null.");
+				response.setServiceResponse("Job Role List is empty.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -87,7 +99,7 @@ public class JobRoleService {
 		//		department.setDept_id(jobRoleDTO.getDepartmentId());
 				jobRoleToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				jobRoleToBeUpdated.setName(jobRoleDTO.getName());
-				jobRoleToBeUpdated.setDepartmentId(jobRoleDTO.getDepartmentId());
+				jobRoleToBeUpdated.setDeptId(jobRoleDTO.getDepartmentId());
 				
 				JobRole dbResponse = jobRoleRepository.save(jobRoleToBeUpdated);
 				
@@ -121,7 +133,7 @@ public class JobRoleService {
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getId());
 			if (jobRoleObject.isPresent()) {
 				JobRole jobRoleToBeDeleted = jobRoleObject.get();				
-				jobRoleRepository.deleteById(jobRoleToBeDeleted.getId());				
+				jobRoleRepository.deleteById(jobRoleToBeDeleted.getJobRoleId());				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Job Role Deleted.");
 			} else {

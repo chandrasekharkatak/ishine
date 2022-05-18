@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class EmployeeDTO {
 	
 	private Long empId;
@@ -41,6 +45,13 @@ public class EmployeeDTO {
 	private String previousPfAccountNumber;
 	private String uan;
 	private String esicNumber;
+	private String graduation;
+	private short yearOfGrad;
+	private String postGraduation;
+	private String hobbies;	
+	private String aboutMe;
+	private String viewsOnOrganisation;	
+	private short yearOfPostGrad;
 	
 	
 	public Long getEmpId() {
@@ -350,6 +361,66 @@ public class EmployeeDTO {
 
 	public void setEsicNumber(String esicNumber) {
 		this.esicNumber = esicNumber;
+	}
+
+	public String getGraduation() {
+		return graduation;
+	}
+
+	public void setGraduation(String graduation) {
+		this.graduation = graduation;
+	}
+
+	public short getYearOfGrad() {
+		return yearOfGrad;
+	}
+
+	public void setYearOfGrad(short yearOfGrad) {
+		this.yearOfGrad = yearOfGrad;
+	}
+
+	public String getPostGraduation() {
+		return postGraduation;
+	}
+
+	public void setPostGraduation(String postGraduation) {
+		this.postGraduation = postGraduation;
+	}
+
+	public String getHobbies() {
+		return hobbies;
+	}
+
+	public void setHobbies(String hobbies) {
+		this.hobbies = hobbies;
+	}
+
+	public String getAboutMe() {
+		return aboutMe;
+	}
+
+	public void setAboutMe(String aboutMe) {
+		this.aboutMe = aboutMe;
+	}
+
+	public String getViewsOnOrganisation() {
+		return viewsOnOrganisation;
+	}
+
+	public void setViewsOnOrganisation(String viewsOnOrganisation) {
+		this.viewsOnOrganisation = viewsOnOrganisation;
+	}
+
+	public short getYearOfPostGrad() {
+		return yearOfPostGrad;
+	}
+
+	public void setYearOfPostGrad(short yearOfPostGrad) {
+		this.yearOfPostGrad = yearOfPostGrad;
+	}
+
+	public boolean isDraft() {
+		return isDraft;
 	}
 
 	

@@ -21,13 +21,13 @@ public class JobRole {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long jobRoleId;
 	
 	private String name;
 	
 //	@OneToOne(fetch = FetchType.EAGER)
 //	@JoinColumn(name = "deptId")
-	private Long departmentId;
+	private Long deptId;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
@@ -37,17 +37,15 @@ public class JobRole {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-	private int updatedBy;
-	
+	private int updatedBy;	
 
 	
-
-	public Long getId() {
-		return id;
+	public Long getJobRoleId() {
+		return jobRoleId;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setJobRoleId(Long jobRoleId) {
+		this.jobRoleId = jobRoleId;
 	}
 
 	public String getName() {
@@ -56,14 +54,14 @@ public class JobRole {
 
 	public void setName(String name) {
 		this.name = name;
-	}	
+	}		
 
-	public Long getDepartmentId() {
-		return departmentId;
+	public Long getDeptId() {
+		return deptId;
 	}
 
-	public void setDepartmentId(Long departmentId) {
-		this.departmentId = departmentId;
+	public void setDeptId(Long deptId) {
+		this.deptId = deptId;
 	}
 
 	public Timestamp getCreatedOn() {

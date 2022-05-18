@@ -46,9 +46,6 @@ public class Department {
 	
 	private int updatedBy;
 	
-//	@OneToMany(mappedBy = "department")
-//	private List<JobRole> jobRole;
-
 	public Long getDept_id() {
 		return dept_id;
 	}
@@ -104,13 +101,7 @@ public class Department {
 		this.updatedBy = updatedBy;
 	}
 
-//	public List<JobRole> getJobRole() {
-//		return jobRole;
-//	}
-//
-//	public void setJobRole(List<JobRole> jobRole) {
-//		this.jobRole = jobRole;
-//	}
+
 	
 	
 

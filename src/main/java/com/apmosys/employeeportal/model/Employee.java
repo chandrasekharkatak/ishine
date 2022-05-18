@@ -80,6 +80,17 @@ public class Employee {
 	private String uan;
 	private String esicNumber;
 	
+	private String graduation;
+	private short yearOfGrad;
+	private String postGraduation;
+	private short yearOfPostGrad;
+	private String hobbies;
+	
+	@Column(columnDefinition="varchar(255) DEFAULT 'Add about yourself.'")
+	private String aboutMe;
+	@Column(columnDefinition="varchar(255) DEFAULT 'Add your views.'")
+	private String viewsOnOrganisation;	
+	
 	
 	public Long getEmpId() {
 		return empId;
@@ -326,6 +337,48 @@ public class Employee {
 	}
 	public void setEsicNumber(String esicNumber) {
 		this.esicNumber = esicNumber;
+	}
+	public String getGraduation() {
+		return graduation;
+	}
+	public void setGraduation(String graduation) {
+		this.graduation = graduation;
+	}
+	public short getYearOfGrad() {
+		return yearOfGrad;
+	}
+	public void setYearOfGrad(short yearOfGrad) {
+		this.yearOfGrad = yearOfGrad;
+	}
+	public String getPostGraduation() {
+		return postGraduation;
+	}
+	public void setPostGraduation(String postGraduation) {
+		this.postGraduation = postGraduation;
+	}
+	public String getHobbies() {
+		return hobbies;
+	}
+	public void setHobbies(String hobbies) {
+		this.hobbies = hobbies;
+	}
+	public String getAboutMe() {
+		return aboutMe;
+	}
+	public void setAboutMe(String aboutMe) {
+		this.aboutMe = aboutMe;
+	}
+	public String getViewsOnOrganisation() {
+		return viewsOnOrganisation;
+	}
+	public void setViewsOnOrganisation(String viewsOnOrganisation) {
+		this.viewsOnOrganisation = viewsOnOrganisation;
+	}
+	public short getYearOfPostGrad() {
+		return yearOfPostGrad;
+	}
+	public void setYearOfPostGrad(short yearOfPostGrad) {
+		this.yearOfPostGrad = yearOfPostGrad;
 	}
 	
 	

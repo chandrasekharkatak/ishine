@@ -9,10 +9,11 @@ public class JobRoleDTO {
 	private Long id;	
 	private String name;	
 	private Long departmentId;	
-	private Timestamp createdOn;	
-	private int createdBy;	
+	private String createdOn;	
+	private String createdBy;	
 	private LocalDateTime updatedOn;	
 	private int updatedBy;
+	private int createdById;
 	
 	
 	public Long getId() {
@@ -33,17 +34,23 @@ public class JobRoleDTO {
 	public void setDepartmentId(Long departmentId) {
 		this.departmentId = departmentId;
 	}
-	public Timestamp getCreatedOn() {
+	public String getCreatedOn() {
 		return createdOn;
 	}
-	public void setCreatedOn(Timestamp createdOn) {
+	public void setCreatedOn(String createdOn) {
 		this.createdOn = createdOn;
 	}
-	public int getCreatedBy() {
+	public String getCreatedBy() {
 		return createdBy;
 	}
-	public void setCreatedBy(int createdBy) {
+	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
+	}	
+	public int getCreatedById() {
+		return createdById;
+	}
+	public void setCreatedById(int createdById) {
+		this.createdById = createdById;
 	}
 	public LocalDateTime getUpdatedOn() {
 		return updatedOn;
