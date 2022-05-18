@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.dto;
 public class EmployeeDTO {
 	
 	private Long empId;
+	private Long draftEmpId;
 	private String name;
 	private int managerId;
 	private String dateOfJoining;
@@ -48,6 +49,13 @@ public class EmployeeDTO {
 
 	public void setEmpId(Long empId) {
 		this.empId = empId;
+	}	
+	public Long getDraftEmpId() {
+		return draftEmpId;
+	}
+
+	public void setDraftEmpId(Long draftEmpId) {
+		this.draftEmpId = draftEmpId;
 	}
 
 	public String getName() {

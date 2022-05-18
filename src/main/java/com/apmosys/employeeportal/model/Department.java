@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 @Entity
-@JsonIdentityInfo(
-		  generator =  ObjectIdGenerators.PropertyGenerator.class,
-		  property = "dept_id")
+//@JsonIdentityInfo(
+//		  generator =  ObjectIdGenerators.PropertyGenerator.class,
+//		  property = "dept_id")
 public class Department {
 	
 	@Id

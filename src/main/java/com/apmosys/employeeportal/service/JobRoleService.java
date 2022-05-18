@@ -79,7 +79,7 @@ public class JobRoleService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
+			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getId());
 			if(jobRoleObject.isPresent())
 			{
 				JobRole jobRoleToBeUpdated = jobRoleObject.get();
@@ -118,7 +118,7 @@ public class JobRoleService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
+			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getId());
 			if (jobRoleObject.isPresent()) {
 				JobRole jobRoleToBeDeleted = jobRoleObject.get();				
 				jobRoleRepository.deleteById(jobRoleToBeDeleted.getId());				
