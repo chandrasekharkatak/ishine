@@ -1,0 +1,46 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Employee } from '../models/employee';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EmployeeService {
+  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  
+  constructor(private http: HttpClient) { }
+
+  createEmployee(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/createEmployee`, employeeObj);
+  }
+
+  updateEmployee(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateEmployeeByEmpId`, employeeObj);
+  }
+
+  deleteEmployee(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteEmployeeByEmpId`, employeeObj);
+  }
+
+  getAllEmployees() {
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEmployees`);
+  }
+
+
+  /* Employee Draft */
+  createDraftEmployee(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/createDraftEmployee`, employeeObj);
+  }
+
+  updateDraftEmployee(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateDraftEmployeeById`, employeeObj);
+  }
+
+  deleteDraftEmployee(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteDraftEmployeeById`, employeeObj);
+  }
+
+  getAllDraftEmployees() {
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`);
+  }
+}

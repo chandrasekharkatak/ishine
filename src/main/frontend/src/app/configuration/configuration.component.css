@@ -1,0 +1,13 @@
+.config__tab-container{
+    padding: 2rem;
+}
+
+.config__tabs .config__tab-item .config__tab-item__link{
+    color: var(--middle-grey);
+}
+
+.config__tabs .config__tab-item .config__tab-item__link.active{
+    color: var(--raisin-black);
+    font-weight: bold;
+    border-bottom: 5px solid var(--dark-cornflower-blue);
+}

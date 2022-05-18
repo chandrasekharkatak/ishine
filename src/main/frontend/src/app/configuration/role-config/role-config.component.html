@@ -1,0 +1,95 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm float-left" *ngIf="isTable" (click)="showCreateForm()"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-primary btn-sm float-right" *ngIf="isForm" (click)="showTable()"><i class="fa fa-list" aria-hidden="true"></i> See All</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Role</strong>
+            <strong *ngIf="isUpdation">Update Role</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Job Role Name</label>
+                            <input type="text" class="form-control" maxlength="25" autocomplete="none"
+                            [(ngModel)]="jobRoleObj.name">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label" ><span class="text-danger">*</span>Department</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let dept of allDeptList" value="{{dept.dept_id}}">{{dept.name}}</option>
+                              </select>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="onCreateJobRole(alert_message)">Create Role</button>
+
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="onUpdateJobRole(alert_message)">Update Role</button>
+                </div>
+            </div>
+    </div>
+</div>
+<!-- end :: create & update form -->
+
+<!-- start :: See all Table -->
+<div class="row col-md-12" *ngIf="isTable">
+    <table class="table department-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">Role Name</th>
+            <th scope="col" class="info-label">Department</th>
+            <th scope="col" class="info-label">Created by</th>
+            <th scope="col" class="info-label">Created on</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let jobRole of allJobRoleList, let i = index">
+            <th class="info-label">{{i+1}}</th>
+            <td>{{jobRole.name}}</td>
+            <td>{{jobRole.departmentId}}</td>
+            <td>{{jobRole.createdBy}}</td>
+            <td>{{jobRole.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(jobRole)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteJobRole(delete_template,jobRole)"><em class="fa fa-trash"></em></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: see all table -->
+
+<!-- Modals Template -->
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Job Role?</p>
+        <button type="button" class="btn btn-success" (click)="onDeleteJobRole(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

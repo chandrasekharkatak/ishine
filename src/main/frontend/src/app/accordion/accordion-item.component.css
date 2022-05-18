@@ -1,0 +1,31 @@
+.acc-header{
+    border-bottom: 1px solid rgb(202, 202, 202);
+    background: var(--cultured);
+    min-height: 30px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+}
+
+.headerTitle{
+    overflow-wrap: break-word;
+    overflow: auto;
+    width: 100%;
+
+    font-weight: 600;
+}
+
+.acc-body{
+    min-height: 30px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    line-height: 1.5rem;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+.arrow{
+    font-size: 18px;
+}

@@ -1,0 +1,30 @@
+<div class="row card">
+    <ul class="nav nav-tabs config__tabs" id="configTab" role="tablist">
+        <li class="nav-item config__tab-item">
+            <a class="nav-link config__tab-item__link active" id="employee-tab" data-toggle="tab" href="#employee" role="tab"
+                aria-controls="employee" aria-selected="true" (click)="resetEmpConfig()">Employee</a>
+        </li>
+        <li class="nav-item config__tab-item">
+            <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" href="#dept" role="tab"
+                aria-controls="dept" aria-selected="false" (click)="resetDeptConfig()">Department</a>
+        </li>
+        <li class="nav-item config__tab-item">
+            <a class="nav-link config__tab-item__link" id="role-tab" data-toggle="tab" href="#role" role="tab"
+                aria-controls="role" aria-selected="false" (click)="resetRoleConfig()">Role</a>
+        </li>
+    </ul>
+
+    <!-- tab Containers -->
+    <div class="tab-content" id="userTabContent">
+        <div class="tab-pane fade show active config__tab-container" id="employee" role="tabpanel"
+            aria-labelledby="employee-tab">
+            <app-employee-config #empCfg ></app-employee-config>
+        </div>
+        <div class="tab-pane fade config__tab-container" id="dept" role="tabpanel" aria-labelledby="dept-tab">
+            <app-dept-config #deptCfg ></app-dept-config>
+        </div>
+        <div class="tab-pane fade config__tab-container" id="role" role="tabpanel" aria-labelledby="role-tab">
+            <app-role-config #roleCfg ></app-role-config>
+        </div>
+    </div>
+</div>

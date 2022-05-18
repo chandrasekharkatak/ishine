@@ -1,0 +1,100 @@
+.user-card{
+    width: 100%;
+    padding: 0.9375rem 0;
+    margin: 0 0 3rem 0;
+}
+
+.user-card .user-card__profile-avatar{
+    display: flex;
+    justify-content: center;
+    align-items: center ;
+    padding: 2rem;
+}
+
+.vertical-rule {
+    border-left: 2px solid #bbb;
+    height: 80%;
+    position: absolute;
+    top: 10%;
+    left: 30%;
+}
+
+.user-card__profile-info .user-card__profile-info__role{
+    color: var(--middle-grey);
+}
+
+.user-card__profile-info .user-card__profile-info__container .user-card__profile-info__label{
+    color: var(--middle-grey);
+    margin-bottom: 0.3125rem;
+    font-weight: 500;
+}
+
+.user-card__profile-info .user-card__profile-info__container .user-card__profile-info__text{
+    margin-top: 0.3125rem;
+    font-weight: 600;
+}
+
+.user-card__profile-info .user-card__profile-info__container{
+    padding: 1rem 0;
+}
+
+.user-info__tab-container{
+    padding: 2rem;
+}
+
+.user-info__tabs .user-info__tab-item .user-info__tab-item__link{
+    color: var(--middle-grey);
+}
+
+.user-info__tabs .user-info__tab-item .user-info__tab-item__link.active{
+    color: var(--raisin-black);
+    font-weight: bold;
+    border-bottom: 5px solid var(--dark-cornflower-blue);
+}
+
+.info-highlight, .info-wrapper .info-text.info-highlight{
+    color:var(--dark-cornflower-blue);
+    font-weight: bold;
+}
+
+
+/* User-info with timeline styling */
+.info-wrapper{
+    margin-top: 0.625rem;
+    border-left: 2px dashed #cfcfcf;
+    padding: 0 1.875rem 0 1.25rem;
+    position: relative;
+}
+
+.info-wrapper::before{
+    content: '';
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 3px solid var(--dark-cornflower-blue);
+    position: absolute;
+    left:  -8px;
+    top: 3.55px;
+}
+
+.info-wrapper .info-label{
+    font-size: 1.05rem;    
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+
+.info-wrapper .info-text{
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--middle-grey);
+}
+
+
+.user-card__profile-avatar .user-card__profile-avatar__img{
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 50%;
+}

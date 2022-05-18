@@ -1,0 +1,22 @@
+<nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" [ngClass]="getNavClass()">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse ml-auto" id="navbarNavDropdown">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa-solid fa-user"></i>&nbsp;Surya Nayak
+            </a>
+            <div class="dropdown-menu" aria-labelledby="user-dropdown">
+              <a class="dropdown-item" href="#"><i class="fa-solid fa-cog"></i>&nbsp;Settings</a>
+              <a class="dropdown-item" href="#"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+</nav>
+<div class="body" [ngClass]="getBodyClass()">
+    <router-outlet></router-outlet>
+</div>
+

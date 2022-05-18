@@ -1,0 +1,61 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
+:root{
+
+    --pacific-blue: #00a8b8ff;
+    --cultured: #f4f2f3ff;
+    --ghost-white: #eef2fcff;
+    --raisin-black: #212227ff;
+    --dark-red: #960200ff;
+    --royal-blue-dark: #132b67ff;
+    --dark-cornflower-blue: #193d8aff;
+    --middle-grey: #857c6fff;
+    --blue-gradient: linear-gradient(to left, #0575e6, #021b79);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    position: relative;
+    font-family: 'Roboto', sans-serif;
+    background: var(--ghost-white);
+}
+
+/* Overriding bootstrap css */
+.btn.btn-outline-primary{
+    border-color: var(--dark-cornflower-blue);
+    color: var(--dark-cornflower-blue);
+}
+
+.btn.btn-outline-primary:hover, .btn.btn-outline-primary:active{
+    border-color: var(--dark-cornflower-blue);
+    background-color: var(--dark-cornflower-blue);
+    color: var(--cultured);
+}
+
+.btn.btn-primary{
+    border-color: var(--dark-cornflower-blue);
+    background-color: var(--dark-cornflower-blue);
+    color: var(--cultured);
+}
+
+
+/* overriding html default css */
+
+/* up-down arrows removed for input:number */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
