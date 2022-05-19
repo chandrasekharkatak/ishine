@@ -116,7 +116,7 @@ public class DraftEmployeeService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employeeToBeDeleted = employeeObject.get();				
 				draftEmployeeRepository.deleteById(employeeToBeDeleted.getDraftEmpId());				
@@ -142,7 +142,7 @@ public class DraftEmployeeService {
 			
 		try
 		{
-			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employee = employeeObject.get();
 			
