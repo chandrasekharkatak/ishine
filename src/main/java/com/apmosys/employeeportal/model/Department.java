@@ -28,7 +28,7 @@ public class Department {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long dept_id;
+	private Long deptId;
 	
 	private String name;
 	
@@ -44,14 +44,15 @@ public class Department {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-	private int updatedBy;
+	private int updatedBy;	
 	
-	public Long getDept_id() {
-		return dept_id;
+
+	public Long getDeptId() {
+		return deptId;
 	}
 
-	public void setDept_id(Long dept_id) {
-		this.dept_id = dept_id;
+	public void setDeptId(Long deptId) {
+		this.deptId = deptId;
 	}
 
 	public String getName() {

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -24,6 +25,9 @@ public class EmployeeService {
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Value("${default.password}")
+	String defaultPaswword;
 
 	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -73,6 +77,7 @@ public class EmployeeService {
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setJobRoleId(employeedto.getJobRoleId());
+			employee.setPassword(defaultPaswword);
 			
 			Employee dbResponse = employeeRepository.save(employee);
 			

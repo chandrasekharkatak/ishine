@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class DepartmentDTO {
 
-	private Long dept_id;
+	private Long deptId;
 	private String name;	
 	private Long hodId;	
 	private Timestamp createdOn;	
@@ -15,11 +15,12 @@ public class DepartmentDTO {
 	private LocalDateTime updatedOn;	
 	private int updatedBy;
 	
-	public Long getDept_id() {
-		return dept_id;
+	
+	public Long getDeptId() {
+		return deptId;
 	}
-	public void setDept_id(Long dept_id) {
-		this.dept_id = dept_id;
+	public void setDeptId(Long deptId) {
+		this.deptId = deptId;
 	}
 	public String getName() {
 		return name;
@@ -59,7 +60,7 @@ public class DepartmentDTO {
 	}
 	@Override
 	public String toString() {
-		return "DepartmentDTO [dept_id=" + dept_id + ", name=" + name + ", hodId=" + hodId + ", createdOn=" + createdOn
+		return "DepartmentDTO [dept_id=" + deptId + ", name=" + name + ", hodId=" + hodId + ", createdOn=" + createdOn
 				+ ", createdBy=" + createdBy + ", updatedOn=" + updatedOn + ", updatedBy=" + updatedBy + "]";
 	}
 	

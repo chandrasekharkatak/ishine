@@ -91,6 +91,8 @@ public class Employee {
 	@Column(columnDefinition="varchar(255) DEFAULT 'Add your views.'")
 	private String viewsOnOrganisation;	
 	
+	private String password;
+	private int otp;
 	
 	public Long getEmpId() {
 		return empId;
@@ -380,6 +382,23 @@ public class Employee {
 	public void setYearOfPostGrad(short yearOfPostGrad) {
 		this.yearOfPostGrad = yearOfPostGrad;
 	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public int getOtp() {
+		return otp;
+	}
+	public void setOtp(int otp) {
+		this.otp = otp;
+	}
+	@Override
+	public String toString() {
+		return "Employee [name=" + name + ", email=" + email + ", password=" + password + ", otp=" + otp + "]";
+	}
+	
 	
 	
 	

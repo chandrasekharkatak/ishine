@@ -8,4 +8,5 @@ import com.apmosys.employeeportal.model.Employee;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
+	public Employee findByEmailAndPassword(String email,String password);
 }

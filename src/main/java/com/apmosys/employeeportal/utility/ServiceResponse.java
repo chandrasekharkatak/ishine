@@ -9,6 +9,7 @@ public class ServiceResponse {
 	private String serviceStatus;
 	private Object serviceError;
 	private String errorStackTrace;
+	private String serviceMessage;
 	
 	
 	public Object getServiceResponse() {
@@ -34,6 +35,12 @@ public class ServiceResponse {
 	}
 	public void setErrorStackTrace(String errorStackTrace) {
 		this.errorStackTrace = errorStackTrace;
+	}
+	public String getServiceMessage() {
+		return serviceMessage;
+	}
+	public void setServiceMessage(String serviceMessage) {
+		this.serviceMessage = serviceMessage;
 	}
 	
 	

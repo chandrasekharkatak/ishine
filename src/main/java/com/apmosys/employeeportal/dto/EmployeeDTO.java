@@ -36,7 +36,6 @@ public class EmployeeDTO {
 	private Long emergencyContactMobile;
 	private String employmentstatus;
 	private short noticePeriod;
-	private boolean isDraft = false;
 	private Long jobRoleId;
 	private String bankName;
 	private String bankAccountNo;
@@ -52,6 +51,8 @@ public class EmployeeDTO {
 	private String aboutMe;
 	private String viewsOnOrganisation;	
 	private short yearOfPostGrad;
+	private String password;
+	private int otp;
 	
 	
 	public Long getEmpId() {
@@ -292,14 +293,7 @@ public class EmployeeDTO {
 	public void setNoticePeriod(short noticePeriod) {
 		this.noticePeriod = noticePeriod;
 	}
-
-	public boolean getDraft() {
-		return isDraft;
-	}
-
-	public void setDraft(boolean isDraft) {
-		this.isDraft = isDraft;
-	}
+	
 	public Long getJobRoleId() {
 		return jobRoleId;
 	}
@@ -419,9 +413,22 @@ public class EmployeeDTO {
 		this.yearOfPostGrad = yearOfPostGrad;
 	}
 
-	public boolean isDraft() {
-		return isDraft;
+	public String getPassword() {
+		return password;
 	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public int getOtp() {
+		return otp;
+	}
+
+	public void setOtp(int otp) {
+		this.otp = otp;
+	}
+	
+	
 
 	
 

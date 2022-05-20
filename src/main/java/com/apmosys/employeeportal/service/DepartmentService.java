@@ -80,7 +80,7 @@ public class DepartmentService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDept_id());
+			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if(departmentObject.isPresent())
 			{
 				Department departmentToBeUpdated = departmentObject.get();
@@ -119,10 +119,10 @@ public class DepartmentService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDept_id());
+			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if (departmentObject.isPresent()) {
 				Department departmentToBeDeleted = departmentObject.get();				
-				departmentRepository.deleteById(departmentToBeDeleted.getDept_id());				
+				departmentRepository.deleteById(departmentToBeDeleted.getDeptId());				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Department Deleted.");
 			} else {
