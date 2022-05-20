@@ -56,7 +56,7 @@ public class AuthenticationService {
 		try
 		{
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
-			System.out.println(employee);
+	//		System.out.println(employee);
 			if(employeedto.getOtp() == employee.getOtp())
 			{
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
