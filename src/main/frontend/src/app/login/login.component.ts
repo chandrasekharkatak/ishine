@@ -96,7 +96,7 @@ export class LoginComponent implements OnInit {
   }
 
 
-  login(){
+  onLogin(){
     this.isError=false;
     this.errorMsg='';
     
@@ -124,12 +124,53 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/home']);
   }
 
-  sendOTP(){
+  onSendOTP(){
+    this.isError=false;
+    this.errorMsg='';
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(this.userEmailId)){
+      this.isError=true;
+      this.errorMsg='Please enter email id !!';
+      return;
+    }else if(!this.validationService.validateEmail(this.userEmailId)){
+      this.isError=true;
+      this.errorMsg='Please enter valid email id !!';
+      return;
+    }
+
     this.showOtpForm();
   }
 
-  confirmOTP(){
+  onConfirmOTP(){
+    this.isError=false;
+    this.errorMsg='';
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(this.userOTP)){
+      this.isError=true;
+      this.errorMsg='Please enter otp !!';
+      return;
+    }
+
     this.showChangePassForm();
+  }
+
+  onChangePassword(){
+    this.isError=false;
+    this.errorMsg='';
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)){
+      this.isError=true;
+      this.errorMsg='Please enter New Password !!';
+      return;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.userConfirmNewPass)){
+      this.isError=true;
+      this.errorMsg='Please enter Confirm New Password !!';
+      return;
+    }
+
+    this.showLoginForm();
   }
 
 }
