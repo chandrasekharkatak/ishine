@@ -21,7 +21,7 @@
                                 </span>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block login__btn" (click)="login()">SIGN IN</button>
+                        <button type="submit" class="btn btn-primary btn-block login__btn" (click)="onLogin()">SIGN IN</button>
                     </div>
                     <!-- OTP FORM -->
                     <div *ngIf="isOtpForm" class="otp__form">
@@ -35,7 +35,7 @@
                                 </span>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="confirmOTP()">Confirm</button>
+                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmOTP()">Confirm</button>
                     </div>
                     <!-- FORGOT PASSWORD FORM -->
                     <div *ngIf="isForgotPassForm" class="forgor-pass__form">
@@ -43,7 +43,7 @@
                             <label for="emailID" class="sr-only">emailID</label>
                             <input class="form-control" type="text" id="emailID" placeholder="Enter email id" [(ngModel)]="userEmailId" autocomplete="off">
                         </div>
-                        <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="sendOTP()">Send OTP</button>
+                        <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="onSendOTP()">Send OTP</button>
                         <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn">Resend OTP</button>  
                     </div>
                     <!-- CHANGE PASSWORD FORM -->
@@ -68,7 +68,7 @@
                                 </span>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn">Change Password</button>
+                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onChangePassword()">Change Password</button>
                     </div>
                     <div class="auth__cta d-flex justify-content-between mt-3">
                         <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a>
