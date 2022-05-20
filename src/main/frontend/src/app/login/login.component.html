@@ -2,6 +2,9 @@
         <div class="row align-items-center auth__container">
             <div class="col-md-6 offset-md-3 d-flex justify-content-center">
                 <div class="card d-flex flex-column auth__form">
+                    <div class="auth__logo">
+                        <h4 class="auth__logo__text">ApMoSys</h4>
+                    </div>
                     <div *ngIf="isError" class="auth__error text-center">
                         <p class="form-text text-danger auth__error__msg">{{errorMsg}}</p>
                     </div>
@@ -35,7 +38,8 @@
                                 </span>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmOTP()">Confirm</button>
+                        <button *ngIf="isLoginOTP" type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmLoginOTP()">Confirm</button>
+                        <button *ngIf="!isLoginOTP" type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmForgotPassOTP()">Confirm</button>
                     </div>
                     <!-- FORGOT PASSWORD FORM -->
                     <div *ngIf="isForgotPassForm" class="forgor-pass__form">
@@ -44,7 +48,7 @@
                             <input class="form-control" type="text" id="emailID" placeholder="Enter email id" [(ngModel)]="userEmailId" autocomplete="off">
                         </div>
                         <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="onSendOTP()">Send OTP</button>
-                        <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn">Resend OTP</button>  
+                        <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn" (click)="onSendOTP()">Resend OTP</button>  
                     </div>
                     <!-- CHANGE PASSWORD FORM -->
                     <div *ngIf="isChangePassForm" class="change-pass__form">

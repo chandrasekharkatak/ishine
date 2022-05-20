@@ -24,10 +24,17 @@ export class AuthenticationService {
 
   public get currentUserValue(): User {
     return this.currentUserSubject.value;
-}
+  }
 
-setcurrentUserSubject(user: User){
-    this.currentUserSubject.next(user);
-}
+  setcurrentUserSubject(user: User){
+      this.currentUserSubject.next(user);
+  }
 
+  authenticateUser(user: User){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/authenticateUser`, user);
+  }
+
+  authenticateUserWithOTP(user: User){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/authenticateUserWithOTP`, user);
+  }
 }

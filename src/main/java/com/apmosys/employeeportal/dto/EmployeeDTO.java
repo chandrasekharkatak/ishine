@@ -53,6 +53,7 @@ public class EmployeeDTO {
 	private short yearOfPostGrad;
 	private String password;
 	private int otp;
+	private String newPassword;
 	
 	
 	public Long getEmpId() {
@@ -426,6 +427,14 @@ public class EmployeeDTO {
 
 	public void setOtp(int otp) {
 		this.otp = otp;
+	}
+
+	public String getNewPassword() {
+		return newPassword;
+	}
+
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
 	}
 	
 	

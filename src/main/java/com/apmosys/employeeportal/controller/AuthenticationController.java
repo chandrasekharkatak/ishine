@@ -20,16 +20,16 @@ public class AuthenticationController {
 	AuthenticationService authenticationService;
 	
 	@RequestMapping(value="/authenticateUser" , method = RequestMethod.POST)
-	public ServiceResponse authenticateUser(@RequestBody EmployeeDTO employeedto , HttpSession session) {		
+	public ServiceResponse authenticateUser(@RequestBody EmployeeDTO employeedto) {		
 		
-		ServiceResponse response =	authenticationService.authenticateUser(employeedto , session);		
+		ServiceResponse response =	authenticationService.authenticateUser(employeedto);		
 		return response;
 	}
 	
 	@RequestMapping(value="/authenticateUserWithOTP" , method = RequestMethod.POST)
-	public ServiceResponse authenticateUserWithOTP(@RequestBody EmployeeDTO employeedto, HttpSession session) {		
+	public ServiceResponse authenticateUserWithOTP(@RequestBody EmployeeDTO employeedto) {		
 		
-		ServiceResponse response =	authenticationService.authenticateUserWithOTP(employeedto,session);		
+		ServiceResponse response =	authenticationService.authenticateUserWithOTP(employeedto);		
 		return response;
 	}
 	

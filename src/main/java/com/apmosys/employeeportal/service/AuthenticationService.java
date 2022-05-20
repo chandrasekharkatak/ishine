@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.util.Random;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,14 @@ public class AuthenticationService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	HttpSession session;
+	
+	@Autowired
+	private HttpServletRequest request;
 
-	public ServiceResponse authenticateUser(EmployeeDTO employeedto , HttpSession session) {
+	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
@@ -35,11 +42,16 @@ public class AuthenticationService {
 				int otp = random.nextInt(9999 - 1000) + 1000; /*Random number will be generated between 1000 and 9999 */
 				employee.setOtp(otp);
 				Employee currentEmployee = employeeRepository.save(employee);
+				
+				session = request.getSession();
+				session.invalidate();
+				session = request.getSession(true);
 				session.setAttribute("currentEmployee", currentEmployee);
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Valid Credentials. OTP sent to email.");
 			}
-			System.out.println(employee);
+			System.out.println("employee : "+ employee);
 		}
 		catch(Exception e)
 		{
@@ -51,12 +63,11 @@ public class AuthenticationService {
 		return response;
 	}
 
-	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto, HttpSession session) {
+	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
-	//		System.out.println(employee);
 			if(employeedto.getOtp() == employee.getOtp())
 			{
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { ValidationService } from '../services/validation.service';
@@ -19,6 +20,7 @@ export class LoginComponent implements OnInit {
   isForgotPassForm:boolean=false;
   isChangePassForm:boolean=false;
   isError:boolean=false;
+  isLoginOTP:boolean=false;
 
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
@@ -119,9 +121,39 @@ export class LoginComponent implements OnInit {
     this.user.email = this.userName;
     this.user.password = this.password;
 
-    sessionStorage.setItem('currentUser', JSON.stringify(this.user));
-    this.authenticationService.setcurrentUserSubject(this.user);
-    this.router.navigate(['/home']);
+    this.authenticationService.authenticateUser(this.user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.isLoginOTP=true;
+        this.showOtpForm();
+      } else {
+        this.isError=true;
+        this.errorMsg=response.serviceResponse;
+      }
+    });
+  }
+
+  onConfirmLoginOTP(){
+    this.isError=false;
+    this.errorMsg='';
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(this.userOTP)){
+      this.isError=true;
+      this.errorMsg='Please enter otp !!';
+      return;
+    }
+
+    this.user.otp = this.userOTP;
+
+    this.authenticationService.authenticateUserWithOTP(this.user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        sessionStorage.setItem('currentUser', JSON.stringify(this.user));
+        this.authenticationService.setcurrentUserSubject(this.user);
+        this.router.navigate(['/home']);
+      } else {
+        this.isError=true;
+        this.errorMsg=response.serviceResponse;
+      }
+    });
   }
 
   onSendOTP(){
@@ -138,10 +170,11 @@ export class LoginComponent implements OnInit {
       return;
     }
 
+    this.isLoginOTP=false;
     this.showOtpForm();
   }
 
-  onConfirmOTP(){
+  onConfirmForgotPassOTP(){
     this.isError=false;
     this.errorMsg='';
     
@@ -151,6 +184,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
+    this.user.otp = this.userOTP;
     this.showChangePassForm();
   }
 
