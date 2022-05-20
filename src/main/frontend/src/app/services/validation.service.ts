@@ -77,10 +77,10 @@ export class ValidationService {
 
   validateNullUndefinedEmptyString(text: any): boolean {
 
-    if (text !== "" || text !== undefined || text !== null) {
-      return true;
+    if (text === undefined || text === null || text === "") {
+      return false;
     }
-    return false;
+    return true;
   }
 
 
