@@ -4,6 +4,7 @@ import { ConfigurationComponent } from './configuration/configuration.component'
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
 import { HomeComponent } from './home/home.component';
 import { HrPoliciesComponent } from './hr-policies/hr-policies.component';
+import { LoginComponent } from './login/login.component';
 import { UserAttendanceComponent } from './user-attendance/user-attendance.component';
 import { UserLeavesComponent } from './user-leaves/user-leaves.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
@@ -12,7 +13,8 @@ import { UserRequestsComponent } from './user-requests/user-requests.component';
 import { UserSalaryComponent } from './user-salary/user-salary.component';
 
 const routes: Routes = [
-  {path:'', redirectTo:'home', pathMatch:'full'},
+  {path:'', redirectTo:'login', pathMatch:'full'},
+  {path:'login', component: LoginComponent},
   {path:'home', component: HomeComponent},
   {path:'user-profile', component: UserProfileComponent},
   {path:'configuration', component: ConfigurationComponent},

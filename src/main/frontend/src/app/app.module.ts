@@ -23,6 +23,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { DatePipe, HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
+import { LoginComponent } from './login/login.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
     ConfigurationComponent,
     RoleConfigComponent,
     DeptConfigComponent,
-    EmployeeConfigComponent
+    EmployeeConfigComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,

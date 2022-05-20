@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { User } from './models/user';
+import { AuthenticationService } from './services/authentication.service';
 
 interface SideNavToggle{
   screenWidth: number;
@@ -14,6 +16,11 @@ export class AppComponent {
 
   isSideNavCollapsed = false;
   screenWidth = 0;
+  currentUser:User = new User();
+
+  constructor(private authenticationService: AuthenticationService){
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   onToggleSideNav(data: SideNavToggle){
     this.screenWidth = data.screenWidth;
