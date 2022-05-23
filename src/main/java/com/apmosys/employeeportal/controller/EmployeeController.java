@@ -1,10 +1,14 @@
 package com.apmosys.employeeportal.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.service.EmployeeService;
@@ -52,6 +56,21 @@ public class EmployeeController {
 		
 		ServiceResponse response =employeeService.deleteEmployeeByEmpId(employeedto);
 		return response;
+	}
+	
+	@RequestMapping(value="/previewImage" , method = RequestMethod.POST)
+	public ServiceResponse previewImage(HttpServletRequest request, @RequestParam("image")MultipartFile image) {
+		
+		ServiceResponse serviceResponse = employeeService.previewImage(image);
+		return serviceResponse;
+	}
+	
+	@RequestMapping(value="/uploadImage" , method = RequestMethod.POST)
+	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")MultipartFile image,
+			@RequestParam("uploadedBy")Long uploadedBy) {
+		
+		ServiceResponse serviceResponse = employeeService.uploadImage(image,uploadedBy);
+		return serviceResponse;
 	}
 
 }

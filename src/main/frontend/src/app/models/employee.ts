@@ -38,16 +38,18 @@ export class Employee{
 	uan:any;
 	esicNumber:any;
 
-	/* Need to change as per DTO */
 	graduation:any;
 	yearOfGrad:any;
 	postGraduation:any;
 	yearOfPostGrad:any;
 	hobbies:any;
 
-
+	aboutMe:any;
+	viewsOnOrganisation:any;
+	
 	createdOn: any;	
 	createdBy: any;	
 	updatedOn: any;	
 	updatedBy: any;
+	imageBytes:any;
 }

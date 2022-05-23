@@ -93,6 +93,7 @@ public class Employee {
 	
 	private String password;
 	private int otp;
+	private String profileImageName;
 	
 	public Long getEmpId() {
 		return empId;
@@ -394,6 +395,13 @@ public class Employee {
 	public void setOtp(int otp) {
 		this.otp = otp;
 	}
+	public String getProfileImageName() {
+		return profileImageName;
+	}
+	public void setProfileImageName(String profileImageName) {
+		this.profileImageName = profileImageName;
+	}
+	
 	@Override
 	public String toString() {
 		return "Employee [name=" + name + ", email=" + email + ", password=" + password + ", otp=" + otp + "]";

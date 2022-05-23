@@ -26,6 +26,18 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEmployees`);
   }
 
+  getEmployeeByEmpId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getEmployeeByEmpId`, employeeObj);
+  }
+
+  /* Profile Image Upload */
+  previewImage(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);
+  }
+
+  uploadImage(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`employeeportal/api/uploadImage`,formData);
+  }
 
   /* Employee Draft */
   createDraftEmployee(employeeObj: Employee) {

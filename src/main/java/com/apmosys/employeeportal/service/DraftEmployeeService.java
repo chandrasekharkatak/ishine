@@ -61,6 +61,7 @@ public class DraftEmployeeService {
 			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
 			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
 			employee.setUan(employeedto.getUan());
+			employee.setEsicNumber(employeedto.getEsicNumber());
 			employee.setGraduation(employeedto.getGraduation());
 			employee.setYearOfGrad(employeedto.getYearOfGrad());
 			employee.setPostGraduation(employeedto.getPostGraduation());
@@ -181,6 +182,7 @@ public class DraftEmployeeService {
 				employee.setPfAccountNumber(employeedto.getPfAccountNumber());
 				employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
 				employee.setUan(employeedto.getUan());
+				employee.setEsicNumber(employeedto.getEsicNumber());
 				employee.setGraduation(employeedto.getGraduation());
 				employee.setYearOfGrad(employeedto.getYearOfGrad());
 				employee.setPostGraduation(employeedto.getPostGraduation());
