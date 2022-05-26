@@ -88,6 +88,7 @@ public class EmployeeService {
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setPassword(defaultPaswword);
+			employee.setUserTypeId(employeedto.getUserTypeId());
 			
 			Employee dbResponse = employeeRepository.save(employee);
 			
@@ -118,9 +119,7 @@ public class EmployeeService {
 			if (employeeObject.isPresent()) {
 				Employee emp = employeeObject.get();
 				
-				byte[] imageBytes = Files
-						.readAllBytes(Paths.get(imageFileLocation + File.separator + emp.getProfileImageName()));
-				
+				empDTO.setEmpId(emp.getEmpId());			
 				empDTO.setName(emp.getName());
 				empDTO.setDateOfBirth(format.format(format.parse(emp.getDateOfBirth().toString())));
 				empDTO.setDateOfJoining(format.format(format.parse(emp.getDateOfJoining().toString())));
@@ -164,7 +163,13 @@ public class EmployeeService {
 				empDTO.setAboutMe(emp.getAboutMe());
 				empDTO.setViewsOnOrganisation(emp.getViewsOnOrganisation());
 				empDTO.setJobRoleId(emp.getJobRoleId());
-				empDTO.setImageBytes(imageBytes);
+				if(emp.getProfileImageName() != null)
+				{
+					byte[] imageBytes = Files
+							.readAllBytes(Paths.get(imageFileLocation + File.separator + emp.getProfileImageName()));
+					empDTO.setImageBytes(imageBytes);
+				}				
+				empDTO.setUserTypeId(emp.getUserTypeId());
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
@@ -181,6 +186,35 @@ public class EmployeeService {
 		}
 		return response;
 	}
+	
+	
+//	public ServiceResponse getEmployeeByEmpId(EmployeeDTO employeedto) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//		EmployeeDTO empDTO = new EmployeeDTO();
+//		try {
+//			Object[] object = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
+//			
+//			if(object != null)
+//			{
+//				//System.out.println((Number)object[0]);
+//				empDTO.setEmpId(Integer.parseInt(object[0].toString()));
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(object);	
+//			}
+//			else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee Profile Not Found");
+//			}
+//		}
+//		catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//		}
+//		return response;
+//	}
 
 	public ServiceResponse deleteEmployeeByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -260,6 +294,7 @@ public class EmployeeService {
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setJobRoleId(employeedto.getJobRoleId());
+				employee.setUserTypeId(employeedto.getUserTypeId());
 				
 				Employee dbResponse = employeeRepository.save(employee);
 
@@ -413,4 +448,6 @@ public class EmployeeService {
 		
 		return response;
 	}
+
+	
 }

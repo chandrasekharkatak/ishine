@@ -55,6 +55,7 @@ public class EmployeeDTO {
 	private int otp;
 	private String newPassword;
 	private byte[] imageBytes;
+	private Long userTypeId;
 	
 	public Long getEmpId() {
 		return empId;
@@ -443,6 +444,14 @@ public class EmployeeDTO {
 
 	public void setImageBytes(byte[] imageBytes) {
 		this.imageBytes = imageBytes;
+	}
+
+	public Long getUserTypeId() {
+		return userTypeId;
+	}
+
+	public void setUserTypeId(Long userTypeId) {
+		this.userTypeId = userTypeId;
 	}
 	
 	

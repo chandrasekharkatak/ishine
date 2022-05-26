@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.UserTypeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -24,6 +25,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	private HttpServletRequest request;
+	
+	@Autowired
+	UserTypeCrudMappingService userTypeCrudMappingService;
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -70,8 +74,16 @@ public class AuthenticationService {
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
 			if(employeedto.getOtp() == employee.getOtp())
 			{
+				UserTypeDTO user = new UserTypeDTO();
+				user.setUserTypeId(employee.getUserTypeId());
+				ServiceResponse serviceResponse = userTypeCrudMappingService.getUserTypeCrudMappingsByUserTypeId(user);				
+				
+				Object[] object = new Object[2];				
+				object[0] = employee;
+				object[1] = serviceResponse.getServiceResponse();
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(employee);
+				response.setServiceResponse(object);
 				response.setServiceMessage("OTP validated successfully. User Log in success.");
 			}
 			else

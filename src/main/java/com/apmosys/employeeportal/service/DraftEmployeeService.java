@@ -70,7 +70,7 @@ public class DraftEmployeeService {
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setJobRoleId(employeedto.getJobRoleId());
-			
+			employee.setUserTypeId(employeedto.getUserTypeId());
 			
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 			
@@ -191,6 +191,7 @@ public class DraftEmployeeService {
 				employee.setAboutMe("Add about yourself.");
 				employee.setViewsOnOrganisation("Add your views.");
 				employee.setJobRoleId(employeedto.getJobRoleId());
+				employee.setUserTypeId(employeedto.getUserTypeId());
 				
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 

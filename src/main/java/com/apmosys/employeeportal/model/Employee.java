@@ -95,6 +95,8 @@ public class Employee {
 	private int otp;
 	private String profileImageName;
 	
+	private Long userTypeId;
+	
 	public Long getEmpId() {
 		return empId;
 	}
@@ -401,11 +403,14 @@ public class Employee {
 	public void setProfileImageName(String profileImageName) {
 		this.profileImageName = profileImageName;
 	}
-	
-	@Override
-	public String toString() {
-		return "Employee [name=" + name + ", email=" + email + ", password=" + password + ", otp=" + otp + "]";
+	public Long getUserTypeId() {
+		return userTypeId;
 	}
+	public void setUserTypeId(Long userTypeId) {
+		this.userTypeId = userTypeId;
+	}
+	
+	
 	
 	
 	

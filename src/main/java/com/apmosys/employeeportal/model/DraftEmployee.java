@@ -90,7 +90,7 @@ public class DraftEmployee {
 	@Column(columnDefinition="varchar(255) DEFAULT 'Add your views.'")	
 	private String viewsOnOrganisation;
 	
-	
+	private Long userTypeId;
 	
 	
 	public Long getDraftEmpId() {
@@ -380,6 +380,12 @@ public class DraftEmployee {
 	}
 	public void setYearOfPostGrad(short yearOfPostGrad) {
 		this.yearOfPostGrad = yearOfPostGrad;
+	}
+	public Long getUserTypeId() {
+		return userTypeId;
+	}
+	public void setUserTypeId(Long userTypeId) {
+		this.userTypeId = userTypeId;
 	}
 	
 }
