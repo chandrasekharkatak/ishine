@@ -114,62 +114,65 @@ public class EmployeeService {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		
 		try {
-			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
 
-			if (employeeObject.isPresent()) {
-				Employee emp = employeeObject.get();
+			if (objectList != null) {
+			
+				for(Object[] object: objectList)
+				{
+				empDTO.setEmpId(Long.parseLong(object[0].toString()));
+				empDTO.setAadhar(Long.parseLong(object[1].toString()));
+				empDTO.setAboutMe(object[2].toString());
+				empDTO.setAddress(object[3].toString());
+				empDTO.setBankAccountNo(object[4].toString());
+				empDTO.setBankIFSCCode(object[5].toString());
+				empDTO.setBankName(object[6].toString());
+				empDTO.setBloodGroup(object[7].toString());
+				empDTO.setCity(object[8].toString());
+				empDTO.setCountry(object[9].toString());
+				empDTO.setDateOfBirth(format.format(format.parse(object[10].toString())));
+				empDTO.setDateOfJoining(format.format(format.parse(object[11].toString())));
+				empDTO.setEmail(object[12].toString());
+				empDTO.setEmergencyContactMobile(Long.parseLong(object[13].toString()));
+				empDTO.setEmploymentstatus(object[14].toString());
+				empDTO.setEsicNumber(object[15].toString());
+				empDTO.setFatherName(object[16].toString());
+				empDTO.setGender(object[17].toString());
+				empDTO.setGraduation(object[18].toString());
+				empDTO.setHobbies(object[19].toString());
+				empDTO.setLandline(Long.parseLong(object[20].toString()));
+				empDTO.setMaritalStatus(object[21].toString());
+				empDTO.setMobileNo(Long.parseLong(object[22].toString()));
+				empDTO.setMotherTongue(object[23].toString());
+				empDTO.setName(object[24].toString());
+				empDTO.setNoticePeriod(Short.parseShort(object[25].toString()));
+				empDTO.setOfficialMobileNo(Long.parseLong(object[26].toString()));
+				empDTO.setPanNumber(object[27].toString());
+				empDTO.setPassportNumber(object[28].toString());
+				empDTO.setPermanentAddress(object[29].toString());
+				empDTO.setPfAccountNumber(object[30].toString());
+				empDTO.setPincode(Integer.parseInt(object[31].toString()));
+				empDTO.setPlaceOfBirth(object[32].toString());
+				empDTO.setPostGraduation(object[33].toString());
+				empDTO.setPreviousPfAccountNumber(object[34].toString());
+				empDTO.setRelation(object[35].toString());
+				empDTO.setState(object[36].toString());
+				empDTO.setUan(object[37].toString());
+				empDTO.setViewsOnOrganisation(object[38].toString());
+				empDTO.setYearOfGrad(Short.parseShort(object[39].toString()));				
+				empDTO.setYearOfPostGrad(Short.parseShort(object[40].toString()));
+				empDTO.setEmergencyContactPerson(object[41].toString());
+				empDTO.setManagerName(object[43].toString());
+				empDTO.setJobRoleName(object[44].toString());
+				empDTO.setDepartmentName(object[45].toString());				
 				
-				empDTO.setEmpId(emp.getEmpId());			
-				empDTO.setName(emp.getName());
-				empDTO.setDateOfBirth(format.format(format.parse(emp.getDateOfBirth().toString())));
-				empDTO.setDateOfJoining(format.format(format.parse(emp.getDateOfJoining().toString())));
-				empDTO.setManagerId(emp.getManagerId());
-				empDTO.setEmail(emp.getEmail());
-				empDTO.setGender(emp.getGender());
-				empDTO.setBloodGroup(emp.getBloodGroup());
-				empDTO.setMaritalStatus(emp.getMaritalStatus());
-				empDTO.setFatherName(emp.getFatherName());
-				empDTO.setPlaceOfBirth(emp.getPlaceOfBirth());
-				empDTO.setMotherTongue(emp.getMotherTongue());
-				empDTO.setPassportNumber(emp.getPassportNumber());
-				empDTO.setAadhar(emp.getAadhar());
-				empDTO.setPanNumber(emp.getPanNumber());
-				empDTO.setMobileNo(emp.getMobileNo());
-				empDTO.setLandline(emp.getLandline());
-				empDTO.setAddress(emp.getAddress());
-				empDTO.setCity(emp.getCity());
-				empDTO.setState(emp.getState());
-				empDTO.setCountry(emp.getCountry());
-				empDTO.setPincode(emp.getPincode());
-				empDTO.setOfficialMobileNo(emp.getOfficialMobileNo());
-				empDTO.setPermanentAddress(emp.getPermanentAddress());
-				empDTO.setEmergencyContactPerson(emp.getEmergencyContactPerson());
-				empDTO.setRelation(emp.getRelation());
-				empDTO.setEmergencyContactMobile(emp.getEmergencyContactMobile());
-				empDTO.setNoticePeriod(emp.getNoticePeriod());
-				empDTO.setEmploymentstatus(emp.getEmploymentstatus());
-				empDTO.setBankName(emp.getBankName());
-				empDTO.setBankAccountNo(emp.getBankAccountNo());
-				empDTO.setBankIFSCCode(emp.getBankIFSCCode());
-				empDTO.setPfAccountNumber(emp.getPfAccountNumber());
-				empDTO.setPreviousPfAccountNumber(emp.getPreviousPfAccountNumber());
-				empDTO.setUan(emp.getUan());
-				empDTO.setEsicNumber(emp.getEsicNumber());
-				empDTO.setGraduation(emp.getGraduation());
-				empDTO.setYearOfGrad(emp.getYearOfGrad());
-				empDTO.setPostGraduation(emp.getPostGraduation());
-				empDTO.setYearOfPostGrad(emp.getYearOfPostGrad());
-				empDTO.setHobbies(emp.getHobbies());
-				empDTO.setAboutMe(emp.getAboutMe());
-				empDTO.setViewsOnOrganisation(emp.getViewsOnOrganisation());
-				empDTO.setJobRoleId(emp.getJobRoleId());
-				if(emp.getProfileImageName() != null)
+				if(object[42] != null)
 				{
 					byte[] imageBytes = Files
-							.readAllBytes(Paths.get(imageFileLocation + File.separator + emp.getProfileImageName()));
+							.readAllBytes(Paths.get(imageFileLocation + File.separator + object[45].toString()));
 					empDTO.setImageBytes(imageBytes);
 				}				
-				empDTO.setUserTypeId(emp.getUserTypeId());
+				}
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
@@ -187,34 +190,6 @@ public class EmployeeService {
 		return response;
 	}
 	
-	
-//	public ServiceResponse getEmployeeByEmpId(EmployeeDTO employeedto) {
-//		
-//		ServiceResponse response = new ServiceResponse();
-//		EmployeeDTO empDTO = new EmployeeDTO();
-//		try {
-//			Object[] object = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
-//			
-//			if(object != null)
-//			{
-//				//System.out.println((Number)object[0]);
-//				empDTO.setEmpId(Integer.parseInt(object[0].toString()));
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse(object);	
-//			}
-//			else {
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				response.setServiceResponse("Employee Profile Not Found");
-//			}
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something Went Wrong.");
-//			response.setServiceError(e.getMessage());
-//		}
-//		return response;
-//	}
 
 	public ServiceResponse deleteEmployeeByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();

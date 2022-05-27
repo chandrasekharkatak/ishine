@@ -56,6 +56,9 @@ public class EmployeeDTO {
 	private String newPassword;
 	private byte[] imageBytes;
 	private Long userTypeId;
+	private String managerName;
+	private String jobRoleName;
+	private String departmentName;
 	
 	public Long getEmpId() {
 		return empId;
@@ -452,6 +455,30 @@ public class EmployeeDTO {
 
 	public void setUserTypeId(Long userTypeId) {
 		this.userTypeId = userTypeId;
+	}
+
+	public String getManagerName() {
+		return managerName;
+	}
+
+	public void setManagerName(String managerName) {
+		this.managerName = managerName;
+	}
+
+	public String getJobRoleName() {
+		return jobRoleName;
+	}
+
+	public void setJobRoleName(String jobRoleName) {
+		this.jobRoleName = jobRoleName;
+	}
+
+	public String getDepartmentName() {
+		return departmentName;
+	}
+
+	public void setDepartmentName(String departmentName) {
+		this.departmentName = departmentName;
 	}
 	
 	
