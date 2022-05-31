@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { DeptConfigComponent } from './dept-config/dept-config.component';
 import { EmployeeConfigComponent } from './employee-config/employee-config.component';
 import { RoleConfigComponent } from './role-config/role-config.component';
+import { UserTypeConfigComponent } from './user-type-config/user-type-config.component';
 
 @Component({
   selector: 'app-configuration',
@@ -16,6 +17,8 @@ export class ConfigurationComponent implements OnInit {
   departmentConfig!: DeptConfigComponent;
   @ViewChild('roleCfg')
   roleConfig!: RoleConfigComponent;
+  // @ViewChild('userTypeCfg')
+  // userTypeConfig!: UserTypeConfigComponent;
 
 
   constructor() { }
@@ -32,5 +35,8 @@ export class ConfigurationComponent implements OnInit {
   resetRoleConfig(){
     this.roleConfig.showCreateForm();
   }
+  // resetUsertypeConfig(){
+  //   this.userTypeConfig.showCreateForm();
+  // }
 
 }

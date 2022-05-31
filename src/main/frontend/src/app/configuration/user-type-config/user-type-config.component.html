@@ -1,0 +1,130 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm float-left" *ngIf="isTable" (click)="showCreateForm()"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-primary btn-sm float-right" *ngIf="isForm" (click)="showTable()"><i class="fa fa-list" aria-hidden="true"></i> See All</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Usertype</strong>
+            <strong *ngIf="isUpdation">Update Usertype</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>User Type</label>
+                            <input type="text" class="form-control" maxlength="25" autocomplete="none"
+                              [(ngModel)]="userTypeObj.userType" [disabled]="isUpdation">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="isUpdation" class="row px-3">
+                <table class="table">
+                    <thead class="thead-light">
+                      <tr class="text-center">
+                        <th scope="col" class="info-label">Module Name</th>
+                        <th scope="col" class="info-label">Module Visibiility</th>
+                        <th scope="col" class="info-label" colspan="4">User Access</th>
+                        <th scope="col" class="info-label">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="text-center" *ngFor="let userMap of userTypeObj.userCrudMapping">
+                        <th class="info-label">{{userMap.module}}</th>
+                        <td>
+                           <label for="{{userMap.module}}-visibility" class="check">
+                            <input type="checkbox" id="{{userMap.module}}-visibility" [(ngModel)]="userMap.moduleVisibilty" >
+                            <span>Visible</span>
+                           </label>
+                        </td>
+                        <td>
+                            <label for="{{userMap.module}}-create" class="check">
+                             <input type="checkbox" id="{{userMap.module}}-create" [(ngModel)]="userMap.creation">
+                             <span>Create</span>
+                            </label>
+                         </td>
+                         <td>
+                            <label for="{{userMap.module}}-edit" class="check">
+                             <input type="checkbox" id="{{userMap.module}}-edit" [(ngModel)]="userMap.edit">
+                             <span>Edit</span>
+                            </label>
+                         </td>
+                         <td>
+                            <label for="{{userMap.module}}-delete" class="check">
+                             <input type="checkbox" id="{{userMap.module}}-delete" [(ngModel)]="userMap.deletion">
+                             <span>Delete</span>
+                            </label>
+                         </td>
+                         <td>
+                            <label for="{{userMap.module}}-view" class="check">
+                             <input type="checkbox" id="{{userMap.module}}-view" [(ngModel)]="userMap.view">
+                             <span>View</span>
+                            </label>
+                         </td>
+                         <td>
+                           <button  type="submit" class="btn btn-primary btn-sm mx-1"
+                           (click)="onUpdateUsertypeCrudMapping(userMap,alert_message)">Update</button>
+                         </td>
+                      </tr>
+                    </tbody>
+                  </table>  
+            </div>
+            <div *ngIf="isCreation" class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="onCreateUsertype(alert_message)">Create Usertype</button>
+                </div>
+            </div>
+    </div>
+</div>
+<!-- end :: create & update form -->
+
+<!-- start :: See all Table -->
+<div class="row col-md-12" *ngIf="isTable">
+    <table class="table usertype-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">User Type</th>
+            <th scope="col" class="info-label">Created by</th>
+            <th scope="col" class="info-label">Created On</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usertype of allUserTypes, let i = index">
+            <th class="info-label">{{i+1}}</th>
+            <td>{{usertype.userType}}</td>
+            <td>{{usertype.createdBy}}</td>
+            <td>{{usertype.createdOn | date:'dd-MM-yyyy HH:mm:ss' }}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(usertype)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button class="btn btn-sm btn-outline-danger"  type="submit" ><em class="fa fa-trash"></em></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: see all table -->
+
+<!-- Modals Template -->
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the user type?</p>
+        <button type="button" class="btn btn-success">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

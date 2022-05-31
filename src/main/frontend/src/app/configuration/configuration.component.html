@@ -12,6 +12,10 @@
             <a class="nav-link config__tab-item__link" id="role-tab" data-toggle="tab" href="#role" role="tab"
                 aria-controls="role" aria-selected="false" (click)="resetRoleConfig()">Role</a>
         </li>
+        <!-- <li class="nav-item config__tab-item">
+            <a class="nav-link config__tab-item__link" id="userType-tab" data-toggle="tab" href="#userType" role="tab"
+                aria-controls="userType" aria-selected="false" (click)="resetUsertypeConfig()">Usertype</a>
+        </li> -->
     </ul>
 
     <!-- tab Containers -->
@@ -26,5 +30,8 @@
         <div class="tab-pane fade config__tab-container" id="role" role="tabpanel" aria-labelledby="role-tab">
             <app-role-config #roleCfg ></app-role-config>
         </div>
+        <!-- <div class="tab-pane fade config__tab-container" id="userType" role="tabpanel" aria-labelledby="userType-tab">
+            <app-user-type-config #userTypeCfg ></app-user-type-config>
+        </div> -->
     </div>
 </div>

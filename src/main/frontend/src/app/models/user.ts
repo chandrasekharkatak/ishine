@@ -6,4 +6,5 @@ export class User{
     role:any
     newPassword:any;
     otp:any;
+    userMapping:any;
 }

@@ -1,0 +1,34 @@
+label.check {
+    cursor: pointer;
+}
+
+label.check input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+label.check span {
+    font-size: 0.7rem;
+    padding: 0.5em 0.85em;
+    border: 1px solid var(--dark-cornflower-blue);
+    display: inline-block;
+    color: var(--dark-cornflower-blue);
+    border-radius: 15px;
+    text-transform: uppercase;
+}
+
+label.check input:checked+span {
+    border-color: var(--dark-cornflower-blue);
+    background-color: var(--dark-cornflower-blue);
+    color: var(--cultured);
+}
+
+label.check input:disabled+span{
+    border-color: var(--dark-cornflower-blue);
+    background-color: #d3d3d3;
+    color: var(--dark-cornflower-blue);
+    cursor:not-allowed;
+}
