@@ -147,8 +147,12 @@ export class LoginComponent implements OnInit {
     this.authenticationService.authenticateUserWithOTP(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log("USER",response.serviceResponse);
-        this.user.empId = response.serviceResponse.empId;
-        this.user.name = response.serviceResponse.name;
+        const responseObj = response.serviceResponse;
+        let user = responseObj[0];
+        let userMapping = responseObj[1];
+        this.user.empId = user.empId;
+        this.user.name = user.name;
+        this.user.userMapping = userMapping;
         sessionStorage.setItem('currentUser', JSON.stringify(this.user));
         this.authenticationService.setcurrentUserSubject(this.user);
         this.router.navigate(['/home']);

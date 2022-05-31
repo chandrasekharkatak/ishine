@@ -1,4 +1,6 @@
 import { Component, EventEmitter, HostListener, OnInit, Output } from '@angular/core';
+import { User } from '../models/user';
+import { AuthenticationService } from '../services/authentication.service';
 import { navbarData } from './nav-data';
 interface SideNavToggle{
   screenWidth: number;
@@ -15,6 +17,8 @@ export class SidenavComponent implements OnInit {
   collapsed=false;
   screenWidth = 0;
   navData=navbarData;
+  currentUser:User;
+  menuItems:any;
 
   @HostListener('window:resize', ['$event'])
   onResize(event:any){
@@ -24,10 +28,19 @@ export class SidenavComponent implements OnInit {
       this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
     }
   }
-  constructor() { }
+
+  constructor(private authenticationService: AuthenticationService){
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
    ngOnInit(): void {
     this.screenWidth = window.innerWidth;
+    this.menuItems = this.currentUser.userMapping;
+    
+    let newNavData =  this.navData.filter((data,index) => {
+      if((JSON.parse(this.menuItems[index].moduleVisibilty) != null) ? JSON.parse(this.menuItems[index].moduleVisibilty) : false) return data;
+    });
+    this.navData = newNavData;
   }
 
   toggleCollapse(){
