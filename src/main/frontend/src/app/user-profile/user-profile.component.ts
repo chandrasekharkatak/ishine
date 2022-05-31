@@ -44,6 +44,16 @@ export class UserProfileComponent implements OnInit {
     this.onGetEmployeeInfo();
   }
 
+  ngAfterViewInit() {
+    this.setCalenderMaxDate();
+  }
+
+  setCalenderMaxDate(){
+    const today = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
+    let DOB = document.getElementById('DOB');
+    DOB.setAttribute('max', today);
+  }
+
   showUpdateProfile(){
     this.isUpdateProfile = true;
 
@@ -190,6 +200,8 @@ export class UserProfileComponent implements OnInit {
   onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
 
+    console.log("this.currentUser : ", this.currentUser);
+    
     this.employeeService.getEmployeeByEmpId(this.currentUser).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.currentEmployeeInfo = response.serviceResponse;
