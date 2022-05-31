@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 import { Employee } from '../models/employee';
 
 @Injectable({
@@ -7,6 +8,7 @@ import { Employee } from '../models/employee';
 })
 export class EmployeeService {
   private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  updatedEmployeeList = new Subject<Array<Employee>>();
   
   constructor(private http: HttpClient) { }
 

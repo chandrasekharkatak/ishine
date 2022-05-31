@@ -29,7 +29,7 @@
                             <label class="info-label" ><span class="text-danger">*</span>Head of Department</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="deptObj.hodId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let employee of allEmployeeList" value="{{employee.empId}}">{{employee.name}}</option>
+                                <option *ngFor="let employee of hodList" value="{{employee.empId}}">{{employee.name}}</option>
                               </select>
                         </div>
                     </div>

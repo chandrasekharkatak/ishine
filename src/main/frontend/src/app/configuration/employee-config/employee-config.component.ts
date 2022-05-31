@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Pipe, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, Pipe, TemplateRef, ViewChild } from '@angular/core';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -29,7 +29,7 @@ export class EmployeeConfigComponent implements OnInit {
   //Obj 
   employeeObj:Employee = new Employee();
   allEmployeeList:any;
-  
+  managerList:any = [];
 
   constructor(private employeeService:EmployeeService,private validationService:ValidationService, 
     private datePipe: DatePipe,private modalService: BsModalService,) { }
@@ -41,7 +41,19 @@ export class EmployeeConfigComponent implements OnInit {
     //Deafult values for dropdown
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
-    this.employeeObj.managerId = '';
+    // this.employeeObj.managerId = '';
+  }
+
+  ngAfterViewInit() {
+    this.setCalenderMaxDate();
+  }
+
+  setCalenderMaxDate(){
+    const today = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
+    let DOB = document.getElementById('DOB');
+    let DOJ = document.getElementById('DOJ');
+    DOB.setAttribute('max', today);
+    DOJ.setAttribute('max', today);
   }
 
   showCreateForm(){
@@ -63,6 +75,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
 
+    this.managerList = [];
     this.getAllEmployeeList();
   }
 
@@ -96,8 +109,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
 
     this.employeeObj = Object.assign({}, employee);
-    this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth, 'yyyy-MM-dd');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining, 'yyyy-MM-dd')
+    this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
+    this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd')
   }
 
   showUpdateDraftForm(employee:Employee){
@@ -296,7 +309,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.isDraft = false;
     // transform date formats to dd-MM-yyyy
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy');
 
     let inputValidated:boolean  = this.validateEmployeeObj(this.employeeObj, template)
     if(!inputValidated) return;
@@ -333,10 +346,20 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         console.log("allEmployeeList : ", this.allEmployeeList)
+        this.createEmployeeList(this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
     });
+  }
+
+  createEmployeeList(allEmployeeList:any){
+    this.managerList = allEmployeeList.map(employee => {
+      let emp = {name : employee.name, empId: employee.empId.toString()};
+      return emp;
+    });
+    console.log("managerList : ", this.managerList);
+    this.employeeService.updatedEmployeeList.next(this.managerList);
   }
 
   /* Employee Draft */

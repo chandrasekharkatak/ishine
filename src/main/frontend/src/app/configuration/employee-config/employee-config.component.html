@@ -57,7 +57,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Birth</label>
-                                            <input type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth">
+                                            <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth">
                                         </div>
                                     </div>
                                 </div>
@@ -296,7 +296,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date Of Joining</label>
-                                            <input type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining">
+                                            <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining">
                                         </div>
                                     </div>
                                 </div>
@@ -319,11 +319,11 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Manager</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Manager</label> -->
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.managerId">
                                                 <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let employee of allEmployeeList" value="{{employee.empId}}">{{employee.name}}</option>
-                                              </select>
+                                                <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

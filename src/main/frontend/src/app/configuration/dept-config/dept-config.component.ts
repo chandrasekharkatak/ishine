@@ -1,5 +1,6 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { Department } from 'src/app/models/department';
 import { DepartmentService } from 'src/app/services/department.service';
@@ -11,8 +12,9 @@ import { ValidationService } from 'src/app/services/validation.service';
   templateUrl: './dept-config.component.html',
   styleUrls: ['./dept-config.component.css']
 })
-export class DeptConfigComponent implements OnInit {
+export class DeptConfigComponent implements OnInit, OnDestroy {
 
+  private activatedSubscriptions:Subscription;
   //flags 
   isCreation:boolean = true;
   isUpdation: boolean = false;
@@ -26,18 +28,22 @@ export class DeptConfigComponent implements OnInit {
   //obj
   deptObj:Department = new Department();
   allDeptList:any;
-  allEmployeeList:any;
+  hodList:any = [];
 
   constructor(private validationService:ValidationService,private modalService: BsModalService,
-    private departmentService: DepartmentService, private employeeService:EmployeeService,) { }
+    private departmentService: DepartmentService, private employeeService:EmployeeService,) {
+      this.activatedSubscriptions = this.employeeService.updatedEmployeeList.subscribe(allEmployees => {
+        this.hodList = allEmployees;
+    });
+  }
 
   ngOnInit(): void {
-
-    // TODO : Here we should fetch list of HODs
-    this.getAllEmployeeList();
-    
     //Deafult values for dropdown
     this.deptObj.hodId = '';
+  }
+
+  ngOnDestroy(): void {
+    this.activatedSubscriptions.unsubscribe();
   }
 
   showCreateForm(){
@@ -150,19 +156,6 @@ export class DeptConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         console.log("allDeptList : ", this.allDeptList)
-      } else {
-        alert(response.serviceResponse)
-      }
-    });
-  }
-
-  getAllEmployeeList(){
-    this.allEmployeeList = [];
-
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList = response.serviceResponse;
-        console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
