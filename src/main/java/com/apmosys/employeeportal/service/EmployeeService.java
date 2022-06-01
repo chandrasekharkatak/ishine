@@ -120,56 +120,56 @@ public class EmployeeService {
 			
 				for(Object[] object: objectList)
 				{
-				empDTO.setEmpId(Long.parseLong(object[0].toString()));
-				empDTO.setAadhar(Long.parseLong(object[1].toString()));
-				empDTO.setAboutMe(object[2].toString());
-				empDTO.setAddress(object[3].toString());
-				empDTO.setBankAccountNo(object[4].toString());
-				empDTO.setBankIFSCCode(object[5].toString());
-				empDTO.setBankName(object[6].toString());
-				empDTO.setBloodGroup(object[7].toString());
-				empDTO.setCity(object[8].toString());
-				empDTO.setCountry(object[9].toString());
-				empDTO.setDateOfBirth(format.format(format.parse(object[10].toString())));
-				empDTO.setDateOfJoining(format.format(format.parse(object[11].toString())));
-				empDTO.setEmail(object[12].toString());
-				empDTO.setEmergencyContactMobile(Long.parseLong(object[13].toString()));
-				empDTO.setEmploymentstatus(object[14].toString());
-				empDTO.setEsicNumber(object[15].toString());
-				empDTO.setFatherName(object[16].toString());
-				empDTO.setGender(object[17].toString());
-				empDTO.setGraduation(object[18].toString());
-				empDTO.setHobbies(object[19].toString());
-				empDTO.setLandline(Long.parseLong(object[20].toString()));
-				empDTO.setMaritalStatus(object[21].toString());
-				empDTO.setMobileNo(Long.parseLong(object[22].toString()));
-				empDTO.setMotherTongue(object[23].toString());
-				empDTO.setName(object[24].toString());
-				empDTO.setNoticePeriod(Short.parseShort(object[25].toString()));
-				empDTO.setOfficialMobileNo(Long.parseLong(object[26].toString()));
-				empDTO.setPanNumber(object[27].toString());
-				empDTO.setPassportNumber(object[28].toString());
-				empDTO.setPermanentAddress(object[29].toString());
-				empDTO.setPfAccountNumber(object[30].toString());
-				empDTO.setPincode(Integer.parseInt(object[31].toString()));
-				empDTO.setPlaceOfBirth(object[32].toString());
-				empDTO.setPostGraduation(object[33].toString());
-				empDTO.setPreviousPfAccountNumber(object[34].toString());
-				empDTO.setRelation(object[35].toString());
-				empDTO.setState(object[36].toString());
-				empDTO.setUan(object[37].toString());
-				empDTO.setViewsOnOrganisation(object[38].toString());
-				empDTO.setYearOfGrad(Short.parseShort(object[39].toString()));				
-				empDTO.setYearOfPostGrad(Short.parseShort(object[40].toString()));
-				empDTO.setEmergencyContactPerson(object[41].toString());
-				empDTO.setManagerName(object[43].toString());
-				empDTO.setJobRoleName(object[44].toString());
-				empDTO.setDepartmentName(object[45].toString());				
+				empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+				empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()): null);
+				empDTO.setAboutMe(object[2] != null ?  object[2].toString(): null);
+				empDTO.setAddress(object[3] != null ?  object[3].toString(): null);
+				empDTO.setBankAccountNo(object[4] != null ?  object[4].toString(): null);
+				empDTO.setBankIFSCCode(object[5] != null ?  object[5].toString(): null);
+				empDTO.setBankName(object[6] != null ?  object[6].toString(): null);
+				empDTO.setBloodGroup(object[7] != null ?  object[7].toString(): null);
+				empDTO.setCity(object[8] != null ?  object[8].toString(): null);
+				empDTO.setCountry(object[9] != null ?  object[9].toString(): null);
+				empDTO.setDateOfBirth(object[10] != null ? format.format(format.parse(object[10].toString())): null);
+				empDTO.setDateOfJoining(object[11] != null ?  format.format(format.parse(object[11].toString())): null);
+				empDTO.setEmail(object[12] != null ?  object[12].toString(): null);
+				empDTO.setEmergencyContactMobile(object[13] != null ?  Long.parseLong(object[13].toString()): null);
+				empDTO.setEmploymentstatus(object[14] != null ?  object[14].toString(): null);
+				empDTO.setEsicNumber(object[15] != null ?  object[15].toString(): null);
+				empDTO.setFatherName(object[16] != null ?  object[16].toString(): null);
+				empDTO.setGender(object[17] != null ?  object[17].toString(): null);
+				empDTO.setGraduation(object[18] != null ?  object[18].toString(): null);
+				empDTO.setHobbies(object[19] != null ?  object[19].toString(): null);
+				empDTO.setLandline(object[20] != null ?  Long.parseLong(object[20].toString()): null);
+				empDTO.setMaritalStatus(object[21] != null ?  object[21].toString(): null);
+				empDTO.setMobileNo(object[22] != null ? Long.parseLong(object[22].toString()): null);
+				empDTO.setMotherTongue(object[23] != null ? object[23].toString(): null);
+				empDTO.setName(object[24] != null ? object[24].toString(): null);
+				empDTO.setNoticePeriod(object[25] != null ? Short.parseShort(object[25].toString()): null);
+				empDTO.setOfficialMobileNo(object[26] != null ? Long.parseLong(object[26].toString()): null);
+				empDTO.setPanNumber(object[27] != null ? object[27].toString(): null);
+				empDTO.setPassportNumber(object[28] != null ? object[28].toString(): null);
+				empDTO.setPermanentAddress(object[29] != null ? object[29].toString(): null);
+				empDTO.setPfAccountNumber(object[30] != null ? object[30].toString(): null);
+				empDTO.setPincode(object[31] != null ? Integer.parseInt(object[31].toString()): null);
+				empDTO.setPlaceOfBirth(object[32] != null ? object[32].toString(): null);
+				empDTO.setPostGraduation(object[33] != null ? object[33].toString(): null);
+				empDTO.setPreviousPfAccountNumber(object[34] != null ? object[34].toString(): null);
+				empDTO.setRelation(object[35] != null ? object[35].toString(): null);
+				empDTO.setState(object[36] != null ? object[36].toString(): null);
+				empDTO.setUan(object[37] != null ? object[37].toString(): null);
+				empDTO.setViewsOnOrganisation(object[38] != null ? object[38].toString(): null);
+				empDTO.setYearOfGrad(object[39] != null ? Short.parseShort(object[39].toString()): null);				
+				empDTO.setYearOfPostGrad(object[40] != null ? Short.parseShort(object[40].toString()): null);
+				empDTO.setEmergencyContactPerson(object[41] != null ? object[41].toString(): null);
+				empDTO.setManagerName(object[43] != null ? object[43].toString(): null);
+				empDTO.setJobRoleName(object[44] != null ? object[44].toString(): null);
+				empDTO.setDepartmentName(object[45] != null ? object[45].toString(): null);				
 				
 				if(object[42] != null)
 				{
 					byte[] imageBytes = Files
-							.readAllBytes(Paths.get(imageFileLocation + File.separator + object[45].toString()));
+							.readAllBytes(Paths.get(imageFileLocation + File.separator + object[42].toString()));
 					empDTO.setImageBytes(imageBytes);
 				}				
 				}
@@ -357,7 +357,7 @@ public class EmployeeService {
 				Employee employeeObj = employeeObject.get();
 				
 				String extension = FilenameUtils.getExtension(image.getOriginalFilename());
-				String newFileName = employeeObj.getName().replaceAll("\\s", "").toLowerCase() + "." + extension;
+				String newFileName = employeeObj.getName().replaceAll("\\s", "").toLowerCase() +employeeObj.getEmpId()+ "." + extension;
 
 				System.err.println(" extenstion : " + extension);
 				System.err.println(" New File Name : " + newFileName);
