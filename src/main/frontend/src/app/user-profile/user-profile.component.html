@@ -21,7 +21,7 @@
                 <div class="vertical-rule"></div>
                 <div class="col-md-8 user-card__profile-info">
                     <h2 class="user-card__profile-info__name mb-0">{{currentEmployeeInfo.name}}</h2>
-                    <span class="user-card__profile-info__role">HR Business Partner</span>
+                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.jobRoleName}}</span>
                     <div class="row user-card__profile-info__container mt-4">
                         <div class="col-md-3 user-card__profile-info__container-blocks">
                             <p class="user-card__profile-info__label">Employee ID</p>
@@ -41,11 +41,11 @@
                         </div>
                         <div class="col-md-3 user-card__profile-info__container-blocks">
                             <p class="user-card__profile-info__label">Team</p>
-                            <p class="user-card__profile-info__text">Admin, HR Manager</p>
+                            <p class="user-card__profile-info__text">{{currentEmployeeInfo.departmentName}}</p>
                         </div>
                         <div class="col-md-3 user-card__profile-info__container-blocks">
                             <p class="user-card__profile-info__label">Reports To</p>
-                            <p class="user-card__profile-info__text info-highlight">Alap Jog</p>
+                            <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
                         </div>
                     </div>
                 </div>
@@ -689,7 +689,7 @@
                             <div class="col-md-4 mb-0">
                                 <div class="info-wrapper">
                                     <p class="info-label">Manager</p>
-                                    <p class="info-text info-highlight">Alap Jog</p>
+                                    <p class="info-text info-highlight">{{currentEmployeeInfo.managerName}}</p>
                                 </div>
                             </div>
                         </div>
