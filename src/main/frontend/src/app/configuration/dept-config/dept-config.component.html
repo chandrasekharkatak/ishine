@@ -17,7 +17,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Department Name</label>
+                            <label><span class="text-danger">*</span>Department Name</label>
                             <input type="text" class="form-control" maxlength="25" autocomplete="none"
                             [(ngModel)]="deptObj.name">
                         </div>
@@ -26,7 +26,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label" ><span class="text-danger">*</span>Head of Department</label>
+                            <label><span class="text-danger">*</span>Head of Department</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="deptObj.hodId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let employee of hodList" value="{{employee.empId}}">{{employee.name}}</option>
