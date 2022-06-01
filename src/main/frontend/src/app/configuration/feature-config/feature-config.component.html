@@ -1,0 +1,90 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm float-left" *ngIf="isTable" (click)="showCreateForm()"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-primary btn-sm float-right" *ngIf="isForm" (click)="showTable()"><i class="fa fa-list" aria-hidden="true"></i> See All</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Feature</strong>
+            <strong *ngIf="isUpdation">Update Feature</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Feature Name</label>
+                            <input type="text" class="form-control" maxlength="25" autocomplete="none"
+                            [(ngModel)]="featureObj.featureName">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngFor="let subfeature of subFeatureList, let i = index" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Sub-Feature Name</label>
+                            <input type="text" class="form-control" maxlength="25" autocomplete="none"
+                            [(ngModel)]="subfeature.subFeatureName">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center">
+                    <div class="form-group m-0 mt-3">
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button *ngIf="i" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputField(subfeature)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="onCreateFeature(alert_message)">Create Feature</button>
+
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="onUpdateFeature(alert_message)">Update Feature</button>
+                </div>
+            </div>
+    </div>
+</div>
+<!-- end :: create & update form -->
+
+<!-- start :: See all Table -->
+<div class="row col-md-12" *ngIf="isTable">
+    <table class="table department-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">Feature Name</th>
+            <th scope="col" class="info-label">Created by</th>
+            <th scope="col" class="info-label">Created on</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let feature of allFeatureList, let i = index">
+            <th class="info-label">{{i+1}}</th>
+            <td>{{feature.featureName}}</td>
+            <td>{{feature.createdBy}}</td>
+            <td>{{feature.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(feature)"><em class="fa fa-edit"></em></button>&nbsp;
+            </td>
+          </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: see all table -->
+
+<!-- Modals Template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
