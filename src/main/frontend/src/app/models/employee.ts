@@ -46,6 +46,10 @@ export class Employee{
 
 	aboutMe:any;
 	viewsOnOrganisation:any;
+
+	jobRoleName:any;
+	departmentName:any;
+	managerName:any;
 	
 	createdOn: any;	
 	createdBy: any;	

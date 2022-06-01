@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </div>
-            </div> 
+            </div>
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1"
@@ -44,6 +44,47 @@
                     (click)="onUpdateJobRole(alert_message)">Update Role</button>
                 </div>
             </div>
+
+            <!-- Update Features -->
+            <div *ngIf="isUpdation" class="row ml-1 mt-5">
+                <h3>Features</h3> 
+            </div>
+            <div *ngIf="isUpdation" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label" ><span class="text-danger">*</span>Feature Name</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="selectedFeature" (change)="getSubfeatureList()">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let feature of featureList" value="{{feature.featureId}}" >{{feature.featureName}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="isUpdation && isSubFeatureList" class="row">
+                <div class="col-md-4">
+                    <div class="list-container">
+                        <ul class="list-group list-group-flush">
+                            <li *ngFor="let subfeature of subFeatureList" class="list-group-item">
+                                {{subfeature.subFeatureName}}
+                                <label class="subfeature-checkbox">
+                                    <input type="checkbox" [(ngModel)]="subfeature.isActive" />
+                                    <span class="primary"></span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="onUpdateFeature(alert_message)">Update Feature</button>
+                </div>
+            </div>
+
+
     </div>
 </div>
 <!-- end :: create & update form -->

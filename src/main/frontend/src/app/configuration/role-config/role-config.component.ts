@@ -1,6 +1,8 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { NgModel } from '@angular/forms';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Feature } from 'src/app/models/feature';
 import { JobRole } from 'src/app/models/jobRole';
 import { DepartmentService } from 'src/app/services/department.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
@@ -26,7 +28,120 @@ export class RoleConfigComponent implements OnInit {
   //obj 
   jobRoleObj:JobRole = new JobRole();
   allJobRoleList:any;
-  allDeptList:any 
+  allDeptList:any
+
+  featureList:Feature[] =[
+    {
+      featureId: 1,
+      featureName: "Leave",
+      subFeatures: [
+        {
+          subFeatureId: 1,
+          subFeatureName: "Add Leave",
+          isActive: true
+        },
+        {
+          subFeatureId: 2,
+          subFeatureName: "Approve Leave",
+          isActive: true
+        },
+        {
+          subFeatureId: 3,
+          subFeatureName: "Reject Leave",
+          isActive: true
+        },
+        {
+          subFeatureId: 4,
+          subFeatureName: "View My Leaves",
+          isActive: true
+        },
+        {
+          subFeatureId: 5,
+          subFeatureName: "View Reportee Leaves",
+          isActive: true
+        }
+      ]
+    },
+    {
+      featureId: 2,
+      featureName: "EOD",
+      subFeatures: [
+        {
+          subFeatureId: 6,
+          subFeatureName: "Add EOD",
+          isActive: true
+        },
+        {
+          subFeatureId: 7,
+          subFeatureName: "Approve EOD",
+          isActive: false
+        },
+        {
+          subFeatureId: 8,
+          subFeatureName: "Reject EOD",
+          isActive: true
+        },
+        {
+          subFeatureId: 9,
+          subFeatureName: "View My EODs",
+          isActive: false
+        },
+        {
+          subFeatureId: 10,
+          subFeatureName: "View Reportee EODs",
+          isActive: true
+        }
+      ]
+    },
+    {
+      featureId: 3,
+      featureName: "Employee",
+      subFeatures: [
+        {
+          subFeatureId: 11,
+          subFeatureName: "Add Employee",
+          isActive: true
+        },
+        {
+          subFeatureId: 12,
+          subFeatureName: "Update Employee",
+          isActive: true
+        },
+        {
+          subFeatureId: 13,
+          subFeatureName: "Delete Employee",
+          isActive: true
+        },
+        {
+          subFeatureId: 14,
+          subFeatureName: "View All Employees",
+          isActive: true
+        }
+      ]
+    },
+  ]
+
+  allFeatures:any = [
+    {
+      featureName : "Leave",
+      featureId : 1
+    },
+    {
+      featureName : "EOD",
+      featureId : 2
+    },
+    {
+      featureName : "Employee",
+      featureId : 3
+    }
+  ]
+
+  selectedFeature:any;
+  subFeatureList:any;
+  isSubFeatureList:boolean = false;
+  /* DATA */
+
+
 
   constructor(private validationService:ValidationService,private modalService: BsModalService,
     private jobRoleService: JobRoleService, private departmentService: DepartmentService) { }
@@ -39,11 +154,32 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.departmentId = '';
   }
 
+  getSubfeatureList(){
+    if(this.selectedFeature == null) {
+      alert('Select Feature');
+      return;
+    }
+
+    console.log("selectedFeature : ", this.selectedFeature);
+    this.subFeatureList = [];
+    this.featureList.filter(feature => {
+      console.log("feature : ", feature);
+      if(feature.featureId == this.selectedFeature){
+        this.subFeatureList = feature.subFeatures;
+      }
+    });
+
+    console.log("subFeatureList : ", this.subFeatureList);
+    
+    this.isSubFeatureList = true;
+  }
+
   showCreateForm(){
     this.isForm = true;
     this.isTable = false;
     this.isCreation = true;
     this.isUpdation = false;
+    this.isSubFeatureList = false;
 
     this.reset();
   }
@@ -62,6 +198,7 @@ export class RoleConfigComponent implements OnInit {
     //Deafult values for dropdown
     this.jobRoleObj.departmentId = '';
 
+    this.selectedFeature = null;
     this.allJobRoleList = [];
   }
 
@@ -139,6 +276,13 @@ export class RoleConfigComponent implements OnInit {
       }
     });
   }
+
+  /* Features */
+  onUpdateFeature(template: TemplateRef<any>){
+    console.log("feature : ", this.selectedFeature);
+    console.log("subfeatures : ", this.subFeatureList);
+  }
+
 
   getAllJobRoleList(){
     this.allJobRoleList = [];
