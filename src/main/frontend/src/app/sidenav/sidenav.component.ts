@@ -35,12 +35,6 @@ export class SidenavComponent implements OnInit {
 
    ngOnInit(): void {
     this.screenWidth = window.innerWidth;
-    this.menuItems = this.currentUser.userMapping;
-    
-    let newNavData =  this.navData.filter((data,index) => {
-      if((JSON.parse(this.menuItems[index].moduleVisibilty) != null) ? JSON.parse(this.menuItems[index].moduleVisibilty) : false) return data;
-    });
-    this.navData = newNavData;
   }
 
   toggleCollapse(){
