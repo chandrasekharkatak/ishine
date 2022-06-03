@@ -109,8 +109,9 @@ public class JobRoleService {
 					jobRoleDTO.setName(object[0].toString());
 					jobRoleDTO.setCreatedBy(object[1].toString());
 					jobRoleDTO.setCreatedOn(object[2].toString());
-					jobRoleDTO.setDepartmentName(object[3].toString());
-					jobRoleDTO.setId(Long.parseLong(object[4].toString()));
+					jobRoleDTO.setDepartmentId(Long.parseLong(object[3].toString()));
+					jobRoleDTO.setDepartmentName(object[4].toString());
+					jobRoleDTO.setId(Long.parseLong(object[5].toString()));
 					dtoList.add(jobRoleDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -2,7 +2,8 @@ export class JobRole{
     jobRoleId: any;
 	id:any; //! temp	
 	name: any;	
-	departmentId: any;	
+	departmentId: any;
+	departmentName:any;	
 	createdOn: any;	
 	createdBy: any;	
 	updatedOn: any;	
