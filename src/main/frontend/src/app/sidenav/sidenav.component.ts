@@ -1,4 +1,5 @@
-import { Component, EventEmitter, HostListener, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { navbarData } from './nav-data';
@@ -11,7 +12,7 @@ interface SideNavToggle{
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.css']
 })
-export class SidenavComponent implements OnInit {
+export class SidenavComponent implements OnInit, OnDestroy {
 
   @Output() onToggleSideNav: EventEmitter<SideNavToggle> = new EventEmitter();
   collapsed=false;
@@ -19,6 +20,8 @@ export class SidenavComponent implements OnInit {
   navData=navbarData;
   currentUser:User;
   menuItems:any;
+
+  private activatedSubscriptions:Subscription;
 
   @HostListener('window:resize', ['$event'])
   onResize(event:any){
@@ -31,10 +34,17 @@ export class SidenavComponent implements OnInit {
 
   constructor(private authenticationService: AuthenticationService){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.menuItems = this.currentUser.tabList;
   }
 
    ngOnInit(): void {
     this.screenWidth = window.innerWidth;
+    console.log("menuItems : ", this.menuItems);
+    
+  }
+
+  ngOnDestroy(): void {
+    this.activatedSubscriptions.unsubscribe();
   }
 
   toggleCollapse(){

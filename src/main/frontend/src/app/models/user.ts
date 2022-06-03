@@ -7,4 +7,5 @@ export class User{
     newPassword:any;
     otp:any;
     userMapping:any;
+    tabList:any;
 }

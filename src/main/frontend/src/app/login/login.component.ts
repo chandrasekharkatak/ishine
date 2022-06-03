@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Tab } from '../models/tab';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { ValidationService } from '../services/validation.service';
@@ -150,9 +151,24 @@ export class LoginComponent implements OnInit {
         const responseObj = response.serviceResponse;
         let user = responseObj[0];
         let userMapping = responseObj[1];
+        /*Mapping & tab list*/
+        let tabList:Tab[] = [];
+        userMapping.forEach(userMap => {
+          if(tabList.length == 0 || !tabList.find(tab => tab.tabName === userMap.tabName)){
+            let tab = new Tab();
+            tab.tabName = userMap.tabName;
+            tab.tabRouteName = userMap.tabRouteName;
+            tab.tabIcon = userMap.tabIcon;
+    
+            tabList.push(tab);
+          }      
+        });
+    
+        console.log("tabList : ", tabList);
         this.user.empId = user.empId;
         this.user.name = user.name;
         this.user.userMapping = userMapping;
+        this.user.tabList = tabList;
         sessionStorage.setItem('currentUser', JSON.stringify(this.user));
         this.authenticationService.setcurrentUserSubject(this.user);
         this.router.navigate(['/home']);
@@ -213,5 +229,4 @@ export class LoginComponent implements OnInit {
 
     this.showLoginForm();
   }
-
 }

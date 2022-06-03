@@ -8,13 +8,13 @@
     </div>
 
     <ul class="sidenav-nav">
-        <li class="sidenav-nav-item" *ngFor="let data of navData, let i = index" title="{{data.label}}">
-            <a class="sidenav-nav-link" [routerLink]="[data.routeLink]" 
+        <li class="sidenav-nav-item" *ngFor="let data of menuItems, let i = index" title="{{data.tabName}}">
+            <a class="sidenav-nav-link" [routerLink]="[data.tabRouteName]" 
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{exact: true}"
             >
-                <i class="sidenav-link-icon" [class]="data.icon"></i>
-                <span class="sidenav-link-text" *ngIf="collapsed">{{data.label}}</span>
+                <i class="sidenav-link-icon" [class]="data.tabIcon"></i>
+                <span class="sidenav-link-text" *ngIf="collapsed">{{data.tabName}}</span>
             </a>
         </li>
     </ul>
