@@ -11,7 +11,7 @@ import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-@Entity
+
 public class UserTypeCrudMapping {
 	
 	@Id

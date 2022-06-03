@@ -15,29 +15,29 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RequestMapping(path = "/api")
 public class UserTypeCrudMappingController {
 	
-	@Autowired
-	UserTypeCrudMappingService userTypeCrudMappingService;
-	
-	@RequestMapping(value="/getAllUserTypeCrudMappings" , method = RequestMethod.GET)
-	public ServiceResponse getAllUserTypeCrudMappings() {		
-		
-		ServiceResponse response =	userTypeCrudMappingService.getAllUserTypeCrudMappings();		
-		return response;
-	}
-	
-	@RequestMapping(value="/getUserTypeCrudMappingsByUserTypeId" , method = RequestMethod.POST)
-	public ServiceResponse getUserTypeCrudMappingsByUserTypeId(@RequestBody UserTypeDTO userTypeDTO) {		
-		
-		ServiceResponse response =	userTypeCrudMappingService.getUserTypeCrudMappingsByUserTypeId(userTypeDTO);		
-		return response;
-	}
-	
-	@RequestMapping(value="/updateCrudMappingsByMapId" , method = RequestMethod.POST)
-	public ServiceResponse updateCrudMappingsByMapId(@RequestBody UserTypeCrudMappingDTO userTypeCrudMappingDTO) {		
-		
-		ServiceResponse response =	userTypeCrudMappingService.updateCrudMappingsByMapId(userTypeCrudMappingDTO);		
-		return response;
-	}
+//	@Autowired
+//	UserTypeCrudMappingService userTypeCrudMappingService;
+//	
+//	@RequestMapping(value="/getAllUserTypeCrudMappings" , method = RequestMethod.GET)
+//	public ServiceResponse getAllUserTypeCrudMappings() {		
+//		
+//		ServiceResponse response =	userTypeCrudMappingService.getAllUserTypeCrudMappings();		
+//		return response;
+//	}
+//	
+//	@RequestMapping(value="/getUserTypeCrudMappingsByUserTypeId" , method = RequestMethod.POST)
+//	public ServiceResponse getUserTypeCrudMappingsByUserTypeId(@RequestBody UserTypeDTO userTypeDTO) {		
+//		
+//		ServiceResponse response =	userTypeCrudMappingService.getUserTypeCrudMappingsByUserTypeId(userTypeDTO);		
+//		return response;
+//	}
+//	
+//	@RequestMapping(value="/updateCrudMappingsByMapId" , method = RequestMethod.POST)
+//	public ServiceResponse updateCrudMappingsByMapId(@RequestBody UserTypeCrudMappingDTO userTypeCrudMappingDTO) {		
+//		
+//		ServiceResponse response =	userTypeCrudMappingService.updateCrudMappingsByMapId(userTypeCrudMappingDTO);		
+//		return response;
+//	}
 	
 	
 

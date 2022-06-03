@@ -12,8 +12,12 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.RoleFeatureMap;
+import com.apmosys.employeeportal.model.SubFeatureMaster;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
+import com.apmosys.employeeportal.repository.SubFeatureMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -25,6 +29,12 @@ public class JobRoleService {
 
 	@Autowired
 	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	SubFeatureMasterRepository subFeatureMasterRepository;
+	
+	@Autowired
+	RoleFeatureMapRepository roleFeatureMapRepository;
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -41,8 +51,37 @@ public class JobRoleService {
 
 			JobRole dbResponse = jobRoleRepository.save(newJobRole);
 			if (dbResponse != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("New Job Role Created.");
+				
+				List<SubFeatureMaster> defaultSubFeatureMasterList =	subFeatureMasterRepository.findBySubFeatureType((short)1);
+				
+				if(defaultSubFeatureMasterList.isEmpty())
+				{
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("New Job Role Created. But Default SubFeatures List Is Empty.");
+					return response;
+				}
+				else {
+					List<RoleFeatureMap> roleFeatureMapList = new ArrayList<RoleFeatureMap>();
+					for(SubFeatureMaster subFeatureMaster:defaultSubFeatureMasterList)
+					{
+						RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+						roleFeatureMap.setSubFeatureMasterId(subFeatureMaster.getSubFeatureMasterId());
+						roleFeatureMap.setJobRoleId(dbResponse.getJobRoleId());
+						roleFeatureMapList.add(roleFeatureMap);						
+					}
+					List<RoleFeatureMap> savedRoleFeatureMapList = roleFeatureMapRepository.saveAll(roleFeatureMapList);
+					if(savedRoleFeatureMapList.isEmpty())
+					{
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("New Job Role Created. But Default SubFeatures Was Not Assigned To The Role.");
+						return response;
+					}
+					else
+					{
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("New Job Role Created.");
+					}
+				}				
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("New Job Role Creation Failed.");
@@ -66,10 +105,12 @@ public class JobRoleService {
 				
 				for(Object[] object:allJobRoleList)
 				{
-					JobRoleDTO jobRoleDTO = new JobRoleDTO();
+					JobRoleDTO jobRoleDTO = new JobRoleDTO();					
 					jobRoleDTO.setName(object[0].toString());
 					jobRoleDTO.setCreatedBy(object[1].toString());
 					jobRoleDTO.setCreatedOn(object[2].toString());
+					jobRoleDTO.setDepartmentName(object[3].toString());
+					jobRoleDTO.setId(Long.parseLong(object[4].toString()));
 					dtoList.add(jobRoleDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -150,5 +191,7 @@ public class JobRoleService {
 		}
 		return response;
 	}
+
+	
 
 }

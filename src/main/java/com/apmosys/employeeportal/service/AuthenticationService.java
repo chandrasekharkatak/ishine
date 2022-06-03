@@ -27,7 +27,7 @@ public class AuthenticationService {
 	private HttpServletRequest request;
 	
 	@Autowired
-	UserTypeCrudMappingService userTypeCrudMappingService;
+	TabMasterService tabMasterService;
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -74,9 +74,7 @@ public class AuthenticationService {
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
 			if(employeedto.getOtp() == employee.getOtp())
 			{
-				UserTypeDTO user = new UserTypeDTO();
-				user.setUserTypeId(employee.getUserTypeId());
-				ServiceResponse serviceResponse = userTypeCrudMappingService.getUserTypeCrudMappingsByUserTypeId(user);				
+				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());	
 				
 				Object[] object = new Object[2];				
 				object[0] = employee;

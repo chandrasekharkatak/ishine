@@ -20,19 +20,19 @@ public class UserTypeController {
 	@Autowired
 	UserTypeService userTypeService;
 	
-	@RequestMapping(value = "/createUserType" ,method = RequestMethod.POST)
-	public ServiceResponse createUserType(@RequestBody UserTypeDTO userTypeDTO) {
-		
-		ServiceResponse response = userTypeService.createUserType(userTypeDTO);
-		return response;
-	}
-	
-	@RequestMapping(value="/getAllUserTypes" , method = RequestMethod.GET)
-	public ServiceResponse getAllUserTypes() {		
-		
-		ServiceResponse response =	userTypeService.getAllUserTypes();		
-		return response;
-	}	
+//	@RequestMapping(value = "/createUserType" ,method = RequestMethod.POST)
+//	public ServiceResponse createUserType(@RequestBody UserTypeDTO userTypeDTO) {
+//		
+//		ServiceResponse response = userTypeService.createUserType(userTypeDTO);
+//		return response;
+//	}
+//	
+//	@RequestMapping(value="/getAllUserTypes" , method = RequestMethod.GET)
+//	public ServiceResponse getAllUserTypes() {		
+//		
+//		ServiceResponse response =	userTypeService.getAllUserTypes();		
+//		return response;
+//	}	
 	
 	
 

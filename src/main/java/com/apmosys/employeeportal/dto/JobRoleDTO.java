@@ -14,6 +14,7 @@ public class JobRoleDTO {
 	private LocalDateTime updatedOn;	
 	private int updatedBy;
 	private int createdById;
+	private String departmentName;
 	
 	
 	public Long getId() {
@@ -63,12 +64,20 @@ public class JobRoleDTO {
 	}
 	public void setUpdatedBy(int updatedBy) {
 		this.updatedBy = updatedBy;
+	}	
+	public String getDepartmentName() {
+		return departmentName;
+	}
+	public void setDepartmentName(String departmentName) {
+		this.departmentName = departmentName;
 	}
 	@Override
 	public String toString() {
 		return "JobRoleDTO [id=" + id + ", name=" + name + ", departmentId=" + departmentId + ", createdOn=" + createdOn
-				+ ", createdBy=" + createdBy + ", updatedOn=" + updatedOn + ", updatedBy=" + updatedBy + "]";
+				+ ", createdBy=" + createdBy + ", updatedOn=" + updatedOn + ", updatedBy=" + updatedBy
+				+ ", createdById=" + createdById + ", departmentName=" + departmentName + "]";
 	}
+	
 	
 	
 	

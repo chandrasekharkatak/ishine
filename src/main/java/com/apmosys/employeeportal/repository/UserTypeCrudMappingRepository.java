@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.UserTypeCrudMapping;
 
-@Repository
-public interface UserTypeCrudMappingRepository extends JpaRepository<UserTypeCrudMapping,Long> {
+
+public interface UserTypeCrudMappingRepository  {
 
 	public List<UserTypeCrudMapping> findAllByUserTypeId(Long userTypeId);
 
