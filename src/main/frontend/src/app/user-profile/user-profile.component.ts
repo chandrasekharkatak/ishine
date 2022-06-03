@@ -51,7 +51,7 @@ export class UserProfileComponent implements OnInit {
   setCalenderMaxDate(){
     const today = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
     let DOB = document.getElementById('DOB');
-    DOB.setAttribute('max', today);
+    DOB?.setAttribute('max', today);
   }
 
   showUpdateProfile(){
@@ -199,10 +199,11 @@ export class UserProfileComponent implements OnInit {
 
   onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
-
-    console.log("this.currentUser : ", this.currentUser);
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+    console.log("currentEmp : ", currentEmp);
     
-    this.employeeService.getEmployeeByEmpId(this.currentUser).pipe(first()).subscribe((response: any) => {
+    this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.currentEmployeeInfo = response.serviceResponse;
         console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
