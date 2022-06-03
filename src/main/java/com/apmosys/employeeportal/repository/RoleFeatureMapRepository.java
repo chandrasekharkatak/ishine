@@ -14,5 +14,8 @@ public interface RoleFeatureMapRepository extends JpaRepository<RoleFeatureMap,L
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getTabsByRoleId(Long roleId);
+	
+	
+	public List<RoleFeatureMap> findByJobRoleId(Long roleId);
 
 }

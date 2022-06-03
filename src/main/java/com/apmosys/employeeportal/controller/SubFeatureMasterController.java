@@ -24,5 +24,12 @@ public class SubFeatureMasterController {
 		ServiceResponse response = subFeatureMasterService.getSubfeaturesByJobRoleId(jobRoleDTO);
 		return response;
 	}
+	
+	@RequestMapping(value="/getAllSubFeatures" , method = RequestMethod.GET)
+	public ServiceResponse getAllSubFeatures() {		
+		
+		ServiceResponse response =	subFeatureMasterService.getAllSubFeatures();		
+		return response;
+	}
 
 }
