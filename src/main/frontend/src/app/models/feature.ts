@@ -1,7 +1,7 @@
 export class Feature{
     featureId:any;
     featureName:any;
-    subFeatures:any;
+    subFeatures:any[] = [];
 
     createdOn?: any;	
 	createdBy?: any;	

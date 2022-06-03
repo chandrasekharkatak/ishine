@@ -4,8 +4,10 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { JobRole } from 'src/app/models/jobRole';
+import { SubFeature } from 'src/app/models/subFeature';
 import { DepartmentService } from 'src/app/services/department.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
+import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -29,8 +31,272 @@ export class RoleConfigComponent implements OnInit {
   jobRoleObj:JobRole = new JobRole();
   allJobRoleList:any;
   allDeptList:any
+  allSubFeatures:any = [];
+  allMappedSubfeatures:any = [];
+  featureList:any = [];
+  selectedFeature:any;
+  subFeatureList:any;
+  isSubFeatureList:boolean = false;
 
-  featureList:Feature[] =[
+
+
+  constructor(private validationService:ValidationService,private modalService: BsModalService,
+    private jobRoleService: JobRoleService, private departmentService: DepartmentService,
+    private subfeatureService: SubfeatureService) { }
+
+  ngOnInit(): void {
+    // getting departments 
+    this.getAllDepartmentList();
+
+    //Deafult values for dropdown
+    this.jobRoleObj.departmentId = '';
+  }
+
+  getSubfeatureList(){
+    if(this.selectedFeature == null) {
+      alert('Select Feature');
+      return;
+    }
+
+    this.subFeatureList = [];
+    this.featureList.filter(feature => {
+      if(feature.featureId == this.selectedFeature){
+        this.subFeatureList = feature.subFeatures;
+      }
+    });
+    this.isSubFeatureList = true;
+  }
+
+  showCreateForm(){
+    this.isForm = true;
+    this.isTable = false;
+    this.isCreation = true;
+    this.isUpdation = false;
+    this.isSubFeatureList = false;
+
+    this.reset();
+  }
+
+  showTable(){
+    this.isTable = true;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+
+    this.getAllJobRoleList();
+    this.getAllSubFeatures();
+  }
+
+  reset(){
+    this.jobRoleObj = new JobRole();
+    //Deafult values for dropdown
+    this.jobRoleObj.departmentId = '';
+    this.selectedFeature= '';
+
+    this.selectedFeature = null;
+    this.allJobRoleList = [];
+    this.allSubFeatures = [];
+    this.allMappedSubfeatures = [];
+    this.featureList = [];
+    this.subFeatureList=[];
+  }
+
+  showUpdateForm(jobRole:JobRole){
+    this.isForm = true;
+    this.isTable = false;
+    this.isUpdation = true;
+    this.isCreation = false;
+    this.selectedFeature = '';
+    this.subFeatureList = [];
+
+    this.jobRoleObj = Object.assign({}, jobRole)
+    this.getSubfeaturesByJobRoleId();
+    
+  }
+
+  validateJobRoleObj(jobRole:JobRole, template: TemplateRef<any>){
+
+    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.name)){
+      this.alertMessage = "Please enter Job Role Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)){
+      this.alertMessage = "Please select Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
+
+  // CRUD
+  onCreateJobRole(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
+    if(!inputValidated) return;
+    
+    this.jobRoleObj.createdBy = 1;
+    this.jobRoleService.createJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+
+    });
+  }
+
+  onUpdateJobRole(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
+    if(!inputValidated) return;
+    
+    this.jobRoleObj.updatedBy = 1;
+    this.jobRoleObj.jobRoleId = this.jobRoleObj.id; //TODO : DTO and MODEL descrepency
+    this.jobRoleService.updateJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onDeleteJobRole(template: TemplateRef<any>){
+    this.cancelRequest();
+  
+    this.jobRoleObj.jobRoleId = this.jobRoleObj.id; //TODO : DTO and MODEL descrepency
+    this.jobRoleService.deleteJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+
+  getAllJobRoleList(){
+    this.allJobRoleList = [];
+
+    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allJobRoleList = response.serviceResponse;
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllDepartmentList(){
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+
+   /* Features-Subfeature Mapping */
+   onUpdateFeatureMapping(template: TemplateRef<any>){
+    console.log("feature : ", this.selectedFeature);
+    console.log("subfeatures : ", this.subFeatureList);
+    let updateFeatureObj = new Feature();
+    updateFeatureObj.featureId = this.selectedFeature;
+    updateFeatureObj.subFeatures = this.subFeatureList;
+
+    this.subfeatureService.updateFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getAllSubFeatures(){
+    this.subfeatureService.getAllSubFeatures().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allSubFeatures = response.serviceResponse;
+        this.getFeatureList(this.allSubFeatures);
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+
+  getFeatureList(allSubFeatures:any){
+    this.featureList = [];
+    allSubFeatures.forEach(featureMap => {
+      if(this.featureList.length == 0 || !this.featureList.find(feature => feature.featureName === featureMap.featureName))
+      {
+        let feat = new Feature();
+        feat.featureId = featureMap.featureId;
+        feat.featureName = featureMap.featureName;
+
+        this.featureList.push(feat);
+      }      
+    });
+  }
+
+  getSubfeaturesByJobRoleId(){
+    this.subfeatureService.getSubfeaturesByJobRoleId(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allMappedSubfeatures = response.serviceResponse;
+      } else {
+        this.allMappedSubfeatures = [];
+      }
+      this.getActiveSubFeatures();
+    });
+  }
+
+  getActiveSubFeatures(){
+    this.allSubFeatures.forEach(sub => {
+      let _sub = new SubFeature();
+      _sub.subFeatureId = sub.subFeatureMasterId;
+      _sub.subFeatureName = sub.subFeatureName;
+
+      if(this.allMappedSubfeatures.find(subMap => subMap.subFeatureMasterId == sub.subFeatureMasterId)){
+        _sub.isActive = true;
+      }else{
+        _sub.isActive = false;
+      }
+
+      this.featureList.find(feature => feature.featureId == sub.featureId).subFeatures.push(_sub);
+    });
+  }
+
+
+  //modals
+  openDeleteJobRole(template: TemplateRef<any>, jobRole: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.jobRoleObj = jobRole;
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
+  }
+}
+
+
+/*
+
+---- DUMMY DATA ---- 
+
+
+featureList:Feature[] =[
     {
       featureId: 1,
       featureName: "Leave",
@@ -136,192 +402,4 @@ export class RoleConfigComponent implements OnInit {
     }
   ]
 
-  selectedFeature:any;
-  subFeatureList:any;
-  isSubFeatureList:boolean = false;
-  /* DATA */
-
-
-
-  constructor(private validationService:ValidationService,private modalService: BsModalService,
-    private jobRoleService: JobRoleService, private departmentService: DepartmentService) { }
-
-  ngOnInit(): void {
-    // getting departments 
-    this.getAllDepartmentList();
-
-    //Deafult values for dropdown
-    this.jobRoleObj.departmentId = '';
-  }
-
-  getSubfeatureList(){
-    if(this.selectedFeature == null) {
-      alert('Select Feature');
-      return;
-    }
-
-    console.log("selectedFeature : ", this.selectedFeature);
-    this.subFeatureList = [];
-    this.featureList.filter(feature => {
-      console.log("feature : ", feature);
-      if(feature.featureId == this.selectedFeature){
-        this.subFeatureList = feature.subFeatures;
-      }
-    });
-
-    console.log("subFeatureList : ", this.subFeatureList);
-    
-    this.isSubFeatureList = true;
-  }
-
-  showCreateForm(){
-    this.isForm = true;
-    this.isTable = false;
-    this.isCreation = true;
-    this.isUpdation = false;
-    this.isSubFeatureList = false;
-
-    this.reset();
-  }
-
-  showTable(){
-    this.isTable = true;
-    this.isForm = false;
-    this.isUpdation = false;
-    this.isCreation = false;
-
-    this.getAllJobRoleList();
-  }
-
-  reset(){
-    this.jobRoleObj = new JobRole();
-    //Deafult values for dropdown
-    this.jobRoleObj.departmentId = '';
-
-    this.selectedFeature = null;
-    this.allJobRoleList = [];
-  }
-
-  showUpdateForm(jobRole:JobRole){
-    this.isForm = true;
-    this.isTable = false;
-    this.isUpdation = true;
-    this.isCreation = false;
-
-    this.jobRoleObj = Object.assign({}, jobRole)
-  }
-
-  validateJobRoleObj(jobRole:JobRole, template: TemplateRef<any>){
-
-    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.name)){
-      this.alertMessage = "Please enter Job Role Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)){
-      this.alertMessage = "Please select Department !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    return true;
-  }
-
-
-  // CRUD
-  onCreateJobRole(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
-    if(!inputValidated) return;
-    
-    this.jobRoleObj.createdBy = 1;
-    console.log("Create jobRoleObj : ", this.jobRoleObj);
-    this.jobRoleService.createJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showTable();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-
-    });
-  }
-
-  onUpdateJobRole(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
-    if(!inputValidated) return;
-    
-    this.jobRoleObj.updatedBy = 1;
-    this.jobRoleObj.jobRoleId = this.jobRoleObj.id; //TODO : DTO and MODEL descrepency
-    console.log("Update jobRoleObj : ", this.jobRoleObj);
-    this.jobRoleService.updateJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showTable();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  onDeleteJobRole(template: TemplateRef<any>){
-    this.cancelRequest();
-  
-    this.jobRoleObj.jobRoleId = this.jobRoleObj.id; //TODO : DTO and MODEL descrepency
-    this.jobRoleService.deleteJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showTable();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  /* Features */
-  onUpdateFeature(template: TemplateRef<any>){
-    console.log("feature : ", this.selectedFeature);
-    console.log("subfeatures : ", this.subFeatureList);
-  }
-
-
-  getAllJobRoleList(){
-    this.allJobRoleList = [];
-
-    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allJobRoleList = response.serviceResponse;
-        console.log("allJobRoleList : ", this.allJobRoleList)
-      } else {
-        alert(response.serviceResponse)
-      }
-    });
-  }
-
-  getAllDepartmentList(){
-    this.allDeptList = [];
-
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allDeptList = response.serviceResponse;
-        console.log("allDeptList : ", this.allDeptList)
-      } else {
-        alert(response.serviceResponse)
-      }
-    });
-  }
-
-  //modals
-  openDeleteJobRole(template: TemplateRef<any>, jobRole: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.jobRoleObj = jobRole;
-  }
-
-  openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  cancelRequest() {
-    this.modalRef.hide();
-  }
-}
+  */
