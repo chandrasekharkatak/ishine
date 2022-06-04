@@ -3,9 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Feature } from '../models/feature';
+import { SubFeature } from '../models/subFeature';
 import { Tab } from '../models/tab';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { SubfeatureService } from '../services/subfeature.service';
 import { ValidationService } from '../services/validation.service';
 
 @Component({
@@ -36,12 +39,20 @@ export class LoginComponent implements OnInit {
   user:User = new User();
   errorMsg:any;
 
+  /* User-Mappings */
+  allSubFeatures:any[] = [];
+  featureList:any[] = [];
+  allMappedSubfeatures:any[] = [];
+
+
+
   constructor(
     private validationService:ValidationService,
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private router: Router,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private subfeatureService: SubfeatureService
   ) { }
 
   ngOnInit(): void {
@@ -133,7 +144,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onConfirmLoginOTP(){
+  async onConfirmLoginOTP(){
     this.isError=false;
     this.errorMsg='';
     
@@ -145,38 +156,31 @@ export class LoginComponent implements OnInit {
 
     this.user.otp = this.userOTP;
 
-    this.authenticationService.authenticateUserWithOTP(this.user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        console.log("USER",response.serviceResponse);
-        const responseObj = response.serviceResponse;
-        let user = responseObj[0];
-        let userMapping = responseObj[1];
-        /*Mapping & tab list*/
-        let tabList:Tab[] = [];
-        userMapping.forEach(userMap => {
-          if(tabList.length == 0 || !tabList.find(tab => tab.tabName === userMap.tabName)){
-            let tab = new Tab();
-            tab.tabName = userMap.tabName;
-            tab.tabRouteName = userMap.tabRouteName;
-            tab.tabIcon = userMap.tabIcon;
-    
-            tabList.push(tab);
-          }      
-        });
-    
-        console.log("tabList : ", tabList);
-        this.user.empId = user.empId;
-        this.user.name = user.name;
-        this.user.userMapping = userMapping;
-        this.user.tabList = tabList;
-        sessionStorage.setItem('currentUser', JSON.stringify(this.user));
-        this.authenticationService.setcurrentUserSubject(this.user);
-        this.router.navigate(['/home']);
-      } else {
-        this.isError=true;
-        this.errorMsg=response.serviceResponse;
+    const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
+    if (response.serviceStatus == "Success") {
+      console.log("USER", response.serviceResponse);
+      const responseObj = response.serviceResponse;
+      let user = responseObj[0];
+      this.allMappedSubfeatures = responseObj[1];
+
+      let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
+      if (getAllSubFeaturesResp.serviceStatus == "Success") {
+        this.allSubFeatures = getAllSubFeaturesResp.serviceResponse;
+        this.getFeatureList();
+      
+      /*Mapping & tab list*/
+      this.user.empId = user.empId;
+      this.user.name = user.name;
+      this.user.userMapping = this.getActiveSubFeatures();
+      this.user.tabList = this.getTabList();
+      sessionStorage.setItem('currentUser', JSON.stringify(this.user));
+      this.authenticationService.setcurrentUserSubject(this.user);
+      this.router.navigate(['/home']);
       }
-    });
+    } else {
+      this.isError = true;
+      this.errorMsg = response.serviceResponse;
+    }
   }
 
   onSendOTP(){
@@ -229,4 +233,53 @@ export class LoginComponent implements OnInit {
 
     this.showLoginForm();
   }
+
+  getTabList(){
+    let tabList:Tab[] = [];
+        this.allMappedSubfeatures.forEach(userMap => {
+          if(tabList.length == 0 || !tabList.find(tab => tab.tabName === userMap.tabName)){
+            let tab = new Tab();
+            tab.tabName = userMap.tabName;
+            tab.tabRouteName = userMap.tabRouteName;
+            tab.tabIcon = userMap.tabIcon;
+    
+            tabList.push(tab);
+          }      
+        });
+    return tabList;
+  }
+
+  getFeatureList():any{
+    this.featureList = [];
+    this.allSubFeatures.forEach(featureMap => {
+      if(this.featureList.length == 0 || !this.featureList.find(feature => feature.featureName === featureMap.featureName))
+      {
+        let feat = new Feature();
+        feat.featureId = featureMap.featureId;
+        feat.featureName = featureMap.featureName;
+
+        this.featureList.push(feat);
+      }      
+    });
+    return this.getActiveSubFeatures();
+  }
+
+  getActiveSubFeatures():any{
+    this.allSubFeatures.forEach(sub => {
+      let _sub = new SubFeature();
+      _sub.subFeatureId = sub.subFeatureMasterId;
+      _sub.subFeatureName = sub.subFeatureName;
+
+      if(this.allMappedSubfeatures.find(subMap => subMap.subFeatureMasterId == sub.subFeatureMasterId)){
+        _sub.isActive = true;
+      }else{
+        _sub.isActive = false;
+      }
+
+      this.featureList.find(feature => feature.featureId == sub.featureId).subFeatures.push(_sub);
+    });
+    console.log("featureList :", this.featureList);
+    return this.featureList;
+  }
+
 }

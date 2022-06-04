@@ -4,6 +4,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
+import { Feature } from '../models/feature';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
@@ -26,6 +27,9 @@ export class UserProfileComponent implements OnInit {
   previewImage:any;
   profileImageName:any;
 
+  feature="Profile";
+  userMapping:any = {};
+
    //modal 
    alertMessage:any;
    modalRef: BsModalRef = new BsModalRef();
@@ -42,6 +46,13 @@ export class UserProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
+
+    // Dynamic Subfeature Flags 
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);    
   }
 
   ngAfterViewInit() {

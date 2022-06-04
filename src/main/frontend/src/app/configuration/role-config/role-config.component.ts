@@ -5,6 +5,8 @@ import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { JobRole } from 'src/app/models/jobRole';
 import { SubFeature } from 'src/app/models/subFeature';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
@@ -39,14 +41,30 @@ export class RoleConfigComponent implements OnInit {
   isSubFeatureList:boolean = false;
 
 
+  feature="Role";
+  currentUser:User;
+  userMapping:any = {};
 
-  constructor(private validationService:ValidationService,private modalService: BsModalService,
-    private jobRoleService: JobRoleService, private departmentService: DepartmentService,
-    private subfeatureService: SubfeatureService) { }
+  constructor(
+    private validationService:ValidationService,
+    private modalService: BsModalService,
+    private jobRoleService: JobRoleService,
+    private departmentService: DepartmentService,
+    private subfeatureService: SubfeatureService,
+    private authenticationService : AuthenticationService) { 
+      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    }
 
   ngOnInit(): void {
     // getting departments 
     this.getAllDepartmentList();
+
+    // Dynamic Subfeature Flags 
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
 
     //Deafult values for dropdown
     this.jobRoleObj.departmentId = '';

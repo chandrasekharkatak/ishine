@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Feature } from '../models/feature';
 import { JobRole } from '../models/jobRole';
+import { SubFeature } from '../models/subFeature';
 
 @Injectable({
   providedIn: 'root'

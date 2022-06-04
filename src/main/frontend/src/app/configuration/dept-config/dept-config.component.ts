@@ -3,6 +3,9 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { Department } from 'src/app/models/department';
+import { Feature } from 'src/app/models/feature';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -30,16 +33,32 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
   allDeptList:any;
   hodList:any = [];
 
-  constructor(private validationService:ValidationService,private modalService: BsModalService,
-    private departmentService: DepartmentService, private employeeService:EmployeeService,) {
+  feature="Department";
+  currentUser:User;
+  userMapping:any = {};
+
+  constructor(
+    private validationService:ValidationService,
+    private modalService: BsModalService,
+    private departmentService: DepartmentService,
+    private employeeService:EmployeeService,
+    private authenticationService : AuthenticationService) {
       this.activatedSubscriptions = this.employeeService.updatedEmployeeList.subscribe(allEmployees => {
-        this.hodList = allEmployees;
+        this.hodList = allEmployees
     });
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
     //Deafult values for dropdown
     this.deptObj.hodId = '';
+
+    // Dynamic Subfeature Flags 
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
   }
 
   ngOnDestroy(): void {

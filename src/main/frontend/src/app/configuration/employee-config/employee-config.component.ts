@@ -5,6 +5,9 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { first } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { User } from 'src/app/models/user';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-employee-config',
@@ -12,6 +15,8 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
   styleUrls: ['./employee-config.component.css']
 })
 export class EmployeeConfigComponent implements OnInit {
+
+  feature = 'Employee';
 
   //flags 
   isCreation:boolean = true;
@@ -27,17 +32,32 @@ export class EmployeeConfigComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
 
   //Obj 
+  currentUser:User;
   employeeObj:Employee = new Employee();
   allEmployeeList:any;
   managerList:any = [];
+  userMapping:any = {};
 
-  constructor(private employeeService:EmployeeService,private validationService:ValidationService, 
-    private datePipe: DatePipe,private modalService: BsModalService,) { }
+  constructor(
+    private employeeService:EmployeeService,
+    private validationService:ValidationService, 
+    private datePipe: DatePipe,
+    private modalService: BsModalService,
+    private authenticationService: AuthenticationService) { 
+      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    }
  
   ngOnInit(): void {
     // TODO : Here we should fetch list of Managers
     this.getAllEmployeeList(); //for manager dropdown 
 
+    // Dynamic Subfeature Flags 
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
+    
     //Deafult values for dropdown
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
@@ -52,8 +72,8 @@ export class EmployeeConfigComponent implements OnInit {
     const today = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
     let DOB = document.getElementById('DOB');
     let DOJ = document.getElementById('DOJ');
-    DOB.setAttribute('max', today);
-    DOJ.setAttribute('max', today);
+    DOB?.setAttribute('max', today);
+    DOJ?.setAttribute('max', today);
   }
 
   showCreateForm(){
