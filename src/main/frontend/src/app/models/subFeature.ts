@@ -1,6 +1,7 @@
 export class SubFeature{
-    subFeatureId:any;
+    subFeatureMasterId:any;
     subFeatureName:any;
     
+    roleFeatureMapId:any;
     isActive:any;
 }

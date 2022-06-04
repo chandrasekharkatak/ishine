@@ -21,7 +21,7 @@ export class SubfeatureService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllSubFeatures`);
   }
 
-  updateFeatureMapping(updateFeatureObj: Feature) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateFeatureMapping`, updateFeatureObj);
+  updateRoleFeatureMapping(updateFeatureObj: Feature) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateRoleFeatureMapping`, updateFeatureObj);
   }
 }

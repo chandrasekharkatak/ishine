@@ -129,6 +129,7 @@ export class RoleConfigComponent implements OnInit {
 
     this.jobRoleObj = Object.assign({}, jobRole)
     this.getSubfeaturesByJobRoleId();
+    console.log("this.jobRoleObj : ", this.jobRoleObj);
     
   }
 
@@ -228,8 +229,9 @@ export class RoleConfigComponent implements OnInit {
     let updateFeatureObj = new Feature();
     updateFeatureObj.featureId = this.selectedFeature;
     updateFeatureObj.subFeatures = this.subFeatureList;
+    updateFeatureObj.jobRoleId = this.jobRoleObj.id;
 
-    this.subfeatureService.updateFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
+    this.subfeatureService.updateRoleFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
@@ -278,13 +280,16 @@ export class RoleConfigComponent implements OnInit {
   getActiveSubFeatures(){
     this.allSubFeatures.forEach(sub => {
       let _sub = new SubFeature();
-      _sub.subFeatureId = sub.subFeatureMasterId;
+      _sub.subFeatureMasterId = sub.subFeatureMasterId;
       _sub.subFeatureName = sub.subFeatureName;
 
-      if(this.allMappedSubfeatures.find(subMap => subMap.subFeatureMasterId == sub.subFeatureMasterId)){
+      let subMap = this.allMappedSubfeatures.find(subMap => subMap.subFeatureMasterId == sub.subFeatureMasterId);
+      if(subMap){
         _sub.isActive = true;
+        _sub.roleFeatureMapId = subMap.roleFeatureMapId;
       }else{
         _sub.isActive = false;
+        _sub.roleFeatureMapId = null;
       }
 
       this.featureList.find(feature => feature.featureId == sub.featureId).subFeatures.push(_sub);

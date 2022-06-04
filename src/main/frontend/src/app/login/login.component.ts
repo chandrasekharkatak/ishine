@@ -267,7 +267,7 @@ export class LoginComponent implements OnInit {
   getActiveSubFeatures():any{
     this.allSubFeatures.forEach(sub => {
       let _sub = new SubFeature();
-      _sub.subFeatureId = sub.subFeatureMasterId;
+      _sub.subFeatureMasterId = sub.subFeatureMasterId;
       _sub.subFeatureName = sub.subFeatureName;
 
       if(this.allMappedSubfeatures.find(subMap => subMap.subFeatureMasterId == sub.subFeatureMasterId)){
