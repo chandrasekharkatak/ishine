@@ -1,6 +1,5 @@
 export class JobRole{
     jobRoleId: any;
-	id:any; //! temp	
 	name: any;	
 	departmentId: any;
 	departmentName:any;	

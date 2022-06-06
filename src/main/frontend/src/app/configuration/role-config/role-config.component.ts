@@ -172,7 +172,6 @@ export class RoleConfigComponent implements OnInit {
     if(!inputValidated) return;
     
     this.jobRoleObj.updatedBy = 1;
-    this.jobRoleObj.jobRoleId = this.jobRoleObj.id; //TODO : DTO and MODEL descrepency
     this.jobRoleService.updateJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -186,7 +185,6 @@ export class RoleConfigComponent implements OnInit {
   onDeleteJobRole(template: TemplateRef<any>){
     this.cancelRequest();
   
-    this.jobRoleObj.jobRoleId = this.jobRoleObj.id; //TODO : DTO and MODEL descrepency
     this.jobRoleService.deleteJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -229,7 +227,7 @@ export class RoleConfigComponent implements OnInit {
     let updateFeatureObj = new Feature();
     updateFeatureObj.featureId = this.selectedFeature;
     updateFeatureObj.subFeatures = this.subFeatureList;
-    updateFeatureObj.jobRoleId = this.jobRoleObj.id;
+    updateFeatureObj.jobRoleId = this.jobRoleObj.jobRoleId;
 
     this.subfeatureService.updateRoleFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -1,5 +1,5 @@
 export class Department{
-    dept_id:any;
+    deptId:any;
 	name:any;	
 	hodId:any;	
 	createdOn:any;	

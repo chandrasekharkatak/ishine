@@ -156,7 +156,7 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
   
     //! Need to check this 
     let department:Department = new Department();
-    department.dept_id = this.deptObj.dept_id;
+    department.deptId = this.deptObj.deptId;
 
     this.departmentService.deleteDepartment(department).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
