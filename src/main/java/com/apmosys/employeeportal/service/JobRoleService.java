@@ -111,7 +111,8 @@ public class JobRoleService {
 					jobRoleDTO.setCreatedOn(object[2].toString());
 					jobRoleDTO.setDepartmentId(Long.parseLong(object[3].toString()));
 					jobRoleDTO.setDepartmentName(object[4].toString());
-					jobRoleDTO.setId(Long.parseLong(object[5].toString()));
+					jobRoleDTO.setJobRoleId(Long.parseLong(object[5].toString()));
+					jobRoleDTO.setHodId(Long.parseLong(object[6].toString()));
 					dtoList.add(jobRoleDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -133,7 +134,7 @@ public class JobRoleService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getId());
+			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if(jobRoleObject.isPresent())
 			{
 				JobRole jobRoleToBeUpdated = jobRoleObject.get();
@@ -172,7 +173,7 @@ public class JobRoleService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getId());
+			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isPresent()) {
 				JobRole jobRoleToBeDeleted = jobRoleObject.get();				
 				jobRoleRepository.deleteById(jobRoleToBeDeleted.getJobRoleId());				
