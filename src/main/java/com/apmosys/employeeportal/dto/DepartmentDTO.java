@@ -9,9 +9,11 @@ public class DepartmentDTO {
 
 	private Long deptId;
 	private String name;	
-	private Long hodId;	
-	private Timestamp createdOn;	
-	private int createdBy;	
+	private Long hodId;
+	private String hodName;	
+	private String createdOn;	
+	private int createdBy;
+	private String createdByName;	
 	private LocalDateTime updatedOn;	
 	private int updatedBy;
 	
@@ -34,10 +36,10 @@ public class DepartmentDTO {
 	public void setHodId(Long hodId) {
 		this.hodId = hodId;
 	}
-	public Timestamp getCreatedOn() {
+	public String getCreatedOn() {
 		return createdOn;
 	}
-	public void setCreatedOn(Timestamp createdOn) {
+	public void setCreatedOn(String createdOn) {
 		this.createdOn = createdOn;
 	}
 	public int getCreatedBy() {
@@ -58,11 +60,19 @@ public class DepartmentDTO {
 	public void setUpdatedBy(int updatedBy) {
 		this.updatedBy = updatedBy;
 	}
-	@Override
-	public String toString() {
-		return "DepartmentDTO [dept_id=" + deptId + ", name=" + name + ", hodId=" + hodId + ", createdOn=" + createdOn
-				+ ", createdBy=" + createdBy + ", updatedOn=" + updatedOn + ", updatedBy=" + updatedBy + "]";
+	public String getHodName() {
+		return hodName;
 	}
+	public void setHodName(String hodName) {
+		this.hodName = hodName;
+	}
+	public String getCreatedByName() {
+		return createdByName;
+	}
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+	
 	
 	
 }

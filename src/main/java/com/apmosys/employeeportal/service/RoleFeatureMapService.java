@@ -1,14 +1,23 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
+import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.RoleFeatureMapDTO;
+import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.SubFeatureMaster;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
@@ -49,6 +58,42 @@ public class RoleFeatureMapService {
 			serviceResponse.setServiceError(e.getMessage());
 		}
 
+		return serviceResponse;
+	}
+
+	public ServiceResponse updateRoleFeatureMapping(FeatureMasterDTO featureMasterDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try
+		{
+			Long jobRoleId= featureMasterDTO.getJobRoleId();
+			
+			featureMasterDTO.getSubFeatures()
+			.stream()
+			.filter(subfeatures -> subfeatures.getRoleFeatureMapId() == null)
+			.forEach(dto -> {
+				RoleFeatureMap roleFeatureMap= new RoleFeatureMap();
+				roleFeatureMap.setJobRoleId(jobRoleId);
+				roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureMasterId());
+				roleFeatureMapRepository.save(roleFeatureMap);
+			});
+			
+			featureMasterDTO.getSubFeatures()
+			.stream()
+			.filter(subfeatures -> !subfeatures.getIsActive())
+			.forEach(dto -> {
+				roleFeatureMapRepository.deleteById(dto.getRoleFeatureMapId());
+			});
+			
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse("Subfeatures of role updated.");
+
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceResponse("Something Went Wrong.");
+			serviceResponse.setServiceError(e.getMessage());
+		}
 		return serviceResponse;
 	}
 

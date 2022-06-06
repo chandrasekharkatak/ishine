@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
+
 import com.apmosys.employeeportal.model.TabMaster;
 
 public class FeatureMasterDTO {
@@ -7,7 +10,8 @@ public class FeatureMasterDTO {
 	private Long featureId;	
 	private String featureName;	
 	private Long tabId;
-	private TabMaster tabMaster;
+	private List<SubFeatureMasterDTO> subFeatures;
+	private Long jobRoleId;
 	
 	public Long getFeatureId() {
 		return featureId;
@@ -27,12 +31,24 @@ public class FeatureMasterDTO {
 	public void setTabId(Long tabId) {
 		this.tabId = tabId;
 	}
-	public TabMaster getTabMaster() {
-		return tabMaster;
+	public List<SubFeatureMasterDTO> getSubFeatures() {
+		return subFeatures;
 	}
-	public void setTabMaster(TabMaster tabMaster) {
-		this.tabMaster = tabMaster;
+	public void setSubFeatures(List<SubFeatureMasterDTO> subFeatures) {
+		this.subFeatures = subFeatures;
 	}
+	public Long getJobRoleId() {
+		return jobRoleId;
+	}
+	public void setJobRoleId(Long jobRoleId) {
+		this.jobRoleId = jobRoleId;
+	}
+	@Override
+	public String toString() {
+		return "FeatureMasterDTO [featureId=" + featureId + ", featureName=" + featureName + ", tabId=" + tabId
+				+ ", subFeatures=" + subFeatures + ", jobRoleId=" + jobRoleId + "]";
+	}
+	
 	
 	
 	

@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
 import com.apmosys.employeeportal.service.RoleFeatureMapService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -23,6 +25,13 @@ public class RoleFeatureMapController {
 	public ServiceResponse setDefaultSubFeaturesByRoleId(@RequestBody JobRoleDTO jobRoleDTO) {		
 		
 		ServiceResponse response = roleFeatureMapService.setDefaultSubFeaturesByRoleId(jobRoleDTO);
+		return response;
+	}
+	
+	@RequestMapping(value="/updateRoleFeatureMapping" , method = RequestMethod.POST)
+	public ServiceResponse updateRoleFeatureMapping(@RequestBody FeatureMasterDTO featureMasterDTO) {		
+		
+		ServiceResponse response =	roleFeatureMapService.updateRoleFeatureMapping(featureMasterDTO);		
 		return response;
 	}
 
