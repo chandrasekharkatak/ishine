@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public class JobRoleDTO {
 
-	private Long id;	
+	private Long jobRoleId;	
 	private String name;	
 	private Long departmentId;	
 	private String createdOn;	
@@ -15,13 +15,14 @@ public class JobRoleDTO {
 	private int updatedBy;
 	private int createdById;
 	private String departmentName;
+	private Long hodId;
 	
 	
-	public Long getId() {
-		return id;
+	public Long getJobRoleId() {
+		return jobRoleId;
 	}
-	public void setId(Long id) {
-		this.id = id;
+	public void setJobRoleId(Long jobRoleId) {
+		this.jobRoleId = jobRoleId;
 	}
 	public String getName() {
 		return name;
@@ -71,12 +72,13 @@ public class JobRoleDTO {
 	public void setDepartmentName(String departmentName) {
 		this.departmentName = departmentName;
 	}
-	@Override
-	public String toString() {
-		return "JobRoleDTO [id=" + id + ", name=" + name + ", departmentId=" + departmentId + ", createdOn=" + createdOn
-				+ ", createdBy=" + createdBy + ", updatedOn=" + updatedOn + ", updatedBy=" + updatedBy
-				+ ", createdById=" + createdById + ", departmentName=" + departmentName + "]";
+	public Long getHodId() {
+		return hodId;
 	}
+	public void setHodId(Long hodId) {
+		this.hodId = hodId;
+	}
+	
 	
 	
 	

@@ -29,7 +29,7 @@ public class SubFeatureMasterService {
 		ServiceResponse response = new ServiceResponse();
 		try
 		{
-			List<RoleFeatureMap> roleFeatureMapList = roleFeatureMapRepository.findByJobRoleId(jobRoleDTO.getId());
+			List<RoleFeatureMap> roleFeatureMapList = roleFeatureMapRepository.findByJobRoleId(jobRoleDTO.getJobRoleId());
 
 			if (roleFeatureMapList.isEmpty()) {
 				

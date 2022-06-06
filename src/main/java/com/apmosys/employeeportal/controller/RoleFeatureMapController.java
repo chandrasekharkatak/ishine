@@ -28,10 +28,30 @@ public class RoleFeatureMapController {
 		return response;
 	}
 	
+	/*
+	 * 06/06/2022
+	 * By suraj: 
+	 * roleFeatureMapService.updateRoleFeatureMapping() was also throwing exception
+	 * when transaction was rolled back. Hence try-catch has been added in controller as well.
+	 * DO NOT REMOVE THIS TRY-CATCH BLOCK.		
+	*/
 	@RequestMapping(value="/updateRoleFeatureMapping" , method = RequestMethod.POST)
 	public ServiceResponse updateRoleFeatureMapping(@RequestBody FeatureMasterDTO featureMasterDTO) {		
 		
-		ServiceResponse response =	roleFeatureMapService.updateRoleFeatureMapping(featureMasterDTO);		
+		
+		ServiceResponse response = new ServiceResponse();
+		try
+		{
+			 response =	roleFeatureMapService.updateRoleFeatureMapping(featureMasterDTO);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		
 		return response;
 	}
 
