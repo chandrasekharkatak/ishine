@@ -65,8 +65,8 @@
           <tr *ngFor="let dept of allDeptList, let i = index">
             <th class="info-label">{{i+1}}</th>
             <td>{{dept.name}}</td>
-            <td>{{dept.hodId}}</td>
-            <td>{{dept.createdBy}}</td>
+            <td>{{dept.hodName}}</td>
+            <td>{{dept.createdByName}}</td>
             <td>{{dept.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;
