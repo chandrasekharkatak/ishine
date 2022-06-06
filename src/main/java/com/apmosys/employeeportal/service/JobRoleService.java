@@ -112,7 +112,6 @@ public class JobRoleService {
 					jobRoleDTO.setDepartmentId(Long.parseLong(object[3].toString()));
 					jobRoleDTO.setDepartmentName(object[4].toString());
 					jobRoleDTO.setJobRoleId(Long.parseLong(object[5].toString()));
-					jobRoleDTO.setHodId(Long.parseLong(object[6].toString()));
 					dtoList.add(jobRoleDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

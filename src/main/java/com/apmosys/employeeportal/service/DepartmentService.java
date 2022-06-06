@@ -71,6 +71,7 @@ public class DepartmentService {
 					departmentDTO.setName(object[3].toString());
 					departmentDTO.setCreatedByName(object[4].toString());
 					departmentDTO.setHodName(object[5].toString());
+					departmentDTO.setHodId(Long.parseLong(object[6].toString()));
 					dtoList.add(departmentDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
