@@ -19,9 +19,9 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
 
   private activatedSubscriptions:Subscription;
   //flags 
-  isCreation:boolean = true;
+  isCreation:boolean = false;
   isUpdation: boolean = false;
-  isForm: boolean = true;
+  isForm: boolean = false;
   isTable: boolean = false;
 
   //modal 
@@ -59,10 +59,19 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
+
+    this.sectionViewInit();
   }
 
   ngOnDestroy(): void {
     this.activatedSubscriptions.unsubscribe();
+  }
+
+  sectionViewInit(){
+    if(this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department){
+      //for dept table data 
+      this.showTable();
+    }
   }
 
   showCreateForm(){

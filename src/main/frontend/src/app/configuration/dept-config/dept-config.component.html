@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm float-left" *ngIf="isTable" (click)="showCreateForm()"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
-        <button type="button" class="btn btn-outline-primary btn-sm float-right" *ngIf="isForm" (click)="showTable()"><i class="fa fa-list" aria-hidden="true"></i> See All</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCreation && userMapping.create_department" (click)="showCreateForm()">Add New Role</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="isForm && userMapping.view_all_department" (click)="showTable()">View All Departments</button>
     </div>
 </div>
 
@@ -37,10 +37,10 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    <button *ngIf="isCreation && userMapping.create_department" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onCreateDepartment(alert_message)">Create Department</button>
 
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    <button *ngIf="isUpdation && userMapping.update_department" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onUpdateDepartment(alert_message)">Update Department</button>
                 </div>
             </div>
@@ -58,7 +58,7 @@
             <th scope="col" class="info-label">Head of Department</th>
             <th scope="col" class="info-label">Created by</th>
             <th scope="col" class="info-label">Created on</th>
-            <th scope="col" class="info-label">Actions</th>
+            <th *ngIf="userMapping.update_department || userMapping.delete_department" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -68,9 +68,9 @@
             <td>{{dept.hodName}}</td>
             <td>{{dept.createdByName}}</td>
             <td>{{dept.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em class="fa fa-trash"></em></button>
+            <td *ngIf="userMapping.update_department || userMapping.delete_department">
+                <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em class="fa fa-trash"></em></button>
             </td>
           </tr>
         </tbody>

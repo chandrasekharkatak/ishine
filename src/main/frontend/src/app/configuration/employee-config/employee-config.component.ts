@@ -19,9 +19,9 @@ export class EmployeeConfigComponent implements OnInit {
   feature = 'Employee';
 
   //flags 
-  isCreation:boolean = true;
+  isCreation:boolean = false;
   isUpdation: boolean = false;
-  isForm: boolean = true;
+  isForm: boolean = false;
   isTable: boolean = false;
 
   isDraft: boolean = false;
@@ -48,7 +48,6 @@ export class EmployeeConfigComponent implements OnInit {
     }
  
   ngOnInit(): void {
-    // TODO : Here we should fetch list of Managers
     this.getAllEmployeeList(); //for manager dropdown 
 
     // Dynamic Subfeature Flags 
@@ -57,7 +56,9 @@ export class EmployeeConfigComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-    
+
+    this.sectionViewInit();
+
     //Deafult values for dropdown
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
@@ -66,6 +67,16 @@ export class EmployeeConfigComponent implements OnInit {
 
   ngAfterViewInit() {
     this.setCalenderMaxDate();
+  }
+
+  sectionViewInit(){
+    if(this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee){
+      //for employee table data 
+      this.showTable();
+    }else if(this.userMapping.update_draft){
+       //for employee draft table data 
+       this.showDraftTable();
+    }
   }
 
   setCalenderMaxDate(){

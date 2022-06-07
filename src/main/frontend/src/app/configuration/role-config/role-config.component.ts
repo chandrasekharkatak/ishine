@@ -20,9 +20,9 @@ import { ValidationService } from 'src/app/services/validation.service';
 export class RoleConfigComponent implements OnInit {
 
   //flags 
-  isCreation:boolean = true;
+  isCreation:boolean = false;
   isUpdation: boolean = false;
-  isForm: boolean = true;
+  isForm: boolean = false;
   isTable: boolean = false;
 
   //modal 
@@ -68,6 +68,15 @@ export class RoleConfigComponent implements OnInit {
 
     //Deafult values for dropdown
     this.jobRoleObj.departmentId = '';
+
+    this.sectionViewInit();
+  }
+
+  sectionViewInit(){
+    if(this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role){
+      //for role table data 
+      this.showTable();
+    }
   }
 
   getSubfeatureList(){
@@ -222,11 +231,17 @@ export class RoleConfigComponent implements OnInit {
 
    /* Features-Subfeature Mapping */
    onUpdateFeatureMapping(template: TemplateRef<any>){
-    console.log("feature : ", this.selectedFeature);
-    console.log("subfeatures : ", this.subFeatureList);
+    let activeSubfeatures = this.subFeatureList.filter(sub => {
+      if(sub.roleFeatureMapId === null && sub.isActive == false){
+        // to send only manipulated data ...
+      }else{
+        return sub
+      }
+    });
+
     let updateFeatureObj = new Feature();
     updateFeatureObj.featureId = this.selectedFeature;
-    updateFeatureObj.subFeatures = this.subFeatureList;
+    updateFeatureObj.subFeatures = activeSubfeatures;
     updateFeatureObj.jobRoleId = this.jobRoleObj.jobRoleId;
 
     this.subfeatureService.updateRoleFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {

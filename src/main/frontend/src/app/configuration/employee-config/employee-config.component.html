@@ -1,10 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm float-left" *ngIf="isTable" (click)="showCreateForm()"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
-        <button type="button" class="btn btn-outline-primary btn-sm float-right" *ngIf="isForm" (click)="showTable()"><i class="fa fa-list" aria-hidden="true"></i> See All</button>
-
-        <button type="button" class="btn btn-outline-primary btn-sm float-left" *ngIf="isDraftTable" (click)="showTable()"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
-        <button type="button" class="btn btn-outline-primary btn-sm float-right" *ngIf="isTable || isDraft" (click)="showDraftTable()"><i class="fa fa-list" aria-hidden="true"></i> See Draft</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee" (click)="showCreateForm()">Add New Employee</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(isForm && userMapping.view_all_employee) || (isDraftTable && userMapping.view_all_employee)" (click)="showTable()">View All Employees</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isDraftTable && userMapping.update_draft" (click)="showDraftTable()">View All Employees Draft</button>
     </div>
 </div>
 
@@ -397,13 +395,13 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation || isDraft" type="submit" class="btn btn-primary btn-sm mx-1"
+                    <button *ngIf="(isCreation && userMapping.create_employee) || (isDraft && userMapping.save_draft)" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onCreateEmployee(alert_message)">Create Employee</button>
-                    <button *ngIf="isCreation" type="submit" class="btn btn-outline-primary btn-sm mx-1"
+                    <button *ngIf="isCreation && userMapping.save_draft" type="submit" class="btn btn-outline-primary btn-sm mx-1"
                     (click)="onSaveDraftEmployee(alert_message)">Save Draft</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                    <button *ngIf="isUpdation && userMapping.update_employee" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onUpdateEmployee(alert_message)">Update Employee</button>
-                    <button *ngIf="isDraft" type="submit" class="btn btn-outline-primary btn-sm mx-1"
+                    <button *ngIf="isDraft && userMapping.update_draft" type="submit" class="btn btn-outline-primary btn-sm mx-1"
                     (click)="onUpdateDraftEmployee(alert_message)">Update Draft</button>
                 </div>
             </div>
@@ -423,7 +421,7 @@
             <th scope="col" class="info-label">Email Id</th>
             <th scope="col" class="info-label">Employenment Status</th>
             <th scope="col" class="info-label">Date of Joining</th>
-            <th scope="col" class="info-label">Actions</th>
+            <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -434,13 +432,13 @@
             <td>{{employee.email}}</td>
             <td>{{employee.employmentstatus}}</td>
             <td>{{employee.dateOfJoining}}</td>
-            <td *ngIf="isTable">
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>
+            <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
+                <button *ngIf="userMapping.update_employee" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button *ngIf="userMapping.delete_employee" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>
             </td>
-            <td *ngIf="isDraftTable">
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button>
+            <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
+                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button>
             </td>
           </tr>
         </tbody>

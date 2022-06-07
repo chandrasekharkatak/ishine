@@ -1,10 +1,10 @@
 <div class="container-fluid">
     <div class="row justify-content-between mb-3">
         <h3 class="profile__greetings">Welcome, {{currentEmployeeInfo.name}}</h3>
-        <button *ngIf="!isUpdateProfile" type="submit" class="btn btn-primary btn-sm" (click)="showUpdateProfile()">Update Profile</button>
-        <button *ngIf="isUpdateProfile" type="submit" class="btn btn-primary btn-sm" (click)="showViewProfile()">View Profile</button>
+        <button *ngIf="!isUpdateProfile && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm" (click)="showUpdateProfile()">Update Profile</button>
+        <button *ngIf="isUpdateProfile && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm" (click)="showViewProfile()">View Profile</button>
     </div>
-    <div class="row">
+    <div *ngIf="userMapping.view_profile" class="row">
         <div class="card user-card">
             <div class="d-flex justify-content-between">
                 <div class="col-md-4 d-flex flex-column user-card__profile-avatar">
@@ -12,7 +12,7 @@
                         id="user-avatar" class="user-card__profile-avatar__img" alt="Avatar" />
                     
                     <!-- IMAGE UPLOAD -->
-                    <div *ngIf="isUpdateProfile" class="user-card__profile-avatar-upload mt-3">
+                    <div *ngIf="isUpdateProfile && userMapping.upload_profile_image" class="user-card__profile-avatar-upload mt-3">
                         <input type="file" name="file" id="profileImg" class="profileImgFile" (change)="onProfileImageSelect($event)" />
                         <label id="profileImgLabel" for="profileImg">Select Image</label>
                         <button type="submit" class="btn btn-primary ml-2 profileImgFile__upload__btn" title="Upload Image" (click)="onUploadImage(alert_message)"><i class="fa-solid fa-upload"></i></button>
@@ -53,7 +53,7 @@
         </div>
     </div>
     <div class="row">
-        <div *ngIf="!isUpdateProfile" class="card">
+        <div *ngIf="!isUpdateProfile && userMapping.view_profile" class="card">
             <ul class="nav nav-tabs user-info__tabs" id="userTab" role="tablist">
                 <li class="nav-item user-info__tab-item">
                     <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab"
