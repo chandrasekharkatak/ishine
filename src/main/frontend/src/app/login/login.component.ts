@@ -257,11 +257,11 @@ export class LoginComponent implements OnInit {
         let feat = new Feature();
         feat.featureId = featureMap.featureId;
         feat.featureName = featureMap.featureName;
+        feat.tabName = featureMap.tabName;
 
         this.featureList.push(feat);
       }      
     });
-    return this.getActiveSubFeatures();
   }
 
   getActiveSubFeatures():any{

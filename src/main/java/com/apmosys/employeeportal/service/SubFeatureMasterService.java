@@ -78,6 +78,7 @@ public class SubFeatureMasterService {
 					dto.setSubFeatureName(object[2].toString());
 					dto.setSubFeatureType(Short.parseShort(object[3].toString()));
 					dto.setFeatureName(object[4].toString());
+					dto.setTabName(object[5].toString());
 					dtoList.add(dto);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

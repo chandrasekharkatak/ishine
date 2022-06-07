@@ -11,6 +11,7 @@ public class SubFeatureMasterDTO {
 	private short subFeatureType;
 	private boolean isActive;
 	private Long roleFeatureMapId;
+	private String tabName;
 	
 	
 	public Long getFeatureId() {
@@ -55,15 +56,17 @@ public class SubFeatureMasterDTO {
 	public void setRoleFeatureMapId(Long roleFeatureMapId) {
 		this.roleFeatureMapId = roleFeatureMapId;
 	}
+	public String getTabName() {
+		return tabName;
+	}
+	public void setTabName(String tabName) {
+		this.tabName = tabName;
+	}
+	
 	@Override
 	public String toString() {
 		return "SubFeatureMasterDTO [featureId=" + featureId + ", featureName=" + featureName + ", subFeatureMasterId="
 				+ subFeatureMasterId + ", subFeatureName=" + subFeatureName + ", subFeatureType=" + subFeatureType
-				+ ", isActive=" + isActive + ", roleFeatureMapId=" + roleFeatureMapId + "]";
+				+ ", isActive=" + isActive + ", roleFeatureMapId=" + roleFeatureMapId + ", tabName=" + tabName + "]";
 	}
-	
-	
-	
-	
-	
 }

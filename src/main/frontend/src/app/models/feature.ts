@@ -3,6 +3,7 @@ export class Feature{
     featureName:any;
     subFeatures:any[] = [];
     jobRoleId:any;
+    tabName:any;
 
     createdOn?: any;	
 	createdBy?: any;	
