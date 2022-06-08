@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 
@@ -13,7 +14,10 @@ export class BodyComponent implements OnInit {
   @Input() screenWidth = 0;
   currentUser:User = new User();
 
-  constructor(private authenticationService: AuthenticationService){
+  constructor(
+    private authenticationService: AuthenticationService,
+    private router: Router,
+  ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -44,6 +48,12 @@ export class BodyComponent implements OnInit {
       styleClass= 'navbar-md-screen'
     }
     return styleClass;
+  }
+
+  userLogout(){
+    sessionStorage.removeItem('currentUser');
+    location.reload();
+    this.router.navigate(['/login']);
   }
 
 }
