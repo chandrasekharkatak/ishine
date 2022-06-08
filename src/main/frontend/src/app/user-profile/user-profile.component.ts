@@ -52,9 +52,6 @@ export class UserProfileComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    update_profile: true
-upload_profile_image: true
-view_profile: true
     console.log(this.feature, this.userMapping);    
   }
 

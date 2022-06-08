@@ -71,6 +71,8 @@ export class LoginComponent implements OnInit {
     this.isOtpForm=true;
     this.isForgotPassForm=false;
     this.isChangePassForm=false;
+
+    this.reset();
   }
 
   showForgotPassForm(){
@@ -107,6 +109,8 @@ export class LoginComponent implements OnInit {
     this.userConfirmNewPass= "";
 
     this.isError=false;
+    this.fieldTextType = false;
+    this.fieldTextTypePassword = false;
   }
 
 
