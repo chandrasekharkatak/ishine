@@ -4,6 +4,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { DeptConfigComponent } from './dept-config/dept-config.component';
 import { EmployeeConfigComponent } from './employee-config/employee-config.component';
+import { LeaveConfigComponent } from './leave-config/leave-config.component';
 import { RoleConfigComponent } from './role-config/role-config.component';
 
 @Component({
@@ -19,6 +20,8 @@ export class ConfigurationComponent implements OnInit, AfterViewInit{
   departmentConfig!: DeptConfigComponent;
   @ViewChild('roleCfg')
   roleConfig!: RoleConfigComponent;
+  @ViewChild('leaveCfg')
+  leaveConfig!: LeaveConfigComponent;
 
   tabName:any = 'Configurations';
   currentUser:User;
@@ -70,5 +73,7 @@ export class ConfigurationComponent implements OnInit, AfterViewInit{
   resetRoleConfig(){
     this.roleConfig.sectionViewInit();
   }
-
+  resetLeaveConfig(){
+    this.leaveConfig.sectionViewInit();
+  }
 }

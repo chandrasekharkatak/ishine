@@ -26,6 +26,10 @@ import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
 import { LoginComponent } from './login/login.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSelectModule } from '@angular/material/select';
+import { LeaveComponent } from './user-leaves/leave/leave.component';
+import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
+import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
+import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +50,10 @@ import { MatSelectModule } from '@angular/material/select';
     DeptConfigComponent,
     EmployeeConfigComponent,
     LoginComponent,
+    LeaveComponent,
+    HolidaysComponent,
+    CompOffComponent,
+    LeaveConfigComponent,
   ],
   imports: [
     BrowserModule,

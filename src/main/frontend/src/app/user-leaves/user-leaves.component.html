@@ -1,1 +1,29 @@
-<h2>My Leaves</h2>
+<div class="row card">
+    <ul class="nav nav-tabs leave__tabs" id="leaveTab" role="tablist">
+        <li class="nav-item leave__tab-item">
+            <a class="nav-link leave__tab-item__link" id="leave-tab" data-toggle="tab" href="#leave" role="tab"
+                aria-controls="leave" aria-selected="true" (click)="resetLeave()">Leave</a>
+        </li>
+        <li class="nav-item leave__tab-item">
+            <a class="nav-link leave__tab-item__link" id="holidays-tab" data-toggle="tab" href="#holidays" role="tab"
+                aria-controls="holidays" aria-selected="false" (click)="resetHolidays()">Holidays</a>
+        </li>
+        <li class="nav-item leave__tab-item">
+            <a class="nav-link leave__tab-item__link" id="compOff-tab" data-toggle="tab" href="#compOff" role="tab"
+                aria-controls="compOff" aria-selected="false" (click)="resetCompOff()">Compensatory Off</a>
+        </li>
+    </ul>
+
+    <!-- tab Containers -->
+    <div class="tab-content" id="leaveTabContent">
+        <div class="tab-pane fade leave__tab-container" id="leave" role="tabpanel" aria-labelledby="leave-tab">
+            <app-leave #leave ></app-leave>
+        </div>
+        <div class="tab-pane fade leave__tab-container" id="holidays" role="tabpanel" aria-labelledby="holidays-tab">
+            <app-holidays #holidays ></app-holidays>
+        </div>
+        <div class="tab-pane fade leave__tab-container" id="compOff" role="tabpanel" aria-labelledby="compOff-tab">
+            <app-comp-off #compOff ></app-comp-off>
+        </div>
+    </div>
+</div>

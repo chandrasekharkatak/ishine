@@ -1,0 +1,264 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCreation && userMapping.apply_for_leave" (click)="showCreateForm()">Apply Leave</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveHistoryTable && userMapping.view_leave_history" (click)="showLeaveHistoryTable()">View My Leave History</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveBalanceTable && userMapping.view_leave_balance" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveLogTable && userMapping.view_leave_balance_log" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Apply for Leave</strong>
+            <strong *ngIf="isUpdation">Update Leave Status</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="d-block info-label"><span class="text-danger">*</span>For User</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forMe" value="me" checked>
+                                <label class="form-check-label" for="forMe">Me</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forOther" value="other">
+                                <label class="form-check-label" for="forOther">Other User</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="CL" >Casual Leave</option>
+                                <option value="PL" >Privilege Leave</option>
+                                <option value="ML" >Maternity Leave</option>
+                                <option value="PL" >Paternity Leave</option>
+                                <option value="CO" >Compensatory Off</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <input id="DOB" type="date" class="form-control" autocomplete="none" max="today">
+                        </div>
+                    </div>
+                </div>
+                <div class="offset-md-2 col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group leave_day">
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="FH">First Half</option>
+                                <option value="SH">Second Half</option>
+                                <option value="FD">Full Day</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <input id="DOB" type="date" class="form-control" autocomplete="none" max="today">
+                        </div>
+                    </div>
+                </div>
+                <div class="offset-md-2 col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group leave_day">
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="FH">First Half</option>
+                                <option value="SH">Second Half</option>
+                                <option value="FD">Full Day</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Reason</label>
+                            <input type="text" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1">Apply Leave</button>
+                    <button *ngIf="isUpdation && userMapping.update_leave_status" type="submit" class="btn btn-primary btn-sm mx-1">Update Leave Status</button>
+                </div>
+            </div>
+    </div>
+</div>
+</div>
+<!-- end :: create & update form -->
+
+<!-- start :: Leave History Table -->
+<div class="row col-md-12" *ngIf="isLeaveHistoryTable">
+    <table class="table history-table">
+        <thead class="thead-light text-center">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">Leave Type</th>
+            <th scope="col" class="info-label">From Date</th>
+            <th scope="col" class="info-label">To Date</th>
+            <th scope="col" class="info-label">Duration</th>
+            <th scope="col" class="info-label">Status</th>
+            <th scope="col" class="info-label">Applied By</th>
+            <th scope="col" class="info-label">Applied On</th>
+            <th scope="col" class="info-label">Reason</th>
+            <th scope="col" class="info-label">Comments</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+            <tr>
+                <td>1</td>
+                <td>Casual Leave</td>
+                <td>27 Apr 2022</td>
+                <td>28 Apr 2022</td>
+                <td>1.00 day(s)</td>
+                <td>PENDING</td>
+                <td>Admin</td>
+                <td>2022-04-25 15:26:25</td>
+                <td>XYZ</td>
+                <td></td>
+                <td><button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button></td>
+            </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: Leave History table -->
+
+<!-- start :: Leave Balance Table -->
+<div class="row col-md-12" *ngIf="isLeaveBalanceTable">
+    <table class="table balance-table">
+        <thead class="thead-light text-center">
+          <tr>
+            <th scope="col" class="info-label">Leave Type</th>
+            <th scope="col" class="info-label">Balance</th>
+            <th scope="col" class="info-label">Leaves Pending for Approval</th>
+            <th scope="col" class="info-label">Effective Leave Balance</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+            <tr>
+                <td>Casual Leave</td>
+                <td>0.50 days(s)</td>
+                <td>1.00 day(s)</td>
+                <td>-0.50 day(s)</td>
+            </tr>
+            <tr>
+                <td>Privilege Leave</td>
+                <td>0.50 days(s)</td>
+                <td>1.00 day(s)</td>
+                <td>-0.50 day(s)</td>
+            </tr>
+            <tr>
+                <td>Maternity Leave</td>
+                <td>0.50 days(s)</td>
+                <td>1.00 day(s)</td>
+                <td>-0.50 day(s)</td>
+            </tr>
+            <tr>
+                <td>Paternity Leave</td>
+                <td>0.50 days(s)</td>
+                <td>1.00 day(s)</td>
+                <td>-0.50 day(s)</td>
+            </tr>
+            <tr>
+                <td>Compensatory Offs</td>
+                <td>0.50 days(s)</td>
+                <td>1.00 day(s)</td>
+                <td>-0.50 day(s)</td>
+            </tr>
+            <tr>
+                <td>Total</td>
+                <td>0.50 days(s)</td>
+                <td>1.00 day(s)</td>
+                <td>-0.50 day(s)</td>
+            </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: Leave Balance table -->
+
+<!-- start :: Leave log Table -->
+<div class="row col-md-12" *ngIf="isLeaveLogTable">
+    <table class="table log-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr. No</th>
+            <th scope="col" class="info-label">Leave Types</th>
+            <th scope="col" class="info-label">Change</th>
+            <th scope="col" class="info-label">Balance</th>
+            <th scope="col" class="info-label">Message</th>
+            <th scope="col" class="info-label">Updated On</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Casual Leave</td>
+                <td>-0.5</td>
+                <td>0.5</td>
+                <td>Deducted 0.5 leaves, The user was late 3 times in May 2022</td>
+                <td>Wednesday, May 11, 2022</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Casual Leave</td>
+                <td>+1.0</td>
+                <td>1.0</td>
+                <td>Added 1 leaves, Added automatically by system</td>
+                <td>Sunday, May 01, 2022</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Casual Leave</td>
+                <td>-0.5</td>
+                <td>0.0</td>
+                <td>Deducted 0.5 leaves, The user was late 3 times in Apr 2022</td>
+                <td>Saturday, Apr 30, 2022</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Casual Leave</td>
+                <td>-0.5</td>
+                <td>0.5</td>
+                <td>Deducted 0.5 leaves, The user was late 3 times in Apr 2022</td>
+                <td>Wednesday, Apr 27, 2022</td>
+            </tr>
+        </tbody>
+      </table>     
+</div>
+<!-- end :: Leave log table -->
+
+<!-- Modals Template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

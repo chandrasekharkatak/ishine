@@ -1,0 +1,269 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayForm && !isCreation" (click)="showAddHolidayForm()">Add Holidays</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayTable" (click)="showHoliaysTable()">View Holidays</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRuleTable" (click)="showLeaveRulesTable()">View Leave Rules</button>
+
+    </div>
+</div>
+
+<!-- start :: Add & Update Holiday Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isHolidayForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Add Holidays</strong>
+            <strong *ngIf="isUpdation">Update Holidays</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Occasion</label>
+                            <input type="text" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Date</label>
+                            <input id="occasionDate" type="date" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Day</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Add Holidays</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Holidays</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end ::  Add & Update Holiday form -->
+
+<!-- start :: holidays Table -->
+<div class="row col-md-12" *ngIf="isHolidayTable">
+    <table class="table holidays-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr. No</th>
+            <th scope="col" class="info-label">Occasion</th>
+            <th scope="col" class="info-label">Day</th>
+            <th scope="col" class="info-label">Date</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Republic Day</td>
+                <td>Wednesday</td>
+                <td>Jan 26, 2022</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Independence Day</td>
+                <td>Monday</td>
+                <td>Aug 15, 2022</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Gandhi jayanti</td>
+                <td>Sunday</td>
+                <td>Oct 02, 2022</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Chirstmas</td>
+                <td>Sunday</td>
+                <td>Dec 25, 2022</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+        </tbody>
+      </table>   
+</div>
+<!-- end :: holidays table -->
+
+<!-- start :: Add & Update Leave Rule Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isLeaveRuleForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isUpdation">Update Leave Rule</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Type</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Code</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Default Leaves</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc">Description</label>
+                            <textarea class="form-control" id="leaveDesc" rows="3"></textarea>
+                          </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveRules">Rules</label>
+                            <textarea class="form-control" id="leaveRules" rows="5"></textarea>
+                          </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Holidays</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end ::  Add & Update Leave Rule form -->
+
+<!-- start :: Leave Rule Table -->
+<div class="row col-md-12" *ngIf="isLeaveRuleTable">
+    <table class="table balance-table">
+        <thead class="thead-light text-center">
+          <tr>
+            <th scope="col" class="info-label">Leave Type</th>
+            <th scope="col" class="info-label">Leave Code</th>
+            <th scope="col" class="info-label">Default Leaves</th>
+            <th scope="col" class="info-label">Rules</th>
+            <th scope="col" class="info-label">Description</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+            <tr>
+                <td>Casual Leave</td>
+                <td>CL</td>
+                <td>5.00 day(s)</td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>Privilege Leave</td>
+                <td>PL</td>
+                <td>10.00 days(s)</td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>Maternity Leave</td>
+                <td>MAL</td>
+                <td>180.00 day(s)</td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>Paternity Leave</td>
+                <td>PAL</td>
+                <td>5.00 day(s)</td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>Compensatory Offs</td>
+                <td>CL</td>
+                <td>0.00 day(s)</td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+            <tr>
+                <td>Leave Without Pay</td>
+                <td>LWP</td>
+                <td>0.00 day(s)</td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: Leave Rule table -->
+
+<!-- Modals Template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
