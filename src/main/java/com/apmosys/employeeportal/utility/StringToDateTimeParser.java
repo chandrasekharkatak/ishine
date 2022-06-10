@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.utility;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,6 +16,7 @@ public class StringToDateTimeParser {
 	
 	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 	private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+	private final SimpleDateFormat dateToStringFormatter = new SimpleDateFormat("yyyy-MM-dd");
 	
 	public LocalDate getDate(String date)
 	{
@@ -25,6 +27,19 @@ public class StringToDateTimeParser {
 	{
 		String dateTimeString = LocalDateTime.now().format(dateTimeFormatter);
 		return LocalDateTime.parse(dateTimeString, dateTimeFormatter);
+	}
+	
+	public String formatDateToString(String date) {
+
+		String dateString = null;
+
+		try {
+			dateString = dateToStringFormatter.format(dateToStringFormatter.parse((date)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dateString;
+
 	}
 
 }

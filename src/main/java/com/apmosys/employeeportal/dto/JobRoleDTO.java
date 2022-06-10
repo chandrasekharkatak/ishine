@@ -3,7 +3,6 @@ package com.apmosys.employeeportal.dto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-
 public class JobRoleDTO {
 
 	private Long jobRoleId;	
@@ -23,13 +22,13 @@ public class JobRoleDTO {
 	}
 	public void setJobRoleId(Long jobRoleId) {
 		this.jobRoleId = jobRoleId;
-	}
+	}	
 	public String getName() {
 		return name;
 	}
 	public void setName(String name) {
 		this.name = name;
-	}	
+	}
 	public Long getDepartmentId() {
 		return departmentId;
 	}
