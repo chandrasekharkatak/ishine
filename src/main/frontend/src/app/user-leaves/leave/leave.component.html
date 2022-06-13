@@ -4,6 +4,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveHistoryTable && userMapping.view_leave_history" (click)="showLeaveHistoryTable()">View My Leave History</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveBalanceTable && userMapping.view_leave_balance" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveLogTable && userMapping.view_leave_balance_log" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveApplicationsTable" (click)="showLeaveApplicationsTable()">View My Reportee Leave Applications</button>
     </div>
 </div>
 
@@ -21,11 +22,11 @@
                         <div class="form-group">
                             <label class="d-block info-label"><span class="text-danger">*</span>For User</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forMe" value="me" checked>
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forMe" value="me" [(ngModel)]="leaveObj.leaveAppliedFor" >
                                 <label class="form-check-label" for="forMe">Me</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forOther" value="other">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forOther" value="other" [(ngModel)]="leaveObj.leaveAppliedFor">
                                 <label class="form-check-label" for="forOther">Other User</label>
                             </div>
                         </div>
@@ -37,13 +38,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="CL" >Casual Leave</option>
-                                <option value="PL" >Privilege Leave</option>
-                                <option value="ML" >Maternity Leave</option>
-                                <option value="PL" >Paternity Leave</option>
-                                <option value="CO" >Compensatory Off</option>
+                                <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
                         </div>
                     </div>
@@ -54,7 +51,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <input id="DOB" type="date" class="form-control" autocomplete="none" max="today">
+                            <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" >
                         </div>
                     </div>
                 </div>
@@ -65,7 +62,7 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="FH">First Half</option>
                                 <option value="SH">Second Half</option>
-                                <option value="FD">Full Day</option>
+                                <option value="FD" selected>Full Day</option>
                             </select>
                         </div>
                     </div>
@@ -76,7 +73,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <input id="DOB" type="date" class="form-control" autocomplete="none" max="today">
+                            <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.toDate" (change)="setNoOfDays(alert_message)">
                         </div>
                     </div>
                 </div>
@@ -87,8 +84,18 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="FH">First Half</option>
                                 <option value="SH">Second Half</option>
-                                <option value="FD">Full Day</option>
+                                <option value="FD" selected>Full Day</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">No.of Days</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveObj.noOfDays">
                         </div>
                     </div>
                 </div>
@@ -98,14 +105,14 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Reason</label>
-                            <input type="text" class="form-control" autocomplete="none">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.reason">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1">Apply Leave</button>
+                    <button *ngIf="isCreation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyLeave(alert_message)">Apply Leave</button>
                     <button *ngIf="isUpdation && userMapping.update_leave_status" type="submit" class="btn btn-primary btn-sm mx-1">Update Leave Status</button>
                 </div>
             </div>
@@ -129,27 +136,65 @@
             <th scope="col" class="info-label">Applied On</th>
             <th scope="col" class="info-label">Reason</th>
             <th scope="col" class="info-label">Comments</th>
-            <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr>
-                <td>1</td>
-                <td>Casual Leave</td>
-                <td>27 Apr 2022</td>
-                <td>28 Apr 2022</td>
-                <td>1.00 day(s)</td>
-                <td>PENDING</td>
-                <td>Admin</td>
-                <td>2022-04-25 15:26:25</td>
-                <td>XYZ</td>
-                <td></td>
-                <td><button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button></td>
+            <tr *ngFor="let leaveHistory of leaveHistoryList; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{leaveHistory.leaveType}}</td>
+                <td>{{leaveHistory.fromDate}}</td>
+                <td>{{leaveHistory.toDate}}</td>
+                <td>{{leaveHistory.noOfDays}} day(s)</td>
+                <td>{{leaveHistory.status}}</td>
+                <td>{{leaveHistory.createdByName}}</td>
+                <td>{{leaveHistory.createdOn}}</td>
+                <td>{{leaveHistory.reason}}</td>
+                <td>{{leaveHistory.description}}</td>
             </tr>
         </tbody>
       </table>      
 </div>
 <!-- end :: Leave History table -->
+
+<!-- start :: Leave Applications Table -->
+<div class="row col-md-12" *ngIf="isLeaveApplicationsTable">
+    <table class="table leaveApplication-table">
+        <thead class="thead-light text-center">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">Leave Type</th>
+            <th scope="col" class="info-label">From Date</th>
+            <th scope="col" class="info-label">To Date</th>
+            <th scope="col" class="info-label">Duration</th>
+            <th scope="col" class="info-label">Status</th>
+            <th scope="col" class="info-label">Applied By</th>
+            <th scope="col" class="info-label">Applied On</th>
+            <th scope="col" class="info-label">Reason</th>
+            <th scope="col" class="info-label">Comments</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+            <tr *ngFor="let leaveApplication of leaveApplicationList; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{leaveApplication.leaveType}}</td>
+                <td>{{leaveApplication.fromDate}}</td>
+                <td>{{leaveApplication.toDate}}</td>
+                <td>{{leaveApplication.noOfDays}} day(s)</td>
+                <td>{{leaveApplication.status}}</td>
+                <td>{{leaveApplication.createdByName}}</td>
+                <td>{{leaveApplication.createdOn}}</td>
+                <td>{{leaveApplication.reason}}</td>
+                <td>{{leaveApplication.description}}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-success"  type="submit"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa-solid fa-xmark"></em></button>
+                </td>
+            </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: Leave Applications table -->
 
 <!-- start :: Leave Balance Table -->
 <div class="row col-md-12" *ngIf="isLeaveBalanceTable">

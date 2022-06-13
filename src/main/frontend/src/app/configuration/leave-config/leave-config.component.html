@@ -20,7 +20,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Occasion</label>
-                            <input type="text" class="form-control" autocomplete="none">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.occasion">
                         </div>
                     </div>
                 </div>
@@ -30,7 +30,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
-                            <input id="occasionDate" type="date" class="form-control" autocomplete="none">
+                            <input id="occasionDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.dateOfHoliday" (change)="setHolidayWeekDay()">
                         </div>
                     </div>
                 </div>
@@ -38,15 +38,15 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Day</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="holidayObj.dayOfTheWeek">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Add Holidays</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Holidays</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onAddHoliday(alert_message)">Add Holidays</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateHoliday(alert_message)">Update Holidays</button>
                 </div>
             </div>
         </div>
@@ -67,45 +67,13 @@
           </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>1</td>
-                <td>Republic Day</td>
-                <td>Wednesday</td>
-                <td>Jan 26, 2022</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Independence Day</td>
-                <td>Monday</td>
-                <td>Aug 15, 2022</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>Gandhi jayanti</td>
-                <td>Sunday</td>
-                <td>Oct 02, 2022</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>Chirstmas</td>
-                <td>Sunday</td>
-                <td>Dec 25, 2022</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
+            <tr *ngFor="let holiday of holidayList; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{holiday.occasion}}</td>
+                <td>{{holiday.dayOfTheWeek}}</td>
+                <td>{{holiday.dateOfHoliday}}</td>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
             </tr>
         </tbody>
       </table>   
