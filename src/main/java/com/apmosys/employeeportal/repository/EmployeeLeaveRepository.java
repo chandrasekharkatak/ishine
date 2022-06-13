@@ -11,10 +11,10 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyLeavesByEmpId(Long empId);
+	public List<Object[]> getAllMyLeaveApplicationsByEmpId(Long empId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyTeamsLeavesByManagerId(Integer managerId);
+	public List<Object[]> getAllMyTeamsLeaveApplicationsByManagerId(Integer managerId);
 	
 	
 	

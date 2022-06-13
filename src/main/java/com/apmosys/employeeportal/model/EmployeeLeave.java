@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.model;
 
 import java.time.LocalDate;
 
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -29,11 +30,13 @@ public class EmployeeLeave {
 	private Long empId;
 	private Integer managerId;
 	private Short leaveTypeMasterId;
-	private Short noOfDays;	
+	private Float noOfDays;	
 	private Short leaveStatusId;
 	private String reason;
 	private LocalDate fromDate;
 	private LocalDate toDate;
+	@Column(length = 1000)
+	private String description;
 
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

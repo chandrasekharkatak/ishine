@@ -7,10 +7,12 @@ import javax.persistence.Id;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
+@ToString
 public class EmployeeLeavesMap {
 	
 	@Id
@@ -19,14 +21,11 @@ public class EmployeeLeavesMap {
 	
 	private Long empId;
 	
-	private Short casualLeaves;
-	private Short privilegeLeaves;
-	private Short maternityLeaves;
-	private Short paternityLeaves;
-	private Short compensatoryOffs;
-	private Short sickLeaves;
-	private Short leaveWithoutPays;
-	private Short fieldLeaves;
+	private Short leaveTypeMasterId;
+	
+	private Float  balance;
+	
+	private Float pendingForApproval;
 
 	
 }
