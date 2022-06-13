@@ -21,7 +21,7 @@ public class SubFeatureMaster {
 //	@ManyToOne
 //	private RoleFeatureMap roleFeatureMap;
 	
-	private short subFeatureType;
+	private Short subFeatureType;
 
 	public Long getSubFeatureMasterId() {
 		return subFeatureMasterId;

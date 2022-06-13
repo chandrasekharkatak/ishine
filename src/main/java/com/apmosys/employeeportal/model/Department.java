@@ -39,12 +39,12 @@ public class Department {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
-	private int createdBy;
+	private Integer createdBy;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-	private int updatedBy;	
+	private Integer updatedBy;	
 	
 
 	public Long getDeptId() {

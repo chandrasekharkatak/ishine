@@ -54,7 +54,7 @@ public class Employee {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfJoining;
 	private String employmentstatus;
-	private short noticePeriod;
+	private Short noticePeriod;
 
 
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
@@ -64,9 +64,9 @@ public class Employee {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-	private int createdBy;	
-	private int updatedBy;	
-	private int managerId;
+	private Integer createdBy;	
+	private Integer updatedBy;	
+	private Integer managerId;
 	
 //	@OneToOne
 //	@JoinColumn(name = "jobRoleId")
@@ -81,9 +81,9 @@ public class Employee {
 	private String esicNumber;
 	
 	private String graduation;
-	private short yearOfGrad;
+	private Short yearOfGrad;
 	private String postGraduation;
-	private short yearOfPostGrad;
+	private Short yearOfPostGrad;
 	private String hobbies;
 	
 	@Column(columnDefinition="varchar(255) DEFAULT 'Add about yourself.'")
@@ -92,7 +92,7 @@ public class Employee {
 	private String viewsOnOrganisation;	
 	
 	private String password;
-	private int otp;
+	private Integer otp;
 	private String profileImageName;
 	
 	private Long userTypeId;
