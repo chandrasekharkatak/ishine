@@ -20,7 +20,7 @@ public class LeaveTypeMaster {
 	
 	private String leaveType;
 	
-	private Short  noOfDays;	
+	private Float  noOfDays;	
 
 	private String leaveTypeCode;
 	

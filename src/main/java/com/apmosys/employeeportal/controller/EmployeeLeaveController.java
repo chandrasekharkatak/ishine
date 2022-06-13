@@ -17,19 +17,7 @@ public class EmployeeLeaveController {
 	@Autowired
 	EmployeeLeaveService employeeLeaveService;
 	
-	@RequestMapping(value = "/getAllLeaveTypes" ,method = RequestMethod.GET)
-	public ServiceResponse getAllLeaveTypes() {
-		
-		ServiceResponse response = employeeLeaveService.getAllLeaveTypes();
-		return response;
-	}
 	
-	@RequestMapping(value = "/updateLeaveType" ,method = RequestMethod.POST)
-	public ServiceResponse updateLeaveType(@RequestBody LeaveDTO leaveDTO) {
-		
-		ServiceResponse response = employeeLeaveService.updateLeaveType(leaveDTO);
-		return response;
-	}
 	
 	@RequestMapping(value = "/applyLeave" ,method = RequestMethod.POST)
 	public ServiceResponse applyLeave(@RequestBody LeaveDTO leaveDTO) {
@@ -45,19 +33,37 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllMyLeavesByEmpId" ,method = RequestMethod.POST)
-	public ServiceResponse getAllMyLeavesByEmpId(@RequestBody LeaveDTO leaveDTO) {
+	@RequestMapping(value = "/getAllMyLeaveApplicationsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllMyLeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
-		ServiceResponse response = employeeLeaveService.getAllMyLeavesByEmpId(leaveDTO);
+		ServiceResponse response = employeeLeaveService.getAllMyLeaveApplicationsByEmpId(leaveDTO);
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllMyTeamsLeavesByManagerId" ,method = RequestMethod.POST)
-	public ServiceResponse getAllMyTeamsLeavesByManagerId(@RequestBody LeaveDTO leaveDTO) {
+	@RequestMapping(value = "/getAllMyTeamsLeaveApplicationsByManagerId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsLeaveApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {
 		
-		ServiceResponse response = employeeLeaveService.getAllMyTeamsLeavesByManagerId(leaveDTO);
+		ServiceResponse response = employeeLeaveService.getAllMyTeamsLeaveApplicationsByManagerId(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getMyLeaveBalancesByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getMyLeaveBalancesByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getMyLeaveBalancesByEmpId(leaveDTO);
+		return response;
+	}
+	
+	/*
+	 * To update leave bucket of an employee eg: Add Compoff , monthly leave updation ,etc.
+	 */
+	@RequestMapping(value = "/updateLeavesByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse updateLeavesByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.updateLeavesByEmpId(leaveDTO);
+		return response;
+	}
+	
 	
 	
 
