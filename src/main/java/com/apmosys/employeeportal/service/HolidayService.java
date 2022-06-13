@@ -102,6 +102,7 @@ public class HolidayService {
 				list.forEach((holiday) -> {
 
 					HolidayDTO dto = new HolidayDTO();
+					dto.setHolidayId(holiday.getHolidayId());
 					dto.setDateOfHoliday(holiday.getDateOfHoliday().toString());
 					dto.setOccasion(holiday.getOccasion());
 					dto.setDayOfTheWeek(holiday.getDayOfTheWeek());

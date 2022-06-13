@@ -10,29 +10,11 @@
           </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>1</td>
-                <td>Republic Day</td>
-                <td>Wednesday</td>
-                <td>Jan 26, 2022</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Independence Day</td>
-                <td>Monday</td>
-                <td>Aug 15, 2022</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>Gandhi jayanti</td>
-                <td>Sunday</td>
-                <td>Oct 02, 2022</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>Chirstmas</td>
-                <td>Sunday</td>
-                <td>Dec 25, 2022</td>
+            <tr *ngFor="let holiday of holidayList; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{holiday.occasion}}</td>
+                <td>{{holiday.dayOfTheWeek}}</td>
+                <td>{{holiday.dateOfHoliday}}</td>
             </tr>
         </tbody>
       </table>   
