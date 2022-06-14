@@ -15,6 +15,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByEmpId(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllEmployees();
 	
 
 }

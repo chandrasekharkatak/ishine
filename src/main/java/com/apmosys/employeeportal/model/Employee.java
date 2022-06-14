@@ -102,8 +102,6 @@ public class Employee {
 	private Integer otp;
 	private String profileImageName;
 	
-	private Long userTypeId;
-	
 	
 	
 	

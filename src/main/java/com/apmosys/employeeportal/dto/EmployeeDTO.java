@@ -65,7 +65,10 @@ public class EmployeeDTO {
 	private Long userTypeId;
 	private String managerName;
 	private String jobRoleName;
+	private Long deptId;
 	private String departmentName;
+	private Integer createdBy;
+	private String createdOn;
 	
 	
 	
