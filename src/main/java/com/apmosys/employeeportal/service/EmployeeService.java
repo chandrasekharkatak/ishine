@@ -352,8 +352,8 @@ public class EmployeeService {
 					empDTO.setDateOfJoining(
 							object[13] != null ? stringToDateTimeParser.formatDateToString(object[13].toString())
 									: null);
-					empDTO.setEmail(object[15] != null ? object[15].toString() : null);
-					empDTO.setEmergencyContactMobile(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+					empDTO.setEmail(object[14] != null ? object[14].toString() : null);
+					empDTO.setEmergencyContactMobile(object[15] != null ? Long.parseLong(object[15].toString()) : null);
 					empDTO.setEmergencyContactPerson(object[16] != null ? object[16].toString() : null);
 					empDTO.setEmploymentstatus(object[17] != null ? object[17].toString() : null);
 					empDTO.setEsicNumber(object[18] != null ? object[18].toString() : null);
@@ -384,7 +384,7 @@ public class EmployeeService {
 					empDTO.setViewsOnOrganisation(object[43] != null ? object[43].toString() : null);
 					empDTO.setYearOfGrad(object[44] != null ? Short.parseShort(object[44].toString()) : null);
 					empDTO.setYearOfPostGrad(object[45] != null ? Short.parseShort(object[45].toString()) : null);
-					empDTO.setDeptId(object[46] != null ? Long.parseLong(object[46].toString()) : null);
+					empDTO.setDepartmentId(object[46] != null ? Long.parseLong(object[46].toString()) : null);
 					empDTO.setJobRoleName(object[47] != null ? object[47].toString() : null);
 					empDTO.setDepartmentName(object[48] != null ? object[48].toString() : null);
 

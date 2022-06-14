@@ -212,7 +212,7 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
       } else {
-        alert(response.serviceResponse)
+        console.error(response.serviceResponse)
       }
     });
   }
@@ -224,7 +224,7 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
       } else {
-        alert(response.serviceResponse)
+        console.error(response.serviceResponse)
       }
     });
   }
@@ -260,7 +260,7 @@ export class RoleConfigComponent implements OnInit {
         this.allSubFeatures = response.serviceResponse;
         this.getFeatureList(this.allSubFeatures);
       } else {
-        alert(response.serviceResponse)
+        console.error(response.serviceResponse)
       }
     });
   }

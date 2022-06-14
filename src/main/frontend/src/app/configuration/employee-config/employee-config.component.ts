@@ -8,6 +8,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
+import { JobRoleService } from 'src/app/services/job-role.service';
 
 @Component({
   selector: 'app-employee-config',
@@ -37,18 +38,24 @@ export class EmployeeConfigComponent implements OnInit {
   allEmployeeList:any;
   managerList:any = [];
   userMapping:any = {};
+  allJobRoleList:any[] = [];
+  allDeptList:any[] = [];
+  filteredJobRoleList:any[] = [];
+
 
   constructor(
     private employeeService:EmployeeService,
     private validationService:ValidationService, 
     private datePipe: DatePipe,
     private modalService: BsModalService,
-    private authenticationService: AuthenticationService) { 
+    private authenticationService: AuthenticationService,
+    private jobRoleService: JobRoleService,) { 
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
  
   ngOnInit(): void {
     this.getAllEmployeeList(); //for manager dropdown 
+    this.getAllJobRoleList();
 
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -129,6 +136,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.managerId = '';
 
     this.allEmployeeList = [];
+    this.filteredJobRoleList = [];
   }
 
   showUpdateForm(employee:Employee){
@@ -141,7 +149,9 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.employeeObj = Object.assign({}, employee);
     this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd')
+    this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');
+
+    this.getJobRolesByDept(this.employeeObj.departmentId);
   }
 
   showUpdateDraftForm(employee:Employee){
@@ -454,6 +464,32 @@ export class EmployeeConfigComponent implements OnInit {
         alert(response.serviceResponse)
       }
     });
+  }
+
+  // Job Role
+  getAllJobRoleList(){
+    this.allJobRoleList = [];
+    this.allDeptList = [];
+
+    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allJobRoleList = response.serviceResponse;
+        this.allDeptList = Array.from(new Set(this.allJobRoleList.map(jobRole => {
+          return {departmentId: jobRole.departmentId,departmentName: jobRole.departmentName}
+          })));
+        console.log("allJobRoleList : ", this.allJobRoleList);
+        console.log("allDeptList : ", this.allDeptList);
+        
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getJobRolesByDept(departmentId:any){
+    this.filteredJobRoleList = [];
+    this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
+    console.log("filteredJobRoleList : ", this.filteredJobRoleList);
   }
 
   // modals

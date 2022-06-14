@@ -325,6 +325,28 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId)">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option *ngFor="let dept of allDeptList" value="{{dept.departmentId}}">{{dept.departmentName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Job Role</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.jobRoleId">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option *ngFor="let jobRole of filteredJobRoleList" value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </app-accordion-item>

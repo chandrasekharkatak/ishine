@@ -48,6 +48,7 @@ export class Employee{
 	viewsOnOrganisation:any;
 
 	jobRoleName:any;
+	departmentId:any;
 	departmentName:any;
 	managerName:any;
 	
