@@ -4,9 +4,11 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
+import { Leave } from 'src/app/models/leave';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HolidayService } from 'src/app/services/holiday.service';
+import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -37,12 +39,16 @@ export class LeaveConfigComponent implements OnInit {
   holidayObj:Holiday = new Holiday();
   holidayList:any[] = [];
 
+  leaveTypeObj:Leave = new Leave();
+  leaveTypes:any[] = [];
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private holidayService : HolidayService,
-    private datePipe: DatePipe,) {
+    private datePipe: DatePipe,
+    private leaveService : LeaveService) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -94,17 +100,19 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
 
+    this.getAllLeaveTypes();
   }
 
-  showUpdateLeaveRuleForm(){
-    this.isHolidayForm = true;
+  showUpdateLeaveRuleForm(leaveType:Leave){
+    this.isLeaveRuleForm = true;
     this.isUpdation = true;
     
-    this.isLeaveRuleForm = false;
+    this.isHolidayForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
     this.isCreation = false;
 
+    this.leaveTypeObj = Object.assign({}, leaveType);
   }
 
   showUpdateHolidayForm(holiday:Holiday){
@@ -228,6 +236,8 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
+
+  // Leave Rules 
   getAllHolidays(){
     this.holidayList = [];
 
@@ -237,6 +247,32 @@ export class LeaveConfigComponent implements OnInit {
         console.log("leaveTypes : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllLeaveTypes(){
+    this.leaveTypes = [];
+
+    this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveTypes = response.serviceResponse;
+        console.log("leaveTypes : ", this.leaveTypes);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateLeaveRule(template: TemplateRef<any>) {
+    console.log("update Leave Type : ", this.leaveTypeObj);
+
+    this.leaveService.updateLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeaveRulesTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
     });
   }

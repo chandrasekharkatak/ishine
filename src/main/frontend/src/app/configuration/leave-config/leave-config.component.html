@@ -73,14 +73,14 @@
                 <td>{{holiday.dayOfTheWeek}}</td>
                 <td>{{holiday.dateOfHoliday}}</td>
                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>
             </tr>
         </tbody>
       </table>   
 </div>
 <!-- end :: holidays table -->
 
-<!-- start :: Add & Update Leave Rule Form -->
+<!-- start :: Update Leave Rule Form -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isLeaveRuleForm">
         <div class="card-header text-center text-uppercase">
@@ -92,7 +92,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Type</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveTypeObj.leaveType">
                         </div>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Code</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveTypeObj.leaveTypeCode">
                         </div>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Default Leaves</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveTypeObj.noOfDays">
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leaveDesc">Description</label>
-                            <textarea class="form-control" id="leaveDesc" rows="3"></textarea>
+                            <textarea class="form-control" id="leaveDesc" rows="3" [(ngModel)]="leaveTypeObj.description"></textarea>
                           </div>
                     </div>
                 </div>
@@ -128,20 +128,20 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leaveRules">Rules</label>
-                            <textarea class="form-control" id="leaveRules" rows="5"></textarea>
+                            <textarea class="form-control" id="leaveRules" rows="5" [(ngModel)]="leaveTypeObj.rules"></textarea>
                           </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Holidays</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeaveRule(alert_message)">Update</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- end ::  Add & Update Leave Rule form -->
+<!-- end ::  Update Leave Rule form -->
 
 <!-- start :: Leave Rule Table -->
 <div class="row col-md-12" *ngIf="isLeaveRuleTable">
@@ -157,70 +157,15 @@
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr>
-                <td>Casual Leave</td>
-                <td>CL</td>
-                <td>5.00 day(s)</td>
-                <td></td>
-                <td></td>
+            <tr *ngFor="let leaveType of leaveTypes">
+                <td>{{leaveType.leaveType}}</td>
+                <td>{{leaveType.leaveTypeCode}}</td>
+                <td>{{leaveType.noOfDays}} day(s)</td>
+                <td>{{leaveType.rules}}</td>
+                <td>{{leaveType.description}}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>Privilege Leave</td>
-                <td>PL</td>
-                <td>10.00 days(s)</td>
-                <td></td>
-                <td></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>Maternity Leave</td>
-                <td>MAL</td>
-                <td>180.00 day(s)</td>
-                <td></td>
-                <td></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>Paternity Leave</td>
-                <td>PAL</td>
-                <td>5.00 day(s)</td>
-                <td></td>
-                <td></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>Compensatory Offs</td>
-                <td>CL</td>
-                <td>0.00 day(s)</td>
-                <td></td>
-                <td></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-            <tr>
-                <td>Leave Without Pay</td>
-                <td>LWP</td>
-                <td>0.00 day(s)</td>
-                <td></td>
-                <td></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm()"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa fa-trash"></em></button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>

@@ -19,12 +19,12 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeaveStatus`, leaveObj);
   }
 
-  getAllMyLeavesByEmpId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyLeavesByEmpId`, leaveObj);
+  getAllMyLeaveApplicationsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyLeaveApplicationsByEmpId`, leaveObj);
   }
 
-  getAllMyTeamsLeavesByManagerId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsLeavesByManagerId`, leaveObj);
+  getAllMyTeamsLeaveApplicationsByManagerId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsLeaveApplicationsByManagerId`, leaveObj);
   }
 
 

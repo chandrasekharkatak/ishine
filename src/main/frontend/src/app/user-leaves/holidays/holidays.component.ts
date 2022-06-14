@@ -25,7 +25,7 @@ export class HolidaysComponent implements OnInit {
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
-        console.log("leaveTypes : ", this.holidayList);
+        console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
       }

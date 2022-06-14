@@ -187,8 +187,8 @@
                 <td>{{leaveApplication.reason}}</td>
                 <td>{{leaveApplication.description}}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-success"  type="submit"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit"><em class="fa-solid fa-xmark"></em></button>
+                    <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                 </td>
             </tr>
         </tbody>

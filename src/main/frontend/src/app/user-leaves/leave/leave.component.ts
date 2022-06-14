@@ -91,7 +91,7 @@ export class LeaveComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
 
-    this.getAllMyLeavesByEmpId();
+    this.getAllMyLeaveApplicationsByEmpId();
   }
 
   showLeaveBalanceTable() {
@@ -115,7 +115,7 @@ export class LeaveComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
 
-    this.getAllMyTeamsLeavesByManagerId();
+    this.getAllMyTeamsLeaveApplicationsByManagerId();
   }
 
   showLeaveLogTable() {
@@ -245,23 +245,26 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  onUpdateLeaveStatus(template: TemplateRef<any>){
+  onUpdateLeaveStatus(template: TemplateRef<any>, leaveStatusId){
+    // 1 = pending , 2 = Approved , 3= Rejected
+
+    console.log("Update Leave Status : ", this.leaveObj);
     
-    this.leaveService.updateLeaveStatus(this.leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
+    // this.leaveService.updateLeaveStatus(this.leaveObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   } else {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   }
+    // });
   }
 
-  getAllMyLeavesByEmpId(){
+  getAllMyLeaveApplicationsByEmpId(){
     this.leaveHistoryList = [];
 
     let leaveObj = new Leave();
     leaveObj.empId = this.currentUser.empId;
-    this.leaveService.getAllMyLeavesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+    this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         console.log("leaveHistoryList : ", this.leaveHistoryList);
@@ -271,12 +274,12 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllMyTeamsLeavesByManagerId(){
+  getAllMyTeamsLeaveApplicationsByManagerId(){
     this.leaveApplicationList = []
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
-    this.leaveService.getAllMyTeamsLeavesByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
+    this.leaveService.getAllMyTeamsLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
         console.log("leaveApplicationList : ", this.leaveApplicationList);
