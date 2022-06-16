@@ -64,7 +64,19 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllCompOffReasons" ,method = RequestMethod.GET)
+	public ServiceResponse getAllCompOffReasons() {
+		
+		ServiceResponse response = employeeLeaveService.getAllCompOffReasons();
+		return response;
+	}
 	
+	@RequestMapping(value = "/getLeaveLogsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getLeaveLogsByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getLeaveLogsByEmpId(leaveDTO);
+		return response;
+	}
 	
 
 }

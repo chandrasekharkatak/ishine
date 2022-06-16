@@ -18,10 +18,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -45,6 +48,9 @@ public class EmployeeService {
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	LeaveBalanceLogRepository leaveBalanceLogRepository;
 
 	@Transactional
 	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -104,9 +110,12 @@ public class EmployeeService {
 
 			List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
 
+			List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
+
 			leaveTypeMasterList.forEach((leaveType) -> {
 
 				EmployeeLeavesMap map = new EmployeeLeavesMap();
+				LeaveBalanceLog log = new LeaveBalanceLog();
 
 				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
 				map.setEmpId(newEmployee.getEmpId());
@@ -114,11 +123,19 @@ public class EmployeeService {
 				map.setPendingForApproval((float) 0);
 				mapList.add(map);
 
+				log.setBalance(0.0f);
+				log.setEmpId(newEmployee.getEmpId());
+				log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+				log.setMessage(LeaveLogMessage.addLeave);
+				log.setUpdateBalanceBy("+0.0");
+				logList.add(log);
+
 			});
 
 			List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
+			List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
 
-			if (list != null) {
+			if (list != null && updatedLogList != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Employee Profile Created.");
 

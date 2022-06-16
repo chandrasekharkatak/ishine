@@ -37,5 +37,9 @@ public class LeaveDTO {
 	private Float  balance;
 	private Float pendingForApproval;
 	private List<EmployeeLeavesMap> employeeLeaveList;
+	private Short compOffId;	
+	private String compOffReasons;
+	private String updateBalanceBy;
+	private String message;
 
 }
