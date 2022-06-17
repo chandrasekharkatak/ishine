@@ -58,11 +58,10 @@
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group leave_day">
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="FH">First Half</option>
-                                <option value="SH">Second Half</option>
-                                <option value="FD" selected>Full Day</option>
+                                <option value=0.5>Half Day</option>
+                                <option value=0 selected>Full Day</option>
                             </select>
                         </div>
                     </div>
@@ -80,11 +79,10 @@
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group leave_day">
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType" (change)="setNoOfDays(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="FH">First Half</option>
-                                <option value="SH">Second Half</option>
-                                <option value="FD" selected>Full Day</option>
+                                <<option value=0.5>Half Day</option>
+                                <option value=0 selected>Full Day</option>
                             </select>
                         </div>
                     </div>
@@ -135,7 +133,7 @@
             <th scope="col" class="info-label">Applied By</th>
             <th scope="col" class="info-label">Applied On</th>
             <th scope="col" class="info-label">Reason</th>
-            <th scope="col" class="info-label">Comments</th>
+            <!-- <th scope="col" class="info-label">Comments</th> -->
           </tr>
         </thead>
         <tbody class="text-center">
@@ -149,7 +147,7 @@
                 <td>{{leaveHistory.createdByName}}</td>
                 <td>{{leaveHistory.createdOn}}</td>
                 <td>{{leaveHistory.reason}}</td>
-                <td>{{leaveHistory.description}}</td>
+                <!-- <td>{{leaveHistory.description}}</td> -->
             </tr>
         </tbody>
       </table>      
@@ -170,7 +168,7 @@
             <th scope="col" class="info-label">Applied By</th>
             <th scope="col" class="info-label">Applied On</th>
             <th scope="col" class="info-label">Reason</th>
-            <th scope="col" class="info-label">Comments</th>
+            <!-- <th scope="col" class="info-label">Comments</th> -->
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
@@ -185,10 +183,10 @@
                 <td>{{leaveApplication.createdByName}}</td>
                 <td>{{leaveApplication.createdOn}}</td>
                 <td>{{leaveApplication.reason}}</td>
-                <td>{{leaveApplication.description}}</td>
+                <!-- <td>{{leaveApplication.description}}</td> -->
                 <td>
-                    <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    <button *ngIf="leaveApplication.status == 'Pending'" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button *ngIf="leaveApplication.status == 'Pending'" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                 </td>
             </tr>
         </tbody>
@@ -208,41 +206,11 @@
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr>
-                <td>Casual Leave</td>
-                <td>0.50 days(s)</td>
-                <td>1.00 day(s)</td>
-                <td>-0.50 day(s)</td>
-            </tr>
-            <tr>
-                <td>Privilege Leave</td>
-                <td>0.50 days(s)</td>
-                <td>1.00 day(s)</td>
-                <td>-0.50 day(s)</td>
-            </tr>
-            <tr>
-                <td>Maternity Leave</td>
-                <td>0.50 days(s)</td>
-                <td>1.00 day(s)</td>
-                <td>-0.50 day(s)</td>
-            </tr>
-            <tr>
-                <td>Paternity Leave</td>
-                <td>0.50 days(s)</td>
-                <td>1.00 day(s)</td>
-                <td>-0.50 day(s)</td>
-            </tr>
-            <tr>
-                <td>Compensatory Offs</td>
-                <td>0.50 days(s)</td>
-                <td>1.00 day(s)</td>
-                <td>-0.50 day(s)</td>
-            </tr>
-            <tr>
-                <td>Total</td>
-                <td>0.50 days(s)</td>
-                <td>1.00 day(s)</td>
-                <td>-0.50 day(s)</td>
+            <tr *ngFor="let leaveType of leaveBalanceList">
+                <td>{{leaveType.leaveType}}</td>
+                <td>{{leaveType.totalLeaveBalance}} days(s)</td>
+                <td>{{leaveType.pendingForApproval}} day(s)</td>
+                <td>{{leaveType.balance}} day(s)</td>
             </tr>
         </tbody>
       </table>      
@@ -263,37 +231,13 @@
           </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>1</td>
-                <td>Casual Leave</td>
-                <td>-0.5</td>
-                <td>0.5</td>
-                <td>Deducted 0.5 leaves, The user was late 3 times in May 2022</td>
-                <td>Wednesday, May 11, 2022</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Casual Leave</td>
-                <td>+1.0</td>
-                <td>1.0</td>
-                <td>Added 1 leaves, Added automatically by system</td>
-                <td>Sunday, May 01, 2022</td>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>Casual Leave</td>
-                <td>-0.5</td>
-                <td>0.0</td>
-                <td>Deducted 0.5 leaves, The user was late 3 times in Apr 2022</td>
-                <td>Saturday, Apr 30, 2022</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Casual Leave</td>
-                <td>-0.5</td>
-                <td>0.5</td>
-                <td>Deducted 0.5 leaves, The user was late 3 times in Apr 2022</td>
-                <td>Wednesday, Apr 27, 2022</td>
+            <tr *ngFor="let log of leaveLogList; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{log.leaveType}}</td>
+                <td>{{log.updateBalanceBy}}</td>
+                <td>{{log.balance}}</td>
+                <td>{{log.message}}</td>
+                <td>{{log.createdOn}}</td>
             </tr>
         </tbody>
       </table>     

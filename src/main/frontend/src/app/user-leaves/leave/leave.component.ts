@@ -36,9 +36,11 @@ export class LeaveComponent implements OnInit {
   userMapping:any = {};
   leaveObj:Leave = new Leave();
 
-  leaveTypes:any = [];
-  leaveHistoryList:any = [];
-  leaveApplicationList:any = [];
+  leaveTypes:any[] = [];
+  leaveHistoryList:any[] = [];
+  leaveApplicationList:any[] = [];
+  leaveLogList:any[] = [];
+  leaveBalanceList:any[] = [];
 
   constructor(
     private validationService:ValidationService,
@@ -52,6 +54,9 @@ export class LeaveComponent implements OnInit {
   ngOnInit(): void {
     console.log("this.currentUser : ", this.currentUser);
     this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.fromDateDayType = 0;
+    this.leaveObj.toDateDayType = 0;
+    this.leaveObj.leaveAppliedFor = "me"
     
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -103,6 +108,8 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+
+    this.getMyLeaveBalancesByEmpId();
   }
 
   showLeaveApplicationsTable() {
@@ -127,15 +134,21 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+
+    this.getLeaveLogsByEmpId();
   }
 
   reset() {
     this.leaveObj = new Leave();
     this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.fromDateDayType = 0;
+    this.leaveObj.toDateDayType = 0;
+    this.leaveObj.leaveAppliedFor = "me"
 
     this.leaveHistoryList = [];
     this.leaveApplicationList = [];
-
+    this.leaveLogList = [];
+    this.leaveBalanceList = [];
   }
 
   showUpdateForm(){
@@ -219,8 +232,13 @@ export class LeaveComponent implements OnInit {
       return false;
     }
 
+    if(this.leaveObj.fromDate == this.leaveObj.toDate){
+      this.leaveObj.toDateDayType = 0;
+    }
+
+    const START_DAY_COUNT = 1;
     const diff=(e,t)=> Math.abs(Math.floor((new Date(e).getTime()-new Date(t).getTime())/ (1000*60*60*24)));
-    this.leaveObj.noOfDays = diff(this.leaveObj.fromDate, this.leaveObj.toDate);
+    this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
   }
   
   onApplyLeave(template: TemplateRef<any>){
@@ -245,18 +263,19 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  onUpdateLeaveStatus(template: TemplateRef<any>, leaveStatusId){
+  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
     // 1 = pending , 2 = Approved , 3= Rejected
-
-    console.log("Update Leave Status : ", this.leaveObj);
+    leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    console.log("leaveApplication : ", leaveApplication);
     
-    // this.leaveService.updateLeaveStatus(this.leaveObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   } else {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   }
-    // });
+    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+      this.showLeaveApplicationsTable();
+    });
   }
 
   getAllMyLeaveApplicationsByEmpId(){
@@ -296,6 +315,40 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
         console.log("leaveTypes : ", this.leaveTypes);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getLeaveLogsByEmpId(){
+    this.leaveLogList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    this.leaveService.getLeaveLogsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveLogList = response.serviceResponse;
+        console.log("leaveLogList : ", this.leaveLogList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getMyLeaveBalancesByEmpId(){
+    this.leaveBalanceList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveBalanceList = response.serviceResponse;
+        this.leaveBalanceList = this.leaveBalanceList.map(leaveType => {
+          leaveType.totalLeaveBalance =  leaveType.pendingForApproval + leaveType.balance;
+          return leaveType;
+        });
+        console.log("leaveBalanceList : ", this.leaveBalanceList);
       } else {
         console.error(response.serviceResponse);
       }

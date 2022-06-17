@@ -27,6 +27,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsLeaveApplicationsByManagerId`, leaveObj);
   }
 
+  getLeaveLogsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeaveLogsByEmpId`, leaveObj);
+  }
+
+  getMyLeaveBalancesByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getMyLeaveBalancesByEmpId`, leaveObj);
+  }
+
 
   /* Leave Type */
   updateLeaveType(leaveObj: Leave) {
@@ -37,4 +45,9 @@ export class LeaveService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllLeaveTypes`);
   }
 
+
+  /* Comp off */
+  getAllCompOffReasons(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllCompOffReasons`);
+  }
 }
