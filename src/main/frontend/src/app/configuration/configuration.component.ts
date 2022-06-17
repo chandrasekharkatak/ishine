@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -14,21 +15,21 @@ import { RoleConfigComponent } from './role-config/role-config.component';
 })
 export class ConfigurationComponent implements OnInit, AfterViewInit{
 
-  @ViewChild('empCfg')
-  employeeConfig!: EmployeeConfigComponent;
-  @ViewChild('deptCfg')
-  departmentConfig!: DeptConfigComponent;
-  @ViewChild('roleCfg')
-  roleConfig!: RoleConfigComponent;
-  @ViewChild('leaveCfg')
-  leaveConfig!: LeaveConfigComponent;
+  employeeConfig: EmployeeConfigComponent;
+  departmentConfig: DeptConfigComponent;
+  roleConfig: RoleConfigComponent;
+  leaveConfig: LeaveConfigComponent;
 
   tabName:any = 'Configurations';
   currentUser:User;
   userMapping:any = {};
 
 
-  constructor(private authenticationService: AuthenticationService) { 
+  constructor(
+    private authenticationService: AuthenticationService,
+    private router: Router,
+    private route: ActivatedRoute,
+  ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -49,12 +50,12 @@ export class ConfigurationComponent implements OnInit, AfterViewInit{
   }
 
   ngAfterViewInit(): void {
-    setTimeout(this.setActiveTab, 100);
+    // setTimeout(this.setActiveTab, 100);
   }
 
   setActiveTab(){
     const tab = document.getElementById('configTab').querySelector('.nav-link');
-    const tabPane = document.getElementById('userTabContent').querySelector('.config__tab-container');
+    const tabPane = document.getElementById('userTabContent').querySelector('.tab-pane');
     
     console.log(tab);
     console.log(tabPane);
@@ -62,18 +63,22 @@ export class ConfigurationComponent implements OnInit, AfterViewInit{
     tab.classList.add('active');
     tabPane.classList.add('active');
     tabPane.classList.add('show');
+
+    let activeRouteLink = tab.getAttribute('routerLink');
+    console.log("activeRouteLink :", activeRouteLink);
+    this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
   }
 
   resetEmpConfig(){
-    this.employeeConfig.sectionViewInit();
+    this.employeeConfig.ngOnInit();
   }
   resetDeptConfig(){
-    this.departmentConfig.sectionViewInit();
+    this.departmentConfig.ngOnInit();
   }
   resetRoleConfig(){
-    this.roleConfig.sectionViewInit();
+    this.roleConfig.ngOnInit();
   }
   resetLeaveConfig(){
-    this.leaveConfig.sectionViewInit();
+    this.leaveConfig.ngOnInit();
   }
 }

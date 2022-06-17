@@ -46,7 +46,7 @@ export class UserLeavesComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    setTimeout(this.setActiveTab, 100);
+    // setTimeout(this.setActiveTab, 100);
   }
 
   setActiveTab(){

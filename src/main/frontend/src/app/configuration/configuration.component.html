@@ -1,25 +1,32 @@
 <div class="row card">
     <ul class="nav nav-tabs config__tabs" id="configTab" role="tablist">
         <li *ngIf="userMapping.employee" class="nav-item config__tab-item">
-            <a class="nav-link config__tab-item__link" id="employee-tab" data-toggle="tab" href="#employee" role="tab"
-                aria-controls="employee" aria-selected="true" (click)="resetEmpConfig()">Employee</a>
+            <a class="nav-link config__tab-item__link" id="employee-tab" data-toggle="tab" role="tab"
+                aria-controls="employee" aria-selected="true" routerLink="employee">Employee</a>
         </li>
         <li *ngIf="userMapping.department" class="nav-item config__tab-item">
-            <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" href="#dept" role="tab"
-                aria-controls="dept" aria-selected="false" (click)="resetDeptConfig()">Department</a>
+            <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" role="tab"
+                aria-controls="dept" aria-selected="false" routerLink="department">Department</a>
         </li>
         <li *ngIf="userMapping.role" class="nav-item config__tab-item">
-            <a class="nav-link config__tab-item__link" id="role-tab" data-toggle="tab" href="#role" role="tab"
-                aria-controls="role" aria-selected="false" (click)="resetRoleConfig()">Role</a>
+            <a class="nav-link config__tab-item__link" id="role-tab" data-toggle="tab" role="tab"
+                aria-controls="role" aria-selected="false" routerLink="role">Role</a>
         </li>
         <li class="nav-item config__tab-item">
-            <a class="nav-link config__tab-item__link" id="leave-tab" data-toggle="tab" href="#leave" role="tab"
-                aria-controls="leave" aria-selected="false" (click)="resetLeaveConfig()">Leave</a>
+            <a class="nav-link config__tab-item__link" id="leave-tab" data-toggle="tab" role="tab"
+                aria-controls="leave" aria-selected="false" routerLink="leave">Leave</a>
         </li>
     </ul>
 
     <!-- tab Containers -->
     <div class="tab-content" id="userTabContent">
+        <div class="config__tab-container">
+            <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
+        </div>
+    </div>
+
+
+    <!-- <div class="tab-content" id="userTabContent">
         <div *ngIf="userMapping.employee" class="tab-pane fade config__tab-container" id="employee" role="tabpanel"
             aria-labelledby="employee-tab">
             <app-employee-config #empCfg ></app-employee-config>
@@ -33,5 +40,5 @@
         <div class="tab-pane fade config__tab-container" id="leave" role="tabpanel" aria-labelledby="leave-tab">
             <app-leave-config #leaveCfg ></app-leave-config>
         </div>
-    </div>
+    </div> -->
 </div>

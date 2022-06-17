@@ -1,12 +1,19 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ConfigurationComponent } from './configuration/configuration.component';
+import { DeptConfigComponent } from './configuration/dept-config/dept-config.component';
+import { EmployeeConfigComponent } from './configuration/employee-config/employee-config.component';
+import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
+import { RoleConfigComponent } from './configuration/role-config/role-config.component';
 import { AuthGuard } from './guards/auth.guard';
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
 import { HomeComponent } from './home/home.component';
 import { HrPoliciesComponent } from './hr-policies/hr-policies.component';
 import { LoginComponent } from './login/login.component';
 import { UserAttendanceComponent } from './user-attendance/user-attendance.component';
+import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
+import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
+import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { UserLeavesComponent } from './user-leaves/user-leaves.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
@@ -18,8 +25,21 @@ const routes: Routes = [
   {path:'login', component: LoginComponent},
   {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
   {path:'user-profile', component: UserProfileComponent, canActivate: [AuthGuard]},
-  {path:'configuration', component: ConfigurationComponent, canActivate: [AuthGuard]},
-  {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard]},
+  {path:'configuration', component: ConfigurationComponent, canActivate: [AuthGuard], 
+    children: [
+      { path: 'employee', component: EmployeeConfigComponent, },
+      { path: 'department', component: DeptConfigComponent, },
+      { path: 'role', component: RoleConfigComponent, },
+      { path: 'leave', component: LeaveConfigComponent, },
+    ]
+  },
+  {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
+  children: [
+    { path: 'leave', component: LeaveComponent, },
+    { path: 'holiday', component: HolidaysComponent, },
+    { path: 'compOff', component: CompOffComponent, },
+  ]
+  },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
