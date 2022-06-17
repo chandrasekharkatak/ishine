@@ -4,7 +4,9 @@ export class JobRole{
 	departmentId: any;
 	departmentName:any;	
 	createdOn: any;	
-	createdBy: any;	
+	createdBy: any;
+	createdById:any;	
 	updatedOn: any;	
 	updatedBy: any;
+	hodId:any;
 }

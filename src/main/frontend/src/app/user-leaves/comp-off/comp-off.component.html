@@ -1,7 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCreateForm()">Apply Compensatory Off</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">View All Pending Compensatory Off</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">My Compensatory Off Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">My Reportee Compensatory Off Requests</button>
     </div>
 </div>
 
@@ -10,7 +11,6 @@
     <div class="card col-md-12 px-0" *ngIf="isForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Apply Compensatory Off</strong>
-            <strong *ngIf="isUpdation">Update Compensatory Off Status</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -18,7 +18,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Title</label>
-                            <input type="text" class="form-control" autocomplete="none" value="Comp off" disabled>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="compOffObj.leaveType">
                         </div>
                     </div>
                 </div>
@@ -28,22 +28,10 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>For</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="compOffObj.compOffId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="1">First Option</option>
-                                <option value="2">Second Option</option>
-                                <option value="3">Third Option</option>
+                                <option *ngFor="let reason of compOffReasons" value="{{reason.compOffId}}">{{reason.compOffReasons}}</option>
                             </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave Balance</label>
-                            <input type="text" class="form-control" autocomplete="none" value="5" disabled>
                         </div>
                     </div>
                 </div>
@@ -53,15 +41,14 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leaveDesc">Description</label>
-                            <textarea class="form-control" id="leaveDesc" rows="3"></textarea>
+                            <textarea class="form-control" id="leaveDesc" rows="3" [(ngModel)]="compOffObj.description"></textarea>
                           </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Apply</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Status</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyCompOff(alert_message)">Apply</button>
                 </div>
             </div>
         </div>
@@ -74,11 +61,9 @@
           <tr>
             <th scope="col" class="info-label">Sr No.</th>
             <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" class="info-label">From Date</th>
-            <th scope="col" class="info-label">To Date</th>
-            <th scope="col" class="info-label">Duration</th>
-            <th scope="col" class="info-label">Status</th>
+            <th scope="col" class="info-label">Leave Applied For</th>
             <th scope="col" class="info-label">Description</th>
+            <th scope="col" class="info-label">Status</th>
             <th scope="col" class="info-label">Actions</th>
          </tr>
         </thead>
