@@ -332,7 +332,7 @@ export class EmployeeConfigComponent implements OnInit {
     let inputValidated:boolean  = this.validateEmployeeObj(this.employeeObj, template)
     if(!inputValidated) return;
     
-    this.employeeObj.createdBy = 1;
+    this.employeeObj.createdBy = this.currentUser.empId;;
     console.log("Create Employe : ", this.employeeObj);
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -355,7 +355,7 @@ export class EmployeeConfigComponent implements OnInit {
     let inputValidated:boolean  = this.validateEmployeeObj(this.employeeObj, template)
     if(!inputValidated) return;
     
-    this.employeeObj.updatedBy = 1;
+    this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
     this.employeeService.updateEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -410,7 +410,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.createdBy = 1;
+    this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe Draft : ", this.employeeObj);
     this.employeeService.createDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -428,7 +428,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.updatedBy = 1;
+    this.employeeObj.updatedBy = this.currentUser.empId;
     console.log("Update Employe Draft : ", this.employeeObj);
     this.employeeService.updateDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

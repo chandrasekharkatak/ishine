@@ -56,9 +56,8 @@ export class RoleConfigComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    // getting departments 
     this.getAllDepartmentList();
-
+    
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -164,7 +163,7 @@ export class RoleConfigComponent implements OnInit {
     let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
     if(!inputValidated) return;
     
-    this.jobRoleObj.createdBy = 1;
+    this.jobRoleObj.createdById = this.currentUser.empId;;
     this.jobRoleService.createJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -180,7 +179,7 @@ export class RoleConfigComponent implements OnInit {
     let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
     if(!inputValidated) return;
     
-    this.jobRoleObj.updatedBy = 1;
+    this.jobRoleObj.updatedBy = this.currentUser.empId;;
     this.jobRoleService.updateJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

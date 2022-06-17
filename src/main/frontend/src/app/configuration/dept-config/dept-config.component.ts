@@ -131,7 +131,7 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
     let inputValidated:boolean  = this.validateDepartmentObj(this.deptObj, template)
     if(!inputValidated) return;
     
-    this.deptObj.createdBy = 1;
+    this.deptObj.createdBy = this.currentUser.empId;
     console.log("Create Dept : ", this.deptObj);
     this.departmentService.createDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -148,7 +148,7 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
     let inputValidated:boolean  = this.validateDepartmentObj(this.deptObj, template)
     if(!inputValidated) return;
     
-    this.deptObj.updatedBy = 1;
+    this.deptObj.updatedBy = this.currentUser.empId;;
     console.log("Update dept : ", this.deptObj);
     this.departmentService.updateDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
