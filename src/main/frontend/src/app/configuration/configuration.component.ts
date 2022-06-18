@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
@@ -13,7 +13,7 @@ import { RoleConfigComponent } from './role-config/role-config.component';
   templateUrl: './configuration.component.html',
   styleUrls: ['./configuration.component.css']
 })
-export class ConfigurationComponent implements OnInit, AfterViewInit{
+export class ConfigurationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   employeeConfig: EmployeeConfigComponent;
   departmentConfig: DeptConfigComponent;
@@ -50,35 +50,28 @@ export class ConfigurationComponent implements OnInit, AfterViewInit{
   }
 
   ngAfterViewInit(): void {
-    // setTimeout(this.setActiveTab, 100);
+    this.setActiveTab();
+  }
+
+  ngOnDestroy(): void {
+    this.removeActiveTab();
   }
 
   setActiveTab(){
     const tab = document.getElementById('configTab').querySelector('.nav-link');
-    const tabPane = document.getElementById('userTabContent').querySelector('.tab-pane');
-    
     console.log(tab);
-    console.log(tabPane);
 
     tab.classList.add('active');
-    tabPane.classList.add('active');
-    tabPane.classList.add('show');
-
     let activeRouteLink = tab.getAttribute('routerLink');
     console.log("activeRouteLink :", activeRouteLink);
+    console.log("Router :",  this.router);
+    
     this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
   }
 
-  resetEmpConfig(){
-    this.employeeConfig.ngOnInit();
-  }
-  resetDeptConfig(){
-    this.departmentConfig.ngOnInit();
-  }
-  resetRoleConfig(){
-    this.roleConfig.ngOnInit();
-  }
-  resetLeaveConfig(){
-    this.leaveConfig.ngOnInit();
+  removeActiveTab(){
+    const tab = document.getElementById('configTab').querySelector('.nav-link.active');
+    console.log("active tab :", tab);
+    tab?.classList.remove('active');
   }
 }

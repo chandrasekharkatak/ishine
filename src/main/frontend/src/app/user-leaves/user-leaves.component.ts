@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -11,7 +12,7 @@ import { LeaveComponent } from './leave/leave.component';
   templateUrl: './user-leaves.component.html',
   styleUrls: ['./user-leaves.component.css']
 })
-export class UserLeavesComponent implements OnInit {
+export class UserLeavesComponent implements OnInit, OnDestroy,AfterViewInit{
 
   @ViewChild('leave')
   leave!: LeaveComponent;
@@ -25,7 +26,11 @@ export class UserLeavesComponent implements OnInit {
   userMapping:any = {};
 
 
-  constructor(private authenticationService: AuthenticationService) { 
+  constructor(
+    private authenticationService: AuthenticationService,
+    private router: Router,
+    private route: ActivatedRoute,
+  ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -46,29 +51,30 @@ export class UserLeavesComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    // setTimeout(this.setActiveTab, 100);
+    this.setActiveTab(); 
+  }
+
+
+  ngOnDestroy(): void {
+    this.removeActiveTab();
   }
 
   setActiveTab(){
     const tab = document.getElementById('leaveTab').querySelector('.nav-link');
-    const tabPane = document.getElementById('leaveTabContent').querySelector('.leave__tab-container');
-    
     console.log(tab);
-    console.log(tabPane);
-
+  
     tab.classList.add('active');
-    tabPane.classList.add('active');
-    tabPane.classList.add('show');
+    let activeRouteLink = tab.getAttribute('routerLink');
+    console.log("activeRouteLink :", activeRouteLink);
+    console.log("Router :",  this.router);
+    
+    this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
   }
 
-  resetLeave(){
-    this.leave.sectionViewInit();
-  }
-  resetHolidays(){
-    this.holidays;
-  }
-  resetCompOff(){
-    this.compOff;
+  removeActiveTab(){
+    const tab = document.getElementById('leaveTab').querySelector('.nav-link.active');
+    console.log("active tab :", tab);
+    tab?.classList.remove('active');
   }
 
 }
