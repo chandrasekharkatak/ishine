@@ -15,9 +15,8 @@ import { ValidationService } from 'src/app/services/validation.service';
   templateUrl: './dept-config.component.html',
   styleUrls: ['./dept-config.component.css']
 })
-export class DeptConfigComponent implements OnInit, OnDestroy {
+export class DeptConfigComponent implements OnInit {
 
-  private activatedSubscriptions:Subscription;
   //flags 
   isCreation:boolean = false;
   isUpdation: boolean = false;
@@ -43,13 +42,11 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
     private departmentService: DepartmentService,
     private employeeService:EmployeeService,
     private authenticationService : AuthenticationService) {
-      this.activatedSubscriptions = this.employeeService.updatedEmployeeList.subscribe(allEmployees => {
-        this.hodList = allEmployees
-    });
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
+    this.getAllEmployeeList(); // for HOD List
     //Deafult values for dropdown
     this.deptObj.hodId = '';
 
@@ -61,10 +58,6 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
-  }
-
-  ngOnDestroy(): void {
-    this.activatedSubscriptions.unsubscribe();
   }
 
   sectionViewInit(){
@@ -184,6 +177,19 @@ export class DeptConfigComponent implements OnInit, OnDestroy {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         console.log("allDeptList : ", this.allDeptList)
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllEmployeeList(){
+    this.hodList = [];
+
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.hodList = response.serviceResponse;
+        console.log("hodList : ", this.hodList)
       } else {
         alert(response.serviceResponse)
       }

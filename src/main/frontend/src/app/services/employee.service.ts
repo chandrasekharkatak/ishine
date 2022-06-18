@@ -8,7 +8,6 @@ import { Employee } from '../models/employee';
 })
 export class EmployeeService {
   private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
-  updatedEmployeeList = new Subject<Array<Employee>>();
   
   constructor(private http: HttpClient) { }
 

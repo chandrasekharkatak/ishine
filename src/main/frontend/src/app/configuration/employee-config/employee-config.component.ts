@@ -400,7 +400,6 @@ export class EmployeeConfigComponent implements OnInit {
       return emp;
     });
     console.log("managerList : ", this.managerList);
-    this.employeeService.updatedEmployeeList.next(this.managerList);
   }
 
   /* Employee Draft */
