@@ -40,10 +40,10 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllMyTeamsLeaveApplicationsByManagerId" ,method = RequestMethod.POST)
-	public ServiceResponse getAllMyTeamsLeaveApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {
+	@RequestMapping(value = "/getAllMyTeamsPendingLeaveApplicationsByManagerId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {
 		
-		ServiceResponse response = employeeLeaveService.getAllMyTeamsLeaveApplicationsByManagerId(leaveDTO);
+		ServiceResponse response = employeeLeaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO);
 		return response;
 	}
 	
@@ -64,12 +64,7 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllCompOffReasons" ,method = RequestMethod.GET)
-	public ServiceResponse getAllCompOffReasons() {
-		
-		ServiceResponse response = employeeLeaveService.getAllCompOffReasons();
-		return response;
-	}
+	
 	
 	@RequestMapping(value = "/getLeaveLogsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getLeaveLogsByEmpId(@RequestBody LeaveDTO leaveDTO) {
@@ -78,5 +73,7 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-
+	
+	
+	
 }

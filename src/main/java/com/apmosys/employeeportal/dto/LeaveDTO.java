@@ -41,5 +41,6 @@ public class LeaveDTO {
 	private String compOffReasons;
 	private String updateBalanceBy;
 	private String message;
+	private Long compOffLeaveId;
 
 }

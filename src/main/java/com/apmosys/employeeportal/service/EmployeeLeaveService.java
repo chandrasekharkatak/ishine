@@ -77,7 +77,7 @@ public class EmployeeLeaveService {
 				log.setBalance(balance);
 				log.setEmpId(leaveDTO.getEmpId());
 				log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-				log.setMessage(LeaveLogMessage.deductLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
+				log.setMessage(LeaveLogMessage.requestDeductLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
 				log.setUpdateBalanceBy("-"+leaveDTO.getNoOfDays());
 				
 				leaveBalanceLogRepository.save(log);
@@ -135,11 +135,11 @@ public class EmployeeLeaveService {
 		return response;
 	}
 
-	public ServiceResponse getAllMyTeamsLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
+	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> list = employeeLeaveRepository
-					.getAllMyTeamsLeaveApplicationsByManagerId(leaveDTO.getManagerId());
+					.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -203,7 +203,7 @@ public class EmployeeLeaveService {
 					log.setBalance(employeeLeavesMap.getBalance());
 					log.setEmpId(leaveDTO.getEmpId());
 					log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-					log.setMessage(LeaveLogMessage.addLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
+					log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
 					log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 					leaveBalanceLogRepository.save(log);
 					response.setServiceResponse("Leave application rejected.");
@@ -310,7 +310,7 @@ public class EmployeeLeaveService {
 								log.setBalance(dto.getBalance());
 								log.setEmpId(leaveDTO.getEmpId());
 								log.setLeaveTypeMasterId(dto.getLeaveTypeMasterId());
-								log.setMessage(LeaveLogMessage.addLeave.replace("0.0", dto.getBalance().toString()));
+								log.setMessage(LeaveLogMessage.adminAddLeave.replace("0.0", dto.getBalance().toString()));
 								log.setUpdateBalanceBy("+" + dto.getBalance());
 								leaveBalanceLogRepository.save(log);
 								
@@ -330,13 +330,13 @@ public class EmployeeLeaveService {
 									if (dto.getBalance() > leave.getBalance()) {
 										// leave added to bucket balance
 										Float change = dto.getBalance() - leave.getBalance();
-										log.setMessage(LeaveLogMessage.addLeave.replace("0.0", change.toString()));
+										log.setMessage(LeaveLogMessage.adminAddLeave.replace("0.0", change.toString()));
 										log.setUpdateBalanceBy("+" + change);
 
 									} else if (dto.getBalance() < leave.getBalance()) {
 										// leave deducted from bucket balance
 										Float change = dto.getBalance() - leave.getBalance();
-										log.setMessage(LeaveLogMessage.deductLeave.replace("0.0", (change*-1)+""));
+										log.setMessage(LeaveLogMessage.adminDeductLeave.replace("0.0", (change*-1)+""));
 										log.setUpdateBalanceBy(change.toString());
 									}
 									leave.setBalance(dto.getBalance());
@@ -369,39 +369,7 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
-
-	public ServiceResponse getAllCompOffReasons() {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			List<CompOffMaster> compOffReasonsList = compOffMasterRepository.findAll();
-			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
-			
-			if(compOffReasonsList.isEmpty())
-			{
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Comp off reasons list is empty.");
-			}
-			else
-			{
-				compOffReasonsList.forEach((reason)-> {
-					LeaveDTO dto = new LeaveDTO();
-					dto.setCompOffId(reason.getCompOffId());
-					dto.setCompOffReasons(reason.getCompOffReasons());
-					dtoList.add(dto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-			}
-			
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		return response;
-	}
+	
 
 	public ServiceResponse getLeaveLogsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
