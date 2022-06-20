@@ -207,7 +207,7 @@ export class CompOffComponent implements OnInit {
       // 1 = pending , 2 = Approved , 3= Rejected
       compOffObj.leaveStatusId = updatedCompOffStatusId;
       console.log("Update Comp off : ", compOffObj);
-      this.leaveService.updateCompOffById(this.compOffObj).pipe(first()).subscribe((response: any) => {
+      this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
           this.getPendingCompOffRequestsByManagerId();
