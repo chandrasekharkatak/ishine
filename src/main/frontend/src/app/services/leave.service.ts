@@ -35,6 +35,9 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getMyLeaveBalancesByEmpId`, leaveObj);
   }
 
+  updateLeavesByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeavesByEmpId`, leaveObj);
+  }
 
   /* Leave Type */
   createLeaveType(leaveObj: Leave) {

@@ -4,7 +4,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayTable" (click)="showHoliaysTable()">View Holidays</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveTypeForm && !isCreation" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRuleTable" (click)="showLeaveTypesTable()">View Leave Types</button>
-
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveBalanceForm" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
     </div>
 </div>
 
@@ -84,7 +84,7 @@
 </div>
 <!-- end :: holidays table -->
 
-<!-- start :: Update Leave Rule Form -->
+<!-- start :: Add & Update Leave Type Form -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isLeaveTypeForm">
         <div class="card-header text-center text-uppercase">
@@ -147,9 +147,9 @@
         </div>
     </div>
 </div>
-<!-- end ::  Update Leave Rule form -->
+<!-- end ::  Add & Update Leave Type form -->
 
-<!-- start :: Leave Rule Table -->
+<!-- start :: Leave Type Table -->
 <div class="row col-md-12" *ngIf="isLeaveRuleTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Leave Types</h1>
@@ -180,7 +180,56 @@
         </tbody>
       </table>      
 </div>
-<!-- end :: Leave Rule table -->
+<!-- end :: Leave Type table -->
+
+<!-- start :: Update Leave Balance Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isLeaveBalanceForm">
+        <div class="card-header text-center text-uppercase">
+            <strong>Manage Leave Balance</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Employee ID</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.empId" placeholder="Please Enter Employee ID without prefix A">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0 mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onGetEmpLeaveBalance(alert_message)">Get Employee Leave Balance</button>
+                </div>
+            </div>
+            <hr>
+            <div class="row" *ngFor="let leaveBalance of leaveBalanceList">
+                <div *ngIf="leaveBalance.leaveType != 'Total'" class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveRules">Leave Type</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveBalance.leaveType">
+                          </div>
+                    </div>
+                </div>
+                <div *ngIf="leaveBalance.leaveType != 'Total'" class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveRules">Balance</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalance.balance">
+                          </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="leaveBalanceList.length != 0" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeaveBalance(alert_message)">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end ::  Add & Update Leave Type form -->
 
 <!-- Modals Template -->
 <ng-template #alert_message>

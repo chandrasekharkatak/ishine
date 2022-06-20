@@ -19,11 +19,12 @@ export class Leave{
 	description:any;
 	balance:any;
 	pendingForApproval:any;
-	EmployeeLeavesMap:any;
+	employeeLeaveList:any;
 	compOffId:any;	
 	compOffReasons:any;
 	updateBalanceBy:any;
 	message:any;
+	compOffLeaveId:any;
 
 	leaveAppliedFor:any;
 	fromDateDayType:any;

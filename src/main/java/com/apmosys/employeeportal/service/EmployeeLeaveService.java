@@ -255,6 +255,7 @@ public class EmployeeLeaveService {
 					dto.setLeaveType(object[0] != null ? object[0].toString() : null);
 					dto.setBalance(object[1] != null ? Float.parseFloat(object[1].toString()) : null);
 					dto.setPendingForApproval(object[2] != null ? Float.parseFloat(object[2].toString()) : null);
+					dto.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()): null);
 					
 					dtoList.add(dto);
 				});

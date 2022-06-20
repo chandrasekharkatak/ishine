@@ -24,6 +24,7 @@ export class LeaveConfigComponent implements OnInit {
 
   isHolidayForm:boolean = false;
   isLeaveTypeForm:boolean = false;
+  isLeaveBalanceForm:boolean = false;
   isHolidayTable:boolean = false;
   isLeaveRuleTable:boolean = false;
 
@@ -41,6 +42,9 @@ export class LeaveConfigComponent implements OnInit {
 
   leaveTypeObj:Leave = new Leave();
   leaveTypes:any[] = [];
+
+  leaveBalanceObj:Leave = new Leave();
+  leaveBalanceList:any[] = [];
 
   constructor(
     private validationService:ValidationService,
@@ -72,6 +76,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = true;
 
     this.isLeaveTypeForm = false;
+    this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
     this.isUpdation = false;
@@ -85,6 +90,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveRuleTable = false;
     this.isHolidayForm = false;
     this.isLeaveTypeForm = false;
+    this.isLeaveBalanceForm = false;
     this.isUpdation = false;
     this.isCreation = false;
 
@@ -97,6 +103,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isHolidayTable = false;
     this.isHolidayForm = false;
     this.isLeaveTypeForm = false;
+    this.isLeaveBalanceForm = false;
     this.isUpdation = false;
     this.isCreation = false;
 
@@ -108,6 +115,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = true;
     
     this.isHolidayForm = false;
+    this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
     this.isUpdation = false;
@@ -121,6 +129,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = true;
     
     this.isHolidayForm = false;
+    this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
     this.isCreation = false;
@@ -132,12 +141,26 @@ export class LeaveConfigComponent implements OnInit {
     this.isHolidayForm = true;
     this.isUpdation = true;
     
-    this.isHolidayTable = false;
     this.isLeaveTypeForm = false;
+    this.isLeaveBalanceForm = false;
+    this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
     this.isCreation = false;
 
     this.holidayObj = Object.assign({}, holiday);
+  }
+
+  showLeaveBalanceForm(){
+    this.isLeaveBalanceForm = true;
+    
+    this.isLeaveTypeForm = false;
+    this.isHolidayForm = false;
+    this.isHolidayTable = false;
+    this.isLeaveRuleTable = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+
+    this.reset();
   }
 
   reset() {
@@ -146,6 +169,9 @@ export class LeaveConfigComponent implements OnInit {
 
     this.leaveTypeObj = new Leave();
     this.leaveTypes = [];
+
+    this.leaveBalanceObj = new Leave();
+    this.leaveBalanceList = [];
   }
 
   // Modals
@@ -331,5 +357,34 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
+
+  // Manage Leave Balance
+  onGetEmpLeaveBalance(template: TemplateRef<any>){
+    this.leaveBalanceList = [];
+
+    console.log("Employee :", this.leaveBalanceObj);
+    this.leaveService.getMyLeaveBalancesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveBalanceList = response.serviceResponse;
+        console.log("leaveBalanceList : ", this.leaveBalanceList);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+
+  }
+
+  onUpdateLeaveBalance(template: TemplateRef<any>){
+    this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
+    console.log("manage Leave Balance :", this.leaveBalanceObj);
+    this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeaveBalanceForm();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
 }
