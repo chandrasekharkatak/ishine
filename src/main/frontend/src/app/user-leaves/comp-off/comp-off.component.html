@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCreateForm()">Apply Compensatory Off</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCompOffRequestTable()">My Compensatory Off Requests</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCompOffApplicationsTable()">My Reportee Compensatory Off Applications</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isForm && userMapping.apply_comp_off_req" (click)="showCreateForm()">Apply Compensatory Off</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCompOffRequestsTable && userMapping.view_comp_off_req_status" (click)="showCompOffRequestTable()">My Compensatory Off Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCompOffApplicationsTable && userMapping.update_comp_off_req" (click)="showCompOffApplicationsTable()">My Reportee Compensatory Off Applications</button>
     </div>
 </div>
 
@@ -85,6 +85,9 @@
 
 <!-- start :: My compOff Request Table -->
 <div class="row col-md-12" *ngIf="isCompOffRequestsTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">My Compensatory off Requests</h1>
+    </div>
     <table class="table compOffRequest-table">
         <thead class="thead-light">
           <tr>
@@ -114,6 +117,9 @@
 
 <!-- start :: compOff Application Table -->
 <div class="row col-md-12" *ngIf="isCompOffApplicationsTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
+    </div>
     <table class="table compOffApplication-table">
         <thead class="thead-light">
           <tr>
