@@ -30,6 +30,7 @@ public class HolidayService {
 			newHoliday.setOccasion(holidayDTO.getOccasion());
 			newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday()));
 			newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
+			newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 
 			Holiday dbResponse = holidayRepository.save(newHoliday);
 
@@ -62,6 +63,7 @@ public class HolidayService {
 				holiday.setOccasion(holidayDTO.getOccasion());
 				holiday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 				holiday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday()));
+				holiday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 				
 				Holiday dbResponse = holidayRepository.save(holiday);
 				
@@ -106,6 +108,7 @@ public class HolidayService {
 					dto.setDateOfHoliday(holiday.getDateOfHoliday().toString());
 					dto.setOccasion(holiday.getOccasion());
 					dto.setDayOfTheWeek(holiday.getDayOfTheWeek());
+					dto.setOptionalHoliday(holiday.getOptionalHoliday());
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

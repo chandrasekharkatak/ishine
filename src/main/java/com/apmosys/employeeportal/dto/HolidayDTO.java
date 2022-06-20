@@ -11,5 +11,5 @@ public class HolidayDTO {
 	private String occasion;	
 	private String dateOfHoliday;
 	private String dayOfTheWeek;
-
+	private String optionalHoliday;
 }

@@ -30,5 +30,12 @@ public class LeaveTypeMasterController {
 		ServiceResponse response = leaveTypeMasterService.updateLeaveType(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/createLeaveType" ,method = RequestMethod.POST)
+	public ServiceResponse createLeaveType(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = leaveTypeMasterService.createLeaveType(leaveDTO);
+		return response;
+	}
 
 }
