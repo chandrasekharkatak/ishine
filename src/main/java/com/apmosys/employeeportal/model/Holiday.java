@@ -27,4 +27,6 @@ public class Holiday {
 	private LocalDate dateOfHoliday;
 	
 	private String dayOfTheWeek;
+	
+	private String optionalHoliday;
 }
