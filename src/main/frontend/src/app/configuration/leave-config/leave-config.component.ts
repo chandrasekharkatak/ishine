@@ -23,7 +23,7 @@ export class LeaveConfigComponent implements OnInit {
   isUpdation: boolean = false;
 
   isHolidayForm:boolean = false;
-  isLeaveRuleForm:boolean = false;
+  isLeaveTypeForm:boolean = false;
   isHolidayTable:boolean = false;
   isLeaveRuleTable:boolean = false;
 
@@ -64,14 +64,14 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showLeaveRulesTable();
+    this.showLeaveTypesTable();
   }
 
   showAddHolidayForm(){
     this.isHolidayForm = true;
     this.isCreation = true;
 
-    this.isLeaveRuleForm = false;
+    this.isLeaveTypeForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
     this.isUpdation = false;
@@ -84,27 +84,40 @@ export class LeaveConfigComponent implements OnInit {
 
     this.isLeaveRuleTable = false;
     this.isHolidayForm = false;
-    this.isLeaveRuleForm = false;
+    this.isLeaveTypeForm = false;
     this.isUpdation = false;
     this.isCreation = false;
 
     this.getAllHolidays();
   }
 
-  showLeaveRulesTable(){
+  showLeaveTypesTable(){
     this.isLeaveRuleTable = true;
 
     this.isHolidayTable = false;
     this.isHolidayForm = false;
-    this.isLeaveRuleForm = false;
+    this.isLeaveTypeForm = false;
     this.isUpdation = false;
     this.isCreation = false;
 
     this.getAllLeaveTypes();
   }
 
-  showUpdateLeaveRuleForm(leaveType:Leave){
-    this.isLeaveRuleForm = true;
+  showAddLeaveTypeForm(){
+    this.isLeaveTypeForm = true;
+    this.isCreation = true;
+    
+    this.isHolidayForm = false;
+    this.isHolidayTable = false;
+    this.isLeaveRuleTable = false;
+    this.isUpdation = false;
+
+    this.reset();
+  }
+
+
+  showUpdateLeaveTypeForm(leaveType:Leave){
+    this.isLeaveTypeForm = true;
     this.isUpdation = true;
     
     this.isHolidayForm = false;
@@ -120,7 +133,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = true;
     
     this.isHolidayTable = false;
-    this.isLeaveRuleForm = false;
+    this.isLeaveTypeForm = false;
     this.isLeaveRuleTable = false;
     this.isCreation = false;
 
@@ -130,6 +143,9 @@ export class LeaveConfigComponent implements OnInit {
   reset() {
     this.holidayObj= new Holiday();
     this.holidayList = [];
+
+    this.leaveTypeObj = new Leave();
+    this.leaveTypes = [];
   }
 
   // Modals
@@ -237,16 +253,67 @@ export class LeaveConfigComponent implements OnInit {
   }
 
 
-  // Leave Rules 
   getAllHolidays(){
     this.holidayList = [];
-
+    
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         console.log("leaveTypes : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
+      }
+    });
+  }
+  
+  // Leave Type
+  validateLeaveTypeObj(leaveTypeObj:Leave, template: TemplateRef<any>){
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.leaveType)){
+      this.alertMessage = "Please enter Leave Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.leaveTypeCode)){
+      this.alertMessage = "Please enter Leave Type Code !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.noOfDays)){
+      this.alertMessage = "Please enter Default Leave Days !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
+  onAddLeaveType(template: TemplateRef<any>) {
+    let inputValidated:boolean  = this.validateLeaveTypeObj(this.leaveTypeObj, template)
+    if(!inputValidated) return;
+
+    console.log("Add Leave Type : ", this.leaveTypeObj);
+
+    this.leaveService.createLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeaveTypesTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateLeaveType(template: TemplateRef<any>) {
+    console.log("update Leave Type : ", this.leaveTypeObj);
+
+    this.leaveService.updateLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeaveTypesTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
@@ -264,17 +331,5 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
-  onUpdateLeaveRule(template: TemplateRef<any>) {
-    console.log("update Leave Type : ", this.leaveTypeObj);
-
-    this.leaveService.updateLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showLeaveRulesTable();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
 
 }

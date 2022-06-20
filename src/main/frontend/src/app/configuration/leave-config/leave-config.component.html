@@ -2,7 +2,8 @@
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayForm && !isCreation" (click)="showAddHolidayForm()">Add Holidays</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayTable" (click)="showHoliaysTable()">View Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRuleTable" (click)="showLeaveRulesTable()">View Leave Rules</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveTypeForm && !isCreation" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRuleTable" (click)="showLeaveTypesTable()">View Leave Types</button>
 
     </div>
 </div>
@@ -85,9 +86,10 @@
 
 <!-- start :: Update Leave Rule Form -->
 <div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isLeaveRuleForm">
+    <div class="card col-md-12 px-0" *ngIf="isLeaveTypeForm">
         <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isUpdation">Update Leave Rule</strong>
+            <strong *ngIf="isCreation">Add Leave Type</strong>
+            <strong *ngIf="isUpdation">Update Leave Type</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -95,7 +97,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Type</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveTypeObj.leaveType">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.leaveType">
                         </div>
                     </div>
                 </div>
@@ -103,7 +105,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Code</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveTypeObj.leaveTypeCode">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.leaveTypeCode">
                         </div>
                     </div>
                 </div>
@@ -113,7 +115,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Default Leaves</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveTypeObj.noOfDays">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.noOfDays">
                         </div>
                     </div>
                 </div>
@@ -138,7 +140,8 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeaveRule(alert_message)">Update</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onAddLeaveType(alert_message)">Add</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeaveType(alert_message)">Update</button>
                 </div>
             </div>
         </div>
@@ -170,7 +173,7 @@
                 <td>{{leaveType.rules}}</td>
                 <td>{{leaveType.description}}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveRuleForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
                     <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>
                 </td>
             </tr>

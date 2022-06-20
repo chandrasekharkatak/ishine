@@ -37,6 +37,10 @@ export class LeaveService {
 
 
   /* Leave Type */
+  createLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/createLeaveType`, leaveObj);
+  }
+
   updateLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeaveType`, leaveObj);
   }
