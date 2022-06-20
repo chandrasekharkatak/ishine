@@ -13,3 +13,17 @@
 .leave_day{
     margin-top: 1.75rem;
 }
+
+.table-header{
+    width: 100%;
+    height: 50px;
+    background: var(--ghost-white);
+    margin-bottom: 1em;
+}
+
+.table-header-title{
+    font-size: 2rem;
+    padding: .2em;
+    margin-bottom: 0;
+    color: var(--raisin-black);
+}
