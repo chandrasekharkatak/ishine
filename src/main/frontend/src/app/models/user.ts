@@ -8,4 +8,5 @@ export class User{
     otp:any;
     userMapping:any;
     tabList:any;
+    managerId:any;
 }

@@ -13,7 +13,6 @@
     <div class="card col-md-12 px-0" *ngIf="isForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Apply for Leave</strong>
-            <strong *ngIf="isUpdation">Update Leave Status</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -111,7 +110,6 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyLeave(alert_message)">Apply Leave</button>
-                    <button *ngIf="isUpdation && userMapping.update_leave_status" type="submit" class="btn btn-primary btn-sm mx-1">Update Leave Status</button>
                 </div>
             </div>
     </div>
@@ -185,8 +183,8 @@
                 <td>{{leaveApplication.reason}}</td>
                 <!-- <td>{{leaveApplication.description}}</td> -->
                 <td>
-                    <button *ngIf="leaveApplication.status == 'Pending'" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button *ngIf="leaveApplication.status == 'Pending'" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                 </td>
             </tr>
         </tbody>

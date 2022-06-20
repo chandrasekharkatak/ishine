@@ -122,7 +122,7 @@ export class LeaveComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
 
-    this.getAllMyTeamsLeaveApplicationsByManagerId();
+    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
 
   showLeaveLogTable() {
@@ -247,7 +247,7 @@ export class LeaveComponent implements OnInit {
 
     this.leaveObj.empId = this.currentUser.empId;
     this.leaveObj.createdBy = this.currentUser.empId;
-    this.leaveObj.managerId = 1; 
+    this.leaveObj.managerId = this.currentUser.managerId; 
 
     this.leaveObj.fromDate = this.datePipe.transform(this.leaveObj.fromDate, 'dd-MM-yyyy');
     this.leaveObj.toDate = this.datePipe.transform(this.leaveObj.toDate, 'dd-MM-yyyy');
@@ -293,12 +293,12 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllMyTeamsLeaveApplicationsByManagerId(){
+  getAllMyTeamsPendingLeaveApplicationsByManagerId(){
     this.leaveApplicationList = []
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
-    this.leaveService.getAllMyTeamsLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
+    this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
         console.log("leaveApplicationList : ", this.leaveApplicationList);
