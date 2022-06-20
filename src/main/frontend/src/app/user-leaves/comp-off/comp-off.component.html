@@ -1,12 +1,12 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCreateForm()">Apply Compensatory Off</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">My Compensatory Off Requests</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">My Reportee Compensatory Off Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCompOffRequestTable()">My Compensatory Off Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showCompOffApplicationsTable()">My Reportee Compensatory Off Applications</button>
     </div>
 </div>
 
-<!-- start :: Create & Update Form -->
+<!-- start :: Apply CompOff Form -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isForm">
         <div class="card-header text-center text-uppercase">
@@ -28,10 +28,38 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>For</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="compOffObj.compOffId">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="compOffObj.reason">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let reason of compOffReasons" value="{{reason.compOffId}}">{{reason.compOffReasons}}</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" >
+                        </div>
+                    </div>
+                </div>
+                <div class="offset-md-2 col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">No.of Days</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="compOffObj.noOfDays">
                         </div>
                     </div>
                 </div>
@@ -53,26 +81,72 @@
             </div>
         </div>
     </div>
-<!-- end :: create & update form -->
-<!-- start :: See all Table -->
-<div class="row col-md-12" *ngIf="isTable">
-    <table class="table department-table">
+<!-- end :: Apply CompOff form -->
+
+<!-- start :: My compOff Request Table -->
+<div class="row col-md-12" *ngIf="isCompOffRequestsTable">
+    <table class="table compOffRequest-table">
         <thead class="thead-light">
           <tr>
             <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Leave Type</th>
             <th scope="col" class="info-label">Leave Applied For</th>
+            <th scope="col" class="info-label">From Date</th>
+            <th scope="col" class="info-label">To Date</th>
+            <th scope="col" class="info-label">Duration</th>
+            <th scope="col" class="info-label">Description</th>
+            <th scope="col" class="info-label">Status</th>
+         </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let compOffReq of allCompOffRequests;let i = index">
+                <td>{{i+1}}</td>
+                <td>{{compOffReq.compOffReasons}}</td>
+                <td>{{compOffReq.fromDate}}</td>
+                <td>{{compOffReq.toDate}}</td>
+                <td>{{compOffReq.noOfDays}}</td>
+                <td>{{compOffReq.description}}</td>
+                <td>{{compOffReq.status}}</td>
+            </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: My compOff Request table -->
+
+<!-- start :: compOff Application Table -->
+<div class="row col-md-12" *ngIf="isCompOffApplicationsTable">
+    <table class="table compOffApplication-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">Applied By</th>
+            <th scope="col" class="info-label">Applied For</th>
+            <th scope="col" class="info-label">From Date</th>
+            <th scope="col" class="info-label">To Date</th>
+            <th scope="col" class="info-label">Duration</th>
             <th scope="col" class="info-label">Description</th>
             <th scope="col" class="info-label">Status</th>
             <th scope="col" class="info-label">Actions</th>
          </tr>
         </thead>
         <tbody>
-
+            <tr *ngFor="let compOffApp of allCompOffApplications;let i = index">
+                <td>{{i+1}}</td>
+                <td>{{compOffApp.createdByName}}</td>
+                <td>{{compOffApp.compOffReasons}}</td>
+                <td>{{compOffApp.fromDate}}</td>
+                <td>{{compOffApp.toDate}}</td>
+                <td>{{compOffApp.noOfDays}}</td>
+                <td>{{compOffApp.description}}</td>
+                <td>{{compOffApp.status}}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                </td>
+            </tr>
         </tbody>
       </table>      
 </div>
-<!-- end :: see all table -->
+<!-- end :: compOff Application table -->
 
 <!-- Modals Template -->
 <ng-template #alert_message>

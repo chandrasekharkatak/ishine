@@ -18,9 +18,9 @@ export class CompOffComponent implements OnInit {
 
   //flags 
   isCreation:boolean = false;
-  isUpdation: boolean = false;
   isForm: boolean = false;
-  isTable: boolean = false;
+  isCompOffRequestsTable: boolean = false;
+  isCompOffApplicationsTable: boolean = false;
 
   //modal 
   alertMessage:any;
@@ -33,6 +33,8 @@ export class CompOffComponent implements OnInit {
 
   compOffObj:Leave = new Leave();
   compOffReasons:any[] = [];
+  allCompOffRequests:any[] = [];
+  allCompOffApplications:any[] = [];
 
   constructor(
     private validationService:ValidationService,
@@ -53,41 +55,48 @@ export class CompOffComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllCompOffReasons();
-    this.compOffObj.leaveType = 'Compensatory Off'
   }
 
   sectionViewInit(){
-    this.showTable();
+    this.showCompOffRequestTable();
   }
 
   showCreateForm(){
     this.isForm = true;
-    this.isTable = false;
     this.isCreation = true;
-    this.isUpdation = false;
+    this.isCompOffRequestsTable = false;
+    this.isCompOffApplicationsTable = false;
 
     this.reset();
   }
 
-  showTable(){
-    this.isTable = true;
+  showCompOffRequestTable(){
+    this.isCompOffRequestsTable = true;
+    this.isCompOffApplicationsTable = false;
     this.isForm = false;
-    this.isUpdation = false;
     this.isCreation = false;
 
+    this.getAllCompOffRequestsByEmpId();
+  }
+
+  showCompOffApplicationsTable(){
+    this.isCompOffApplicationsTable = true;
+    this.isCompOffRequestsTable = false;
+    this.isForm = false;
+    this.isCreation = false;
+
+    this.getPendingCompOffRequestsByManagerId();
   }
 
   reset(){
     this.compOffObj = new Leave();
+    this.compOffObj.leaveType = 'Compensatory Off'
+    this.compOffObj.compOffId = '';
+
+    this.allCompOffRequests = [];
+    this.allCompOffApplications = [];
   }
 
-  showUpdateForm(){
-    this.isForm = true;
-    this.isTable = false;
-    this.isUpdation = true;
-    this.isCreation = false;
-
-  }
     // Modals
     openAlertMod(template: TemplateRef<any>, message: any) {
       this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -111,15 +120,57 @@ export class CompOffComponent implements OnInit {
       });
     }
 
-    validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
+    setMinToDate(template: TemplateRef<any>){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.fromDate)){
+        this.alertMessage = "Please select from date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      let fromDate = this.compOffObj.fromDate;
+      let toDate = document.getElementById('toDate');
+      toDate?.setAttribute('min', fromDate);
+    }
+  
+    setNoOfDays(template: TemplateRef<any>){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.fromDate)){
+        this.alertMessage = "Please select from date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.toDate)){
+        this.alertMessage = "Please select To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      const START_DAY_COUNT = 1;
+      const diff=(e,t)=> Math.abs(Math.floor((new Date(e).getTime()-new Date(t).getTime())/ (1000*60*60*24)));
+      this.compOffObj.noOfDays = START_DAY_COUNT + diff(this.compOffObj.fromDate, this.compOffObj.toDate);
+    }
+
+    validateLeavetObj(compOffObj:Leave, template: TemplateRef<any>){
       
-      if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.compOffId)){
+      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.reason)){
         this.alertMessage = "Please select comp off reason !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
 
-      if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.description)){
+      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.fromDate)){
+        this.alertMessage = "Please select from date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.toDate)){
+        this.alertMessage = "Please select To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.description)){
         this.alertMessage = "Please enter comp off description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
@@ -131,22 +182,68 @@ export class CompOffComponent implements OnInit {
     onApplyCompOff(template: TemplateRef<any>){
       let inputValidated:boolean  = this.validateLeavetObj(this.compOffObj, template)
       if(!inputValidated) return;
-  
-      this.compOffObj.leaveTypeMasterId = 5;
-      this.compOffObj.fromDate = this.compOffObj.toDate = this.datePipe.transform(new Date(), 'dd-MM-yyyy');
-      this.compOffObj.noOfDays = 1;
 
+      const COMP_OFF_MASTER_ID  = 5;
+      this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
+
+      this.compOffObj.fromDate = this.datePipe.transform(this.compOffObj.fromDate, 'dd-MM-yyyy');
+      this.compOffObj.toDate = this.datePipe.transform(this.compOffObj.toDate, 'dd-MM-yyyy');
       this.compOffObj.empId = this.currentUser.empId;
       this.compOffObj.createdBy = this.currentUser.empId;
-      this.compOffObj.managerId = 1; 
+      this.compOffObj.managerId = this.currentUser.managerId; 
   
       console.log("Apply Comp off : ", this.compOffObj);
-      this.leaveService.applyLeave(this.compOffObj).pipe(first()).subscribe((response: any) => {
+      this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
-          this.showTable();
+          this.showCompOffRequestTable();
         } else {
           this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
+
+    onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
+      // 1 = pending , 2 = Approved , 3= Rejected
+      compOffObj.leaveStatusId = updatedCompOffStatusId;
+      console.log("Update Comp off : ", compOffObj);
+      this.leaveService.updateCompOffById(this.compOffObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.getPendingCompOffRequestsByManagerId();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
+
+
+    getAllCompOffRequestsByEmpId(){
+      this.allCompOffRequests = [];
+  
+      let compOff = new Leave();
+      compOff.empId = this.currentUser.empId;
+      this.leaveService.getAllCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allCompOffRequests = response.serviceResponse;
+          console.log("allCompOffRequests : ", this.allCompOffRequests);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
+  
+    getPendingCompOffRequestsByManagerId(){
+      this.allCompOffApplications = []
+  
+      let compOff = new Leave();
+      compOff.managerId = this.currentUser.empId;
+      this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allCompOffApplications = response.serviceResponse;
+          console.log("allCompOffApplications : ", this.allCompOffApplications);
+        } else {
+          console.error(response.serviceResponse);
         }
       });
     }

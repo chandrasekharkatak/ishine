@@ -23,8 +23,8 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyLeaveApplicationsByEmpId`, leaveObj);
   }
 
-  getAllMyTeamsLeaveApplicationsByManagerId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsLeaveApplicationsByManagerId`, leaveObj);
+  getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
   getLeaveLogsByEmpId(leaveObj: Leave) {
@@ -49,5 +49,21 @@ export class LeaveService {
   /* Comp off */
   getAllCompOffReasons(){
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllCompOffReasons`);
+  }
+
+  applyForCompOff(compOffObj:Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/applyForCompOff`, compOffObj);
+  }
+
+  updateCompOffById(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateCompOffById`, compOffObj);
+  }
+
+  getAllCompOffRequestsByEmpId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllCompOffRequestsByEmpId`, compOffObj);
+  }
+
+  getPendingCompOffRequestsByManagerId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getPendingCompOffRequestsByManagerId`, compOffObj);
   }
 }
