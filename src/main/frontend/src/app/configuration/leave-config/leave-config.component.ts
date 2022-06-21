@@ -148,6 +148,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.holidayObj = Object.assign({}, holiday);
+    this.holidayObj.optionalHoliday = (JSON.parse(holiday.optionalHoliday) != null) ? JSON.parse(holiday.optionalHoliday) : false;
   }
 
   showLeaveBalanceForm(){
@@ -165,6 +166,7 @@ export class LeaveConfigComponent implements OnInit {
 
   reset() {
     this.holidayObj= new Holiday();
+    this.holidayObj.optionalHoliday = false;
     this.holidayList = [];
 
     this.leaveTypeObj = new Leave();

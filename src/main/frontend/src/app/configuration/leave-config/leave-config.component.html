@@ -25,6 +25,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
+                            <input class="custom-control-input" type="checkbox" id="optionalCheck" [(ngModel)]="holidayObj.optionalHoliday">
+                            <label class="custom-control-label" for="optionalCheck"><span class="text-danger">*</span>Optional Holiday</label>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-4 mb-0">
@@ -73,11 +81,13 @@
         <tbody>
             <tr *ngFor="let holiday of holidayList; let i = index">
                 <td>{{i+1}}</td>
-                <td>{{holiday.occasion}}</td>
+                <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                 <td>{{holiday.dayOfTheWeek}}</td>
                 <td>{{holiday.dateOfHoliday}}</td>
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>
+                </td>
             </tr>
         </tbody>
       </table>   

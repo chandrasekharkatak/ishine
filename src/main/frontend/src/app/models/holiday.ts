@@ -3,4 +3,5 @@ export class Holiday{
 	occasion : any;	
 	dateOfHoliday : any;
 	dayOfTheWeek : any;
+	optionalHoliday:any;
 }
