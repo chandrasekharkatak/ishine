@@ -61,3 +61,8 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+.holiday-date{
+    background: #228B22;
+    border-radius: 100%;
+}

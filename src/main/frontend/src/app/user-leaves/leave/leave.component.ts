@@ -1,11 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { Leave } from 'src/app/models/leave';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
@@ -42,12 +44,18 @@ export class LeaveComponent implements OnInit {
   leaveLogList:any[] = [];
   leaveBalanceList:any[] = [];
 
+  holidayList:any;
+  // holidayDates:any[] = [];
+
+  holidayDates:any[] = [];
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
-    private leaveService : LeaveService) {
+    private leaveService : LeaveService,
+    private holidayService : HolidayService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -67,6 +75,18 @@ export class LeaveComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllLeaveTypes();
+  //   this.holidayDates = [
+  //     new Date("12/1/2022"),
+  //     new Date("12/20/2022"),
+  //     new Date("12/17/2022"),
+  //     new Date("12/25/2022"),
+  //     new Date("6/6/2022"),
+  //     new Date("7/12/2022"),
+  //     new Date("7/7/2022"),
+  //     new Date("12/11/2022"),
+  //     new Date("12/26/2022"),
+  //     new Date("12/25/2022")
+  // ];
   }
 
   sectionViewInit(){
@@ -84,6 +104,7 @@ export class LeaveComponent implements OnInit {
     this.isLeaveLogTable = false;
 
     this.reset();
+    this.getAllHolidays();
   }
 
   showLeaveHistoryTable() {
@@ -353,6 +374,39 @@ export class LeaveComponent implements OnInit {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  getAllHolidays(){
+    this.holidayList = [];
+    this.holidayDates = [];
+
+    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.holidayList = response.serviceResponse;
+        this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
+        console.log("holidayDates : ", this.holidayDates); 
+        console.log("holidayList : ", this.holidayList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  holidayFilter = (d: Date)=>{
+    const time=d?.getTime();
+     
+    return !this.holidayDates.find(x=>x.getTime()==time);
+  }
+
+  dateClass: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
+    // Only highligh dates inside the month view.
+    if (view === 'month') {
+      const date = cellDate.getDate();
+      
+      // Highlight the holidays.
+      return (this.holidayDates.find(x=>x.getDate()==date)) ? 'holiday-date' : '';
+    }
+    return '';
   }
 
 }

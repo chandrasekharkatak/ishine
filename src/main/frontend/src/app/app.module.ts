@@ -30,6 +30,10 @@ import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
 import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @NgModule({
   declarations: [
@@ -65,6 +69,10 @@ import { LeaveConfigComponent } from './configuration/leave-config/leave-config.
     ModalModule.forRoot(),
     BrowserAnimationsModule,
     MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   providers: [
     BsModalService,
