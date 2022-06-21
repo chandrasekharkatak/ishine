@@ -30,10 +30,15 @@ import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
 import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
+<<<<<<< HEAD
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+=======
+import { LoaderComponent } from './loader/loader.component';
+import { LoaderInterceptor } from './helpers/loader.interceptor';
+>>>>>>> 136c5a2deb51fb55691cdf7c9fe2aef73802a7dd
 
 @NgModule({
   declarations: [
@@ -58,6 +63,7 @@ import { MatInputModule } from '@angular/material/input';
     HolidaysComponent,
     CompOffComponent,
     LeaveConfigComponent,
+    LoaderComponent,
   ],
   imports: [
     BrowserModule,
@@ -78,6 +84,7 @@ import { MatInputModule } from '@angular/material/input';
     BsModalService,
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },
+    { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
   ],
   bootstrap: [AppComponent]
 })
