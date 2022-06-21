@@ -1,0 +1,45 @@
+.page-overlay-wrapper {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    z-index: 1009;
+    background: rgba(221, 221, 221, 0.5);
+}
+  
+    
+
+    .animated { 
+        background-image: url(../../assets/Images/ruambot_logo_sm.jpeg); 
+        background-repeat: no-repeat;
+        background-position: center; 
+        padding-top:95px;
+        margin-bottom:60px;
+        -webkit-animation-duration: 1s;
+        animation-duration: 1s; 
+        -webkit-animation-fill-mode: both; 
+        animation-fill-mode: both;
+        animation: bounce 0.4s cubic-bezier(0.1, 0.25, 0.1, 1) 0s infinite
+        alternate both; 
+     }
+     
+     @-webkit-keyframes bounce { 
+        0% {top: 40%;} 
+        /* 40% {-webkit-transform: translateY(-30px);} 
+        60% {-webkit-transform: translateY(-15px);}  */
+        100% {
+            top: 30%;
+          }
+     } 
+     
+     @keyframes bounce { 
+        
+         0% {transform: translateY(0);} 
+         
+        100% {transform: translateY(-50px);}
+     }
+     
+     .bounce { 
+        -webkit-animation-name: bounce; 
+        animation-name: bounce; 
+     }

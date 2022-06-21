@@ -30,6 +30,8 @@ import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
 import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
+import { LoaderComponent } from './loader/loader.component';
+import { LoaderInterceptor } from './helpers/loader.interceptor';
 
 @NgModule({
   declarations: [
@@ -54,6 +56,7 @@ import { LeaveConfigComponent } from './configuration/leave-config/leave-config.
     HolidaysComponent,
     CompOffComponent,
     LeaveConfigComponent,
+    LoaderComponent,
   ],
   imports: [
     BrowserModule,
@@ -70,6 +73,7 @@ import { LeaveConfigComponent } from './configuration/leave-config/leave-config.
     BsModalService,
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },
+    { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
   ],
   bootstrap: [AppComponent]
 })
