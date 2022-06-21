@@ -216,7 +216,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leaveRules">Balance</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalance.balance">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalance.balance" (change)="leaveBalanceInputValidation(leaveBalance.balance, alert_message)">
                           </div>
                     </div>
                 </div>

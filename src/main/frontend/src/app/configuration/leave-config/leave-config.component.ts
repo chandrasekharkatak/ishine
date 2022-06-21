@@ -362,6 +362,12 @@ export class LeaveConfigComponent implements OnInit {
   onGetEmpLeaveBalance(template: TemplateRef<any>){
     this.leaveBalanceList = [];
 
+    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.empId)){
+      this.alertMessage = "Please enter Employee ID !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     console.log("Employee :", this.leaveBalanceObj);
     this.leaveService.getMyLeaveBalancesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -374,7 +380,28 @@ export class LeaveConfigComponent implements OnInit {
 
   }
 
+  leaveBalanceInputValidation(balance:any, template: TemplateRef<any>){
+    if(!this.validationService.validateNullUndefinedEmptyString(balance)){
+      this.alertMessage = "Please enter Valid Balance !!"
+      this.openAlertMod(template, this.alertMessage);
+    }
+  }
+
   onUpdateLeaveBalance(template: TemplateRef<any>){
+    let inputValidated = true;
+    this.leaveBalanceList.forEach(leave => {
+      if(!this.validationService.validateNullUndefinedEmptyString(leave.balance)){
+        this.alertMessage = "Please enter Valid Balance !!"
+        inputValidated = false;
+        return;
+      }
+    });
+    
+    if(!inputValidated) {
+      this.openAlertMod(template, this.alertMessage)
+      return false;
+    };
+    
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
     console.log("manage Leave Balance :", this.leaveBalanceObj);
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
