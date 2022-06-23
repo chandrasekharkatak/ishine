@@ -229,6 +229,10 @@ export class RoleConfigComponent implements OnInit {
   }
 
    /* Features-Subfeature Mapping */
+   openUpdateConfimationModal(template: TemplateRef<any>, ){
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+   }
+
    onUpdateFeatureMapping(template: TemplateRef<any>){
     let activeSubfeatures = this.subFeatureList.filter(sub => {
       if(sub.roleFeatureMapId === null && sub.isActive == false){
