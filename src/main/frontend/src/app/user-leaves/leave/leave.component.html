@@ -52,7 +52,7 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" > -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="holidayFilter" placeholder="Choose a from date">
+                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="holidayFilter" placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="setMinToDate(alert_message);setNoOfDays(alert_message)">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="dateClass" #fromDatePicker ></mat-datepicker>
@@ -78,7 +78,7 @@
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.toDate" (change)="setNoOfDays(alert_message)"> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="holidayFilter" placeholder="Choose a to date">
+                                <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="holidayFilter" placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)">
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="dateClass" #toDatePicker ></mat-datepicker>

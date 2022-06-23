@@ -401,10 +401,10 @@ export class LeaveComponent implements OnInit {
   dateClass: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
     // Only highligh dates inside the month view.
     if (view === 'month') {
-      const date = cellDate.getDate();
+      const time = cellDate.getTime()
       
       // Highlight the holidays.
-      return (this.holidayDates.find(x=>x.getDate()==date)) ? 'holiday-date' : '';
+      return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
     }
     return '';
   }
