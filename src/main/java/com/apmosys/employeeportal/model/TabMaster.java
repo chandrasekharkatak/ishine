@@ -5,7 +5,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class TabMaster {
 	
 	@Id
@@ -17,6 +22,8 @@ public class TabMaster {
 	private String tabRouteName;
 	
 	private String tabIcon;
+	
+	private Integer tabSequence;
 
 	public Long getTabId() {
 		return tabId;
@@ -50,11 +57,7 @@ public class TabMaster {
 		this.tabIcon = tabIcon;
 	}
 
-	@Override
-	public String toString() {
-		return "TabMaster [tabId=" + tabId + ", tabName=" + tabName + ", tabRouteName=" + tabRouteName + ", tabIcon="
-				+ tabIcon + "]";
-	}
+	
 
 	
 	

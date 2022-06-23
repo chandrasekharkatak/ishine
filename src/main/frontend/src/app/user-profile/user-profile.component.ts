@@ -247,7 +247,7 @@ export class UserProfileComponent implements OnInit {
     
     this.UpdateEmployeeInfo.updatedBy = 1;
     console.log("Update Profile : ", this.UpdateEmployeeInfo);
-    this.employeeService.updateEmployee(this.UpdateEmployeeInfo).pipe(first()).subscribe((response: any) => {
+    this.employeeService.updateEmployeeProfile(this.UpdateEmployeeInfo).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewProfile();

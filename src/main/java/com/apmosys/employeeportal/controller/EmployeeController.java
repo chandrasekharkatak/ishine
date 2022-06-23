@@ -73,4 +73,10 @@ public class EmployeeController {
 		return serviceResponse;
 	}
 
+	@RequestMapping(value="/updateEmployeeProfileByEmpId" , method = RequestMethod.POST)
+	public ServiceResponse updateEmployeeProfileByEmpId(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response =employeeService.updateEmployeeProfileByEmpId(employeedto);
+		return response;		
+	}
 }

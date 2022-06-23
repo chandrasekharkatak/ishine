@@ -48,7 +48,7 @@ public class EmployeeService {
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
-	
+
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
 
@@ -156,9 +156,8 @@ public class EmployeeService {
 		ServiceResponse response = new ServiceResponse();
 		EmployeeDTO empDTO = new EmployeeDTO();
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		
-		System.out.println(111);
 
+		
 		try {
 			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
 
@@ -214,9 +213,16 @@ public class EmployeeService {
 					empDTO.setDepartmentName(object[45] != null ? object[45].toString() : null);
 
 					if (object[42] != null) {
-						byte[] imageBytes = Files
-								.readAllBytes(Paths.get(imageFileLocation + File.separator + object[42].toString()));
-						empDTO.setImageBytes(imageBytes);
+
+						File actualFile = new File(
+								Paths.get(imageFileLocation + File.separator + "laptp.jpg").toString());
+
+						if (actualFile.exists()) {
+							byte[] imageBytes = Files.readAllBytes(
+									Paths.get(imageFileLocation + File.separator + object[42].toString()));
+							empDTO.setImageBytes(imageBytes);
+						}
+
 					}
 				}
 
@@ -316,7 +322,6 @@ public class EmployeeService {
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setJobRoleId(employeedto.getJobRoleId());
-				
 
 				Employee dbResponse = employeeRepository.save(employee);
 
@@ -524,6 +529,83 @@ public class EmployeeService {
 			e.printStackTrace();
 		}
 
+		return response;
+	}
+	
+	public ServiceResponse updateEmployeeProfileByEmpId(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			if (employeeObject.isPresent()) {
+				Employee employee = employeeObject.get();
+
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setName(employeedto.getName());
+				employee.setDateOfBirth(employeedto.getDateOfBirth() != null
+						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth())
+						: null);
+				employee.setDateOfJoining(employeedto.getDateOfJoining() != null
+						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining())
+						: null);
+				employee.setEmail(employeedto.getEmail());
+				employee.setGender(employeedto.getGender());
+				employee.setBloodGroup(employeedto.getBloodGroup());
+				employee.setMaritalStatus(employeedto.getMaritalStatus());
+				employee.setFatherName(employeedto.getFatherName());
+				employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
+				employee.setMotherTongue(employeedto.getMotherTongue());
+				employee.setPassportNumber(employeedto.getPassportNumber());
+				employee.setAadhar(employeedto.getAadhar());
+				employee.setPanNumber(employeedto.getPanNumber());
+				employee.setMobileNo(employeedto.getMobileNo());
+				employee.setLandline(employeedto.getLandline());
+				employee.setAddress(employeedto.getAddress());
+				employee.setCity(employeedto.getCity());
+				employee.setState(employeedto.getState());
+				employee.setCountry(employeedto.getCountry());
+				employee.setPincode(employeedto.getPincode());
+				employee.setOfficialMobileNo(employeedto.getOfficialMobileNo());
+				employee.setPermanentAddress(employeedto.getPermanentAddress());
+				employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
+				employee.setRelation(employeedto.getRelation());
+				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+				employee.setNoticePeriod(employeedto.getNoticePeriod());
+				employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+				employee.setBankName(employeedto.getBankName());
+				employee.setBankAccountNo(employeedto.getBankAccountNo());
+				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
+				employee.setPfAccountNumber(employeedto.getPfAccountNumber());
+				employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
+				employee.setUan(employeedto.getUan());
+				employee.setEsicNumber(employeedto.getEsicNumber());
+				employee.setGraduation(employeedto.getGraduation());
+				employee.setYearOfGrad(employeedto.getYearOfGrad());
+				employee.setPostGraduation(employeedto.getPostGraduation());
+				employee.setYearOfPostGrad(employeedto.getYearOfPostGrad());
+				employee.setHobbies(employeedto.getHobbies());
+				employee.setAboutMe(employeedto.getAboutMe());
+				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
+
+				Employee dbResponse = employeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Profile Updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Profile Updation Failed.");
+				}
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not Found");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 

@@ -72,13 +72,7 @@ public class AuthenticationService {
 		{
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
 			
-			System.out.println(employeedto);
-			System.out.println(employee);
-			
-			System.out.println(employeedto.getOtp());
-			System.out.println(employee.getOtp());
-			System.out.println(employeedto.getOtp().toString().equals(employee.getOtp().toString()));
-			
+					
 			if(employeedto.getOtp().toString().equals(employee.getOtp().toString()))
 			{
 				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());	

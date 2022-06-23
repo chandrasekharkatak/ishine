@@ -31,6 +31,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getEmployeeByEmpId`, employeeObj);
   }
 
+  updateEmployeeProfile(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateEmployeeProfileByEmpId`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);
