@@ -1,6 +1,5 @@
 .acc-header{
     border-bottom: 1px solid rgb(202, 202, 202);
-    background: var(--cultured);
     min-height: 30px;
     cursor: pointer;
     display: flex;

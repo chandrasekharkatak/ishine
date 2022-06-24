@@ -1,4 +1,7 @@
-<div class="acc-header" (click)="toggle()">
+<div class="acc-header" (click)="toggle()"  
+    [style.backgroundColor]="titleBg"
+    [style.color]="titleColor"
+>
     <div class="headerTitle">
         {{title}}
     </div>

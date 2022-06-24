@@ -32,7 +32,9 @@ import { Component, Input, OnInit } from '@angular/core';
 export class AccordionItemComponent implements OnInit {
 
   @Input()title: string = '';
-  showBody = false;
+  @Input()titleBg: string = 'var(--cultured)';
+  @Input()titleColor: string = '#000';
+  @Input()showBody = false;
 
   constructor() { }
 
