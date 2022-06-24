@@ -245,7 +245,7 @@ export class UserProfileComponent implements OnInit {
     let inputValidated:boolean  = this.validateEmployeeObj(this.UpdateEmployeeInfo, template)
     if(!inputValidated) return;
     
-    this.UpdateEmployeeInfo.updatedBy = 1;
+    this.UpdateEmployeeInfo.updatedBy =  this.currentUser.empId;;
     console.log("Update Profile : ", this.UpdateEmployeeInfo);
     this.employeeService.updateEmployeeProfile(this.UpdateEmployeeInfo).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
