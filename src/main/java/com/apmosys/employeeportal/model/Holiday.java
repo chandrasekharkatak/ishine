@@ -29,4 +29,6 @@ public class Holiday {
 	private String dayOfTheWeek;
 	
 	private String optionalHoliday;
+	
+	private String customHoliday;
 }

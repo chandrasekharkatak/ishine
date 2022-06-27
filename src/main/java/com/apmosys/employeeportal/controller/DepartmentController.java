@@ -45,5 +45,12 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.deleteDepartment(departmentDTO);
 		return response;
 	}
+	
+	@RequestMapping(value="/getAllHolidayListByDeptId", method = RequestMethod.POST)
+	public ServiceResponse getAllHolidayListByDeptId(@RequestBody DepartmentDTO departmentDTO)
+	{
+		ServiceResponse response = departmentService.getAllHolidayListByDeptId(departmentDTO);
+		return response;
+	}
 
 }
