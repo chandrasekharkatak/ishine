@@ -13,43 +13,31 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @RequestMapping(path = "/api")
 public class DepartmentController {
-	
-	
+
 	@Autowired
 	DepartmentService departmentService;
-	
-	@RequestMapping(value="/createDepartment", method = RequestMethod.POST)
-	public ServiceResponse createDepartment(@RequestBody DepartmentDTO departmentDTO)
-	{
+
+	@RequestMapping(value = "/createDepartment", method = RequestMethod.POST)
+	public ServiceResponse createDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.createDepartment(departmentDTO);
 		return response;
 	}
-	
-	@RequestMapping(value="/getAllDepartments", method = RequestMethod.GET)
-	public ServiceResponse getAllDepartments()
-	{
+
+	@RequestMapping(value = "/getAllDepartments", method = RequestMethod.GET)
+	public ServiceResponse getAllDepartments() {
 		ServiceResponse response = departmentService.getAllDepartments();
 		return response;
 	}
-	
-	@RequestMapping(value="/updateDepartment", method = RequestMethod.POST)
-	public ServiceResponse updateDepartment(@RequestBody DepartmentDTO departmentDTO)
-	{
+
+	@RequestMapping(value = "/updateDepartment", method = RequestMethod.POST)
+	public ServiceResponse updateDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.updateDepartment(departmentDTO);
 		return response;
 	}
-	
-	@RequestMapping(value="/deleteDepartment", method = RequestMethod.POST)
-	public ServiceResponse deleteDepartment(@RequestBody DepartmentDTO departmentDTO)
-	{
+
+	@RequestMapping(value = "/deleteDepartment", method = RequestMethod.POST)
+	public ServiceResponse deleteDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.deleteDepartment(departmentDTO);
-		return response;
-	}
-	
-	@RequestMapping(value="/getAllHolidayListByDeptId", method = RequestMethod.POST)
-	public ServiceResponse getAllHolidayListByDeptId(@RequestBody DepartmentDTO departmentDTO)
-	{
-		ServiceResponse response = departmentService.getAllHolidayListByDeptId(departmentDTO);
 		return response;
 	}
 
