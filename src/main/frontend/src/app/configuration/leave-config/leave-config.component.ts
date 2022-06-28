@@ -149,6 +149,7 @@ export class LeaveConfigComponent implements OnInit {
 
     this.holidayObj = Object.assign({}, holiday);
     this.holidayObj.optionalHoliday = (JSON.parse(holiday.optionalHoliday) != null) ? JSON.parse(holiday.optionalHoliday) : false;
+    this.holidayObj.customHoliday = (JSON.parse(holiday.customHoliday) != null) ? JSON.parse(holiday.customHoliday) : false;
   }
 
   showLeaveBalanceForm(){
@@ -167,6 +168,7 @@ export class LeaveConfigComponent implements OnInit {
   reset() {
     this.holidayObj= new Holiday();
     this.holidayObj.optionalHoliday = false;
+    this.holidayObj.customHoliday = false;
     this.holidayList = [];
 
     this.leaveTypeObj = new Leave();
@@ -187,7 +189,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   // Holiday
-  validateHolidaytObj(holidayObj:Holiday, template: TemplateRef<any>){
+  validateHolidayObj(holidayObj:Holiday, template: TemplateRef<any>){
 
     if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.occasion)){
       this.alertMessage = "Please enter occasion Name !!"
@@ -247,7 +249,7 @@ export class LeaveConfigComponent implements OnInit {
 
   onAddHoliday(template: TemplateRef<any>) {
 
-    let inputValidated:boolean  = this.validateHolidaytObj(this.holidayObj, template)
+    let inputValidated:boolean  = this.validateHolidayObj(this.holidayObj, template)
     if(!inputValidated) return;
 
     this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
@@ -264,7 +266,7 @@ export class LeaveConfigComponent implements OnInit {
 
   onUpdateHoliday(template: TemplateRef<any>) {
 
-    let inputValidated:boolean  = this.validateHolidaytObj(this.holidayObj, template)
+    let inputValidated:boolean  = this.validateHolidayObj(this.holidayObj, template)
     if(!inputValidated) return;
 
     this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
@@ -287,7 +289,7 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
-        console.log("leaveTypes : ", this.holidayList);
+        console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
       }

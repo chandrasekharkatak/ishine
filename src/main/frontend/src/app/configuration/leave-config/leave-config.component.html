@@ -25,11 +25,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0">
+                <div class="col-md-2 mb-0">
                     <div class="info-wrapper">
                         <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
                             <input class="custom-control-input" type="checkbox" id="optionalCheck" [(ngModel)]="holidayObj.optionalHoliday">
-                            <label class="custom-control-label" for="optionalCheck"><span class="text-danger">*</span>Optional Holiday</label>
+                            <label class="custom-control-label" for="optionalCheck">Optional Holiday</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
+                            <input class="custom-control-input" type="checkbox" id="customCheck" [(ngModel)]="holidayObj.customHoliday">
+                            <label class="custom-control-label" for="customCheck">Custom Holiday</label>
                         </div>
                     </div>
                 </div>

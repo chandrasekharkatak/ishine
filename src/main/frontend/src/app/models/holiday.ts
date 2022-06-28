@@ -4,4 +4,9 @@ export class Holiday{
 	dateOfHoliday : any;
 	dayOfTheWeek : any;
 	optionalHoliday:any;
+	customHoliday:any;
+
+	deptId:any;
+	departmentHolidayMapId:any;
+	isActive:any;
 }
