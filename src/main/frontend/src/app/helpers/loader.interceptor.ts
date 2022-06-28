@@ -20,10 +20,63 @@ export class LoaderInterceptor implements HttpInterceptor {
 
   URL_whiteList = [
 
-    `${this.baseUrl}` + `employeeportal/api/getAllEmployees`
-    
+    `${this.baseUrl}` + `employeeportal/api/authenticateUser`,
+    `${this.baseUrl}` + `employeeportal/api/authenticateUserWithOTP`,
 
+    `${this.baseUrl}` + `employeeportal/api/createDepartment`,
+    `${this.baseUrl}` + `employeeportal/api/updateDepartment`,
+    `${this.baseUrl}` + `employeeportal/api/deleteDepartment`,
+    `${this.baseUrl}` + `employeeportal/api/getAllDepartments`,
 
+    `${this.baseUrl}` + `employeeportal/api/createEmployee`,
+    `${this.baseUrl}` + `employeeportal/api/updateEmployeeByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/deleteEmployeeByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/getAllEmployees`,
+    `${this.baseUrl}` + `employeeportal/api/getEmployeeByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/updateEmployeeProfileByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/previewImage`,
+    `${this.baseUrl}` + `employeeportal/api/uploadImage`,
+    `${this.baseUrl}` + `employeeportal/api/createDraftEmployee`,
+    `${this.baseUrl}` + `employeeportal/api/updateDraftEmployeeById`,
+    `${this.baseUrl}` + `employeeportal/api/deleteDraftEmployeeById`,
+    `${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`,
+
+    `${this.baseUrl}` + `employeeportal/api/addHoliday`,
+    `${this.baseUrl}` + `employeeportal/api/updateHoliday`,
+    `${this.baseUrl}` + `employeeportal/api/getAllHolidays`,
+    `${this.baseUrl}` + `employeeportal/api/getHolidayListByDeptId`,
+
+    `${this.baseUrl}` + `employeeportal/api/createJobRole`,
+    `${this.baseUrl}` + `employeeportal/api/updateJobRole`,
+    `${this.baseUrl}` + `employeeportal/api/deleteJobRole`,
+    `${this.baseUrl}` + `employeeportal/api/getAllJobRole`,
+
+    `${this.baseUrl}` + `employeeportal/api/applyLeave`,
+    `${this.baseUrl}` + `employeeportal/api/updateLeaveStatus`,
+    `${this.baseUrl}` + `employeeportal/api/getAllMyLeaveApplicationsByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/getAllMyTeamsPendingLeaveApplicationsByManagerId`,
+    `${this.baseUrl}` + `employeeportal/api/getLeaveLogsByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/getMyLeaveBalancesByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/updateLeavesByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/createLeaveType`,
+    `${this.baseUrl}` + `employeeportal/api/updateLeaveType`,
+    `${this.baseUrl}` + `employeeportal/api/getAllLeaveTypes`,
+
+    `${this.baseUrl}` + `employeeportal/api/getAllCompOffReasons`,
+    `${this.baseUrl}` + `employeeportal/api/applyForCompOff`,
+    `${this.baseUrl}` + `employeeportal/api/updateCompOffById`,
+    `${this.baseUrl}` + `employeeportal/api/getAllCompOffRequestsByEmpId`,
+    `${this.baseUrl}` + `employeeportal/api/getPendingCompOffRequestsByManagerId`,
+
+    `${this.baseUrl}` + `employeeportal/api/getSubfeaturesByJobRoleId`,
+    `${this.baseUrl}` + `employeeportal/api/getAllSubFeatures`,
+    `${this.baseUrl}` + `employeeportal/api/updateRoleFeatureMapping`,
+
+    `${this.baseUrl}` + `employeeportal/api/createUserType`,
+    `${this.baseUrl}` + `employeeportal/api/getAllUserTypes`,
+    `${this.baseUrl}` + `employeeportal/api/updateCrudMappingsByMapId`,
+    `${this.baseUrl}` + `employeeportal/api/getUserTypeCrudMappingsByUserTypeId`,
+    `${this.baseUrl}` + `employeeportal/api/getAllUserTypeCrudMappings`,
   ]
 
   constructor(private loaderService: LoaderService) { }

@@ -435,7 +435,8 @@
 <!-- start :: See all Table -->
 <div class="row" *ngIf="isTable || isDraftTable">
     <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Employees</h1>
+        <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
+        <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
     </div>
     <table class="table employee-table">
         <thead class="thead-light">
