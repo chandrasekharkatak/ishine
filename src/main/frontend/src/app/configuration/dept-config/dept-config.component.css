@@ -11,3 +11,99 @@
     margin-bottom: 0;
     color: var(--raisin-black);
 }
+
+/* custom checkbox css */
+@keyframes check {
+    0% {
+        height: 0;
+        width: 0;
+    }
+
+    25% {
+        height: 0;
+        width: 10px;
+    }
+
+    50% {
+        height: 20px;
+        width: 10px;
+    }
+}
+
+.holiday-checkbox span {
+    display: block;
+    height: 28px;
+    position: relative;
+    width: 28px;
+    padding: 0
+}
+
+.holiday-checkbox {
+    background-color: #fff;
+    display: inline-block;
+    height: 28px;
+    margin: 0 .25em;
+    width: 28px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    float: right
+}
+
+.holiday-checkbox span:after {
+    -moz-transform: scaleX(-1) rotate(135deg);
+    -ms-transform: scaleX(-1) rotate(135deg);
+    -webkit-transform: scaleX(-1) rotate(135deg);
+    transform: scaleX(-1) rotate(135deg);
+    -moz-transform-origin: left top;
+    -ms-transform-origin: left top;
+    -webkit-transform-origin: left top;
+    transform-origin: left top;
+    border-right: 4px solid #fff;
+    border-top: 4px solid #fff;
+    content: '';
+    display: block;
+    height: 20px;
+    left: 3px;
+    position: absolute;
+    top: 15px;
+    width: 10px
+}
+
+.holiday-checkbox span:hover:after {
+    border-color: #999
+}
+
+.holiday-checkbox input {
+    display: none
+}
+
+.holiday-checkbox input:checked+span:after {
+    -webkit-animation: check .8s;
+    -moz-animation: check .8s;
+    -o-animation: check .8s;
+    animation: check .8s;
+    border-color: #555
+}
+
+.holiday-checkbox input:checked+.primary:after {
+    border-color: var(--dark-cornflower-blue);
+}
+
+
+/* overritting checkBox */
+.custom-control-lg .custom-control-label::before,
+.custom-control-lg .custom-control-label::after {
+    top: 0.1rem !important;
+    left: -2rem !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+}
+
+.custom-control-lg .custom-control-label {
+    margin-left: 0.5rem !important;
+    font-size: 1rem !important;
+}
+
+.text-highlight{
+    color: var(--dark-cornflower-blue);
+}
