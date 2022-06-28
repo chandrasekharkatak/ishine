@@ -17,4 +17,6 @@ public class HolidayDTO {
 	private String customHoliday;
 	private Long departmentHolidayMapId;	
 	private Long deptId;
+	private String isActive;
+	
 }

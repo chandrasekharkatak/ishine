@@ -174,4 +174,38 @@ public class DepartmentService {
 		return response;
 	}
 
+	@Transactional
+	public ServiceResponse updateDepartmentHolidayMappings(DepartmentDTO departmentDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<HolidayDTO> holidayList = departmentDTO.getHolidays();
+			List<DepartmentHolidayMap> mapList = new ArrayList<DepartmentHolidayMap>();
+
+			holidayList.stream().filter((holiday) -> holiday.getDepartmentHolidayMapId() == null)
+					.forEach((newHoliday) -> {
+
+						DepartmentHolidayMap newMapping = new DepartmentHolidayMap();
+						newMapping.setDeptId(departmentDTO.getDeptId());
+						newMapping.setHolidayId(newHoliday.getHolidayId());
+						departmentHolidayMapRepository.save(newMapping);
+					});
+
+			holidayList.stream().filter((holiday) -> holiday.getIsActive().equals("false"))
+					.forEach((existingHoliday) -> {
+
+						departmentHolidayMapRepository.deleteById(existingHoliday.getDepartmentHolidayMapId());
+					});
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Department mappings updated.");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }

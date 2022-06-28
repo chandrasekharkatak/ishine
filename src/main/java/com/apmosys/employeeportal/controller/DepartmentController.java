@@ -40,5 +40,11 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.deleteDepartment(departmentDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/updateDepartmentHolidayMappings", method = RequestMethod.POST)
+	public ServiceResponse updateDepartmentHolidayMappings(@RequestBody DepartmentDTO departmentDTO) {
+		ServiceResponse response = departmentService.updateDepartmentHolidayMappings(departmentDTO);
+		return response;
+	}
 
 }
