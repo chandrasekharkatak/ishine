@@ -47,7 +47,7 @@ public class HolidayService {
 
 			if (newHolidayCreated != null) {
 				
-				message = "New default holiday added.";	
+				message = "New default holiday added.";
 				
 				List<DepartmentHolidayMap> departmentHolidayMapList = new ArrayList<DepartmentHolidayMap>();
 				
