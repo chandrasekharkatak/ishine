@@ -42,5 +42,7 @@ public class LeaveDTO {
 	private String updateBalanceBy;
 	private String message;
 	private Long compOffLeaveId;
+	private String leavePolicyName;
+	private String employmentStatus;
 
 }
