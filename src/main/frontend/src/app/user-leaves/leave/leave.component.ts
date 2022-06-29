@@ -4,6 +4,7 @@ import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
+import { Holiday } from 'src/app/models/holiday';
 import { Leave } from 'src/app/models/leave';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -380,7 +381,10 @@ export class LeaveComponent implements OnInit {
     this.holidayList = [];
     this.holidayDates = [];
 
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    let holidayObj:Holiday = new Holiday();
+    holidayObj.deptId = this.currentUser.departmentId;
+
+    this.holidayService.getHolidayListByDeptId(holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));

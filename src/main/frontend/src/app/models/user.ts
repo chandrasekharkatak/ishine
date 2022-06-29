@@ -9,4 +9,5 @@ export class User{
     userMapping:any;
     tabList:any;
     managerId:any;
+    departmentId:any;
 }

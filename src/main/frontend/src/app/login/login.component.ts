@@ -176,6 +176,7 @@ export class LoginComponent implements OnInit {
       this.user.empId = user.empId;
       this.user.name = user.name;
       this.user.managerId = user.managerId;
+      this.user.departmentId = user.departmentId;
       this.user.userMapping = this.getActiveSubFeatures();
       this.user.tabList = this.getTabList();
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
