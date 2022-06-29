@@ -211,6 +211,9 @@ public class EmployeeService {
 					empDTO.setManagerName(object[43] != null ? object[43].toString() : null);
 					empDTO.setJobRoleName(object[44] != null ? object[44].toString() : null);
 					empDTO.setDepartmentName(object[45] != null ? object[45].toString() : null);
+					empDTO.setDepartmentId(object[46] != null ? Long.parseLong(object[46].toString()) : null);
+					empDTO.setJobRoleId(object[47] != null ? Long.parseLong(object[47].toString()) : null);
+					empDTO.setManagerId(object[48] != null ? Integer.parseInt(object[48].toString()) : null);
 
 					if (object[42] != null) {
 

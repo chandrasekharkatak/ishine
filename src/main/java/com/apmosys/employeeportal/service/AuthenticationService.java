@@ -27,6 +27,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	TabMasterService tabMasterService;
+	
+	@Autowired
+	EmployeeService employeeService;
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -46,10 +49,16 @@ public class AuthenticationService {
 				employee.setOtp(otp);
 				Employee currentEmployee = employeeRepository.save(employee);
 				
+				EmployeeDTO dto = new EmployeeDTO();
+				dto.setEmpId(employee.getEmpId());
+				
+				EmployeeDTO currentEmployeeDto = (EmployeeDTO) employeeService.getEmployeeByEmpId(dto).getServiceResponse();
+				
 				session = request.getSession();
 				session.invalidate();
 				session = request.getSession(true);
 				session.setAttribute("currentEmployee", currentEmployee);
+				session.setAttribute("currentEmployeeDto",currentEmployeeDto);
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Valid Credentials. OTP sent to email.");
@@ -71,6 +80,7 @@ public class AuthenticationService {
 		try
 		{
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
+			EmployeeDTO currentEmployeeDto = (EmployeeDTO) session.getAttribute("currentEmployeeDto");
 			
 					
 			if(employeedto.getOtp().toString().equals(employee.getOtp().toString()))
@@ -78,7 +88,7 @@ public class AuthenticationService {
 				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());	
 				
 				Object[] object = new Object[2];				
-				object[0] = employee;
+				object[0] = currentEmployeeDto;
 				object[1] = serviceResponse.getServiceResponse();
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
