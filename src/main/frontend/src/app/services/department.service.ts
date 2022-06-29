@@ -26,4 +26,8 @@ export class DepartmentService {
   getAllDepartments() {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDepartments`);
   }
+
+  updateDepartmentHolidayMappings(deptObj: Department) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateDepartmentHolidayMappings`, deptObj);
+  }
 }

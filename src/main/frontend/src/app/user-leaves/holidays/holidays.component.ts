@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
+import { Holiday } from 'src/app/models/holiday';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 
 @Component({
@@ -9,11 +12,18 @@ import { HolidayService } from 'src/app/services/holiday.service';
 })
 export class HolidaysComponent implements OnInit {
 
+  feature="Holiday";
+  currentUser:User;
+  userMapping:any = {};
+
   holidayList:any[] = [];
 
   constructor(
     private holidayService : HolidayService,
-  ) { }
+    private authenticationService : AuthenticationService,
+  ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+   }
 
   ngOnInit(): void {
     this.getAllHolidays()
@@ -21,8 +31,10 @@ export class HolidaysComponent implements OnInit {
 
   getAllHolidays(){
     this.holidayList = [];
+    let holidayObj:Holiday = new Holiday();
+    holidayObj.deptId = this.currentUser.departmentId;
 
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    this.holidayService.getHolidayListByDeptId(holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         console.log("holidayList : ", this.holidayList);

@@ -251,7 +251,7 @@ export class DeptConfigComponent implements OnInit {
 
   openUpdateConfimationModal(template: TemplateRef<any>, ){
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
- }
+  }
 
  onUpdateDeptHolidayMapping(template: TemplateRef<any>){
   let updatedHolidays = this.deptHolidayList.filter(holiday => {
@@ -269,14 +269,14 @@ export class DeptConfigComponent implements OnInit {
   console.log("Update dept holiday Mapping :",updateDeptObj);
   
 
-  // this.departmentService.updateDepartment(updateDeptObj).pipe(first()).subscribe((response: any) => {
-  //   if (response.serviceStatus == "Success") {
-  //     this.openAlertMod(template, response.serviceResponse);
-  //     this.showTable();
-  //   } else {
-  //     this.openAlertMod(template, response.serviceResponse);
-  //   }
-  // });
+  this.departmentService.updateDepartmentHolidayMappings(updateDeptObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.openAlertMod(template, response.serviceResponse);
+      this.showTable();
+    } else {
+      this.openAlertMod(template, response.serviceResponse);
+    }
+  });
 }
 
 

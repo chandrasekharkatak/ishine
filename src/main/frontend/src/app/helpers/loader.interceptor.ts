@@ -27,6 +27,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `employeeportal/api/updateDepartment`,
     `${this.baseUrl}` + `employeeportal/api/deleteDepartment`,
     `${this.baseUrl}` + `employeeportal/api/getAllDepartments`,
+    `${this.baseUrl}` + `employeeportal/api/updateDepartmentHolidayMappings`,
 
     `${this.baseUrl}` + `employeeportal/api/createEmployee`,
     `${this.baseUrl}` + `employeeportal/api/updateEmployeeByEmpId`,
