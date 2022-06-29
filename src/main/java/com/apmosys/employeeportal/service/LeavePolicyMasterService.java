@@ -22,8 +22,6 @@ public class LeavePolicyMasterService {
 			
 			LeavePolicyMaster newLeavePolicy = new LeavePolicyMaster();
 			
-			newLeavePolicy.setLeavePolicyName(leaveDTO.getLeavePolicyName());
-			newLeavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
 			
 
 			LeavePolicyMaster newLeavePolicyCreated = leavePolicyMasterRepository.save(null);
