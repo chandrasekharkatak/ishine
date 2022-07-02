@@ -3,8 +3,10 @@ import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { certification } from '../models/certification';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
+import { PreviousEmployer } from '../models/previousEmployer';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
@@ -30,9 +32,12 @@ export class UserProfileComponent implements OnInit {
   feature="Profile";
   userMapping:any = {};
 
-   //modal 
-   alertMessage:any;
-   modalRef: BsModalRef = new BsModalRef();
+  //modal 
+  alertMessage:any;
+  modalRef: BsModalRef = new BsModalRef();
+
+  allCertificationList:any[] = [];
+  allPreviousEmployment:any[] = [];
 
   constructor(
     private employeeService:EmployeeService,
@@ -69,6 +74,21 @@ export class UserProfileComponent implements OnInit {
     this.isUpdateProfile = true;
 
     this.UpdateEmployeeInfo = Object.assign(this.currentEmployeeInfo,{});
+    this.addInputCertificationField();
+    if(this.UpdateEmployeeInfo.certifications){
+      this.allCertificationList = this.UpdateEmployeeInfo.certifications;
+    }
+    // else{
+    //   this.addInputCertificationField();
+    // }
+
+    this.addInputPreviousEmployerField();
+    if(this.UpdateEmployeeInfo.previousEmploymentList){
+      this.allPreviousEmployment = this.UpdateEmployeeInfo.previousEmploymentList;
+    }
+    // else{
+    //   this.addInputPreviousEmployerField();
+    // }
   }
 
   showViewProfile(){
@@ -77,21 +97,38 @@ export class UserProfileComponent implements OnInit {
     this.onGetEmployeeInfo();
   }
 
+  // Manage employer
+  addInputPreviousEmployerField() {
+    let newPrevEmployerObj = new PreviousEmployer();
+    this.allPreviousEmployment.push(newPrevEmployerObj);
+  }
+
+  removeInputPreviousEmployerField(prevEmployerObj) {
+    this.allPreviousEmployment.forEach((value, index) => {
+      if (value == prevEmployerObj) this.allPreviousEmployment.splice(index, 1);
+    });
+  }
+
+  // Manage Certifications
+  addInputCertificationField() {
+    let newCertificationObj = new certification();
+    newCertificationObj.certificationId = "";
+    newCertificationObj.duration = "";
+    newCertificationObj.modeOfCourse = "";
+
+    this.allCertificationList.push(newCertificationObj);
+  }
+
+  removeInputCertificationField(certificationObj) {
+    this.allCertificationList.forEach((value, index) => {
+      if (value == certificationObj) this.allCertificationList.splice(index, 1);
+    });
+  }
+
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>){
 
-    // Non-Mandatory fields : views , about me , passportNumber, landline, emergencyContactPerson, relation, emergencyContactMobile, Educational & Banking info
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)){
-      this.alertMessage = "Please enter Full Name !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.email)){
-      this.alertMessage = "Please enter email id !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateEmail(employeeObj.email)){
-      this.alertMessage = "Please enter valid email id !!"
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.viewsOnOrganisation)){
+      this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -108,8 +145,40 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aboutMe)){
+      this.alertMessage = "Please enter About me !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup)){
       this.alertMessage = "Please enter blood group !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){
+      this.alertMessage = "Please enter father name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.fatherName)){
+      this.alertMessage = "Please enter Valid father Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth)){
+      this.alertMessage = "Please enter place of birth !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if(!this.validationService.validateAlphaWithSpace(employeeObj.placeOfBirth)){
+      this.alertMessage = "Please enter Valid Place of birth !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)){
+      this.alertMessage = "Please enter Valid Mother tongue number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -120,20 +189,8 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){
-      this.alertMessage = "Please enter father name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth)){
-      this.alertMessage = "Please enter place of birth !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue)){
-      this.alertMessage = "Please enter mother tongue !!"
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber) && !this.validationService.validatePassportNumber(employeeObj.passportNumber)){
+      this.alertMessage = "Please enter Valid Passport number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -146,6 +203,10 @@ export class UserProfileComponent implements OnInit {
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)){
       this.alertMessage = "Please enter PAN card number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validatePancardNumber(employeeObj.panNumber)){
+      this.alertMessage = "Please enter Valid PAN card number !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -170,10 +231,18 @@ export class UserProfileComponent implements OnInit {
       this.alertMessage = "Please enter state !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.state)){
+      this.alertMessage = "Please enter Valid state !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)){
       this.alertMessage = "Please enter city !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.city)){
+      this.alertMessage = "Please enter Valid city !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -182,20 +251,28 @@ export class UserProfileComponent implements OnInit {
       this.alertMessage = "Please enter country !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.country)){
+      this.alertMessage = "Please enter Valid country !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)){
       this.alertMessage = "Please enter pincode !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.officialMobileNo)){
-      this.alertMessage = "Please enter official mobile number !!"
+    }else if(!this.validationService.validatePincodeNumber(employeeObj.pincode)){
+      this.alertMessage = "Please enter Valid pincode !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateMobileNumber(employeeObj.officialMobileNo)){
-      this.alertMessage = "Please enter valid official mobile number !!"
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo)){
+      this.alertMessage = "Please enter alternate mobile number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)){
+      this.alertMessage = "Please enter valid alternate mobile number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } 
@@ -205,6 +282,171 @@ export class UserProfileComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactPerson)){
+      this.alertMessage = "Please enter Emergency Contact Person Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.emergencyContactPerson)){
+      this.alertMessage = "Please enter Valid Emergency Contact Person Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.relation)){
+      this.alertMessage = "Please enter Emergency Contact Person Relation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.relation)){
+      this.alertMessage = "Please enter Valid Emergency Contact Person Relation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactMobile)){
+      this.alertMessage = "Please enter Emergency Contact Person Mobile Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else  if(!this.validationService.validateMobileNumber(employeeObj.emergencyContactMobile)){
+      this.alertMessage = "Please enter Valid Emergency Contact Person Mobile Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.graduationType)){
+      this.alertMessage = "Please Select Graduation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.pursuing)){
+      this.alertMessage = "Please Select Pursuing !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
+      this.alertMessage = "Please Enter Year of Passing !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
+      this.alertMessage = "Please Enter Passing Grade !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)){
+      this.alertMessage = "Please Select Experience !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(employeeObj.experience == 'Exprienced'){
+      this.allPreviousEmployment.forEach((previousEmployer, index) =>{
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
+          this.alertMessage = `Please Enter Employer Name - ${index}!!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+    
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
+          this.alertMessage = `Please Enter Date of Joining - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+    
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfRelieving)){
+          this.alertMessage = `Please Enter Date of Relieving - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.yearsOfExperience)){
+          this.alertMessage = `Please Enter Years of Experience - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
+          this.alertMessage = `Please Enter Manager Name - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerContactNumber)){
+          this.alertMessage = `Please Enter Manager Contact Number - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
+          this.alertMessage = `Please Enter HR Name - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
+          this.alertMessage = `Please Enter HR Contact Number - ${index}!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      });
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName)){
+      this.alertMessage = "Please enter Bank Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }if(!this.validationService.validateAlphaWithSpace(employeeObj.bankName)){
+      this.alertMessage = "Please enter Valid Bank Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bankAccountNo)){
+      this.alertMessage = "Please enter Bank Account Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }if(!this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)){
+      this.alertMessage = "Please enter Valid Bank Account Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode)){
+      this.alertMessage = "Please enter Bank IFSC Code !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }if(!this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)){
+      this.alertMessage = "Please enter Valid Bank IFSC Code !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.pfAccountNumber)){
+      this.alertMessage = "Please enter Valid PF Account Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.previousPfAccountNumber)){
+      this.alertMessage = "Please enter Valid Previous PF Account Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.uan) && !this.validationService.validateAlphaNumeric(employeeObj.uan)){
+      this.alertMessage = "Please enter Valid UAN Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber) && !this.validationService.validateAlphaNumeric(employeeObj.esicNumber)){
+      this.alertMessage = "Please enter Valid ESIC Number !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     return true;
   }
 
@@ -238,13 +480,16 @@ export class UserProfileComponent implements OnInit {
   }
 
   onUpdateEmployeeInfo(template: TemplateRef<any>){
-    // transform date formats to dd-MM-yyyy
-    this.UpdateEmployeeInfo.dateOfBirth = this.datePipe.transform(this.UpdateEmployeeInfo.dateOfBirth, 'dd-MM-yyyy');
-    this.UpdateEmployeeInfo.dateOfJoining = this.datePipe.transform(this.UpdateEmployeeInfo.dateOfJoining, 'dd-MM-yyyy')
 
     let inputValidated:boolean  = this.validateEmployeeObj(this.UpdateEmployeeInfo, template)
     if(!inputValidated) return;
     
+    // transform date formats to dd-MM-yyyy
+    this.UpdateEmployeeInfo.dateOfBirth = this.datePipe.transform(this.UpdateEmployeeInfo.dateOfBirth, 'dd-MM-yyyy');
+    this.UpdateEmployeeInfo.dateOfJoining = this.datePipe.transform(this.UpdateEmployeeInfo.dateOfJoining, 'dd-MM-yyyy')
+
+    this.UpdateEmployeeInfo.certifications = this.allCertificationList;
+    this.UpdateEmployeeInfo.previousEmploymentList = this.allPreviousEmployment;
     this.UpdateEmployeeInfo.updatedBy =  this.currentUser.empId;;
     console.log("Update Profile : ", this.UpdateEmployeeInfo);
     this.employeeService.updateEmployeeProfile(this.UpdateEmployeeInfo).pipe(first()).subscribe((response: any) => {

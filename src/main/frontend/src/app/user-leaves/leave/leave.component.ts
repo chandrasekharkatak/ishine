@@ -46,9 +46,9 @@ export class LeaveComponent implements OnInit {
   leaveBalanceList:any[] = [];
 
   holidayList:any;
-  // holidayDates:any[] = [];
-
   holidayDates:any[] = [];
+
+  leavePolicyRules:any[] = [];
 
   constructor(
     private validationService:ValidationService,

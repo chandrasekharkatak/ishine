@@ -21,7 +21,7 @@ export class Employee{
 	state:any;
 	country:any;
 	pincode:any;
-	officialMobileNo:any;
+	alternateMobileNo:any;
 	permanentAddress:any;
 	emergencyContactPerson:any;
 	relation:any;
@@ -38,11 +38,12 @@ export class Employee{
 	uan:any;
 	esicNumber:any;
 
-	graduation:any;
-	yearOfGrad:any;
-	postGraduation:any;
-	yearOfPostGrad:any;
-	hobbies:any;
+	graduationType:any;
+	pursuing:any;
+	yearOfPassing:any;
+	passingGrade:any;
+
+	certifications:any;
 
 	aboutMe:any;
 	viewsOnOrganisation:any;
@@ -51,6 +52,9 @@ export class Employee{
 	departmentId:any;
 	departmentName:any;
 	managerName:any;
+	experience:any;
+
+	previousEmploymentList:any;
 	
 	createdOn: any;	
 	createdBy: any;	

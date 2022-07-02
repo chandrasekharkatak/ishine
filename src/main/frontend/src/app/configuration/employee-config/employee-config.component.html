@@ -62,7 +62,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Blood Group</label>
+                                            <label class="info-label">Blood Group</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup">
                                         </div>
                                     </div>
@@ -70,7 +70,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Marital Status</label>
+                                            <label class="info-label">Marital Status</label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.maritalStatus">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option value="single">Single</option>
@@ -98,7 +98,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Place of Birth</label>
+                                            <label class="info-label">Place of Birth</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.placeOfBirth">
                                         </div>
                                     </div>
@@ -106,7 +106,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Mother Tongue</label>
+                                            <label class="info-label">Mother Tongue</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.motherTongue">
                                         </div>
                                     </div>
@@ -123,7 +123,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Aadhar Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar">
+                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar">
                                         </div>
                                     </div>
                                 </div>
@@ -146,7 +146,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Mobile Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.mobileNo">
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.mobileNo">
                                         </div>
                                     </div>
                                 </div>
@@ -154,7 +154,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Landline Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.landline">
+                                            <input type="number"  maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.landline">
                                         </div>
                                     </div>
                                 </div>
@@ -162,7 +162,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Address</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.address">
+                                            <input type="text" maxlength="1000" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.address">
                                         </div>
                                     </div>
                                 </div>
@@ -199,8 +199,8 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Official Mobile Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.officialMobileNo">
+                                            <label class="info-label">Alternate Mobile Number</label>
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo">
                                         </div>
                                     </div>
                                 </div>
@@ -208,7 +208,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Permanent Address</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.permanentAddress">
+                                            <input type="text" maxlength="1000" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.permanentAddress">
                                         </div>
                                     </div>
                                 </div>
@@ -246,41 +246,104 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Graduation</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.graduation">
+                                            <label class="info-label">Graduation Type</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.graduationType">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="HSC">HSC</option>
+                                                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                                <option value="Master's Degree">Master's Degree</option>
+                                                <option value="Doctorate (PhD)">Doctorate (PhD)</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Year of Passing(Grad)</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.yearOfGrad">
+                                            <label class="info-label">Pursuing</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.pursuing">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="No">No</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="employeeObj.pursuing == 'No'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Year of Passing</label>
+                                            <input type="number" maxlength="4" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.yearOfPassing">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Post Graduation</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.postGraduation">
+                                            <label class="info-label">Passing Grade</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.passingGrade">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <h4 class="info-label" >Certifications</h4>
+                            <div *ngFor="let certification of allCertificationList;let i = index" class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Certification Name - {{i+1}}</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="certification.certificationName">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Year of Passing(Post Grad)</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.yearOfPostGrad">
+                                            <label class="info-label">Duration</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="certification.duration">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="3 Months">3 Months</option>
+                                                <option value="6 Months">6 Months</option>
+                                                <option value="1 Year">1 Year</option>
+                                                <option value="More than 1 Year">More than 1 Year</option>
+                                              </select>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Co-curricular activities - Hobbies</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.hobbies">
+                                            <label class="info-label">Mode of Course</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="certification.modeOfCourse">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Offline">Offline</option>
+                                                <option value="Online">Online</option>
+                                                <option value="Both">Both</option>
+                                            </select>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Date of completion</label>
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="certification.dateOfCompletion">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Certification Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="certification.certificationNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center">
+                                    <div class="form-group m-0 mt-3 mb-1">
+                                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputCertificationField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputCertificationField(certification)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -302,7 +365,12 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.employmentstatus">
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Probation">Probation</option>
+                                                <option value="Confirmed">Confirmed</option>
+                                                <option value="InActive">In Active</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -345,6 +413,103 @@
                                                 <option *ngFor="let jobRole of filteredJobRoleList" value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>
                                             </select>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Exprience</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.experience">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Fresher">Fresher</option>
+                                                <option value="Exprienced">Exprienced</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                        <div class="container-fluid">
+                            <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Employer Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Date Of Joining</label>
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Date of Relieving</label>
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Years of Experience</label>
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Designation</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Manager Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Manager Contact Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">HR Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">HR Contact Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center">
+                                    <div class="form-group m-0 mt-2 mb-2">
+                                        <button *ngIf="i != 4" type="button" class="btn btn-outline-primary mx-1" (click)="addInputPreviousEmployerField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputPreviousEmployerField(previousEmployer)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                     </div>
                                 </div>
                             </div>
