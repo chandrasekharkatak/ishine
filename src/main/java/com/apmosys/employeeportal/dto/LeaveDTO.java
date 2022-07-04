@@ -3,8 +3,8 @@ package com.apmosys.employeeportal.dto;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.LeavePolicyLeaveTypeMap;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,5 +44,7 @@ public class LeaveDTO {
 	private Long compOffLeaveId;
 	private String leavePolicyName;
 	private String employmentStatus;
+	private String defaultPolicy;
+	private List<LeavePolicyLeaveTypeMap> leaveTypeList;
 
 }

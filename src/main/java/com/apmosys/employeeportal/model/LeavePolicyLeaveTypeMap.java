@@ -16,11 +16,11 @@ public class LeavePolicyLeaveTypeMap {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Short policyLeaveTypeMapId;
+	private Long leavepolicyLeaveTypeMapId;
 	
 	private Short leaveTypeMasterId;
 	
-	private Short leavePolicyId;
+	private Short leavePolicyMasterId;
 	
 	private String increment;
 	

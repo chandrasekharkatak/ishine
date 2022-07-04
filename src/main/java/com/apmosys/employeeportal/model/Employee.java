@@ -47,12 +47,14 @@ public class Employee {
 
 	private Long mobileNo;
 	private Long landline;
+	@Column(length = 1000)
 	private String address;
 	private String city;
 	private String state;
 	private String country;
 	private Integer pincode;
-	private Long officialMobileNo;
+	private Long alternateMobileNo;
+	@Column(length = 1000)
 	private String permanentAddress;
 	private String emergencyContactPerson;
 	private String relation;
@@ -87,15 +89,9 @@ public class Employee {
 	private String uan;
 	private String esicNumber;
 	
-	private String graduation;
-	private Short yearOfGrad;
-	private String postGraduation;
-	private Short yearOfPostGrad;
-	private String hobbies;
-	
-	@Column(columnDefinition="varchar(255) DEFAULT 'Add about yourself.'")
+	@Column(columnDefinition="varchar(1000) DEFAULT 'Add about yourself.'")
 	private String aboutMe;
-	@Column(columnDefinition="varchar(255) DEFAULT 'Add your views.'")
+	@Column(columnDefinition="varchar(1000) DEFAULT 'Add your views.'")
 	private String viewsOnOrganisation;	
 	
 	private String password;
@@ -103,25 +99,12 @@ public class Employee {
 	private String profileImageName;
 	
 	
+	private String graduationType;
+	private String pursuing;
+	private Short yearOfPassing;
+	private String passingGrade;
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
+	private String experience;
 	
 	
 }

@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.model.LeavePolicyLeaveTypeMap;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
+import com.apmosys.employeeportal.repository.LeavePolicyLeaveTypeMapRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -14,6 +16,9 @@ public class LeavePolicyMasterService {
 	
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
+	
+	@Autowired
+	LeavePolicyLeaveTypeMapRepository leavePolicyLeaveTypeMapRepository;
 
 	@Transactional
 	public ServiceResponse addLeavePolicy(LeaveDTO leaveDTO) {
@@ -22,11 +27,36 @@ public class LeavePolicyMasterService {
 			
 			LeavePolicyMaster newLeavePolicy = new LeavePolicyMaster();
 			
+			newLeavePolicy.setLeavePolicyName(leaveDTO.getLeavePolicyName());
+			newLeavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
+			newLeavePolicy.setDefaultPolicy(leaveDTO.getDefaultPolicy());			
+
+			LeavePolicyMaster newLeavePolicyCreated = leavePolicyMasterRepository.save(newLeavePolicy);
+			
+			leaveDTO.getLeaveTypeList().forEach((leaveType)-> {
+				
+				LeavePolicyLeaveTypeMap map = new LeavePolicyLeaveTypeMap();
+				
+				map.setLeavePolicyMasterId(newLeavePolicyCreated.getLeavePolicyMasterId());
+				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+				map.setIncrement(leaveType.getIncrement());
+				map.setIncrementValue(leaveType.getIncrementValue());				
+				leavePolicyLeaveTypeMapRepository.save(map);
+			});
 			
 
-			LeavePolicyMaster newLeavePolicyCreated = leavePolicyMasterRepository.save(null);
-
 			if (newLeavePolicyCreated != null) {
+				
+				if(newLeavePolicyCreated.getDefaultPolicy().equals("true"))
+				{
+	//				leavePolicyLeaveTypeMapRepository
+				}
+				else
+				{
+					
+				}
+				
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New leave policy added.");
 			} else {

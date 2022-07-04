@@ -19,6 +19,6 @@ public class DepartmentLeavePolicyMap {
 	
 	private Long deptId;
 	
-	private Short leavePolicyId;
+	private Short leavePolicyMasterId;
 	
 }

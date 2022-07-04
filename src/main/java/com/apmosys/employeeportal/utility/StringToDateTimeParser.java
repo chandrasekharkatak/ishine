@@ -23,6 +23,12 @@ public class StringToDateTimeParser {
 		return LocalDate.parse(date, dateFormatter);
 	}
 	
+	public LocalDate getDate(String date,String pattern)
+	{
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern);
+		return LocalDate.parse(date, dateFormatter);
+	}
+	
 	public LocalDateTime getCurrentDateTime()
 	{
 		String dateTimeString = LocalDateTime.now().format(dateTimeFormatter);

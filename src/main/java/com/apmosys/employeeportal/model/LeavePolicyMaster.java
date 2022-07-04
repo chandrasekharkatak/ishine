@@ -17,9 +17,11 @@ public class LeavePolicyMaster {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Short leavePolicyId;
+	private Short leavePolicyMasterId;
 	
 	private String leavePolicyName;
 
 	private String employmentStatus;
+	
+	private String defaultPolicy;
 }

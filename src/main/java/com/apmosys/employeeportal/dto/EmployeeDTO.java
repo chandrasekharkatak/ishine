@@ -1,8 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import java.time.LocalDate;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,7 +34,7 @@ public class EmployeeDTO {
 	private String state;
 	private String country;
 	private Integer pincode;
-	private Long officialMobileNo;
+	private Long alternateMobileNo;
 	private String permanentAddress;
 	private String emergencyContactPerson;
 	private String relation;
@@ -50,14 +48,9 @@ public class EmployeeDTO {
 	private String pfAccountNumber;
 	private String previousPfAccountNumber;
 	private String uan;
-	private String esicNumber;
-	private String graduation;
-	private Short yearOfGrad;
-	private String postGraduation;
-	private String hobbies;	
+	private String esicNumber;		
 	private String aboutMe;
 	private String viewsOnOrganisation;	
-	private Short yearOfPostGrad;
 	private String password;
 	private Integer otp;
 	private String newPassword;
@@ -69,7 +62,13 @@ public class EmployeeDTO {
 	private String departmentName;
 	private Integer createdBy;
 	private String createdOn;
-	
+	private String graduationType;
+	private String pursuing;
+	private Short yearOfPassing;
+	private String passingGrade;
+	private List<EmployeeCertificateDTO> certifications;
+	private List<PreviousEmploymentDTO> previousEmploymentList;
+	private String experience;
 	
 	
 

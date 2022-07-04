@@ -3,6 +3,9 @@ package com.apmosys.employeeportal.dto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
+import lombok.ToString;
+
+@ToString
 public class JobRoleDTO {
 
 	private Long jobRoleId;	
