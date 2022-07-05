@@ -36,6 +36,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { LoaderComponent } from './loader/loader.component';
 import { LoaderInterceptor } from './helpers/loader.interceptor';
+import { UserTeamComponent } from './user-team/user-team.component';
+import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
 
 @NgModule({
   declarations: [
@@ -61,6 +63,8 @@ import { LoaderInterceptor } from './helpers/loader.interceptor';
     CompOffComponent,
     LeaveConfigComponent,
     LoaderComponent,
+    UserTeamComponent,
+    UserTimesheetComponent,
   ],
   imports: [
     BrowserModule,
