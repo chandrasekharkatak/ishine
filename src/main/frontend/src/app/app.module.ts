@@ -38,6 +38,7 @@ import { LoaderComponent } from './loader/loader.component';
 import { LoaderInterceptor } from './helpers/loader.interceptor';
 import { UserTeamComponent } from './user-team/user-team.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
+import { TeamConfigComponent } from './configuration/team-config/team-config.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +66,7 @@ import { UserTimesheetComponent } from './user-timesheet/user-timesheet.componen
     LoaderComponent,
     UserTeamComponent,
     UserTimesheetComponent,
+    TeamConfigComponent,
   ],
   imports: [
     BrowserModule,

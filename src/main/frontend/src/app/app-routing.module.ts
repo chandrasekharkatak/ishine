@@ -5,6 +5,7 @@ import { DeptConfigComponent } from './configuration/dept-config/dept-config.com
 import { EmployeeConfigComponent } from './configuration/employee-config/employee-config.component';
 import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
+import { TeamConfigComponent } from './configuration/team-config/team-config.component';
 import { AuthGuard } from './guards/auth.guard';
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
 import { HomeComponent } from './home/home.component';
@@ -33,6 +34,7 @@ const routes: Routes = [
       { path: 'department', component: DeptConfigComponent, },
       { path: 'role', component: RoleConfigComponent, },
       { path: 'leave', component: LeaveConfigComponent, },
+      { path: 'team', component: TeamConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

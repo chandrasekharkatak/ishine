@@ -1,0 +1,377 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamForm" (click)="showCreateTeamForm()">Add New Team</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamTable" (click)="showViewTeams()">View Teams</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isActivityForm" (click)="showCreateActivityForm()">Add New Activity</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isActivityTable" (click)="showViewActivities()">View Activities</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Team -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isTeamForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Team</strong>
+            <strong *ngIf="isUpdation">Update Team</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                                <option value="4">Option 4</option>
+                                <option value="5">Option 5</option>
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                                <option value="4">Option 4</option>
+                                <option value="5">Option 5</option>
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
+                            <input type="text" class="form-control" maxlength="25" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Lead</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                                <option value="4">Option 4</option>
+                                <option value="5">Option 5</option>
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                                <option value="4">Option 4</option>
+                                <option value="5">Option 5</option>
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Add & Update Team Members -->
+            <div class="row ml-1 mt-5">
+                <h3>Team Members</h3>
+            </div>
+            <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                                <option value="4">Option 4</option>
+                                <option value="5">Option 5</option>
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex">
+                    <div class="m-0">
+                        <button type="button" class="btn btn-outline-primary mx-1"
+                            (click)="addInputTeamMemberField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1"
+                            (click)="removeInputTeamMemberField(teamMember)"><i class="fa fa-trash"
+                                aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Create Team</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Team</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: create & update Team -->
+
+<!-- start :: View Teams -->
+<div class="container-fluid row" *ngIf="isTeamTable">
+    <div class="col-md-12">
+        <div class="row table-header">
+            <h1 class="table-header-title">All Teams</h1>
+        </div>
+        <div class="row table-options">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                        <select class="form-control" aria-hidden="true">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option value="4">Option 4</option>
+                            <option value="5">Option 5</option>
+    
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                        <select class="form-control" aria-hidden="true">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option value="4">Option 4</option>
+                            <option value="5">Option 5</option>
+    
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <table class="table teams-table">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Team Name</th>
+                    <th scope="col" class="info-label">Team Lead</th>
+                    <th scope="col" class="info-label">Created by</th>
+                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th colspan="6" class="text-center info-label">No details to display...</th>
+                  </tr>
+                </tbody>
+              </table> 
+        </div>  
+    </div>
+</div>
+<!-- end :: View Teams -->
+
+
+<!-- start :: Create & Update Activity -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isActivityForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Activity</strong>
+            <strong *ngIf="isUpdation">Update Activity</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label" ><span class="text-danger">*</span>Project Name</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1" >Option 1</option>
+                                <option value="2" >Option 2</option>
+                                <option value="3" >Option 3</option>
+                                <option value="4" >Option 4</option>
+                                <option value="5" >Option 5</option>
+                                
+                              </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="1" >Option 1</option>
+                                <option value="2" >Option 2</option>
+                                <option value="3" >Option 3</option>
+                                <option value="4" >Option 4</option>
+                                <option value="5" >Option 5</option>
+                                
+                              </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Activity</label>
+                            <input type="text" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">ETA <small>(Hours)</small></label>
+                            <input type="number" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div> 
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Create Activity</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Activity</button>
+                </div>
+            </div>
+    </div>
+</div>
+<!-- end :: create & update Activity -->
+
+<!-- start :: View Teams -->
+<div class="container-fluid row" *ngIf="isActivityTable">
+    <div class="col-md-12">
+        <div class="row table-header">
+            <h1 class="table-header-title">All Activities</h1>
+        </div>
+        <div class="row table-options">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                        <select class="form-control" aria-hidden="true">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option value="4">Option 4</option>
+                            <option value="5">Option 5</option>
+    
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                        <select class="form-control" aria-hidden="true">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option value="4">Option 4</option>
+                            <option value="5">Option 5</option>
+    
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
+                        <select class="form-control" aria-hidden="true">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="1" >Option 1</option>
+                            <option value="2" >Option 2</option>
+                            <option value="3" >Option 3</option>
+                            <option value="4" >Option 4</option>
+                            <option value="5" >Option 5</option>
+                            
+                          </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <table class="table activities-table">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Activity</th>
+                    <th scope="col" class="info-label">ETA</th>
+                    <th scope="col" class="info-label">Created by</th>
+                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th colspan="6" class="text-center info-label">No details to display...</th>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
+    </div>      
+</div>
+
+<!-- Modals Template -->
+<ng-template #delete_team_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Team?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_activity_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Activity?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #update_team_mapping_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the team members for this Team?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
