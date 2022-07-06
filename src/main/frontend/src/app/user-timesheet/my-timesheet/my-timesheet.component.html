@@ -1,0 +1,201 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTimesheetForm" (click)="showCreateTimesheetForm()">Create New Timesheet</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTimesheetTable" (click)="showViewMyTimesheets()">View My Timesheets</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Team -->
+<div class="row" *ngIf="isTimesheetForm">
+    <div class="card col-md-12 px-0" >
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Timesheet</strong>
+            <strong *ngIf="isUpdation">Update Timesheet</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Date</label>
+                            <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Working">Working</option>
+                                <option value="Holiday">Holiday</option>
+                                <option value="Non-working">Working on non-working day</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"></textarea>
+                          </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Add & Update Activities -->
+            <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row ml-1 mt-5">
+                <h3>Activities</h3>
+            </div>
+            <div *ngFor="let activityObj of allTimesheetActivities; let i = index" class="row">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                                    <select class="form-control" aria-hidden="true">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option value="1">Option 1</option>
+                                        <option value="2">Option 2</option>
+                                        <option value="3">Option 3</option>
+                                        <option value="4">Option 4</option>
+                                        <option value="5">Option 5</option>
+                
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                                    <select class="form-control" aria-hidden="true">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option value="1">Option 1</option>
+                                        <option value="2">Option 2</option>
+                                        <option value="3">Option 3</option>
+                                        <option value="4">Option 4</option>
+                                        <option value="5">Option 5</option>
+                
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Activity</label>
+                                    <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.activityId">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option value="1">Option 1</option>
+                                        <option value="2">Option 2</option>
+                                        <option value="3">Option 3</option>
+                                        <option value="4">Option 4</option>
+                                        <option value="5">Option 5</option>
+                
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                                    <textarea class="form-control" id="dayTypeDesc" rows="2" [(ngModel)]="activityObj.description"></textarea>
+                                  </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Completion Time <small>(Hours)</small></label>
+                                    <input type="number" class="form-control" autocomplete="none" [(ngModel)]="activityObj.completionTime">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex">
+                            <div class="m-0 mt-4 pt-2">
+                                <button type="button" class="btn btn-outline-primary mx-1"
+                                    (click)="addInputActivityField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1"
+                                    (click)="removeInputActivityField(activityObj)"><i class="fa fa-trash"
+                                        aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Create Timesheet</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Timesheet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: create & update Team -->
+
+<!-- start :: View Timesheets -->
+<div class="container-fluid row" *ngIf="isTimesheetTable">
+    <div class="col-md-12">
+        <div class="row table-header">
+            <h1 class="table-header-title">My Timesheets</h1>
+        </div>
+        <div class="row">
+            <table class="table teams-table">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                    <th scope="col" class="info-label">Created by</th>
+                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                  </tr>
+                </tbody>
+              </table> 
+        </div>  
+    </div>
+</div>
+<!-- end :: View Timesheets -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Modals Template -->
+<ng-template #update_timesheet_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the Timesheet?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

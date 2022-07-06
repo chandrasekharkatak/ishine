@@ -150,11 +150,11 @@ export class TeamConfigComponent implements OnInit {
 
 
   //modals
-  openDeleteTeamMod(template: TemplateRef<any>, jobRole: any) {
+  openDeleteTeamMod(template: TemplateRef<any>, teamObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
-  openDeleteActivityMod(template: TemplateRef<any>, jobRole: any) {
+  openDeleteActivityMod(template: TemplateRef<any>, activityObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 

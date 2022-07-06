@@ -39,6 +39,8 @@ import { LoaderInterceptor } from './helpers/loader.interceptor';
 import { UserTeamComponent } from './user-team/user-team.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
 import { TeamConfigComponent } from './configuration/team-config/team-config.component';
+import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
+import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 
 @NgModule({
   declarations: [
@@ -67,6 +69,8 @@ import { TeamConfigComponent } from './configuration/team-config/team-config.com
     UserTeamComponent,
     UserTimesheetComponent,
     TeamConfigComponent,
+    MyTimesheetComponent,
+    TeamTimesheetComponent,
   ],
   imports: [
     BrowserModule,

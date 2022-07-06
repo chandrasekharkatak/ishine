@@ -12,14 +12,7 @@ import { LeaveComponent } from './leave/leave.component';
   templateUrl: './user-leaves.component.html',
   styleUrls: ['./user-leaves.component.css']
 })
-export class UserLeavesComponent implements OnInit, OnDestroy,AfterViewInit{
-
-  @ViewChild('leave')
-  leave!: LeaveComponent;
-  @ViewChild('holidays')
-  holidays!: HolidaysComponent;
-  @ViewChild('compOff')
-  compOff!: CompOffComponent;
+export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
 
   tabName:any = 'My Leave';
   currentUser:User;

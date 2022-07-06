@@ -1,0 +1,79 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAllTimesheetTable" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAllTimesheetRequestTable" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
+    </div>
+</div>
+
+<!-- start :: View Teams All Timesheets -->
+<div class="container-fluid row" *ngIf="isAllTimesheetTable">
+    <div class="col-md-12">
+        <div class="row table-header">
+            <h1 class="table-header-title">All Timesheets</h1>
+        </div>
+        <div class="row">
+            <table class="table teams-table">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                    <th scope="col" class="info-label">Created by</th>
+                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                  </tr>
+                </tbody>
+              </table> 
+        </div>  
+    </div>
+</div>
+<!-- end :: View Teams All Timesheets -->
+
+<!-- start :: View Teams All Timesheets Requests -->
+<div class="container-fluid row" *ngIf="isAllTimesheetRequestTable">
+    <div class="col-md-12">
+        <div class="row table-header">
+            <h1 class="table-header-title">All Timesheets Requests</h1>
+        </div>
+        <div class="row">
+            <table class="table teams-table">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                    <th scope="col" class="info-label">Created by</th>
+                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                  </tr>
+                </tbody>
+              </table> 
+        </div>  
+    </div>
+</div>
+<!-- end :: View Teams All Timesheets Requests -->
+
+
+<!-- Modals Template -->
+<ng-template #update_timesheet_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the Timesheet?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
