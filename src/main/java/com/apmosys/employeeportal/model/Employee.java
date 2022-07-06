@@ -75,7 +75,7 @@ public class Employee {
 	
 	private Integer createdBy;	
 	private Integer updatedBy;	
-	private Integer managerId;
+	private Long managerId;
 	
 //	@OneToOne
 //	@JoinColumn(name = "jobRoleId")
@@ -105,6 +105,8 @@ public class Employee {
 	private String passingGrade;
 	
 	private String experience;
+	
+	private String role;
 	
 	
 }

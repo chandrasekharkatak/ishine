@@ -79,4 +79,20 @@ public class EmployeeController {
 		ServiceResponse response =employeeService.updateEmployeeProfileByEmpId(employeedto);
 		return response;		
 	}
+	
+	@RequestMapping(value = "/getAllEmployeesByRole", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesByRole() {
+
+		ServiceResponse response = employeeService.getAllEmployeesByRole();
+		return response;
+	}
+	
+	@RequestMapping(value="/getAllEmployeesByDepartmentIds" , method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByDepartmentIds(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response =employeeService.getAllEmployeesByDepartmentIds(employeedto);
+		return response;		
+	}
+	
+	
 }
