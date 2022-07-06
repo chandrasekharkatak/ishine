@@ -8,6 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
@@ -123,6 +125,7 @@ public class EmployeeService {
 			employee.setPassword(defaultPaswword);
 			employee.setCreatedBy(employeedto.getCreatedBy());
 			employee.setExperience(employeedto.getExperience());
+			employee.setRole(employeedto.getRole());
 
 			Employee newEmployee = employeeRepository.save(employee);
 
@@ -149,7 +152,6 @@ public class EmployeeService {
 				}
 
 			});
-
 
 			List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
 
@@ -206,9 +208,10 @@ public class EmployeeService {
 
 			PreviousEmployment previousEmployment = new PreviousEmployment();
 
-			previousEmployment.setDateOfJoining(stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(),"yyyy-MM-dd"));
-			previousEmployment
-					.setDateOfRelieving(stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(),"yyyy-MM-dd"));
+			previousEmployment.setDateOfJoining(
+					stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd"));
+			previousEmployment.setDateOfRelieving(
+					stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd"));
 			previousEmployment.setDesignation(previousEmployeeDTO.getDesignation());
 			previousEmployment.setHrContactNumber(previousEmployeeDTO.getHrContactNumber());
 			previousEmployment.setHrName(previousEmployeeDTO.getHrName());
@@ -235,7 +238,8 @@ public class EmployeeService {
 
 			employeeCertificate.setCertificationName(certificate.getCertificationName());
 			employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
-			employeeCertificate.setDateOfCompletion(stringToDateTimeParser.getDate(certificate.getDateOfCompletion(),"yyyy-MM-dd"));
+			employeeCertificate.setDateOfCompletion(
+					stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
 			employeeCertificate.setDuration(certificate.getDuration());
 			employeeCertificate.setEmpId(certificate.getEmpId());
 			employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
@@ -307,7 +311,7 @@ public class EmployeeService {
 					empDTO.setDepartmentName(object[45] != null ? object[45].toString() : null);
 					empDTO.setDepartmentId(object[46] != null ? Long.parseLong(object[46].toString()) : null);
 					empDTO.setJobRoleId(object[47] != null ? Long.parseLong(object[47].toString()) : null);
-					empDTO.setManagerId(object[48] != null ? Integer.parseInt(object[48].toString()) : null);
+					empDTO.setManagerId(object[48] != null ? Long.parseLong(object[48].toString()) : null);
 
 					if (object[42] != null) {
 
@@ -481,7 +485,7 @@ public class EmployeeService {
 					empDTO.setPursuing(object[22] != null ? object[22].toString() : null);
 					empDTO.setJobRoleId(object[23] != null ? Long.parseLong(object[23].toString()) : null);
 					empDTO.setLandline(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-					empDTO.setManagerId(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					empDTO.setManagerId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
 					empDTO.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					empDTO.setMobileNo(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					empDTO.setMotherTongue(object[28] != null ? object[28].toString() : null);
@@ -694,6 +698,107 @@ public class EmployeeService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Profile Not Found");
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllEmployeesByRole() {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+
+			List<Object[]> objectlist = employeeRepository.getEmployeesByRole();
+
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+			Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {
+
+				if (!list.isEmpty()) {
+					list.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setName(object[1] != null ? object[1].toString() : null);
+						dto.setRole(object[2] != null ? object[2].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee list is empty.");
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+
+			Optional.ofNullable(employeedto.getDepartmentList()).ifPresentOrElse((departmentList) -> {
+
+				if (departmentList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Department list is empty.");
+				} else {
+					List<Long> deptIds = departmentList.stream().map((department) -> {
+						return department.getDeptId();
+					}).collect(Collectors.toList());
+
+					List<Object[]> objectArrayList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);
+
+					Optional.ofNullable(objectArrayList).ifPresent((list) -> {
+
+						if (list.isEmpty()) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee list is empty.");
+						} else {
+
+							List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+							list.forEach((object) -> {
+
+								EmployeeDTO dto = new EmployeeDTO();
+
+								dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+								dto.setName(object[1] != null ? object[1].toString() : null);
+								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
+								dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+								dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+
+								dtoList.add(dto);
+
+							});
+
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse(dtoList);
+						}
+					});
+
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Department list is null");
+			});
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

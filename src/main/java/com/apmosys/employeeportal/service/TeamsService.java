@@ -1,0 +1,190 @@
+package com.apmosys.employeeportal.service;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+
+@Service
+public class TeamsService {
+
+	@Autowired
+	ProjectRepository projectRepository;
+
+	@Autowired
+	TeamRepository teamRepository;
+
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+
+	@Autowired
+	ModelMapper modelMapper;
+
+	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+
+			List<Project> projectList = projectRepository.findAllByProjectManagerId(timesheetDTO.getProjectManagerId());
+
+			Optional.ofNullable(projectList).ifPresent((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Project list is empty.");
+				} else {
+					Type typeList = new TypeToken<List<TimesheetDTO>>() {
+					}.getType();
+					List<TimesheetDTO> dtoList = modelMapper.map(list, typeList);
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Transactional
+	public ServiceResponse createTeam(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Team newTeam = new Team();
+
+			newTeam.setTeamName(teamDTO.getTeamName());
+			newTeam.setTeamLeadId(teamDTO.getTeamLeadId());
+			newTeam.setProjectId(teamDTO.getProjectId());
+
+			Team teamCreated = teamRepository.save(newTeam);
+
+			if (teamCreated != null) {
+				List<EmployeeTeamMap> teamMembersList = teamDTO.getAllTeamMemberList();
+
+				Optional.ofNullable(teamMembersList).ifPresentOrElse((list) -> {
+
+					if (list.isEmpty()) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse(
+								"Team created but no team members added.Reason: Team members list was empty.");
+					} else {
+						List<EmployeeTeamMap> mapList = new ArrayList<>();
+
+						list.forEach((teamMember) -> {
+
+							EmployeeTeamMap map = new EmployeeTeamMap();
+
+							map.setEmpId(teamMember.getEmpId());
+							map.setTeamId(teamCreated.getTeamId());
+
+							mapList.add(map);
+
+						});
+
+						String message = employeeTeamMapRepository.saveAll(mapList).isEmpty()
+								? "Team created but no team members added."
+								: "Team created successfully.";
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(message);
+					}
+
+				}, () -> {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse(
+							"Team created but no team members added.Reason: Team members list was null");
+				});
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team creation failed.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllTeamsByProjectId(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Team> teamList = teamRepository.findByProjectId(teamDTO.getProjectId());
+
+			if (teamList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found");
+			} else {
+
+				Type typeList = new TypeToken<List<TeamDTO>>() {
+				}.getType();
+				List<TeamDTO> dtoList = modelMapper.map(teamList, typeList);
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse deleteTeam(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Team> team = teamRepository.findById(teamDTO.getTeamId());
+
+			team.ifPresentOrElse((teamFound) -> {
+
+				employeeTeamMapRepository.deleteAllByTeamId(teamDTO.getTeamId());
+				teamRepository.deleteById(teamFound.getTeamId());
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Team deleted successfully.");
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team not found.");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+}

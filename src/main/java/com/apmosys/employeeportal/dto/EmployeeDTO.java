@@ -14,7 +14,7 @@ public class EmployeeDTO {
 	private Long empId;
 	private Long draftEmpId;
 	private String name;
-	private Integer managerId;
+	private Long managerId;
 	private String dateOfJoining;
 	private String dateOfBirth;
 	private String email;
@@ -69,7 +69,8 @@ public class EmployeeDTO {
 	private List<EmployeeCertificateDTO> certifications;
 	private List<PreviousEmploymentDTO> previousEmploymentList;
 	private String experience;
-	
+	private String role;
+	private List<DepartmentDTO> departmentList;
 	
 
 }

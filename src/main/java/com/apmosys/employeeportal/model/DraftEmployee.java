@@ -72,7 +72,7 @@ public class DraftEmployee {
 	
 	private Integer createdBy;	
 	private Integer updatedBy;	
-	private Integer managerId;
+	private Long managerId;
 	
 //	@OneToOne
 //	@JoinColumn(name = "jobRoleId")
