@@ -39,10 +39,5 @@ public class HolidayController {
 		return response;
 	}
 
-	@RequestMapping(value = "/getHolidayListByDeptId", method = RequestMethod.POST)
-	public ServiceResponse getHolidayListByDeptId(@RequestBody HolidayDTO holidayDTO) {
-		
-		ServiceResponse response = holidayService.getHolidayListByDeptId(holidayDTO);
-		return response;
-	}
+	
 }
