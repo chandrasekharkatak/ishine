@@ -15,7 +15,7 @@
         <tbody>
             <tr *ngFor="let holiday of holidayList; let i = index">
                 <td>{{i+1}}</td>
-                <td>{{holiday.occasion}}</td>
+                <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                 <td>{{holiday.dayOfTheWeek}}</td>
                 <td>{{holiday.dateOfHoliday}}</td>
             </tr>
