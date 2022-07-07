@@ -38,9 +38,7 @@ export class DeptConfigComponent implements OnInit {
   currentUser:User;
   userMapping:any = {};
 
-  holidayList:any[] = [];
-  mappedHolidayList:any[] = [];
-  deptHolidayList:any[] = [];
+  
 
   constructor(
     private validationService:ValidationService,
@@ -88,7 +86,6 @@ export class DeptConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.getAllDepartmentList();
-    this.getAllHolidays();
   }
 
   reset(){
@@ -106,7 +103,6 @@ export class DeptConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.deptObj = Object.assign({}, department)
-    this.getHolidayListByDeptId(this.deptObj.deptId);
   }
 
   validateDepartmentObj(deptObj:Department, template: TemplateRef<any>){
@@ -203,81 +199,9 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  getAllHolidays(){
-    this.holidayList = [];
-    
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.holidayList = response.serviceResponse;
-        console.log("holidayList : ", this.holidayList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-  getHolidayListByDeptId(deptId:any){
-    this.mappedHolidayList = [];
-    let holidayObj:Holiday = new Holiday();
-    holidayObj.deptId = deptId;
-
-    this.holidayService.getHolidayListByDeptId(holidayObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.mappedHolidayList = response.serviceResponse;
-      } else {
-        this.mappedHolidayList = [];
-      }
-      console.log("mappedHolidayList : ", this.mappedHolidayList);
-      this.getActiveHolidays();
-    });
-  }
-
-  getActiveHolidays(){
-    this.deptHolidayList = [];
-
-     this.deptHolidayList = this.holidayList.map(holiday => {
-      let mapHoliday = this.mappedHolidayList.find(_holiday => _holiday.holidayId == holiday.holidayId);
-      if(mapHoliday){
-        holiday.isActive = true;
-        holiday.departmentHolidayMapId = mapHoliday.departmentHolidayMapId;
-      }else{
-        holiday.isActive = false;
-        holiday.departmentHolidayMapId = null;
-      }
-      return holiday;
-    });
-    console.log("deptHolidayList : ", this.deptHolidayList);
-  }
-
   openUpdateConfimationModal(template: TemplateRef<any>, ){
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
-
- onUpdateDeptHolidayMapping(template: TemplateRef<any>){
-  let updatedHolidays = this.deptHolidayList.filter(holiday => {
-    if(holiday.departmentHolidayMapId === null && holiday.isActive == false){
-      // to send only manipulated data ...
-    }else{
-      return holiday;
-    }
-  });
-
-  let updateDeptObj = new Department();
-  updateDeptObj.deptId = this.deptObj.deptId;
-  updateDeptObj.holidays = updatedHolidays;
-
-  console.log("Update dept holiday Mapping :",updateDeptObj);
-  
-
-  this.departmentService.updateDepartmentHolidayMappings(updateDeptObj).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.openAlertMod(template, response.serviceResponse);
-      this.showTable();
-    } else {
-      this.openAlertMod(template, response.serviceResponse);
-    }
-  });
-}
 
 
   // Modals

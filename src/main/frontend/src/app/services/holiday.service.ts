@@ -23,7 +23,4 @@ export class HolidayService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllHolidays`);
   }
 
-  getHolidayListByDeptId(holidayObj: Holiday) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getHolidayListByDeptId`, holidayObj);
-  }
 }

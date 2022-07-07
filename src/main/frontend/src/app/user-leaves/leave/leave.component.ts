@@ -76,18 +76,6 @@ export class LeaveComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllLeaveTypes();
-  //   this.holidayDates = [
-  //     new Date("12/1/2022"),
-  //     new Date("12/20/2022"),
-  //     new Date("12/17/2022"),
-  //     new Date("12/25/2022"),
-  //     new Date("6/6/2022"),
-  //     new Date("7/12/2022"),
-  //     new Date("7/7/2022"),
-  //     new Date("12/11/2022"),
-  //     new Date("12/26/2022"),
-  //     new Date("12/25/2022")
-  // ];
   }
 
   sectionViewInit(){
@@ -381,10 +369,7 @@ export class LeaveComponent implements OnInit {
     this.holidayList = [];
     this.holidayDates = [];
 
-    let holidayObj:Holiday = new Holiday();
-    holidayObj.deptId = this.currentUser.departmentId;
-
-    this.holidayService.getHolidayListByDeptId(holidayObj).pipe(first()).subscribe((response: any) => {
+    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));

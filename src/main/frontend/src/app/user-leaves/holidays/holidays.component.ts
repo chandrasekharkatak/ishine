@@ -31,10 +31,8 @@ export class HolidaysComponent implements OnInit {
 
   getAllHolidays(){
     this.holidayList = [];
-    let holidayObj:Holiday = new Holiday();
-    holidayObj.deptId = this.currentUser.departmentId;
-
-    this.holidayService.getHolidayListByDeptId(holidayObj).pipe(first()).subscribe((response: any) => {
+    
+    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         console.log("holidayList : ", this.holidayList);

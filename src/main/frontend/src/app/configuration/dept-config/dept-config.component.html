@@ -44,32 +44,6 @@
                     (click)="onUpdateDepartment(alert_message)">Update Department</button>
                 </div>
             </div>
-
-             <!-- Update Features -->
-             <div *ngIf="isUpdation" class="row ml-1 mt-5">
-                <h3>Holidays</h3> 
-            </div>
-            <div *ngIf="isUpdation" class="row">
-                <div class="col-md-4">
-                    <div class="list-container">
-                        <ul class="list-group list-group-flush">
-                            <li *ngFor="let holiday of deptHolidayList" class="list-group-item">
-                                {{holiday.occasion}}
-                                <label class="holiday-checkbox">
-                                    <input type="checkbox" [(ngModel)]="holiday.isActive" />
-                                    <span class="primary"></span>
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div *ngIf="isUpdation" class="row mt-3">
-                <div class="col-md-12">
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="openUpdateConfimationModal(update_mapping_template)">Update Holiday Mapping</button>
-                </div>
-            </div>
     </div>
 </div>
 <!-- end :: create & update form -->
@@ -119,7 +93,7 @@
 <ng-template #update_mapping_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the mappings for this Department?</p>
-        <button type="button" class="btn btn-success" (click)="cancelRequest();onUpdateDeptHolidayMapping(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
