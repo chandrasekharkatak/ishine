@@ -176,6 +176,7 @@ export class LoginComponent implements OnInit {
       this.user.empId = user.empId;
       this.user.name = user.name;
       this.user.managerId = user.managerId;
+      this.user.departmentId = user.departmentId;
       this.user.userMapping = this.getActiveSubFeatures();
       this.user.tabList = this.getTabList();
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
@@ -270,6 +271,7 @@ export class LoginComponent implements OnInit {
   }
 
   getActiveSubFeatures():any{
+    // console.log("featureList :", this.featureList);
     this.allSubFeatures.forEach(sub => {
       let _sub = new SubFeature();
       _sub.subFeatureMasterId = sub.subFeatureMasterId;
@@ -281,7 +283,10 @@ export class LoginComponent implements OnInit {
         _sub.isActive = false;
       }
 
-      this.featureList.find(feature => feature.featureId == sub.featureId).subFeatures.push(_sub);
+      
+      // let feature  = this.featureList.find(feature => feature.featureId == sub.featureId);
+      // console.log("sub - featureId : ", sub.featureId, " | feature :", feature);
+      this.featureList.find(feature => feature.featureId == sub.featureId)?.subFeatures.push(_sub);
     });
     console.log("featureList :", this.featureList);
     return this.featureList;
