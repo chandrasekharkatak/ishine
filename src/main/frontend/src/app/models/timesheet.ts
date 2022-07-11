@@ -5,4 +5,9 @@ export class Timesheet{
     description:any;
     allTimesheetActivities:any;
     timesheetDetails:any;
+
+    createdOn: any;	
+	createdBy: any;	
+	updatedOn: any;	
+	updatedBy: any;
 }
