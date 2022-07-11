@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -79,6 +80,7 @@ public class TeamsService {
 			newTeam.setTeamName(teamDTO.getTeamName());
 			newTeam.setTeamLeadId(teamDTO.getTeamLeadId());
 			newTeam.setProjectId(teamDTO.getProjectId());
+			newTeam.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
 
 			Team teamCreated = teamRepository.save(newTeam);
 
@@ -136,20 +138,38 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			List<Team> teamList = teamRepository.findByProjectId(teamDTO.getProjectId());
+			List<Object[]> objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
 
-			if (teamList.isEmpty()) {
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No teams found. Teams list is empty");
+				} else {
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+
+					list.forEach((object) -> {
+
+						TeamDTO dto = new TeamDTO();
+
+						dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						dto.setTeamLeadName(object[2] != null ? object[2].toString() : null);
+						dto.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
+						dto.setTeamName(object[4] != null ? object[4].toString() : null);
+						dto.setCreatedByName(object[5] != null ? object[5].toString() : null);
+						dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No teams found");
-			} else {
-
-				Type typeList = new TypeToken<List<TeamDTO>>() {
-				}.getType();
-				List<TeamDTO> dtoList = modelMapper.map(teamList, typeList);
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-			}
+				response.setServiceResponse("No teams found.Teams list is null");
+			});
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -177,6 +197,49 @@ public class TeamsService {
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team not found.");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getTeamMembersByTeamId(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> objectList = employeeTeamMapRepository.getTeamMembersByTeamId(teamDTO.getTeamId());
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No team members found. Team members list is empty");
+				} else {
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+
+					list.forEach((object) -> {
+
+						TeamDTO dto = new TeamDTO();
+
+						dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+						dto.setTeamMemberName(object[3] != null ? object[3].toString() : null);
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No team members found. Team members list is null");
 			});
 
 		} catch (Exception e) {

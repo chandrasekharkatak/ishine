@@ -24,21 +24,21 @@ public class TeamsController {
 		ServiceResponse response = teamsService.getAllProjectListByProjectManagerId(timesheetDTO);
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/createTeam", method = RequestMethod.POST)
 	public ServiceResponse createTeam(@RequestBody TeamDTO teamDTO) {
 
 		ServiceResponse response = teamsService.createTeam(teamDTO);
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/getAllTeamsByProjectId", method = RequestMethod.POST)
 	public ServiceResponse getAllTeamsByProjectId(@RequestBody TeamDTO teamDTO) {
 
 		ServiceResponse response = teamsService.getAllTeamsByProjectId(teamDTO);
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/deleteTeam", method = RequestMethod.POST)
 	public ServiceResponse deleteTeam(@RequestBody TeamDTO teamDTO) {
 
@@ -46,6 +46,11 @@ public class TeamsController {
 		return response;
 	}
 	
-	 
+	@RequestMapping(value = "/getTeamMembersByTeamId", method = RequestMethod.POST)
+	public ServiceResponse getTeamMembersByTeamId(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.getTeamMembersByTeamId(teamDTO);
+		return response;
+	}
 
 }

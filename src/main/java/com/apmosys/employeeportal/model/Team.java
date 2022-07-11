@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,5 +25,8 @@ public class Team {
 	private String teamName;
 	private Long teamLeadId;
 	private Integer projectId;
+	
+	@Embedded
+	public CommonProperties commonProperty = new CommonProperties();
 
 }

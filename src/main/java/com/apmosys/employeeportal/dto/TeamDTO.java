@@ -14,10 +14,17 @@ import lombok.ToString;
 public class TeamDTO {
 
 	private Long teamId;
-
 	private String teamName;
 	private Long teamLeadId;
+	private String teamLeadName;
+	private String teamMemberName;
 	private Integer projectId;
 	List<EmployeeTeamMap> allTeamMemberList;
+	private Long updatedBy;
+	private Long createdBy;
+	private String createdByName;
+	private String createdOn;
+	private Long employeeTeamMapId;
+	private Long empId;
 
 }
