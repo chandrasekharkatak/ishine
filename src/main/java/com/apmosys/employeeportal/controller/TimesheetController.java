@@ -1,0 +1,74 @@
+package com.apmosys.employeeportal.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+
+@RestController
+@RequestMapping(path = "/api")
+public class TimesheetController {
+	
+	@Autowired
+	TimesheetService timesheetService;
+	
+	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllProjectsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllProjectsByEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllActivitiesByProjectIdandEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllActivitiesByProjectIdandEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
+	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllMyTimesheetsByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllMyTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllMyTimesheetsByEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllMyActivitiesByTimesheetId", method = RequestMethod.POST)
+	public ServiceResponse getAllMyActivitiesByTimesheetId(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllMyActivitiesByTimesheetId(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getMyReporteesTimesheetRequests", method = RequestMethod.POST)
+	public ServiceResponse getMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getMyReporteesTimesheetRequests(timesheetDTO);
+		return response;
+	}	
+	
+	@RequestMapping(value = "/updateTimesheetRequestById", method = RequestMethod.POST)
+	public ServiceResponse updateTimesheetRequestById(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.updateTimesheetRequestById(timesheetDTO);
+		return response;
+	}
+	
+	
+	
+	
+	
+
+}

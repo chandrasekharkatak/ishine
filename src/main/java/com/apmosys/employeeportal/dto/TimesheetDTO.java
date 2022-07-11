@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -16,7 +19,18 @@ public class TimesheetDTO {
 	private String projectName;
 	private String description;
 	private Long projectManagerId;
+	private Long managerId;
 	private Long empId;
 	private String approvedOn;
-
+	private String status;
+	private Long timesheetId;
+	private String date;
+	private String dayType;
+	private String employeeName;
+	private String createdByName;
+	private String createdOn;
+	private String startDate;
+	private String endDate;
+	private Long createdBy;
+	private List<ActivityDTO> allTimesheetActivities;
 }

@@ -15,6 +15,7 @@ public class ActivityDTO {
 	private Integer projectId;
 	private String projectName;
 	private String clientName;
+	private String clientLocation;
 	private Long teamId;
 	private String teamName;
 	private String activity;
@@ -23,5 +24,9 @@ public class ActivityDTO {
 	private Long createdBy;
 	private String createdByName;
 	private String createdOn;
+	private Float completionTime;
+	private String description;
+	private Long timesheetId;
+
 
 }
