@@ -418,6 +418,20 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label">Employee Role</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.role">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Employee">Employee</option>
+                                                <option value="Team Lead">Team Lead</option>
+                                                <option value="HOD">HOD</option>
+                                                <option value="Manager">Manager</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label">Exprience</label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.experience">
                                                 <option selected="selected" value="" disabled>Select</option>
