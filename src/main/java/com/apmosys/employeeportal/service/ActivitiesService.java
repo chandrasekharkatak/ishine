@@ -128,7 +128,7 @@ public class ActivitiesService {
 						dto.setTeamName(object[4] != null ? object[4].toString() : null);
 						dto.setTeamId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 						dto.setActivity(object[6] != null ? object[6].toString() : null);
-						dto.setEta(object[7] != null ? Float.parseFloat(object[5].toString()) : null);
+						dto.setEta(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 						dto.setCreatedByName(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedOn(object[9] != null ? object[9].toString() : null);
 

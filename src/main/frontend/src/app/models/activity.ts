@@ -3,8 +3,14 @@ export class Activity{
     activity:any;
     eta:any;
 
-    clientId:any;
-    ProjectId:any;
+    clientName:any;
+    projectId:any;
+    teamId:any;
     description:any;
     completionTime:any;
+
+    createdOn: any;	
+	createdBy: any;	
+	updatedOn: any;	
+	updatedBy: any;
 }

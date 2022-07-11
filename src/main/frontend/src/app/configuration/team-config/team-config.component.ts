@@ -1,11 +1,18 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
+import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
+import { Project } from 'src/app/models/project';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ProjectService } from 'src/app/services/project.service';
+import { TeamService } from 'src/app/services/team.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -40,19 +47,29 @@ export class TeamConfigComponent implements OnInit {
   activityObj:Activity = new Activity();
   allActivityList:any[] = [];
 
-  employeeList:any[] = [];
-  allClientList:any[] = [];
-  allProjectList:any[] = [];
+  clientList:any[] = [];
+  projectList:any[] = [];
+  employeeListByDept:any[] = [];
+  teamLeadsList:any[] = [];
+  
 
-  selectedClient:any;
-  selectedProject:any;
-  selectedTeam:any;
+  allDeptList:any[] = [];
+  allProjectListByManagerId:any[] = [];
+  allTeamList:any[] = [];
+
+  selectedClient:any = '';
+  selectedProject:any = '';
+  selectedTeam:any = '';
 
 
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
+    private projectService : ProjectService,
+    private teamService : TeamService,
+    private employeeService : EmployeeService,
+    private departmentService: DepartmentService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -67,6 +84,9 @@ export class TeamConfigComponent implements OnInit {
     // console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.getAllDepartmentList();
+    this.getAllEmployeesByRole();
+    this.getAllProjectListByProjectManagerId();
   }
 
   sectionViewInit(){
@@ -86,6 +106,8 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showViewTeams(){
+    this.selectedProject = '';
+    this.selectedTeam = '';
     this.isTeamTable = true;
     
     this.isTeamForm = false;
@@ -94,6 +116,24 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
 
+  }
+
+  showUpdateTeamForm(teamObj:Team){
+    this.isTeamForm = true;
+    this.isUpdation = true;
+    
+    this.isTeamTable = false;
+    this.isActivityForm = false;
+    this.isActivityTable = false;
+    this.isCreation = false;
+
+    this.teamObj = Object.assign({}, teamObj);
+    this.allTeamMembers = this.teamObj.allTeamMemberList;
+    
+    if(!this.allTeamMembers){
+      this.allTeamMembers = [];
+      this.addInputTeamMemberField();
+    }
   }
 
   showCreateActivityForm(){
@@ -109,6 +149,8 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showViewActivities(){
+    this.selectedProject = '';
+    this.selectedTeam = '';
     this.isActivityTable = true;
     
     this.isTeamForm = false;
@@ -118,8 +160,23 @@ export class TeamConfigComponent implements OnInit {
     this.isUpdation = false;
   }
 
+  showUpdateActivityForm(activityObj:Activity){
+    this.isActivityForm = true;
+    this.isUpdation = true;
+    
+    this.isTeamForm = false;
+    this.isTeamTable = false;
+    this.isActivityTable = false;
+    this.isCreation = false;
+
+    this.activityObj = Object.assign({}, activityObj);
+  }
+
   reset(){
     this.teamObj = new Team();
+    this.teamObj.projectId = '';
+    this.teamObj.teamLeadId = '';
+    // this.teamObj.departmentList = '';
 
     this.activityObj = new Activity();
 
@@ -130,6 +187,7 @@ export class TeamConfigComponent implements OnInit {
   // Manage team members
   addInputTeamMemberField() {
     let newTeamMemberObj = new TeamMember();
+    newTeamMemberObj.empId = '';
     this.allTeamMembers.push(newTeamMemberObj);
   }
 
@@ -139,11 +197,258 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
+  validateteamObj(teamObj:Team, template: TemplateRef<any>){
+
+    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.teamName)){
+      this.alertMessage = "Please enter Team Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.teamLeadId)){
+      this.alertMessage = "Please select Team Lead !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
+  /* Team Configuration */
+  onCreateTeam(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateteamObj(this.teamObj, template)
+    if(!inputValidated) return;
+    
+    console.log("allTeamMembers :", this.allTeamMembers, this.allTeamMembers[0]);
+    this.teamObj.allTeamMemberList = (this.allTeamMembers[0]) ? this.allTeamMembers : null;
+    this.teamObj.createdBy = this.currentUser.empId;
+    console.log("create teamObj : ", this.teamObj);
+    this.teamService.createTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewTeams();
+        this.selectedProject = this.teamObj.projectId;
+        this.getAllTeamsByProjectId(this.selectedProject);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+
+    });
+  }
+
+  onUpdateTeam(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateteamObj(this.teamObj, template)
+    if(!inputValidated) return;
+    
+    this.teamObj.allTeamMemberList = (this.allTeamMembers[0]) ? this.allTeamMembers : null;
+    this.teamObj.updatedBy = this.currentUser.empId;
+    console.log("update teamObj : ", this.teamObj);
+
+    this.teamService.updateTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewTeams();
+        this.selectedProject = this.teamObj.projectId;
+        this.getAllTeamsByProjectId(this.selectedProject);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onDeleteTeam(template: TemplateRef<any>){
+    this.cancelRequest();
+  
+    this.teamService.deleteTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewTeams();
+        this.selectedProject = this.teamObj.projectId;
+        this.getAllTeamsByProjectId(this.selectedProject);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
 
+  getAllTeamsByProjectId(projectId:any){
+    this.allTeamList = [];
+
+    let teamObj = new Team();
+    teamObj.projectId = projectId;
+    this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamList = response.serviceResponse;
+        console.log("allTeamList :", this.allTeamList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  // Project Details 
+  getAllProjectListByProjectManagerId(){
+    this.allProjectListByManagerId = [];
+
+    let projectObj = new Project();
+    projectObj.projectManagerId = 5; //! Temp
+    this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjectListByManagerId = response.serviceResponse;
+        console.log("allProjectListByManagerId :", this.allProjectListByManagerId);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  // For Team Lead
+  getAllEmployeesByRole(){
+    this.teamLeadsList = [];
+    let employeeList = [];
+
+    this.employeeService.getAllEmployeesByRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        employeeList = response.serviceResponse;
+        console.log("employeeList By Role : ", employeeList)
+        this.teamLeadsList = employeeList.filter(emp => emp.role == "Team Lead");
+        console.log("teamLeadsList : ", this.teamLeadsList)
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllEmployeesByDepartmentIds(){
+    this.employeeListByDept = [];
+
+    let empObj = new Employee();
+    empObj.departmentList = this.teamObj.departmentList;
+    this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeListByDept = response.serviceResponse;
+        console.log("employeeList By Department : ", this.employeeListByDept);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllDepartmentList(){
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+        console.log("allDeptList : ", this.allDeptList)
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
 
+  /* Activity Configuration */
+  validateActivityObj(activityObj:Activity, template: TemplateRef<any>){
 
+    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.projectId)){
+      this.alertMessage = "Please select Project !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.teamId)){
+      this.alertMessage = "Please select Team Lead !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.activity)){
+      this.alertMessage = "Please enter Activity !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)){
+      this.alertMessage = "Please enter Activity ETA (Hours)!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+    return true;
+  }
+
+  onCreateActivity(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateActivityObj(this.activityObj, template)
+    if(!inputValidated) return;
+    
+    this.activityObj.createdBy = this.currentUser.empId;
+    console.log("create activity : ", this.activityObj);
+    this.teamService.createActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewActivities();
+        this.selectedProject = this.activityObj.projectId;
+        this.selectedTeam = this.activityObj.teamId;
+        this.getAllActivitiesByProjectIdAndTeamId(this.selectedProject, this.selectedTeam);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+
+    });
+  }
+
+  onUpdateActivity(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateActivityObj(this.activityObj, template)
+    if(!inputValidated) return;
+    
+    this.activityObj.updatedBy = this.currentUser.empId;
+    console.log("update Activity : ", this.activityObj);
+
+    this.teamService.updateActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewActivities();
+        this.selectedProject = this.activityObj.projectId;
+        this.selectedTeam = this.activityObj.teamId;
+        this.getAllActivitiesByProjectIdAndTeamId(this.selectedProject, this.selectedTeam);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onDeleteActivity(template: TemplateRef<any>){
+    this.cancelRequest();
+  
+    this.teamService.deleteActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewActivities();
+        this.selectedProject = this.activityObj.projectId;
+        this.selectedTeam = this.activityObj.teamId;
+        this.getAllActivitiesByProjectIdAndTeamId(this.selectedProject, this.selectedTeam);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getAllActivitiesByProjectIdAndTeamId(projectId:any, teamId:any){
+    this.allActivityList = [];
+
+    let activityObj = new Activity();
+    activityObj.projectId = projectId;
+    activityObj.teamId = teamId;
+    this.teamService.getAllActivitiesByProjectIdAndTeamId(activityObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allActivityList = response.serviceResponse;
+        console.log("allActivityList :", this.allActivityList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
 
 
@@ -152,10 +457,12 @@ export class TeamConfigComponent implements OnInit {
   //modals
   openDeleteTeamMod(template: TemplateRef<any>, teamObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.teamObj = teamObj;
   }
 
   openDeleteActivityMod(template: TemplateRef<any>, activityObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.activityObj = activityObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

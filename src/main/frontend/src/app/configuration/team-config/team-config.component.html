@@ -19,31 +19,10 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                            <select class="form-control" aria-hidden="true">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option value="1">Option 1</option>
-                                <option value="2">Option 2</option>
-                                <option value="3">Option 3</option>
-                                <option value="4">Option 4</option>
-                                <option value="5">Option 5</option>
-
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.projectId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="1">Option 1</option>
-                                <option value="2">Option 2</option>
-                                <option value="3">Option 3</option>
-                                <option value="4">Option 4</option>
-                                <option value="5">Option 5</option>
-
+                                <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                             </select>
                         </div>
                     </div>
@@ -52,7 +31,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Name</label>
-                            <input type="text" class="form-control" maxlength="25" autocomplete="none">
+                            <input type="text" class="form-control" maxlength="25" autocomplete="none" [(ngModel)]="teamObj.teamName">
                         </div>
                     </div>
                 </div>
@@ -62,14 +41,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Lead</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="1">Option 1</option>
-                                <option value="2">Option 2</option>
-                                <option value="3">Option 3</option>
-                                <option value="4">Option 4</option>
-                                <option value="5">Option 5</option>
-
+                                <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>
                             </select>
                         </div>
                     </div>
@@ -78,16 +52,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <mat-select class="form-control" multiple>
+                            <mat-select class="form-control" multiple [(ngModel)]="teamObj.departmentList" (selectionChange)="getAllEmployeesByDepartmentIds()">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                <mat-option value="1">Option 1</mat-option>
-                                <mat-option value="2">Option 2</mat-option>
-                                <mat-option value="3">Option 3</mat-option>
-                                <mat-option value="4">Option 4</mat-option>
-                                <mat-option value="5">Option 5</mat-option>
-                                <mat-option value="6">Option 6</mat-option>
-                                <mat-option value="7">Option 7</mat-option>
-                                <mat-option value="8">Option 8</mat-option>
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept">{{dept.name}}</mat-option>
                             </mat-select>
                         </div>
                     </div>
@@ -101,14 +68,9 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamMember.empId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="1">Option 1</option>
-                                <option value="2">Option 2</option>
-                                <option value="3">Option 3</option>
-                                <option value="4">Option 4</option>
-                                <option value="5">Option 5</option>
-
+                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}">{{employee.name}}</option>
                             </select>
                         </div>
                     </div>
@@ -125,8 +87,8 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Create Team</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Team</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTeam(alert_message)">Create Team</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)">Update Team</button>
                 </div>
             </div>
         </div>
@@ -144,31 +106,10 @@
             <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                        <select class="form-control" aria-hidden="true">
-                            <option selected="selected" value="" disabled>Select</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                            <option value="4">Option 4</option>
-                            <option value="5">Option 5</option>
-    
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-0">
-                <div class="info-wrapper">
-                    <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                        <select class="form-control" aria-hidden="true">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject)">
                             <option selected="selected" value="" disabled>Select</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                            <option value="4">Option 4</option>
-                            <option value="5">Option 5</option>
-    
+                            <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                         </select>
                     </div>
                 </div>
@@ -187,9 +128,20 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th colspan="6" class="text-center info-label">No details to display...</th>
-                  </tr>
+                    <tr *ngFor="let team of allTeamList; let i = index">
+                        <th scope="col" class="info-label">{{i+1}}</th>
+                        <td>{{team.teamName}}</td>
+                        <td>{{team.teamLeadId}}</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)"><em class="fa fa-edit"></em></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)"><em class="fa fa-trash"></em></button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="allTeamList.length == 0" >
+                        <th colspan="6" class="text-center info-label">No details to display...</th>
+                    </tr>
                 </tbody>
               </table> 
         </div>  
@@ -211,14 +163,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllTeamsByProjectId(activityObj.projectId)">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="1" >Option 1</option>
-                                <option value="2" >Option 2</option>
-                                <option value="3" >Option 3</option>
-                                <option value="4" >Option 4</option>
-                                <option value="5" >Option 5</option>
-                                
+                                <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                               </select>
                         </div>
                     </div>
@@ -227,14 +174,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.teamId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="1" >Option 1</option>
-                                <option value="2" >Option 2</option>
-                                <option value="3" >Option 3</option>
-                                <option value="4" >Option 4</option>
-                                <option value="5" >Option 5</option>
-                                
+                                <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
                               </select>
                         </div>
                     </div>
@@ -245,7 +187,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Activity</label>
-                            <input type="text" class="form-control" autocomplete="none">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="activityObj.activity">
                         </div>
                     </div>
                 </div>
@@ -253,15 +195,15 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">ETA <small>(Hours)</small></label>
-                            <input type="number" class="form-control" autocomplete="none">
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="activityObj.eta">
                         </div>
                     </div>
                 </div>
             </div> 
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Create Activity</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Activity</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateActivity(alert_message)">Create Activity</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateActivity(alert_message)">Update Activity</button>
                 </div>
             </div>
     </div>
@@ -278,30 +220,10 @@
             <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                        <select class="form-control" aria-hidden="true">
-                            <option selected="selected" value="" disabled>Select</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                            <option value="4">Option 4</option>
-                            <option value="5">Option 5</option>
-    
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-0">
-                <div class="info-wrapper">
-                    <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                        <select class="form-control" aria-hidden="true">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject)">
                             <option selected="selected" value="" disabled>Select</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                            <option value="4">Option 4</option>
-                            <option value="5">Option 5</option>
+                            <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
     
                         </select>
                     </div>
@@ -311,14 +233,9 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
-                        <select class="form-control" aria-hidden="true">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedTeam" (change)="getAllActivitiesByProjectIdAndTeamId(selectedProject, selectedTeam)">
                             <option selected="selected" value="" disabled>Select</option>
-                            <option value="1" >Option 1</option>
-                            <option value="2" >Option 2</option>
-                            <option value="3" >Option 3</option>
-                            <option value="4" >Option 4</option>
-                            <option value="5" >Option 5</option>
-                            
+                            <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
                           </select>
                     </div>
                 </div>
@@ -337,7 +254,18 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <tr *ngFor="let activity of allActivityList; let i = index" >
+                    <th scope="col" class="info-label">{{i+1}}</th>
+                    <td>{{activity.activity}}</td>
+                    <td>{{activity.eta}} hr(s)</td>
+                    <td>{{activity.createdByName}}</td>
+                    <td>{{activity.createdOn}}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
+                        <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="allActivityList.length == 0">
                     <th colspan="6" class="text-center info-label">No details to display...</th>
                   </tr>
                 </tbody>
@@ -352,7 +280,7 @@
 <ng-template #delete_team_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Team?</p>
-        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onDeleteTeam(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -360,7 +288,7 @@
 <ng-template #delete_activity_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Activity?</p>
-        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onDeleteActivity(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
