@@ -35,6 +35,14 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateEmployeeProfileByEmpId`, employeeObj);
   }
 
+  getAllEmployeesByRole() {
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesByRole`);
+  }
+
+  getAllEmployeesByDepartmentIds(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesByDepartmentIds`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);

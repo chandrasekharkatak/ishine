@@ -466,8 +466,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.certifications = this.allCertificationList;
-    this.employeeObj.previousEmploymentList = this.allPreviousEmployment;
+    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
+    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -492,8 +492,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy');
 
-    this.employeeObj.certifications = this.allCertificationList;
-    this.employeeObj.previousEmploymentList = this.allPreviousEmployment;
+    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
+    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
     this.employeeService.updateEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -548,8 +548,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.certifications = this.allCertificationList;
-    this.employeeObj.previousEmploymentList = this.allPreviousEmployment;
+    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
+    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe Draft : ", this.employeeObj);
     this.employeeService.createDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -568,8 +568,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.certifications = this.allCertificationList;
-    this.employeeObj.previousEmploymentList = this.allPreviousEmployment;
+    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
+    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
     this.employeeObj.updatedBy = this.currentUser.empId;
     console.log("Update Employe Draft : ", this.employeeObj);
     this.employeeService.updateDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
