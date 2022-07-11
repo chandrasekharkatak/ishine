@@ -422,6 +422,8 @@ public class EmployeeService {
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setJobRoleId(employeedto.getJobRoleId());
+				employee.setExperience(employeedto.getExperience());
+				employee.setRole(employeedto.getRole());
 
 				Employee dbResponse = employeeRepository.save(employee);
 

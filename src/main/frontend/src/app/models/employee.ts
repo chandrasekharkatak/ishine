@@ -55,6 +55,9 @@ export class Employee{
 	experience:any;
 
 	previousEmploymentList:any;
+
+	role:any;
+	departmentList:any;
 	
 	createdOn: any;	
 	createdBy: any;	
