@@ -81,8 +81,8 @@ public class EmployeeService {
 			Employee employee = new Employee();
 
 			employee.setName(employeedto.getName());
-			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth()));
-			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining()));
+			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd"));
+			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd"));
 			employee.setManagerId(employeedto.getManagerId());
 			employee.setEmail(employeedto.getEmail());
 			employee.setGender(employeedto.getGender());
@@ -378,10 +378,10 @@ public class EmployeeService {
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setName(employeedto.getName());
 				employee.setDateOfBirth(employeedto.getDateOfBirth() != null
-						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth())
+						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd")
 						: null);
 				employee.setDateOfJoining(employeedto.getDateOfJoining() != null
-						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining())
+						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd")
 						: null);
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
@@ -644,10 +644,10 @@ public class EmployeeService {
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setName(employeedto.getName());
 				employee.setDateOfBirth(employeedto.getDateOfBirth() != null
-						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth())
+						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd")
 						: null);
 				employee.setDateOfJoining(employeedto.getDateOfJoining() != null
-						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining())
+						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd")
 						: null);
 				employee.setEmail(employeedto.getEmail());
 				employee.setGender(employeedto.getGender());

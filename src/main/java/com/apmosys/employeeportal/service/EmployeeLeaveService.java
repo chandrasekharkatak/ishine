@@ -51,8 +51,8 @@ public class EmployeeLeaveService {
 			leaveApplication.setEmpId(leaveDTO.getEmpId());
 			leaveApplication.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 			leaveApplication.setLeaveStatusId((short) 1);
-			leaveApplication.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate()));
-			leaveApplication.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate()));
+			leaveApplication.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(),"yyyy-MM-dd"));
+			leaveApplication.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(),"yyyy-MM-dd"));
 			leaveApplication.setNoOfDays((Float) leaveDTO.getNoOfDays());
 			leaveApplication.setReason(leaveDTO.getReason());
 			leaveApplication.setManagerId(leaveDTO.getManagerId());

@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -241,6 +242,87 @@ public class TeamsService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No team members found. Team members list is null");
 			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse updateTeam(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<EmployeeTeamMap> allTeamMemberList = teamDTO.getAllTeamMemberList();
+			List<EmployeeTeamMap> updatedTeamMemberList = teamDTO.getUpdatedTeamMemberList();
+
+			if (!updatedTeamMemberList.isEmpty() && allTeamMemberList.isEmpty()) {
+				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
+
+				teamObject.ifPresentOrElse((teamFound) -> {
+
+					teamFound.setTeamName(teamDTO.getTeamName());
+					teamFound.setTeamLeadId(teamDTO.getTeamLeadId());
+					Team teamUpdated = teamRepository.save(teamFound);
+
+					if (teamUpdated.getTeamId() != null) {
+
+						// Case 1 : No existing Team Members + Adding New Member in Update
+						updatedTeamMemberList.stream().filter((teamMember) -> teamMember.getEmployeeTeamMapId() == null)
+								.forEach((employee) -> {
+									EmployeeTeamMap map = new EmployeeTeamMap();
+									map.setEmpId(employee.getEmpId());
+									map.setTeamId(teamUpdated.getTeamId());
+									employeeTeamMapRepository.save(map);
+								});
+
+						// Case 2 : No New Member is Added + ONLY Removed Existing Member
+						updatedTeamMemberList.stream().filter((teamMember) -> teamMember.getEmployeeTeamMapId() != null)
+								.forEach((employee) -> {
+									employeeTeamMapRepository.deleteById(employee.getEmployeeTeamMapId());
+								});
+
+						// Case 3 : Removed Existing Member + Added New Member (Combination of Case 1&2)
+
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Team updated.");
+
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Team updation failed.");
+					}
+
+				}, () -> {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team not found.");
+				});
+
+			} else {
+
+				// Case 4 : No Existing member is removed + No new member is added
+				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
+
+				teamObject.ifPresentOrElse((teamFound) -> {
+
+					teamFound.setTeamName(teamDTO.getTeamName());
+					teamFound.setTeamLeadId(teamDTO.getTeamLeadId());
+					Team teamUpdated = teamRepository.save(teamFound);
+					
+					if (teamUpdated.getTeamId() != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Team updated.");
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Team updation failed.");
+					}
+
+				}, () -> {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team not found.");
+				});
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

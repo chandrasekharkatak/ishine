@@ -123,7 +123,7 @@ public class TimesheetService {
 			Timesheet newTimesheet = new Timesheet();
 
 			newTimesheet.setEmpId(timesheetDTO.getEmpId());
-			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate()));
+			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(),"yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());

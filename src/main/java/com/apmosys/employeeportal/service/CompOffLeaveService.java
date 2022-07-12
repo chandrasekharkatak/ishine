@@ -87,8 +87,8 @@ public class CompOffLeaveService {
 			//1 = CL , 2 = PL , 3 = ML , 4 = PTL , 5 = CO
 			leave.setLeaveTypeMasterId((short)5);
 			leave.getCommonProperties().setCreatedBy(leaveDTO.getCreatedBy());
-			leave.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate()));
-			leave.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate()));
+			leave.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(),"yyyy-MM-dd"));
+			leave.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(),"yyyy-MM-dd"));
 			leave.setNoOfDays((Float) leaveDTO.getNoOfDays());
 			
 			CompOffLeave leaveApplied = compOffLeaveRepository.save(leave);

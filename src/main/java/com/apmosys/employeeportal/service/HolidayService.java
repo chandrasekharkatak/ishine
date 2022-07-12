@@ -36,7 +36,7 @@ public class HolidayService {
 			Holiday newHoliday = new Holiday();
 
 			newHoliday.setOccasion(holidayDTO.getOccasion());
-			newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday()));
+			newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 			newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 			newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 			newHoliday.setCustomHoliday(holidayDTO.getCustomHoliday());
@@ -73,7 +73,7 @@ public class HolidayService {
 
 				holiday.setOccasion(holidayDTO.getOccasion());
 				holiday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
-				holiday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday()));
+				holiday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 				holiday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 				holiday.setCustomHoliday(holidayDTO.getCustomHoliday());
 

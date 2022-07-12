@@ -28,8 +28,8 @@ public class DraftEmployeeService {
 			DraftEmployee employee = new DraftEmployee();			
 			
 			employee.setName(employeedto.getName());
-			employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth()) : null);
-			employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining()) : null);
+			employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd") : null);
+			employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd") : null);
 			employee.setManagerId(employeedto.getManagerId());
 			employee.setEmail(employeedto.getEmail());
 			employee.setGender(employeedto.getGender());
@@ -148,8 +148,8 @@ public class DraftEmployeeService {
 			
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setName(employeedto.getName());
-				employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth()) : null);
-				employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining()) : null);
+				employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd") : null);
+				employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd") : null);
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
 				employee.setGender(employeedto.getGender());

@@ -52,5 +52,12 @@ public class TeamsController {
 		ServiceResponse response = teamsService.getTeamMembersByTeamId(teamDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/updateTeam", method = RequestMethod.POST)
+	public ServiceResponse updateTeam(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.updateTeam(teamDTO);
+		return response;
+	}
 
 }

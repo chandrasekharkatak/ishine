@@ -19,12 +19,13 @@ public class TeamDTO {
 	private String teamLeadName;
 	private String teamMemberName;
 	private Integer projectId;
-	List<EmployeeTeamMap> allTeamMemberList;
+	private List<EmployeeTeamMap> allTeamMemberList;
 	private Long updatedBy;
 	private Long createdBy;
 	private String createdByName;
 	private String createdOn;
 	private Long employeeTeamMapId;
 	private Long empId;
+	private List<EmployeeTeamMap> updatedTeamMemberList;
 
 }
