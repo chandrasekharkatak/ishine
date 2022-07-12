@@ -82,7 +82,7 @@ public class TeamsController {
 	public ServiceResponse getAllTeamLeaveHistoryView(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	teamsService.getAllTeamLeaveHistoryView(leaveDTO);		
-		return response;
+		return response; 
 	}
 
 }
