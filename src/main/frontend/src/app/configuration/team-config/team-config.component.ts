@@ -22,7 +22,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 })
 export class TeamConfigComponent implements OnInit {
 
-  feature="Team";
+  feature="Team Config";
   currentUser:User;
   userMapping:any = {};
 

@@ -33,7 +33,7 @@ export class LeaveConfigComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
 
   //obj
-  feature="Leave";
+  feature="Leave Config";
   currentUser:User;
   userMapping:any = {};
   

@@ -41,7 +41,7 @@ export class RoleConfigComponent implements OnInit {
   isSubFeatureList:boolean = false;
 
 
-  feature="Role";
+  feature="Role Config";
   currentUser:User;
   userMapping:any = {};
 

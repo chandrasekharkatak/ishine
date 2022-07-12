@@ -34,7 +34,7 @@ export class DeptConfigComponent implements OnInit {
   allDeptList:any;
   hodList:any = [];
 
-  feature="Department";
+  feature="Department Config";
   currentUser:User;
   userMapping:any = {};
 

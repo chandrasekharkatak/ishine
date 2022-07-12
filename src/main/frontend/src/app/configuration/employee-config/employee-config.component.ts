@@ -19,7 +19,7 @@ import { PreviousEmployer } from 'src/app/models/previousEmployer';
 })
 export class EmployeeConfigComponent implements OnInit {
 
-  feature = 'Employee';
+  feature = 'Employee Config';
 
   //flags 
   isCreation:boolean = false;
