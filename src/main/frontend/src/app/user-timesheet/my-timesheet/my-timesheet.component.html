@@ -58,14 +58,9 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                                        <select class="form-control" aria-hidden="true">
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllActivitiesByProjectIdandEmpId(activityObj.projectId)">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option value="1">Option 1</option>
-                                            <option value="2">Option 2</option>
-                                            <option value="3">Option 3</option>
-                                            <option value="4">Option 4</option>
-                                            <option value="5">Option 5</option>
-                    
+                                            <option *ngFor="let project of allProjectsList" value="{{project.projectId}}">{{project.projectName}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -76,12 +71,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
                                         <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.activityId">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option value="1">Option 1</option>
-                                            <option value="2">Option 2</option>
-                                            <option value="3">Option 3</option>
-                                            <option value="4">Option 4</option>
-                                            <option value="5">Option 5</option>
-                    
+                                            <option *ngFor="let activity of allActivityList" value="{{activity.activityId}}">{{activity.activity}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -116,8 +106,8 @@
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-12">
-                        <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Create Timesheet</button>
-                        <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Timesheet</button>
+                        <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTimesheet(alert_message)">Create Timesheet</button>
+                        <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
                     </div>
                 </div>
             </div>
@@ -148,6 +138,15 @@
                   <tr>
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                   </tr>
+                  <tr *ngFor="let timesheet of allMyTimesheets; let i = index">
+                      <td>{{i+1}}</td>
+                      <td>{{timesheet.timesheetDetails}}</td>
+                      <td>{{timesheet.createdByName}}</td>
+                      <td>{{timesheet.createdOn}}</td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
+                    </td>
+                  </tr>
                 </tbody>
               </table> 
         </div>  
@@ -173,7 +172,7 @@
 <ng-template #update_timesheet_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the Timesheet?</p>
-        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onUpdateTimesheet(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

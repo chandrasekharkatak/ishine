@@ -7,7 +7,17 @@ export class Timesheet{
     timesheetDetails:any;
 
     createdOn: any;	
-	createdBy: any;	
+	createdBy: any;
+    createdByName : any;	
 	updatedOn: any;	
 	updatedBy: any;
+
+
+    projectId : any;
+	projectName : any;
+	projectManagerId : any;
+	managerId : any;
+	empId : any;
+	startDate : any;
+	endDate : any;
 }

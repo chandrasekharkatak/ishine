@@ -1,7 +1,10 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -22,11 +25,14 @@ export class TeamTimesheetComponent implements OnInit {
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
+  allTeamTimesheets:any[] = [];
+  allTeamTimesheetRequests:any[] = [];
 
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
+    private timesheetService : TimesheetService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -61,7 +67,20 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
+  getMyReporteesTimesheetRequests(projectId:any){
+    this.allTeamTimesheets = [];
 
+    let timesheetObj = new Timesheet();
+    timesheetObj.managerId = this.currentUser.empId;
+    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamTimesheets = response.serviceResponse;
+        console.log("allTeamTimesheets :", this.allTeamTimesheets);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
 
 

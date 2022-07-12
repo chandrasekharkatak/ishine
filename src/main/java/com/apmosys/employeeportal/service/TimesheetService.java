@@ -49,7 +49,8 @@ public class TimesheetService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			List<Project> projectList = projectRepository.findByEmpId(timesheetDTO.getEmpId());
+//			List<Project> projectList = projectRepository.findByEmpId(timesheetDTO.getEmpId());
+			List<Project> projectList = projectRepository.findAll();
 
 			if (projectList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
