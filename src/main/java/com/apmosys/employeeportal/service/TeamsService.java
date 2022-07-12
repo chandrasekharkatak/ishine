@@ -258,7 +258,7 @@ public class TeamsService {
 			List<EmployeeTeamMap> allTeamMemberList = teamDTO.getAllTeamMemberList();
 			List<EmployeeTeamMap> updatedTeamMemberList = teamDTO.getUpdatedTeamMemberList();
 
-			if (!updatedTeamMemberList.isEmpty() && allTeamMemberList.isEmpty()) {
+			if (!updatedTeamMemberList.isEmpty()) {
 				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
 
 				teamObject.ifPresentOrElse((teamFound) -> {

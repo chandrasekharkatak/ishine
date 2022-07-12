@@ -20,7 +20,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.projectId">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.projectId" [disabled]="isUpdation">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                             </select>
@@ -48,6 +48,34 @@
                         </div>
                     </div>
                 </div>
+            </div>
+             <!-- Update Existing Members -->
+            <div *ngIf="isUpdation && teamObj.allTeamMemberList[0]" class="container-fluid px-0">
+                <div class="row ml-1 mt-5">
+                    <h3>Existing Team Members</h3>
+                </div>
+                <div *ngFor="let teamMember of teamObj.allTeamMemberList; let i = index" class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <input type="text" class="form-control" autocomplete="none" disabled
+                                    [(ngModel)]="teamMember.teamMemberName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex">
+                        <div class="m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)"><i
+                                    class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Add New Team Members -->
+            <div class="row ml-1 mt-5">
+                <h3>Add Team Members</h3>
+            </div>
+            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -59,10 +87,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Add & Update Team Members -->
-            <div class="row ml-1 mt-5">
-                <h3>Team Members</h3>
             </div>
             <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
                 <div class="col-md-4 mb-0">
@@ -85,6 +109,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTeam(alert_message)">Create Team</button>
@@ -132,8 +157,8 @@
                         <th scope="col" class="info-label">{{i+1}}</th>
                         <td>{{team.teamName}}</td>
                         <td>{{team.teamLeadId}}</td>
-                        <td></td>
-                        <td></td>
+                        <td>{{team.createdByName}}</td>
+                        <td>{{team.createdOn}}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)"><em class="fa fa-edit"></em></button>&nbsp;
                             <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)"><em class="fa fa-trash"></em></button>

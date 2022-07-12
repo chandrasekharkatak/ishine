@@ -128,12 +128,12 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.teamObj = Object.assign({}, teamObj);
-    this.allTeamMembers = this.teamObj.allTeamMemberList;
+    this.teamObj.updatedTeamMemberList = [];
+    this.getTeamMembersByTeamId(this.teamObj.teamId);
     
-    if(!this.allTeamMembers){
-      this.allTeamMembers = [];
-      this.addInputTeamMemberField();
-    }
+    /* To Add New Members */
+    this.allTeamMembers = [];
+    this.addInputTeamMemberField();
   }
 
   showCreateActivityForm(){
@@ -187,7 +187,7 @@ export class TeamConfigComponent implements OnInit {
   // Manage team members
   addInputTeamMemberField() {
     let newTeamMemberObj = new TeamMember();
-    newTeamMemberObj.empId = '';
+    // newTeamMemberObj.empId = '';
     this.allTeamMembers.push(newTeamMemberObj);
   }
 
@@ -197,7 +197,10 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  validateteamObj(teamObj:Team, template: TemplateRef<any>){
+  
+
+  /* Team Configuration */
+  validateTeamObj(teamObj:Team, template: TemplateRef<any>){
 
     if(!this.validationService.validateNullUndefinedEmptyString(teamObj.teamName)){
       this.alertMessage = "Please enter Team Name !!"
@@ -213,13 +216,12 @@ export class TeamConfigComponent implements OnInit {
     return true;
   }
 
-  /* Team Configuration */
   onCreateTeam(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateteamObj(this.teamObj, template)
+    let inputValidated:boolean  = this.validateTeamObj(this.teamObj, template)
     if(!inputValidated) return;
     
     console.log("allTeamMembers :", this.allTeamMembers, this.allTeamMembers[0]);
-    this.teamObj.allTeamMemberList = (this.allTeamMembers[0]) ? this.allTeamMembers : null;
+    this.teamObj.allTeamMemberList = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
     this.teamObj.createdBy = this.currentUser.empId;
     console.log("create teamObj : ", this.teamObj);
     this.teamService.createTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
@@ -235,14 +237,45 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
+  removeTeamMember(teamMember) {
+    console.log("this.teamObj : ", this.teamObj);
+    console.log();
+    
+    
+    this.teamObj.allTeamMemberList?.forEach((value, index) => {
+      if (value == teamMember){
+        if(this.teamObj.updatedTeamMemberList[0]){
+          this.teamObj.updatedTeamMemberList.push(value);
+        }else{
+          this.teamObj.updatedTeamMemberList = [];
+          this.teamObj.updatedTeamMemberList.push(value);
+        }
+        this.teamObj.allTeamMemberList.splice(index, 1);
+      } 
+    });
+    console.log("Updated Team Members : ", this.teamObj.updatedTeamMemberList);
+    
+  }
+
   onUpdateTeam(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateteamObj(this.teamObj, template)
+    let inputValidated:boolean  = this.validateTeamObj(this.teamObj, template)
     if(!inputValidated) return;
     
-    this.teamObj.allTeamMemberList = (this.allTeamMembers[0]) ? this.allTeamMembers : null;
+    this.allTeamMembers = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
+
+    if(this.teamObj.updatedTeamMemberList[0]){
+      if(this.allTeamMembers){
+        this.teamObj.updatedTeamMemberList = this.teamObj.updatedTeamMemberList.concat(this.allTeamMembers);
+      }
+    }else{
+      if(this.allTeamMembers){
+        this.teamObj.updatedTeamMemberList = [];
+        this.teamObj.updatedTeamMemberList = this.teamObj.updatedTeamMemberList.concat(this.allTeamMembers);
+      }
+    }
+
     this.teamObj.updatedBy = this.currentUser.empId;
     console.log("update teamObj : ", this.teamObj);
-
     this.teamService.updateTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -285,6 +318,22 @@ export class TeamConfigComponent implements OnInit {
       }
     });
   }
+
+  getTeamMembersByTeamId(teamId:any){
+    this.teamObj.allTeamMemberList = [];
+
+    let teamObj = new Team();
+    teamObj.teamId = teamId;
+    this.teamService.getTeamMembersByTeamId(teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.teamObj.allTeamMemberList = response.serviceResponse;
+        console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
 
   // Project Details 
   getAllProjectListByProjectManagerId(){
@@ -369,11 +418,11 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)){
-      this.alertMessage = "Please enter Activity ETA (Hours)!!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)){
+    //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     
     return true;
   }
@@ -455,6 +504,10 @@ export class TeamConfigComponent implements OnInit {
 
 
   //modals
+  openUpdateConfimationModal(template: TemplateRef<any>, ){
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+ }
+
   openDeleteTeamMod(template: TemplateRef<any>, teamObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.teamObj = teamObj;
