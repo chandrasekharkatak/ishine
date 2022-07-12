@@ -259,8 +259,8 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.createdBy = this.currentUser.empId;
     this.leaveObj.managerId = this.currentUser.managerId; 
 
-    this.leaveObj.fromDate = this.datePipe.transform(this.leaveObj.fromDate, 'dd-MM-yyyy');
-    this.leaveObj.toDate = this.datePipe.transform(this.leaveObj.toDate, 'dd-MM-yyyy');
+    // this.leaveObj.fromDate = this.datePipe.transform(this.leaveObj.fromDate, 'dd-MM-yyyy');
+    // this.leaveObj.toDate = this.datePipe.transform(this.leaveObj.toDate, 'dd-MM-yyyy');
 
     console.log("Apply Leave : ", this.leaveObj);
     this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {

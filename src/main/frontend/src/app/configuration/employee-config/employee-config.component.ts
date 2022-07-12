@@ -11,6 +11,7 @@ import { Feature } from 'src/app/models/feature';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { certification } from 'src/app/models/certification';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
+import { DepartmentService } from 'src/app/services/department.service';
 
 @Component({
   selector: 'app-employee-config',
@@ -54,13 +55,15 @@ export class EmployeeConfigComponent implements OnInit {
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
-    private jobRoleService: JobRoleService,) { 
+    private jobRoleService: JobRoleService,
+    private departmentService: DepartmentService,) { 
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
  
   ngOnInit(): void {
     this.getAllEmployeeList(); //for manager dropdown 
     this.getAllJobRoleList();
+    this.getAllDepartmentList();
 
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -162,8 +165,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
 
     this.employeeObj = Object.assign({}, employee);
-    this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');
 
     this.getJobRolesByDept(this.employeeObj.departmentId);
   }
@@ -177,8 +180,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
     
     this.employeeObj = Object.assign({}, employee);
-    this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth, 'yyyy-MM-dd');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining, 'yyyy-MM-dd')
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth, 'yyyy-MM-dd');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining, 'yyyy-MM-dd')
   }
 
   // Manage employer
@@ -196,9 +199,9 @@ export class EmployeeConfigComponent implements OnInit {
   // Manage Certifications
   addInputCertificationField() {
     let newCertificationObj = new certification();
-    newCertificationObj.certificationId = "";
-    newCertificationObj.duration = "";
-    newCertificationObj.modeOfCourse = "";
+    // newCertificationObj.certificationId = "";
+    // newCertificationObj.duration = "";
+    // newCertificationObj.modeOfCourse = "";
 
     this.allCertificationList.push(newCertificationObj);
   }
@@ -462,12 +465,12 @@ export class EmployeeConfigComponent implements OnInit {
     if(!inputValidated) return;
    
     this.employeeObj.isDraft = false;
-    // transform date formats to dd-MM-yyyy
-    this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    // // transform date formats to dd-MM-yyyy
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
-    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
+    this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -488,12 +491,12 @@ export class EmployeeConfigComponent implements OnInit {
     if(!inputValidated) return;
     
     this.employeeObj.isDraft = false;
-    // transform date formats to dd-MM-yyyy
-    this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy');
+    // // transform date formats to dd-MM-yyyy
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy');
 
-    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
-    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
+    this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
     this.employeeService.updateEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -544,12 +547,12 @@ export class EmployeeConfigComponent implements OnInit {
   /* Employee Draft */
   onSaveDraftEmployee(template: TemplateRef<any>){
     this.employeeObj.isDraft = true;
-    // transform date formats to dd-MM-yyyy
-    this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    // // transform date formats to dd-MM-yyyy
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
-    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
+    this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe Draft : ", this.employeeObj);
     this.employeeService.createDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -564,12 +567,12 @@ export class EmployeeConfigComponent implements OnInit {
 
   onUpdateDraftEmployee(template:TemplateRef<any>){
     this.employeeObj.isDraft = true;
-    // transform date formats to dd-MM-yyyy
-    this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    // // transform date formats to dd-MM-yyyy
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
 
-    this.employeeObj.certifications = (this.allCertificationList[0]) ? this.allCertificationList : null;
-    this.employeeObj.previousEmploymentList = (this.allPreviousEmployment[0]) ? this.allPreviousEmployment : null;
+    this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.updatedBy = this.currentUser.empId;
     console.log("Update Employe Draft : ", this.employeeObj);
     this.employeeService.updateDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -611,17 +614,24 @@ export class EmployeeConfigComponent implements OnInit {
   // Job Role
   getAllJobRoleList(){
     this.allJobRoleList = [];
-    this.allDeptList = [];
 
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
-        this.allDeptList = Array.from(new Set(this.allJobRoleList.map(jobRole => {
-          return {departmentId: jobRole.departmentId,departmentName: jobRole.departmentName}
-          })));
         console.log("allJobRoleList : ", this.allJobRoleList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllDepartmentList(){
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
         console.log("allDeptList : ", this.allDeptList);
-        
       } else {
         console.error(response.serviceResponse)
       }
