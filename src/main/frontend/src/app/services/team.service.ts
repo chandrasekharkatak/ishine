@@ -29,6 +29,10 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamsByProjectId`, teamObj);
   }
 
+  getTeamMembersByTeamId(teamObj: Team) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getTeamMembersByTeamId`, teamObj);
+  }
+
 
   // Activity Configuration
   createActivity(activityObj: Activity) {

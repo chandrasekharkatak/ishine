@@ -399,7 +399,7 @@
                                             <label class="info-label"><span class="text-danger">*</span>Department</label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId)">
                                                 <option selected="selected" value="" >Select</option>
-                                                <option *ngFor="let dept of allDeptList" value="{{dept.departmentId}}">{{dept.departmentName}}</option>
+                                                <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                                             </select>
                                         </div>
                                     </div>

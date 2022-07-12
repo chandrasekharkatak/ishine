@@ -1,9 +1,11 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -31,11 +33,16 @@ export class MyTimesheetComponent implements OnInit {
   //Obj
   timesheetObj:Timesheet = new Timesheet();
   allTimesheetActivities:any[] = []
+  allProjectsList:any[] = [];
+  allActivityList:any[] = [];
+  allMyTimesheets:any[] = [];
+  timesheetActivities:any[] = [];
 
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
+    private timesheetService : TimesheetService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -64,6 +71,7 @@ export class MyTimesheetComponent implements OnInit {
     this.isUpdation = false;
 
     this.reset();
+    this.getAllProjectsByEmpId();
   }
 
   showViewMyTimesheets(){
@@ -73,14 +81,17 @@ export class MyTimesheetComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
 
+    this.getAllMyTimesheetsByEmpId()
   }
 
-  showUpdateTimesheetForm(){
+  showUpdateTimesheetForm(timesheetObj:Timesheet){
     this.isTimesheetForm = true;
     this.isUpdation = true;
     
     this.isTimesheetTable = false;
     this.isCreation = false;
+
+    this.timesheetObj = Object.assign({}, timesheetObj);
   }
 
   reset(){
@@ -95,12 +106,165 @@ export class MyTimesheetComponent implements OnInit {
   // Manage Activity
   addInputActivityField() {
     let newActivityObj = new Activity();
+    newActivityObj.projectId = '';
+    newActivityObj.activityId = '';
     this.allTimesheetActivities.push(newActivityObj);
   }
 
   removeInputActivityField(activityObj) {
     this.allTimesheetActivities.forEach((value, index) => {
       if (value == activityObj) this.allTimesheetActivities.splice(index, 1);
+    });
+  }
+
+  /* Timesheet */
+  validateTimesheetObj(timesheetObj:Timesheet, template: TemplateRef<any>){
+
+    if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)){
+      this.alertMessage = "Please enter Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)){
+      this.alertMessage = "Please select Day Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(timesheetObj.dayType != 'Holiday'){
+      let flag = false; 
+      this.allTimesheetActivities.forEach(activity => {
+        if(!this.validationService.validateNullUndefinedEmptyString(activity.projectId)){
+          this.alertMessage = "Please select Project !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(activity.activityId)){
+          this.alertMessage = "Please select Activity !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(activity.description)){
+          this.alertMessage = "Please enter Activity Description !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if(!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)){
+          this.alertMessage = "Please enter Activity Completion Time !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      });
+    }else{
+      if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.description)){
+        this.alertMessage = "Please enter Timesheet Description !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  onCreateTimesheet(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
+    if(!inputValidated) return;
+    
+    console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
+    this.timesheetObj.allTimesheetActivities = (this.allTimesheetActivities[0]) ? this.allTimesheetActivities : null;
+    this.timesheetObj.createdBy = this.currentUser.empId;
+    console.log("Add timesheetObj : ", this.timesheetObj);
+    this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+
+    });
+  }
+
+  onUpdateTimesheet(template: TemplateRef<any>){
+    let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
+    if(!inputValidated) return;
+    
+    console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
+    this.timesheetObj.allTimesheetActivities = (this.allTimesheetActivities[0]) ? this.allTimesheetActivities : null;
+    this.timesheetObj.createdBy = this.currentUser.empId;
+    console.log("Update timesheetObj : ", this.timesheetObj);
+    // this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   } else {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   }
+    // });
+  }
+
+
+  getAllProjectsByEmpId(){
+    this.allProjectsList = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.empId = this.currentUser.empId;
+    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjectsList = response.serviceResponse;
+        console.log("allProjectsList :", this.allProjectsList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllActivitiesByProjectIdandEmpId(projectId:any){
+    this.allActivityList = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.empId = this.currentUser.empId;
+    timesheetObj.projectId = projectId;
+    this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allActivityList = response.serviceResponse;
+        console.log("allActivityList :", this.allActivityList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+
+  /* View Timesheets */
+  getAllMyTimesheetsByEmpId(){
+    this.allMyTimesheets = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.empId = this.currentUser.empId;
+    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allMyTimesheets = response.serviceResponse;
+        console.log("allMyTimesheets :", this.allMyTimesheets);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllMyActivitiesByTimesheetId(timesheetId:any){
+    this.timesheetActivities = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.timesheetId = timesheetId;
+    this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetActivities = response.serviceResponse;
+        console.log("timesheetActivities :", this.timesheetActivities);
+      } else {
+        console.error(response.serviceResponse)
+      }
     });
   }
 
@@ -114,10 +278,11 @@ export class MyTimesheetComponent implements OnInit {
 
 
 
-
-
-
   //modals
+  openUpdateConfimationModal(template: TemplateRef<any>, ){
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+ }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;

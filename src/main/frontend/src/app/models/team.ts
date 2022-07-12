@@ -6,6 +6,7 @@ export class Team{
     teamLeadId:any;
     projectManagerId:any;
     allTeamMemberList:any;
+    updatedTeamMemberList:any;
 
     departmentList:any;
 
