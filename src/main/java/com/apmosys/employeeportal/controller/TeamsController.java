@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.TeamsService;
@@ -57,6 +59,29 @@ public class TeamsController {
 	public ServiceResponse updateTeam(@RequestBody TeamDTO teamDTO) {
 
 		ServiceResponse response = teamsService.updateTeam(teamDTO);
+		return response;
+	}
+	
+//	MyTeam Contoller
+	
+	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)
+	public ServiceResponse getAllTeamView(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response =	teamsService.getAllTeamView(employeedto);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getAllTeamMemberView" , method = RequestMethod.POST)
+	public ServiceResponse getAllTeamMemberView(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response =	teamsService.getAllTeamMemberView(employeedto);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getAllTeamLeaveHistoryView" , method = RequestMethod.POST)
+	public ServiceResponse getAllTeamLeaveHistoryView(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getAllTeamLeaveHistoryView(leaveDTO);		
 		return response;
 	}
 

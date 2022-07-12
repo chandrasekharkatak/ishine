@@ -1,0 +1,25 @@
+<div class="table-header">
+  <h1 class="table-header-title">My Team Member</h1>
+</div>
+<div class="row col-md-12">
+    <table class="table team-table">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" class="info-label">Sr No.</th>
+          <th scope="col" class="info-label">Employee Id</th>
+          <th scope="col" class="info-label">Name</th>
+          <th scope="col" class="info-label">Email</th>
+          <th scope="col" class="info-label">Designation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let viewTeamMember of viewTeamMemberList; let i = index">
+          <td>{{i+1}}</td>
+          <td>{{viewTeamMember.empId}}</td>
+          <td>{{viewTeamMember.name}}</td>
+          <td>{{viewTeamMember.email}}</td>
+          <td>{{viewTeamMember.jobRoleName}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div> 

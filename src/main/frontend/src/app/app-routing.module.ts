@@ -20,6 +20,8 @@ import { UserPerformanceComponent } from './user-performance/user-performance.co
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserRequestsComponent } from './user-requests/user-requests.component';
 import { UserSalaryComponent } from './user-salary/user-salary.component';
+import { MyTeamComponent } from './user-team/my-team/my-team.component';
+import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { UserTeamComponent } from './user-team/user-team.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
@@ -52,7 +54,12 @@ const routes: Routes = [
     { path: 'team-timesheet', component: TeamTimesheetComponent, },
   ]
   },
-  {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard]},
+  {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
+  children: [
+    { path: 'my-team', component: MyTeamComponent, },
+    { path: 'team-member', component: TeamMemberComponent, }
+  ]
+  },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},

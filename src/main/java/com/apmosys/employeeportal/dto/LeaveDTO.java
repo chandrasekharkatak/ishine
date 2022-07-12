@@ -46,5 +46,6 @@ public class LeaveDTO {
 	private String employmentStatus;
 	private String defaultPolicy;
 	private List<LeavePolicyLeaveTypeMap> leaveTypeList;
+	
 
 }

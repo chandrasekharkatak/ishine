@@ -41,6 +41,8 @@ import { UserTimesheetComponent } from './user-timesheet/user-timesheet.componen
 import { TeamConfigComponent } from './configuration/team-config/team-config.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
+import { MyTeamComponent } from './user-team/my-team/my-team.component';
+import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 
 @NgModule({
   declarations: [
@@ -71,6 +73,8 @@ import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-tim
     TeamConfigComponent,
     MyTimesheetComponent,
     TeamTimesheetComponent,
+    MyTeamComponent,
+    TeamMemberComponent,
   ],
   imports: [
     BrowserModule,

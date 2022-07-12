@@ -13,12 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -32,6 +35,12 @@ public class TeamsService {
 
 	@Autowired
 	TeamRepository teamRepository;
+	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
@@ -322,6 +331,110 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team not found.");
 				});
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+//	MyTeam Servcie
+	
+	public ServiceResponse getAllTeamView(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found");
+			} else {
+
+				list.forEach((object) -> {
+					EmployeeDTO dto = new EmployeeDTO();
+					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
+					dto.setName(object[1] != null ? object[1].toString(): null);
+					dto.setEmail(object[2] != null ? object[2].toString(): null);
+					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllTeamMemberView(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getManagerId());
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found");
+			} else {
+
+				list.forEach((object) -> {
+					EmployeeDTO dto = new EmployeeDTO();
+					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
+					dto.setName(object[1] != null ? object[1].toString(): null);
+					dto.setEmail(object[2] != null ? object[2].toString(): null);
+					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
+					dtoList.add(dto);
+					
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllTeamLeaveHistoryView(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams leave history found");
+			} else {
+
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
+					dto.setFromDate(object[1] != null ? object[1].toString() : null);
+					dto.setToDate(object[2] != null ? object[2].toString() : null);
+					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setReason(object[6] != null ? object[6].toString() : null);
+					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+					dtoList.add(dto);					
+					});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
 			}
 
 		} catch (Exception e) {
