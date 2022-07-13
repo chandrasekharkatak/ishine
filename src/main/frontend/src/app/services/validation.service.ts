@@ -148,4 +148,20 @@ export class ValidationService {
 
   }
 
+  validateAadharCardNumber(text: string): boolean {
+    const regex = /^\d{12}$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
 }
