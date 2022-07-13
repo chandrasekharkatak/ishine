@@ -123,7 +123,7 @@ public class TimesheetService {
 			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 			Timesheet newTimesheet = new Timesheet();
 
-			newTimesheet.setEmpId(timesheetDTO.getEmpId());
+			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(),"yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
@@ -250,8 +250,10 @@ public class TimesheetService {
 						dto.setCompletionTime(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
 						dto.setProjectName(object[5] != null ? object[5].toString() : null);
 						dto.setClientName(object[6] != null ? object[6].toString() : null);
-						dto.setClientLocation(object[6] != null ? object[6].toString() : null);
-						dto.setTeamName(object[7] != null ? object[7].toString() : null);
+						dto.setClientLocation(object[7] != null ? object[7].toString() : null);
+						dto.setTeamName(object[8] != null ? object[8].toString() : null);
+						dto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dto.setProjectId(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
 
 						dtoList.add(dto);
 					});

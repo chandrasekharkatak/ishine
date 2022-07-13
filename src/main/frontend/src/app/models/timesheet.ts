@@ -4,7 +4,7 @@ export class Timesheet{
     dayType:any;
     description:any;
     allTimesheetActivities:any;
-    timesheetDetails:any;
+    updatedTimesheetActivities:any;
 
     createdOn: any;	
 	createdBy: any;
