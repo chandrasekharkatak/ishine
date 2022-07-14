@@ -24,9 +24,19 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <tr *ngIf="allTeamTimesheets.length == 0">
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
+                  <tr *ngFor="let timesheet of allTeamTimesheets; let i = index">
+                    <td>{{i+1}}</td>
+                    <td>{{timesheet.date}}</td>
+                    <td>{{timesheet.dayType}}</td>
+                    <td colspan="4" [innerHTML]="timesheet.description"></td>
+                    <td>{{timesheet.status}}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                    </td>
+                </tr>
                 </tbody>
               </table> 
         </div>  
@@ -53,9 +63,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="allTeamTimesheetRequests.length == 0">
-                    <th colspan="9" class="text-center info-label">No details to display...</th>
-                  </tr>
                   <tr *ngFor="let timesheet of allTeamTimesheetRequests; let i = index">
                     <td>{{i+1}}</td>
                     <td>{{timesheet.date}}</td>
@@ -63,11 +70,16 @@
                     <td colspan="4" [innerHTML]="timesheet.description"></td>
                     <td>{{timesheet.status}}</td>
                     <td>
-                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                      <button class="btn btn-sm btn-outline-success" type="submit" title="Approve" (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em class="fa-solid fa-check"></em></button>&nbsp;
-                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em class="fa-solid fa-xmark"></em></button>
+                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                        (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                      <button class="btn btn-sm btn-outline-success" type="submit" title="Approve"
+                        (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                          class="fa-solid fa-check"></em></button>&nbsp;
+                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                        (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
+                          class="fa-solid fa-xmark"></em></button>
                     </td>
-                </tr>
+                  </tr>
                 </tbody>
               </table> 
         </div>  

@@ -59,6 +59,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.isAllTimesheetTable = true;
 
     this.isAllTimesheetRequestTable = false;
+    this.getAllTeamTimesheets();
   }
 
   showAllTimesheetRequestsTable(){
@@ -70,15 +71,15 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   getAllTeamTimesheets(){
-    this.allTeamTimesheetRequests = [];
+    this.allTeamTimesheets = [];
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.status = "Approved";
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allTeamTimesheetRequests = response.serviceResponse;
-        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+        this.allTeamTimesheets = response.serviceResponse;
+        console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
