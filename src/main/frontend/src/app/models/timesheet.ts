@@ -20,4 +20,5 @@ export class Timesheet{
 	empId : any;
 	startDate : any;
 	endDate : any;
+    status:any;
 }

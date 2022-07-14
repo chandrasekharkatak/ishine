@@ -249,13 +249,16 @@ export class MyTimesheetComponent implements OnInit {
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Update timesheetObj : ", this.timesheetObj);
-    // this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   } else {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   }
-    // });
+    this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewMyTimesheets();
+        this.startDate = this.endDate = this.timesheetObj.date;
+        this.getAllMyTimesheetsByEmpId();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
 
@@ -298,16 +301,20 @@ export class MyTimesheetComponent implements OnInit {
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>){
     this.allMyTimesheets = [];
 
-    if(!this.validationService.validateNullUndefinedEmptyString(this.startDate)){
-      this.alertMessage = "Please enter Start Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(this.endDate)){
-      this.alertMessage = "Please enter End Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(this.endDate){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.startDate)){
+        this.alertMessage = "Please enter Start Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(this.endDate)){
+        this.alertMessage = "Please enter End Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else{
+      return;
     }
 
     let timesheetObj = new Timesheet();

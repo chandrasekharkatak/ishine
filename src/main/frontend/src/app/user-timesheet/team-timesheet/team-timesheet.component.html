@@ -16,15 +16,16 @@
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Date</th>
+                    <th scope="col" class="info-label">Day Type</th>
                     <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" class="info-label">Created by</th>
-                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                    <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                 </tbody>
               </table> 
@@ -40,20 +41,33 @@
             <h1 class="table-header-title">All Timesheets Requests</h1>
         </div>
         <div class="row">
-            <table class="table teams-table">
+            <table class="table teams-request-table">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Date</th>
+                    <th scope="col" class="info-label">Day Type</th>
                     <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" class="info-label">Created by</th>
-                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                  <tr *ngIf="allTeamTimesheetRequests.length == 0">
+                    <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
+                  <tr *ngFor="let timesheet of allTeamTimesheetRequests; let i = index">
+                    <td>{{i+1}}</td>
+                    <td>{{timesheet.date}}</td>
+                    <td>{{timesheet.dayType}}</td>
+                    <td colspan="4" [innerHTML]="timesheet.description"></td>
+                    <td>{{timesheet.status}}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                      <button class="btn btn-sm btn-outline-success" type="submit" title="Approve" (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em class="fa-solid fa-check"></em></button>&nbsp;
+                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em class="fa-solid fa-xmark"></em></button>
+                    </td>
+                </tr>
                 </tbody>
               </table> 
         </div>  
@@ -76,4 +90,55 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #timesheet_details>
+  <div class="modal-header">
+    <h5 class="modal-title">Timesheet Details</h5>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-2 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label">Date</label>
+            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label">Day Type</label>
+            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row px-3">
+      <table class="table timesheet-details-table">
+          <thead class="thead-light">
+            <tr>
+              <th scope="col" class="info-label">Sr No.</th>
+              <th scope="col" class="info-label">Project Name</th>
+              <th scope="col" class="info-label">Activity</th>
+              <th scope="col" colspan="4" class="info-label">Description</th>
+              <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
+              <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr *ngFor="let activity of timesheetObj.allTimesheetActivities; let i = index">
+              <td>{{i+1}}</td>
+              <td>{{activity.projectName}}</td>
+              <td>{{activity.activity}}</td>
+              <td colspan="4">{{activity.description}}</td>
+              <td>{{activity.completionTime}}</td>
+            </tr>
+          </tbody>
+      </table> 
+    </div>
+  </div>
 </ng-template>
