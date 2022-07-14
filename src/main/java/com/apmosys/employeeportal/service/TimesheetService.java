@@ -75,6 +75,8 @@ public class TimesheetService {
 	}
 
 	public ServiceResponse getAllActivitiesByProjectIdandEmpId(TimesheetDTO timesheetDTO) {
+
+		System.out.println(timesheetDTO);
 		ServiceResponse response = new ServiceResponse();
 		try {
 
@@ -124,7 +126,7 @@ public class TimesheetService {
 			Timesheet newTimesheet = new Timesheet();
 
 			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
-			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(),"yyyy-MM-dd"));
+			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
@@ -254,7 +256,7 @@ public class TimesheetService {
 						dto.setTeamName(object[8] != null ? object[8].toString() : null);
 						dto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setProjectId(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-
+						dto.setTimesheetActivityMapId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 						dtoList.add(dto);
 					});
 
@@ -348,6 +350,89 @@ public class TimesheetService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet not found");
 			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse updateTimesheet(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Timesheet> timesheet = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
+
+			if (timesheet.isPresent()) {
+
+				Timesheet existingTimesheet = timesheet.get();
+
+				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
+				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+
+				if (timesheetDTO.getDayType().equals("Holiday")) {
+					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
+					existingTimesheet.setDescription(timesheetDTO.getDescription());
+					existingTimesheet.setDayType(timesheetDTO.getDayType());
+
+				} else {
+					existingTimesheet.setDayType(timesheetDTO.getDayType());
+
+					List<ActivityDTO> updatedTimesheetActivities = timesheetDTO.getUpdatedTimesheetActivities();
+
+					String description = "";
+					if (updatedTimesheetActivities.isEmpty()) {
+						description = "No activity available in timesheet";
+					} else {
+						for (ActivityDTO activity : updatedTimesheetActivities) {
+
+							if (activity.getTimesheetId() == null) {
+								description = description.concat(activity.getActivity() + "<br>");
+							}
+
+						}
+					}
+					existingTimesheet.setDescription(description);
+
+
+					timesheetDTO.getUpdatedTimesheetActivities().stream()
+							.filter(activities -> activities.getTimesheetId() == null).forEach((activity) -> {
+
+								TimesheetActivityMap map = new TimesheetActivityMap();
+								map.setActivityId(activity.getActivityId());
+								map.setCompletionTime(activity.getCompletionTime());
+								map.setDescription(activity.getDescription());
+								map.setTimesheetId(timesheetDTO.getTimesheetId());
+								timesheetActivityMapRepository.save(map);
+
+							});
+					timesheetDTO.getUpdatedTimesheetActivities().stream()
+					.filter(activities -> activities.getTimesheetId() != null).forEach((activity) -> {
+						
+						timesheetActivityMapRepository.deleteByTimesheetId(activity.getTimesheetId());
+
+					});					
+
+				}
+
+				Timesheet updatedTimesheet = timesheetsRepository.save(existingTimesheet);
+
+				if (updatedTimesheet.getTimesheetId() != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Timesheet updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Timesheet updation failed.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet not found.");
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -66,6 +66,12 @@ public class TimesheetController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST)
+	public ServiceResponse updateTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO);
+		return response;
+	}
 	
 	
 	
