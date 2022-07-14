@@ -256,7 +256,8 @@ public class TimesheetService {
 						dto.setTeamName(object[8] != null ? object[8].toString() : null);
 						dto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setProjectId(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-						dto.setTimesheetActivityMapId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+						dto.setTimesheetActivityMapId(
+								object[11] != null ? Long.parseLong(object[11].toString()) : null);
 						dtoList.add(dto);
 					});
 
@@ -382,7 +383,7 @@ public class TimesheetService {
 				} else {
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
 
-					List<ActivityDTO> updatedTimesheetActivities = timesheetDTO.getUpdatedTimesheetActivities();
+					List<ActivityDTO> updatedTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 
 					String description = "";
 					if (updatedTimesheetActivities.isEmpty()) {
@@ -390,17 +391,16 @@ public class TimesheetService {
 					} else {
 						for (ActivityDTO activity : updatedTimesheetActivities) {
 
-							if (activity.getTimesheetId() == null) {
-								description = description.concat(activity.getActivity() + "<br>");
-							}
+							description = description.concat(activity.getActivity() + "<br>");
 
 						}
 					}
+
 					existingTimesheet.setDescription(description);
 
-
 					timesheetDTO.getUpdatedTimesheetActivities().stream()
-							.filter(activities -> activities.getTimesheetId() == null).forEach((activity) -> {
+							.filter(activities -> activities.getTimesheetActivityMapId() == null)
+							.forEach((activity) -> {
 
 								TimesheetActivityMap map = new TimesheetActivityMap();
 								map.setActivityId(activity.getActivityId());
@@ -411,11 +411,12 @@ public class TimesheetService {
 
 							});
 					timesheetDTO.getUpdatedTimesheetActivities().stream()
-					.filter(activities -> activities.getTimesheetId() != null).forEach((activity) -> {
-						
-						timesheetActivityMapRepository.deleteByTimesheetId(activity.getTimesheetId());
+							.filter(activities -> activities.getTimesheetActivityMapId() != null)
+							.forEach((activity) -> {
 
-					});					
+								timesheetActivityMapRepository.deleteById(activity.getTimesheetActivityMapId());
+
+							});
 
 				}
 
