@@ -10,8 +10,8 @@ import com.apmosys.employeeportal.model.Employee;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long>{
-
-	public Employee findByEmailAndPassword(String email,String password);
+	
+	public Employee findByEmail(String email);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByEmpId(Long empId);

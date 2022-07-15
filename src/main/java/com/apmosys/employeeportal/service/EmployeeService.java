@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -122,7 +123,7 @@ public class EmployeeService {
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setJobRoleId(employeedto.getJobRoleId());
-			employee.setPassword(defaultPaswword);
+			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
 			employee.setExperience(employeedto.getExperience());
 			employee.setRole(employeedto.getRole());
