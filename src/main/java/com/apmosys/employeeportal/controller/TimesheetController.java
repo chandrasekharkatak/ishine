@@ -73,6 +73,12 @@ public class TimesheetController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getMyReporteesApprovedTimesheets", method = RequestMethod.POST)
+	public ServiceResponse getMyReporteesApprovedTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getMyReporteesApprovedTimesheets(timesheetDTO);
+		return response;
+	}	
 	
 	
 	
