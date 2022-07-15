@@ -62,6 +62,7 @@ export class EmployeeConfigComponent implements OnInit {
  
   ngOnInit(): void {
     this.getAllEmployeeList(); //for manager dropdown 
+    this.getManagerList(); //for manager dropdown
     this.getAllJobRoleList();
     this.getAllDepartmentList();
 
@@ -413,6 +414,18 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.role)){
+      this.alertMessage = "Please select employee Role !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)){
+      this.alertMessage = "Please select experience !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if(this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)){
       this.alertMessage = "Please enter Valid Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
@@ -529,7 +542,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         console.log("allEmployeeList : ", this.allEmployeeList)
-        this.createEmployeeList(this.allEmployeeList)
+       // this.createEmployeeList(this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
@@ -542,6 +555,23 @@ export class EmployeeConfigComponent implements OnInit {
       return emp;
     });
     console.log("managerList : ", this.managerList);
+  }
+
+  // For Manager List
+  getManagerList(){
+    this.managerList = [];
+    let employeeList = [];
+
+    this.employeeService.getAllEmployeesByRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        employeeList = response.serviceResponse;
+        console.log("employeeList By Role : ", employeeList)
+        this.managerList = employeeList.filter(emp => emp.role == "Manager");
+        console.log("managerList : ", this.managerList)
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
 
   /* Employee Draft */
