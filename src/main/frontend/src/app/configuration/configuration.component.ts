@@ -51,6 +51,7 @@ export class ConfigurationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   ngAfterViewInit(): void {
     this.setActiveTab();
+    // setTimeout(this.setActiveTab,2000)
   }
 
   ngOnDestroy(): void {

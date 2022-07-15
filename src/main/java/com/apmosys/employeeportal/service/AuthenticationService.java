@@ -8,6 +8,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -34,8 +35,19 @@ public class AuthenticationService {
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Employee employee = employeeRepository.findByEmailAndPassword(employeedto.getEmail(),
-					employeedto.getPassword());
+		
+			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+			
+			if(employee!=null) {
+				String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
+				String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
+				
+				if(dbPassword == orignalPassword) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("login successful");
+				}
+				
+			}
 
 			if (employee == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);

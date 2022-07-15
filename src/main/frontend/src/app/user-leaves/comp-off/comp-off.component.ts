@@ -183,8 +183,8 @@ export class CompOffComponent implements OnInit {
       let inputValidated:boolean  = this.validateLeavetObj(this.compOffObj, template)
       if(!inputValidated) return;
 
-      const COMP_OFF_MASTER_ID  = 5;
-      this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
+      // const COMP_OFF_MASTER_ID  = 5;
+      // this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
 
       // this.compOffObj.fromDate = this.datePipe.transform(this.compOffObj.fromDate, 'dd-MM-yyyy');
       // this.compOffObj.toDate = this.datePipe.transform(this.compOffObj.toDate, 'dd-MM-yyyy');

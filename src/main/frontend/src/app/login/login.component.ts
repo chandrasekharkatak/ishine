@@ -10,6 +10,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { SubfeatureService } from '../services/subfeature.service';
 import { ValidationService } from '../services/validation.service';
+import * as CryptoJS from 'crypto-js';
 
 @Component({
   selector: 'app-login',
@@ -113,6 +114,21 @@ export class LoginComponent implements OnInit {
     this.fieldTextTypePassword = false;
   }
 
+  setEncryption(keys,value){
+
+    var key = CryptoJS.enc.Utf8.parse(keys);
+    var iv = CryptoJS.enc.Utf8.parse(keys);
+
+    var encrypted = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(value.toString()), key,
+    {
+        keySize: 128 / 8,
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+
+    return encrypted.toString();
+  }
 
   onLogin(){
     this.isError=false;
@@ -135,7 +151,8 @@ export class LoginComponent implements OnInit {
     }
 
     this.user.email = this.userName;
-    this.user.password = this.password;
+    this.user.password = this.setEncryption("PkdtRsJidheGitvS",this.password);
+    // this.user.password = this.password;
 
     this.authenticationService.authenticateUser(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
