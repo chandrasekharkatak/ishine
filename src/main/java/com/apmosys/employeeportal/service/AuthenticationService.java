@@ -36,7 +36,7 @@ public class AuthenticationService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+			Employee employee = employeeRepository.findByEmail(employeedto.getEmail()); 
 			
 			if(employee!=null) {
 				String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
