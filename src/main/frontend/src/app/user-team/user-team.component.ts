@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Feature } from '../models/feature';
+import { User } from '../models/user';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-user-team',
@@ -8,13 +11,32 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class UserTeamComponent implements OnInit {
 
+  tabName:any = 'My Team';
+  currentUser:User;
+  userMapping:any = {};
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-  ) { }
+    private authenticationService: AuthenticationService,
+  ) { 
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   ngOnInit(): void {
+    console.log("this.currentUser : ", this.currentUser);
+    console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
+    
+
+    // Dynamic feature Flags 
+    let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
+    featureMap?.forEach(feat => {
+      let inActiveSubfeatures = feat.subFeatures.filter(sub => {
+        if(sub.isActive === false)return sub;
+      });
+      this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
+    });
+    console.log(this.tabName, this.userMapping);
   }
 
   ngAfterViewInit(): void {

@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Feature } from 'src/app/models/feature';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -42,11 +43,11 @@ export class TeamTimesheetComponent implements OnInit {
   ngOnInit(): void {
 
     // Dynamic Subfeature Flags 
-    // let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    // featureMap.subFeatures?.forEach(sub => {
-    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    // });
-    // console.log(this.feature, this.userMapping);
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
   }

@@ -1,9 +1,9 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamForm" (click)="showCreateTeamForm()">Add New Team</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamTable" (click)="showViewTeams()">View Teams</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isActivityForm" (click)="showCreateActivityForm()">Add New Activity</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isActivityTable" (click)="showViewActivities()">View Activities</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamForm && userMapping.add_team" (click)="showCreateTeamForm()">Add New Team</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isTeamTable && (userMapping.view_teams || userMapping.update_team || userMapping.delete_team))" (click)="showViewTeams()">View Teams</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isActivityForm && userMapping.add_activity" (click)="showCreateActivityForm()">Add New Activity</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isActivityTable && (userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity))" (click)="showViewActivities()">View Activities</button>
     </div>
 </div>
 
@@ -112,8 +112,8 @@
 
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTeam(alert_message)">Create Team</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)">Update Team</button>
+                    <button *ngIf="isCreation && userMapping.add_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTeam(alert_message)">Create Team</button>
+                    <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)">Update Team</button>
                 </div>
             </div>
         </div>
@@ -160,8 +160,8 @@
                         <td>{{team.createdByName}}</td>
                         <td>{{team.createdOn}}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)"><em class="fa fa-edit"></em></button>&nbsp;
-                            <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)"><em class="fa fa-trash"></em></button>
+                            <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)"><em class="fa fa-edit"></em></button>&nbsp;
+                            <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)"><em class="fa fa-trash"></em></button>
                         </td>
                     </tr>
                     <tr *ngIf="allTeamList.length == 0" >
@@ -227,8 +227,8 @@
             </div> 
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateActivity(alert_message)">Create Activity</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateActivity(alert_message)">Update Activity</button>
+                    <button *ngIf="isCreation && userMapping.add_activity" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateActivity(alert_message)">Create Activity</button>
+                    <button *ngIf="isUpdation && userMapping.update_activity" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateActivity(alert_message)">Update Activity</button>
                 </div>
             </div>
     </div>
@@ -286,8 +286,8 @@
                     <td>{{activity.createdByName}}</td>
                     <td>{{activity.createdOn}}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button>
+                        <button *ngIf="userMapping.update_activity" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
+                        <button *ngIf="userMapping.delete_activity" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button>
                     </td>
                   </tr>
                   <tr *ngIf="allActivityList.length == 0">

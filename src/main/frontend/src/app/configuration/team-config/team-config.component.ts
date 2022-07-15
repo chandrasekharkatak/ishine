@@ -77,11 +77,11 @@ export class TeamConfigComponent implements OnInit {
   ngOnInit(): void {
 
     // Dynamic Subfeature Flags 
-    // let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    // featureMap.subFeatures?.forEach(sub => {
-    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    // });
-    // console.log(this.feature, this.userMapping);
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.getAllDepartmentList();
@@ -90,7 +90,15 @@ export class TeamConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showCreateTeamForm();
+    if(this.userMapping.add_team){
+      this.showCreateTeamForm();
+    }else if( this.userMapping.view_teams || this.userMapping.update_team || this.userMapping.delete_team){
+      this.showViewTeams();
+    }else if( this.userMapping.add_activity){
+      this.showCreateActivityForm();
+    }else if( this.userMapping.view_activities || this.userMapping.update_activity || this.userMapping.delete_activity){
+      this.showViewActivities();
+    }
   }
 
   showCreateTeamForm(){

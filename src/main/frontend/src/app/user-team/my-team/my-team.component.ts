@@ -6,6 +6,8 @@ import { Leave } from 'src/app/models/leave';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { User } from 'src/app/models/user';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-my-team',
@@ -14,35 +16,45 @@ import { LeaveService } from 'src/app/services/leave.service';
 })
 export class MyTeamComponent implements OnInit {
 
+  feature="My Team";
+  currentUser:User;
+  userMapping:any = {};
+
+  // modal
   alertMessage:any
   modalRef: BsModalRef = new BsModalRef();
 
-  currentUser:any;
-  employeeObj:Employee = new Employee();
-
-  teamViewList:any[] = [];
-  teamViewLeaveHistoryList:any[] = [];
-  
-
-  leaveApplicationList:any[] = [];
-  allCompOffApplications:any[] = [];
-
-
+  // flags
   isViewTeam: boolean = true;
   isTeamLeaveHistory: boolean = false;
   isTeamRequest: boolean = false;
-
   isLeaveRequest: boolean = true;
   isCompOffRequest: boolean = false;
+
+  // Obj
+  employeeObj:Employee = new Employee();
+  teamViewList:any[] = [];
+  teamViewLeaveHistoryList:any[] = [];
+  leaveApplicationList:any[] = [];
+  allCompOffApplications:any[] = [];
 
   constructor(
     private authenticationService : AuthenticationService,
     private modalService: BsModalService,
     private teamViewService : TeamViewService,
     private leaveService : LeaveService
-  ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
+  ) { 
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x); 
+  }
 
   ngOnInit(): void {
+    // Dynamic Subfeature Flags 
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
+
     this.getAllTeamView();
     this.getAllTeamLeaveHistoryView();
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();

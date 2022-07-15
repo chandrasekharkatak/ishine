@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isViewTeam" (click)="viewTeam()">View Team</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamLeaveHistory" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamRequest" (click)="viewTeamRequest()">View Team Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isViewTeam && userMapping.view_my_team" (click)="viewTeam()">View Team</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamLeaveHistory && userMapping.view_team_leave_history" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isTeamRequest && (userMapping.view_team_all_requests || userMapping.update_pending_req))" (click)="viewTeamRequest()">View Team Request</button>
     </div>
   </div>
   
@@ -122,8 +122,8 @@
             <td>{{leaveApplication.createdOn}}</td>
             <td>{{leaveApplication.reason}}</td>
             <td>
-                <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
             </td>
         </tr>
     </tbody>
@@ -158,8 +158,8 @@
           <td>{{compOffApp.description}}</td>
           <td>{{compOffApp.status}}</td>
           <td>
-              <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-              <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+              <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+              <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
           </td>
       </tr>
   </tbody>

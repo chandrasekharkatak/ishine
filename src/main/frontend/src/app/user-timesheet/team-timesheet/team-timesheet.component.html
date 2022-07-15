@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAllTimesheetTable" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAllTimesheetRequestTable" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAllTimesheetTable && userMapping.view_my_teams_timesheets" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isAllTimesheetRequestTable &&(userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request))" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
     </div>
 </div>
 
@@ -10,6 +10,26 @@
     <div class="col-md-12">
         <div class="row table-header">
             <h1 class="table-header-title">All Timesheets</h1>
+        </div>
+        <div class="row">
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="startDate"
+                  (change)="getAllTeamTimesheets(alert_message)">
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="endDate"
+                  (change)="getAllTeamTimesheets(alert_message)">
+              </div>
+            </div>
+          </div>
         </div>
         <div class="row">
             <table class="table teams-table">
@@ -72,10 +92,10 @@
                     <td>
                       <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
                         (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                      <button class="btn btn-sm btn-outline-success" type="submit" title="Approve"
+                      <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
                         (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
                           class="fa-solid fa-check"></em></button>&nbsp;
-                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                      <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
                         (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
                           class="fa-solid fa-xmark"></em></button>
                     </td>
