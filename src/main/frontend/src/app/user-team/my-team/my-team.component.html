@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="viewTeam()">View Team</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="viewTeamRequest()">View Team Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isViewTeam" (click)="viewTeam()">View Team</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamLeaveHistory" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamRequest" (click)="viewTeamRequest()">View Team Request</button>
     </div>
   </div>
   
@@ -87,8 +87,8 @@
   </div>
   <div class="row mb-3">
     <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="viewTeamLeaveRequest()">Leave Request</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="viewTeamCompOffRequest()">CompOff Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRequest" (click)="viewTeamLeaveRequest()">View Leave Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCompOffRequest" (click)="viewTeamCompOffRequest()">View CompOff Request</button>
     </div>
   </div>
 

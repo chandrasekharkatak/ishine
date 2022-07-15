@@ -11,3 +11,14 @@
     margin-bottom: 0;
     color: var(--raisin-black);
 }
+
+/* .btn-link{
+    margin-left: 15px;
+}
+
+.btn-link:not(:last-child):after{
+    content: "|";
+    display: inline-block;
+    position: absolute;
+    right: -1px;
+} */
