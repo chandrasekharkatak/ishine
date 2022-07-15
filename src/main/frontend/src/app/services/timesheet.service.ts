@@ -41,6 +41,9 @@ export class TimesheetService {
   getMyReporteesTimesheetRequests(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getMyReporteesTimesheetRequests`, timesheetObj);
   }
+  getMyReporteesApprovedTimesheets(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getMyReporteesApprovedTimesheets`, timesheetObj);
+  }
   updateTimesheetRequestById(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateTimesheetRequestById`, timesheetObj);
   }

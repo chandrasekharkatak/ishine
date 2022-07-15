@@ -30,6 +30,8 @@ export class TeamTimesheetComponent implements OnInit {
   allTeamTimesheetRequests:any[] = [];
 
   timesheetObj:Timesheet = new Timesheet();
+  startDate:any;
+  endDate:any;
 
   constructor(
     private validationService:ValidationService,
@@ -71,13 +73,31 @@ export class TeamTimesheetComponent implements OnInit {
     this.getMyReporteesTimesheetRequests();
   }
 
-  getAllTeamTimesheets(){
+  getAllTeamTimesheets(template?: TemplateRef<any>){
     this.allTeamTimesheets = [];
+
+    if(this.endDate){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.startDate)){
+        this.alertMessage = "Please enter Start Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(this.endDate)){
+        this.alertMessage = "Please enter End Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else{
+      return;
+    }
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.status = "Approved";
-    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+    timesheetObj.startDate = this.startDate;
+    timesheetObj.endDate = this.endDate;
+    this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
         console.log("allTeamTimesheets :", this.allTeamTimesheets);

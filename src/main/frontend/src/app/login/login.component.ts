@@ -202,7 +202,7 @@ export class LoginComponent implements OnInit {
       }
     } else {
       this.isError = true;
-      this.errorMsg = response.serviceResponse;
+      this.errorMsg = response.serviceMessage;
     }
   }
 
