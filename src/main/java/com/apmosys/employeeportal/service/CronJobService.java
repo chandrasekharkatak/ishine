@@ -29,6 +29,9 @@ public class CronJobService {
 
 	@Value("${po.db.password}")
 	private String password;
+	
+//	0 0 0 * * * for every midnight
+//	*/20 * * * * *  for every 20 secs
 
 	@Scheduled(cron = "0 0 0 * * *")
 	public void authenticateUser() {

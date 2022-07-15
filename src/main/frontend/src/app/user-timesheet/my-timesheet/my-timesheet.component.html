@@ -18,7 +18,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
-                            <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date">
+                            <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation">
                         </div>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllActivitiesByProjectIdandEmpId(activityObj.projectId)">
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllActivitiesByProjectIdandEmpId(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let project of allProjectsList" value="{{project.projectId}}">{{project.projectName}}</option>
                                         </select>
@@ -69,9 +69,9 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
-                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.activityId">
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.activityId" (change)="setActivity(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let activity of allActivityList" value="{{activity.activityId}}">{{activity.activity}}</option>
+                                            <option *ngFor="let activity of activityObj.projectActivities" value="{{activity.activityId}}">{{activity.activity}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -80,7 +80,7 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                                        <textarea class="form-control" id="dayTypeDesc" rows="2" [(ngModel)]="activityObj.description"></textarea>
+                                        <textarea class="form-control" id="dayTypeDesc" rows="1" [(ngModel)]="activityObj.description"></textarea>
                                       </div>
                                 </div>
                             </div>
@@ -104,14 +104,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTimesheet(alert_message)">Create Timesheet</button>
-                        <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
-                    </div>
+            </div>
+            <!-- end :: Add & Update Activities -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTimesheet(alert_message)">Create Timesheet</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
                 </div>
             </div>
-            
         </div>
     </div>
 </div>
@@ -124,25 +124,45 @@
             <h1 class="table-header-title">My Timesheets</h1>
         </div>
         <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                        <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="startDate" (change)="getAllMyTimesheetsByEmpId(alert_message)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="endDate" (change)="getAllMyTimesheetsByEmpId(alert_message)">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <table class="table teams-table">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Date</th>
+                    <th scope="col" class="info-label">Day Type</th>
                     <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" class="info-label">Created by</th>
-                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                  <tr *ngIf="allMyTimesheets.length == 0">
+                    <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr *ngFor="let timesheet of allMyTimesheets; let i = index">
                       <td>{{i+1}}</td>
-                      <td>{{timesheet.timesheetDetails}}</td>
-                      <td>{{timesheet.createdByName}}</td>
-                      <td>{{timesheet.createdOn}}</td>
+                      <td>{{timesheet.date}}</td>
+                      <td>{{timesheet.dayType}}</td>
+                      <td colspan="4" [innerHTML]="timesheet.description"></td>
+                      <td>{{timesheet.status}}</td>
                       <td>
                         <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
                     </td>

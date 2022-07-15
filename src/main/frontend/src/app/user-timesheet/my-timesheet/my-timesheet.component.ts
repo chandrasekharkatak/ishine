@@ -35,8 +35,11 @@ export class MyTimesheetComponent implements OnInit {
   allTimesheetActivities:any[] = []
   allProjectsList:any[] = [];
   allActivityList:any[] = [];
+  
   allMyTimesheets:any[] = [];
   timesheetActivities:any[] = [];
+  startDate:any;
+  endDate:any;
 
   constructor(
     private validationService:ValidationService,
@@ -81,7 +84,10 @@ export class MyTimesheetComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
 
-    this.getAllMyTimesheetsByEmpId()
+    this.startDate = null;
+    this.endDate = null;
+
+    this.allMyTimesheets = [];
   }
 
   showUpdateTimesheetForm(timesheetObj:Timesheet){
@@ -92,6 +98,8 @@ export class MyTimesheetComponent implements OnInit {
     this.isCreation = false;
 
     this.timesheetObj = Object.assign({}, timesheetObj);
+    this.timesheetObj.updatedTimesheetActivities = [];
+    this.getAllMyActivitiesByTimesheetId(timesheetObj);
   }
 
   reset(){
@@ -106,15 +114,28 @@ export class MyTimesheetComponent implements OnInit {
   // Manage Activity
   addInputActivityField() {
     let newActivityObj = new Activity();
-    newActivityObj.projectId = '';
-    newActivityObj.activityId = '';
+    // newActivityObj.projectId = '';
+    // newActivityObj.activityId = '';
     this.allTimesheetActivities.push(newActivityObj);
   }
 
-  removeInputActivityField(activityObj) {
+  removeInputActivityField(activityObj:any) {
     this.allTimesheetActivities.forEach((value, index) => {
-      if (value == activityObj) this.allTimesheetActivities.splice(index, 1);
+      if (value == activityObj){
+        if(this.isUpdation){
+          this.timesheetObj.updatedTimesheetActivities.push(value);
+        }
+        this.allTimesheetActivities.splice(index, 1);
+      } 
     });
+  }
+
+  setAllProjectActivities(activityObj, allActivityList:any){
+    this.allTimesheetActivities.find(activity => activity === activityObj).projectActivities = allActivityList;
+  }
+
+  setActivity(activityObj){
+    this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
   }
 
   /* Timesheet */
@@ -133,32 +154,38 @@ export class MyTimesheetComponent implements OnInit {
     }
 
     if(timesheetObj.dayType != 'Holiday'){
-      let flag = false; 
-      this.allTimesheetActivities.forEach(activity => {
+      let flag = true;
+
+      this.allTimesheetActivities.forEach((activity, index) => {
         if(!this.validationService.validateNullUndefinedEmptyString(activity.projectId)){
-          this.alertMessage = "Please select Project !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
+          this.alertMessage = `Please select Project - ${index+1}!!`
+          flag = false;
+          return;
         }
   
         if(!this.validationService.validateNullUndefinedEmptyString(activity.activityId)){
-          this.alertMessage = "Please select Activity !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
+          this.alertMessage = `Please select Activity - ${index+1}!!`
+          flag = false;
+          return;
         }
   
         if(!this.validationService.validateNullUndefinedEmptyString(activity.description)){
-          this.alertMessage = "Please enter Activity Description !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
+          this.alertMessage = `Please enter Activity Description - ${index+1}!!`
+          flag = false;
+          return;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)){
-          this.alertMessage = "Please enter Activity Completion Time !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
+          this.alertMessage = `Please enter Activity Completion Time - ${index+1}!!`
+          flag = false;
+          return;
         }
       });
+
+      if(!flag){
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }else{
       if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.description)){
         this.alertMessage = "Please enter Timesheet Description !!"
@@ -166,6 +193,7 @@ export class MyTimesheetComponent implements OnInit {
         return false;
       }
     }
+
     return true;
   }
 
@@ -173,13 +201,20 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
     if(!inputValidated) return;
     
-    console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
-    this.timesheetObj.allTimesheetActivities = (this.allTimesheetActivities[0]) ? this.allTimesheetActivities : null;
+    if(this.timesheetObj.dayType != 'Holiday'){
+      console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
+      this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
+    }else{
+      this.timesheetObj.allTimesheetActivities = null;
+    }
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.showViewMyTimesheets();
+        this.startDate = this.endDate = this.timesheetObj.date;
+        this.getAllMyTimesheetsByEmpId();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -191,17 +226,39 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
     if(!inputValidated) return;
     
-    console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
-    this.timesheetObj.allTimesheetActivities = (this.allTimesheetActivities[0]) ? this.allTimesheetActivities : null;
+    if(this.timesheetObj.dayType != 'Holiday'){
+      this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
+
+      if(this.timesheetObj.allTimesheetActivities){
+        let newTimesheetActivities = this.timesheetObj.allTimesheetActivities.filter(activity => !activity.timesheetId);
+        console.log("newTimesheetActivities : ", newTimesheetActivities);
+        
+        if(newTimesheetActivities){
+          if(this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0){
+            this.timesheetObj.updatedTimesheetActivities = [];
+          }
+          this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
+        }
+      }else{
+        if(this.timesheetObj.updatedTimesheetActivities == undefined || this.timesheetObj.updatedTimesheetActivities[0].length == 0){
+          this.timesheetObj.updatedTimesheetActivities = null;
+        }
+      }
+    }else{
+      this.timesheetObj.updatedTimesheetActivities = null;
+    }
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Update timesheetObj : ", this.timesheetObj);
-    // this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   } else {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   }
-    // });
+    this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewMyTimesheets();
+        this.startDate = this.endDate = this.timesheetObj.date;
+        this.getAllMyTimesheetsByEmpId();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
 
@@ -220,16 +277,17 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllActivitiesByProjectIdandEmpId(projectId:any){
-    this.allActivityList = [];
+  getAllActivitiesByProjectIdandEmpId(activityObj:any){
+    let allActivityList = [];
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
-    timesheetObj.projectId = projectId;
+    timesheetObj.projectId = activityObj.projectId;
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allActivityList = response.serviceResponse;
-        console.log("allActivityList :", this.allActivityList);
+        allActivityList = response.serviceResponse;
+        console.log("allActivityList :", allActivityList);
+        this.setAllProjectActivities(activityObj, allActivityList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -237,12 +295,34 @@ export class MyTimesheetComponent implements OnInit {
   }
 
 
+
+
   /* View Timesheets */
-  getAllMyTimesheetsByEmpId(){
+  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>){
     this.allMyTimesheets = [];
+
+    if(this.endDate){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.startDate)){
+        this.alertMessage = "Please enter Start Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(this.endDate)){
+        this.alertMessage = "Please enter End Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else{
+      return;
+    }
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
+    timesheetObj.startDate = this.startDate;
+    timesheetObj.endDate = this.endDate;
+
+    console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
     this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allMyTimesheets = response.serviceResponse;
@@ -253,17 +333,23 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllMyActivitiesByTimesheetId(timesheetId:any){
-    this.timesheetActivities = [];
+  getAllMyActivitiesByTimesheetId(timesheet:any){
+    this.allTimesheetActivities = [];
 
     let timesheetObj = new Timesheet();
-    timesheetObj.timesheetId = timesheetId;
+    timesheetObj.timesheetId = timesheet.timesheetId;
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.timesheetActivities = response.serviceResponse;
-        console.log("timesheetActivities :", this.timesheetActivities);
+        this.allTimesheetActivities = response.serviceResponse;
+        console.log("allTimesheetActivities :", this.allTimesheetActivities);
       } else {
         console.error(response.serviceResponse)
+      }
+
+      if(this.allTimesheetActivities.length == 0){
+        this.addInputActivityField();
+      }else{
+        this.allTimesheetActivities.forEach(activity => this.getAllActivitiesByProjectIdandEmpId(activity));
       }
     });
   }

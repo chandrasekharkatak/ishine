@@ -28,6 +28,8 @@ export class TeamTimesheetComponent implements OnInit {
   allTeamTimesheets:any[] = [];
   allTeamTimesheetRequests:any[] = [];
 
+  timesheetObj:Timesheet = new Timesheet();
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
@@ -50,28 +52,30 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showAllTimesheetsTable();
+    this.showAllTimesheetRequestsTable();
   }
 
   showAllTimesheetsTable(){
     this.isAllTimesheetTable = true;
 
     this.isAllTimesheetRequestTable = false;
-
+    this.getAllTeamTimesheets();
   }
 
   showAllTimesheetRequestsTable(){
     this.isAllTimesheetRequestTable = true;
-    
+
     this.isAllTimesheetTable = false;
 
+    this.getMyReporteesTimesheetRequests();
   }
 
-  getMyReporteesTimesheetRequests(projectId:any){
+  getAllTeamTimesheets(){
     this.allTeamTimesheets = [];
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
+    timesheetObj.status = "Approved";
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
@@ -82,7 +86,55 @@ export class TeamTimesheetComponent implements OnInit {
     });
   }
 
+  getMyReporteesTimesheetRequests(){
+    this.allTeamTimesheetRequests = [];
 
+    let timesheetObj = new Timesheet();
+    timesheetObj.managerId = this.currentUser.empId;
+    timesheetObj.status = "Pending";
+    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamTimesheetRequests = response.serviceResponse;
+        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  /* Approve / Reject Timesheet requests */
+  updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
+    let timesheetObj = new Timesheet();
+    timesheetObj.timesheetId = timesheet.timesheetId;
+    timesheetObj.status = status;
+    this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showAllTimesheetRequestsTable()
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+
+  /* View TImesheet details */ 
+  getAllMyActivitiesByTimesheetId(timesheet:any){
+    this.timesheetObj.allTimesheetActivities = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.timesheetId = timesheet.timesheetId;
+    this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.allTimesheetActivities = response.serviceResponse;
+        console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  
 
 
 
@@ -92,6 +144,13 @@ export class TeamTimesheetComponent implements OnInit {
 
 
   //modals
+  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj:Timesheet){
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj = timesheetObj;
+    this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+ }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;

@@ -33,4 +33,5 @@ public class TimesheetDTO {
 	private String endDate;
 	private Long createdBy;
 	private List<ActivityDTO> allTimesheetActivities;
+	private List<ActivityDTO> updatedTimesheetActivities;
 }

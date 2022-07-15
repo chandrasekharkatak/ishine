@@ -116,6 +116,7 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
 
+    this.allTeamList = [];
   }
 
   showUpdateTeamForm(teamObj:Team){
@@ -158,6 +159,8 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+
+    this.allActivityList = [];
   }
 
   showUpdateActivityForm(activityObj:Activity){

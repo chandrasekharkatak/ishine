@@ -27,6 +27,7 @@ public class ActivityDTO {
 	private Float completionTime;
 	private String description;
 	private Long timesheetId;
+	private Long timesheetActivityMapId;
 
 
 }

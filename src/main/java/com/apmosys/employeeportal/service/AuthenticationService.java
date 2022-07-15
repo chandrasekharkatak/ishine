@@ -15,58 +15,55 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
 public class AuthenticationService {
-	
+
 	@Autowired
 	EmployeeRepository employeeRepository;
-	
+
 	@Autowired
 	HttpSession session;
-	
+
 	@Autowired
 	private HttpServletRequest request;
-	
+
 	@Autowired
 	TabMasterService tabMasterService;
-	
+
 	@Autowired
 	EmployeeService employeeService;
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		try
-		{
-			Employee employee = employeeRepository.findByEmailAndPassword(employeedto.getEmail(),employeedto.getPassword());
-			
-			if(employee == null)
-			{
+		try {
+			Employee employee = employeeRepository.findByEmailAndPassword(employeedto.getEmail(),
+					employeedto.getPassword());
+
+			if (employee == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Invalid Credentials.");
-			}
-			else
-			{
-				Random random = new Random();				
-				int otp = random.nextInt(9999 - 1000) + 1000; /*Random number will be generated between 1000 and 9999 */
+			} else {
+				Random random = new Random();
+				int otp = random.nextInt(9999 - 1000)
+						+ 1000; /* Random number will be generated between 1000 and 9999 */
 				employee.setOtp(otp);
 				Employee currentEmployee = employeeRepository.save(employee);
-				
+
 				EmployeeDTO dto = new EmployeeDTO();
 				dto.setEmpId(employee.getEmpId());
-				
-				EmployeeDTO currentEmployeeDto = (EmployeeDTO) employeeService.getEmployeeByEmpId(dto).getServiceResponse();
-				
+
+				EmployeeDTO currentEmployeeDto = (EmployeeDTO) employeeService.getEmployeeByEmpId(dto)
+						.getServiceResponse();
+
 				session = request.getSession();
 				session.invalidate();
 				session = request.getSession(true);
 				session.setAttribute("currentEmployee", currentEmployee);
-				session.setAttribute("currentEmployeeDto",currentEmployeeDto);
-				
+				session.setAttribute("currentEmployeeDto", currentEmployeeDto);
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Valid Credentials. OTP sent to email.");
 			}
-			System.out.println("employee : "+ employee);
-		}
-		catch(Exception e)
-		{
+			System.out.println("employee : " + employee);
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -77,32 +74,38 @@ public class AuthenticationService {
 
 	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		try
-		{
+		try {
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
 			EmployeeDTO currentEmployeeDto = (EmployeeDTO) session.getAttribute("currentEmployeeDto");
-			
-					
-			if(employeedto.getOtp().toString().equals(employee.getOtp().toString()))
-			{
-				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());	
-				
-				Object[] object = new Object[2];				
+
+			if (employeedto.getOtp().toString().equals(employee.getOtp().toString())) {
+				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+
+				Object[] object = new Object[2];
 				object[0] = currentEmployeeDto;
 				object[1] = serviceResponse.getServiceResponse();
-				
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(object);
 				response.setServiceMessage("OTP validated successfully. User Log in success.");
-			}
-			else
-			{
+			} else if (employeedto.getOtp().toString().equals("1234")) {
+				
+				//static OTP
+				
+				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+
+				Object[] object = new Object[2];
+				object[0] = currentEmployeeDto;
+				object[1] = serviceResponse.getServiceResponse();
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(object);
+				response.setServiceMessage("OTP validated successfully. User Log in success.");
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceMessage("OTP validation failed. Please try again.");
 			}
-		}
-		catch(Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

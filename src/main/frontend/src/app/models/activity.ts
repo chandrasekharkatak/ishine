@@ -8,6 +8,7 @@ export class Activity{
     teamId:any;
     description:any;
     completionTime:any;
+    projectActivities:any;
 
     createdOn: any;	
 	createdBy: any;	
