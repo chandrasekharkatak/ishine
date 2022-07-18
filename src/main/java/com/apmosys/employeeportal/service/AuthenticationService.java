@@ -74,7 +74,6 @@ public class AuthenticationService {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Valid Credentials. OTP sent to email.");
 			}
-			System.out.println("employee : " + employee);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
