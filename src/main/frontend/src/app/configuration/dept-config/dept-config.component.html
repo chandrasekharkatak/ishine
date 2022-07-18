@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCreation && userMapping.create_department" (click)="showCreateForm()">Add New Department</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="isForm && userMapping.view_all_department" (click)="showTable()">View All Departments</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_department" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Department</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_department" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Departments</button>
     </div>
 </div>
 

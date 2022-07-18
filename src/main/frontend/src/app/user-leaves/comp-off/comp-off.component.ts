@@ -64,6 +64,7 @@ export class CompOffComponent implements OnInit {
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
+
     this.isCompOffRequestsTable = false;
     this.isCompOffApplicationsTable = false;
 
@@ -72,6 +73,7 @@ export class CompOffComponent implements OnInit {
 
   showCompOffRequestTable(){
     this.isCompOffRequestsTable = true;
+
     this.isCompOffApplicationsTable = false;
     this.isForm = false;
     this.isCreation = false;
@@ -81,6 +83,7 @@ export class CompOffComponent implements OnInit {
 
   showCompOffApplicationsTable(){
     this.isCompOffApplicationsTable = true;
+    
     this.isCompOffRequestsTable = false;
     this.isForm = false;
     this.isCreation = false;

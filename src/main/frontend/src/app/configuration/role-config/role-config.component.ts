@@ -95,8 +95,9 @@ export class RoleConfigComponent implements OnInit {
 
   showCreateForm(){
     this.isForm = true;
-    this.isTable = false;
     this.isCreation = true;
+
+    this.isTable = false;
     this.isUpdation = false;
     this.isSubFeatureList = false;
 
@@ -105,6 +106,7 @@ export class RoleConfigComponent implements OnInit {
 
   showTable(){
     this.isTable = true;
+    
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;

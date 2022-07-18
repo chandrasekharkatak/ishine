@@ -72,8 +72,9 @@ export class DeptConfigComponent implements OnInit {
 
   showCreateForm(){
     this.isForm = true;
-    this.isTable = false;
     this.isCreation = true;
+
+    this.isTable = false;
     this.isUpdation = false;
 
     this.reset();
@@ -81,6 +82,7 @@ export class DeptConfigComponent implements OnInit {
 
   showTable(){
     this.isTable = true;
+    
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;

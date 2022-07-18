@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isViewTeam && userMapping.view_my_team" (click)="viewTeam()">View Team</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamLeaveHistory && userMapping.view_team_leave_history" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isTeamRequest && (userMapping.view_team_all_requests || userMapping.update_pending_req))" (click)="viewTeamRequest()">View Team Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_team" [ngClass]="{'active' : isViewTeam}" (click)="viewTeam()">View Team</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Request</button>
     </div>
   </div>
   
@@ -87,8 +87,8 @@
   </div>
   <div class="row mb-3">
     <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRequest" (click)="viewTeamLeaveRequest()">View Leave Request</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCompOffRequest" (click)="viewTeamCompOffRequest()">View CompOff Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}" (click)="viewTeamLeaveRequest()">View Leave Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffRequest}" (click)="viewTeamCompOffRequest()">View CompOff Request</button>
     </div>
   </div>
 

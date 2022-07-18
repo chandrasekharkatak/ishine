@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAllTimesheetTable && userMapping.view_my_teams_timesheets" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isAllTimesheetRequestTable &&(userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request))" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets" [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request" [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
     </div>
 </div>
 

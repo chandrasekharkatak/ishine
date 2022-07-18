@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isCreation && userMapping.create_role" (click)="showCreateForm()">Add New Role</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="isForm && userMapping.view_all_role" (click)="showTable()">View All Roles</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_role" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Role</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_role" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Roles</button>
     </div>
 </div>
 

@@ -34,7 +34,9 @@ body {
     color: var(--dark-cornflower-blue);
 }
 
-.btn.btn-outline-primary:hover, .btn.btn-outline-primary:active{
+.btn.btn-outline-primary:hover,
+.btn.btn-outline-primary:active,
+.btn-outline-primary:not(:disabled):not(.disabled).active {
     border-color: var(--dark-cornflower-blue);
     background-color: var(--dark-cornflower-blue);
     color: var(--cultured);

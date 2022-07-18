@@ -1,9 +1,9 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTeamForm && userMapping.add_team" (click)="showCreateTeamForm()">Add New Team</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isTeamTable && (userMapping.view_teams || userMapping.update_team || userMapping.delete_team))" (click)="showViewTeams()">View Teams</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isActivityForm && userMapping.add_activity" (click)="showCreateActivityForm()">Add New Activity</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isActivityTable && (userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity))" (click)="showViewActivities()">View Activities</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_team" [ngClass]="{'active' : isTeamForm && isCreation}" (click)="showCreateTeamForm()">Add New Team</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
     </div>
 </div>
 

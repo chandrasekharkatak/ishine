@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isTimesheetForm && userMapping.add_timesheet" (click)="showCreateTimesheetForm()">Create New Timesheet</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(!isTimesheetTable && (userMapping.view_my_timesheets || userMapping.update_timesheet))" (click)="showViewMyTimesheets()">View My Timesheets</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet" [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New Timesheet</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet" [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Timesheets</button>
     </div>
 </div>
 
@@ -14,11 +14,16 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4 mb-0">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
-                            <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation">
+                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
+                            <div class="d-flex">
+                                <input class="form-control" matInput id="timesheetDate" [matDatepicker]="timesheetDate"  [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date">
+                                <mat-datepicker-toggle matSuffix [for]="timesheetDate"></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker #timesheetDate ></mat-datepicker>
                         </div>
                     </div>
                 </div>

@@ -42,6 +42,8 @@ export class MyTimesheetComponent implements OnInit {
   startDate:any;
   endDate:any;
 
+  availableTimesheetDates:any[] = [];
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
@@ -141,6 +143,13 @@ export class MyTimesheetComponent implements OnInit {
 
   setActivity(activityObj){
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
+  }
+
+  // Manage Timesheet Dates
+  timesheetDateFilter = (d: Date)=>{
+    const time=d?.getTime();
+     
+    return this.availableTimesheetDates.find(x=>x.getTime()==time);
   }
 
   /* Timesheet */

@@ -105,8 +105,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   showCreateForm(){
     this.isForm = true;
-    this.isTable = false;
     this.isCreation = true;
+
+    this.isTable = false;
     this.isUpdation = false;
     this.isDraft=false;
     this.isDraftTable = false;
@@ -116,6 +117,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   showTable(){
     this.isTable = true;
+    
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -128,6 +130,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   showDraftTable(){
     this.isDraftTable = true;
+
     this.isTable = false;
     this.isForm = false;
     this.isUpdation = false;

@@ -85,8 +85,8 @@ export class LeaveComponent implements OnInit {
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
-    this.isUpdation = false;
 
+    this.isUpdation = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
@@ -98,10 +98,10 @@ export class LeaveComponent implements OnInit {
 
   showLeaveHistoryTable() {
     this.isLeaveHistoryTable = true;
+
     this.isLeaveBalanceTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
-
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -111,10 +111,10 @@ export class LeaveComponent implements OnInit {
 
   showLeaveBalanceTable() {
     this.isLeaveBalanceTable = true;
+
     this.isLeaveHistoryTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
-
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -124,10 +124,10 @@ export class LeaveComponent implements OnInit {
 
   showLeaveApplicationsTable() {
     this.isLeaveApplicationsTable = true;
+    
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
     this.isLeaveLogTable = false;
-
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -137,10 +137,10 @@ export class LeaveComponent implements OnInit {
 
   showLeaveLogTable() {
     this.isLeaveLogTable = true;
+
     this.isLeaveApplicationsTable = false;
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
-
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;

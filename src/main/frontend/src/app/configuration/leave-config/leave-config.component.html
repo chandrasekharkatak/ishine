@@ -1,10 +1,11 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayForm && !isCreation" (click)="showAddHolidayForm()">Add Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isHolidayTable" (click)="showHoliaysTable()">View Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveTypeForm && !isCreation" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveRuleTable" (click)="showLeaveTypesTable()">View Leave Types</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isLeaveBalanceForm" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isHolidayForm && isCreation}" (click)="showAddHolidayForm()">Add Holidays</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isHolidayTable}" (click)="showHoliaysTable()">View Holidays</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">View Leave Types</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
     </div>
 </div>
 
@@ -248,6 +249,68 @@
     </div>
 </div>
 <!-- end ::  Add & Update Leave Type form -->
+
+<!-- start :: Add & Update Leave Policy Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isLeavePolicyForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Add Leave Policy</strong>
+            <strong *ngIf="isUpdation">Update Leave Policy</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Policy Name</label>
+                            <input type="text" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Probation">Probation</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="InActive">In Active</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
+                            <input class="custom-control-input" type="checkbox" id="defaultPolicyCheck">
+                            <label class="custom-control-label" for="defaultPolicyCheck">Default Policy</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Add Leave Policy</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Leave Policy</button>
+                </div>
+            </div>
+    </div>
+</div>
+<!-- end ::  Add & Update Leave Policy form -->
 
 <!-- Modals Template -->
 <ng-template #alert_message>

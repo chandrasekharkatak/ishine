@@ -27,6 +27,9 @@ export class LeaveConfigComponent implements OnInit {
   isLeaveBalanceForm:boolean = false;
   isHolidayTable:boolean = false;
   isLeaveRuleTable:boolean = false;
+  isLeavePolicyForm:boolean = false;
+  isLeavePolicyTable:boolean = false;
+  
 
   //modal 
   alertMessage:any;
@@ -79,6 +82,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
+    this.isLeavePolicyTable = false;
+    this.isLeavePolicyForm = false;
     this.isUpdation = false;
 
     this.reset();
@@ -91,6 +96,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isHolidayForm = false;
     this.isLeaveTypeForm = false;
     this.isLeaveBalanceForm = false;
+    this.isLeavePolicyForm = false;
+    this.isLeavePolicyTable = false;
     this.isUpdation = false;
     this.isCreation = false;
 
@@ -104,6 +111,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isHolidayForm = false;
     this.isLeaveTypeForm = false;
     this.isLeaveBalanceForm = false;
+    this.isLeavePolicyForm = false;
+    this.isLeavePolicyTable = false;
     this.isUpdation = false;
     this.isCreation = false;
 
@@ -118,6 +127,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
+    this.isLeavePolicyForm = false;
+    this.isLeavePolicyTable = false;
     this.isUpdation = false;
 
     this.reset();
@@ -132,6 +143,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
+    this.isLeavePolicyForm = false;
+    this.isLeavePolicyTable = false;
     this.isCreation = false;
 
     this.leaveTypeObj = Object.assign({}, leaveType);
@@ -145,6 +158,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveBalanceForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
+    this.isLeavePolicyForm = false;
+    this.isLeavePolicyTable = false;
     this.isCreation = false;
 
     this.holidayObj = Object.assign({}, holiday);
@@ -159,10 +174,28 @@ export class LeaveConfigComponent implements OnInit {
     this.isHolidayForm = false;
     this.isHolidayTable = false;
     this.isLeaveRuleTable = false;
+    this.isLeavePolicyForm = false;
+    this.isLeavePolicyTable = false;
     this.isCreation = false;
     this.isUpdation = false;
 
     this.reset();
+  }
+
+  showAddLeavePolicyForm(){
+    this.isLeavePolicyForm = true;
+    this.isCreation = true;
+    
+    this.isHolidayForm = false;
+    this.isLeaveTypeForm = false;
+    this.isLeaveBalanceForm = false;
+    this.isHolidayTable = false;
+    this.isLeaveRuleTable = false;
+    this.isLeavePolicyTable = false;
+    this.isUpdation = false;
+
+    this.reset();
+    this.getAllLeaveTypes();
   }
 
   reset() {
@@ -252,7 +285,7 @@ export class LeaveConfigComponent implements OnInit {
     let inputValidated:boolean  = this.validateHolidayObj(this.holidayObj, template)
     if(!inputValidated) return;
 
-    this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
+    // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
     console.log("Add Holiday : ", this.holidayObj);
     this.holidayService.addHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -269,7 +302,7 @@ export class LeaveConfigComponent implements OnInit {
     let inputValidated:boolean  = this.validateHolidayObj(this.holidayObj, template)
     if(!inputValidated) return;
 
-    this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
+    // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
     console.log("update Holiday : ", this.holidayObj);
 
     this.holidayService.updateHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {

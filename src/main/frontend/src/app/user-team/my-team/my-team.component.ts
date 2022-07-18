@@ -63,18 +63,21 @@ export class MyTeamComponent implements OnInit {
 
   viewTeam(){
     this.isViewTeam = true;
+
     this.isTeamLeaveHistory = false;
     this.isTeamRequest = false;
   }
 
   viewTeamLeaveHistory(){
     this.isTeamLeaveHistory = true;
+
     this.isViewTeam = false;
     this.isTeamRequest = false;
   }
 
   viewTeamRequest(){
     this.isTeamRequest = true;
+    
     this.isTeamLeaveHistory = false;
     this.isViewTeam = false;
   }
