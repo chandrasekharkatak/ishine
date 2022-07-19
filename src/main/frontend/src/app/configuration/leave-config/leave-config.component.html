@@ -258,7 +258,7 @@
             <strong *ngIf="isUpdation">Update Leave Policy</strong>
         </div>
         <div class="card-body">
-            <div class="row">
+            <div class="row mb-5">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -280,16 +280,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2 mb-0">
-                    <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
-                            <input class="custom-control-input" type="checkbox" id="defaultPolicyCheck">
-                            <label class="custom-control-label" for="defaultPolicyCheck">Default Policy</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -298,6 +288,122 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Gender</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="All">All</option>
+                                <option value="Female">Female</option>
+                                <option value="Male">Male</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-2">
+                <!-- MONTHLY LEAVE INCREMENT -->
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox">
+                            <input class="custom-control-input" type="checkbox" id="incrementCheck">
+                            <label class="custom-control-label" for="incrementCheck">Monthly Increment</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 mb-0">
+                    <div class="info-wrapper">
+                        <div class="d-flex">
+                            <label class="col-md-5"><span class="text-danger">*</span>Monthly Increment Value : </label>
+                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-2">
+                <!-- ONE TIME LEAVE APPLY LIMIT -->
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox">
+                            <input class="custom-control-input" type="checkbox" id="oneTimeLeaveCheck">
+                            <label class="custom-control-label" for="oneTimeLeaveCheck">One Time Leave Limit</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 mb-0">
+                    <div class="info-wrapper">
+                        <div class="d-flex">
+                            <label class="col-md-5"><span class="text-danger">*</span>One Time Leave Limit Value : </label>
+                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-2">
+                <!-- LEAVE CARRY FORWARD -->
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox">
+                            <input class="custom-control-input" type="checkbox" id="leaveCarryForwardCheck">
+                            <label class="custom-control-label" for="leaveCarryForwardCheck">Leave Carry Forward</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 mb-0">
+                    <div class="info-wrapper">
+                        <div class="d-flex">
+                            <label class="col-md-5"><span class="text-danger">*</span>Leave Carry Forward Value : </label>
+                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-2">
+                <!-- Leave Validity Expiration -->
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox">
+                            <input class="custom-control-input" type="checkbox" id="leaveExpirationCheck">
+                            <label class="custom-control-label" for="leaveExpirationCheck">Leave Validity Expiration</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 mb-0">
+                    <div class="info-wrapper">
+                        <div class="d-flex">
+                            <label class="col-md-5" ><span class="text-danger">*</span>Leave Validity Expiration Period <small>(Days)</small> : </label>
+                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-2">
+                <!-- Leave Application Count Locking -->
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="custom-control-lg custom-control custom-checkbox">
+                            <input class="custom-control-input" type="checkbox" id="leaveLockingCheck">
+                            <label class="custom-control-label" for="leaveLockingCheck">Leave Application Count Locking</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 mb-0">
+                    <div class="info-wrapper">
+                        <div class="d-flex">
+                            <label class="col-md-9"><span class="text-danger">*</span>Leave Application Count Locking Period <small>(Days)</small> : </label>
+                            <input type="number" class="form-control col-md-2" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 mb-0">
+                    <div class="info-wrapper">
+                        <div class="d-flex">
+                            <label class="col-md-9"><span class="text-danger">*</span>Leave Application Count Value : </label>
+                            <input type="number" class="form-control col-md-2" autocomplete="none">
                         </div>
                     </div>
                 </div>
