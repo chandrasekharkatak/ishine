@@ -10,12 +10,70 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="user-dropdown">
               <a class="dropdown-item" href="#"><i class="fa-solid fa-cog"></i>&nbsp;Settings</a>
+              <a class="dropdown-item" data-toggle="modal" data-target="#chanePasswordModal"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
               <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
             </div>
           </li>
         </ul>
       </div>
 </nav>
+
+
+<!-- Change password Modal -->
+<div class="modal fade" id="chanePasswordModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+       <div class="container">
+
+          <div class="modal-header border-0 mb-2">
+              <h4 class="modal-title text-center w-100">Change Password</h4>
+               <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+            </div>
+            <div *ngIf="isError" class="auth__error text-center">
+              <p class="form-text text-danger auth__error__msg">{{errorMsg}}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="newPass" class="sr-only">Old Password</label>
+            <div class="d-flex">
+                <input class="form-control" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
+                placeholder="Enter Old Password" (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
+                <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
+                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
+                </span>
+            </div>
+        </div>
+          <div class="form-group">
+              <label for="newPass" class="sr-only">New Password</label>
+              <div class="d-flex">
+                  <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
+                  placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off"/>
+                  <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+                      <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                  </span>
+              </div>
+          </div>
+          <div class="form-group">
+              <label for="confirmPass" class="sr-only">Confirm New Password</label>
+              <div class="d-flex">
+                  <input class="form-control" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
+                  placeholder="Confirm New Password" [(ngModel)]="newpassword" autocomplete="off"/>
+                  <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
+                      <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
+                  </span>
+              </div>
+          </div>  
+
+          <div class="modal-footer border-0">
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" data-dismiss="modal">Close</button>
+              <button class="btn btn-outline-primary btn-sm mx-1" type="submit" (click)="updateEmployeePassword()" [disabled]="!oldPasswordValid">Submit</button>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="body" [ngClass]="getBodyClass()">
     <router-outlet></router-outlet>
 </div>

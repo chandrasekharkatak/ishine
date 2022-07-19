@@ -810,5 +810,94 @@ public class EmployeeService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse updateEmployeePassword(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			Optional<Employee> updateEmployeePassword = employeeRepository.findById(employeedto.getEmpId());
+			
+			if (updateEmployeePassword.isPresent()) {
+				
+				Employee newPassword = updateEmployeePassword.get();
+				
+				
+				newPassword.setPassword(employeedto.getNewPassword());				
+				Employee dbResponse = employeeRepository.save(newPassword);
+				
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Password Updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Password Updation Failed.");
+				}
+							 	
+			 }else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not Found");
+			 }
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse checkEmployeeOldPassword(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		  try {
+			  Optional<Employee> checkEmployeeOldPassword = employeeRepository.findById(employeedto.getEmpId());
+			  
+			  Employee employeepassword = checkEmployeeOldPassword.get();
+			  
+			  String dbPassword = employeepassword.getPassword();
+			  System.out.println(dbPassword);
+			  
+			  String oldPassword = employeedto.getPassword();
+			  System.out.println(oldPassword);
+			  
+			  if(dbPassword.equals(oldPassword)) {
+				  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				  response.setServiceResponse("Password match");
+			  }else {
+				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				  response.setServiceResponse("Incorrect Old Password");
+			  }
+			  
+			  
+		  } catch (Exception e) {
+			   e.printStackTrace();
+			   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			   response.setServiceResponse("Something Went Wrong.");
+			   response.setServiceError(e.getMessage());
+		  }
+		  return response;
+	}
+
+	public ServiceResponse checkEmployeeEmail(EmployeeDTO employeedto) {
+        ServiceResponse response = new ServiceResponse();
+		
+		  try {
+			  Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
+			  
+			  if(checkEmployeeEmail!=null) {
+				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				  response.setServiceResponse("Email already exist!");
+			  }
+			
+		  } catch (Exception e) {
+			   e.printStackTrace();
+			   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			   response.setServiceResponse("Something Went Wrong.");
+			   response.setServiceError(e.getMessage());
+		  }
+		  return response;
+    }
 
 }

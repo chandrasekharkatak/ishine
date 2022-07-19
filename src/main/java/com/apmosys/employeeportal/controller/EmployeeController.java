@@ -94,5 +94,26 @@ public class EmployeeController {
 		return response;		
 	}
 	
+	@RequestMapping(value="/updateEmployeePassword" , method = RequestMethod.POST)
+	public ServiceResponse updatePassword(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.updateEmployeePassword(employeedto);
+		return response;		
+	}
+	
+	@RequestMapping(value="/checkEmployeeOldPassword" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeOldPassword(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.checkEmployeeOldPassword(employeedto);
+		return response;		
+	}
+	
+	@RequestMapping(value="/checkEmployeeEmail" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeEmail(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.checkEmployeeEmail(employeedto);
+		return response;		
+	}
+	
 	
 }

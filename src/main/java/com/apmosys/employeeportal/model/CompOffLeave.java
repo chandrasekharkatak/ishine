@@ -37,5 +37,6 @@ public class CompOffLeave {
 	private LocalDate fromDate;
 	private LocalDate toDate;
 	private Float noOfDays;	
+	private String leaveCode;
 
 }

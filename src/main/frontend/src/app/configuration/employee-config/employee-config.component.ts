@@ -501,6 +501,14 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  checkEmail(template: TemplateRef<any>){
+    this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+              this.openAlertMod(template, response.serviceResponse);
+            }
+    });
+  }
+
   onUpdateEmployee(template: TemplateRef<any>){
 
     let inputValidated:boolean  = this.validateEmployeeObj(this.employeeObj, template)
