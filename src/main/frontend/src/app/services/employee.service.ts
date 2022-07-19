@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Employee } from '../models/employee';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -68,4 +69,21 @@ export class EmployeeService {
   getAllDraftEmployees() {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`);
   }
+
+  checkEmployeeEmail(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeEmail`, employeeObj);
+  }
+
+   /* update Employee Password */
+
+   updateEmployeePassword(user: User){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateEmployeePassword`, user);
+   }
+
+   /* check Employee old Password */
+
+   checkEmployeeOldPassword(user: User){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeOldPassword`, user);
+   }	
+
 }
