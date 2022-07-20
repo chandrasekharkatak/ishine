@@ -59,6 +59,7 @@ export class Employee{
 	role:any;
 	departmentList:any;
 	
+	workLocation:any;
 	createdOn: any;	
 	createdBy: any;	
 	updatedOn: any;	

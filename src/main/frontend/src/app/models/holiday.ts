@@ -5,6 +5,7 @@ export class Holiday{
 	dayOfTheWeek : any;
 	optionalHoliday:any;
 	customHoliday:any;
+	state:any;
 
 	deptId:any;
 	departmentHolidayMapId:any;

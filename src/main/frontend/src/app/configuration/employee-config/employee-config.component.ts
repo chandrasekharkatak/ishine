@@ -48,6 +48,44 @@ export class EmployeeConfigComponent implements OnInit {
 
   allCertificationList:any[] = [];
   allPreviousEmployment:any[] = [];
+  allStates:any[] = [
+    "andaman & nicobar islands",
+    "andhra pradesh",
+    "arunachal pradesh",
+    "assam",
+    "bihar", 
+    "chandigarh",
+    "chhattisgarh",
+    "dadra and nagar haveli and  daman & diu",
+    "delhi",
+    "goa",
+    "gujarat",
+    "haryana",
+    "himachal pradesh",
+    "jammu & kashmir",
+    "jharkhand",
+    "karnataka",
+    "kerala",
+    "ladakh",
+    "lakshadweep",
+    "madhya pradesh",
+    "maharashtra",
+    "manipur",
+    "meghalaya",
+    "mizoram",
+    "nagaland",
+    "odisha",
+    "puducherry",
+    "punjab",
+    "rajasthan",
+    "sikkim",
+    "tamil nadu",
+    "telangana", 
+    "tripura",
+    "uttar pradesh", 
+    "uttarakhand",
+    "west bengal",
+  ]
 
   constructor(
     private employeeService:EmployeeService,
@@ -61,11 +99,6 @@ export class EmployeeConfigComponent implements OnInit {
     }
  
   ngOnInit(): void {
-    this.getAllEmployeeList(); //for manager dropdown 
-    this.getManagerList(); //for manager dropdown
-    this.getAllJobRoleList();
-    this.getAllDepartmentList();
-
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -113,6 +146,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
 
     this.reset();
+    this.getManagerList();
+    this.getAllDepartmentList();
   }
 
   showTable(){
@@ -151,6 +186,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.graduationType = '';
     this.employeeObj.pursuing = '';
     this.employeeObj.experience = '';
+    this.employeeObj.workLocation = '';
     
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
@@ -172,7 +208,11 @@ export class EmployeeConfigComponent implements OnInit {
     // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
     // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');
 
-    this.getJobRolesByDept(this.employeeObj.departmentId);
+    if(this.employeeObj.departmentId){
+      this.getJobRolesByDept(this.employeeObj.departmentId);
+    }
+    this.getManagerList();
+    this.getAllDepartmentList();
   }
 
   showUpdateDraftForm(employee:Employee){
@@ -186,6 +226,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj = Object.assign({}, employee);
     // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth, 'yyyy-MM-dd');
     // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining, 'yyyy-MM-dd')
+    if(this.employeeObj.departmentId){
+      this.getJobRolesByDept(this.employeeObj.departmentId);
+    }
+    this.getManagerList();
+    this.getAllDepartmentList();
   }
 
   // Manage employer
@@ -425,6 +470,12 @@ export class EmployeeConfigComponent implements OnInit {
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)){
       this.alertMessage = "Please select experience !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)){
+      this.alertMessage = "Please select employee Work Location !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

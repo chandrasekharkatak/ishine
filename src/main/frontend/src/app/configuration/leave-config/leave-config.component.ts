@@ -49,6 +49,48 @@ export class LeaveConfigComponent implements OnInit {
   leaveBalanceObj:Leave = new Leave();
   leaveBalanceList:any[] = [];
 
+  allStates:any[] = [
+    "andaman & nicobar islands",
+    "andhra pradesh",
+    "arunachal pradesh",
+    "assam",
+    "bihar", 
+    "chandigarh",
+    "chhattisgarh",
+    "dadra and nagar haveli and  daman & diu",
+    "delhi",
+    "goa",
+    "gujarat",
+    "haryana",
+    "himachal pradesh",
+    "jammu & kashmir",
+    "jharkhand",
+    "karnataka",
+    "kerala",
+    "ladakh",
+    "lakshadweep",
+    "madhya pradesh",
+    "maharashtra",
+    "manipur",
+    "meghalaya",
+    "mizoram",
+    "nagaland",
+    "odisha",
+    "puducherry",
+    "punjab",
+    "rajasthan",
+    "sikkim",
+    "tamil nadu",
+    "telangana", 
+    "tripura",
+    "uttar pradesh", 
+    "uttarakhand",
+    "west bengal",
+  ]
+
+  // for View Holidays by State 
+  selectedState:any;
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
@@ -202,6 +244,8 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayObj= new Holiday();
     this.holidayObj.optionalHoliday = false;
     this.holidayObj.customHoliday = false;
+    this.holidayObj.state = '';
+    this.selectedState = '';
     this.holidayList = [];
 
     this.leaveTypeObj = new Leave();
@@ -232,6 +276,12 @@ export class LeaveConfigComponent implements OnInit {
     
     if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.dateOfHoliday)){
       this.alertMessage = "Please select Date of Holiday !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.state)){
+      this.alertMessage = "Please select State !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
