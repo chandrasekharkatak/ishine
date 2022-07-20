@@ -6,6 +6,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">View Leave Types</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">View Leave Policies</button>
     </div>
 </div>
 
@@ -34,14 +35,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2 mb-0">
-                    <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
-                            <input class="custom-control-input" type="checkbox" id="customCheck" [(ngModel)]="holidayObj.customHoliday">
-                            <label class="custom-control-label" for="customCheck">Custom Holiday</label>
-                        </div>
-                    </div>
-                </div>
             </div>
             <div class="row">
                 <div class="col-md-4 mb-0">
@@ -57,6 +50,18 @@
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Day</label>
                             <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="holidayObj.dayOfTheWeek">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>State</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="holidayObj.state">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="all">all</option>
+                                <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
+                              </select>
                         </div>
                     </div>
                 </div>
@@ -76,6 +81,20 @@
 <div class="row col-md-12" *ngIf="isHolidayTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Holidays</h1>
+    </div>
+    <div class="col-md-12 row">
+        <div class="offset-md-8 col-md-4 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>State</label>
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="all">all</option>
+                        <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
+                      </select>
+                </div>
+            </div>
+        </div>
     </div>
     <table class="table holidays-table">
         <thead class="thead-light">
@@ -417,6 +436,32 @@
     </div>
 </div>
 <!-- end ::  Add & Update Leave Policy form -->
+
+<!-- start :: Leave Policy Table -->
+<div class="row col-md-12" *ngIf="isLeavePolicyTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Leave Policies</h1>
+    </div>
+    <table class="table leave-policy-table">
+        <thead class="thead-light text-center">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>
+            <th scope="col" class="info-label">Leave Policy Name</th>
+            <th scope="col" class="info-label">Leave Type</th>
+            <th scope="col" colspan="4" class="info-label">Description</th>
+            <th scope="col" class="info-label">Created By</th>
+            <th scope="col" class="info-label">Created On</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+            <tr>
+                <th colspan="10" class="text-center info-label">No details to display...</th>
+              </tr>
+        </tbody>
+      </table>      
+</div>
+<!-- end :: Leave Policy table -->
 
 <!-- Modals Template -->
 <ng-template #alert_message>

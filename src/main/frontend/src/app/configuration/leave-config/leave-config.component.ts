@@ -240,6 +240,21 @@ export class LeaveConfigComponent implements OnInit {
     this.getAllLeaveTypes();
   }
 
+  showLeavePoliciesTable(){
+    this.isLeavePolicyTable = true;
+    
+    this.isHolidayTable = false;
+    this.isHolidayForm = false;
+    this.isLeaveTypeForm = false;
+    this.isLeaveRuleTable = false;
+    this.isLeaveBalanceForm = false;
+    this.isLeavePolicyForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+
+    // this.getAllLeavePolicies();
+  }
+
   reset() {
     this.holidayObj= new Holiday();
     this.holidayObj.optionalHoliday = false;
@@ -499,6 +514,11 @@ export class LeaveConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  // Leave Policies
+  getAllLeavePolicies(){
+
   }
 
 }
