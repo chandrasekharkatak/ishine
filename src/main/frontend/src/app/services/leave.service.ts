@@ -11,6 +11,7 @@ export class LeaveService {
 
   constructor(private http: HttpClient) { }
 
+  /* Leave */
   applyLeave(leaveObj:Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/applyLeave`, leaveObj);
   }
@@ -72,5 +73,26 @@ export class LeaveService {
 
   getPendingCompOffRequestsByManagerId(compOffObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getPendingCompOffRequestsByManagerId`, compOffObj);
+  }
+
+  /* Leave Policy */
+  addLeavePolicy(leavePolicyObj:Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/addLeavePolicy`, leavePolicyObj);
+  }
+
+  updateLeavePolicy(leavePolicyObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeavePolicy`, leavePolicyObj);
+  }
+
+  deleteLeavePolicyByLeavePolicyMasterId(leavePolicyObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteLeavePolicyByLeavePolicyMasterId`, leavePolicyObj);
+  }
+
+  getAllLeavePolicy(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllLeavePolicy`);
+  }
+
+  getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(leavePolicyObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeavePolicyByEmployentStatusAndLeaveTypeMasterId`, leavePolicyObj);
   }
 }

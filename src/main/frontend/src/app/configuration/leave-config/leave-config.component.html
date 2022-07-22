@@ -150,6 +150,19 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Gender</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveTypeObj.gender">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="All">All</option>
+                                <option value="Female">Female</option>
+                                <option value="Male">Male</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-4 mb-0">
@@ -200,6 +213,7 @@
           <tr>
             <th scope="col" class="info-label">Leave Type</th>
             <th scope="col" class="info-label">Leave Code</th>
+            <th scope="col" class="info-label">Employee Gender</th>
             <th scope="col" class="info-label">Default Leaves</th>
             <th scope="col" class="info-label">Rules</th>
             <th scope="col" class="info-label">Description</th>
@@ -210,6 +224,7 @@
             <tr *ngFor="let leaveType of leaveTypes">
                 <td>{{leaveType.leaveType}}</td>
                 <td>{{leaveType.leaveTypeCode}}</td>
+                <td>{{leaveType.gender}}</td>
                 <td>{{leaveType.noOfDays}} day(s)</td>
                 <td>{{leaveType.rules}}</td>
                 <td>{{leaveType.description}}</td>
@@ -285,7 +300,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Policy Name</label>
-                            <input type="text" class="form-control" autocomplete="none">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.leavePolicyName">
                         </div>
                     </div>
                 </div>
@@ -293,11 +308,12 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.employmentStatus">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Probation">Probation</option>
                                 <option value="Confirmed">Confirmed</option>
-                                <option value="InActive">In Active</option>
+                                <option value="Resigned">Resigned</option>
+                                <option value="InActive">In-Active</option>
                             </select>
                         </div>
                     </div>
@@ -306,22 +322,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.leaveTypeMasterId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Employee Gender</label>
-                            <select class="form-control" aria-hidden="true">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option value="All">All</option>
-                                <option value="Female">Female</option>
-                                <option value="Male">Male</option>
                             </select>
                         </div>
                     </div>
@@ -329,119 +332,183 @@
                 <div class="col-md-6 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label for="leavePolicyDesc"><span class="text-danger">*</span>Description</label>
-                            <textarea class="form-control" id="leavePolicyDesc" rows="1"></textarea>
+                            <label for="leavePolicyDesc">Description</label>
+                            <textarea class="form-control" id="leavePolicyDesc" rows="1" [(ngModel)]="leavePolicyObj.description"></textarea>
                           </div>
                     </div>
                 </div>
             </div>
             <div class="row my-2">
-                <!-- MONTHLY LEAVE INCREMENT -->
-                <div class="col-md-2 mb-0">
+                <!-- LEAVE APPLICATION -->
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox">
-                            <input class="custom-control-input" type="checkbox" id="incrementCheck">
-                            <label class="custom-control-label" for="incrementCheck">Monthly Increment</label>
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Allow Leave Application</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.leaveApplication">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8 mb-0">
+            </div>
+            <div class="row my-2">
+                <!-- MONTHLY LEAVE INCREMENT -->
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="d-flex">
-                            <label class="col-md-5"><span class="text-danger">*</span>Monthly Increment Value : </label>
-                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Monthly Increment</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.increment">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="NA">NA</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="leavePolicyObj.increment == 'Yes'" class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Monthly Increment Value : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.incrementValue">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row my-2">
                 <!-- ONE TIME LEAVE APPLY LIMIT -->
-                <div class="col-md-2 mb-0">
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox">
-                            <input class="custom-control-input" type="checkbox" id="oneTimeLeaveCheck">
-                            <label class="custom-control-label" for="oneTimeLeaveCheck">One Time Leave Limit</label>
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>One Time Leave Limit</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.oneTimeLeave">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="NA">NA</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8 mb-0">
+                <div *ngIf="leavePolicyObj.oneTimeLeave == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="d-flex">
-                            <label class="col-md-5"><span class="text-danger">*</span>One Time Leave Limit Value : </label>
-                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>One Time Leave Limit Value : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.oneTimeLeaveCount">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row my-2">
                 <!-- LEAVE CARRY FORWARD -->
-                <div class="col-md-2 mb-0">
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox">
-                            <input class="custom-control-input" type="checkbox" id="leaveCarryForwardCheck">
-                            <label class="custom-control-label" for="leaveCarryForwardCheck">Leave Carry Forward</label>
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Carry Forward</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.carryForward">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="NA">NA</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8 mb-0">
+                <div *ngIf="leavePolicyObj.carryForward == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="d-flex">
-                            <label class="col-md-5"><span class="text-danger">*</span>Leave Carry Forward Value : </label>
-                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Carry Forward Value : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.carryForwardValue">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row my-2">
                 <!-- Leave Validity Expiration -->
-                <div class="col-md-2 mb-0">
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox">
-                            <input class="custom-control-input" type="checkbox" id="leaveExpirationCheck">
-                            <label class="custom-control-label" for="leaveExpirationCheck">Leave Validity Expiration</label>
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Validity Expiration</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.expirationPeriod">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="NA">NA</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8 mb-0">
+                <div *ngIf="leavePolicyObj.expirationPeriod == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="d-flex">
-                            <label class="col-md-5" ><span class="text-danger">*</span>Leave Validity Expiration Period <small>(Days)</small> : </label>
-                            <input type="number" class="form-control col-md-1" autocomplete="none">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Validity Expiration Period <small>(Days)</small> : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.expirationPeriodValue">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row my-2">
                 <!-- Leave Application Count Locking -->
-                <div class="col-md-2 mb-0">
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox">
-                            <input class="custom-control-input" type="checkbox" id="leaveLockingCheck">
-                            <label class="custom-control-label" for="leaveLockingCheck">Leave Application Count Locking</label>
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Application Count Locking</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.lockingPeriod">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="NA">NA</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-5 mb-0">
+                <div *ngIf="leavePolicyObj.lockingPeriod == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="d-flex">
-                            <label class="col-md-9"><span class="text-danger">*</span>Leave Application Count Locking Period <small>(Days)</small> : </label>
-                            <input type="number" class="form-control col-md-2" autocomplete="none">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Application Count Locking Period <small>(Days)</small> : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.lockingPeriodValue">
                         </div>
                     </div>
                 </div>
-                <div class="col-md-5 mb-0">
+                <div *ngIf="leavePolicyObj.lockingPeriod == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="d-flex">
-                            <label class="col-md-9"><span class="text-danger">*</span>Leave Application Count Value : </label>
-                            <input type="number" class="form-control col-md-2" autocomplete="none">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Application Count Value : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.lockingValue">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-2">
+                <!-- Leave Probation -->
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Application Probation</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.probation">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="NA">NA</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="leavePolicyObj.probation == 'Yes'" class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Probation Period <small>(Days)</small> : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.probationPeriod">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1">Add Leave Policy</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1">Update Leave Policy</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onAddLeavePolicy(alert_message)">Add Leave Policy</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeavePolicy(alert_message)">Update Leave Policy</button>
                 </div>
             </div>
     </div>
@@ -459,16 +526,28 @@
             <th scope="col" class="info-label">Sr No.</th>
             <th scope="col" class="info-label">Leave Policy Name</th>
             <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" colspan="4" class="info-label">Description</th>
+            <th scope="col" class="info-label desc-text-wrap">Description</th>
             <th scope="col" class="info-label">Created By</th>
             <th scope="col" class="info-label">Created On</th>
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr>
+            <tr *ngIf="leavePolicyList.length === 0">
                 <th colspan="10" class="text-center info-label">No details to display...</th>
-              </tr>
+            </tr>
+            <tr *ngFor="let leavePolicy of leavePolicyList; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{leavePolicy.leavePolicyName}}</td>
+                <td>{{leavePolicy.leaveType}}</td>
+                <td class="desc-text-wrap">{{leavePolicy.description}}</td>
+                <td>{{leavePolicy.createdByName}}</td>
+                <td>{{leavePolicy.createdOn}}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(alert_message, leavePolicy)"><em class="fa fa-trash"></em></button>
+                </td>
+            </tr>
         </tbody>
       </table>      
 </div>
@@ -479,5 +558,13 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_leave_policy>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Leave Policy?</p>
+        <button type="button" class="btn btn-success" (click)="ondeleteLeavePolicy(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

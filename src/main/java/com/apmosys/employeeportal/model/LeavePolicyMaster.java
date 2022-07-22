@@ -1,10 +1,16 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -20,8 +26,49 @@ public class LeavePolicyMaster {
 	private Short leavePolicyMasterId;
 	
 	private String leavePolicyName;
+	
+	private Short leaveTypeMasterId;
 
 	private String employmentStatus;
 	
-	private String defaultPolicy;
+	@Column(columnDefinition = "varchar(1000) DEFAULT NULL")
+	private String description;
+	
+	private String leaveApplication;
+	
+	private String increment;
+	
+	private Float incrementValue;
+	
+	private String oneTimeLeave;
+	
+	private Integer oneTimeLeaveCount;
+	
+	private String carryForward;
+	
+	private Integer carryForwardValue;
+	
+	private String expirationPeriod;
+	
+	private Integer expirationPeriodValue;
+	
+	private String lockingPeriod;
+	
+	private Integer lockingPeriodValue;
+	
+	private Integer lockingValue;
+	
+	private String probation;
+	
+	private Integer probationPeriod;
+	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+	private Timestamp createdOn;
+	
+	private Long createdBy;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+	private LocalDateTime updatedOn;
+	
+	private Integer updatedBy;
 }

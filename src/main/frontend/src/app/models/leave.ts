@@ -14,6 +14,7 @@ export class Leave{
 	status:any;
 	leaveStatusId:any;
 	leaveTypeCode:any;
+	gender: any;
 	paidLeave:any;
 	rules:any;
 	description:any;
@@ -25,6 +26,27 @@ export class Leave{
 	updateBalanceBy:any;
 	message:any;
 	compOffLeaveId:any;
+
+	leavePolicyMasterId: any;
+	leavePolicyName: any;
+	employmentStatus: any;
+	leaveApplication:any;
+	increment: any;
+	incrementValue: any;
+	oneTimeLeave: any;
+	oneTimeLeaveCount: any;
+	carryForward: any;
+	carryForwardValue: any;
+	expirationPeriod: any;
+	expirationPeriodValue: any;
+	lockingPeriod: any;
+	lockingPeriodValue: any;
+	lockingValue: any;
+	probation: any;
+	probationPeriod: any;
+
+	updatedBy:any;
+	updatedOn:any;
 
 	leaveAppliedFor:any;
 	fromDateDayType:any;

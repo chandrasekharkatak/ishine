@@ -1,13 +1,16 @@
 package com.apmosys.employeeportal.service;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.model.LeavePolicyLeaveTypeMap;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
-import com.apmosys.employeeportal.repository.LeavePolicyLeaveTypeMapRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -17,51 +20,208 @@ public class LeavePolicyMasterService {
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
 	
-	@Autowired
-	LeavePolicyLeaveTypeMapRepository leavePolicyLeaveTypeMapRepository;
 
 	@Transactional
 	public ServiceResponse addLeavePolicy(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			LeavePolicyMaster newLeavePolicy = new LeavePolicyMaster();
+			Optional<LeavePolicyMaster> existingLeavePolicy = 
+					leavePolicyMasterRepository.findByEmployentStatusAndLeaveTypeMasterId(leaveDTO.getEmploymentStatus(), leaveDTO.getLeaveTypeMasterId());
 			
-			newLeavePolicy.setLeavePolicyName(leaveDTO.getLeavePolicyName());
-			newLeavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
-			newLeavePolicy.setDefaultPolicy(leaveDTO.getDefaultPolicy());			
-
-			LeavePolicyMaster newLeavePolicyCreated = leavePolicyMasterRepository.save(newLeavePolicy);
-			
-			leaveDTO.getLeaveTypeList().forEach((leaveType)-> {
+			if (existingLeavePolicy.isPresent()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave policy already exist");
+			}else {
+				LeavePolicyMaster newLeavePolicy = new LeavePolicyMaster();
 				
-				LeavePolicyLeaveTypeMap map = new LeavePolicyLeaveTypeMap();
+				newLeavePolicy.setLeavePolicyName(leaveDTO.getLeavePolicyName());
+				newLeavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
+				newLeavePolicy.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());			
+				newLeavePolicy.setDescription(leaveDTO.getDescription());
+				newLeavePolicy.setLeaveApplication(leaveDTO.getLeaveApplication());
+				newLeavePolicy.setIncrement(leaveDTO.getIncrement());
+				newLeavePolicy.setIncrementValue(leaveDTO.getIncrementValue());
+				newLeavePolicy.setOneTimeLeave(leaveDTO.getOneTimeLeave());
+				newLeavePolicy.setOneTimeLeaveCount(leaveDTO.getOneTimeLeaveCount());
+				newLeavePolicy.setCarryForward(leaveDTO.getCarryForward());
+				newLeavePolicy.setCarryForwardValue(leaveDTO.getCarryForwardValue());
+				newLeavePolicy.setExpirationPeriod(leaveDTO.getExpirationPeriod());
+				newLeavePolicy.setExpirationPeriodValue(leaveDTO.getExpirationPeriodValue());
+				newLeavePolicy.setLockingPeriod(leaveDTO.getLockingPeriod());
+				newLeavePolicy.setLockingPeriodValue(leaveDTO.getLockingPeriodValue());
+				newLeavePolicy.setLockingValue(leaveDTO.getLockingValue());
+				newLeavePolicy.setProbation(leaveDTO.getProbation());
+				newLeavePolicy.setProbationPeriod(leaveDTO.getProbationPeriod());
 				
-				map.setLeavePolicyMasterId(newLeavePolicyCreated.getLeavePolicyMasterId());
-				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-				map.setIncrement(leaveType.getIncrement());
-				map.setIncrementValue(leaveType.getIncrementValue());				
-				leavePolicyLeaveTypeMapRepository.save(map);
-			});
-			
-
-			if (newLeavePolicyCreated != null) {
+				newLeavePolicy.setCreatedBy(leaveDTO.getCreatedBy());
 				
-				if(newLeavePolicyCreated.getDefaultPolicy().equals("true"))
-				{
-	//				leavePolicyLeaveTypeMapRepository
+				LeavePolicyMaster newLeavePolicyCreated = leavePolicyMasterRepository.save(newLeavePolicy);
+				
+				if (newLeavePolicyCreated != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("New leave policy added.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Leave policy creation failed");
 				}
-				else
-				{
-					
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	@Transactional
+	public ServiceResponse updateLeavePolicy(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		String message = "";
+		try {
+			Optional<LeavePolicyMaster> existingLeavePolicy = leavePolicyMasterRepository.findById(leaveDTO.getLeavePolicyMasterId());
+
+			if (existingLeavePolicy.isPresent()) {
+				LeavePolicyMaster leavePolicy = existingLeavePolicy.get();
+
+				leavePolicy.setLeavePolicyName(leaveDTO.getLeavePolicyName());
+				leavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
+				leavePolicy.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());			
+				leavePolicy.setDescription(leaveDTO.getDescription());
+				leavePolicy.setLeaveApplication(leaveDTO.getLeaveApplication());
+				leavePolicy.setIncrement(leaveDTO.getIncrement());
+				leavePolicy.setIncrementValue(leaveDTO.getIncrementValue());
+				leavePolicy.setOneTimeLeave(leaveDTO.getOneTimeLeave());
+				leavePolicy.setOneTimeLeaveCount(leaveDTO.getOneTimeLeaveCount());
+				leavePolicy.setCarryForward(leaveDTO.getCarryForward());
+				leavePolicy.setCarryForwardValue(leaveDTO.getCarryForwardValue());
+				leavePolicy.setExpirationPeriod(leaveDTO.getExpirationPeriod());
+				leavePolicy.setExpirationPeriodValue(leaveDTO.getExpirationPeriodValue());
+				leavePolicy.setLockingPeriod(leaveDTO.getLockingPeriod());
+				leavePolicy.setLockingPeriodValue(leaveDTO.getLockingPeriodValue());
+				leavePolicy.setLockingValue(leaveDTO.getLockingValue());
+				leavePolicy.setProbation(leaveDTO.getProbation());
+				leavePolicy.setProbationPeriod(leaveDTO.getProbationPeriod());
+		
+				leavePolicy.setUpdatedBy(leaveDTO.getUpdatedBy());
+
+				LeavePolicyMaster dbResponse = leavePolicyMasterRepository.save(leavePolicy);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave policy updated successfully." + message);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to update Leave policy.");
 				}
-				
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("New leave policy added.");
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Leave policy creation failed");
+				response.setServiceResponse("No such Leave policy available.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse deleteLeavePolicyByLeavePolicyMasterId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<LeavePolicyMaster> existingLeavePolicy = leavePolicyMasterRepository.findById(leaveDTO.getLeavePolicyMasterId());
+			if (existingLeavePolicy.isPresent()) {
+				LeavePolicyMaster leavePolicy = existingLeavePolicy.get();
+				leavePolicyMasterRepository.deleteById(leavePolicy.getLeavePolicyMasterId());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Leave policy Deleted");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave policy Not Found");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	
+	public ServiceResponse getAllLeavePolicy() {
+		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			List<Object[]> list = leavePolicyMasterRepository.getAllLeavePolicies();
+
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Policy list is empty.");
+			} else {
+				for (Object[] object : list) {
+
+					LeaveDTO dto = new LeaveDTO();
+					
+					dto.setLeavePolicyMasterId(object[0] != null ? Short.parseShort(object[0].toString()) : null);
+					dto.setLeavePolicyName(object[1] != null ? object[1].toString() : null);
+					dto.setLeaveTypeMasterId(object[2] != null ? Short.parseShort(object[2].toString()) : null);
+					dto.setLeaveType(object[3] != null ? object[3].toString() : null);
+					dto.setEmploymentStatus(object[4] != null ? object[4].toString() : null);
+					dto.setDescription(object[5] != null ? object[5].toString() : null);
+					dto.setLeaveApplication(object[6] != null ? object[6].toString() : null);
+					dto.setIncrement(object[7] != null ? object[7].toString() : null);
+					dto.setIncrementValue(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					dto.setOneTimeLeave(object[9] != null ? object[9].toString() : null);
+					dto.setOneTimeLeaveCount(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+					dto.setCarryForward(object[11] != null ? object[11].toString() : null);
+					dto.setCarryForwardValue(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+					dto.setExpirationPeriod(object[13] != null ? object[13].toString() : null);
+					dto.setExpirationPeriodValue(object[14] != null ? Integer.parseInt(object[14].toString()) : null);
+					dto.setLockingPeriod(object[15] != null ? object[15].toString() : null);
+					dto.setLockingPeriodValue(object[16] != null ? Integer.parseInt(object[16].toString()) : null);
+					dto.setLockingValue(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+					dto.setProbation(object[18] != null ? object[18].toString() : null);
+					dto.setProbationPeriod(object[19] != null ? Integer.parseInt(object[19].toString()) : null);
+					dto.setCreatedByName(object[20] != null ? object[20].toString() : null);
+					dto.setCreatedOn(object[21] != null ? format.format(format.parse(object[21].toString())) : null);
+					dtoList.add(dto);
+				}
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<LeavePolicyMaster> leavePolicy = 
+					leavePolicyMasterRepository.findByEmployentStatusAndLeaveTypeMasterId(leaveDTO.getEmploymentStatus(), leaveDTO.getLeaveTypeMasterId());
+			
+			if (leavePolicy.isPresent()) {
+				response.setServiceResponse(leavePolicy.get());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave policy Not Found");
 			}
 
 		} catch (Exception e) {

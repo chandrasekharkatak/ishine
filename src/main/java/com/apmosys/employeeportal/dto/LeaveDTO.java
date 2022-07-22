@@ -2,8 +2,10 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import javax.persistence.Column;
+
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
-import com.apmosys.employeeportal.model.LeavePolicyLeaveTypeMap;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +33,7 @@ public class LeaveDTO {
 	private String status;
 	private Short leaveStatusId;
 	private String leaveTypeCode;
+	private String gender;
 	private String paidLeave;
 	private String rules;
 	private String description;
@@ -42,10 +45,25 @@ public class LeaveDTO {
 	private String updateBalanceBy;
 	private String message;
 	private Long compOffLeaveId;
+	
+	private Short leavePolicyMasterId;
 	private String leavePolicyName;
 	private String employmentStatus;
-	private String defaultPolicy;
-	private List<LeavePolicyLeaveTypeMap> leaveTypeList;
-	
+	private String leaveApplication;
+	private String increment;
+	private Float incrementValue;
+	private String oneTimeLeave;
+	private Integer oneTimeLeaveCount;
+	private String carryForward;
+	private Integer carryForwardValue;
+	private String expirationPeriod;
+	private Integer expirationPeriodValue;
+	private String lockingPeriod;
+	private Integer lockingPeriodValue;
+	private Integer lockingValue;
+	private String probation;
+	private Integer probationPeriod;
 
+	private Integer updatedBy;
+	private String updatedOn;
 }

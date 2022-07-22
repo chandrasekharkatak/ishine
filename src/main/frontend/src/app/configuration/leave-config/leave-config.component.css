@@ -29,3 +29,9 @@
 .text-highlight{
     color: var(--dark-cornflower-blue);
 }
+
+.desc-text-wrap{
+    width: 35%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}

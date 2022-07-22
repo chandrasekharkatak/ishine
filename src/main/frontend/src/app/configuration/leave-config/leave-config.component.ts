@@ -50,6 +50,9 @@ export class LeaveConfigComponent implements OnInit {
   leaveBalanceObj:Leave = new Leave();
   leaveBalanceList:any[] = [];
 
+  leavePolicyObj:Leave = new Leave();
+  leavePolicyList:any[] = [];
+
   allStates:any[] = [
     "andaman & nicobar islands",
     "andhra pradesh",
@@ -241,6 +244,22 @@ export class LeaveConfigComponent implements OnInit {
     this.getAllLeaveTypes();
   }
 
+  showUpdateLeavePolicyForm(leavePolicyObj:Leave){
+    this.isLeavePolicyForm = true;
+    this.isUpdation = true;
+    
+    this.isHolidayForm = false;
+    this.isLeaveTypeForm = false;
+    this.isLeaveBalanceForm = false;
+    this.isHolidayTable = false;
+    this.isLeaveRuleTable = false;
+    this.isLeavePolicyTable = false;
+    this.isCreation = false;
+
+    this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+  }
+
+
   showLeavePoliciesTable(){
     this.isLeavePolicyTable = true;
     
@@ -253,7 +272,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
 
-    // this.getAllLeavePolicies();
+    this.getAllLeavePolicies();
   }
 
   reset() {
@@ -269,6 +288,19 @@ export class LeaveConfigComponent implements OnInit {
 
     this.leaveBalanceObj = new Leave();
     this.leaveBalanceList = [];
+
+    this.leavePolicyObj = new Leave();
+    this.leavePolicyObj.employmentStatus = '';
+    this.leavePolicyObj.leaveTypeMasterId = '';
+    this.leavePolicyObj.leaveApplication = '';
+    this.leavePolicyObj.increment = '';
+    this.leavePolicyObj.oneTimeLeave = '';
+    this.leavePolicyObj.carryForward = '';
+    this.leavePolicyObj.expirationPeriod = '';
+    this.leavePolicyObj.lockingPeriod = '';
+    this.leavePolicyObj.probation = '';
+
+    this.leavePolicyList = [];
   }
 
   // Modals
@@ -279,6 +311,11 @@ export class LeaveConfigComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  openDeleteLeavePolicy(template: TemplateRef<any>, leavePolicy: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.leavePolicyObj = leavePolicy;
   }
 
   // Holiday
@@ -420,6 +457,12 @@ export class LeaveConfigComponent implements OnInit {
       return false;
     }
 
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.gender)){
+      this.alertMessage = "Please Select Employee Gender !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.noOfDays)){
       this.alertMessage = "Please enter Default Leave Days !!"
       this.openAlertMod(template, this.alertMessage);
@@ -528,8 +571,195 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   // Leave Policies
-  getAllLeavePolicies(){
+  validateLeavepolicyObj(leavePolicyObj:Leave, template: TemplateRef<any>){
 
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leavePolicyName)){
+      this.alertMessage = "Please enter Leave Policy Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leaveTypeMasterId)){
+      this.alertMessage = "Please Select Leave Type!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.employmentStatus)){
+      this.alertMessage = "Please Select Employment Status !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    // Policy Checks
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leaveApplication)){
+      this.alertMessage = "Please Select Allow Leave Application !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.increment)){
+      this.alertMessage = "Please Select Monthly Increment !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(leavePolicyObj.increment == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.incrementValue)){
+        this.alertMessage = "Please Select Monthly Increment Value !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.oneTimeLeave)){
+      this.alertMessage = "Please Select One time Leave Limit !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(leavePolicyObj.oneTimeLeave == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.oneTimeLeaveCount)){
+        this.alertMessage = "Please Select One time Leave Limit Value !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.carryForward)){
+      this.alertMessage = "Please Select Carry Forward !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(leavePolicyObj.carryForward == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.carryForwardValue)){
+        this.alertMessage = "Please Select Carry Forward Value !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.expirationPeriod)){
+      this.alertMessage = "Please Select Leave Validity Expiration !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(leavePolicyObj.expirationPeriod == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.expirationPeriodValue)){
+        this.alertMessage = "Please Select Leave Validity Expiration Value !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.lockingPeriod)){
+      this.alertMessage = "Please Select Leave Application Count Locking !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(leavePolicyObj.lockingPeriod == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.lockingPeriodValue)){
+        this.alertMessage = "Please Select Leave Application Count Locking Period !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.lockingValue)){
+        this.alertMessage = "Please Select Leave Application Count Locking Value !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.probation)){
+      this.alertMessage = "Please Select Leave Application Probation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(leavePolicyObj.probation == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.probation)){
+        this.alertMessage = "Please Select Leave Application Probation Period !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  onAddLeavePolicy(template: TemplateRef<any>) {
+    let inputValidated:boolean  = this.validateLeavepolicyObj(this.leavePolicyObj, template)
+    if(!inputValidated) return;
+
+    this.leavePolicyObj.createdBy = this.currentUser.empId;
+    console.log("Add Leave Policy : ", this.leavePolicyObj);
+
+    this.leaveService.addLeavePolicy(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeavePoliciesTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateLeavePolicy(template: TemplateRef<any>) {
+    let inputValidated:boolean  = this.validateLeavepolicyObj(this.leavePolicyObj, template)
+    if(!inputValidated) return;
+
+    this.leavePolicyObj.updatedBy = this.currentUser.empId;
+    console.log("update Leave Policy : ", this.leavePolicyObj);
+
+    this.leaveService.updateLeavePolicy(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeavePoliciesTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  ondeleteLeavePolicy(template: TemplateRef<any>) {
+    console.log("Delete Leave Policy : ", this.leavePolicyObj);
+
+    this.leaveService.deleteLeavePolicyByLeavePolicyMasterId(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeavePoliciesTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getAllLeavePolicies(){
+    this.leavePolicyList = [];
+
+    this.leaveService.getAllLeavePolicy().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leavePolicyList = response.serviceResponse;
+        console.log("leavePolicyList : ", this.leavePolicyList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getLeavePolicyByEmploymentStatusAndLeaveType() {
+    console.log("get Leave Policy : ", this.leavePolicyObj);
+    this.leaveService.getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        console.log("Leave Policy : ", response.serviceResponse);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
 }

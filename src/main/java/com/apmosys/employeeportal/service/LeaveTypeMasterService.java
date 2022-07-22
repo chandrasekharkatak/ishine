@@ -36,6 +36,7 @@ public class LeaveTypeMasterService {
 					leaveDTO.setPaidLeave(leaveMaster.getPaidLeave());
 					leaveDTO.setRules(leaveMaster.getRules());
 					leaveDTO.setLeaveTypeCode(leaveMaster.getLeaveTypeCode());
+					leaveDTO.setGender(leaveMaster.getGender());	
 					dtoList.add(leaveDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -66,6 +67,7 @@ public class LeaveTypeMasterService {
 				leaveType.setRules(leaveDTO.getRules());
 				leaveType.setLeaveType(leaveDTO.getLeaveType());
 				leaveType.setLeaveTypeCode(leaveDTO.getLeaveTypeCode());
+				leaveType.setGender(leaveDTO.getGender());	
 				leaveType.setNoOfDays(leaveDTO.getNoOfDays());
 				leaveType.setPaidLeave(leaveDTO.getPaidLeave());
 				
@@ -100,6 +102,7 @@ public class LeaveTypeMasterService {
 			
 			leaveType.setLeaveType(leaveDTO.getLeaveType());
 			leaveType.setLeaveTypeCode(leaveDTO.getLeaveTypeCode());
+			leaveType.setGender(leaveDTO.getGender());	
 			leaveType.setNoOfDays(leaveDTO.getNoOfDays());
 			leaveType.setPaidLeave(leaveDTO.getPaidLeave());
 			leaveType.setRules(leaveDTO.getRules());
