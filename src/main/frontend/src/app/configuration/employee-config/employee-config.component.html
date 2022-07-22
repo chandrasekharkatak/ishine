@@ -369,7 +369,8 @@
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option value="Probation">Probation</option>
                                                 <option value="Confirmed">Confirmed</option>
-                                                <option value="InActive">In Active</option>
+                                                <option value="Resigned">Resigned</option>
+                                                <option value="InActive">In-Active</option>
                                             </select>
                                         </div>
                                     </div>
@@ -444,7 +445,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Work Location</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Work Location <small>(State)</small></label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.workLocation">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
