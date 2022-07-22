@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.service.HolidayService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -36,6 +37,13 @@ public class HolidayController {
 	public ServiceResponse getAllHolidays() {
 
 		ServiceResponse response = holidayService.getAllHolidays();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllHolidayByEmpWorkLocation", method = RequestMethod.POST)
+	public ServiceResponse getAllHolidayByWorkLocation(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = holidayService.getAllHolidayByEmpWorkLocation(employeedto);
 		return response;
 	}
 

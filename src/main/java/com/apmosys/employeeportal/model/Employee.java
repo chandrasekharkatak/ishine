@@ -107,6 +107,7 @@ public class Employee {
 	private String experience;
 	
 	private String role;
+	private String workLocation;
 	
 	
 }

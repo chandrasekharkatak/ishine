@@ -72,5 +72,6 @@ public class EmployeeDTO {
 	private String role;
 	private List<DepartmentDTO> departmentList;
 	
+	private String workLocation;
 
 }

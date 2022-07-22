@@ -8,6 +8,6 @@ import com.apmosys.employeeportal.model.Holiday;
 
 public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	
-	public List<Holiday> findByCustomHoliday(String customHoliday);
+//	public List<Holiday> findByCustomHoliday(String customHoliday);
 
 }

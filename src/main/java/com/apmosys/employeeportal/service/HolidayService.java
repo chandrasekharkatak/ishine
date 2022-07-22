@@ -8,10 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.model.Holiday;
-import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -24,9 +25,10 @@ public class HolidayService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
-
+	
 	@Autowired
-	DepartmentRepository departmentRepository;
+	EmployeeRepository employeeRepository;
+
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
@@ -39,7 +41,7 @@ public class HolidayService {
 			newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 			newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 			newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
-			newHoliday.setCustomHoliday(holidayDTO.getCustomHoliday());
+			newHoliday.setState(holidayDTO.getState());
 
 			Holiday newHolidayCreated = holidayRepository.save(newHoliday);
 
@@ -75,8 +77,7 @@ public class HolidayService {
 				holiday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 				holiday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 				holiday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
-				holiday.setCustomHoliday(holidayDTO.getCustomHoliday());
-
+				holiday.setState(holidayDTO.getState());
 				Holiday dbResponse = holidayRepository.save(holiday);
 
 				if (dbResponse != null) {
@@ -119,7 +120,7 @@ public class HolidayService {
 					dto.setOccasion(holiday.getOccasion());
 					dto.setDayOfTheWeek(holiday.getDayOfTheWeek());
 					dto.setOptionalHoliday(holiday.getOptionalHoliday());
-					dto.setCustomHoliday(holiday.getCustomHoliday());
+					dto.setState(holiday.getState());
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -134,6 +135,43 @@ public class HolidayService {
 		}
 		return response;
 	}
+
+	public ServiceResponse getAllHolidayByEmpWorkLocation(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+
+			List<Object[]> list = employeeRepository.getAllHolidayByEmpWorkLocation(employeedto.getEmpId());
+			List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
+			
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Holidays found");
+			} else {
+
+				list.forEach((object) -> {
+					HolidayDTO dto = new HolidayDTO();
+					dto.setOccasion(object[0] != null ? object[0].toString() : null);
+					dto.setDayOfTheWeek(object[1] != null ? object[1].toString() : null);
+					dto.setDateOfHoliday(object[2] != null ? object[2].toString() : null);
+					dto.setState(object[3] != null ? object[3].toString() : null);
+					dtoList.add(dto);		
+					});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+
 
 	
 }
