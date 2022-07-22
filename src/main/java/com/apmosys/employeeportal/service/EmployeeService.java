@@ -126,8 +126,7 @@ public class EmployeeService {
 			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
 			employee.setExperience(employeedto.getExperience());
-			employee.setRole(employeedto.getRole());
-
+			employee.setRole(employeedto.getRole());	
 			Employee newEmployee = employeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -313,6 +312,7 @@ public class EmployeeService {
 					empDTO.setDepartmentId(object[46] != null ? Long.parseLong(object[46].toString()) : null);
 					empDTO.setJobRoleId(object[47] != null ? Long.parseLong(object[47].toString()) : null);
 					empDTO.setManagerId(object[48] != null ? Long.parseLong(object[48].toString()) : null);
+					empDTO.setWorkLocation(object[49] != null ? (object[49].toString()) : null);
 
 					if (object[42] != null) {
 
@@ -425,6 +425,7 @@ public class EmployeeService {
 				employee.setJobRoleId(employeedto.getJobRoleId());
 				employee.setExperience(employeedto.getExperience());
 				employee.setRole(employeedto.getRole());
+				employee.setWorkLocation(employeedto.getWorkLocation());
 
 				Employee dbResponse = employeeRepository.save(employee);
 
@@ -511,7 +512,7 @@ public class EmployeeService {
 					empDTO.setDepartmentId(object[45] != null ? Long.parseLong(object[45].toString()) : null);
 					empDTO.setJobRoleName(object[46] != null ? object[46].toString() : null);
 					empDTO.setDepartmentName(object[47] != null ? object[47].toString() : null);
-
+					empDTO.setWorkLocation(object[48] != null ? object[48].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -687,7 +688,7 @@ public class EmployeeService {
 				employee.setPassingGrade(employeedto.getPassingGrade());
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
-
+				employee.setWorkLocation(employeedto.getWorkLocation());
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {

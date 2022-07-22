@@ -42,6 +42,7 @@ export class LeaveConfigComponent implements OnInit {
   
   holidayObj:Holiday = new Holiday();
   holidayList:any[] = [];
+  holidayListFilter:any[] = [];
 
   leaveTypeObj:Leave = new Leave();
   leaveTypes:any[] = [];
@@ -380,6 +381,15 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
+  onSelect() {
+    console.log("selecteddddddd");
+    if(this.selectedState == 'all state'){
+      this.holidayListFilter = this.holidayList;
+    }else{
+      this.holidayListFilter = this.holidayList.filter(x => x.state == this.selectedState);
+    }
+    
+  }
 
   getAllHolidays(){
     this.holidayList = [];
@@ -388,6 +398,7 @@ export class LeaveConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         console.log("holidayList : ", this.holidayList);
+        this.holidayListFilter = this.holidayList;
       } else {
         console.error(response.serviceResponse);
       }

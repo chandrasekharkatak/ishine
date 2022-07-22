@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Employee } from '../models/employee';
 import { Holiday } from '../models/holiday';
 
 @Injectable({
@@ -21,6 +22,10 @@ export class HolidayService {
 
   getAllHolidays() {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllHolidays`);
+  }
+
+  getAllHolidayByEmpWorkLocation(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllHolidayByEmpWorkLocation`, employeeObj);
   }
 
 }

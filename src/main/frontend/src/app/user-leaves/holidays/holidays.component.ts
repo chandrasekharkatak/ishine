@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
+import { Employee } from 'src/app/models/employee';
 import { Holiday } from 'src/app/models/holiday';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -26,13 +27,15 @@ export class HolidaysComponent implements OnInit {
    }
 
   ngOnInit(): void {
-    this.getAllHolidays()
+    this.getAllHolidayByEmpWorkLocation()
   }
 
-  getAllHolidays(){
+  getAllHolidayByEmpWorkLocation(){
     this.holidayList = [];
     
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    this.holidayService.getAllHolidayByEmpWorkLocation(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         console.log("holidayList : ", this.holidayList);

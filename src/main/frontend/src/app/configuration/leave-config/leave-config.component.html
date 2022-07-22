@@ -59,7 +59,7 @@
                             <label class="info-label"><span class="text-danger">*</span>State</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="holidayObj.state">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="all">all</option>
+                                <option value="all">all (common)</option>
                                 <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
                               </select>
                         </div>
@@ -87,9 +87,10 @@
             <div class="info-wrapper">
                 <div class="form-group">
                     <label class="info-label"><span class="text-danger">*</span>State</label>
-                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState">
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState" (ngModelChange)="onSelect()">
                         <option selected="selected" value="" disabled>Select</option>
-                        <option value="all">all</option>
+                        <option value="all state">all state</option>
+                        <option value="all">all (common)</option>
                         <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
                       </select>
                 </div>
@@ -103,15 +104,17 @@
             <th scope="col" class="info-label">Occasion</th>
             <th scope="col" class="info-label">Day</th>
             <th scope="col" class="info-label">Date</th>
+            <th scope="col" class="info-label">State</th>
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let holiday of holidayList; let i = index">
+            <tr *ngFor="let holiday of holidayListFilter; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                 <td>{{holiday.dayOfTheWeek}}</td>
                 <td>{{holiday.dateOfHoliday}}</td>
+                <td>{{holiday.state}}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>

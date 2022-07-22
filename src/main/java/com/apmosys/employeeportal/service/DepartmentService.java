@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
-import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
-import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -24,9 +22,6 @@ public class DepartmentService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
-
-	@Autowired
-	HolidayRepository holidayRepository;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
