@@ -7,6 +7,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-team-timesheet',
@@ -22,6 +23,9 @@ export class TeamTimesheetComponent implements OnInit {
   //flags 
   isAllTimesheetTable:boolean = false;
   isAllTimesheetRequestTable:boolean = false;
+
+  excelName = '';
+  elementName = '';
 
   //modal 
   alertMessage:any;
@@ -157,6 +161,26 @@ export class TeamTimesheetComponent implements OnInit {
 
   
 
+  exportToExcel(): void {
+
+    if(this.isAllTimesheetTable == true){
+      this.elementName = 'teams-table';
+      this.excelName = 'AllTeamTimesheet.xlsx'
+    }
+    if(this.isAllTimesheetRequestTable == true){
+      this.elementName = 'teams-request-table';
+      this.excelName = 'AllTeamTimeSheetRequest.xlsx'
+    }
+  
+  
+    let element = document.getElementById(this.elementName);
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
+  
+    const book: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+  
+    XLSX.writeFile(book, this.excelName);
+  }
 
 
 

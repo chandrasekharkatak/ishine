@@ -360,6 +360,8 @@ public class TeamsService {
 					dto.setName(object[1] != null ? object[1].toString(): null);
 					dto.setEmail(object[2] != null ? object[2].toString(): null);
 					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
+					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
+					dto.setManagerName(object[5] != null ? object[5].toString(): null);
 					dtoList.add(dto);
 				});
 
@@ -393,6 +395,7 @@ public class TeamsService {
 					dto.setName(object[1] != null ? object[1].toString(): null);
 					dto.setEmail(object[2] != null ? object[2].toString(): null);
 					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
+					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dtoList.add(dto);
 					
 				});

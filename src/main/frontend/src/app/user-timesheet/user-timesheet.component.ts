@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-user-timesheet',

@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
@@ -32,27 +36,47 @@ public class HolidayService {
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
-		String message = "";
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Holiday newHoliday = new Holiday();
+			
+			LocalDate holidayDtoDateOfHoliday = stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd");
+			LocalDate dbDateOfHoliday = null;
+			String dbState = null;
+			String dbOccasion = null;
 
-			newHoliday.setOccasion(holidayDTO.getOccasion());
-			newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
-			newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
-			newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
-			newHoliday.setState(holidayDTO.getState());
-
-			Holiday newHolidayCreated = holidayRepository.save(newHoliday);
-
-			if (newHolidayCreated != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("New holiday added.");
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Failed to add new holiday.");
+			List<Holiday> holidayData = holidayRepository.findAll();
+			for(Holiday dbHolidayData : holidayData) {
+				dbDateOfHoliday = dbHolidayData.getDateOfHoliday();
+				dbState = dbHolidayData.getState();
+				dbOccasion = dbHolidayData.getOccasion();
 			}
+			
+			if(holidayDtoDateOfHoliday.equals(dbDateOfHoliday) && holidayDTO.getState().equals(dbState) && holidayDTO.getOccasion().equals(dbOccasion)) {
+				
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Holiday already present on this Date");
+				
+			}else {
+			
+			     Holiday newHoliday = new Holiday();
+
+			     newHoliday.setOccasion(holidayDTO.getOccasion());
+			     newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
+			     newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
+			     newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
+			     newHoliday.setState(holidayDTO.getState());
+
+			     Holiday newHolidayCreated = holidayRepository.save(newHoliday);
+
+			     if (newHolidayCreated != null) {
+			     	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				    response.setServiceResponse("New holiday added.");
+
+			     } else {
+			    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				    response.setServiceResponse("Failed to add new holiday.");
+			     }
+		  }	
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -92,6 +116,28 @@ public class HolidayService {
 				response.setServiceResponse("No such holiday available.");
 			}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse deleteHoliday(HolidayDTO holidayDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Optional<Holiday> holidayObject = holidayRepository.findById(holidayDTO.getHolidayId());
+			if (holidayObject.isPresent()) {
+				Holiday holidayToBeDeleted = holidayObject.get();
+				holidayRepository.deleteById(holidayToBeDeleted.getHolidayId());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Holiday Deleted.");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Holiday Not Found.");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -171,7 +217,24 @@ public class HolidayService {
 		return response;
 	}
 
-
-
+	public ServiceResponse checkOccasionIfAlreadyExist(HolidayDTO holidayDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		  try {
+			  Holiday checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
+			  
+			  if(checkOccasion!=null) {
+				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				  response.setServiceResponse("Occasion already exist!");
+			  }
+			
+		  } catch (Exception e) {
+			   e.printStackTrace();
+			   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			   response.setServiceResponse("Something Went Wrong.");
+			   response.setServiceError(e.getMessage());
+		  }
+		  return response;
+	}
 	
 }

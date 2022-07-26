@@ -19,4 +19,6 @@ public interface LeavePolicyMasterRepository extends JpaRepository<LeavePolicyMa
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllLeavePolicies();
 
+	public List<LeavePolicyMaster> findByLeaveTypeMasterId(short leaveTypeMasterId);
+
 }

@@ -20,12 +20,20 @@ export class HolidayService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateHoliday`, holidayObj);
   }
 
+  deleteHoliday(holidayObj: Holiday) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteHoliday`, holidayObj);
+  }
+
   getAllHolidays() {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllHolidays`);
   }
 
   getAllHolidayByEmpWorkLocation(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllHolidayByEmpWorkLocation`, employeeObj);
+  }
+
+  checkOccasionIfAlreadyExist(holidayObj: Holiday){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkOccasionIfAlreadyExist`, holidayObj);
   }
 
 }

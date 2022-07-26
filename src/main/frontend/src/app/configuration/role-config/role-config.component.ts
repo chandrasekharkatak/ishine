@@ -11,6 +11,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-role-config',
@@ -40,6 +41,10 @@ export class RoleConfigComponent implements OnInit {
   subFeatureList:any;
   isSubFeatureList:boolean = false;
 
+  roleDataForExcel: any[];
+
+  name = 'EmployeeRole.xlsx';
+
 
   feature="Role Config";
   currentUser:User;
@@ -51,7 +56,8 @@ export class RoleConfigComponent implements OnInit {
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
     private subfeatureService: SubfeatureService,
-    private authenticationService : AuthenticationService) { 
+    private authenticationService : AuthenticationService,
+    private exportExcelService: ExportExcelService,) { 
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
@@ -313,6 +319,27 @@ export class RoleConfigComponent implements OnInit {
       this.featureList.find(feature => feature.featureId == sub.featureId).subFeatures.push(_sub);
     });
   }
+
+  // download excel
+  exportToExcel(): void {
+
+    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.roleDataForExcel = response.serviceResponse;
+      }
+
+      const onlySpecificDataArr: Partial<JobRole>[] = this.roleDataForExcel.map(
+        x => ({
+          name: x.name,
+          departmentName: x.departmentName,
+          createdBy: x.createdBy,
+          createdOn: x.createdOn
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.name)
+    });
+  }
+
 
 
   //modals

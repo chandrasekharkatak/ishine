@@ -12,6 +12,7 @@ import { JobRoleService } from 'src/app/services/job-role.service';
 import { certification } from 'src/app/models/certification';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { DepartmentService } from 'src/app/services/department.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-employee-config',
@@ -44,6 +45,7 @@ export class EmployeeConfigComponent implements OnInit {
   allJobRoleList:any[] = [];
   allDeptList:any[] = [];
   filteredJobRoleList:any[] = [];
+  employeeDataForExcel:any[] = [];
 
 
   allCertificationList:any[] = [];
@@ -94,7 +96,8 @@ export class EmployeeConfigComponent implements OnInit {
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private jobRoleService: JobRoleService,
-    private departmentService: DepartmentService,) { 
+    private departmentService: DepartmentService,
+    private exportExcelService: ExportExcelService,) { 
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
  
@@ -619,6 +622,25 @@ export class EmployeeConfigComponent implements OnInit {
       return emp;
     });
     console.log("managerList : ", this.managerList);
+  }
+
+  name = 'EmployeeSheet.xlsx';	
+  exportToExcel(): void {	
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.employeeDataForExcel = response.serviceResponse;	
+      }	
+       const onlySpecificDataArr: Partial<Employee>[] = this.employeeDataForExcel.map(	
+          x => ({	
+            empId: x.empId,	
+            name: x.name,	
+            email: x.email,	
+            employmentstatus: x.employmentstatus,	
+            dateOfJoining: x.dateOfJoining	
+          })	
+        )	
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.name)	
+    });	
   }
 
   // For Manager List

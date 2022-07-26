@@ -132,7 +132,7 @@
     <div class="table-header">
         <h1 class="table-header-title">My Leave History</h1>
     </div>
-    <table class="table history-table">
+    <table class="table history-table" id="history-table">
         <thead class="thead-light text-center">
           <tr>
             <th scope="col" class="info-label">Sr No.</th>
@@ -161,7 +161,8 @@
                 <!-- <td>{{leaveHistory.description}}</td> -->
             </tr>
         </tbody>
-      </table>      
+      </table>   
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
 </div>
 <!-- end :: Leave History table -->
 
@@ -170,7 +171,7 @@
     <div class="table-header">
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
-    <table class="table leaveApplication-table">
+    <table class="table leaveApplication-table" id="leaveApplication-table">
         <thead class="thead-light text-center">
           <tr>
             <th scope="col" class="info-label">Sr No.</th>
@@ -204,7 +205,8 @@
                 </td>
             </tr>
         </tbody>
-      </table>      
+      </table>   
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
 </div>
 <!-- end :: Leave Applications table -->
 
@@ -231,6 +233,7 @@
             </tr>
         </tbody>
       </table>      
+      <!-- <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
 </div>
 <!-- end :: Leave Balance table -->
 

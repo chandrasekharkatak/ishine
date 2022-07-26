@@ -32,6 +32,13 @@ public class HolidayController {
 		ServiceResponse response = holidayService.updateHoliday(holidayDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/deleteHoliday", method = RequestMethod.POST)
+	public ServiceResponse deleteHoliday(@RequestBody HolidayDTO holidayDTO) {
+
+		ServiceResponse response = holidayService.deleteHoliday(holidayDTO);
+		return response;
+	}
 
 	@RequestMapping(value = "/getAllHolidays", method = RequestMethod.GET)
 	public ServiceResponse getAllHolidays() {
@@ -44,6 +51,13 @@ public class HolidayController {
 	public ServiceResponse getAllHolidayByWorkLocation(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = holidayService.getAllHolidayByEmpWorkLocation(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/checkOccasionIfAlreadyExist", method = RequestMethod.POST)
+	public ServiceResponse checkOccasionIfAlreadyExist(@RequestBody HolidayDTO holidayDTO) {
+
+		ServiceResponse response = holidayService.checkOccasionIfAlreadyExist(holidayDTO);
 		return response;
 	}
 

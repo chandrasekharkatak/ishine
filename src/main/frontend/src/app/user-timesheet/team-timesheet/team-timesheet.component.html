@@ -32,7 +32,7 @@
           </div>
         </div>
         <div class="row">
-            <table class="table teams-table">
+            <table class="table teams-table" id="teams-table">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
@@ -59,6 +59,7 @@
                 </tr>
                 </tbody>
               </table> 
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>  
     </div>
 </div>
@@ -71,7 +72,7 @@
             <h1 class="table-header-title">All Timesheets Requests</h1>
         </div>
         <div class="row">
-            <table class="table teams-request-table">
+            <table class="table teams-request-table" id="teams-request-table">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
@@ -102,6 +103,7 @@
                   </tr>
                 </tbody>
               </table> 
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>  
     </div>
 </div>

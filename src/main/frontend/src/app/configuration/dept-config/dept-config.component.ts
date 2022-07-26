@@ -11,6 +11,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-dept-config',
@@ -20,33 +21,38 @@ import { ValidationService } from 'src/app/services/validation.service';
 export class DeptConfigComponent implements OnInit {
 
   //flags 
-  isCreation:boolean = false;
+  isCreation: boolean = false;
   isUpdation: boolean = false;
   isForm: boolean = false;
   isTable: boolean = false;
 
   //modal 
-  alertMessage:any;
+  alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
   //obj
-  deptObj:Department = new Department();
-  allDeptList:any;
-  hodList:any = [];
+  deptObj: Department = new Department();
+  allDeptList: any;
+  hodList: any = [];
 
-  feature="Department Config";
-  currentUser:User;
-  userMapping:any = {};
+  //excel
+  departmentDataForExcel: any[];
 
-  
+  feature = "Department Config";
+  currentUser: User;
+  userMapping: any = {};
+  name = 'Department.xlsx';
+
+
 
   constructor(
-    private validationService:ValidationService,
+    private validationService: ValidationService,
     private modalService: BsModalService,
     private departmentService: DepartmentService,
-    private employeeService:EmployeeService,
-    private authenticationService : AuthenticationService,
-    private holidayService : HolidayService,) {
+    private employeeService: EmployeeService,
+    private authenticationService: AuthenticationService,
+    private holidayService: HolidayService,
+    private exportExcelService: ExportExcelService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -54,7 +60,7 @@ export class DeptConfigComponent implements OnInit {
     this.getAllEmployeeList(); // for HOD List
 
     // Dynamic Subfeature Flags 
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -63,14 +69,14 @@ export class DeptConfigComponent implements OnInit {
     this.sectionViewInit();
   }
 
-  sectionViewInit(){
-    if(this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department){
+  sectionViewInit() {
+    if (this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department) {
       //for dept table data 
       this.showTable();
     }
   }
 
-  showCreateForm(){
+  showCreateForm() {
     this.isForm = true;
     this.isCreation = true;
 
@@ -80,9 +86,9 @@ export class DeptConfigComponent implements OnInit {
     this.reset();
   }
 
-  showTable(){
+  showTable() {
     this.isTable = true;
-    
+
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -90,7 +96,7 @@ export class DeptConfigComponent implements OnInit {
     this.getAllDepartmentList();
   }
 
-  reset(){
+  reset() {
     this.deptObj = new Department();
     //Deafult values for dropdown
     this.deptObj.hodId = '';
@@ -98,7 +104,7 @@ export class DeptConfigComponent implements OnInit {
     this.allDeptList = [];
   }
 
-  showUpdateForm(department:Department){
+  showUpdateForm(department: Department) {
     this.isForm = true;
     this.isTable = false;
     this.isUpdation = true;
@@ -107,16 +113,16 @@ export class DeptConfigComponent implements OnInit {
     this.deptObj = Object.assign({}, department)
   }
 
-  validateDepartmentObj(deptObj:Department, template: TemplateRef<any>){
+  validateDepartmentObj(deptObj: Department, template: TemplateRef<any>) {
 
-    if(!this.validationService.validateNullUndefinedEmptyString(deptObj.name)){
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name)) {
       this.alertMessage = "Please enter Department Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
 
-    if(!this.validationService.validateNullUndefinedEmptyString(deptObj.hodId)){
+
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.hodId)) {
       this.alertMessage = "Please select Head of Department !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -125,10 +131,10 @@ export class DeptConfigComponent implements OnInit {
   }
 
   // CRUD 
-  onCreateDepartment(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateDepartmentObj(this.deptObj, template)
-    if(!inputValidated) return;
-    
+  onCreateDepartment(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
+    if (!inputValidated) return;
+
     this.deptObj.createdBy = this.currentUser.empId;
     console.log("Create Dept : ", this.deptObj);
     this.departmentService.createDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
@@ -142,10 +148,10 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  onUpdateDepartment(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateDepartmentObj(this.deptObj, template)
-    if(!inputValidated) return;
-    
+  onUpdateDepartment(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
+    if (!inputValidated) return;
+
     this.deptObj.updatedBy = this.currentUser.empId;;
     console.log("Update dept : ", this.deptObj);
     this.departmentService.updateDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
@@ -158,11 +164,11 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  onDeleteDepartment(template: TemplateRef<any>){
+  onDeleteDepartment(template: TemplateRef<any>) {
     this.cancelRequest();
-  
+
     //! Need to check this 
-    let department:Department = new Department();
+    let department: Department = new Department();
     department.deptId = this.deptObj.deptId;
 
     this.departmentService.deleteDepartment(department).pipe(first()).subscribe((response: any) => {
@@ -175,7 +181,7 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  getAllDepartmentList(){
+  getAllDepartmentList() {
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -188,7 +194,7 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  getAllEmployeeList(){
+  getAllEmployeeList() {
     this.hodList = [];
 
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
@@ -201,8 +207,28 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  openUpdateConfimationModal(template: TemplateRef<any>, ){
+  openUpdateConfimationModal(template: TemplateRef<any>,) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  // download excel
+  exportToExcel(): void {
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.departmentDataForExcel = response.serviceResponse;
+      }
+
+      const onlySpecificDataArr: Partial<Department>[] = this.departmentDataForExcel.map(
+        x => ({
+          name: x.name,
+          hodName: x.hodName,
+          createdByName: x.createdByName,
+          createdOn: x.createdOn
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.name)
+    });
   }
 
 

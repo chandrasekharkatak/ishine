@@ -11,6 +11,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-leave',
@@ -44,6 +45,9 @@ export class LeaveComponent implements OnInit {
   leaveApplicationList:any[] = [];
   leaveLogList:any[] = [];
   leaveBalanceList:any[] = [];
+
+  excelName = '';	
+  elementName = '';
 
   holidayList:any;
   holidayDates:any[] = [];
@@ -529,6 +533,31 @@ export class LeaveComponent implements OnInit {
       }
     });
   }
+
+
+  exportToExcel(): void {	
+    if(this.isLeaveHistoryTable == true){	
+      this.elementName = 'history-table';	
+      this.excelName = 'MyLeaveHistory.xlsx'	
+    }	
+    if(this.isLeaveApplicationsTable == true){	
+      this.elementName = 'leaveApplication-table';	
+      this.excelName = 'MyReporteeLeaveApplication.xlsx'	
+    }	
+    if(this.isLeaveLogTable == true){	
+      this.elementName = 'log-table';	
+      this.excelName = 'MyLeaveLogs.xlsx'	
+    }	
+  	
+    let element = document.getElementById(this.elementName);	
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);	
+  	
+    const book: XLSX.WorkBook = XLSX.utils.book_new();	
+    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');	
+  	
+    XLSX.writeFile(book, this.excelName);
+  }
+
 
   holidayFilter = (d: Date)=>{
     const time=d?.getTime();

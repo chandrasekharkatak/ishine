@@ -23,7 +23,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Occasion</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.occasion">
+                            <input type="text" class="form-control" (blur)="checkOccasion(alert_message)" autocomplete="none" [(ngModel)]="holidayObj.occasion">
                         </div>
                     </div>
                 </div>
@@ -117,13 +117,23 @@
                 <td>{{holiday.state}}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>
+                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>
       </table>   
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 <!-- end :: holidays table -->
+
+<!-- model Template - delete holiday -->
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Holiday?</p>
+        <button type="button" class="btn btn-success" (click)="onDeleteHoliday(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
 
 <!-- start :: Add & Update Leave Type Form -->
 <div class="row">
@@ -234,7 +244,8 @@
                 </td>
             </tr>
         </tbody>
-      </table>      
+      </table> 
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>      
 </div>
 <!-- end :: Leave Type table -->
 
@@ -549,7 +560,8 @@
                 </td>
             </tr>
         </tbody>
-      </table>      
+      </table>  
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>     
 </div>
 <!-- end :: Leave Policy table -->
 

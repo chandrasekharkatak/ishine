@@ -10,6 +10,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-leave-config',
@@ -35,6 +36,12 @@ export class LeaveConfigComponent implements OnInit {
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
 
+  //excel
+  excelName = '';
+  holidayDataForExcel: any[];
+  leaveDataForExcel: any[];
+  leavePolicyDataForExcel: any[];
+
   //obj
   feature="Leave Config";
   currentUser:User;
@@ -54,42 +61,42 @@ export class LeaveConfigComponent implements OnInit {
   leavePolicyList:any[] = [];
 
   allStates:any[] = [
-    "andaman & nicobar islands",
-    "andhra pradesh",
-    "arunachal pradesh",
-    "assam",
-    "bihar", 
-    "chandigarh",
-    "chhattisgarh",
-    "dadra and nagar haveli and  daman & diu",
-    "delhi",
-    "goa",
-    "gujarat",
-    "haryana",
-    "himachal pradesh",
-    "jammu & kashmir",
-    "jharkhand",
-    "karnataka",
-    "kerala",
-    "ladakh",
-    "lakshadweep",
-    "madhya pradesh",
-    "maharashtra",
-    "manipur",
-    "meghalaya",
-    "mizoram",
-    "nagaland",
-    "odisha",
-    "puducherry",
-    "punjab",
-    "rajasthan",
-    "sikkim",
-    "tamil nadu",
-    "telangana", 
-    "tripura",
-    "uttar pradesh", 
-    "uttarakhand",
-    "west bengal",
+    "Andaman & Nicobar Islands",
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar", 
+    "Chandigarh",
+    "Chhattisgarh",
+    "Dadra and Nagar Haveli and  Daman & Diu",
+    "Delhi",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jammu & Kashmir",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Ladakh",
+    "Lakshadweep",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Puducherry",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana", 
+    "Tripura",
+    "Uttar Pradesh", 
+    "Uttarakhand",
+    "West Bengal",
   ]
 
   // for View Holidays by State 
@@ -101,7 +108,8 @@ export class LeaveConfigComponent implements OnInit {
     private authenticationService : AuthenticationService,
     private holidayService : HolidayService,
     private datePipe: DatePipe,
-    private leaveService : LeaveService) {
+    private leaveService : LeaveService,
+    private exportExcelService: ExportExcelService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -313,6 +321,11 @@ export class LeaveConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  openDeleteHoliday(template: TemplateRef<any>, holiday: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.holidayObj = holiday;
+  }
+
   openDeleteLeavePolicy(template: TemplateRef<any>, leavePolicy: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.leavePolicyObj = leavePolicy;
@@ -418,6 +431,21 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
+  
+  onDeleteHoliday(template: TemplateRef<any>){
+    this.cancelRequest();
+  
+    this.holidayService.deleteHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getAllHolidays();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+
   onSelect() {
     console.log("selecteddddddd");
     if(this.selectedState == 'all state'){
@@ -441,6 +469,84 @@ export class LeaveConfigComponent implements OnInit {
       }
     });
   }
+
+  checkOccasion(template: TemplateRef<any>){
+    this.holidayService.checkOccasionIfAlreadyExist(this.holidayObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+              this.openAlertMod(template, response.serviceResponse);
+            }
+    });
+  }
+
+   // download excel
+exportToExcel(): void {
+
+  if(this.isHolidayTable == true){
+    this.excelName = 'HolidaySheet.xlsx';
+
+    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.holidayDataForExcel = response.serviceResponse;
+      }
+  
+      const onlySpecificDataArr: Partial<Holiday>[] = this.holidayDataForExcel.map(
+        x => ({
+          occasion: x.occasion,
+          dayOfTheWeek: x.dayOfTheWeek,
+          dateOfHoliday: x.dateOfHoliday,
+          state: x.state
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+    });
+
+  }
+  if(this.isLeaveRuleTable == true){
+    this.excelName = 'LeaveSheet.xlsx';
+
+    this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveDataForExcel = response.serviceResponse;
+      }
+  
+      const onlySpecificDataArr: Partial<Leave>[] = this.leaveDataForExcel.map(
+        x => ({
+          leaveType: x.leaveType,
+          leaveTypeCode: x.leaveTypeCode,
+          gender: x.gender,
+          noOfDays: x.noOfDays,
+          rules: x.rules,
+          description: x.description
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+    });
+
+  }
+  if(this.isLeavePolicyTable == true){
+    this.excelName = 'LeavePolicySheet.xlsx';
+
+    this.leaveService.getAllLeavePolicy().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leavePolicyDataForExcel = response.serviceResponse;
+      }
+  
+      const onlySpecificDataArr: Partial<Leave>[] = this.leavePolicyDataForExcel.map(
+        x => ({
+          leavePolicyName: x.leavePolicyName,
+          leaveType: x.leaveType,
+          description: x.description,
+          createdByName: x.createdByName,
+          createdOn: x.createdOn
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+    });
+
+  }
+
+}
+
   
   // Leave Type
   validateLeaveTypeObj(leaveTypeObj:Leave, template: TemplateRef<any>){

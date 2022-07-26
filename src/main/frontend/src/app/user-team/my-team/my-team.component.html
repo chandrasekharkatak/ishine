@@ -14,7 +14,7 @@
     <div class="table-header">
       <h1 class="table-header-title">My Team</h1>
   </div>
-    <table class="table team-table">
+    <table class="table team-table" id="team-table">
       <thead class="thead-light">
         <tr>
           <th scope="col" class="info-label">Sr No.</th>
@@ -22,6 +22,8 @@
           <th scope="col" class="info-label">Name</th>
           <th scope="col" class="info-label">Email</th>
           <th scope="col" class="info-label">Designation</th>
+          <th scope="col" class="info-label">Mobile No.</th>
+          <th scope="col" class="info-label">Reports To</th>
         </tr>
       </thead>
       <tbody>
@@ -31,10 +33,13 @@
           <td class="info-label">{{teamView.name}}</td>
           <td class="info-label">{{teamView.email}}</td>
           <td class="info-label">{{teamView.jobRoleName}}</td>
+          <td class="info-label">{{teamView.mobileNo}}</td>
+          <td class="info-label">{{teamView.managerName}}</td>
         </tr>
       </tbody>
     </table>
-  </div> 
+    <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+   </div> 
    
      <!-- Table of View Team  Leave History  -->
 
@@ -43,7 +48,7 @@
     <div class="table-header">
       <h1 class="table-header-title">My Team Leave History</h1>
   </div>
-    <table class="table team-table">
+    <table class="table team-leave-history-table" id="team-leave-history-table">
       <thead class="thead-light">
         <tr>
           <th scope="col" class="info-label"> Sr No.</th>
@@ -75,7 +80,8 @@
         </tr>
       </tbody>
     </table>
-  </div>
+    <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+   </div>
   
   
   <!-- Table of View Team Request  -->
@@ -95,7 +101,7 @@
   <!-- Leave Request Table -->
   
   <div class="row col-md-12" *ngIf="isLeaveRequest">
-  <table class="table leaveApplication-table">
+  <table class="table leave-request-table" id="leave-request-table">
     <thead class="thead-light text-center">
       <tr>
         <th scope="col" class="info-label">Sr No.</th>
@@ -128,12 +134,13 @@
         </tr>
     </tbody>
   </table>
-</div>
+  <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+ </div>
 
 <!-- CompOff Request table -->
 
 <div class="row col-md-12" *ngIf="isCompOffRequest">
-<table class="table compOffApplication-table">
+<table class="table compOffApplication-table" id="compOffApplication-table">
   <thead class="thead-light">
     <tr>
       <th scope="col" class="info-label">Sr No.</th>
@@ -164,6 +171,7 @@
       </tr>
   </tbody>
 </table>
+<button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 
 <ng-template #alert_message>

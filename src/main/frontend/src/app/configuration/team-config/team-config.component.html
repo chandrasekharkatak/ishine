@@ -141,7 +141,7 @@
             </div>
         </div>
         <div class="row">
-            <table class="table teams-table">
+            <table class="table teams-table" id="team-table">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
@@ -169,6 +169,7 @@
                     </tr>
                 </tbody>
               </table> 
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>  
     </div>
 </div>
@@ -267,7 +268,7 @@
             </div>
         </div>
         <div class="row">
-            <table class="table activities-table">
+            <table class="table activities-table" id="activities-table">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
@@ -295,6 +296,7 @@
                   </tr>
                 </tbody>
               </table>
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>      
 </div>

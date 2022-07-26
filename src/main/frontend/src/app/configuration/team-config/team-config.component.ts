@@ -14,6 +14,8 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { TeamService } from 'src/app/services/team.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-team-config',
@@ -57,9 +59,17 @@ export class TeamConfigComponent implements OnInit {
   allProjectListByManagerId:any[] = [];
   allTeamList:any[] = [];
 
+  //excel
+  teamDataForExcel:any[];
+  teamsByProjectIdDataForExcel:any[];
+  teamsActivityDataForExcel:any[];
+
   selectedClient:any = '';
   selectedProject:any = '';
   selectedTeam:any = '';
+  excelName = '';
+  tableElement = '';
+
 
 
   constructor(
@@ -70,6 +80,7 @@ export class TeamConfigComponent implements OnInit {
     private teamService : TeamService,
     private employeeService : EmployeeService,
     private departmentService: DepartmentService,
+    private exportExcelService: ExportExcelService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -511,6 +522,40 @@ export class TeamConfigComponent implements OnInit {
   }
 
 
+  // download excel
+
+   exportToExcel(): void {
+
+     if (this.isTeamTable == true) {
+       this.excelName = 'TeamSheet.xlsx';
+
+        this.teamsActivityDataForExcel = this.allActivityList
+
+        const onlySpecificDataArr: Partial<Team>[] = this.teamsActivityDataForExcel.map(
+          x => ({
+            teamName: x.teamName,
+            teamLeadId: x.teamLeadId,
+            createdBy: x.createdBy,
+            createdOn: x.createdOn
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+
+     }
+     if (this.isActivityTable == true) {
+       this.excelName = 'ActivitiesSheet.xlsx';
+
+       this.teamsByProjectIdDataForExcel = this.allTeamList;
+
+        const onlySpecificDataArr: Partial<Team>[] = this.teamsByProjectIdDataForExcel.map(
+          x => ({
+
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+
+     }
+}
 
 
 
