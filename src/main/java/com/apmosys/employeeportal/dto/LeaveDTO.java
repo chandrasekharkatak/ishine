@@ -63,6 +63,9 @@ public class LeaveDTO {
 	private Integer lockingValue;
 	private String probation;
 	private Integer probationPeriod;
+	
+	private String financialYearStartDate;
+	private String financialYearStartMonth;
 
 	private Integer updatedBy;
 	private String updatedOn;

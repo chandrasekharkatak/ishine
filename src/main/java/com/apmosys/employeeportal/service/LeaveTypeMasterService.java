@@ -1,10 +1,12 @@
 package com.apmosys.employeeportal.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -17,6 +19,12 @@ public class LeaveTypeMasterService {
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Value("${financialYear.startDate}")
+	String financialYearStartDate;
+	
+	@Value("${financialYear.startMonth}")
+	String financialYearStartMonth;
 
 	public ServiceResponse getAllLeaveTypes() {
 		ServiceResponse response = new ServiceResponse();
@@ -117,6 +125,65 @@ public class LeaveTypeMasterService {
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave type creation failed.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse getAllLeaveTypesByLeavePolicies(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> list = leaveTypeMasterRepository.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender());
+
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Type list is empty.");
+			} else {
+				for (Object[] object : list) {
+
+					LeaveDTO dto = new LeaveDTO();
+					
+					dto.setLeaveTypeMasterId(object[0] != null ? Short.parseShort(object[0].toString()) : null);
+					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+					dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
+					dto.setLeavePolicyMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+					dto.setLeavePolicyName(object[4] != null ? object[4].toString() : null);
+					dto.setEmploymentStatus(object[5] != null ? object[5].toString() : null);
+					dto.setDescription(object[6] != null ? object[6].toString() : null);
+					dto.setLeaveApplication(object[7] != null ? object[7].toString() : null);
+					dto.setIncrement(object[8] != null ? object[8].toString() : null);
+					dto.setIncrementValue(object[9] != null ? Float.parseFloat(object[9].toString()) : null);
+					dto.setOneTimeLeave(object[10] != null ? object[10].toString() : null);
+					dto.setOneTimeLeaveCount(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+					dto.setCarryForward(object[12] != null ? object[12].toString() : null);
+					dto.setCarryForwardValue(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
+					dto.setExpirationPeriod(object[14] != null ? object[14].toString() : null);
+					dto.setExpirationPeriodValue(object[15] != null ? Integer.parseInt(object[15].toString()) : null);
+					dto.setLockingPeriod(object[16] != null ? object[16].toString() : null);
+					dto.setLockingPeriodValue(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+					dto.setLockingValue(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
+					dto.setProbation(object[19] != null ? object[19].toString() : null);
+					dto.setProbationPeriod(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+					
+					// set locking references 
+					if(dto.getLockingPeriod().equalsIgnoreCase("Yes")) {
+						dto.setFinancialYearStartDate(financialYearStartDate);
+						dto.setFinancialYearStartMonth(financialYearStartMonth);
+					}
+					
+					dtoList.add(dto);
+				}
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
 			}
 
 		} catch (Exception e) {

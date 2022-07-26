@@ -10,4 +10,10 @@ export class User{
     tabList:any;
     managerId:any;
     departmentId:any;
+
+    /* For Leave Policy */
+    gender:any;
+    employmentstatus:any;
+    dateOfJoining:any;
+
 }

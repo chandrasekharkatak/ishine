@@ -45,6 +45,9 @@ export class Leave{
 	probation: any;
 	probationPeriod: any;
 
+	financialYearStartDate:any;
+	financialYearStartMonth:any;
+
 	updatedBy:any;
 	updatedOn:any;
 

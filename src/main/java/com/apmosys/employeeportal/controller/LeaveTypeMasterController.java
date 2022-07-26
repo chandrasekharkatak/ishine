@@ -37,5 +37,12 @@ public class LeaveTypeMasterController {
 		ServiceResponse response = leaveTypeMasterService.createLeaveType(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getAllLeaveTypesByLeavePolicies" ,method = RequestMethod.POST)
+	public ServiceResponse getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = leaveTypeMasterService.getAllLeaveTypesByLeavePolicies(leaveDTO);
+		return response;
+	}
 
 }

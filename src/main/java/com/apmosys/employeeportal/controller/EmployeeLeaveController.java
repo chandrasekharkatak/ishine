@@ -73,7 +73,14 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	
-	
+	/*
+	 *	to get Approved Past Leave Applications to check lock-in limit in days 
+	 */
+	@RequestMapping(value = "/getApprovedLeaveApplicationsByEmpIdAndDateRange" ,method = RequestMethod.POST)
+	public ServiceResponse getApprovedLeaveApplicationsByEmpIdAndDateRange(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getApprovedLeaveApplicationsByEmpIdAndDateRange(leaveDTO);
+		return response;
+	}
 	
 }

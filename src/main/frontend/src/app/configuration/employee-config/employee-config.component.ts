@@ -99,6 +99,8 @@ export class EmployeeConfigComponent implements OnInit {
     }
  
   ngOnInit(): void {
+    this.getAllJobRoleList();
+    
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -731,6 +733,10 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   getJobRolesByDept(departmentId:any){
+    console.log("departmentId : ", departmentId);
+    console.log("this.allJobRoleList : ", this.allJobRoleList);
+    
+    
     this.filteredJobRoleList = [];
     this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
     console.log("filteredJobRoleList : ", this.filteredJobRoleList);

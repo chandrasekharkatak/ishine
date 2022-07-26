@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +44,9 @@ public class EmployeeLeaveService {
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+		
 		try {
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
@@ -51,8 +56,8 @@ public class EmployeeLeaveService {
 			leaveApplication.setEmpId(leaveDTO.getEmpId());
 			leaveApplication.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 			leaveApplication.setLeaveStatusId((short) 1);
-			leaveApplication.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(),"yyyy-MM-dd"));
-			leaveApplication.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(),"yyyy-MM-dd"));
+			leaveApplication.setFromDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getFromDate())),"yyyy-MM-dd"));
+			leaveApplication.setToDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getToDate())),"yyyy-MM-dd"));
 			leaveApplication.setNoOfDays((Float) leaveDTO.getNoOfDays());
 			leaveApplication.setReason(leaveDTO.getReason());
 			leaveApplication.setManagerId(leaveDTO.getManagerId());
@@ -408,7 +413,42 @@ public class EmployeeLeaveService {
 		return response;
 	}
 	
+	public ServiceResponse getApprovedLeaveApplicationsByEmpIdAndDateRange(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> list = employeeLeaveRepository.getApprovedLeaveApplicationsByEmpIdAndDateRange(leaveDTO.getEmpId(), leaveDTO.getFromDate(), leaveDTO.getToDate());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Application found");
 
+			} else {
+
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+					dto.setReason(object[8] != null ? object[8].toString() : null);
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 	
 
 }
