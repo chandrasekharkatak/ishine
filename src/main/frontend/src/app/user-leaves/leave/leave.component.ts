@@ -389,8 +389,6 @@ export class LeaveComponent implements OnInit {
     let policyValidated:boolean = this.checkPolicy(this.leaveObj, this.leavePolicyObj, template);
     if(!policyValidated) return;
 
-    return;
-
     this.leaveObj.empId = this.currentUser.empId;
     this.leaveObj.createdBy = this.currentUser.empId;
     this.leaveObj.managerId = this.currentUser.managerId; 
