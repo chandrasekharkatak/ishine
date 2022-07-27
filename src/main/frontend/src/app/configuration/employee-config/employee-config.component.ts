@@ -210,14 +210,23 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
 
     this.employeeObj = Object.assign({}, employee);
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');
 
-    if(this.employeeObj.departmentId){
-      this.getJobRolesByDept(this.employeeObj.departmentId);
-    }
-    this.getManagerList();
-    this.getAllDepartmentList();
+    this.employeeService.getEmployeeByEmpId(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeObj = response.serviceResponse;
+        if(this.employeeObj.departmentId){
+          this.getJobRolesByDept(this.employeeObj.departmentId);
+        }
+        this.getManagerList();
+        this.getAllDepartmentList();
+        console.log("employee :", this.employeeObj);
+      } else {
+        console.error(response.serviceResponse)
+      }
+
+    });
+    // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
+    // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');    
   }
 
   showUpdateDraftForm(employee:Employee){
