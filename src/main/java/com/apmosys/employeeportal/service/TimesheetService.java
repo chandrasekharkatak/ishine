@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,13 +121,15 @@ public class TimesheetService {
 
 	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
 		try {
 
 			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 			Timesheet newTimesheet = new Timesheet();
 
 			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
-			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+			newTimesheet.setDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())),"yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
@@ -363,6 +366,8 @@ public class TimesheetService {
 
 	public ServiceResponse updateTimesheet(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
 		try {
 
 			Optional<Timesheet> timesheet = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
@@ -373,7 +378,7 @@ public class TimesheetService {
 
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
-				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+				existingTimesheet.setDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())),"yyyy-MM-dd"));
 				/*
 				 * Only pending/rejected timesheet can be updated by employee. So even if
 				 * employee is updating pending timesheet or rejected timesheet the status

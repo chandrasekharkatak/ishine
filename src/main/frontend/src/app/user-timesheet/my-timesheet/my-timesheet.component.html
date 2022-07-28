@@ -20,7 +20,7 @@
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
                             <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="timesheetDate" [matDatepicker]="timesheetDate"  [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date">
+                                <input class="form-control" matInput id="timesheetDate" [matDatepicker]="timesheetDate" placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #timesheetDate ></mat-datepicker>
