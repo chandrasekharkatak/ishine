@@ -529,7 +529,7 @@ export class TeamConfigComponent implements OnInit {
      if (this.isTeamTable == true) {
        this.excelName = 'TeamSheet.xlsx';
 
-        this.teamsActivityDataForExcel = this.allActivityList
+        this.teamsActivityDataForExcel = this.allTeamList;
 
         const onlySpecificDataArr: Partial<Team>[] = this.teamsActivityDataForExcel.map(
           x => ({
@@ -545,11 +545,14 @@ export class TeamConfigComponent implements OnInit {
      if (this.isActivityTable == true) {
        this.excelName = 'ActivitiesSheet.xlsx';
 
-       this.teamsByProjectIdDataForExcel = this.allTeamList;
+       this.teamsByProjectIdDataForExcel = this.allActivityList;
 
-        const onlySpecificDataArr: Partial<Team>[] = this.teamsByProjectIdDataForExcel.map(
+        const onlySpecificDataArr: Partial<Activity>[] = this.teamsByProjectIdDataForExcel.map(
           x => ({
-
+            activity: x.activity,
+            eta: x.eta,
+            createdBy: x.createdBy,
+            createdOn: x.createdOn
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);

@@ -27,7 +27,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let teamView of teamViewList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+        <tr *ngFor="let teamView of teamViewList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td class="info-label">{{i+1}}</td>
           <td class="info-label">A-{{teamView.empId}}</td>
           <td class="info-label">{{teamView.name}}</td>
@@ -66,7 +66,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let teamLeaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+        <tr *ngFor="let teamLeaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td class="info-label">{{i+1}}</td>
           <td class="info-label"> {{teamLeaveHistory.createdByName}}</td>
           <td class="info-label"> {{teamLeaveHistory.fromDate}}</td>
@@ -119,7 +119,7 @@
       </tr>
     </thead>
     <tbody class="text-center">
-        <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+        <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
             <td>{{i+1}}</td>
             <td>{{leaveApplication.leaveType}}</td>
             <td>{{leaveApplication.fromDate}}</td>
@@ -158,7 +158,7 @@
    </tr>
   </thead>
   <tbody>
-      <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 2, currentPage: page };let i = index">
+      <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
           <td>{{i+1}}</td>
           <td>{{compOffApp.createdByName}}</td>
           <td>{{compOffApp.compOffReasons}}</td>

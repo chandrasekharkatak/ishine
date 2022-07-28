@@ -14,7 +14,7 @@
           </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let holiday of holidayList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+            <tr *ngFor="let holiday of holidayList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                 <td>{{holiday.dayOfTheWeek}}</td>

@@ -642,7 +642,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let employee of allEmployeeList | paginate: { itemsPerPage: 8, currentPage: page }, let i = index">
+          <tr *ngFor="let employee of allEmployeeList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <th *ngIf="!isDraftTable" class="info-label">A-{{employee.empId}}</th>
             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th>
             <td>{{employee.name}}</td>
