@@ -43,6 +43,7 @@ import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
+import { NgxPaginationModule } from 'ngx-pagination';
 
 @NgModule({
   declarations: [
@@ -90,6 +91,7 @@ import { TeamMemberComponent } from './user-team/team-member/team-member.compone
     MatNativeDateModule,
     MatFormFieldModule,
     MatInputModule,
+    NgxPaginationModule
   ],
   providers: [
     BsModalService,

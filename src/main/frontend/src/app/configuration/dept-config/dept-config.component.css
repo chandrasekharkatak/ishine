@@ -46,7 +46,7 @@
     width: 28px;
     border-radius: 4px;
     border: 1px solid #ccc;
-    float: right
+    float: right;
 }
 
 .holiday-checkbox span:after {
@@ -106,4 +106,12 @@
 
 .text-highlight{
     color: var(--dark-cornflower-blue);
+}
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
 }

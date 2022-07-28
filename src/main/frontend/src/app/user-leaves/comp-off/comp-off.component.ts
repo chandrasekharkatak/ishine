@@ -278,4 +278,11 @@ exportToExcel(): void {
   XLSX.writeFile(book, this.excelName);
 }
 
+//pagination 
+
+page = 1;
+handlePageChange(event) {
+  this.page = event;
+}
+
 }

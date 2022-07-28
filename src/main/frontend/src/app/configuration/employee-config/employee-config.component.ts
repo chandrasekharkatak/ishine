@@ -793,4 +793,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  //pagination 	
+  page = 1;	
+  handlePageChange(event) {	
+    this.page = event;	
+  }
+
 }

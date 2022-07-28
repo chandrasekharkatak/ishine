@@ -109,7 +109,7 @@
           </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let holiday of holidayListFilter; let i = index">
+            <tr *ngFor="let holiday of holidayListFilter | paginate: { itemsPerPage: 5, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                 <td>{{holiday.dayOfTheWeek}}</td>
@@ -122,7 +122,8 @@
             </tr>
         </tbody>
       </table>   
-      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 <!-- end :: holidays table -->
 
@@ -229,7 +230,7 @@
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr *ngFor="let leaveType of leaveTypes">
+            <tr *ngFor="let leaveType of leaveTypes | paginate: { itemsPerPage: 5, currentPage: page }">
                 <td>{{leaveType.leaveType}}</td>
                 <td>{{leaveType.leaveTypeCode}}</td>
                 <td>{{leaveType.gender}}</td>
@@ -243,7 +244,8 @@
             </tr>
         </tbody>
       </table> 
-      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>      
+      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>        
 </div>
 <!-- end :: Leave Type table -->
 
@@ -545,7 +547,7 @@
             <tr *ngIf="leavePolicyList.length === 0">
                 <th colspan="10" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leavePolicy of leavePolicyList; let i = index">
+            <tr *ngFor="let leavePolicy of leavePolicyList | paginate: { itemsPerPage: 5, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{leavePolicy.leavePolicyName}}</td>
                 <td>{{leavePolicy.leaveType}}</td>
@@ -559,7 +561,8 @@
             </tr>
         </tbody>
       </table>  
-      <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>     
+      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>       
 </div>
 <!-- end :: Leave Policy table -->
 

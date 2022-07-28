@@ -32,7 +32,7 @@
     width: 28px;
     border-radius: 4px;
     border: 1px solid #ccc;
-    float: right
+    float: right;
 }
 
 .subfeature-checkbox span:after {
@@ -87,4 +87,12 @@
     padding: .2em;
     margin-bottom: 0;
     color: var(--raisin-black);
+}
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
 }

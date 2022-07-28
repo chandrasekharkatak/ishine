@@ -27,7 +27,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let teamView of teamViewList; let i = index">
+        <tr *ngFor="let teamView of teamViewList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
           <td class="info-label">{{i+1}}</td>
           <td class="info-label">A-{{teamView.empId}}</td>
           <td class="info-label">{{teamView.name}}</td>
@@ -38,7 +38,8 @@
         </tr>
       </tbody>
     </table>
-    <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+    <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
    </div> 
    
      <!-- Table of View Team  Leave History  -->
@@ -65,7 +66,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let teamLeaveHistory of teamViewLeaveHistoryList; let i = index">
+        <tr *ngFor="let teamLeaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
           <td class="info-label">{{i+1}}</td>
           <td class="info-label"> {{teamLeaveHistory.createdByName}}</td>
           <td class="info-label"> {{teamLeaveHistory.fromDate}}</td>
@@ -80,7 +81,8 @@
         </tr>
       </tbody>
     </table>
-    <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+    <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
    </div>
   
   
@@ -117,7 +119,7 @@
       </tr>
     </thead>
     <tbody class="text-center">
-        <tr *ngFor="let leaveApplication of leaveApplicationList; let i = index">
+        <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
             <td>{{i+1}}</td>
             <td>{{leaveApplication.leaveType}}</td>
             <td>{{leaveApplication.fromDate}}</td>
@@ -134,7 +136,8 @@
         </tr>
     </tbody>
   </table>
-  <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+  <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
  </div>
 
 <!-- CompOff Request table -->
@@ -155,7 +158,7 @@
    </tr>
   </thead>
   <tbody>
-      <tr *ngFor="let compOffApp of allCompOffApplications;let i = index">
+      <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 2, currentPage: page };let i = index">
           <td>{{i+1}}</td>
           <td>{{compOffApp.createdByName}}</td>
           <td>{{compOffApp.compOffReasons}}</td>
@@ -171,7 +174,8 @@
       </tr>
   </tbody>
 </table>
-<button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+<pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+<button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 
 <ng-template #alert_message>

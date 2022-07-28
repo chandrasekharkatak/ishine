@@ -868,4 +868,11 @@ exportToExcel(): void {
     });
   }
 
+  //pagination 
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
 }

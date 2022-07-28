@@ -356,6 +356,12 @@ export class RoleConfigComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+  
 }
 
 

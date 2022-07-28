@@ -11,6 +11,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -46,8 +47,10 @@ export class LeaveComponent implements OnInit {
   leaveLogList:any[] = [];
   leaveBalanceList:any[] = [];
 
-  excelName = '';	
-  elementName = '';
+  //excel	
+  excelName = '';		
+  elementName = '';	
+  leaveApplicationListDataForExcel:any[] = [];
 
   holidayList:any;
   holidayDates:any[] = [];
@@ -61,7 +64,8 @@ export class LeaveComponent implements OnInit {
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
     private leaveService : LeaveService,
-    private holidayService : HolidayService,) {
+    private holidayService : HolidayService,
+    private exportExcelService: ExportExcelService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -536,15 +540,37 @@ export class LeaveComponent implements OnInit {
   exportToExcel(): void {	
     if(this.isLeaveHistoryTable == true){	
       this.elementName = 'history-table';	
-      this.excelName = 'MyLeaveHistory.xlsx'	
+      this.excelName = 'MyLeaveHistory.xlsx';	
     }	
     if(this.isLeaveApplicationsTable == true){	
-      this.elementName = 'leaveApplication-table';	
-      this.excelName = 'MyReporteeLeaveApplication.xlsx'	
+      this.excelName = 'MyReporteeLeaveApplication.xlsx';
+
+      let leaveObj = new Leave();	
+      leaveObj.managerId = this.currentUser.empId;	
+      this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {	
+        if (response.serviceStatus == "Success") {	
+          this.leaveApplicationListDataForExcel = response.serviceResponse;	
+        }	
+    	
+        const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationListDataForExcel.map(	
+          x => ({	
+            leaveType: x.leaveType,	
+            fromDate: x.fromDate,	
+            toDate: x.toDate,	
+            noOfDays: x.noOfDays,	
+            status: x.status,	
+            createdByName: x.createdByName,	
+            createdOn: x.createdOn,	
+            reason: x.reason	
+          })	
+        )	
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
+      });
+
     }	
     if(this.isLeaveLogTable == true){	
       this.elementName = 'log-table';	
-      this.excelName = 'MyLeaveLogs.xlsx'	
+      this.excelName = 'MyLeaveLogs.xlsx';	
     }	
   	
     let element = document.getElementById(this.elementName);	
@@ -573,5 +599,11 @@ export class LeaveComponent implements OnInit {
     }
     return '';
   }
+
+    //pagination 	
+    page = 1;	
+    handlePageChange(event) {	
+      this.page = event;	
+    }
 
 }

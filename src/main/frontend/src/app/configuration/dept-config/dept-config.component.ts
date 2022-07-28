@@ -246,4 +246,12 @@ export class DeptConfigComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+    //pagination 
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
 }

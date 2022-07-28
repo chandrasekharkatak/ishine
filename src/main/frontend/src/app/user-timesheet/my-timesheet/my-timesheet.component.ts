@@ -8,7 +8,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import * as XLSX from 'xlsx';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -43,8 +43,10 @@ export class MyTimesheetComponent implements OnInit {
   startDate:any;
   endDate:any;
 
+  //excel
   excelName = '';
-  elementName = '';
+  allMyTimesheetsDataForExcel:any[] = [];
+
 
   availableTimesheetDates:any[] = [];
 
@@ -53,6 +55,7 @@ export class MyTimesheetComponent implements OnInit {
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private timesheetService : TimesheetService,
+    private exportExcelService: ExportExcelService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -376,21 +379,22 @@ export class MyTimesheetComponent implements OnInit {
   exportToExcel(): void {
 
     if(this.isTimesheetTable == true){
-      this.elementName = 'teams-table';
       this.excelName = 'MyTimeSheet.xlsx'
-    }
+
+        this.allMyTimesheetsDataForExcel =  this.allMyTimesheets;
   
-  
-    let element = document.getElementById(this.elementName);
-    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
-  
-    const book: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
-  
-    XLSX.writeFile(book, this.excelName);
+      const onlySpecificDataArr: Partial<Timesheet>[] = this.allMyTimesheetsDataForExcel.map(
+        x => ({
+          date: x.date,
+          dayType: x.dayType,
+          description: x.description,
+          status: x.status
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
   }
 
-
+  }
 
 
 
@@ -412,4 +416,12 @@ export class MyTimesheetComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  //pagination 
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
 }

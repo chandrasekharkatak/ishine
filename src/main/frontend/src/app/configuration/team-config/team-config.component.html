@@ -153,7 +153,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let team of allTeamList; let i = index">
+                    <tr *ngFor="let team of allTeamList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
                         <th scope="col" class="info-label">{{i+1}}</th>
                         <td>{{team.teamName}}</td>
                         <td>{{team.teamLeadId}}</td>
@@ -169,7 +169,8 @@
                     </tr>
                 </tbody>
               </table> 
-              <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+              <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
         </div>  
     </div>
 </div>
@@ -280,7 +281,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let activity of allActivityList; let i = index" >
+                  <tr *ngFor="let activity of allActivityList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index" >
                     <th scope="col" class="info-label">{{i+1}}</th>
                     <td>{{activity.activity}}</td>
                     <td>{{activity.eta}} hr(s)</td>
@@ -296,7 +297,8 @@
                   </tr>
                 </tbody>
               </table>
-              <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+              <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
         </div>
     </div>      
 </div>

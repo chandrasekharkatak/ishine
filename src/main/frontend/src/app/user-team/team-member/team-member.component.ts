@@ -52,4 +52,12 @@ export class TeamMemberComponent implements OnInit {
     });
 
   }
+
+  //pagination 
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
 }
