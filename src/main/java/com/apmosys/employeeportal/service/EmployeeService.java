@@ -127,6 +127,8 @@ public class EmployeeService {
 			employee.setCreatedBy(employeedto.getCreatedBy());
 			employee.setExperience(employeedto.getExperience());
 			employee.setRole(employeedto.getRole());
+			employee.setWorkLocation(employeedto.getWorkLocation());
+			
 			Employee newEmployee = employeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -313,7 +315,9 @@ public class EmployeeService {
 					empDTO.setJobRoleId(object[47] != null ? Long.parseLong(object[47].toString()) : null);
 					empDTO.setManagerId(object[48] != null ? Long.parseLong(object[48].toString()) : null);
 					empDTO.setWorkLocation(object[49] != null ? (object[49].toString()) : null);
-
+					empDTO.setExperience(object[50] != null ? (object[50].toString()) : null);
+					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
+					
 					if (object[42] != null) {
 
 						File actualFile = new File(

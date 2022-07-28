@@ -51,6 +51,15 @@ public class EmployeeLeaveService {
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
 
+			// HERE : Effective Leave Balance  = employeeLeavesMap.getBalance()
+			if(!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP") &&
+				(employeeLeavesMap.getBalance() == 0 || employeeLeavesMap.getBalance() < leaveDTO.getNoOfDays())){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Your available balance of "+employeeLeavesMap.getBalance()+" day(s) is not sufficient for this Leave Application.");
+				
+				return response;
+			}
+
 			EmployeeLeave leaveApplication = new EmployeeLeave();
 
 			leaveApplication.setEmpId(leaveDTO.getEmpId());

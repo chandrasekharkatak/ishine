@@ -37,7 +37,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" (change)="setPolicyObj(leaveObj.leaveTypeMasterId)">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>

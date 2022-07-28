@@ -226,6 +226,11 @@ export class LeaveComponent implements OnInit {
     return true;
   }
 
+  setLeaveTypeCode(leaveTypeMasterId:any){
+    let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
+    this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
+  }
+
   setPolicyObj(leaveTypeMasterId:any){
     this.leavePolicyObj = new Leave();
     let leavePolicyObj = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
