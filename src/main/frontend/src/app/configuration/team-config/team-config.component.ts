@@ -224,6 +224,12 @@ export class TeamConfigComponent implements OnInit {
   /* Team Configuration */
   validateTeamObj(teamObj:Team, template: TemplateRef<any>){
 
+    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.projectId)){
+      this.alertMessage = "Please select Project Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(teamObj.teamName)){
       this.alertMessage = "Please enter Team Name !!"
       this.openAlertMod(template, this.alertMessage);
@@ -235,8 +241,16 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)){
+      this.alertMessage = "Please select Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     return true;
   }
+
 
   onCreateTeam(template: TemplateRef<any>){
     let inputValidated:boolean  = this.validateTeamObj(this.teamObj, template)
