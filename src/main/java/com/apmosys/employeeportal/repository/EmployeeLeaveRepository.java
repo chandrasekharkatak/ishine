@@ -22,6 +22,6 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<Object[]> getAllTeamLeaveHistoryView(Long empId);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getApprovedLeaveApplicationsByEmpIdAndDateRange(Long empId, String fromDate, String toDate);
+	public List<Object[]> getAppliedLeaveApplicationsByEmpIdAndDateRange(Long empId, String fromDate, String toDate, Short leaveTypeMasterId);
 
 }

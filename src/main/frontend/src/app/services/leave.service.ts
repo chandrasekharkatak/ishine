@@ -40,8 +40,8 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeavesByEmpId`, leaveObj);
   }
 
-  getApprovedLeaveApplicationsByEmpIdAndDateRange(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getApprovedLeaveApplicationsByEmpIdAndDateRange`, leaveObj);
+  getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAppliedLeaveApplicationsByEmpIdAndDateRange`, leaveObj);
   }
 
   /* Leave Type */

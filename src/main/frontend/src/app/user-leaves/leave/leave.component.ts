@@ -237,18 +237,15 @@ export class LeaveComponent implements OnInit {
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
   }
 
-  checkPolicy(leaveObj:Leave, leavePolicyObj:Leave, template: TemplateRef<any>){
-    console.log("leaveObj : ", leaveObj);
-    console.log("leavePolicyObj : ", leavePolicyObj);
+  async checkPolicy(leaveObj:Leave, leavePolicyObj:Leave, template: TemplateRef<any>){
+    let flag = true;
 
     // One Time Leave Application Count 
     if(leavePolicyObj.oneTimeLeave == "Yes"){
-      console.log("----------------- One Time Leave Application Count -----------------");
-
       if(leavePolicyObj.oneTimeLeaveCount < leaveObj.noOfDays){
         this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.oneTimeLeaveCount} days !!`
         this.openAlertMod(template, this.alertMessage);
-        return false;
+        flag = false;
       }
     }
 
@@ -264,28 +261,14 @@ export class LeaveComponent implements OnInit {
       const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));
       let probationDays = START_DAY_COUNT + diff(dateOfJoining, date);
 
-      console.log("probationDays Passed : ", probationDays);
-
       if (probationDays < leavePolicyObj.probationPeriod) {
         this.alertMessage = `Probation Period of ${leavePolicyObj.probationPeriod} days is not completed, Please try after ${leavePolicyObj.probationPeriod-probationDays} day(s)!!`
         this.openAlertMod(template, this.alertMessage);
-        return false;
+        flag = false;
       }
     }
 
     // Leave Locking Period 
-    /* Approach : 
-
-        get Start Date + Add locking period -->  get To date
-        Check My Applications from & To date is in that Range or NOT
-        
-        -- IF YES --> then get Applications on FROM - TO date 
-                  --> Add up Number of Days ALREADY applied + noOfDays of NEW application & Check with LIMIT VALUE
-                
-        -- IF NO --> set TO date as FROM date + Add locking period --> get NEW TO date
-                  --> REPEAT ABOVE PROCESS 
-    */
-
     if (leavePolicyObj.lockingPeriod == "Yes") {
       let currentYear = new Date().getFullYear();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -295,65 +278,60 @@ export class LeaveComponent implements OnInit {
       let startDate: Date = financialStartDate;
       let endDate: Date = new Date(startDate.getTime() + (leavePolicyObj.lockingPeriodValue * DAY_IN_MS));
 
-      let checkDateInRange = (startDate: Date, endDate: Date, checkDate: Date) => {
-        if ((checkDate <= endDate && checkDate >= startDate)) {
-          console.log(`${checkDate.toDateString()} is in between ${startDate.toDateString()} - ${endDate.toDateString()}`);
-
-          //Check Leave Applications Count 
-          let approvedLeaveApplications = [];
-          let leaveApplicationCount = 0;
-          let totalAppliedLeaves = 0;
-          let flag = true;
-
-          let leaveAppObj = new Leave();
-          leaveAppObj.empId = this.currentUser.empId;
-          leaveAppObj.fromDate = startDate;
-          leaveAppObj.toDate = endDate;
-          
-          
-          this.leaveService.getApprovedLeaveApplicationsByEmpIdAndDateRange(leaveAppObj).pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus == "Success") {
-              approvedLeaveApplications = response.serviceResponse;
-              console.log("approvedLeaveApplications : ", approvedLeaveApplications);
-
-              totalAppliedLeaves = approvedLeaveApplications.reduce((acc, currLeave) => {
-                acc += currLeave.noOfDays;
-                return acc;
-              }, 0);
-
-              leaveApplicationCount = totalAppliedLeaves + leaveObj.noOfDays;
-
-              console.log("Total Leave Days : ", totalAppliedLeaves, " + ", leaveObj.noOfDays, " = ", leaveApplicationCount);
-              if (leaveApplicationCount > leavePolicyObj.lockingValue) {
-                this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.lockingValue} days, Available only ${leavePolicyObj.lockingValue - totalAppliedLeaves} day(s) for ${leavePolicyObj.lockingPeriodValue} days period !!`
-                this.openAlertMod(template, this.alertMessage);
-                flag = false;
-              }
-              flag = true
-            } else {
-              console.error(response.serviceResponse);
-            }
-          });
-          return flag;
-        }
-        else {
-          console.error(`${checkDate.toDateString()} is NOT in between ${startDate.toDateString()} - ${endDate.toDateString()}`);
-          updateStartDate(startDate, endDate, checkDate);
-        }
-      }
-
-      function updateStartDate(startDate: Date, endDate: Date, checkDate: Date) {
-        startDate = endDate;
-        endDate = new Date(startDate.getTime() + (leavePolicyObj.lockingPeriodValue * DAY_IN_MS));
-
-        checkDateInRange(startDate, endDate, checkDate);
-      }
-
-      let lockingValueValidated  = checkDateInRange(startDate, endDate, checkDate);
-      if(!lockingValueValidated) return false;
+      await this.checkDateInRange(startDate, endDate, checkDate, leaveObj, leavePolicyObj, template).then(response => {
+        if(!response) flag = false;
+      });
     }
 
-    return true;
+    return flag;
+  }
+
+  async checkDateInRange(startDate: Date, endDate: Date, checkDate: Date, leaveObj:Leave, leavePolicyObj:Leave, template: TemplateRef<any>){
+    let flag = true;
+    if ((checkDate <= endDate && checkDate >= startDate)) {
+      //Check Leave Applications Count 
+      let approvedLeaveApplications = [];
+      let leaveApplicationCount = 0;
+      let totalAppliedLeaves = 0;
+
+      let leaveAppObj = new Leave();
+      leaveAppObj.empId = this.currentUser.empId;
+      leaveAppObj.leaveTypeMasterId = leaveObj.leaveTypeMasterId;
+      leaveAppObj.fromDate = startDate;
+      leaveAppObj.toDate = endDate;
+      
+      const response:any = await this.leaveService.getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveAppObj).toPromise();
+        if (response.serviceStatus == "Success") {
+          approvedLeaveApplications = response.serviceResponse;
+
+          totalAppliedLeaves = approvedLeaveApplications.reduce((acc, currLeave) => {
+            acc += currLeave.noOfDays;
+            return acc;
+          }, 0);
+
+          leaveApplicationCount = totalAppliedLeaves + leaveObj.noOfDays;
+          if (leaveApplicationCount > leavePolicyObj.lockingValue) {
+            this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.lockingValue} days, Available only ${leavePolicyObj.lockingValue - totalAppliedLeaves} day(s) for ${leavePolicyObj.lockingPeriodValue} days period !!`
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+          }
+        } else {
+          console.error(response.serviceResponse);
+        }
+        return flag;
+    }
+    else {
+      this.updateStartDate(startDate, endDate, checkDate, leaveObj, leavePolicyObj, template);
+    }
+    return flag;
+  }
+
+  updateStartDate(startDate: Date, endDate: Date, checkDate: Date, leaveObj:Leave, leavePolicyObj:Leave, template: TemplateRef<any>) {
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    startDate = endDate;
+    endDate = new Date(startDate.getTime() + (leavePolicyObj.lockingPeriodValue * DAY_IN_MS));
+
+    this.checkDateInRange(startDate, endDate, checkDate, leaveObj, leavePolicyObj, template);
   }
 
   // CRUD
@@ -395,24 +373,25 @@ export class LeaveComponent implements OnInit {
     let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
     if(!inputValidated) return;
 
-    let policyValidated:boolean = this.checkPolicy(this.leaveObj, this.leavePolicyObj, template);
-    if(!policyValidated) return;
+    this.checkPolicy(this.leaveObj, this.leavePolicyObj, template).then(response => {
+      if (!response) return;
 
-    this.leaveObj.empId = this.currentUser.empId;
-    this.leaveObj.createdBy = this.currentUser.empId;
-    this.leaveObj.managerId = this.currentUser.managerId; 
+      this.leaveObj.empId = this.currentUser.empId;
+      this.leaveObj.createdBy = this.currentUser.empId;
+      this.leaveObj.managerId = this.currentUser.managerId;
 
-    // this.leaveObj.fromDate = this.datePipe.transform(this.leaveObj.fromDate, 'dd-MM-yyyy');
-    // this.leaveObj.toDate = this.datePipe.transform(this.leaveObj.toDate, 'dd-MM-yyyy');
+      // this.leaveObj.fromDate = this.datePipe.transform(this.leaveObj.fromDate, 'dd-MM-yyyy');
+      // this.leaveObj.toDate = this.datePipe.transform(this.leaveObj.toDate, 'dd-MM-yyyy');
 
-    console.log("Apply Leave : ", this.leaveObj);
-    this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showLeaveHistoryTable();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
+      console.log("Apply Leave : ", this.leaveObj);
+      this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showLeaveHistoryTable();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
     });
   }
 

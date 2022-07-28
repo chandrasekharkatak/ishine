@@ -50,7 +50,7 @@ public class EmployeeLeaveService {
 		try {
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
-
+			
 			// HERE : Effective Leave Balance  = employeeLeavesMap.getBalance()
 			if(!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP") &&
 				(employeeLeavesMap.getBalance() == 0 || employeeLeavesMap.getBalance() < leaveDTO.getNoOfDays())){
@@ -422,10 +422,11 @@ public class EmployeeLeaveService {
 		return response;
 	}
 	
-	public ServiceResponse getApprovedLeaveApplicationsByEmpIdAndDateRange(LeaveDTO leaveDTO) {
+	public ServiceResponse getAppliedLeaveApplicationsByEmpIdAndDateRange(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<Object[]> list = employeeLeaveRepository.getApprovedLeaveApplicationsByEmpIdAndDateRange(leaveDTO.getEmpId(), leaveDTO.getFromDate(), leaveDTO.getToDate());
+			// HERE : We are fetching All Past Leave Applications with Pending & Approved Status
+			List<Object[]> list = employeeLeaveRepository.getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveDTO.getEmpId(), leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getLeaveTypeMasterId());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
