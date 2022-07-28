@@ -14,7 +14,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let viewTeamMember of viewTeamMemberList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+        <tr *ngFor="let viewTeamMember of viewTeamMemberList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td>{{i+1}}</td>
           <td>A-{{viewTeamMember.empId}}</td>
           <td>{{viewTeamMember.name}}</td>

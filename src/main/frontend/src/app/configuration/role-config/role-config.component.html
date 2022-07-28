@@ -106,7 +106,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let jobRole of allJobRoleList | paginate: { itemsPerPage: 2, currentPage: page }, let i = index">
+          <tr *ngFor="let jobRole of allJobRoleList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <th class="info-label">{{i+1}}</th>
             <td>{{jobRole.name}}</td>
             <td>{{jobRole.departmentName}}</td>

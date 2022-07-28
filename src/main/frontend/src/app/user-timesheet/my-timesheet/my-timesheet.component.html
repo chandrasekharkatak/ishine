@@ -162,7 +162,7 @@
                   <tr *ngIf="allMyTimesheets.length == 0">
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let timesheet of allMyTimesheets | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+                  <tr *ngFor="let timesheet of allMyTimesheets | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                       <td>{{i+1}}</td>
                       <td>{{timesheet.date}}</td>
                       <td>{{timesheet.dayType}}</td>

@@ -148,7 +148,7 @@
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr *ngFor="let leaveHistory of leaveHistoryList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+            <tr *ngFor="let leaveHistory of leaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{leaveHistory.leaveType}}</td>
                 <td>{{leaveHistory.fromDate}}</td>
@@ -189,7 +189,7 @@
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+            <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{leaveApplication.leaveType}}</td>
                 <td>{{leaveApplication.fromDate}}</td>
@@ -227,7 +227,7 @@
           </tr>
         </thead>
         <tbody class="text-center">
-            <tr *ngFor="let leaveType of leaveBalanceList | paginate: { itemsPerPage: 2, currentPage: page }">
+            <tr *ngFor="let leaveType of leaveBalanceList | paginate: { itemsPerPage: 10, currentPage: page }">
                 <td>{{leaveType.leaveType}}</td>
                 <td>{{leaveType.totalLeaveBalance}} days(s)</td>
                 <td>{{leaveType.pendingForApproval}} day(s)</td>
@@ -257,7 +257,7 @@
           </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let log of leaveLogList | paginate: { itemsPerPage: 2, currentPage: page }; let i = index">
+            <tr *ngFor="let log of leaveLogList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{log.leaveType}}</td>
                 <td>{{log.updateBalanceBy}}</td>
