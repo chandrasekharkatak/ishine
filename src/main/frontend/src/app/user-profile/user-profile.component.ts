@@ -484,10 +484,6 @@ export class UserProfileComponent implements OnInit {
     let inputValidated:boolean  = this.validateEmployeeObj(this.UpdateEmployeeInfo, template)
     if(!inputValidated) return;
     
-    // transform date formats to dd-MM-yyyy
-    this.UpdateEmployeeInfo.dateOfBirth = this.datePipe.transform(this.UpdateEmployeeInfo.dateOfBirth, 'dd-MM-yyyy');
-    this.UpdateEmployeeInfo.dateOfJoining = this.datePipe.transform(this.UpdateEmployeeInfo.dateOfJoining, 'dd-MM-yyyy')
-
     this.UpdateEmployeeInfo.certifications = this.allCertificationList;
     this.UpdateEmployeeInfo.previousEmploymentList = this.allPreviousEmployment;
     this.UpdateEmployeeInfo.updatedBy =  this.currentUser.empId;;

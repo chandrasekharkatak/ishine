@@ -209,24 +209,37 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft= false;
     this.isDraftTable = false;
 
-    this.employeeObj = Object.assign({}, employee);
-
-    this.employeeService.getEmployeeByEmpId(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.getManagerList();
+    this.getAllDepartmentList();
+    this.allCertificationList= [];
+    this.allPreviousEmployment= [];
+    this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeeObj = response.serviceResponse;
+        this.employeeObj = Object.assign({}, response.serviceResponse);
+        console.log("employee :", this.employeeObj);
+
+        // Job Role
         if(this.employeeObj.departmentId){
           this.getJobRolesByDept(this.employeeObj.departmentId);
         }
-        this.getManagerList();
-        this.getAllDepartmentList();
-        console.log("employee :", this.employeeObj);
+
+        // Certifications
+        if(this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0){
+          this.addInputCertificationField();
+        }else{
+          this.allCertificationList = this.employeeObj.certifications;
+        }
+
+        // Prev. Employment
+        if(this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0){
+          this.addInputPreviousEmployerField();
+        }else{
+          this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
+        }
       } else {
         console.error(response.serviceResponse)
       }
-
-    });
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth.replaceAll('/', '-'), 'yyyy-MM-dd');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining.replaceAll('/', '-'), 'yyyy-MM-dd');    
+    }); 
   }
 
   showUpdateDraftForm(employee:Employee){
