@@ -35,3 +35,7 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+
+.balance-table > tbody > tr:last-child { 
+    font-weight: bold;
+}

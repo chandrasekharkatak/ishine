@@ -18,7 +18,7 @@
                             <label for="userPassword" class="sr-only">Password</label>
                             <div class="d-flex">
                                 <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userPassword"
-                                placeholder="Enter Password" [(ngModel)]="password" autocomplete="off"/>
+                                placeholder="Enter Password" [(ngModel)]="password" autocomplete="off" (keyup.enter)="onLogin()" />
                                 <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
                                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                                 </span>
@@ -32,7 +32,7 @@
                             <label for="userOtp" class="sr-only">OTP</label>
                             <div class="d-flex">
                                 <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
-                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off"/>
+                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off" (keyup.enter)="onConfirmLoginOTP()" />
                                 <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
                                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                                 </span>
