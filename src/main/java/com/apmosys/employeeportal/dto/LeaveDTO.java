@@ -53,7 +53,8 @@ public class LeaveDTO {
 	private String increment;
 	private Float incrementValue;
 	private String oneTimeLeave;
-	private Integer oneTimeLeaveCount;
+	private Float oneTimeLeaveMinCount;
+	private Float oneTimeLeaveCount;
 	private String carryForward;
 	private Integer carryForwardValue;
 	private String expirationPeriod;

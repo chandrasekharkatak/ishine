@@ -726,8 +726,14 @@ exportToExcel(): void {
     }
 
     if(leavePolicyObj.oneTimeLeave == 'Yes'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.oneTimeLeaveMinCount)){
+        this.alertMessage = "Please Select One time Leave Minimum Limit Value !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
       if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.oneTimeLeaveCount)){
-        this.alertMessage = "Please Select One time Leave Limit Value !!"
+        this.alertMessage = "Please Select One time Leave Maximum Limit Value !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }

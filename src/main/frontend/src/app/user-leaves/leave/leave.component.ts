@@ -242,8 +242,14 @@ export class LeaveComponent implements OnInit {
 
     // One Time Leave Application Count 
     if(leavePolicyObj.oneTimeLeave == "Yes"){
+      if(leavePolicyObj.oneTimeLeaveMinCount > leaveObj.noOfDays){
+        this.alertMessage = `Leave Application days are not meeting minimum limit of ${leavePolicyObj.oneTimeLeaveMinCount} day(s) !!`
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+      }
+
       if(leavePolicyObj.oneTimeLeaveCount < leaveObj.noOfDays){
-        this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.oneTimeLeaveCount} days !!`
+        this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.oneTimeLeaveCount} day(s) !!`
         this.openAlertMod(template, this.alertMessage);
         flag = false;
       }

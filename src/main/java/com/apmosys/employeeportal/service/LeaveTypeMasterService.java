@@ -162,16 +162,17 @@ public class LeaveTypeMasterService {
 					dto.setIncrement(object[8] != null ? object[8].toString() : null);
 					dto.setIncrementValue(object[9] != null ? Float.parseFloat(object[9].toString()) : null);
 					dto.setOneTimeLeave(object[10] != null ? object[10].toString() : null);
-					dto.setOneTimeLeaveCount(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
-					dto.setCarryForward(object[12] != null ? object[12].toString() : null);
-					dto.setCarryForwardValue(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
-					dto.setExpirationPeriod(object[14] != null ? object[14].toString() : null);
-					dto.setExpirationPeriodValue(object[15] != null ? Integer.parseInt(object[15].toString()) : null);
-					dto.setLockingPeriod(object[16] != null ? object[16].toString() : null);
-					dto.setLockingPeriodValue(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
-					dto.setLockingValue(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
-					dto.setProbation(object[19] != null ? object[19].toString() : null);
-					dto.setProbationPeriod(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+					dto.setOneTimeLeaveMinCount(object[11] != null ? Float.parseFloat(object[11].toString()) : null);
+					dto.setOneTimeLeaveCount(object[12] != null ? Float.parseFloat(object[12].toString()) : null);
+					dto.setCarryForward(object[13] != null ? object[13].toString() : null);
+					dto.setCarryForwardValue(object[14] != null ? Integer.parseInt(object[14].toString()) : null);
+					dto.setExpirationPeriod(object[15] != null ? object[15].toString() : null);
+					dto.setExpirationPeriodValue(object[16] != null ? Integer.parseInt(object[16].toString()) : null);
+					dto.setLockingPeriod(object[17] != null ? object[17].toString() : null);
+					dto.setLockingPeriodValue(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
+					dto.setLockingValue(object[19] != null ? Integer.parseInt(object[19].toString()) : null);
+					dto.setProbation(object[20] != null ? object[20].toString() : null);
+					dto.setProbationPeriod(object[21] != null ? Integer.parseInt(object[21].toString()) : null);
 					
 					// set locking references 
 					if(dto.getLockingPeriod().equalsIgnoreCase("Yes")) {

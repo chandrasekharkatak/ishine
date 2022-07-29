@@ -406,7 +406,15 @@
                 <div *ngIf="leavePolicyObj.oneTimeLeave == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>One Time Leave Limit Value : </label>
+                            <label><span class="text-danger">*</span>One Time Leave Minimum Limit Value : </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.oneTimeLeaveMinCount">
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="leavePolicyObj.oneTimeLeave == 'Yes'" class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>One Time Leave Maximum Limit Value : </label>
                             <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.oneTimeLeaveCount">
                         </div>
                     </div>

@@ -34,6 +34,7 @@ export class Leave{
 	increment: any;
 	incrementValue: any;
 	oneTimeLeave: any;
+	oneTimeLeaveMinCount: any;
 	oneTimeLeaveCount: any;
 	carryForward: any;
 	carryForwardValue: any;

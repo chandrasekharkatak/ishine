@@ -42,7 +42,9 @@ public class LeavePolicyMaster {
 	
 	private String oneTimeLeave;
 	
-	private Integer oneTimeLeaveCount;
+	private Float oneTimeLeaveMinCount;
+	
+	private Float oneTimeLeaveCount;
 	
 	private String carryForward;
 	
