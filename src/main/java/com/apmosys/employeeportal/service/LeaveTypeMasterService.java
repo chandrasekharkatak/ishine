@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -19,12 +22,18 @@ public class LeaveTypeMasterService {
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
-	
+
 	@Value("${financialYear.startDate}")
 	String financialYearStartDate;
-	
+
 	@Value("${financialYear.startMonth}")
 	String financialYearStartMonth;
+
+	@Autowired
+	EmployeeRepository employeeRepository;
+
+	@Autowired
+	EmployeeLeavesMapRepository employeeLeavesMapRepository;
 
 	public ServiceResponse getAllLeaveTypes() {
 		ServiceResponse response = new ServiceResponse();
@@ -44,7 +53,7 @@ public class LeaveTypeMasterService {
 					leaveDTO.setPaidLeave(leaveMaster.getPaidLeave());
 					leaveDTO.setRules(leaveMaster.getRules());
 					leaveDTO.setLeaveTypeCode(leaveMaster.getLeaveTypeCode());
-					leaveDTO.setGender(leaveMaster.getGender());	
+					leaveDTO.setGender(leaveMaster.getGender());
 					dtoList.add(leaveDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -75,10 +84,10 @@ public class LeaveTypeMasterService {
 				leaveType.setRules(leaveDTO.getRules());
 				leaveType.setLeaveType(leaveDTO.getLeaveType());
 				leaveType.setLeaveTypeCode(leaveDTO.getLeaveTypeCode());
-				leaveType.setGender(leaveDTO.getGender());	
+				leaveType.setGender(leaveDTO.getGender());
 				leaveType.setNoOfDays(leaveDTO.getNoOfDays());
 				leaveType.setPaidLeave(leaveDTO.getPaidLeave());
-				
+
 				LeaveTypeMaster updatedLeaveType = leaveTypeMasterRepository.save(leaveType);
 
 				if (updatedLeaveType != null) {
@@ -105,21 +114,38 @@ public class LeaveTypeMasterService {
 	public ServiceResponse createLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			LeaveTypeMaster leaveType = new LeaveTypeMaster();
-			
+
 			leaveType.setLeaveType(leaveDTO.getLeaveType());
 			leaveType.setLeaveTypeCode(leaveDTO.getLeaveTypeCode());
-			leaveType.setGender(leaveDTO.getGender());	
+			leaveType.setGender(leaveDTO.getGender());
 			leaveType.setNoOfDays(leaveDTO.getNoOfDays());
 			leaveType.setPaidLeave(leaveDTO.getPaidLeave());
 			leaveType.setRules(leaveDTO.getRules());
 			leaveType.setDescription(leaveDTO.getDescription());
-			
-			
+
 			LeaveTypeMaster newLeaveType = leaveTypeMasterRepository.save(leaveType);
-			
+
 			if (newLeaveType != null) {
+
+				List<Employee> employeeList = employeeRepository.findAll();
+
+				List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
+
+				employeeList.forEach((employee) -> {
+
+					EmployeeLeavesMap map = new EmployeeLeavesMap();
+
+					map.setBalance(newLeaveType.getNoOfDays());
+					map.setEmpId(employee.getEmpId());
+					map.setLeaveTypeMasterId(newLeaveType.getLeaveTypeMasterId());
+					map.setPendingForApproval((float) 0);
+					mapList.add(map);
+				});
+
+				employeeLeavesMapRepository.saveAll(mapList);
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Leave type created.");
 			} else {
@@ -135,11 +161,12 @@ public class LeaveTypeMasterService {
 		}
 		return response;
 	}
-	
+
 	public ServiceResponse getAllLeaveTypesByLeavePolicies(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<Object[]> list = leaveTypeMasterRepository.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender());
+			List<Object[]> list = leaveTypeMasterRepository
+					.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender());
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
@@ -150,7 +177,7 @@ public class LeaveTypeMasterService {
 				for (Object[] object : list) {
 
 					LeaveDTO dto = new LeaveDTO();
-					
+
 					dto.setLeaveTypeMasterId(object[0] != null ? Short.parseShort(object[0].toString()) : null);
 					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
 					dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
@@ -179,10 +206,10 @@ public class LeaveTypeMasterService {
 						dto.setFinancialYearStartDate(financialYearStartDate);
 						dto.setFinancialYearStartMonth(financialYearStartMonth);
 					}
-					
+
 					dtoList.add(dto);
 				}
-				
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 			}

@@ -74,7 +74,7 @@
               </tr>
             </thead>
             <tbody class="text-center">
-                <tr *ngFor="let leaveApplication of leaveApplicationList; let i = index">
+                <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{i+1}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
@@ -92,6 +92,7 @@
                 </tr>
             </tbody>
           </table> 
+          <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
     </div>
 </ng-template>
 
@@ -116,7 +117,7 @@
              </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let compOffApp of allCompOffApplications;let i = index">
+                <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
@@ -132,6 +133,7 @@
                 </tr>
             </tbody>
           </table>  
+          <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
     </div>
 </ng-template>
 

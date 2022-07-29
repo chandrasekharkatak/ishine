@@ -65,6 +65,9 @@
           </tr>
         </thead>
         <tbody>
+            <tr *ngIf="allDeptList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
           <tr *ngFor="let dept of allDeptList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <th class="info-label">{{i+1}}</th>
             <td>{{dept.name}}</td>
@@ -78,8 +81,8 @@
           </tr>
         </tbody>
       </table>
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+      <pagination-controls class="my-pagination" [hidden]="allDeptList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allDeptList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 <!-- end :: see all table -->
 

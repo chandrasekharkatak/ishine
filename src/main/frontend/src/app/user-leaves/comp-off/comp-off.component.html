@@ -101,6 +101,9 @@
          </tr>
         </thead>
         <tbody>
+            <tr *ngIf="allCompOffRequests.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+              </tr>
             <tr *ngFor="let compOffReq of allCompOffRequests | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                 <td>{{i+1}}</td>
                 <td>{{compOffReq.compOffReasons}}</td>
@@ -112,8 +115,8 @@
             </tr>
         </tbody>
       </table>      
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+      <pagination-controls class="my-pagination" [hidden]="allCompOffRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffRequests.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
 </div>
 <!-- end :: My compOff Request table -->
 
@@ -137,6 +140,9 @@
          </tr>
         </thead>
         <tbody>
+            <tr *ngIf="allCompOffApplications.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+              </tr>
             <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                 <td>{{i+1}}</td>
                 <td>{{compOffApp.createdByName}}</td>
@@ -153,8 +159,8 @@
             </tr>
         </tbody>
       </table>  
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
+      <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
 </div>
 <!-- end :: compOff Application table -->
 
