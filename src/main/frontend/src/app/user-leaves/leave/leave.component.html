@@ -148,6 +148,9 @@
           </tr>
         </thead>
         <tbody class="text-center">
+            <tr *ngIf="leaveHistoryList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
             <tr *ngFor="let leaveHistory of leaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{leaveHistory.leaveType}}</td>
@@ -162,8 +165,8 @@
             </tr>
         </tbody>
       </table>   
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>     
+      <pagination-controls class="my-pagination" [hidden]="leaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>     
 </div>
 <!-- end :: Leave History table -->
 
@@ -189,6 +192,9 @@
           </tr>
         </thead>
         <tbody class="text-center">
+            <tr *ngIf="leaveApplicationList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
             <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{leaveApplication.leaveType}}</td>
@@ -207,8 +213,8 @@
             </tr>
         </tbody>
       </table>   
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>   
+      <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
 </div>
 <!-- end :: Leave Applications table -->
 
@@ -227,6 +233,9 @@
           </tr>
         </thead>
         <tbody class="text-center">
+            <tr *ngIf="leaveBalanceList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
             <tr *ngFor="let leaveType of leaveBalanceList | paginate: { itemsPerPage: 10, currentPage: page }">
                 <td>{{leaveType.leaveType}}</td>
                 <td>{{leaveType.totalLeaveBalance}} days(s)</td>
@@ -236,7 +245,7 @@
         </tbody>
       </table>      
       <!-- <button type="button" class="btn btn-outline-primary btn-sm" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <pagination-controls class="my-pagination" [hidden]="leaveBalanceList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
 </div>
 <!-- end :: Leave Balance table -->
 
@@ -257,6 +266,9 @@
           </tr>
         </thead>
         <tbody>
+            <tr *ngIf="leaveLogList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
             <tr *ngFor="let log of leaveLogList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{log.leaveType}}</td>
@@ -267,7 +279,7 @@
             </tr>
         </tbody>
       </table>   
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
 </div>
 <!-- end :: Leave log table -->
 

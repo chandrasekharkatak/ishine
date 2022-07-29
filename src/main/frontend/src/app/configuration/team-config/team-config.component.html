@@ -153,6 +153,9 @@
                   </tr>
                 </thead>
                 <tbody>
+                    <tr *ngIf="allTeamList.length == 0">
+                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    </tr>
                     <tr *ngFor="let team of allTeamList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                         <th scope="col" class="info-label">{{i+1}}</th>
                         <td>{{team.teamName}}</td>
@@ -164,13 +167,10 @@
                             <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)"><em class="fa fa-trash"></em></button>
                         </td>
                     </tr>
-                    <tr *ngIf="allTeamList.length == 0" >
-                        <th colspan="6" class="text-center info-label">No details to display...</th>
-                    </tr>
                 </tbody>
               </table> 
-              <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+              <pagination-controls class="my-pagination" [hidden]="allTeamList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
         </div>  
     </div>
 </div>
@@ -281,6 +281,9 @@
                   </tr>
                 </thead>
                 <tbody>
+                    <tr *ngIf="allActivityList.length == 0">
+                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    </tr>
                   <tr *ngFor="let activity of allActivityList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" >
                     <th scope="col" class="info-label">{{i+1}}</th>
                     <td>{{activity.activity}}</td>
@@ -292,13 +295,10 @@
                         <button *ngIf="userMapping.delete_activity" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button>
                     </td>
                   </tr>
-                  <tr *ngIf="allActivityList.length == 0">
-                    <th colspan="6" class="text-center info-label">No details to display...</th>
-                  </tr>
                 </tbody>
               </table>
-              <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+              <pagination-controls class="my-pagination" [hidden]="allActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>      
 </div>

@@ -21,6 +21,7 @@ export class HomeComponent implements OnInit {
   currentUser:User;
   userMapping:any = {};
 
+
   isReqPending:boolean = true;
   leaveApplicationCount:any = 0;
   leaveApplicationList:any[] = [];
@@ -103,6 +104,13 @@ export class HomeComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  //pagination 
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
   }
 
   // modals

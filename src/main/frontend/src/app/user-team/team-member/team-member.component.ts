@@ -5,6 +5,7 @@ import { TeamViewService } from 'src/app/services/team-view.service';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-team-member',
@@ -16,6 +17,10 @@ export class TeamMemberComponent implements OnInit {
   feature="Team Members";
   currentUser:User;
   userMapping:any = {};
+
+  //excel
+  excelName = '';
+  elementName = '';
 
   viewTeamMemberList: any[] = []; 
 
@@ -51,6 +56,22 @@ export class TeamMemberComponent implements OnInit {
       }
     });
 
+  }
+
+  //excel
+
+  exportToExcel(): void {
+
+    this.elementName = "team-table";
+    this.excelName = "TeamMemberSheet";
+  
+    let element = document.getElementById(this.elementName);
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
+  
+    const book: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+  
+    XLSX.writeFile(book, this.excelName);
   }
 
   //pagination 

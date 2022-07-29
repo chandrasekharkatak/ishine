@@ -14,6 +14,9 @@
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="holidayList.length == 0">
+            <th colspan="8" class="text-center info-label">No details to display...</th>
+          </tr>
             <tr *ngFor="let holiday of holidayList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{i+1}}</td>
                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
@@ -23,6 +26,6 @@
             </tr>
         </tbody>
       </table>  
-      <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <pagination-controls class="my-pagination" [hidden]="holidayList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
 </div>
 <!-- end :: holidays table -->

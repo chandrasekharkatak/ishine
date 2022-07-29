@@ -18,3 +18,7 @@
 .req-card:hover{
     cursor: pointer;
 }
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
