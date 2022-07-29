@@ -216,9 +216,9 @@ public class CompOffLeaveService {
 				compOffLeave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 				
 				if (leaveDTO.getLeaveStatusId() == 2) {
-					// 1 = CL , 2 = PL , 3 = ML , 4 = PTL , 5 = CO
+					// 1 = CO 
 					EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
-							.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), (short) 5);
+							.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), (short) 1);
 
 					employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + compOffLeave.getNoOfDays());
 					employeeLeavesMapRepository.save(employeeLeavesMap);
@@ -226,7 +226,7 @@ public class CompOffLeaveService {
 					LeaveBalanceLog log = new LeaveBalanceLog();
 					log.setBalance(employeeLeavesMap.getBalance());
 					log.setEmpId(leaveDTO.getEmpId());
-					log.setLeaveTypeMasterId((short) 5);
+					log.setLeaveTypeMasterId((short) 1);
 					log.setMessage(LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
 					log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
 					leaveBalanceLogRepository.save(log);
