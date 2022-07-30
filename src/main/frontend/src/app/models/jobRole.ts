@@ -8,5 +8,6 @@ export class JobRole{
 	createdById:any;	
 	updatedOn: any;	
 	updatedBy: any;
+	updatedByName:any;
 	hodId:any;
 }

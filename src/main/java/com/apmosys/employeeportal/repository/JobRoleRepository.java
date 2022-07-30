@@ -13,5 +13,7 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllJobRoles();
+	
+	public Long countByDeptId(Long deptId);
 
 }

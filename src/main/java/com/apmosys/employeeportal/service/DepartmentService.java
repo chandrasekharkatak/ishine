@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -22,6 +23,9 @@ public class DepartmentService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+
+	@Autowired
+	JobRoleRepository jobRoleRepository;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -123,9 +127,18 @@ public class DepartmentService {
 			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if (departmentObject.isPresent()) {
 				Department departmentToBeDeleted = departmentObject.get();
-				departmentRepository.deleteById(departmentToBeDeleted.getDeptId());
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Department Deleted.");
+
+				Long count = jobRoleRepository.countByDeptId(departmentToBeDeleted.getDeptId());
+				if (count == 0) {
+
+					departmentRepository.deleteById(departmentToBeDeleted.getDeptId());
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Department deleted.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Department cannot be deleted as it is mapped to job role(s).");
+				}
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Not Found.");

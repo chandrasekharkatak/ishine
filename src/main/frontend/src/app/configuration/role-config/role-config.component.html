@@ -102,6 +102,8 @@
             <th scope="col" class="info-label">Department</th>
             <th scope="col" class="info-label">Created by</th>
             <th scope="col" class="info-label">Created on</th>
+            <th scope="col" class="info-label">Updated by</th>
+            <th scope="col" class="info-label">Updated on</th>
             <th *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
@@ -115,6 +117,8 @@
             <td>{{jobRole.departmentName}}</td>
             <td>{{jobRole.createdBy}}</td>
             <td>{{jobRole.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+            <td>{{jobRole.updatedByName}}</td>
+            <td>{{jobRole.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role" >
                 <button *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(jobRole)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="userMapping.delete_role"  class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteJobRole(delete_template,jobRole)"><em class="fa fa-trash"></em></button>

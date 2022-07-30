@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
@@ -45,6 +46,9 @@ public class TimesheetService {
 
 	@Autowired
 	TimesheetActivityMapRepository timesheetActivityMapRepository;
+
+	@Value("${timesheet.lock.days}")
+	private Integer timesheetLockDays;
 
 	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -129,7 +133,8 @@ public class TimesheetService {
 			Timesheet newTimesheet = new Timesheet();
 
 			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
-			newTimesheet.setDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())),"yyyy-MM-dd"));
+			newTimesheet.setDate(stringToDateTimeParser
+					.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
@@ -378,7 +383,8 @@ public class TimesheetService {
 
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
-				existingTimesheet.setDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())),"yyyy-MM-dd"));
+				existingTimesheet.setDate(stringToDateTimeParser
+						.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())), "yyyy-MM-dd"));
 				/*
 				 * Only pending/rejected timesheet can be updated by employee. So even if
 				 * employee is updating pending timesheet or rejected timesheet the status
@@ -489,6 +495,47 @@ public class TimesheetService {
 						dto.setStatus(object[5] != null ? object[5].toString() : null);
 						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No  timesheets found. List is null.");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getLast7DaysTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> objectList = timesheetsRepository.getLast7DaysTimesheetsByEmpId(timesheetDTO.getEmpId(),
+					LocalDate.now().minusDays(timesheetLockDays));
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No timesheets found. List is empty.");
+				} else {
+					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+					list.forEach((object) -> {
+
+						TimesheetDTO dto = new TimesheetDTO();
+						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dtoList.add(dto);
 					});
 
