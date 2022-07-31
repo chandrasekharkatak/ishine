@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -32,21 +33,24 @@ public class AuthenticationService {
 	@Autowired
 	EmployeeService employeeService;
 
+	@Value("${portal.static.otp}")
+	private String portalStaticOtp;
+
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-		
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail()); 
-			
-			if(employee!=null) {
+
+			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+
+			if (employee != null) {
 				String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
 				String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
-				
-				if(dbPassword == orignalPassword) {
+
+				if (dbPassword == orignalPassword) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("login successful");
 				}
-				
+
 			}
 
 			if (employee == null) {
@@ -89,20 +93,8 @@ public class AuthenticationService {
 			Employee employee = (Employee) session.getAttribute("currentEmployee");
 			EmployeeDTO currentEmployeeDto = (EmployeeDTO) session.getAttribute("currentEmployeeDto");
 
-			if (employeedto.getOtp().toString().equals(employee.getOtp().toString())) {
-				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
-
-				Object[] object = new Object[2];
-				object[0] = currentEmployeeDto;
-				object[1] = serviceResponse.getServiceResponse();
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(object);
-				response.setServiceMessage("OTP validated successfully. User Log in success.");
-			} else if (employeedto.getOtp().toString().equals("1234")) {
-				
-				//static OTP
-				
+			if (employeedto.getOtp().toString().equals(employee.getOtp().toString())
+					|| employeedto.getOtp().toString().equals(portalStaticOtp)) {
 				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
 
 				Object[] object = new Object[2];
