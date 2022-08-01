@@ -9,6 +9,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -49,6 +50,7 @@ export class MyTimesheetComponent implements OnInit {
 
 
   availableTimesheetDates:any[] = [];
+  availableTimesheets:any[] = [];
 
   constructor(
     private validationService:ValidationService,
@@ -56,6 +58,7 @@ export class MyTimesheetComponent implements OnInit {
     private authenticationService : AuthenticationService,
     private timesheetService : TimesheetService,
     private exportExcelService: ExportExcelService,
+    private datePipe: DatePipe,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -89,6 +92,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.reset();
     this.getAllProjectsByEmpId();
+    this.getAllAvailableTimesheetByEmpId();
   }
 
   showViewMyTimesheets(){
@@ -153,10 +157,15 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   // Manage Timesheet Dates
-  timesheetDateFilter = (d: Date)=>{
-    const time=d?.getTime();
-     
-    return this.availableTimesheetDates.find(x=>x.getTime()==time);
+  timesheetDateFilter = (checkDate: Date)=>{
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const time=checkDate?.getTime();
+    let currentDate = new Date();
+
+    let endDate = currentDate;
+    let startDate = new Date(endDate.getTime() - (this.currentUser.timesheetLockDays * DAY_IN_MS));
+    
+    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
   }
 
   /* Timesheet */
@@ -228,6 +237,8 @@ export class MyTimesheetComponent implements OnInit {
     }else{
       this.timesheetObj.allTimesheetActivities = null;
     }
+    
+    this.timesheetObj.date = this.datePipe.transform(this.timesheetObj.date, "YYYY-MM-dd")
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
@@ -315,6 +326,21 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
+  getAllAvailableTimesheetByEmpId(){
+    this.availableTimesheets = [];
+    console.log(" -- logged availableTimesheets -- ");
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.empId = this.currentUser.empId;
+    this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.availableTimesheets = response.serviceResponse;
+        console.log("availableTimesheets :", this.availableTimesheets);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
 
 

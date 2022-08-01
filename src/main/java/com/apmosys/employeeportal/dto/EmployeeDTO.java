@@ -73,5 +73,6 @@ public class EmployeeDTO {
 	private List<DepartmentDTO> departmentList;
 	
 	private String workLocation;
+	private Integer timesheetLockDays;
 
 }

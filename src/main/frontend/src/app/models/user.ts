@@ -15,5 +15,5 @@ export class User{
     gender:any;
     employmentstatus:any;
     dateOfJoining:any;
-
+    timesheetLockDays:any;
 }

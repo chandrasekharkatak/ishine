@@ -35,6 +35,9 @@ public class AuthenticationService {
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
+	
+	@Value("${timesheet.lock.days}")
+	private Integer timesheetLockDays;
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -68,6 +71,8 @@ public class AuthenticationService {
 
 				EmployeeDTO currentEmployeeDto = (EmployeeDTO) employeeService.getEmployeeByEmpId(dto)
 						.getServiceResponse();
+				// Setting Locking Period for Timesheets
+				currentEmployeeDto.setTimesheetLockDays(timesheetLockDays);
 
 				session = request.getSession();
 				session.invalidate();

@@ -133,8 +133,7 @@ public class TimesheetService {
 			Timesheet newTimesheet = new Timesheet();
 
 			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
-			newTimesheet.setDate(stringToDateTimeParser
-					.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())), "yyyy-MM-dd"));
+			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
@@ -156,34 +155,45 @@ public class TimesheetService {
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
-			Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
+			
+			if(!timesheetDTO.getDayType().equals("Holiday")) {
+				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
 
-				List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
+					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
 
-				allTimesheetActivities.forEach((activity) -> {
+					allTimesheetActivities.forEach((activity) -> {
 
-					TimesheetActivityMap map = new TimesheetActivityMap();
-					map.setActivityId(activity.getActivityId());
-					map.setCompletionTime(activity.getCompletionTime());
-					map.setDescription(activity.getDescription());
-					map.setTimesheetId(newTimesheetCreated.getTimesheetId());
-					mapList.add(map);
-				});
+						TimesheetActivityMap map = new TimesheetActivityMap();
+						map.setActivityId(activity.getActivityId());
+						map.setCompletionTime(activity.getCompletionTime());
+						map.setDescription(activity.getDescription());
+						map.setTimesheetId(newTimesheetCreated.getTimesheetId());
+						mapList.add(map);
+					});
 
-				List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
+					List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
 
-				if (activityMapped.isEmpty()) {
+					if (activityMapped.isEmpty()) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Timesheet added , but activity not mapped.");
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Timesheet added successfully");
+					}
+
+				}, () -> {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet added , but activity not mapped.");
+					response.setServiceResponse("Timesheet not generated");
+				});
+			}else {
+				if (newTimesheetCreated == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Timesheet not generated");
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Timesheet added successfully");
 				}
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet not generated");
-			});
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -534,6 +544,7 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
+						
 						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dtoList.add(dto);

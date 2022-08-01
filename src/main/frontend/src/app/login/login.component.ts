@@ -197,6 +197,7 @@ export class LoginComponent implements OnInit {
       this.user.employmentstatus = user.employmentstatus;
       this.user.gender = user.gender;
       this.user.dateOfJoining = user.dateOfJoining;
+      this.user.timesheetLockDays = user.timesheetLockDays;
       this.user.userMapping = this.getActiveSubFeatures();
       this.user.tabList = this.getTabList();
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
