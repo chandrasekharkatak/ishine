@@ -355,6 +355,10 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter aadhar card number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else if(employeeObj.aadhar.toString().length != 12){
+      this.alertMessage = "Please enter Valid aadhar card number !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)){
