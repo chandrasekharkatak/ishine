@@ -394,7 +394,7 @@ export class EmployeeConfigComponent implements OnInit {
     } 
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)){
-      this.alertMessage = "Please enter address !!"
+      this.alertMessage = "Please enter Current Address !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

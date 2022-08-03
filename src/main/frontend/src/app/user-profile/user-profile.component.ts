@@ -203,21 +203,21 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)){
-      this.alertMessage = "Please enter aadhar card number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)){
+    //   this.alertMessage = "Please enter aadhar card number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)){
-      this.alertMessage = "Please enter PAN card number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validatePancardNumber(employeeObj.panNumber)){
-      this.alertMessage = "Please enter Valid PAN card number !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)){
+    //   this.alertMessage = "Please enter PAN card number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validatePancardNumber(employeeObj.panNumber)){
+    //   this.alertMessage = "Please enter Valid PAN card number !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.mobileNo)){
       this.alertMessage = "Please enter mobile number !!"
@@ -230,7 +230,7 @@ export class UserProfileComponent implements OnInit {
     } 
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)){
-      this.alertMessage = "Please enter address !!"
+      this.alertMessage = "Please enter Current Address !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
