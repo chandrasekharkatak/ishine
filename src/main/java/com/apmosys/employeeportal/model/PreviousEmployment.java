@@ -45,6 +45,7 @@ public class PreviousEmployment {
     
     private Long hrContactNumber; 
     
-    private Long empId;	
-
+    private Long empId;
+    
+    private String isDraft;
 }

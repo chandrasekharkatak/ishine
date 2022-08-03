@@ -18,8 +18,8 @@ public class EmployeeCertificateDTO {
 	private String duration;
 	private String dateOfCompletion;	
 	private String modeOfCourse;	
-	private Long certificationNumber;
+	private String certificationNumber;
     private Long empId;	
-	
+    private String isDraft;
 
 }

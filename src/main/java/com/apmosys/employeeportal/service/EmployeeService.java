@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PreviousEmployment;
@@ -138,7 +139,7 @@ public class EmployeeService {
 						previousEmployer.setEmpId(newEmployee.getEmpId());
 
 					});
-					addPreviousEmployer(previousEmployerList);
+					addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
 				}
 
 			});
@@ -150,7 +151,7 @@ public class EmployeeService {
 						certification.setEmpId(newEmployee.getEmpId());
 
 					});
-					addCertifications(certificationList);
+					addCertifications(certificationList, employeedto.getIsDraft());
 				}
 
 			});
@@ -202,7 +203,7 @@ public class EmployeeService {
 		return response;
 	}
 
-	public boolean addPreviousEmployer(List<PreviousEmploymentDTO> previousEmployeeDTOList) {
+	public boolean addPreviousEmployer(List<PreviousEmploymentDTO> previousEmployeeDTOList, String isDraft) {
 
 		List<PreviousEmployment> list = new ArrayList<PreviousEmployment>();
 
@@ -222,6 +223,7 @@ public class EmployeeService {
 			previousEmployment.setEmployerName(previousEmployeeDTO.getEmployerName());
 			previousEmployment.setEmpId(previousEmployeeDTO.getEmpId());
 			previousEmployment.setYearsOfExperience(previousEmployeeDTO.getYearsOfExperience());
+			previousEmployment.setIsDraft(isDraft);
 
 			list.add(previousEmployment);
 
@@ -230,7 +232,7 @@ public class EmployeeService {
 		return (previousEmploymentRepository.saveAll(list).isEmpty()) ? false : true;
 	}
 
-	public boolean addCertifications(List<EmployeeCertificateDTO> employeeCertifcateDTOList) {
+	public boolean addCertifications(List<EmployeeCertificateDTO> employeeCertifcateDTOList, String isDraft) {
 
 		List<EmployeeCertificate> list = new ArrayList<EmployeeCertificate>();
 
@@ -246,7 +248,7 @@ public class EmployeeService {
 			employeeCertificate.setEmpId(certificate.getEmpId());
 			employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
 			employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
-
+			employeeCertificate.setIsDraft(isDraft);
 			list.add(employeeCertificate);
 
 		});
@@ -257,11 +259,16 @@ public class EmployeeService {
 	public ServiceResponse getEmployeeByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		EmployeeDTO empDTO = new EmployeeDTO();
+		List<EmployeeCertificateDTO> certificationDTOlist = new ArrayList<EmployeeCertificateDTO>();
+		List<PreviousEmploymentDTO> previousEmploymentDTOList = new ArrayList<PreviousEmploymentDTO>();
+		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 		try {
 			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
-
+			List<EmployeeCertificate> certificationsList = employeeCertificateRepository.findByEmpId(employeedto.getEmpId());
+			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpId(employeedto.getEmpId());
+			
 			if (!objectList.isEmpty()) {
 
 				for (Object[] object : objectList) {
@@ -331,6 +338,43 @@ public class EmployeeService {
 
 					}
 				}
+				
+				if(!certificationsList.isEmpty()) {
+					
+					for(EmployeeCertificate empCert : certificationsList) {
+						EmployeeCertificateDTO dto = new EmployeeCertificateDTO();
+						
+						dto.setEmployeeCertificateId(empCert.getEmployeeCertificateId());
+						dto.setCertificationName(empCert.getCertificationName());
+						dto.setDuration(empCert.getDuration());
+						dto.setModeOfCourse(empCert.getModeOfCourse());
+						dto.setDateOfCompletion(empCert.getDateOfCompletion().toString());
+						dto.setCertificationNumber(empCert.getCertificationNumber());
+						
+						certificationDTOlist.add(dto);
+					}
+					empDTO.setCertifications(certificationDTOlist);
+				}
+				
+				if(!previousEmploymentList.isEmpty()) {
+					for(PreviousEmployment pervEmploy : previousEmploymentList) {
+						PreviousEmploymentDTO dto = new PreviousEmploymentDTO();
+						
+						dto.setPreviousEmploymentId(pervEmploy.getPreviousEmploymentId());
+						dto.setEmployerName(pervEmploy.getEmployerName());
+						dto.setDateOfJoining(pervEmploy.getDateOfJoining().toString());
+						dto.setDateOfRelieving(pervEmploy.getDateOfRelieving().toString());
+						dto.setYearsOfExperience(pervEmploy.getYearsOfExperience());
+						dto.setManagerName(pervEmploy.getManagerName());
+						dto.setManagerContactNumber(pervEmploy.getManagerContactNumber());
+						dto.setHrName(pervEmploy.getHrName());
+						dto.setHrContactNumber(pervEmploy.getHrContactNumber());
+						dto.setDesignation(pervEmploy.getDesignation());
+						
+						previousEmploymentDTOList.add(dto);					
+					}
+					empDTO.setPreviousEmploymentList(previousEmploymentDTOList);
+				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
@@ -374,7 +418,9 @@ public class EmployeeService {
 
 	public ServiceResponse updateEmployeeByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		List<EmployeeCertificateDTO> newCertificationlist = new ArrayList<EmployeeCertificateDTO>();
+		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
+		
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
@@ -430,6 +476,96 @@ public class EmployeeService {
 				employee.setExperience(employeedto.getExperience());
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
+				
+				// Certification
+				// Case 1 : Updating Existing certification 
+				if(employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
+					employeedto.getCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() != null)
+					.forEach((certificate) -> {
+						
+						EmployeeCertificate employeeCertificate = employeeCertificateRepository.findById(certificate.getEmployeeCertificateId()).get();
+
+						
+						employeeCertificate.setCertificationName(certificate.getCertificationName());
+						employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
+						employeeCertificate.setDateOfCompletion(
+								stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
+						employeeCertificate.setDuration(certificate.getDuration());
+						employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
+						employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
+						
+						employeeCertificateRepository.save(employeeCertificate);
+					});
+				}
+				
+				if(employeedto.getUpdatedCertifications() != null && !employeedto.getUpdatedCertifications().isEmpty()) {
+					// Case 2 : Adding New certification
+					newCertificationlist = employeedto.getUpdatedCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() == null).toList();
+					if (!newCertificationlist.isEmpty()) {
+						newCertificationlist.forEach((certification) -> {
+							certification.setEmpId(employeedto.getEmpId());
+
+						});
+						addCertifications(newCertificationlist, employeedto.getIsDraft());
+					}
+					
+					// Case 3 : Deleting Removed certification
+					employeedto.getUpdatedCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() != null)
+					.forEach((certification) -> {
+						employeeCertificateRepository.deleteById(certification.getEmployeeCertificateId());
+					});
+				}
+				
+				
+				// Previous Employer
+				if(employeedto.getExperience().equals("Fresher")) {
+					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpId(employeedto.getEmpId());
+					
+					if(!previousEmploymentList.isEmpty()) {
+						previousEmploymentList.stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
+						.forEach((prevEmployer) -> {
+							previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
+						});
+					}
+				}else {
+					if(employeedto.getPreviousEmploymentList() != null && !employeedto.getPreviousEmploymentList().isEmpty()) {
+						employeedto.getPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
+						.forEach((previousEmployeeDTO) -> {
+							
+							PreviousEmployment previousEmployment = previousEmploymentRepository.findById(previousEmployeeDTO.getPreviousEmploymentId()).get();
+
+							previousEmployment.setDateOfJoining(
+									stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd"));
+							previousEmployment.setDateOfRelieving(
+									stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd"));
+							previousEmployment.setDesignation(previousEmployeeDTO.getDesignation());
+							previousEmployment.setHrContactNumber(previousEmployeeDTO.getHrContactNumber());
+							previousEmployment.setHrName(previousEmployeeDTO.getHrName());
+							previousEmployment.setManagerName(previousEmployeeDTO.getManagerName());
+							previousEmployment.setManagerContactNumber(previousEmployeeDTO.getManagerContactNumber());
+							previousEmployment.setEmployerName(previousEmployeeDTO.getEmployerName());
+							previousEmployment.setYearsOfExperience(previousEmployeeDTO.getYearsOfExperience());
+							
+							previousEmploymentRepository.save(previousEmployment);
+						});
+					}
+					
+					if(employeedto.getUpdatedPreviousEmploymentList() != null && !employeedto.getUpdatedPreviousEmploymentList().isEmpty()) {
+						newPreviousEmploymentList = employeedto.getUpdatedPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).toList();
+						if (!newPreviousEmploymentList.isEmpty()) {
+							newPreviousEmploymentList.forEach((previousEmployer) -> {
+								previousEmployer.setEmpId(employeedto.getEmpId());
+
+							});
+							addPreviousEmployer(newPreviousEmploymentList, employeedto.getIsDraft());
+						}
+						
+						employeedto.getUpdatedPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
+						.forEach((prevEmployer) -> {
+							previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
+						});
+					}
+				}
 
 				Employee dbResponse = employeeRepository.save(employee);
 
@@ -674,6 +810,8 @@ public class EmployeeService {
 
 	public ServiceResponse updateEmployeeProfileByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		List<EmployeeCertificateDTO> newCertificationlist = new ArrayList<EmployeeCertificateDTO>();
+		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
 
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
@@ -726,6 +864,96 @@ public class EmployeeService {
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setWorkLocation(employeedto.getWorkLocation());
+				
+				// Certification
+				// Case 1 : Updating Existing certification 
+				if(employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
+					employeedto.getCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() != null)
+					.forEach((certificate) -> {
+						
+						EmployeeCertificate employeeCertificate = employeeCertificateRepository.findById(certificate.getEmployeeCertificateId()).get();
+
+						employeeCertificate.setCertificationName(certificate.getCertificationName());
+						employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
+						employeeCertificate.setDateOfCompletion(
+								stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
+						employeeCertificate.setDuration(certificate.getDuration());
+						employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
+						employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
+						
+						employeeCertificateRepository.save(employeeCertificate);
+					});
+				}
+				
+				if(employeedto.getUpdatedCertifications() != null && !employeedto.getUpdatedCertifications().isEmpty()) {
+					// Case 2 : Adding New certification
+					newCertificationlist = employeedto.getUpdatedCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() == null).toList();
+					if (!newCertificationlist.isEmpty()) {
+						newCertificationlist.forEach((certification) -> {
+							certification.setEmpId(employeedto.getEmpId());
+
+						});
+						addCertifications(newCertificationlist, employeedto.getIsDraft());
+					}
+					
+					// Case 3 : Deleting Removed certification
+					employeedto.getUpdatedCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() != null)
+					.forEach((certification) -> {
+						employeeCertificateRepository.deleteById(certification.getEmployeeCertificateId());
+					});
+				}
+				
+				
+				// Previous Employer
+				if(employeedto.getExperience().equals("Fresher")) {
+					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpId(employeedto.getEmpId());
+					
+					if(!previousEmploymentList.isEmpty()) {
+						previousEmploymentList.stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
+						.forEach((prevEmployer) -> {
+							previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
+						});
+					}
+				}else {
+					if(employeedto.getPreviousEmploymentList() != null && !employeedto.getPreviousEmploymentList().isEmpty()) {
+						employeedto.getPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
+						.forEach((previousEmployeeDTO) -> {
+							
+							PreviousEmployment previousEmployment = previousEmploymentRepository.findById(previousEmployeeDTO.getPreviousEmploymentId()).get();
+
+							previousEmployment.setDateOfJoining(
+									stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd"));
+							previousEmployment.setDateOfRelieving(
+									stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd"));
+							previousEmployment.setDesignation(previousEmployeeDTO.getDesignation());
+							previousEmployment.setHrContactNumber(previousEmployeeDTO.getHrContactNumber());
+							previousEmployment.setHrName(previousEmployeeDTO.getHrName());
+							previousEmployment.setManagerName(previousEmployeeDTO.getManagerName());
+							previousEmployment.setManagerContactNumber(previousEmployeeDTO.getManagerContactNumber());
+							previousEmployment.setEmployerName(previousEmployeeDTO.getEmployerName());
+							previousEmployment.setYearsOfExperience(previousEmployeeDTO.getYearsOfExperience());
+							
+							previousEmploymentRepository.save(previousEmployment);
+						});
+					}
+					
+					if(employeedto.getUpdatedPreviousEmploymentList() != null && !employeedto.getUpdatedPreviousEmploymentList().isEmpty()) {
+						newPreviousEmploymentList = employeedto.getUpdatedPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).toList();
+						if (!newPreviousEmploymentList.isEmpty()) {
+							newPreviousEmploymentList.forEach((previousEmployer) -> {
+								previousEmployer.setEmpId(employeedto.getEmpId());
+
+							});
+							addPreviousEmployer(newPreviousEmploymentList, employeedto.getIsDraft());
+						}
+						
+						employeedto.getUpdatedPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
+						.forEach((prevEmployer) -> {
+							previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
+						});
+					}
+				}
+				
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {

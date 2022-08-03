@@ -56,6 +56,10 @@ export class Employee{
 
 	previousEmploymentList:any;
 
+	updatedCertifications:any;
+	updatedPreviousEmploymentList:any;
+
+	
 	role:any;
 	departmentList:any;
 	

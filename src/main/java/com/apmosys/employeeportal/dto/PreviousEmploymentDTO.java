@@ -20,5 +20,5 @@ public class PreviousEmploymentDTO {
     private String hrName;    
     private Long hrContactNumber;
     private Long empId;	
-
+    private String isDraft;
 }

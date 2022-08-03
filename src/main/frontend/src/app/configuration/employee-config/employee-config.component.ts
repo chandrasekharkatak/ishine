@@ -50,6 +50,8 @@ export class EmployeeConfigComponent implements OnInit {
 
   allCertificationList:any[] = [];
   allPreviousEmployment:any[] = [];
+  updatedCertificationList:any[] = [];
+  updatedPreviousEmployment:any[] = [];
   allStates:any[] = [
     "Andaman & Nicobar Islands",
     "Andhra Pradesh",
@@ -213,6 +215,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.getAllDepartmentList();
     this.allCertificationList= [];
     this.allPreviousEmployment= [];
+    this.updatedCertificationList= [];
+    this.updatedPreviousEmployment= [];
+
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -268,7 +273,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   removeInputPreviousEmployerField(prevEmployerObj) {
     this.allPreviousEmployment.forEach((value, index) => {
-      if (value == prevEmployerObj) this.allPreviousEmployment.splice(index, 1);
+      if (value == prevEmployerObj){
+        this.updatedPreviousEmployment.push(value);
+        this.allPreviousEmployment.splice(index, 1);
+      } 
+
     });
   }
 
@@ -284,7 +293,10 @@ export class EmployeeConfigComponent implements OnInit {
 
   removeInputCertificationField(certificationObj) {
     this.allCertificationList.forEach((value, index) => {
-      if (value == certificationObj) this.allCertificationList.splice(index, 1);
+      if (value == certificationObj){
+        this.updatedCertificationList.push(value);
+        this.allCertificationList.splice(index, 1);
+      } 
     });
   }
 
@@ -573,7 +585,7 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("Create Employe : ", this.employeeObj);
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeeService.deleteEmployee(this.employeeObj); // deleting draft once employee is created
+        this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
       } else {
@@ -601,8 +613,27 @@ export class EmployeeConfigComponent implements OnInit {
     // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
     // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy');
 
+    this.allCertificationList.forEach(certificaiton => {
+      console.log("All certificaiton : ", this.allCertificationList);
+        if((certificaiton != undefined && Object.keys(certificaiton).length !== 0)&& (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)){
+          console.log("New certificaiton : ", certificaiton);
+          this.updatedCertificationList.push(certificaiton);
+        }
+    });
+
+    this.allPreviousEmployment.forEach(prevEmployer => {
+      console.log("All Prev Employer : ", this.allPreviousEmployment);
+      if((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0)&&(prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)){
+        console.log("New Prev Employer : ", prevEmployer);
+        this.updatedPreviousEmployment.push(prevEmployer);
+      }
+    });
+
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
+    this.employeeObj.updatedCertifications = (this.updatedCertificationList.length === 0) ? null : this.updatedCertificationList;
+    this.employeeObj.updatedPreviousEmploymentList = (this.updatedPreviousEmployment.length === 0) ? null : this.updatedPreviousEmployment;
+
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
     this.employeeService.updateEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {

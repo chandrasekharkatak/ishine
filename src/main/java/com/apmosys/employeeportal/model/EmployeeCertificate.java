@@ -32,8 +32,9 @@ public class EmployeeCertificate {
 	
 	private String modeOfCourse;
 	
-	private Long certificationNumber;
+	private String certificationNumber;
 	
 	private Long empId;	
 	
+	private String isDraft;
 }

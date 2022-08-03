@@ -74,5 +74,8 @@ public class EmployeeDTO {
 	
 	private String workLocation;
 	private Integer timesheetLockDays;
-
+	
+	private List<EmployeeCertificateDTO> updatedCertifications;
+	private List<PreviousEmploymentDTO> updatedPreviousEmploymentList;
+	private String isDraft;
 }
