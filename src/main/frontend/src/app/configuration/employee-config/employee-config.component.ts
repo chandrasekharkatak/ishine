@@ -700,7 +700,7 @@ export class EmployeeConfigComponent implements OnInit {
     });	
   }
 
-  // For Manager List
+  // For Reporting Manager List
   getManagerList(){
     this.managerList = [];
     let employeeList = [];
@@ -709,7 +709,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
         console.log("employeeList By Role : ", employeeList)
-        this.managerList = employeeList.filter(emp => emp.role == "Manager");
+        this.managerList = employeeList
         console.log("managerList : ", this.managerList)
       } else {
         console.error(response.serviceResponse)
