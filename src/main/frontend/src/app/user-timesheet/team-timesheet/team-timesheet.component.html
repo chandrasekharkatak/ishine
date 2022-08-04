@@ -77,6 +77,8 @@
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Employee Id</th>
+                    <th scope="col" class="info-label">Name</th>
                     <th scope="col" class="info-label">Date</th>
                     <th scope="col" class="info-label">Day Type</th>
                     <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
@@ -90,6 +92,8 @@
                   </tr>
                   <tr *ngFor="let timesheet of allTeamTimesheetRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{i+1}}</td>
+                    <td>{{timesheet.empId}}</td>
+                    <td>{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
                     <td colspan="4" [innerHTML]="timesheet.description"></td>
