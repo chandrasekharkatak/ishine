@@ -52,7 +52,35 @@
     <div class="table-header">
       <h1 class="table-header-title">My Team Leave History</h1>
   </div>
-    <table class="table team-leave-history-table" id="team-leave-history-table">
+  <div class="row mb-3">
+    <div class="col-md-12 px-0">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveHistory}" (click)="viewLeaveHistory()">View Leave History</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffHistory}" (click)="viewCompOffHistory()">View CompOff History</button>
+    </div>
+  </div>
+
+  <!-- Table of view Leave History -->
+
+  <div class="row col-md-12" *ngIf="isLeaveHistory">
+    <div class="row">
+      <div class="col-md-6 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                <input id="historyFromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
+            </div>
+        </div>
+    </div>
+      <div class="col-md-6 mb-0">
+          <div class="info-wrapper">
+              <div class="form-group">
+                  <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                  <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
+              </div>
+          </div>
+      </div>
+  </div>
+    <table class="table leave-history-table" id="leave-history-table">
       <thead class="thead-light">
         <tr>
           <th scope="col" class="info-label"> Sr No.</th>
@@ -72,25 +100,82 @@
         <tr *ngIf="teamViewLeaveHistoryList.length == 0">
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
-        <tr *ngFor="let teamLeaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td class="info-label">{{i+1}}</td>
-          <td class="info-label"> {{teamLeaveHistory.createdByName}}</td>
-          <td class="info-label"> {{teamLeaveHistory.fromDate}}</td>
-          <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
-          <td class="info-label"> {{teamLeaveHistory.createdOn}}</td>
+          <td class="info-label">{{leaveHistory.createdByName}}</td>
+          <td class="info-label">{{leaveHistory.fromDate}}</td>
+          <td class="info-label">{{leaveHistory.toDate}}</td>
+          <td class="info-label">{{leaveHistory.createdOn | date:'dd-MM-yyyy'}}</td>
           <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
           <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
-          <td class="info-label">{{teamLeaveHistory.noOfDays}}</td>
-          <td class="info-label">{{teamLeaveHistory.status}}</td>
-          <td class="info-label">{{teamLeaveHistory.reason}}</td>
-          <td class="info-label">{{teamLeaveHistory.leaveType}}</td>
+          <td class="info-label">{{leaveHistory.noOfDays}}</td>
+          <td class="info-label">{{leaveHistory.status}}</td>
+          <td class="info-label">{{leaveHistory.reason}}</td>
+          <td class="info-label">{{leaveHistory.Type}}</td>
         </tr>
       </tbody>
     </table>
     <pagination-controls class="my-pagination" [hidden]="teamViewLeaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-   </div>
-  
+  </div>
+    <!-- Table of view Comp OFF History -->
+
+    <div class="row col-md-12" *ngIf="isCompOffHistory">
+      <div class="row">
+        <div class="col-md-6 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                    <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                    <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
+                </div>
+            </div>
+        </div>
+    </div>
+    <table class="table compOff-history-table" id="compOff-history-table">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" class="info-label"> Sr No.</th>
+          <th scope="col" class="info-label">Employee </th>
+          <th scope="col" class="info-label">From</th>
+          <th scope="col" class="info-label">To</th>
+          <th scope="col" class="info-label">Apply Date</th>
+          <!-- <th scope="col" class="info-label">Approver</th>
+          <th scope="col" class="info-label">Approval Date</th> -->
+          <th scope="col" class="info-label">Duration</th>
+          <th scope="col" class="info-label">Status</th>
+          <th scope="col" class="info-label">Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="teamViewCompOffHistoryList.length == 0">
+          <th colspan="9" class="text-center info-label">No details to display...</th>
+        </tr>
+        <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <td class="info-label">{{i+1}}</td>
+        <td class="info-label">{{compOffHistory.createdByName}}</td>
+        <td class="info-label">{{compOffHistory.fromDate}}</td>
+        <td class="info-label">{{compOffHistory.toDate}}</td>
+        <td class="info-label">{{compOffHistory.createdOn | date:'dd-MM-yyyy'}}</td>
+        <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
+        <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
+        <td class="info-label">{{compOffHistory.noOfDays}}</td>
+        <td class="info-label">{{compOffHistory.status}}</td>
+        <td class="info-label">{{compOffHistory.reason}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls class="my-pagination" [hidden]="teamViewCompOffHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+  </div>
+</div>
   
   <!-- Table of View Team Request  -->
 
@@ -190,7 +275,7 @@
 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 
-<ng-template #alert_message>
+<ng-template #alert_message >
   <div class="modal-body text-center">
       <p>{{alertMessage}}</p>
       <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;

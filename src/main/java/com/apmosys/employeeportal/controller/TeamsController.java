@@ -84,5 +84,12 @@ public class TeamsController {
 		ServiceResponse response =	teamsService.getAllTeamLeaveHistoryView(leaveDTO);		
 		return response; 
 	}
+	
+	@RequestMapping(value="/getAllTeamCompOffHistoryView" , method = RequestMethod.POST)
+	public ServiceResponse getAllTeamCompOffHistoryView(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryView(leaveDTO);		
+		return response;
+	}
 
 }

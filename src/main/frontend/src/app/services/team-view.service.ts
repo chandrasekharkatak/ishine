@@ -19,6 +19,10 @@ export class TeamViewService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamLeaveHistoryView`, leaveObj);
   }
 
+  getAllTeamCompOffHistoryView(leaveObj : Leave){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamCompOffHistoryView`, leaveObj);
+  }
+
   getAllTeamMemberView(employeeObj : Employee){
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamMemberView`, employeeObj);
   }
