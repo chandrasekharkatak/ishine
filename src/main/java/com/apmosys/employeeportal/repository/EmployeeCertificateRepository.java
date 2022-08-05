@@ -10,6 +10,4 @@ public interface EmployeeCertificateRepository extends JpaRepository<EmployeeCer
 
 	List<EmployeeCertificate> findByEmpId(Long empId);
 
-	void deleteByEmpId(Long draftEmpId);
-
 }

@@ -10,6 +10,4 @@ public interface PreviousEmploymentRepository extends JpaRepository<PreviousEmpl
 
 	List<PreviousEmployment> findByEmpId(Long empId);
 
-	void deleteByEmpId(Long draftEmpId);
-
 }

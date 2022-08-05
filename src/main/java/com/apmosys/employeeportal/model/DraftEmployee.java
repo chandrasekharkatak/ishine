@@ -96,5 +96,9 @@ public class DraftEmployee {
 	@Column(columnDefinition="varchar(1000) DEFAULT 'Add your views.'")	
 	private String viewsOnOrganisation;
 	
+	private String experience;
+	
+	private String role;
+	private String workLocation;
 	
 }
