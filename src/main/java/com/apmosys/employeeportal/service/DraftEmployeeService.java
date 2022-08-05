@@ -43,6 +43,7 @@ public class DraftEmployeeService {
 			
 			DraftEmployee employee = new DraftEmployee();			
 			
+			employee.setEmployeementId(employeedto.getEmployeementId());
 			employee.setName(employeedto.getName());
 			employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd") : null);
 			employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd") : null);
@@ -210,6 +211,7 @@ public class DraftEmployeeService {
 				DraftEmployee employee = employeeObject.get();
 			
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());
 				employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd") : null);
 				employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd") : null);

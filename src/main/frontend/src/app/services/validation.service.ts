@@ -164,4 +164,19 @@ export class ValidationService {
 
   }
 
+  validateEmployeementId(text: any): boolean {
+    const regex = /^\d{1,6}$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
 }

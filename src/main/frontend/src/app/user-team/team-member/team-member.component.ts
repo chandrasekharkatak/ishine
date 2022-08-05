@@ -62,7 +62,8 @@ export class TeamMemberComponent implements OnInit {
   //excel
 
   exportToExcel(): void {
-    this.excelName = "TeamMemberSheet";
+
+    this.excelName = "TeamMemberSheet.xlsx";
 
       const onlySpecificDataArr: Partial<Employee>[] = this.viewTeamMemberList.map(
         x => ({

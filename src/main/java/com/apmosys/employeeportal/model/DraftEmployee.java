@@ -26,6 +26,8 @@ public class DraftEmployee {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long draftEmpId;
 
+	private Long employeementId;
+	
 	private String name;
 
 	@JsonFormat(pattern = "dd/MM/yyyy")

@@ -302,6 +302,16 @@ export class EmployeeConfigComponent implements OnInit {
 
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>){
 
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)){
+      this.alertMessage = "Please enter Emp Id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateEmployeementId(employeeObj.employeementId)){
+      this.alertMessage = "Please enter valid Employeement ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)){
       this.alertMessage = "Please enter Full Name !!";
       this.openAlertMod(template, this.alertMessage);
@@ -566,7 +576,8 @@ export class EmployeeConfigComponent implements OnInit {
     return true;
   }
 
-  // CRUD 
+  // CRUD
+
   onCreateEmployee(template: TemplateRef<any>){
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
@@ -596,9 +607,30 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   checkEmail(template: TemplateRef<any>){
+
+
     this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.employeeObj.email = '';
+          }
+    });
+  }
+
+  checkEmployeementId(template: TemplateRef<any>){
+    this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
               this.openAlertMod(template, response.serviceResponse);
+              this.employeeObj.employeementId = '';
+            }
+    });
+  }
+
+  checkEmployeeMobileNo(template: TemplateRef<any>) {
+    this.employeeService.checkEmployeeMobileNo(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+              this.openAlertMod(template, response.serviceResponse);
+              this.employeeObj.mobileNo = '';
             }
     });
   }

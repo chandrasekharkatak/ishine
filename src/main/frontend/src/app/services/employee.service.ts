@@ -44,6 +44,14 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesByDepartmentIds`, employeeObj);
   }
 
+  checkEmployeementId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeementId`, employeeObj);
+  }
+
+  checkEmployeeMobileNo(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeMobileNo`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);

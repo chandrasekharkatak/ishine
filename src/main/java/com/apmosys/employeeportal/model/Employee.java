@@ -28,6 +28,7 @@ public class Employee {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long empId;
+	private Long employeementId;
 
 	private String name;
 

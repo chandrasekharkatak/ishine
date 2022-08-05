@@ -6,4 +6,10 @@ import com.apmosys.employeeportal.model.DraftEmployee;
 
 public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Long>{
 
+	DraftEmployee findByEmployeementId(Long employeementId);
+
+	DraftEmployee findByEmail(String email);
+
+	DraftEmployee findByMobileNo(Long employeementId);
+
 }
