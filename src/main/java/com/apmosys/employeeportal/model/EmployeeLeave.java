@@ -41,5 +41,7 @@ public class EmployeeLeave {
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	
+	private Long leaveStatusUpdatedBy;
+	
 	
 }

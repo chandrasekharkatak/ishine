@@ -212,6 +212,11 @@ public class CompOffLeaveService {
 			} else {
 
 				CompOffLeave compOffLeave = leaveObject.get();
+				
+				compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				compOffLeave.getCommonProperties().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+
+				
 				// 1 = pending , 2 = Approved , 3= Rejected
 				compOffLeave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 				

@@ -55,4 +55,7 @@ export class Leave{
 	leaveAppliedFor:any;
 	fromDateDayType:any;
 	toDateDayType:any;
+
+	leaveStatusUpdatedBy:any;
+	leaveStatusUpdatedByName:any;
 }
