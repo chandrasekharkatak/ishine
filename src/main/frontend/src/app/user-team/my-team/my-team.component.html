@@ -92,7 +92,8 @@
           <th scope="col" class="info-label">Approval Date</th> -->
           <th scope="col" class="info-label">Duration</th>
           <th scope="col" class="info-label">Status</th>
-          <th scope="col" class="info-label">Reason</th>
+          <th scope="col" class="info-label">Approved/Rejected By</th>
+          <th scope="col" class="info-label">Leave Reason</th>
           <th scope="col" class="info-label">Type</th>
         </tr>
       </thead>
@@ -110,6 +111,7 @@
           <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
           <td class="info-label">{{leaveHistory.noOfDays}}</td>
           <td class="info-label">{{leaveHistory.status}}</td>
+          <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
           <td class="info-label">{{leaveHistory.reason}}</td>
           <td class="info-label">{{leaveHistory.leaveType}}</td>
         </tr>
@@ -151,7 +153,8 @@
           <th scope="col" class="info-label">Approval Date</th> -->
           <th scope="col" class="info-label">Duration</th>
           <th scope="col" class="info-label">Status</th>
-          <th scope="col" class="info-label">Reason</th>
+          <th scope="col" class="info-label">Approved/Rejected By</th>
+          <th scope="col" class="info-label">Comp-Off Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -168,6 +171,7 @@
         <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
         <td class="info-label">{{compOffHistory.noOfDays}}</td>
         <td class="info-label">{{compOffHistory.status}}</td>
+        <td class="info-label">{{compOffHistory.leaveStatusUpdatedByName}}</td>
         <td class="info-label">{{compOffHistory.reason}}</td>
         </tr>
       </tbody>

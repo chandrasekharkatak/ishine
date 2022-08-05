@@ -70,4 +70,7 @@ public class LeaveDTO {
 
 	private Integer updatedBy;
 	private String updatedOn;
+	
+	private Long leaveStatusUpdatedBy;
+	private String leaveStatusUpdatedByName;
 }
