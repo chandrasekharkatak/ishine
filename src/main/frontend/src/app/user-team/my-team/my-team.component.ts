@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
@@ -8,8 +8,8 @@ import { TeamViewService } from 'src/app/services/team-view.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
+import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-my-team',
@@ -25,18 +25,23 @@ export class MyTeamComponent implements OnInit {
   // modal
   alertMessage: any
   modalRef: BsModalRef = new BsModalRef();
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 
   // flags
   isViewTeam: boolean = true;
   isTeamLeaveHistory: boolean = false;
+  isLeaveHistory: boolean = false;
+  isCompOffHistory: boolean = false;
   isTeamRequest: boolean = false;
-  isLeaveRequest: boolean = true;
+  isLeaveRequest: boolean = false;
   isCompOffRequest: boolean = false;
 
   // Obj
   employeeObj: Employee = new Employee();
   teamViewList: any[] = [];
   teamViewLeaveHistoryList: any[] = [];
+  teamViewCompOffHistoryList: any[] = [];
   leaveApplicationList: any[] = [];
   allCompOffApplications: any[] = [];
 
@@ -46,6 +51,9 @@ export class MyTeamComponent implements OnInit {
   elementName = '';
   excelName = '';
 
+  fromDate:any;
+  toDate:any;
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -53,6 +61,7 @@ export class MyTeamComponent implements OnInit {
     private teamViewService: TeamViewService,
     private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
+    private validationService:ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -66,28 +75,53 @@ export class MyTeamComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.getAllTeamView();
-    this.getAllTeamLeaveHistoryView();
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
+
+    console.log("alert template : ", this.alertTemplate);
+    
   }
 
   viewTeam() {
     this.isViewTeam = true;
 
     this.isTeamLeaveHistory = false;
-    this.isTeamRequest = false;
+    this.isLeaveRequest = false;
+    this.isCompOffRequest = false;
   }
 
   viewTeamLeaveHistory() {
     this.isTeamLeaveHistory = true;
+    this.isLeaveHistory = true;
+    this.isCompOffHistory = false;
 
+    this.isLeaveRequest = false;
+    this.isCompOffRequest = false;
     this.isViewTeam = false;
     this.isTeamRequest = false;
   }
 
+  viewLeaveHistory() {
+    this.isLeaveHistory = true;
+    this.isCompOffHistory = false;
+    this.fromDate = null;
+    this.toDate = null;
+  }
+
+  viewCompOffHistory() {
+    this.isLeaveHistory = false;
+    this.isCompOffHistory = true;
+    this.fromDate = null;
+    this.toDate = null;
+  }
+
   viewTeamRequest() {
     this.isTeamRequest = true;
+    this.isLeaveRequest = true;
+    this.isCompOffRequest = false;
 
+    this.isLeaveHistory = false;
+    this.isCompOffHistory = false;
     this.isTeamLeaveHistory = false;
     this.isViewTeam = false;
   }
@@ -102,12 +136,8 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = true;
   }
 
-  viewGenericRequest() {
-    this.isLeaveRequest = false;
-    this.isCompOffRequest = false;
-  }
-
   getAllTeamView() {
+    this.isViewTeam = true;
     this.teamViewList = []
 
     let employeeObj = new Employee();
@@ -123,15 +153,73 @@ export class MyTeamComponent implements OnInit {
 
   }
 
-  getAllTeamLeaveHistoryView() {
+  getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
+    
+    if(this.toDate){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
+        this.alertMessage = "Please enter Start Date !!"
+        alert(this.alertMessage);
+        //this.openAlertMod(this.alertTemplate, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
+        this.alertMessage = "Please enter End Date !!"
+        alert(this.alertMessage);
+        //this.openAlertMod(this.alertTemplate, this.alertMessage);
+        return false;
+      }
+    }else{
+      return;
+    }
 
     let leaveObj = new Leave();
+    leaveObj.fromDate = this.fromDate;
+    leaveObj.toDate = this.toDate;
     leaveObj.empId = this.currentUser.empId;
     this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewLeaveHistoryList = response.serviceResponse;
         console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllTeamCompOffHistoryView(template?: TemplateRef<any>) {
+    this.teamViewCompOffHistoryList = []
+
+    console.log("alertTemplate : ", this.alertTemplate);
+
+    if(this.toDate){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
+        this.alertMessage = "Please enter Start Date !!"
+        alert(this.alertMessage);
+      //  this.openAlertMod(this.alertTemplate, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
+        this.alertMessage = "Please enter End Date !!"
+        alert(this.alertMessage);
+        //this.openAlertMod(this.alertTemplate, this.alertMessage);
+        return false;
+      }
+    }else{
+      return;
+    }
+
+    let leaveObj = new Leave();
+    leaveObj.fromDate = this.fromDate;
+    leaveObj.toDate = this.toDate;
+    leaveObj.empId = this.currentUser.empId;
+    console.log("leaveObj: ", leaveObj)
+    this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.teamViewCompOffHistoryList = response.serviceResponse;
+        console.log("teamViewCompOffHistory : ", this.teamViewCompOffHistoryList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -187,6 +275,9 @@ export class MyTeamComponent implements OnInit {
 
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
     // 1 = pending , 2 = Approved , 3= Rejected
+
+    console.log("template: ", this.alertTemplate );
+
     compOffObj.leaveStatusId = updatedCompOffStatusId;
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
@@ -202,83 +293,93 @@ export class MyTeamComponent implements OnInit {
   // download excel
   exportToExcel(): void {
 
-    if (this.isViewTeam == true) {
-      this.elementName = 'team-table';
+      if (this.isViewTeam == true) {
       this.excelName = 'MyTeam.xlsx';
 
-      let element = document.getElementById(this.elementName);
-      const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
-
-      const book: XLSX.WorkBook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
-
-      XLSX.writeFile(book, this.excelName);
-
-    }
-    if (this.isTeamLeaveHistory == true) {
-      this.elementName = 'team-leave-history-table';
-      this.excelName = 'MyTeamLeaveHistory.xlsx';
-
-      let element = document.getElementById(this.elementName);
-      const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
-
-      const book: XLSX.WorkBook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
-
-      XLSX.writeFile(book, this.excelName);
-
-    }
-    if (this.isLeaveRequest == true) {
-      this.excelName = 'MyTeamLeaveRequests.xlsx';
-
-      let leaveObj = new Leave();
-      leaveObj.managerId = this.currentUser.empId;
-      this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.leaveApplicationDataForExcel = response.serviceResponse;
-        }
-
-        const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationDataForExcel.map(
-          x => ({
-            leaveType: x.leaveType,
-            fromDate: x.fromDate,
-            toDate: x.toDate,
-            noOfDays: x.noOfDays,
-            status: x.status,
-            createdByName: x.createdByName,
-            createdOn: x.createdOn,
-            reason: x.reason
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-      });
-
-    }
-    if (this.isCompOffRequest == true) {
-      this.excelName = 'MyTeamCompOffRequests.xlsx';
-
-      let compOff = new Leave();
-    compOff.managerId = this.currentUser.empId;
-    this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allCompOffApplicationsDataForExcel = response.serviceResponse;
-      }
-
-      const onlySpecificDataArr: Partial<Leave>[] = this.allCompOffApplicationsDataForExcel.map(
+      const onlySpecificDataArr: Partial<Employee>[] = this.teamViewList.map(
         x => ({
-          createdByName: x.createdByName,
-          compOffReasons: x.compOffReasons,
-          fromDate: x.fromDate,
-          toDate: x.toDate,
-          noOfDays: x.noOfDays,
-          description: x.description,
-          status: x.status
+          empId: x.empId,
+          name: x.name,
+          email: x.email,
+          jobRoleName: x.jobRoleName,
+          mobileNo: x.mobileNo,
+          managerName: x.managerName
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-      });
+    }
+
+      if (this.isLeaveHistory == true) {
+      this.excelName = 'MyTeamLeaveHistory.xlsx';
+
+      const onlySpecificDataArr: Partial<Leave>[] = this.teamViewLeaveHistoryList.map(
+        x => ({
+          createdByName: x.createdByName,
+          fromDate: x.fromDate,
+          toDate: x.toDate,
+          createdOn: x.createdOn,
+          noOfDays: x.noOfDays,
+          status: x.status,
+          reason: x.reason,
+          leaveType: x.leaveType
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
 
     }
+
+      if (this.isCompOffHistory == true) {
+      this.excelName = 'MyTeamCompOffHistory.xlsx';
+
+      const onlySpecificDataArr: Partial<Leave>[] = this.teamViewCompOffHistoryList.map(
+        x => ({
+          createdByName: x.createdByName,
+          fromDate: x.fromDate,
+          toDate: x.toDate,
+          createdOn: x.createdOn,
+          noOfDays: x.noOfDays,
+          status: x.status,
+          reason: x.reason
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      
+    }
+
+    if (this.isLeaveRequest == true) {
+        this.excelName = 'MyTeamLeaveRequests.xlsx';
+  
+          const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationList.map(
+            x => ({
+              leaveType: x.leaveType,
+              fromDate: x.fromDate,
+              toDate: x.toDate,
+              noOfDays: x.noOfDays,
+              status: x.status,
+              createdByName: x.createdByName,
+              createdOn: x.createdOn,
+              reason: x.reason
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      }
+
+      if (this.isCompOffRequest == true) {
+          this.excelName = 'MyTeamCompOffRequests.xlsx';
+    
+          const onlySpecificDataArr: Partial<Leave>[] = this.allCompOffApplications.map(
+            x => ({
+              createdByName: x.createdByName,
+              compOffReasons: x.compOffReasons,
+              fromDate: x.fromDate,
+              toDate: x.toDate,
+              noOfDays: x.noOfDays,
+              description: x.description,
+              status: x.status
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+        }
   }
 
 

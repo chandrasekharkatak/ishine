@@ -5,7 +5,7 @@ import { TeamViewService } from 'src/app/services/team-view.service';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
-import * as XLSX from 'xlsx';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-team-member',
@@ -27,6 +27,7 @@ export class TeamMemberComponent implements OnInit {
   constructor(
     private authenticationService : AuthenticationService,
     private teamViewService : TeamViewService,
+    private exportExcelService: ExportExcelService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -61,18 +62,19 @@ export class TeamMemberComponent implements OnInit {
   //excel
 
   exportToExcel(): void {
-
-    this.elementName = "team-table";
     this.excelName = "TeamMemberSheet";
-  
-    let element = document.getElementById(this.elementName);
-    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
-  
-    const book: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
-  
-    XLSX.writeFile(book, this.excelName);
-  }
+
+      const onlySpecificDataArr: Partial<Employee>[] = this.viewTeamMemberList.map(
+        x => ({
+          empId: x.empId,
+          name: x.name,
+          email: x.email,
+          jobRoleName: x.jobRoleName,
+          mobileNo: x.mobileNo
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    }
 
   //pagination 
 
