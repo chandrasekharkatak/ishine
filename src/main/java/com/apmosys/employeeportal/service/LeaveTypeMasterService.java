@@ -114,45 +114,51 @@ public class LeaveTypeMasterService {
 	public ServiceResponse createLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			
+			LeaveTypeMaster existingLeaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
+			
+			if(existingLeaveType == null) {
+				LeaveTypeMaster leaveType = new LeaveTypeMaster();
 
-			LeaveTypeMaster leaveType = new LeaveTypeMaster();
+				leaveType.setLeaveType(leaveDTO.getLeaveType());
+				leaveType.setLeaveTypeCode(leaveDTO.getLeaveTypeCode());
+				leaveType.setGender(leaveDTO.getGender());
+				leaveType.setNoOfDays(leaveDTO.getNoOfDays());
+				leaveType.setPaidLeave(leaveDTO.getPaidLeave());
+				leaveType.setRules(leaveDTO.getRules());
+				leaveType.setDescription(leaveDTO.getDescription());
 
-			leaveType.setLeaveType(leaveDTO.getLeaveType());
-			leaveType.setLeaveTypeCode(leaveDTO.getLeaveTypeCode());
-			leaveType.setGender(leaveDTO.getGender());
-			leaveType.setNoOfDays(leaveDTO.getNoOfDays());
-			leaveType.setPaidLeave(leaveDTO.getPaidLeave());
-			leaveType.setRules(leaveDTO.getRules());
-			leaveType.setDescription(leaveDTO.getDescription());
+				LeaveTypeMaster newLeaveType = leaveTypeMasterRepository.save(leaveType);
 
-			LeaveTypeMaster newLeaveType = leaveTypeMasterRepository.save(leaveType);
+				if (newLeaveType != null) {
 
-			if (newLeaveType != null) {
+					List<Employee> employeeList = employeeRepository.findAll();
 
-				List<Employee> employeeList = employeeRepository.findAll();
+					List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
 
-				List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
+					employeeList.forEach((employee) -> {
 
-				employeeList.forEach((employee) -> {
+						EmployeeLeavesMap map = new EmployeeLeavesMap();
 
-					EmployeeLeavesMap map = new EmployeeLeavesMap();
+						map.setBalance(newLeaveType.getNoOfDays());
+						map.setEmpId(employee.getEmpId());
+						map.setLeaveTypeMasterId(newLeaveType.getLeaveTypeMasterId());
+						map.setPendingForApproval((float) 0);
+						mapList.add(map);
+					});
 
-					map.setBalance(newLeaveType.getNoOfDays());
-					map.setEmpId(employee.getEmpId());
-					map.setLeaveTypeMasterId(newLeaveType.getLeaveTypeMasterId());
-					map.setPendingForApproval((float) 0);
-					mapList.add(map);
-				});
+					employeeLeavesMapRepository.saveAll(mapList);
 
-				employeeLeavesMapRepository.saveAll(mapList);
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Leave type created.");
-			} else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave type created.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Leave type creation failed.");
+				}
+			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Leave type creation failed.");
+				response.setServiceResponse("Leave type against "+ leaveDTO.getLeaveTypeCode() +" Already Exist.");
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

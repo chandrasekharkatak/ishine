@@ -160,7 +160,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Code</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.leaveTypeCode">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.leaveTypeCode" [disabled]="isUpdation">
                         </div>
                     </div>
                 </div>
@@ -570,7 +570,7 @@
                 <td>{{leavePolicy.createdOn}}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(alert_message, leavePolicy)"><em class="fa fa-trash"></em></button>
+                    <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>

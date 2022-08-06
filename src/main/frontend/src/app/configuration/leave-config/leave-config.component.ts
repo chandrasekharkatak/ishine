@@ -141,6 +141,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
 
     this.reset();
+    setTimeout(this.setCurrentYearLimit,500);
   }
 
   showHoliaysTable(){
@@ -219,6 +220,8 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayObj = Object.assign({}, holiday);
     this.holidayObj.optionalHoliday = (JSON.parse(holiday.optionalHoliday) != null) ? JSON.parse(holiday.optionalHoliday) : false;
     this.holidayObj.customHoliday = (JSON.parse(holiday.customHoliday) != null) ? JSON.parse(holiday.customHoliday) : false;
+
+    setTimeout(this.setCurrentYearLimit,500);
   }
 
   showLeaveBalanceForm(){
@@ -332,6 +335,13 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   // Holiday
+  setCurrentYearLimit(){
+    let currentYear = new Date().getFullYear();
+    
+    let occasionDate = document.getElementById('occasionDate');
+    occasionDate?.setAttribute('min', `${currentYear}-01-01`);
+    occasionDate?.setAttribute('max', `${currentYear}-12-31`);
+  }
   validateHolidayObj(holidayObj:Holiday, template: TemplateRef<any>){
 
     if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.occasion)){
@@ -555,13 +565,26 @@ exportToExcel(): void {
       this.alertMessage = "Please enter Leave Type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else if(!this.validationService.validateAlphaWithSpace(leaveTypeObj.leaveType)){
+      this.alertMessage = "Please enter Valid Leave Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     
     if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.leaveTypeCode)){
       this.alertMessage = "Please enter Leave Type Code !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else if(!this.validationService.validateUppercaseAlpha(leaveTypeObj.leaveTypeCode)){
+      this.alertMessage = "Please enter Valid Leave Type Code, Only Uppercase Alphabets Allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(leaveTypeObj.leaveTypeCode.length > 4){
+      this.alertMessage = "Please enter Valid Leave Type Code, Only upto 4 Characters Allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+    
 
     if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.gender)){
       this.alertMessage = "Please Select Employee Gender !!"
@@ -580,6 +603,12 @@ exportToExcel(): void {
   onAddLeaveType(template: TemplateRef<any>) {
     let inputValidated:boolean  = this.validateLeaveTypeObj(this.leaveTypeObj, template)
     if(!inputValidated) return;
+
+    let existingLeaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeCode == this.leaveTypeObj.leaveTypeCode)
+    if(existingLeaveType){
+      this.openAlertMod(template, `Leave type against ${existingLeaveType.leaveTypeCode} Already Exist.`);
+      return;
+    }
 
     console.log("Add Leave Type : ", this.leaveTypeObj);
 

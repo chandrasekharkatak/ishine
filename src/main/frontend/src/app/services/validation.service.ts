@@ -100,6 +100,23 @@ export class ValidationService {
 
   }
 
+  validateUppercaseAlpha(text: string): boolean {
+
+    const regex = /^[A-Z]+$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
   validatePincodeNumber(text: string): boolean {
     const regex = /^[1-9][0-9]{5}$/;
     if (text !== "" || text !== undefined || text !== null) {
