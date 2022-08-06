@@ -14,9 +14,12 @@
         </tr>
       </thead>
       <tbody>
+        <tr *ngIf="viewTeamMemberList.length == 0">
+          <th colspan="8" class="text-center info-label">No details to display...</th>
+        </tr>
         <tr *ngFor="let viewTeamMember of viewTeamMemberList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td>{{i+1}}</td>
-          <td>A-{{viewTeamMember.empId}}</td>
+          <td>A-{{viewTeamMember.employeementId}}</td>
           <td>{{viewTeamMember.name}}</td>
           <td>{{viewTeamMember.email}}</td>
           <td>{{viewTeamMember.jobRoleName}}</td>

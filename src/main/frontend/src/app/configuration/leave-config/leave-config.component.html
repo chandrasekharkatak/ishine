@@ -59,7 +59,7 @@
                             <label class="info-label"><span class="text-danger">*</span>State</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="holidayObj.state">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="all">all (common)</option>
+                                <option value="all">All (common)</option>
                                 <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
                               </select>
                         </div>
@@ -89,8 +89,8 @@
                     <label class="info-label"><span class="text-danger">*</span>State</label>
                     <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState" (ngModelChange)="onSelect()">
                         <option selected="selected" value="" disabled>Select</option>
-                        <option value="all state">all state</option>
-                        <option value="all">all (common)</option>
+                        <option value="all state">All state</option>
+                        <option value="all">All (common)</option>
                         <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
                       </select>
                 </div>

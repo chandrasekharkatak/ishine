@@ -29,6 +29,17 @@ public class EmployeeController {
 		return response;
 	}	
 	
+	@RequestMapping(value="/createEmployeeByList" , method = RequestMethod.POST, consumes="application/json")
+	public ServiceResponse createEmployeeByList(@RequestBody EmployeeDTO[] employeedto) {	
+		
+		ServiceResponse response = null;
+		
+		 for (EmployeeDTO employee: employeedto) {
+			 response = employeeService.createEmployeeByList(employee);
+		    }	
+		return response;
+	}	
+	
 	
 	@RequestMapping(value="/getEmployeeByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse getEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {		
@@ -112,6 +123,20 @@ public class EmployeeController {
 	public ServiceResponse checkEmployeeEmail(@RequestBody EmployeeDTO employeedto) {		
 		
 		ServiceResponse response = employeeService.checkEmployeeEmail(employeedto);
+		return response;		
+	}
+	
+	@RequestMapping(value="/checkEmployeementId" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeementId(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.checkEmployeementId(employeedto);
+		return response;		
+	}
+	
+	@RequestMapping(value="/checkEmployeeMobileNo" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeMobileNo(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.checkEmployeeMobileNo(employeedto);
 		return response;		
 	}
 	

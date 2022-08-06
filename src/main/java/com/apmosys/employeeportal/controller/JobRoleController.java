@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.service.JobRoleService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -23,6 +24,17 @@ public class JobRoleController {
 	public ServiceResponse createJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
 		
 		ServiceResponse response = jobRoleService.createJobRole(jobRoleDTO);
+		return response;
+	}
+	
+	@RequestMapping(value="/createJobRoleByList" , method = RequestMethod.POST, consumes="application/json")
+	public ServiceResponse createEmployeeByList(@RequestBody JobRoleDTO[] jobRoleDTO) {	
+		
+		ServiceResponse response = null;
+		
+		 for (JobRoleDTO jobrole: jobRoleDTO) {
+			 response = jobRoleService.createJobRoleByList(jobrole);
+		    }	
 		return response;
 	}
 	

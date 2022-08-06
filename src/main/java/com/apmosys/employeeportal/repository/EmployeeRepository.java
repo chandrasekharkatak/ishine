@@ -34,7 +34,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllHolidayByEmpWorkLocation(Long empId);
 	
+	@Query(nativeQuery = true)
+	public List<Employee> getAllEmployeesBirthDayToday();
+	
 	public Long countByJobRoleId(Long jobRoleId);
+
+	public Employee findByEmployeementId(Long employeementId);
+
+	public Employee findByMobileNo(Long employeementId);
 	
 
 }

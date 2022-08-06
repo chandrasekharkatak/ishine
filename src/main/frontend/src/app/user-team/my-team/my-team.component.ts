@@ -88,6 +88,7 @@ export class MyTeamComponent implements OnInit {
     this.isTeamLeaveHistory = false;
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
+    this.isTeamRequest = false;
   }
 
   viewTeamLeaveHistory() {
@@ -106,6 +107,7 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffHistory = false;
     this.fromDate = null;
     this.toDate = null;
+    this.teamViewLeaveHistoryList = [];
   }
 
   viewCompOffHistory() {
@@ -113,6 +115,7 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffHistory = true;
     this.fromDate = null;
     this.toDate = null;
+    this.teamViewCompOffHistoryList = [];
   }
 
   viewTeamRequest() {
@@ -245,6 +248,7 @@ export class MyTeamComponent implements OnInit {
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     console.log("leaveApplication : ", leaveApplication);
 
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -279,6 +283,8 @@ export class MyTeamComponent implements OnInit {
     console.log("template: ", this.alertTemplate );
 
     compOffObj.leaveStatusId = updatedCompOffStatusId;
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
+
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

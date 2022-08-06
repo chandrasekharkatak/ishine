@@ -139,7 +139,7 @@ public class CompOffLeaveService {
 					dto.setFromDate(object[6] != null ? object[6].toString() : null);
 					dto.setToDate(object[7] != null ? object[7].toString() : null);
 					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
-					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null); 
+					//dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null); 
 					
 					dtoList.add(dto);
 				});
@@ -212,6 +212,11 @@ public class CompOffLeaveService {
 			} else {
 
 				CompOffLeave compOffLeave = leaveObject.get();
+				
+				compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				compOffLeave.getCommonProperties().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+
+				
 				// 1 = pending , 2 = Approved , 3= Rejected
 				compOffLeave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 				

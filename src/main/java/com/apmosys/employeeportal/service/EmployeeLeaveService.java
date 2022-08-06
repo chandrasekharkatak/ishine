@@ -199,6 +199,9 @@ public class EmployeeLeaveService {
 
 			if (leaveApplication.isPresent()) {
 				EmployeeLeave pendingLeaveApplication = leaveApplication.get();
+				
+				pendingLeaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				pendingLeaveApplication.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
 				employeeLeavesMap.setPendingForApproval(
 						employeeLeavesMap.getPendingForApproval() - pendingLeaveApplication.getNoOfDays());

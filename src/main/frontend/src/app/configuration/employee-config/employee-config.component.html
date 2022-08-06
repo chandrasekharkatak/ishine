@@ -23,6 +23,15 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Emp Id</label>
+                                            <input type="number" class="form-control" maxlength="5" autocomplete="none"
+                                            [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Full Name</label>
                                             <input type="text" class="form-control" maxlength="255" autocomplete="none"
                                             [(ngModel)]="employeeObj.name">
@@ -146,7 +155,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Mobile Number</label>
-                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.mobileNo">
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo">
                                         </div>
                                     </div>
                                 </div>
@@ -647,7 +656,7 @@
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
           <tr *ngFor="let employee of allEmployeeList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-            <th *ngIf="!isDraftTable" class="info-label">A-{{employee.empId}}</th>
+            <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>

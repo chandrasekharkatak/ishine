@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
+import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -31,6 +32,7 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PreviousEmployment;
+import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -46,6 +48,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	DraftEmployeeRepository draftEmployeeRepository;
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -82,6 +87,137 @@ public class EmployeeService {
 
 			Employee employee = new Employee();
 
+			employee.setEmployeementId(employeedto.getEmployeementId());
+			employee.setName(employeedto.getName());
+			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
+			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
+			employee.setManagerId(employeedto.getManagerId());
+			employee.setEmail(employeedto.getEmail());
+			employee.setGender(employeedto.getGender());
+			employee.setBloodGroup(employeedto.getBloodGroup());
+			employee.setMaritalStatus(employeedto.getMaritalStatus());
+			employee.setFatherName(employeedto.getFatherName());
+			employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
+			employee.setMotherTongue(employeedto.getMotherTongue());
+			employee.setPassportNumber(employeedto.getPassportNumber());
+			employee.setAadhar(employeedto.getAadhar());
+			employee.setPanNumber(employeedto.getPanNumber());
+			employee.setMobileNo(employeedto.getMobileNo());
+			employee.setLandline(employeedto.getLandline());
+			employee.setAddress(employeedto.getAddress());
+			employee.setCity(employeedto.getCity());
+			employee.setState(employeedto.getState());
+			employee.setCountry(employeedto.getCountry());
+			employee.setPincode(employeedto.getPincode());
+			employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
+			employee.setPermanentAddress(employeedto.getPermanentAddress());
+			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
+			employee.setRelation(employeedto.getRelation());
+			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+			employee.setNoticePeriod(employeedto.getNoticePeriod());
+			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+			employee.setBankName(employeedto.getBankName());
+			employee.setBankAccountNo(employeedto.getBankAccountNo());
+			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
+			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
+			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
+			employee.setUan(employeedto.getUan());
+			employee.setEsicNumber(employeedto.getEsicNumber());
+			employee.setGraduationType(employeedto.getGraduationType());
+			employee.setPursuing(employeedto.getPursuing());
+			employee.setYearOfPassing(employeedto.getYearOfPassing());
+			employee.setPassingGrade(employeedto.getPassingGrade());
+			employee.setAboutMe("Add about yourself.");
+			employee.setViewsOnOrganisation("Add your views.");
+			employee.setJobRoleId(employeedto.getJobRoleId());
+			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
+			employee.setCreatedBy(employeedto.getCreatedBy());
+			employee.setExperience(employeedto.getExperience());
+			employee.setRole(employeedto.getRole());
+			employee.setWorkLocation(employeedto.getWorkLocation());
+			
+			Employee newEmployee = employeeRepository.save(employee);
+
+			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
+
+				if (!previousEmployerList.isEmpty()) {
+					previousEmployerList.forEach((previousEmployer) -> {
+						previousEmployer.setEmpId(newEmployee.getEmpId());
+
+					});
+					addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
+				}
+
+			});
+
+			Optional.ofNullable(employeedto.getCertifications()).ifPresent((certificationList) -> {
+
+				if (!certificationList.isEmpty()) {
+					certificationList.forEach((certification) -> {
+						certification.setEmpId(newEmployee.getEmpId());
+
+					});
+					addCertifications(certificationList, employeedto.getIsDraft());
+				}
+
+			});
+
+			List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
+
+			List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
+
+			List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
+
+			leaveTypeMasterList.forEach((leaveType) -> {
+
+				EmployeeLeavesMap map = new EmployeeLeavesMap();
+				LeaveBalanceLog log = new LeaveBalanceLog();
+
+				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+				map.setEmpId(newEmployee.getEmpId());
+				map.setBalance((float) 0);
+				map.setPendingForApproval((float) 0);
+				mapList.add(map);
+
+				log.setBalance(0.0f);
+				log.setEmpId(newEmployee.getEmpId());
+				log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+				log.setMessage(LeaveLogMessage.addLeave);
+				log.setUpdateBalanceBy("+0.0");
+				logList.add(log);
+
+			});
+
+			List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
+			List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
+
+			if (list != null && updatedLogList != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Employee Profile Created.");
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Creation Failed.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	@Transactional
+	public ServiceResponse createEmployeeByList(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+
+			Employee employee = new Employee();
+
+			employee.setEmployeementId(employeedto.getEmployeementId());
 			employee.setName(employeedto.getName());
 			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
 			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
@@ -324,6 +460,7 @@ public class EmployeeService {
 					empDTO.setWorkLocation(object[49] != null ? (object[49].toString()) : null);
 					empDTO.setExperience(object[50] != null ? (object[50].toString()) : null);
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
+					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					
 					if (object[42] != null) {
 
@@ -427,6 +564,7 @@ public class EmployeeService {
 				Employee employee = employeeObject.get();
 
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());
 				employee.setDateOfBirth(employeedto.getDateOfBirth() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd")
@@ -686,6 +824,7 @@ public class EmployeeService {
 					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
 					empDTO.setDateOfJoining(
 							object[4] != null ? stringToDateTimeParser.formatDateToString(object[4].toString()) : null);
+					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1148,11 +1287,79 @@ public class EmployeeService {
 		ServiceResponse response = new ServiceResponse();
 
 		try {
+			
 			Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
+			DraftEmployee checkDraftEmployeementEmail = draftEmployeeRepository.findByEmail(employeedto.getEmail());
 
-			if (checkEmployeeEmail != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Email already exist!");
+			if(employeedto.getEmail() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				if (checkEmployeeEmail != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Email already exist!");
+				}
+				if(checkDraftEmployeementEmail != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Email already exist in Employee Draft!");
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse checkEmployeementId(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+			
+			if(employeedto.getEmployeementId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				if (checkEmployeementId != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employeement ID already exist!");
+				}
+				if(checkDraftEmployeementId != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employeement ID already exist in Employee Draft!");
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse checkEmployeeMobileNo(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Employee checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
+			DraftEmployee checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
+			
+			if(employeedto.getMobileNo() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				if (checkEmployeeMobileNo != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Mobile Number already exist!");
+				}
+				if(checkDraftEmployeeMobileNo != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Mobile Number already exist in Employee Draft!");
+				}
 			}
 
 		} catch (Exception e) {

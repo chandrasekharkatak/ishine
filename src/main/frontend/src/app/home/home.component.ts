@@ -5,6 +5,7 @@ import { Leave } from '../models/leave';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { LeaveService } from '../services/leave.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-home',
@@ -21,7 +22,6 @@ export class HomeComponent implements OnInit {
   currentUser:User;
   userMapping:any = {};
 
-
   isReqPending:boolean = true;
   leaveApplicationCount:any = 0;
   leaveApplicationList:any[] = [];
@@ -29,10 +29,15 @@ export class HomeComponent implements OnInit {
   compOffApplicationCount:any = 0;
   allCompOffApplications:any[] = [];
 
+  //export excel
+
+  excelName:any = '';
+
   constructor(
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
+    private exportExcelService: ExportExcelService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -105,6 +110,43 @@ export class HomeComponent implements OnInit {
       }
     });
   }
+
+  //export to excel
+
+  exportToExcelForLeave() {
+    this.excelName = 'leaveApplication.xlsx';
+    	
+        const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationList.map(	
+          x => ({	
+              leaveType: x.leaveType,
+              fromDate: x.fromDate,
+              toDate: x.toDate,
+              noOfDays: x.noOfDays,
+              status: x.status,
+              createdByName: x.createdByName,
+              createdOn: x.createdOn,
+              reason: x.reason	
+          })	
+        )	
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
+      }
+
+  exportToExcelForCompOff() {
+    this.excelName = 'leaveApplication.xlsx';
+    	
+        const onlySpecificDataArr: Partial<Leave>[] = this.allCompOffApplications.map(	
+          x => ({	
+            createdByName: x.createdByName,
+            compOffReasons: x.compOffReasons,
+            fromDate: x.fromDate,
+            toDate: x.toDate,
+            noOfDays: x.noOfDays,
+            description: x.description,
+            status: x.status
+          })	
+        )	
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
+      }
 
   //pagination 
 

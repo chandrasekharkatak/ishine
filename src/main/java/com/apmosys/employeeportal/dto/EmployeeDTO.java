@@ -12,6 +12,7 @@ import lombok.ToString;
 public class EmployeeDTO {
 	
 	private Long empId;
+	private Long employeementId;
 	private Long draftEmpId;
 	private String name;
 	private Long managerId;

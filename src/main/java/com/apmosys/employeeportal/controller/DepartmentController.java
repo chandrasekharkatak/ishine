@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.service.DepartmentService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -20,6 +21,17 @@ public class DepartmentController {
 	@RequestMapping(value = "/createDepartment", method = RequestMethod.POST)
 	public ServiceResponse createDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.createDepartment(departmentDTO);
+		return response;
+	}
+	
+	@RequestMapping(value="/createDepartmentByList" , method = RequestMethod.POST, consumes="application/json")
+	public ServiceResponse createEmployeeByList(@RequestBody DepartmentDTO[] departmentDTO) {	
+		
+		ServiceResponse response = null;
+		
+		 for (DepartmentDTO department: departmentDTO) {
+			 response = departmentService.createDepartmentByList(department);
+		    }	
 		return response;
 	}
 

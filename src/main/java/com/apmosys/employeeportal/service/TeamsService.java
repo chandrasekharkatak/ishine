@@ -363,6 +363,7 @@ public class TeamsService {
 					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setManagerName(object[5] != null ? object[5].toString(): null);
+					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
 					dtoList.add(dto);
 				});
 
@@ -397,6 +398,7 @@ public class TeamsService {
 					dto.setEmail(object[2] != null ? object[2].toString(): null);
 					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
+					dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()): null);
 					dtoList.add(dto);
 					
 				});
@@ -438,6 +440,7 @@ public class TeamsService {
 					dto.setStatus(object[5] != null ? object[5].toString() : null);
 					dto.setReason(object[6] != null ? object[6].toString() : null);
 					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
 					dtoList.add(dto);					
 					});
 
@@ -481,6 +484,7 @@ public class TeamsService {
 					dto.setStatus(object[5] != null ? object[5].toString() : null);
 					dto.setReason(object[6] != null ? object[6].toString() : null);
 					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
 					dtoList.add(dto);					
 					});
 

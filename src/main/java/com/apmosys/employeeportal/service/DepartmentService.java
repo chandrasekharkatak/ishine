@@ -55,6 +55,36 @@ public class DepartmentService {
 		}
 		return response;
 	}
+	
+	@Transactional
+	public ServiceResponse createDepartmentByList(DepartmentDTO departmentDTO) {
+		String message = "";
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Department newDepartment = new Department();
+			newDepartment.setDeptId(departmentDTO.getDeptId());
+			newDepartment.setName(departmentDTO.getName());
+			newDepartment.setHodId(departmentDTO.getHodId());
+			newDepartment.setCreatedBy(departmentDTO.getCreatedBy());
+
+			Department newDepartmentCreated = departmentRepository.save(newDepartment);
+
+			if (newDepartmentCreated != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("New department created.");
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("New department creation Failed.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 	public ServiceResponse getAllDepartments() {
 		ServiceResponse response = new ServiceResponse();

@@ -460,14 +460,17 @@ export class LeaveConfigComponent implements OnInit {
     console.log("selecteddddddd");
     if(this.selectedState == 'all state'){
       this.holidayListFilter = this.holidayList;
+      this.page = 1;
     }else{
       this.holidayListFilter = this.holidayList.filter(x => x.state == this.selectedState);
+      this.page = 1;
     }
     
   }
 
   getAllHolidays(){
     this.holidayList = [];
+    this.holidayListFilter = [];
     
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
