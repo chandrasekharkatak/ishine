@@ -34,10 +34,10 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
-	
+
 	@Autowired
 	CompOffMasterRepository compOffMasterRepository;
-	
+
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
 
@@ -46,17 +46,18 @@ public class EmployeeLeaveService {
 		ServiceResponse response = new ServiceResponse();
 		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
-		
+
 		try {
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
-			
-			// HERE : Effective Leave Balance  = employeeLeavesMap.getBalance()
-			if(!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP") &&
-				(employeeLeavesMap.getBalance() == 0 || employeeLeavesMap.getBalance() < leaveDTO.getNoOfDays())){
+
+			// HERE : Effective Leave Balance = employeeLeavesMap.getBalance()
+			if (!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP") && (employeeLeavesMap.getBalance() == 0
+					|| employeeLeavesMap.getBalance() < leaveDTO.getNoOfDays())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Your available balance of "+employeeLeavesMap.getBalance()+" day(s) is not sufficient for this Leave Application.");
-				
+				response.setServiceResponse("Your available balance of " + employeeLeavesMap.getBalance()
+						+ " day(s) is not sufficient for this Leave Application.");
+
 				return response;
 			}
 
@@ -65,8 +66,10 @@ public class EmployeeLeaveService {
 			leaveApplication.setEmpId(leaveDTO.getEmpId());
 			leaveApplication.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 			leaveApplication.setLeaveStatusId((short) 1);
-			leaveApplication.setFromDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getFromDate())),"yyyy-MM-dd"));
-			leaveApplication.setToDate(stringToDateTimeParser.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getToDate())),"yyyy-MM-dd"));
+			leaveApplication.setFromDate(stringToDateTimeParser
+					.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getFromDate())), "yyyy-MM-dd"));
+			leaveApplication.setToDate(stringToDateTimeParser
+					.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getToDate())), "yyyy-MM-dd"));
 			leaveApplication.setNoOfDays((Float) leaveDTO.getNoOfDays());
 			leaveApplication.setReason(leaveDTO.getReason());
 			leaveApplication.setManagerId(leaveDTO.getManagerId());
@@ -74,7 +77,7 @@ public class EmployeeLeaveService {
 
 			// Leave deduction from balance leaves
 			Float balance = employeeLeavesMap.getBalance();
-			balance =  balance - leaveDTO.getNoOfDays();
+			balance = balance - leaveDTO.getNoOfDays();
 			Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 			pendingForApproval = pendingForApproval + leaveDTO.getNoOfDays();
 
@@ -87,15 +90,15 @@ public class EmployeeLeaveService {
 
 			if (dbResponse1 != null && dbResponse2 != null) {
 				LeaveBalanceLog log = new LeaveBalanceLog();
-				
+
 				log.setBalance(balance);
 				log.setEmpId(leaveDTO.getEmpId());
 				log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 				log.setMessage(LeaveLogMessage.requestDeductLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
-				log.setUpdateBalanceBy("-"+leaveDTO.getNoOfDays());
-				
+				log.setUpdateBalanceBy("-" + leaveDTO.getNoOfDays());
+
 				leaveBalanceLogRepository.save(log);
-				
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Leave application submitted.");
 			} else {
@@ -172,8 +175,8 @@ public class EmployeeLeaveService {
 					dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
 					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					dto.setReason(object[8] != null ? object[8].toString() : null);
-					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()): null);
-					dto.setLeaveTypeMasterId(object[10] != null ? Short.parseShort(object[10].toString()): null);
+					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					dto.setLeaveTypeMasterId(object[10] != null ? Short.parseShort(object[10].toString()) : null);
 					dtoList.add(dto);
 				});
 
@@ -199,7 +202,7 @@ public class EmployeeLeaveService {
 
 			if (leaveApplication.isPresent()) {
 				EmployeeLeave pendingLeaveApplication = leaveApplication.get();
-				
+
 				pendingLeaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
 				pendingLeaveApplication.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
@@ -214,13 +217,13 @@ public class EmployeeLeaveService {
 					pendingLeaveApplication.setLeaveStatusId((short) 3);
 					employeeLeavesMap
 							.setBalance(employeeLeavesMap.getBalance() + pendingLeaveApplication.getNoOfDays());
-					
-					
+
 					LeaveBalanceLog log = new LeaveBalanceLog();
 					log.setBalance(employeeLeavesMap.getBalance());
 					log.setEmpId(leaveDTO.getEmpId());
 					log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-					log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
+					log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0",
+							pendingLeaveApplication.getNoOfDays().toString()));
 					log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 					leaveBalanceLogRepository.save(log);
 					response.setServiceResponse("Leave application rejected.");
@@ -272,24 +275,23 @@ public class EmployeeLeaveService {
 					dto.setLeaveType(object[0] != null ? object[0].toString() : null);
 					dto.setBalance(object[1] != null ? Float.parseFloat(object[1].toString()) : null);
 					dto.setPendingForApproval(object[2] != null ? Float.parseFloat(object[2].toString()) : null);
-					dto.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()): null);
-					
+					dto.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+
 					dtoList.add(dto);
 				});
 
 				for (Object[] leave : employeeLeavesList) {
-					totalbalance =  totalbalance
-							+ (leave[1] != null ? Float.parseFloat(leave[1].toString()) : null);
-					totalPendingForApproval =  totalPendingForApproval
+					totalbalance = totalbalance + (leave[1] != null ? Float.parseFloat(leave[1].toString()) : null);
+					totalPendingForApproval = totalPendingForApproval
 							+ (leave[2] != null ? Float.parseFloat(leave[2].toString()) : null);
 				}
-				
+
 				LeaveDTO dto = new LeaveDTO();
 				dto.setLeaveType("Total");
 				dto.setBalance(totalbalance);
 				dto.setPendingForApproval(totalPendingForApproval);
 				dtoList.add(dto);
-				
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 
@@ -323,15 +325,17 @@ public class EmployeeLeaveService {
 						if (leave.getLeaveTypeMasterId() == dto.getLeaveTypeMasterId()) {
 
 							if (leave.getBalance() == 0) {
-								//set leaves to newly created employee when his/her bucket is 0.0 for all leave types
+								// set leaves to newly created employee when his/her bucket is 0.0 for all leave
+								// types
 								LeaveBalanceLog log = new LeaveBalanceLog();
 								log.setBalance(dto.getBalance());
 								log.setEmpId(leaveDTO.getEmpId());
 								log.setLeaveTypeMasterId(dto.getLeaveTypeMasterId());
-								log.setMessage(LeaveLogMessage.adminAddLeave.replace("0.0", dto.getBalance().toString()));
+								log.setMessage(
+										LeaveLogMessage.adminAddLeave.replace("0.0", dto.getBalance().toString()));
 								log.setUpdateBalanceBy("+" + dto.getBalance());
 								leaveBalanceLogRepository.save(log);
-								
+
 								leave.setBalance(dto.getBalance());
 							} else {
 
@@ -354,7 +358,8 @@ public class EmployeeLeaveService {
 									} else if (dto.getBalance() < leave.getBalance()) {
 										// leave deducted from bucket balance
 										Float change = dto.getBalance() - leave.getBalance();
-										log.setMessage(LeaveLogMessage.adminDeductLeave.replace("0.0", (change*-1)+""));
+										log.setMessage(
+												LeaveLogMessage.adminDeductLeave.replace("0.0", (change * -1) + ""));
 										log.setUpdateBalanceBy(change.toString());
 									}
 									leave.setBalance(dto.getBalance());
@@ -387,7 +392,6 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
-	
 
 	public ServiceResponse getLeaveLogsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -424,12 +428,14 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
-	
+
 	public ServiceResponse getAppliedLeaveApplicationsByEmpIdAndDateRange(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			// HERE : We are fetching All Past Leave Applications with Pending & Approved Status
-			List<Object[]> list = employeeLeaveRepository.getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveDTO.getEmpId(), leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getLeaveTypeMasterId());
+			// HERE : We are fetching All Past Leave Applications with Pending & Approved
+			// Status
+			List<Object[]> list = employeeLeaveRepository.getAppliedLeaveApplicationsByEmpIdAndDateRange(
+					leaveDTO.getEmpId(), leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getLeaveTypeMasterId());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -462,6 +468,30 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
-	
+
+	public ServiceResponse countAllMyTeamsPendingLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Long applicationCount = employeeLeaveRepository
+					.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
+			if (applicationCount == 0) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No leave applications found.");
+
+			} else {
+				leaveDTO = new LeaveDTO();
+				leaveDTO.setApplicationCount(applicationCount);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(leaveDTO);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+
+	}
 
 }

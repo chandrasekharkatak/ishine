@@ -28,6 +28,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
+  countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
+  }
+
   getLeaveLogsByEmpId(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeaveLogsByEmpId`, leaveObj);
   }
@@ -81,6 +85,10 @@ export class LeaveService {
 
   getPendingCompOffRequestsByManagerId(compOffObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getPendingCompOffRequestsByManagerId`, compOffObj);
+  }
+
+  countPendingCompOffRequestsByManagerId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countPendingCompOffRequestsByManagerId`, compOffObj);
   }
 
   /* Leave Policy */

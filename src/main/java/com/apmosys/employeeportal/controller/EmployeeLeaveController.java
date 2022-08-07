@@ -47,6 +47,13 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/countAllMyTeamsPendingLeaveApplicationsByManagerId" ,method = RequestMethod.POST)
+	public ServiceResponse countAllMyTeamsPendingLeaveApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/getMyLeaveBalancesByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getMyLeaveBalancesByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		

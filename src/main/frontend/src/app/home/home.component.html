@@ -3,7 +3,7 @@
         <div class="container-fluid">
          <div class="row justify-content-around">
              <div class="col">
-                 <div class="card req-card" (click)="openReqMod(LeaveReq)">
+                 <div class="card req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">
                      <div class="card-body text-center">
                          <h3>Leave</h3>
                          <h1>{{leaveApplicationCount}}</h1>
@@ -12,7 +12,7 @@
              </div>
       
              <div class="col">
-              <div class="card req-card" (click)="openReqMod(compOffReq)">
+              <div class="card req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">
                   <div class="card-body text-center">
                       <h3>Comp off</h3>
                       <h1>{{compOffApplicationCount}}</h1>
@@ -74,7 +74,7 @@
               </tr>
             </thead>
             <tbody class="text-center">
-                <tr *ngIf="leaveApplicationList.length == 0">
+                <tr *ngIf="leaveApplicationCount == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
@@ -96,8 +96,8 @@
             </tbody>
           </table> 
           <div class="my-buttons">
-          <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationList.length == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>
 </ng-template>
@@ -123,7 +123,7 @@
              </tr>
             </thead>
             <tbody>
-                <tr *ngIf="allCompOffApplications.length == 0">
+                <tr *ngIf="compOffApplicationCount == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
@@ -143,8 +143,8 @@
             </tbody>
           </table>  
           <div class="my-buttons">
-          <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>
 </ng-template>
