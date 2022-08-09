@@ -549,12 +549,12 @@ export class TeamConfigComponent implements OnInit {
 
         this.teamsActivityDataForExcel = this.allTeamList;
 
-        const onlySpecificDataArr: Partial<Team>[] = this.teamsActivityDataForExcel.map(
+        const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
           x => ({
-            teamName: x.teamName,
-            teamLeadId: x.teamLeadId,
-            createdBy: x.createdBy,
-            createdOn: x.createdOn
+            "Team Name": x.teamName,	
+            "Team Lead Id": x.teamLeadId,	
+            "Created By": x.createdByName,	
+            "Created On": x.createdOn
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);

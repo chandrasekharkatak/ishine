@@ -506,12 +506,12 @@ exportToExcel(): void {
         this.holidayDataForExcel = response.serviceResponse;
       }
   
-      const onlySpecificDataArr: Partial<Holiday>[] = this.holidayDataForExcel.map(
+      const onlySpecificDataArr = this.holidayDataForExcel.map(
         x => ({
-          occasion: x.occasion,
-          dayOfTheWeek: x.dayOfTheWeek,
-          dateOfHoliday: x.dateOfHoliday,
-          state: x.state
+          "Occasion": x.occasion,	
+          "Day": x.dayOfTheWeek,	
+          "Date": x.dateOfHoliday,	
+          "State": x.state
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
@@ -526,14 +526,14 @@ exportToExcel(): void {
         this.leaveDataForExcel = response.serviceResponse;
       }
   
-      const onlySpecificDataArr: Partial<Leave>[] = this.leaveDataForExcel.map(
+      const onlySpecificDataArr = this.leaveDataForExcel.map(
         x => ({
-          leaveType: x.leaveType,
-          leaveTypeCode: x.leaveTypeCode,
-          gender: x.gender,
-          noOfDays: x.noOfDays,
-          rules: x.rules,
-          description: x.description
+          "Leave Type": x.leaveType,	
+          "Leave Type Code": x.leaveTypeCode,	
+          "Gender": x.gender,	
+          "No of Days": x.noOfDays,	
+          "Rules": x.rules,	
+          "Description": x.description
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)

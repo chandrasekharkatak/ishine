@@ -752,13 +752,13 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeDataForExcel = response.serviceResponse;
       }
-      const onlySpecificDataArr: Partial<Employee>[] = this.employeeDataForExcel.map(
+      const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          empId: x.empId,
-          name: x.name,
-          email: x.email,
-          employmentstatus: x.employmentstatus,
-          dateOfJoining: x.dateOfJoining
+          "Emp Id": x.employeementId,		
+          "Name": x.name,		
+          "Email": x.email,		
+          "Employment Status": x.employmentstatus,		
+          "Date Of Joining": x.dateOfJoining
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
