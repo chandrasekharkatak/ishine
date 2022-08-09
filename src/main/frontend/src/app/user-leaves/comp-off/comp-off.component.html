@@ -41,7 +41,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" >
+                            <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)">
+                            <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
                         </div>
                     </div>
                 </div>

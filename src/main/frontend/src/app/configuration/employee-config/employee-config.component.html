@@ -64,7 +64,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Birth</label>
-                                            <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth">
+                                            <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth" (keydown)="disableMannualDateInput()">
                                         </div>
                                     </div>
                                 </div>
@@ -367,7 +367,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date Of Joining</label>
-                                            <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining">
+                                            <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()">
                                         </div>
                                     </div>
                                 </div>

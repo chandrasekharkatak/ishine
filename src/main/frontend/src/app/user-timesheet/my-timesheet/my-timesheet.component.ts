@@ -83,6 +83,10 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
+  disableMannualDateInput(){
+    return false;
+  }
+
   showCreateTimesheetForm(){
     this.isTimesheetForm = true;
     this.isCreation = true;

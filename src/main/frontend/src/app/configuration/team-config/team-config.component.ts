@@ -454,11 +454,15 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
-    // if(!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)){
-    //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
+    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)){
+      this.alertMessage = "Please enter Activity ETA (Hours)!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(activityObj.eta<0 && activityObj.eta>999){
+      this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     
     return true;
   }

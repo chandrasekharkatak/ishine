@@ -13,6 +13,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-leave',
@@ -92,6 +93,10 @@ export class LeaveComponent implements OnInit {
     this.showLeaveBalanceTable();
   }
 
+  disableMannualDateInput(){
+    return false;
+  }
+  
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
@@ -341,6 +346,17 @@ export class LeaveComponent implements OnInit {
   }
 
   // CRUD
+  toDateFilter = (d: Date)=>{
+    const dateFormat = 'YYYY-MM-DD';
+    const time = d?.getTime();
+    
+    if(!this.leaveObj.fromDate){
+      return false;
+    }
+    let checkDate = this.leaveObj.fromDate;
+    return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time)) ? true : false;
+  }
+
   setMinToDate(template: TemplateRef<any>){
     if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.fromDate)){
       this.alertMessage = "Please select from date !!"
@@ -575,7 +591,6 @@ export class LeaveComponent implements OnInit {
 
   holidayFilter = (d: Date)=>{
     const time=d?.getTime();
-     
     return !this.holidayDates.find(x=>x.getTime()==time);
   }
 

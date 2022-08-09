@@ -128,6 +128,10 @@ export class LeaveConfigComponent implements OnInit {
     this.showLeaveTypesTable();
   }
 
+  disableMannualDateInput(){
+    return false;
+  }
+
   showAddHolidayForm(){
     this.isHolidayForm = true;
     this.isCreation = true;

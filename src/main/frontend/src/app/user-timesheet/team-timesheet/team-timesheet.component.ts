@@ -65,6 +65,10 @@ export class TeamTimesheetComponent implements OnInit {
     this.showAllTimesheetRequestsTable();
   }
 
+  disableMannualDateInput(){
+    return false;
+  }
+  
   showAllTimesheetsTable(){
     this.isAllTimesheetTable = true;
 
