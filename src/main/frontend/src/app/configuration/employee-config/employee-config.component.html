@@ -132,7 +132,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Aadhar Number</label>
-                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar">
+                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar" (blur)="checkEmployeeAadharNumber(alert_message)">
                                         </div>
                                     </div>
                                 </div>
@@ -140,7 +140,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>PAN Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber" (blur)="checkEmployeePanNumber(alert_message)">
                                         </div>
                                     </div>
                                 </div>

@@ -1370,5 +1370,57 @@ public class EmployeeService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse checkEmployeeAadharNumber(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Employee existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
+			DraftEmployee existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
+			
+			if (employeedto.getAadhar() != null && existingEmployeeAadhar != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Aadhar Number already exist!");
+			}else if(employeedto.getAadhar() != null  && existingDraftEmployeeAadhar != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Aadhar Number already exist in Employee Draft!");
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse checkEmployeePanNumber(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Employee existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
+			DraftEmployee existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumber(employeedto.getPanNumber());
+			
+			if (employeedto.getPanNumber() != null && existingEmployeePan != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("PAN Number already exist!");
+			}else if(employeedto.getPanNumber() != null  && existingEmployeeDraftPan != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("PAN Number already exist in Employee Draft!");
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 }

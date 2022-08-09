@@ -42,6 +42,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 	public Employee findByEmployeementId(Long employeementId);
 
 	public Employee findByMobileNo(Long employeementId);
+
+	public Employee findByAadhar(Long aadhar);
+
+	public Employee findByPanNumber(String panNumber);
 	
 
 }

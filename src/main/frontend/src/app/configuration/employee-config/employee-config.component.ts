@@ -650,6 +650,24 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  checkEmployeeAadharNumber(template: TemplateRef<any>) {
+    this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.employeeObj.aadhar = '';
+      }
+    });
+  }
+
+  checkEmployeePanNumber(template: TemplateRef<any>) {
+    this.employeeService.checkEmployeePanNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.employeeObj.panNumber = '';
+      }
+    });
+  }
+
   onUpdateEmployee(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)

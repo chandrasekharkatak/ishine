@@ -140,5 +140,19 @@ public class EmployeeController {
 		return response;		
 	}
 	
+	@RequestMapping(value="/checkEmployeeAadharNumber" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeAadharNumber(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.checkEmployeeAadharNumber(employeedto);
+		return response;		
+	}
+	
+	@RequestMapping(value="/checkEmployeePanNumber" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeePanNumber(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = employeeService.checkEmployeePanNumber(employeedto);
+		return response;		
+	}
+	
 	
 }

@@ -10,6 +10,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { DatePipe } from '@angular/common';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -233,6 +234,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onCreateTimesheet(template: TemplateRef<any>){
+    const dateFormat = 'YYYY-MM-DD';
     let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
     if(!inputValidated) return;
     
@@ -243,7 +245,7 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.allTimesheetActivities = null;
     }
     
-    this.timesheetObj.date = this.datePipe.transform(this.timesheetObj.date, "YYYY-MM-dd")
+    this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {

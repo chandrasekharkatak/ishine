@@ -12,4 +12,8 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 
 	DraftEmployee findByMobileNo(Long employeementId);
 
+	DraftEmployee findByAadhar(Long aadhar);
+
+	DraftEmployee findByPanNumber(String panNumber);
+
 }

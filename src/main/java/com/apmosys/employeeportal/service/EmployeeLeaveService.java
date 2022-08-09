@@ -44,8 +44,6 @@ public class EmployeeLeaveService {
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
-		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 		try {
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
@@ -66,10 +64,8 @@ public class EmployeeLeaveService {
 			leaveApplication.setEmpId(leaveDTO.getEmpId());
 			leaveApplication.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 			leaveApplication.setLeaveStatusId((short) 1);
-			leaveApplication.setFromDate(stringToDateTimeParser
-					.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getFromDate())), "yyyy-MM-dd"));
-			leaveApplication.setToDate(stringToDateTimeParser
-					.getDate(outputFormat.format(inputFormat.parse(leaveDTO.getToDate())), "yyyy-MM-dd"));
+			leaveApplication.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd"));
+			leaveApplication.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd"));
 			leaveApplication.setNoOfDays((Float) leaveDTO.getNoOfDays());
 			leaveApplication.setReason(leaveDTO.getReason());
 			leaveApplication.setManagerId(leaveDTO.getManagerId());

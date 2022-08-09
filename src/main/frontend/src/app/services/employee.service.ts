@@ -52,6 +52,14 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeMobileNo`, employeeObj);
   }
 
+  checkEmployeeAadharNumber(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeAadharNumber`, employeeObj);
+  }
+
+  checkEmployeePanNumber(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeePanNumber`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);
