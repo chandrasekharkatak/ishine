@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Leave } from '../models/leave';
@@ -17,6 +17,7 @@ export class HomeComponent implements OnInit {
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
+  
 
   feature="Home";
   currentUser:User;
@@ -43,8 +44,8 @@ export class HomeComponent implements OnInit {
    }
 
   ngOnInit(): void {
-    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.getPendingCompOffRequestsByManagerId();
+    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+    this.countPendingCompOffRequestsByManagerId();
   }
 
   // Leave Applications
@@ -57,8 +58,26 @@ export class HomeComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
         console.log("leaveApplicationList : ", this.leaveApplicationList);
-        this.leaveApplicationCount =  this.leaveApplicationList.length;
       } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  /* Leave Applications Count
+  *  Added by suraj 07/08/2022
+  */
+  countAllMyTeamsPendingLeaveApplicationsByManagerId(){
+    this.leaveApplicationList = []
+
+    let leaveObj = new Leave();
+    leaveObj.managerId = this.currentUser.empId;
+    this.leaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveApplicationCount = response.serviceResponse.applicationCount;
+        console.log("leaveApplicationCount : ", this.leaveApplicationCount);
+      } else {
+        this.leaveApplicationCount = 0;
         console.error(response.serviceResponse);
       }
     });
@@ -67,12 +86,14 @@ export class HomeComponent implements OnInit {
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+      if (response.serviceStatus == "Success") {        
+        this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
         this.openAlertMod(template, response.serviceResponse);
-        this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -89,9 +110,27 @@ export class HomeComponent implements OnInit {
     this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
-        this.compOffApplicationCount =  this.allCompOffApplications.length;
         console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  /* Leave Applications Count
+  *  Added by suraj 07/08/2022
+  */
+  countPendingCompOffRequestsByManagerId(){
+    this.allCompOffApplications = []
+
+    let compOff = new Leave();
+    compOff.managerId = this.currentUser.empId;
+    this.leaveService.countPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.compOffApplicationCount =  response.serviceResponse.applicationCount;
+        console.log("CompOffApplicationCount : ", this.compOffApplicationCount);
+      } else {
+        this.compOffApplicationCount =  0;
         console.error(response.serviceResponse);
       }
     });
@@ -100,11 +139,13 @@ export class HomeComponent implements OnInit {
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
     // 1 = pending , 2 = Approved , 3= Rejected
     compOffObj.leaveStatusId = updatedCompOffStatusId;
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
+      if (response.serviceStatus == "Success") {        
+        this.countPendingCompOffRequestsByManagerId();
         this.getPendingCompOffRequestsByManagerId();
+        this.openAlertMod(template, response.serviceResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
