@@ -157,6 +157,7 @@ export class LoginComponent implements OnInit {
     this.authenticationService.authenticateUser(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.isLoginOTP=true;
+        this.user.password = null;
         this.showOtpForm();
       } else {
         this.isError=true;
@@ -190,6 +191,7 @@ export class LoginComponent implements OnInit {
         this.getFeatureList();
       
       /*Mapping & tab list*/
+      this.user.otp = null;
       this.user.empId = user.empId;
       this.user.name = user.name;
       this.user.managerId = user.managerId;

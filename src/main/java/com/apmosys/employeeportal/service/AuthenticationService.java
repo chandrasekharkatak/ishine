@@ -35,9 +35,8 @@ public class AuthenticationService {
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
+
 	
-	@Value("${timesheet.lock.days}")
-	private Integer timesheetLockDays;
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -49,39 +48,23 @@ public class AuthenticationService {
 				String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
 				String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
 
-				if (dbPassword.equals(orignalPassword)){
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("login successful");
-					
+				if (dbPassword.equals(orignalPassword)) {
+
 					Random random = new Random();
 					int otp = random.nextInt(9999 - 1000)
 							+ 1000; /* Random number will be generated between 1000 and 9999 */
 					employee.setOtp(otp);
 					Employee currentEmployee = employeeRepository.save(employee);
 
-					EmployeeDTO dto = new EmployeeDTO();
-					dto.setEmpId(employee.getEmpId());
-
-					EmployeeDTO currentEmployeeDto = (EmployeeDTO) employeeService.getEmployeeByEmpId(dto)
-							.getServiceResponse();
-					// Setting Locking Period for Timesheets
-					currentEmployeeDto.setTimesheetLockDays(timesheetLockDays);
-
-					session = request.getSession();
-					session.invalidate();
-					session = request.getSession(true);
-					session.setAttribute("currentEmployee", currentEmployee);
-					session.setAttribute("currentEmployeeDto", currentEmployeeDto);
-
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Valid Credentials. OTP sent to email.");
-					
-				}else {	
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Password");
 				}
 
-			}else{
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Invalid Credentials.");
 			}
@@ -97,12 +80,12 @@ public class AuthenticationService {
 	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Employee employee = (Employee) session.getAttribute("currentEmployee");
-			EmployeeDTO currentEmployeeDto = (EmployeeDTO) session.getAttribute("currentEmployeeDto");
+			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
 			if (employeedto.getOtp().toString().equals(employee.getOtp().toString())
 					|| employeedto.getOtp().toString().equals(portalStaticOtp)) {
 				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+				EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 
 				Object[] object = new Object[2];
 				object[0] = currentEmployeeDto;

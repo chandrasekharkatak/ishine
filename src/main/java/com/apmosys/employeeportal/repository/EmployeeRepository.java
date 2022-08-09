@@ -46,6 +46,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 	public Employee findByAadhar(Long aadhar);
 
 	public Employee findByPanNumber(String panNumber);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeInfoOnLogin(String email);
 	
 
 }
