@@ -345,16 +345,46 @@ export class LeaveComponent implements OnInit {
     this.checkDateInRange(startDate, endDate, checkDate, leaveObj, leavePolicyObj, template);
   }
 
-  // CRUD
+  // Leave Application 
+  fromDateFilter = (d: Date)=>{
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const BACKDATED_LEAVE_PERIOD = 30;
+    const FUTUREDATED_LEAVE_PERIOD = 180;
+    const time=d?.getTime();
+    let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
+    let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+    
+    console.log("this.leaveHistoryList : ", this.leaveHistoryList);
+    
+    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time));
+  }
+
+  holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
+    // Only highligh dates inside the month view.
+    if (view === 'month') {
+      const time = cellDate.getTime()
+      
+      // Highlight the holidays.
+      return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
+    }
+    return '';
+  }
+
   toDateFilter = (d: Date)=>{
     const dateFormat = 'YYYY-MM-DD';
     const time = d?.getTime();
+    const currentDate = new Date();
+    const FUTUREDATED_LEAVE_PERIOD = 180;
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
     
     if(!this.leaveObj.fromDate){
       return false;
     }
     let checkDate = this.leaveObj.fromDate;
-    return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time)) ? true : false;
+    return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time)) ? true : false;
   }
 
   setMinToDate(template: TemplateRef<any>){
@@ -587,23 +617,6 @@ export class LeaveComponent implements OnInit {
     XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');	
   	
     XLSX.writeFile(book, this.excelName);
-  }
-
-
-  holidayFilter = (d: Date)=>{
-    const time=d?.getTime();
-    return !this.holidayDates.find(x=>x.getTime()==time);
-  }
-
-  dateClass: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
-    // Only highligh dates inside the month view.
-    if (view === 'month') {
-      const time = cellDate.getTime()
-      
-      // Highlight the holidays.
-      return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
-    }
-    return '';
   }
 
     //pagination 	

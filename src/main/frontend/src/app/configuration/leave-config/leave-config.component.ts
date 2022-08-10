@@ -830,8 +830,8 @@ exportToExcel(): void {
     }
 
     if(leavePolicyObj.probation == 'Yes'){
-      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.probation)){
-        this.alertMessage = "Please Select Leave Application Probation Period !!"
+      if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.probationPeriod)){
+        this.alertMessage = "Please Enter Leave Application Probation Period !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }

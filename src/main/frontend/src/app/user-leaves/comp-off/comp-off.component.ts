@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
@@ -77,6 +78,7 @@ export class CompOffComponent implements OnInit {
     this.isCompOffApplicationsTable = false;
 
     this.reset();
+    setTimeout(this.setFromDateLimit, 500);
   }
 
   showCompOffRequestTable(){
@@ -131,6 +133,20 @@ export class CompOffComponent implements OnInit {
       });
     }
 
+    setFromDateLimit(){
+      const dateFormat = 'YYYY-MM-DD';
+      const currentDate = new Date();
+      const DAY_IN_MS = 24 * 60 * 60 * 1000;
+      const BACKDATED_LEAVE_PERIOD = 30;
+      const FUTUREDATED_LEAVE_PERIOD = 180;
+      let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
+      let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+
+      let fromDate = document.getElementById('fromDate');
+      fromDate?.setAttribute('min', moment(minDate).format(dateFormat));
+      fromDate?.setAttribute('max', moment(maxDate).format(dateFormat));
+    }
+
     setMinToDate(template: TemplateRef<any>){
       if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.fromDate)){
         this.alertMessage = "Please select from date !!"
@@ -138,9 +154,16 @@ export class CompOffComponent implements OnInit {
         return false;
       }
   
+      const dateFormat = 'YYYY-MM-DD';
+      const currentDate = new Date();
+      const DAY_IN_MS = 24 * 60 * 60 * 1000;
+      const FUTUREDATED_LEAVE_PERIOD = 180;
+      let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+
       let fromDate = this.compOffObj.fromDate;
       let toDate = document.getElementById('toDate');
       toDate?.setAttribute('min', fromDate);
+      toDate?.setAttribute('max', moment(maxDate).format(dateFormat));
     }
   
     setNoOfDays(template: TemplateRef<any>){
