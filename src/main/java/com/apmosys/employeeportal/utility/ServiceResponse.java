@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.utility;
 public class ServiceResponse {
 
 	public static final String STATUS_FAIL="Fail";
+	public static final String STATUS_FAIL_1="Fail_1";
 	public static final String STATUS_SUCCESS="Success";
 	public static final String SOMETHING_WENT_WRONG="Something Went Wrong";
 	private Object serviceResponse;
@@ -42,6 +43,7 @@ public class ServiceResponse {
 	public void setServiceMessage(String serviceMessage) {
 		this.serviceMessage = serviceMessage;
 	}
+	
 	
 	
 	

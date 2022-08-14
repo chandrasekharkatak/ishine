@@ -79,4 +79,6 @@ public class EmployeeDTO {
 	private List<EmployeeCertificateDTO> updatedCertifications;
 	private List<PreviousEmploymentDTO> updatedPreviousEmploymentList;
 	private String isDraft;
+	
+	private String sessionString;
 }

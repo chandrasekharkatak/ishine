@@ -71,9 +71,23 @@ export class BodyComponent implements OnInit {
   }
 
   userLogout(){
-    sessionStorage.removeItem('currentUser');
-    location.reload();
-    this.router.navigate(['/login']);
+    
+
+    let user = new User();
+    user.empId = this.currentUser.empId;
+    this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.authenticationService.stopUserSessionCheck();
+        console.log(response.serviceResponse);
+        sessionStorage.removeItem('currentUser');
+        location.reload();
+        this.router.navigate(['/login']);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+    
   }
 
   toggleFieldTextType() {

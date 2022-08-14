@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 
@@ -25,5 +25,14 @@ export class AppComponent {
   onToggleSideNav(data: SideNavToggle){
     this.screenWidth = data.screenWidth;
     this.isSideNavCollapsed = data.collapsed;
+  }
+
+  @HostListener('window:beforeunload',[ '$event' ])
+  logout() {
+    let user = new User();
+    user.empId = this.currentUser.empId;
+    this.authenticationService.logoutUser(user).subscribe((response:any)=>{
+      
+    })
   }
 }

@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { BsModalService } from 'ngx-bootstrap/modal';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
 import { SubFeature } from '../models/subFeature';
@@ -45,7 +45,11 @@ export class LoginComponent implements OnInit {
   featureList:any[] = [];
   allMappedSubfeatures:any[] = [];
 
+  //modal 
+  alertMessage:any;
+  modalRef: BsModalRef = new BsModalRef();
 
+  @ViewChild('reLogin_template') reLoginTemplate: TemplateRef<any>;
 
   constructor(
     private validationService:ValidationService,
@@ -159,11 +163,25 @@ export class LoginComponent implements OnInit {
         this.isLoginOTP=true;
         this.user.password = null;
         this.showOtpForm();
+      }
+      else if (response.serviceStatus == 'Fail_1')
+      {
+        this.openReLoginMod(this.reLoginTemplate,response.serviceResponse)
+
       } else {
         this.isError=true;
         this.errorMsg=response.serviceResponse;
       }
     });
+  }
+
+  /* Allow user to relogin when user is already logged in another browser
+  *  Added by suraj 12/08/2022
+  */
+  onReLogin(){
+    this.isLoginOTP=true;
+    this.user.password = null;
+    this.showOtpForm();
   }
 
   async onConfirmLoginOTP(){
@@ -184,6 +202,7 @@ export class LoginComponent implements OnInit {
       const responseObj = response.serviceResponse;
       let user = responseObj[0];
       this.allMappedSubfeatures = responseObj[1];
+      this.authenticationService.sessionString = responseObj[2];
 
       let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
       if (getAllSubFeaturesResp.serviceStatus == "Success") {
@@ -208,7 +227,7 @@ export class LoginComponent implements OnInit {
       }
     } else {
       this.isError = true;
-      this.errorMsg = response.serviceMessage;
+      this.errorMsg = response.serviceResponse;
     }
   }
 
@@ -313,6 +332,16 @@ export class LoginComponent implements OnInit {
     });
     console.log("featureList :", this.featureList);
     return this.featureList;
+  }
+
+   //modals
+  openReLoginMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
   }
 
 }

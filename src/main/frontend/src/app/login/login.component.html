@@ -82,3 +82,12 @@
             </div>
         </div>
 </main>
+
+<!-- Modals Template -->
+<ng-template #reLogin_template>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onReLogin()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
