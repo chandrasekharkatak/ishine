@@ -224,6 +224,7 @@ export class LoginComponent implements OnInit {
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       this.router.navigate(['/home']);
+      this.authenticationService.startUserSessionCheck();
       }
     } else {
       this.isError = true;

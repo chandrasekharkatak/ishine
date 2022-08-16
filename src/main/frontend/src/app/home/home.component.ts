@@ -46,7 +46,6 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.countPendingCompOffRequestsByManagerId();
-    this.authenticationService.startUserSessionCheck();
   }
 
   // Leave Applications
