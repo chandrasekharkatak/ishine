@@ -27,12 +27,12 @@ export class AppComponent {
     this.isSideNavCollapsed = data.collapsed;
   }
 
-  @HostListener('window:beforeunload',[ '$event' ])
-  logout() {
-    let user = new User();
-    user.empId = this.currentUser.empId;
-    this.authenticationService.logoutUser(user).subscribe((response:any)=>{
+  // @HostListener('window:beforeunload',[ '$event' ])
+  // logout() {
+  //   let user = new User();
+  //   user.empId = this.currentUser.empId;
+  //   this.authenticationService.logoutUser(user).subscribe((response:any)=>{
       
-    })
-  }
+  //   })
+  // }
 }
