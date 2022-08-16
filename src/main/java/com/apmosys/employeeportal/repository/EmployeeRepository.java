@@ -41,11 +41,20 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	public Employee findByEmployeementId(Long employeementId);
 
-	public Employee findByMobileNo(Long employeementId);
+	public List<Employee> findByMobileNo(Long employeementId);
 
-	public Employee findByAadhar(Long aadhar);
+	public List<Employee> findByAadhar(Long aadhar);
 
-	public Employee findByPanNumber(String panNumber);
+	public List<Employee> findByPanNumber(String panNumber);
+	
+	@Query(value = "FROM Employee e WHERE e.mobileNo = :mobileNo AND e.empId != :empId")
+	public List<Employee> findByMobileNoAndEmpId(Long mobileNo, Long empId);
+
+	@Query(value = "FROM Employee e WHERE e.aadhar = :aadhar AND e.empId != :empId")
+	public List<Employee> findByAadharAndEmpId(Long aadhar, Long empId);
+
+	@Query(value = "FROM Employee e WHERE e.panNumber = :panNumber AND e.empId != :empId")
+	public List<Employee> findByPanNumberAndEmpId(String panNumber, Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInfoOnLogin(String email);

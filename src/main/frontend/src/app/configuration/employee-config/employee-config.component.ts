@@ -270,14 +270,28 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraftTable = false;
 
+    this.getManagerList();
+    this.getAllDepartmentList();
+    
     this.employeeObj = Object.assign({}, employee);
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(employee.dateOfBirth, 'yyyy-MM-dd');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(employee.dateOfJoining, 'yyyy-MM-dd')
+    // Job Role
     if (this.employeeObj.departmentId) {
       this.getJobRolesByDept(this.employeeObj.departmentId);
     }
-    this.getManagerList();
-    this.getAllDepartmentList();
+
+    // Certifications
+    if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
+      this.addInputCertificationField();
+    } else {
+      this.allCertificationList = this.employeeObj.certifications;
+    }
+
+    // Prev. Employment
+    if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
+      this.addInputPreviousEmployerField();
+    } else {
+      this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
+    }
   }
 
   // Manage employer

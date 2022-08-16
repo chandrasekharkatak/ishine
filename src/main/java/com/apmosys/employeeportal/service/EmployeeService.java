@@ -1375,20 +1375,26 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeeMobileNo(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		List<Employee> checkEmployeeMobileNo  = null;
+		List<DraftEmployee> checkDraftEmployeeMobileNo = null;
 		try {
-			Employee checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
-			DraftEmployee checkDraftEmployeeMobileNo = draftEmployeeRepository
-					.findByMobileNo(employeedto.getMobileNo());
+			
+			if(employeedto.getEmpId() != null) {
+				checkEmployeeMobileNo = employeeRepository.findByMobileNoAndEmpId(employeedto.getMobileNo(), employeedto.getEmpId());
+				checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNoAndDraftEmpId(employeedto.getMobileNo(), employeedto.getEmpId());
+			}else {
+				checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
+				checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
+			}
 
 			if (employeedto.getMobileNo() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
-				if (checkEmployeeMobileNo != null) {
+				if (!checkEmployeeMobileNo.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Mobile Number already exist!");
 				}
-				if (checkDraftEmployeeMobileNo != null) {
+				if (!checkDraftEmployeeMobileNo.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Mobile Number already exist in Employee Draft!");
 				}
@@ -1405,15 +1411,22 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeeAadharNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		List<Employee> existingEmployeeAadhar = null;
+		List<DraftEmployee> existingDraftEmployeeAadhar = null;
+		
 		try {
-			Employee existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
-			DraftEmployee existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
+			if(employeedto.getEmpId() != null) {
+				existingEmployeeAadhar = employeeRepository.findByAadharAndEmpId(employeedto.getAadhar(), employeedto.getEmpId());
+				existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadharAndDraftEmpId(employeedto.getAadhar(), employeedto.getEmpId());
+			}else {
+				existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
+				existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
+			}
 
-			if (employeedto.getAadhar() != null && existingEmployeeAadhar != null) {
+			if (employeedto.getAadhar() != null && !existingEmployeeAadhar.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Aadhar Number already exist!");
-			} else if (employeedto.getAadhar() != null && existingDraftEmployeeAadhar != null) {
+			} else if (employeedto.getAadhar() != null && !existingDraftEmployeeAadhar.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Aadhar Number already exist in Employee Draft!");
 			} else {
@@ -1431,16 +1444,23 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeePanNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		List<Employee> existingEmployeePan = null;
+		List<DraftEmployee> existingEmployeeDraftPan = null;
+		
 		try {
-			Employee existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
-			DraftEmployee existingEmployeeDraftPan = draftEmployeeRepository
-					.findByPanNumber(employeedto.getPanNumber());
-
-			if (employeedto.getPanNumber() != null && existingEmployeePan != null) {
+			
+			if(employeedto.getEmpId() != null) {
+				existingEmployeePan = employeeRepository.findByPanNumberAndEmpId(employeedto.getPanNumber(), employeedto.getEmpId());
+				existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumberAndDraftEmpId(employeedto.getPanNumber(), employeedto.getEmpId());
+			}else {
+				existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
+				existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumber(employeedto.getPanNumber());
+			}
+			
+			if (employeedto.getPanNumber() != null && !existingEmployeePan.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("PAN Number already exist!");
-			} else if (employeedto.getPanNumber() != null && existingEmployeeDraftPan != null) {
+			} else if (employeedto.getPanNumber() != null && !existingEmployeeDraftPan.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("PAN Number already exist in Employee Draft!");
 			} else {

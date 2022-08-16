@@ -52,7 +52,7 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" > -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
+                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker ></mat-datepicker>

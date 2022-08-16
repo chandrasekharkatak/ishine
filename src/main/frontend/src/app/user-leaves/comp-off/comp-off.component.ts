@@ -78,7 +78,7 @@ export class CompOffComponent implements OnInit {
     this.isCompOffApplicationsTable = false;
 
     this.reset();
-    setTimeout(this.setFromDateLimit, 500);
+    this.getAllCompOffRequestsByEmpId();
   }
 
   showCompOffRequestTable(){
@@ -133,7 +133,7 @@ export class CompOffComponent implements OnInit {
       });
     }
 
-    setFromDateLimit(){
+    fromDateFilter = (d: Date)=>{
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -141,29 +141,21 @@ export class CompOffComponent implements OnInit {
       const FUTUREDATED_LEAVE_PERIOD = 180;
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-
-      let fromDate = document.getElementById('fromDate');
-      fromDate?.setAttribute('min', moment(minDate).format(dateFormat));
-      fromDate?.setAttribute('max', moment(maxDate).format(dateFormat));
+      
+      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.allCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
-
-    setMinToDate(template: TemplateRef<any>){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.fromDate)){
-        this.alertMessage = "Please select from date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
   
+    toDateFilter = (d: Date)=>{
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
-      const DAY_IN_MS = 24 * 60 * 60 * 1000;
       const FUTUREDATED_LEAVE_PERIOD = 180;
+      const DAY_IN_MS = 24 * 60 * 60 * 1000;
       let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-
-      let fromDate = this.compOffObj.fromDate;
-      let toDate = document.getElementById('toDate');
-      toDate?.setAttribute('min', fromDate);
-      toDate?.setAttribute('max', moment(maxDate).format(dateFormat));
+      
+      if(!this.compOffObj.fromDate){
+        return false;
+      }
+      return ((moment(d).format(dateFormat) >= moment(this.compOffObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.allCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat))) ? true : false;
     }
   
     setNoOfDays(template: TemplateRef<any>){
@@ -214,14 +206,15 @@ export class CompOffComponent implements OnInit {
     }
 
     onApplyCompOff(template: TemplateRef<any>){
+      const dateFormat = 'YYYY-MM-DD';
       let inputValidated:boolean  = this.validateLeavetObj(this.compOffObj, template)
       if(!inputValidated) return;
 
       // const COMP_OFF_MASTER_ID  = 5;
       // this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
 
-      // this.compOffObj.fromDate = this.datePipe.transform(this.compOffObj.fromDate, 'dd-MM-yyyy');
-      // this.compOffObj.toDate = this.datePipe.transform(this.compOffObj.toDate, 'dd-MM-yyyy');
+      this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
+      this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
       this.compOffObj.createdBy = this.currentUser.empId;
       this.compOffObj.managerId = this.currentUser.managerId; 
