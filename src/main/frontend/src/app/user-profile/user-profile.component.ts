@@ -40,6 +40,7 @@ export class UserProfileComponent implements OnInit {
   allPreviousEmployment:any[] = [];
   updatedCertificationList:any[] = [];
   updatedPreviousEmployment:any[] = [];
+  yearOfPassingList:any[] = [];
 
   constructor(
     private employeeService:EmployeeService,
@@ -59,11 +60,22 @@ export class UserProfileComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);    
+    console.log(this.feature, this.userMapping);
+    this.setYearOfPassingList();    
   }
 
   ngAfterViewInit() {
     this.setCalenderMaxDate();
+  }
+
+  setYearOfPassingList(){
+    for (let start = 1990; start < 2051; start++) {
+      this.yearOfPassingList.push(start);
+    }   
+  }
+
+  stringToNumber(year:any){
+    this.UpdateEmployeeInfo.yearOfPassing = Number.parseInt(year);
   }
 
   setCalenderMaxDate(){
@@ -135,6 +147,7 @@ export class UserProfileComponent implements OnInit {
 
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>){
 
+    
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.viewsOnOrganisation)){
       this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);

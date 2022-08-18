@@ -58,4 +58,6 @@ export class Leave{
 
 	leaveStatusUpdatedBy:any;
 	leaveStatusUpdatedByName:any;
+
+	employeementId:any;
 }

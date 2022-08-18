@@ -86,6 +86,10 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`);
   }
 
+  getDraftEmployeeByEmpId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getDraftEmployeeById`, employeeObj);
+  }
+
   checkEmployeeEmail(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeEmail`, employeeObj);
   }

@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class ValidationService {
-
+  
   constructor() { }
 
   validateAlphaNumeric(text: string): boolean {
@@ -183,6 +183,21 @@ export class ValidationService {
 
   validateEmployeementId(text: any): boolean {
     const regex = /^\d{1,6}$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  validateYear(text: any): boolean {
+    const regex = /^(19[5-9]\d|20[0-4]\d|2050)$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

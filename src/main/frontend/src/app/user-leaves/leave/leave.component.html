@@ -270,7 +270,7 @@
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
             <tr *ngFor="let log of leaveLogList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{i+1}}</td>
+                <td>{{log.rowNumber}}</td>
                 <td>{{log.leaveType}}</td>
                 <td>{{log.updateBalanceBy}}</td>
                 <td>{{log.balance}}</td>

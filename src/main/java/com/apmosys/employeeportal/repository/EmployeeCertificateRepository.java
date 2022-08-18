@@ -10,4 +10,6 @@ public interface EmployeeCertificateRepository extends JpaRepository<EmployeeCer
 
 	List<EmployeeCertificate> findByEmpId(Long empId);
 
+	List<EmployeeCertificate> findByEmpIdAndIsDraft(Long empId, String isDraft);
+
 }

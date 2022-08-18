@@ -1,8 +1,6 @@
 package com.apmosys.employeeportal.service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,13 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.model.CompOffMaster;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -40,6 +39,9 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
+
+	@Autowired
+	EmployeeRepository employeeRepository;
 
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -256,41 +258,50 @@ public class EmployeeLeaveService {
 
 		try {
 
-			List<Object[]> employeeLeavesList = employeeLeavesMapRepository
-					.getMyLeaveBalancesByEmpId(leaveDTO.getEmpId());
-			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			Employee employee = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 
-			if (employeeLeavesList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No Leaves balance found.");
+			if (employee != null) {
+				List<Object[]> employeeLeavesList = employeeLeavesMapRepository
+						.getMyLeaveBalancesByEmpId(employee.getEmpId());
+				List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
-			} else {
+				if (employeeLeavesList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No Leaves balance found.");
 
-				employeeLeavesList.forEach((object) -> {
+				} else {
+
+					employeeLeavesList.forEach((object) -> {
+						LeaveDTO dto = new LeaveDTO();
+						dto.setLeaveType(object[0] != null ? object[0].toString() : null);
+						dto.setBalance(object[1] != null ? Float.parseFloat(object[1].toString()) : null);
+						dto.setPendingForApproval(object[2] != null ? Float.parseFloat(object[2].toString()) : null);
+						dto.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+
+						dtoList.add(dto);
+					});
+
+					for (Object[] leave : employeeLeavesList) {
+						totalbalance = totalbalance + (leave[1] != null ? Float.parseFloat(leave[1].toString()) : null);
+						totalPendingForApproval = totalPendingForApproval
+								+ (leave[2] != null ? Float.parseFloat(leave[2].toString()) : null);
+					}
+
 					LeaveDTO dto = new LeaveDTO();
-					dto.setLeaveType(object[0] != null ? object[0].toString() : null);
-					dto.setBalance(object[1] != null ? Float.parseFloat(object[1].toString()) : null);
-					dto.setPendingForApproval(object[2] != null ? Float.parseFloat(object[2].toString()) : null);
-					dto.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
-
+					dto.setLeaveType("Total");
+					dto.setBalance(totalbalance);
+					dto.setPendingForApproval(totalPendingForApproval);
 					dtoList.add(dto);
-				});
 
-				for (Object[] leave : employeeLeavesList) {
-					totalbalance = totalbalance + (leave[1] != null ? Float.parseFloat(leave[1].toString()) : null);
-					totalPendingForApproval = totalPendingForApproval
-							+ (leave[2] != null ? Float.parseFloat(leave[2].toString()) : null);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					response.setServiceResponse1(employee.getEmpId());
 				}
 
-				LeaveDTO dto = new LeaveDTO();
-				dto.setLeaveType("Total");
-				dto.setBalance(totalbalance);
-				dto.setPendingForApproval(totalPendingForApproval);
-				dtoList.add(dto);
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-
+			}else
+			{
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found. Kindly check Employee ID.");
 			}
 
 		} catch (Exception e) {
@@ -400,17 +411,19 @@ public class EmployeeLeaveService {
 				response.setServiceResponse("No leave logs found for employee.");
 
 			} else {
-
-				objectList.forEach((object) -> {
-					LeaveDTO dto = new LeaveDTO();
-
+				int i = 0;
+				LeaveDTO dto;
+				for (Object[] object : objectList) {
+					dto = new LeaveDTO();
+					i++;
 					dto.setLeaveType(object[0] != null ? object[0].toString() : null);
 					dto.setUpdateBalanceBy(object[1] != null ? object[1].toString() : null);
 					dto.setBalance(object[2] != null ? Float.parseFloat(object[2].toString()) : null);
 					dto.setMessage(object[3] != null ? object[3].toString() : null);
 					dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
+					dto.setRowNumber(i);
 					dtoList.add(dto);
-				});
+				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);

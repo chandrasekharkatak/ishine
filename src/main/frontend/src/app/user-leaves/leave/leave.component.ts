@@ -541,7 +541,7 @@ export class LeaveComponent implements OnInit {
     this.leaveBalanceList = [];
 
     let leaveObj = new Leave();
-    leaveObj.empId = this.currentUser.empId;
+    leaveObj.employeementId = this.currentUser.employeementId;
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;

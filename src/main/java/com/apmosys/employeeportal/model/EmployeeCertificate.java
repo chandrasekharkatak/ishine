@@ -16,7 +16,6 @@ import lombok.ToString;
 @Entity
 @Setter
 @Getter
-@ToString
 public class EmployeeCertificate {
 	
 	@Id

@@ -10,4 +10,6 @@ public interface PreviousEmploymentRepository extends JpaRepository<PreviousEmpl
 
 	List<PreviousEmployment> findByEmpId(Long empId);
 
+	List<PreviousEmployment> findByEmpIdAndIsDraft(Long empId, String isDraft);
+
 }

@@ -761,7 +761,11 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Year of Passing</label>
-                                        <input type="number" maxlength="4" class="form-control" autocomplete="none" [(ngModel)]="UpdateEmployeeInfo.yearOfPassing">
+                                        <!-- <input type="number" maxlength="4" class="form-control" autocomplete="none" [(ngModel)]="UpdateEmployeeInfo.yearOfPassing"> -->
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="UpdateEmployeeInfo.yearOfPassing" (change)="stringToNumber(UpdateEmployeeInfo.yearOfPassing)">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let year of yearOfPassingList" [value]=year>{{year}}</option>
+                                          </select>
                                     </div>
                                 </div>
                             </div>

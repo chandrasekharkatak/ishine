@@ -92,6 +92,7 @@ export class EmployeeConfigComponent implements OnInit {
     "West Bengal",
   ];
   currDate:any;
+  yearOfPassingList:any[] = [];
 
   constructor(
     private employeeService: EmployeeService,
@@ -122,6 +123,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
     // this.employeeObj.managerId = '';
+    this.setYearOfPassingList();
   }
 
   ngAfterViewInit() {
@@ -153,6 +155,16 @@ export class EmployeeConfigComponent implements OnInit {
     DOB?.setAttribute('max', today);
     DOJ?.setAttribute('max', today);
     DOC?.setAttribute('max', today);
+  }
+
+  setYearOfPassingList(){
+    for (let start = 1990; start < 2051; start++) {
+      this.yearOfPassingList.push(start);
+    }   
+  }
+
+  stringToNumber(year:any){
+    this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
 
   showCreateForm() {
@@ -271,27 +283,38 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
 
     this.getManagerList();
-    this.getAllDepartmentList();
+    this.getAllDepartmentList();    
     
-    this.employeeObj = Object.assign({}, employee);
-    // Job Role
-    if (this.employeeObj.departmentId) {
-      this.getJobRolesByDept(this.employeeObj.departmentId);
-    }
 
-    // Certifications
-    if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
-      this.addInputCertificationField();
-    } else {
-      this.allCertificationList = this.employeeObj.certifications;
-    }
+    this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeObj = Object.assign({}, response.serviceResponse);
+        console.log("employee :", this.employeeObj);
 
-    // Prev. Employment
-    if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
-      this.addInputPreviousEmployerField();
-    } else {
-      this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
-    }
+        // Job Role
+        if (this.employeeObj.departmentId) {
+          this.getJobRolesByDept(this.employeeObj.departmentId);
+        }
+
+        // Certifications
+        if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
+          this.addInputCertificationField();
+        } else {
+          this.allCertificationList = this.employeeObj.certifications;
+        }
+
+        // Prev. Employment
+        if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
+          this.addInputPreviousEmployerField();
+        } else {
+          this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
+        }
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+    
+    setTimeout(this.setCalenderMaxDate, 1000);
   }
 
   // Manage employer
@@ -637,13 +660,23 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmail(template: TemplateRef<any>) {
 
-
-    this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+    if(regex.test(this.employeeObj.email))
+    {
+      this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.email = '';
       }
     });
+    }
+    else
+    {
+      this.openAlertMod(template, "Please enter apmosys email id !!");
+      this.employeeObj.email = '';
+    }
+
+    
   }
 
   checkEmployeementId(template: TemplateRef<any>) {

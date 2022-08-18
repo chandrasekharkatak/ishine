@@ -660,7 +660,7 @@ exportToExcel(): void {
   onGetEmpLeaveBalance(template: TemplateRef<any>){
     this.leaveBalanceList = [];
 
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.empId)){
+    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)){
       this.alertMessage = "Please enter Employee ID !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -670,6 +670,7 @@ exportToExcel(): void {
     this.leaveService.getMyLeaveBalancesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
+        this.leaveBalanceObj.empId = response.serviceResponse1;
         console.log("leaveBalanceList : ", this.leaveBalanceList);
       } else {
         this.openAlertMod(template, response.serviceResponse);

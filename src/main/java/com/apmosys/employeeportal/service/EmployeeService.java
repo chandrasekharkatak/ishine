@@ -1495,6 +1495,7 @@ public class EmployeeService {
 					employee.setManagerId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 					employee.setGender(object[5] != null ? object[5].toString() : null);
 					employee.setDepartmentId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+					employee.setEmployeementId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 
 				});

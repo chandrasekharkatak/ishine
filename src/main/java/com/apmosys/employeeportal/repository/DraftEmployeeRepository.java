@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 
+@Repository
 public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Long>{
 
 	DraftEmployee findByEmployeementId(Long employeementId);
@@ -28,5 +30,11 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 
 	@Query(value = "FROM DraftEmployee e WHERE e.panNumber = :panNumber AND e.draftEmpId != :draftEmpId")
 	List<DraftEmployee> findByPanNumberAndDraftEmpId(String panNumber, Long draftEmpId);
+
+	@Query(nativeQuery = true)
+	List<Object[]> getAllDraftEmployees();
+
+	@Query(nativeQuery = true)
+	List<Object[]> getDraftEmployeeByEmpId(Long empId);
 
 }

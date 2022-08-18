@@ -18,4 +18,6 @@ export class User{
     timesheetLockDays:any;
 
     sessionString:any;
+
+    employeementId:any;
 }

@@ -11,6 +11,7 @@ public class ServiceResponse {
 	private Object serviceError;
 	private String errorStackTrace;
 	private String serviceMessage;
+	private Object serviceResponse1;
 	
 	
 	public Object getServiceResponse() {
@@ -43,6 +44,14 @@ public class ServiceResponse {
 	public void setServiceMessage(String serviceMessage) {
 		this.serviceMessage = serviceMessage;
 	}
+	public Object getServiceResponse1() {
+		return serviceResponse1;
+	}
+	public void setServiceResponse1(Object serviceResponse1) {
+		this.serviceResponse1 = serviceResponse1;
+	}
+	
+	
 	
 	
 	

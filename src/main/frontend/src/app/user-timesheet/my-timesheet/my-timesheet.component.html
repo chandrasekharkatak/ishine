@@ -169,7 +169,7 @@
                       <td colspan="4" [innerHTML]="timesheet.description"></td>
                       <td>{{timesheet.status}}</td>
                       <td>
-                        <button *ngIf="userMapping.update_timesheet" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
+                        <button *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
                     </td>
                   </tr>
                 </tbody>
