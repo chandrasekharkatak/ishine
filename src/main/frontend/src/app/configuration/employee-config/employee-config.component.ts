@@ -933,6 +933,35 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("filteredJobRoleList : ", this.filteredJobRoleList);
   }
 
+  validateBirthDate(template: TemplateRef<any>){   
+
+    let birthdate = new Date(this.employeeObj.dateOfBirth);
+    let dtCurrent = new Date();
+
+    if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
+      this.employeeObj.dateOfBirth = undefined;
+      this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
+      return false;
+     }
+    if (dtCurrent.getFullYear() - birthdate.getFullYear() == 18) {
+
+      //CD: 11/06/2018 and DB: 15/07/2000. Will turned 18 on 15/07/2018.
+      if (dtCurrent.getMonth() < birthdate.getMonth()) {
+        this.employeeObj.dateOfBirth = undefined;
+        this.openAlertMod(template, 'Employee age cannot be less than 18 years.');      
+        return false;
+      }
+      if (dtCurrent.getMonth() == birthdate.getMonth()) {
+          //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
+          if (dtCurrent.getDate() < birthdate.getDate()) {
+            this.employeeObj.dateOfBirth = undefined;
+            this.openAlertMod(template, 'Employee age cannot be less than 18 years.');  
+            return false;
+          }
+      }
+   }
+  }
+
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });

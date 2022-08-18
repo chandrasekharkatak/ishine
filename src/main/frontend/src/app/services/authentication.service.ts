@@ -48,6 +48,14 @@ export class AuthenticationService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/logoutUser`, user);
   }
 
+  checkEmailWhenForgotPassword(user: User) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmailWhenForgotPassword`, user);
+  }
+
+  checkOTPWhenForgotPassword(user: User) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkOTPWhenForgotPassword`, user);
+  }
+
   /* 
   *  Cron to check if user session exists.
   *  Added by suraj 12/08/2022

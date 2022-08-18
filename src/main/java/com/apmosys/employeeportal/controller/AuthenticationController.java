@@ -52,5 +52,19 @@ public class AuthenticationController {
 		ServiceResponse response = authenticationService.logoutUser(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/checkEmailWhenForgotPassword", method = RequestMethod.POST)
+	public ServiceResponse checkEmailWhenForgotPassword(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = authenticationService.checkEmailWhenForgotPassword(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/checkOTPWhenForgotPassword", method = RequestMethod.POST)
+	public ServiceResponse checkOTPWhenForgotPassword(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = authenticationService.checkOTPWhenForgotPassword(employeedto);
+		return response;
+	}
 
 }

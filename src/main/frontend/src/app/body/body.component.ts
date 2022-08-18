@@ -168,7 +168,7 @@ export class BodyComponent implements OnInit {
     }
 
     if(this.userNewPass == this.newpassword){
-    this.user.empId = this.currentUser.empId;
+    this.user.email = this.currentUser.email;
     this.user.password = this.setEncryption("PkdtRsJidheGitvS",this.password);
     this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS",this.newpassword);
 

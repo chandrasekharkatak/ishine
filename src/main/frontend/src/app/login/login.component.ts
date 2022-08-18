@@ -11,6 +11,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { SubfeatureService } from '../services/subfeature.service';
 import { ValidationService } from '../services/validation.service';
 import * as CryptoJS from 'crypto-js';
+import { EmployeeService } from '../services/employee.service';
 
 @Component({
   selector: 'app-login',
@@ -39,6 +40,7 @@ export class LoginComponent implements OnInit {
   userConfirmNewPass:any;
   user:User = new User();
   errorMsg:any;
+  userEmailIdForOtpVerification:any;
 
   /* User-Mappings */
   allSubFeatures:any[] = [];
@@ -57,7 +59,8 @@ export class LoginComponent implements OnInit {
     private modalService: BsModalService,
     private router: Router,
     private authenticationService: AuthenticationService,
-    private subfeatureService: SubfeatureService
+    private subfeatureService: SubfeatureService,
+    private employeeService: EmployeeService,
   ) { }
 
   ngOnInit(): void {
@@ -247,8 +250,24 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.isLoginOTP=false;
-    this.showOtpForm();
+    let user = new User();
+    user.email = this.userEmailId
+    this.userEmailIdForOtpVerification = this.userEmailId;
+
+    this.authenticationService.checkEmailWhenForgotPassword(user).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus == "Success")
+      {
+        this.isLoginOTP=false;
+        this.showOtpForm();
+      }
+      else{
+      this.isError=true;
+      this.errorMsg=response.serviceResponse;
+      return;
+      }
+    });
+
+    
   }
 
   onConfirmForgotPassOTP(){
@@ -261,13 +280,29 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.user.otp = this.userOTP;
-    this.showChangePassForm();
+    let user = new User();
+    user.email = this.userEmailIdForOtpVerification;
+    user.otp = this.userOTP;
+
+    this.authenticationService.checkOTPWhenForgotPassword(user).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus == "Success")
+      {        
+        this.showChangePassForm();
+      }
+      else{
+      this.isError=true;
+      this.errorMsg=response.serviceResponse;
+      return;
+      }
+    });
+    
+   
   }
 
-  onChangePassword(){
+  onChangePassword(template: TemplateRef<any>){
     this.isError=false;
     this.errorMsg='';
+    
     
     if(!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)){
       this.isError=true;
@@ -281,7 +316,38 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.showLoginForm();
+    if(this.userNewPass != this.userConfirmNewPass)
+    {
+      this.isError=true;
+      this.errorMsg='Password did not match. Please try again... !!';
+      this.userNewPass = '';
+      this.userConfirmNewPass = '';
+      return;
+    }
+
+    if(!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) && 
+    !this.validationService.validateAlphaNumericSpecialCharacters(this.userConfirmNewPass)){
+      this.isError=true;
+      //Password should not be set  less than 8 characters and it should accept special, alphanumeric characters
+      this.errorMsg='Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      return;
+    }
+
+    let user = new User();
+    user.email = this.userEmailIdForOtpVerification;
+    user.newPassword = this.setEncryption("PkdtRsJidheGitvS",this.userNewPass);
+
+    this.employeeService.updateEmployeePassword(user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "Password changed successfully.");
+        this.showLoginForm();
+      } else {
+        this.isError=true;
+        this.errorMsg=response.serviceResponse;
+      }
+    });
+
+    
   }
 
   getTabList(){
@@ -338,6 +404,11 @@ export class LoginComponent implements OnInit {
 
    //modals
   openReLoginMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }

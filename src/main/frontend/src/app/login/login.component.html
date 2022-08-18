@@ -48,7 +48,7 @@
                             <input class="form-control" type="text" id="emailID" placeholder="Enter email id" [(ngModel)]="userEmailId" autocomplete="off">
                         </div>
                         <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="onSendOTP()">Send OTP</button>
-                        <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn" (click)="onSendOTP()">Resend OTP</button>  
+                        <!-- <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn" (click)="onSendOTP()">Resend OTP</button>   -->
                     </div>
                     <!-- CHANGE PASSWORD FORM -->
                     <div *ngIf="isChangePassForm" class="change-pass__form">
@@ -72,7 +72,7 @@
                                 </span>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onChangePassword()">Change Password</button>
+                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onChangePassword(alert_message)">Change Password</button>
                     </div>
                     <div class="auth__cta d-flex justify-content-between mt-3">
                         <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a>
@@ -89,5 +89,12 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-success" (click)="cancelRequest();onReLogin()">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>

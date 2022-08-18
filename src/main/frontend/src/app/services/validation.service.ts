@@ -211,4 +211,23 @@ export class ValidationService {
     }
   }
 
+  validateAlphaNumericSpecialCharacters(text: string): boolean {
+
+ 
+    const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
+
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
 }
