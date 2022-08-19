@@ -167,6 +167,22 @@ export class BodyComponent implements OnInit {
       return;
     }
 
+    if(this.userNewPass != this.newpassword)
+    {
+      this.isError=true;
+      this.errorMsg='Password did not match. Please try again... !!';
+      this.userNewPass = '';
+      this.newpassword = '';
+      return;
+    }
+
+    if(!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) && 
+    !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)){
+      this.isError=true;
+      this.errorMsg='Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      return;
+    }
+
     if(this.userNewPass == this.newpassword){
     this.user.email = this.currentUser.email;
     this.user.password = this.setEncryption("PkdtRsJidheGitvS",this.password);

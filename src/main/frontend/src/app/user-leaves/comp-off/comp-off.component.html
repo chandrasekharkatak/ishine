@@ -28,7 +28,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>For</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="compOffObj.reason">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="compOffObj.reasonId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let reason of compOffReasons" value="{{reason.compOffId}}">{{reason.compOffReasons}}</option>
                             </select>

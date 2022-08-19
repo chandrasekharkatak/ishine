@@ -27,7 +27,7 @@ public class CompOffLeave {
 	private Short leaveTypeMasterId;
 	private Short leaveStatusId;
 	
-	private String reason;
+	private Integer reason;
 	@Column(length = 500)
 	private String description;
 	

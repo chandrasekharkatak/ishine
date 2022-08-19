@@ -137,7 +137,7 @@ export class CompOffComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
-      const BACKDATED_LEAVE_PERIOD = 30;
+      const BACKDATED_LEAVE_PERIOD = 7;
       const FUTUREDATED_LEAVE_PERIOD = 180;
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
@@ -178,7 +178,7 @@ export class CompOffComponent implements OnInit {
 
     validateLeavetObj(compOffObj:Leave, template: TemplateRef<any>){
       
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.reason)){
+      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.reasonId)){
         this.alertMessage = "Please select comp off reason !!"
         this.openAlertMod(template, this.alertMessage);
         return false;

@@ -60,4 +60,6 @@ export class Leave{
 	leaveStatusUpdatedByName:any;
 
 	employeementId:any;
+
+	reasonId:any;
 }

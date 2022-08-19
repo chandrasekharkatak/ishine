@@ -75,7 +75,6 @@ public class CompOffLeaveService {
 			CompOffLeave leave = new CompOffLeave();
 
 			leave.setDescription(leaveDTO.getDescription());
-			leave.setReason(leaveDTO.getReason());
 			leave.setEmpId(leaveDTO.getEmpId());
 			leave.setManagerId(leaveDTO.getManagerId());
 			// 1= pending , 2= approved , 3 = rejected
@@ -83,7 +82,7 @@ public class CompOffLeaveService {
 			// 1 = CL , 2 = PL , 3 = ML , 4 = PTL , 5 = CO
 //	        leave.setLeaveTypeMasterId((short)5);
 			leave.setLeaveCode("CO");
-			leave.setReason("comp off");
+			leave.setReason(leaveDTO.getReasonId());
 			leave.getCommonProperties().setCreatedBy(leaveDTO.getCreatedBy());
 			leave.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd"));
 			leave.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd"));

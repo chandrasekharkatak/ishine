@@ -79,4 +79,6 @@ public class LeaveDTO {
 	private Integer rowNumber;
 	
 	private Long employeementId;
+	
+	private Integer reasonId;
 }
