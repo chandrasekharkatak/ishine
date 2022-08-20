@@ -49,6 +49,10 @@ export class RoleConfigComponent implements OnInit {
 
   name = 'EmployeeRole.xlsx';
 
+  // for View Role By department 
+  selectedDept:any = '';
+  filterAllJobRoleList: any;
+
 
   feature = "Role Config";
   currentUser: User;
@@ -153,6 +157,16 @@ export class RoleConfigComponent implements OnInit {
 
   }
 
+  onSelectDepartment() {
+    if(this.selectedDept == 'all jobRole'){
+      this.filterAllJobRoleList = this.allJobRoleList;
+      this.page = 1;
+    }else{
+      this.filterAllJobRoleList = this.allJobRoleList.filter(x => x.departmentId == this.selectedDept);
+      this.page = 1;
+    } 
+  }
+
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
@@ -252,6 +266,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
+        this.filterAllJobRoleList = this.allJobRoleList;
       } else {
         console.error(response.serviceResponse)
       }

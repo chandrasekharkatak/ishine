@@ -103,7 +103,7 @@ export class LeaveConfigComponent implements OnInit {
   ]
 
   // for View Holidays by State 
-  selectedState:any;
+  selectedState:any = '';
 
   constructor(
     private validationService:ValidationService,
@@ -470,15 +470,13 @@ export class LeaveConfigComponent implements OnInit {
 
 
   onSelect() {
-    console.log("selecteddddddd");
     if(this.selectedState == 'all state'){
       this.holidayListFilter = this.holidayList;
       this.page = 1;
     }else{
       this.holidayListFilter = this.holidayList.filter(x => x.state == this.selectedState);
       this.page = 1;
-    }
-    
+    } 
   }
 
   getAllHolidays(){

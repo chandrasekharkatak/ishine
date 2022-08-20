@@ -94,6 +94,20 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Job Roles</h1>
     </div>
+    <div class="col-md-12 row">
+        <div class="offset-md-8 col-md-4 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label class="info-label">Department</label>
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (ngModelChange)="onSelectDepartment()">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="all jobRole">All Job Role</option>
+                        <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                      </select>
+                </div>
+            </div>
+        </div>
+    </div>
     <table class="table department-table">
         <thead class="thead-light">
           <tr>
@@ -108,10 +122,10 @@
           </tr>
         </thead>
         <tbody>
-            <tr *ngIf="allJobRoleList.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+            <tr *ngIf="filterAllJobRoleList.length == 0">
+                <th colspan="8" class="text-center info-label">No Job Role to display...</th>
             </tr>
-          <tr *ngFor="let jobRole of allJobRoleList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+          <tr *ngFor="let jobRole of filterAllJobRoleList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <th class="info-label">{{i+1}}</th>
             <td>{{jobRole.name}}</td>
             <td>{{jobRole.departmentName}}</td>

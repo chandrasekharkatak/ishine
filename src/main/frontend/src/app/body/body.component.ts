@@ -1,10 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, TemplateRef} from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../models/user';
 import { first } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import * as CryptoJS from 'crypto-js';
 
 @Component({
@@ -26,14 +27,18 @@ export class BodyComponent implements OnInit {
 
   password:any;
   userNewPass:any;
-  userOldPassword:any;
   newpassword:any;
   errorMsg:any;
   empId:any;
   user:User = new User();
 
+  //modal
+  alertMessage: any;
+  modalRef: BsModalRef = new BsModalRef();
+
   constructor(
     private validationService: ValidationService,
+    private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
@@ -118,91 +123,105 @@ export class BodyComponent implements OnInit {
     return encrypted.toString();
   }
 
-    reset(){
-      this.userOldPassword= "";
-      this.password= "";
-      this.userNewPass= "";
-    }
+  reset() {
+
+    this.password = '';
+    this.userNewPass = '';
+    this.newpassword = '';
+  }
 
 
-    checkEmployeeOldPassword(){
+  checkEmployeeOldPassword() {
 
-      console.log("butoon clickedddd");
-      this.isError=false;
-      this.errorMsg='';
+    this.isError = false;
+    this.errorMsg = '';
 
-      this.user.empId = this.currentUser.empId;
-      this.user.password = this.setEncryption("PkdtRsJidheGitvS",this.password);
+    this.user.empId = this.currentUser.empId;
+    this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
 
-      this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Fail") {
-              this.isError=true;
-              this.errorMsg=response.serviceResponse;
-            }else{
-              this.oldPasswordValid=true;
-            }
-      });
-    } 
+    this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.isError = true;
+        this.errorMsg = response.serviceResponse;
+      } else {
+        this.oldPasswordValid = true;
+      }
+    });
+  }
 
-  updateEmployeePassword(){
+  openChangePassword(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template);
+  }
 
-    this.isError=false;
-    this.errorMsg='';
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(this.password)){
-      this.isError=true;
-      this.errorMsg='Please enter old Password!!';
+
+  updateEmployeePassword(template: TemplateRef<any>) {
+    this.isError = false;
+    this.errorMsg = '';
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter old Password!!';
       return;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)){
-      this.isError=true;
-      this.errorMsg='Please enter new Password!!';
+    if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter new Password!!';
       return;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(this.newpassword)){
-      this.isError=true;
-      this.errorMsg='Please enter Confirm password !!';
+    if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter Confirm password !!';
       return;
     }
 
-    if(this.userNewPass != this.newpassword)
-    {
-      this.isError=true;
-      this.errorMsg='Password did not match. Please try again... !!';
+    if (this.userNewPass != this.newpassword) {
+      this.isError = true;
+      this.errorMsg = 'Password did not match. Please try again... !!';
       this.userNewPass = '';
       this.newpassword = '';
       return;
     }
 
-    if(!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) && 
-    !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)){
-      this.isError=true;
-      this.errorMsg='Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+    if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
+      !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
       return;
     }
 
-    if(this.userNewPass == this.newpassword){
-    this.user.email = this.currentUser.email;
-    this.user.password = this.setEncryption("PkdtRsJidheGitvS",this.password);
-    this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS",this.newpassword);
+    if (this.userNewPass == this.newpassword) {
+      this.user.email = this.currentUser.email;
+      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+      this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
 
-    this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.isError=true;
-        this.errorMsg='Password changed successfully!!';
-        this.reset();
-      } else {
-        this.isError=true;
-        this.errorMsg=response.serviceResponse;
-      }
-    });
-   }else{
-      this.isError=true;
-      this.errorMsg='Password and Confirm Password do not match !!';
+      this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.cancelRequest();
+          this.openAlertMod(template, response.serviceResponse);
+          this.reset();
+        } else {
+          this.isError = true;
+          this.errorMsg = response.serviceResponse;
+        }
+      });
+    } else {
+      this.isError = true;
+      this.errorMsg = 'Password and Confirm Password do not match !!';
       return;
-   }
+    }
+  }
+
+  //modal
+
+  cancelRequest() {
+    this.modalRef.hide();
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
   }
 
 }
