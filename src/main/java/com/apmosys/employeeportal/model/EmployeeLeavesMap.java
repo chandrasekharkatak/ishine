@@ -19,7 +19,7 @@ public class EmployeeLeavesMap {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Short employeeLeavesMapId;
+	private Long employeeLeavesMapId;
 	
 	private Long empId;
 	
