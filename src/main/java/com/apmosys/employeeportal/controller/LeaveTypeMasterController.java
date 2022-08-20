@@ -45,4 +45,18 @@ public class LeaveTypeMasterController {
 		return response;
 	}
 
+	@RequestMapping(value = "/deleteLeaveType" ,method = RequestMethod.POST)
+	public ServiceResponse deleteLeaveType(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = leaveTypeMasterService.deleteLeaveType(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/changeLeaveTypeMapping" ,method = RequestMethod.POST)
+	public ServiceResponse changeLeaveTypeMapping(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = leaveTypeMasterService.changeLeaveTypeMapping(leaveDTO);
+		return response;
+	}
+	
 }

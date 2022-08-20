@@ -245,7 +245,7 @@
                 <td>{{leaveType.description}}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>
+                    <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeaveType(delete_leave_type,leaveType)"><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>
@@ -594,4 +594,31 @@
         <button type="button" class="btn btn-success" (click)="ondeleteLeavePolicy(alert_message);cancelRequest();">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #delete_leave_type>	
+    <div class="modal-body text-center">	
+        <p>Are you sure you want to delete the Leave Type?</p>	
+        <button type="button" class="btn btn-success" (click)="onDeleteLeaveType(change_leave_type_mapping,alert_message)">Yes, proceed</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
+</ng-template>
+
+<ng-template #change_leave_type_mapping>	
+    <div class="modal-body text-center">	
+        <p>Leave Type cannot be deleted as it is mapped to employee(s) & Leave Policy.<br>To delete Leave Type change it's mapping</p>	
+        <div class="col-md-12 mb-0">	
+            <div class="info-wrapper">	
+                <div class="form-group d-flex pt-2">	
+                    <label class="info-label"><span class="text-danger">*</span>Select Leave Type</label>	
+                    <select class="form-control ml-2" aria-hidden="true" [(ngModel)]="leaveTypeObj.newLeaveTypeMasterId">	
+                        <option selected="selected" value="" disabled>Select</option>	
+                        <option *ngFor="let leave of filterLeaveType" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>	
+                    </select>	
+                </div>	
+            </div>	
+        </div>	
+        <button type="button" class="btn btn-success" (click)="onChangeLeaveTypeMapping(alert_message)">Yes, proceed</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
 </ng-template>

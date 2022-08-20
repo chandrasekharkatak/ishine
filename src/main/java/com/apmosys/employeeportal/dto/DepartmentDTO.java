@@ -23,6 +23,7 @@ public class DepartmentDTO {
 	private LocalDateTime updatedOn;	
 	private Integer updatedBy;
 	private List<HolidayDTO> holidays;
+	private Long oldDeptId;
 	
 	
 	

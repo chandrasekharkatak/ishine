@@ -23,7 +23,7 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.createDepartment(departmentDTO);
 		return response;
 	}
-	
+	//test
 	@RequestMapping(value="/createDepartmentByList" , method = RequestMethod.POST, consumes="application/json")
 	public ServiceResponse createEmployeeByList(@RequestBody DepartmentDTO[] departmentDTO) {	
 		
@@ -50,6 +50,12 @@ public class DepartmentController {
 	@RequestMapping(value = "/deleteDepartment", method = RequestMethod.POST)
 	public ServiceResponse deleteDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.deleteDepartment(departmentDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/changeDepartmentJobRoleMapping", method = RequestMethod.POST)
+	public ServiceResponse changeDepartmentJobRoleMapping(@RequestBody DepartmentDTO departmentDTO) {
+		ServiceResponse response = departmentService.changeDepartmentJobRoleMapping(departmentDTO);
 		return response;
 	}
 

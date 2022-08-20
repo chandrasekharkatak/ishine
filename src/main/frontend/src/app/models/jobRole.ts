@@ -10,4 +10,6 @@ export class JobRole{
 	updatedBy: any;
 	updatedByName:any;
 	hodId:any;
+	oldJobRoleId:any;
+	newJobRoleId:any;
 }

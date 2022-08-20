@@ -4,16 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -34,6 +42,15 @@ public class LeaveTypeMasterService {
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
+	
+	@Autowired
+	LeavePolicyMasterRepository leavePolicyMasterRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 
 	public ServiceResponse getAllLeaveTypes() {
 		ServiceResponse response = new ServiceResponse();
@@ -221,6 +238,162 @@ public class LeaveTypeMasterService {
 			}
 
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse deleteLeaveType(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Optional<LeaveTypeMaster> leaveTypeObject = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+			if (leaveTypeObject.isPresent()) {
+				LeaveTypeMaster leaveTypeToBeDeleted = leaveTypeObject.get();
+				
+				Long employeeLeavesMapCount = employeeLeavesMapRepository.countByLeaveTypeMasterId(leaveTypeToBeDeleted.getLeaveTypeMasterId());
+				Long leavePolicyCount = leavePolicyMasterRepository.countByLeaveTypeMasterId(leaveTypeToBeDeleted.getLeaveTypeMasterId());
+				
+				if(employeeLeavesMapCount == 0 && leavePolicyCount == 0) {
+					
+					leaveTypeMasterRepository.deleteById(leaveTypeToBeDeleted.getLeaveTypeMasterId());
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave Type deleted.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Leave Type cannot be deleted as it is mapped to employee(s) & Leave Policy.");
+				}
+					
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Job Role Not Found.");
+			}
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse changeLeaveTypeMapping(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<LeaveTypeMaster> leaveTypeObject = leaveTypeMasterRepository.findById(leaveDTO.getOldLeaveTypeMasterId());
+			if(leaveTypeObject.isPresent()) {
+				
+				//change balance mapping
+				List<EmployeeLeavesMap> oldBalanceMapping = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveDTO.getOldLeaveTypeMasterId());
+				EmployeeLeavesMap dbResponse = null;
+				
+				if(!oldBalanceMapping.isEmpty()) {
+					for(EmployeeLeavesMap oldLeaveType :oldBalanceMapping) {
+						
+						Float leaveTypeToBeDeletedBalance = oldLeaveType.getBalance();
+						Long employeeLeaveMapId = oldLeaveType.getEmployeeLeavesMapId();
+						
+						Optional<EmployeeLeavesMap> newBalanceMapping = employeeLeavesMapRepository.findById(employeeLeaveMapId);
+						
+						if(!newBalanceMapping.isEmpty()) {
+							
+							EmployeeLeavesMap employeeLeavesMap = newBalanceMapping.get();
+							Float leaveTypeToBeMappedBalance = employeeLeavesMap.getBalance();
+							
+							Float newBalance = leaveTypeToBeDeletedBalance + leaveTypeToBeMappedBalance;
+							employeeLeavesMap.setBalance(newBalance);
+							
+							dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
+							
+							if(dbResponse != null) {
+								
+								//delete leaveType from employeeLeaveMapping
+								employeeLeavesMapRepository.deleteById(oldLeaveType.getEmployeeLeavesMapId());
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Deleted successfully");
+								
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Balance Mapping Failed.");
+							}
+							
+						}
+					}
+				}
+				
+				//change leave policy mapping
+				
+				List<LeavePolicyMaster> oldLeaveTypePolicy = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveDTO.getOldLeaveTypeMasterId());
+				
+				if(!oldLeaveTypePolicy.isEmpty()) {
+					
+					for(LeavePolicyMaster leavePolicy :oldLeaveTypePolicy) {
+						leavePolicy.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+						
+						LeavePolicyMaster leavePolicyDbResponse = leavePolicyMasterRepository.save(leavePolicy);
+						
+						if(leavePolicyDbResponse != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Leave Policy mapping changed.");
+						}
+					}
+					
+					//change leave Application Mapping
+					
+					List<CompOffLeave> compOffLeaveApplication = compOffLeaveRepository.findByLeaveTypeMasterId(leaveDTO.getOldLeaveTypeMasterId());
+					List<EmployeeLeave> leaveApplication = employeeLeaveRepository.findByLeaveTypeMasterId(leaveDTO.getOldLeaveTypeMasterId());
+					
+					if(!compOffLeaveApplication.isEmpty()) {
+						
+						for(CompOffLeave compOffLeave:compOffLeaveApplication) {
+							
+							compOffLeave.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+							CompOffLeave compOffApplicationResponse = compOffLeaveRepository.save(compOffLeave);
+							
+							if(compOffApplicationResponse != null) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("CompOff leave application mapping changed.");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("CompOff leave application mapping changes failed.");
+							}
+						}
+						
+					}
+					
+					if(!leaveApplication.isEmpty()) {
+						
+						for(EmployeeLeave leaveApp :leaveApplication) {
+							
+							leaveApp.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+							EmployeeLeave leaveApplicationDbResponse = employeeLeaveRepository.save(leaveApp);
+							
+							if(leaveApplicationDbResponse != null) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Leave application mapping changed.");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Leave application mapping change failed.");
+							}
+							
+						}
+					}
+					
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("No Leave Policy Found.");
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Type Found.");
+			}
+			
+		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

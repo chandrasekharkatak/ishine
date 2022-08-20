@@ -62,4 +62,8 @@ export class Leave{
 	employeementId:any;
 
 	reasonId:any;
+
+	//for changing leavetype mapping  	
+	newLeaveTypeMasterId:any;	
+	oldLeaveTypeMasterId:any;
 }

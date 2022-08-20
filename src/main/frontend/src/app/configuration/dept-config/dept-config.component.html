@@ -90,7 +90,26 @@
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Department?</p>
-        <button type="button" class="btn btn-success" (click)="onDeleteDepartment(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="onDeleteDepartment(update_jobRole_department_template, alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #update_jobRole_department_template>
+    <div class="modal-body text-center">
+        <p>Department cannot be deleted as it is mapped to job role(s).<br>To delete Department change job role mapping.</p>
+        <div class="col-md-12 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group d-flex">
+                    <label><span class="text-danger">*</span>Select Department</label>
+                    <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="deptObj.newDeptId">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option *ngFor="let department of filterAllDeptList" value="{{department.deptId}}">{{department.name}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" (click)="onChangeDepartmentJobRoleMapping(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

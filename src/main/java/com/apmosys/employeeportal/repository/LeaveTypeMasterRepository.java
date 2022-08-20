@@ -13,4 +13,6 @@ public interface LeaveTypeMasterRepository extends JpaRepository<LeaveTypeMaster
 	public List<Object[]> getAllLeaveTypesByLeavePolicies(String employmentStatus, String gender);
 
 	public LeaveTypeMaster findByLeaveTypeCode(String leaveTypeCode);
+
+	public Long countByLeaveTypeMasterId(Short leaveTypeMasterId);
 }

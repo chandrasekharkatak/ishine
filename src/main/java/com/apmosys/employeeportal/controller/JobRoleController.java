@@ -58,5 +58,12 @@ public class JobRoleController {
 		ServiceResponse response = jobRoleService.deleteJobRole(jobRoleDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/changeEmployeeJobRoleMapping" ,method = RequestMethod.POST)
+	public ServiceResponse changeEmployeeJobRoleMapping(@RequestBody JobRoleDTO jobRoleDTO) {
+		
+		ServiceResponse response = jobRoleService.changeEmployeeJobRoleMapping(jobRoleDTO);
+		return response;
+	}
 
 }

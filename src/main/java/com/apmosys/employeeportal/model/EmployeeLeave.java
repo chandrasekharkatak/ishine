@@ -42,6 +42,8 @@ public class EmployeeLeave {
 	public CommonProperties commonProperty = new CommonProperties();
 	
 	private Long leaveStatusUpdatedBy;
+	//techHead
+	private Long hodId;
 	
 	
 }

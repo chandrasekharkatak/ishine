@@ -21,51 +21,55 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 export class RoleConfigComponent implements OnInit {
 
   //flags 
-  isCreation:boolean = false;
+  isCreation: boolean = false;
   isUpdation: boolean = false;
   isForm: boolean = false;
   isTable: boolean = false;
 
   //modal 
-  alertMessage:any;
+  alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
   //obj 
-  jobRoleObj:JobRole = new JobRole();
-  allJobRoleList:any;
-  allDeptList:any
-  allSubFeatures:any = [];
-  allMappedSubfeatures:any = [];
-  featureList:any = [];
-  selectedFeature:any;
-  subFeatureList:any;
-  isSubFeatureList:boolean = false;
+  jobRoleObj: JobRole = new JobRole();
+  oldJobRole: any;
+  newJobRole: any;
+  allJobRoleList: any;
+  filterJobRoleListForMapping: any;
+  filteredJobRoleList: any[] = [];
+  allDeptList: any
+  allSubFeatures: any = [];
+  allMappedSubfeatures: any = [];
+  featureList: any = [];
+  selectedFeature: any;
+  subFeatureList: any;
+  isSubFeatureList: boolean = false;
 
   roleDataForExcel: any[];
 
   name = 'EmployeeRole.xlsx';
 
 
-  feature="Role Config";
-  currentUser:User;
-  userMapping:any = {};
+  feature = "Role Config";
+  currentUser: User;
+  userMapping: any = {};
 
   constructor(
-    private validationService:ValidationService,
+    private validationService: ValidationService,
     private modalService: BsModalService,
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
     private subfeatureService: SubfeatureService,
-    private authenticationService : AuthenticationService,
-    private exportExcelService: ExportExcelService,) { 
-      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    }
+    private authenticationService: AuthenticationService,
+    private exportExcelService: ExportExcelService,) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   ngOnInit(): void {
     this.getAllDepartmentList();
-    
+
     // Dynamic Subfeature Flags 
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -77,29 +81,29 @@ export class RoleConfigComponent implements OnInit {
     this.sectionViewInit();
   }
 
-  sectionViewInit(){
-    if(this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role){
+  sectionViewInit() {
+    if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
       //for role table data 
       this.showTable();
     }
   }
 
-  getSubfeatureList(){
-    if(this.selectedFeature == null) {
+  getSubfeatureList() {
+    if (this.selectedFeature == null) {
       alert('Select Feature');
       return;
     }
 
     this.subFeatureList = [];
     this.featureList.filter(feature => {
-      if(feature.featureId == this.selectedFeature){
+      if (feature.featureId == this.selectedFeature) {
         this.subFeatureList = feature.subFeatures;
       }
     });
     this.isSubFeatureList = true;
   }
 
-  showCreateForm(){
+  showCreateForm() {
     this.isForm = true;
     this.isCreation = true;
 
@@ -110,9 +114,9 @@ export class RoleConfigComponent implements OnInit {
     this.reset();
   }
 
-  showTable(){
+  showTable() {
     this.isTable = true;
-    
+
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -121,21 +125,21 @@ export class RoleConfigComponent implements OnInit {
     this.getAllSubFeatures();
   }
 
-  reset(){
+  reset() {
     this.jobRoleObj = new JobRole();
     //Deafult values for dropdown
     this.jobRoleObj.departmentId = '';
-    this.selectedFeature= '';
+    this.selectedFeature = '';
 
     this.selectedFeature = null;
     this.allJobRoleList = [];
     this.allSubFeatures = [];
     this.allMappedSubfeatures = [];
     this.featureList = [];
-    this.subFeatureList=[];
+    this.subFeatureList = [];
   }
 
-  showUpdateForm(jobRole:JobRole){
+  showUpdateForm(jobRole: JobRole) {
     this.isForm = true;
     this.isTable = false;
     this.isUpdation = true;
@@ -146,18 +150,18 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj = Object.assign({}, jobRole)
     this.getSubfeaturesByJobRoleId();
     console.log("this.jobRoleObj : ", this.jobRoleObj);
-    
+
   }
 
-  validateJobRoleObj(jobRole:JobRole, template: TemplateRef<any>){
+  validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
-    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.name)){
+    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
       this.alertMessage = "Please enter Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)){
+
+    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)) {
       this.alertMessage = "Please select Department !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -167,10 +171,10 @@ export class RoleConfigComponent implements OnInit {
 
 
   // CRUD
-  onCreateJobRole(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
-    if(!inputValidated) return;
-    
+  onCreateJobRole(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
+    if (!inputValidated) return;
+
     this.jobRoleObj.createdById = this.currentUser.empId;;
     this.jobRoleService.createJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -183,10 +187,10 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-  onUpdateJobRole(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateJobRoleObj(this.jobRoleObj, template)
-    if(!inputValidated) return;
-    
+  onUpdateJobRole(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
+    if (!inputValidated) return;
+
     this.jobRoleObj.updatedBy = this.currentUser.empId;;
     this.jobRoleService.updateJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -198,13 +202,43 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-  onDeleteJobRole(template: TemplateRef<any>){
+  onDeleteJobRole(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
-  
+   // this.getJobRolesByDept(this.jobRoleObj.departmentId);
+
+    this.newJobRole = this.jobRoleObj.newJobRoleId;
+    this.oldJobRole = this.jobRoleObj.jobRoleId;
     this.jobRoleService.deleteJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
+      } else {
+        this.jobRoleObj.departmentId = '';
+      //  this.jobRoleObj.newJobRoleId = this.jobRoleObj.jobRoleId;
+        this.jobRoleObj.newJobRoleId = '';
+        this.modalRef = this.modalService.show(template);
+      }
+    });
+  }
+
+  onChangeEmployeeJobRoleMapping(template: TemplateRef<any>) {
+    this.cancelRequest();
+
+    this.jobRoleObj.jobRoleId = this.jobRoleObj.newJobRoleId;
+    this.jobRoleObj.oldJobRoleId = this.oldJobRole;
+    
+    this.jobRoleService.changeEmployeeJobRoleMapping(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        this.jobRoleObj.jobRoleId = this.oldJobRole;
+        this.jobRoleService.deleteJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+          } else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -212,7 +246,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
 
-  getAllJobRoleList(){
+  getAllJobRoleList() {
     this.allJobRoleList = [];
 
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
@@ -224,7 +258,7 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-  getAllDepartmentList(){
+  getAllDepartmentList() {
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -236,16 +270,16 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-   /* Features-Subfeature Mapping */
-   openUpdateConfimationModal(template: TemplateRef<any>, ){
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-   }
+  /* Features-Subfeature Mapping */
+  openUpdateConfimationModal(template: TemplateRef<any>,) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
 
-   onUpdateFeatureMapping(template: TemplateRef<any>){
+  onUpdateFeatureMapping(template: TemplateRef<any>) {
     let activeSubfeatures = this.subFeatureList.filter(sub => {
-      if(sub.roleFeatureMapId === null && sub.isActive == false){
+      if (sub.roleFeatureMapId === null && sub.isActive == false) {
         // to send only manipulated data ...
-      }else{
+      } else {
         return sub
       }
     });
@@ -265,7 +299,7 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-  getAllSubFeatures(){
+  getAllSubFeatures() {
     this.subfeatureService.getAllSubFeatures().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSubFeatures = response.serviceResponse;
@@ -276,21 +310,20 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-  getFeatureList(allSubFeatures:any){
+  getFeatureList(allSubFeatures: any) {
     this.featureList = [];
     allSubFeatures.forEach(featureMap => {
-      if(this.featureList.length == 0 || !this.featureList.find(feature => feature.featureName === featureMap.featureName))
-      {
+      if (this.featureList.length == 0 || !this.featureList.find(feature => feature.featureName === featureMap.featureName)) {
         let feat = new Feature();
         feat.featureId = featureMap.featureId;
         feat.featureName = featureMap.featureName;
 
         this.featureList.push(feat);
-      }      
+      }
     });
   }
 
-  getSubfeaturesByJobRoleId(){
+  getSubfeaturesByJobRoleId() {
     this.subfeatureService.getSubfeaturesByJobRoleId(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allMappedSubfeatures = response.serviceResponse;
@@ -301,17 +334,17 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
-  getActiveSubFeatures(){
+  getActiveSubFeatures() {
     this.allSubFeatures.forEach(sub => {
       let _sub = new SubFeature();
       _sub.subFeatureMasterId = sub.subFeatureMasterId;
       _sub.subFeatureName = sub.subFeatureName;
 
       let subMap = this.allMappedSubfeatures.find(subMap => subMap.subFeatureMasterId == sub.subFeatureMasterId);
-      if(subMap){
+      if (subMap) {
         _sub.isActive = true;
         _sub.roleFeatureMapId = subMap.roleFeatureMapId;
-      }else{
+      } else {
         _sub.isActive = false;
         _sub.roleFeatureMapId = null;
       }
@@ -336,16 +369,31 @@ export class RoleConfigComponent implements OnInit {
           createdOn: x.createdOn
         })
       )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.name)
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
 
+  getJobRolesByDept(departmentId: any) {
+    console.log("departmentId : ", departmentId);
+    console.log("this.allJobRoleList : ", this.allJobRoleList);
+
+
+    this.filteredJobRoleList = [];
+    this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
+
+    // for deleting the role
+    this.filterJobRoleListForMapping = [];
+    this.filterJobRoleListForMapping = this.filteredJobRoleList.filter(x => x.jobRoleId !== this.jobRoleObj.jobRoleId);
+
+    console.log("filteredJobRoleList : ", this.filteredJobRoleList);
+  }
 
 
   //modals
   openDeleteJobRole(template: TemplateRef<any>, jobRole: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.jobRoleObj = jobRole;
+    console.log(this.jobRoleObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -361,7 +409,7 @@ export class RoleConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  
+
 }
 
 

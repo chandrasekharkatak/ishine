@@ -21,7 +21,8 @@ public class JobRoleDTO {
 	private String departmentName;
 	private Long hodId;
 	private String updatedByName;
-	private String updatedOn;	
+	private String updatedOn;
+	private Long oldJobRoleId;
 	
 	
 	

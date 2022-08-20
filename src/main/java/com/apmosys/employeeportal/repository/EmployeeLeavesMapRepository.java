@@ -20,5 +20,7 @@ public interface EmployeeLeavesMapRepository extends JpaRepository<EmployeeLeave
 	public List<Object[]> getMyLeaveBalancesByEmpId(Long empId);
 
 	public List<EmployeeLeavesMap> findByLeaveTypeMasterId(short leaveTypeMasterId);
+	
+	public Long countByLeaveTypeMasterId(Short leaveTypeMasterId);
 
 }

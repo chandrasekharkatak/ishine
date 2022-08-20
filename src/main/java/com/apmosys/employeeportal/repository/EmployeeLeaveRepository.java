@@ -31,4 +31,6 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	@Query(nativeQuery = true)
 	public Long countAllMyTeamsPendingLeaveApplicationsByManagerId(Integer managerId);
 
+	public List<EmployeeLeave> findByLeaveTypeMasterId(Short oldLeaveTypeMasterId);
+
 }

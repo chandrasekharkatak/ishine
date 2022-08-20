@@ -3,9 +3,10 @@ export class Department{
 	name:any;	
 	hodId:any;
 	holidays:any;
-	
+	oldDeptId:any;
 	createdOn:any;	
 	createdBy:any;	
 	updatedOn:any;	
 	updatedBy:any;
+	newDeptId:any;
 }

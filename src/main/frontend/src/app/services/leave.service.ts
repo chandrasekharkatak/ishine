@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Leave } from '../models/leave';
 
 @Injectable({
@@ -65,6 +66,13 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllLeaveTypesByLeavePolicies`, leaveObj);
   }
 
+  deleteLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteLeaveType`, leaveObj);
+  }
+
+  changeLeaveTypeMapping(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/changeLeaveTypeMapping`, leaveObj);
+  }
 
   /* Comp off */
   getAllCompOffReasons(){

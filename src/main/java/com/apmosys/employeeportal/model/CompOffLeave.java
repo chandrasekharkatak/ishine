@@ -39,5 +39,6 @@ public class CompOffLeave {
 	private Float noOfDays;	
 	private String leaveCode;
 	private Long leaveStatusUpdatedBy;
+	private Long hodId;
 
 }

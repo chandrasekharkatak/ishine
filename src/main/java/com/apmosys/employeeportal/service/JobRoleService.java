@@ -252,5 +252,36 @@ public class JobRoleService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse changeEmployeeJobRoleMapping(JobRoleDTO jobRoleDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Employee> employeeJobRole = employeeRepository.findByJobRoleId(jobRoleDTO.getOldJobRoleId());
+			
+			if(!employeeJobRole.isEmpty()) {
+				for(Employee newJobRole: employeeJobRole) {
+				
+					newJobRole.setJobRoleId(jobRoleDTO.getJobRoleId());
+					
+					Employee dbResponse = employeeRepository.save(newJobRole);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Job Role deleted");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Employee Job role mapping Failed.");
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 }

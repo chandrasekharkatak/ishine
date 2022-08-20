@@ -53,6 +53,9 @@ export class LeaveConfigComponent implements OnInit {
 
   leaveTypeObj:Leave = new Leave();
   leaveTypes:any[] = [];
+  filterLeaveType:any[] = [];	
+  newLeaveType:any;	
+  oldLeaveType:any;
 
   leaveBalanceObj:Leave = new Leave();
   leaveBalanceList:any[] = [];
@@ -336,6 +339,12 @@ export class LeaveConfigComponent implements OnInit {
   openDeleteLeavePolicy(template: TemplateRef<any>, leavePolicy: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.leavePolicyObj = leavePolicy;
+  }
+
+  openDeleteLeaveType(template: TemplateRef<any>, leaveType: any) {	
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+    this.leaveTypeObj = leaveType;	
+    console.log(this.leaveTypeObj);	
   }
 
   // Holiday
@@ -653,6 +662,48 @@ exportToExcel(): void {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  onDeleteLeaveType(template: TemplateRef<any>,alertTemplate: TemplateRef<any>) {	
+    this.cancelRequest();
+
+    this.filterLeaveType = this.leaveTypes.filter(x => x.leaveTypeMasterId !== this.leaveTypeObj.leaveTypeMasterId)	
+    this.oldLeaveType = this.leaveTypeObj.leaveTypeMasterId;	
+
+    this.leaveService.deleteLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.openAlertMod(alertTemplate, response.serviceResponse);	
+        this.showLeaveTypesTable();	
+      } else {	
+        this.leaveTypeObj.newLeaveTypeMasterId = '';	
+        this.modalRef = this.modalService.show(template);	
+      }	
+    });	
+  }	
+
+  onChangeLeaveTypeMapping(template: TemplateRef<any>) {	
+    this.cancelRequest();	
+
+    this.leaveTypeObj.leaveTypeMasterId = this.leaveTypeObj.newLeaveTypeMasterId;	
+    this.leaveTypeObj.oldLeaveTypeMasterId = this.oldLeaveType;	
+
+    this.leaveService.changeLeaveTypeMapping(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+
+        this.leaveTypeObj.leaveTypeMasterId = this.oldLeaveType;	
+        this.leaveService.deleteLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {	
+          if (response.serviceStatus == "Success") {	
+            
+            this.openAlertMod(template, response.serviceResponse);	
+            this.showLeaveTypesTable();	
+          } else {	
+            this.openAlertMod(template, response.serviceResponse);	
+          }	
+        });	
+      } else {	
+        this.openAlertMod(template, response.serviceResponse);	
+      }	
+    });	
   }
 
 

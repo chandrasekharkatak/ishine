@@ -30,4 +30,8 @@ export class DepartmentService {
   updateDepartmentHolidayMappings(deptObj: Department) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateDepartmentHolidayMappings`, deptObj);
   }
+
+  changeDepartmentJobRoleMapping(deptObj: Department) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/changeDepartmentJobRoleMapping`, deptObj);
+  }
 }

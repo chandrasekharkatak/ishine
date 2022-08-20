@@ -21,4 +21,6 @@ public interface LeavePolicyMasterRepository extends JpaRepository<LeavePolicyMa
 
 	public List<LeavePolicyMaster> findByLeaveTypeMasterId(short leaveTypeMasterId);
 
+	public Long countByLeaveTypeMasterId(Short leaveTypeMasterId);
+
 }

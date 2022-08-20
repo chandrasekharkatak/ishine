@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -174,6 +175,41 @@ public class DepartmentService {
 				response.setServiceResponse("Department Not Found.");
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse changeDepartmentJobRoleMapping(DepartmentDTO departmentDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<JobRole> jobRoleDepartment = jobRoleRepository.findByDeptId(departmentDTO.getOldDeptId());
+			
+			if(!jobRoleDepartment.isEmpty()) {
+				
+				for(JobRole jobrole: jobRoleDepartment) {
+					jobrole.setDeptId(departmentDTO.getDeptId());
+					
+					JobRole dbResponse = jobRoleRepository.save(jobrole);
+
+					if (dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Department Deleted");
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Job Role Updation Failed.");
+					}
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No job role Found");
+			}
+			
+		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

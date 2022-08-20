@@ -33,7 +33,10 @@ export class DeptConfigComponent implements OnInit {
   //obj
   deptObj: Department = new Department();
   allDeptList: any;
+  filterAllDeptList: any;
   hodList: any = [];
+  oldDepartment: any;
+  newDepartment: any;
 
   //excel
   departmentDataForExcel: any[];
@@ -119,7 +122,7 @@ export class DeptConfigComponent implements OnInit {
       this.alertMessage = "Please enter Department Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateAlphaWithSpace(deptObj.name)){
+    } else if (!this.validationService.validateAlphaWithSpace(deptObj.name)) {
       this.alertMessage = "Please enter Valid Department Name!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -168,17 +171,48 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  onDeleteDepartment(template: TemplateRef<any>) {
+  onDeleteDepartment(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
+    this.filterAllDeptList = this.allDeptList.filter(x => x.deptId !== this.deptObj.deptId);
 
-    //! Need to check this 
+    //! Need to check this
     let department: Department = new Department();
     department.deptId = this.deptObj.deptId;
+    this.oldDepartment = this.deptObj.deptId;
 
     this.departmentService.deleteDepartment(department).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
+        this.page=1;
+      } else {
+        // this.openAlertMod(template, response.serviceResponse);
+        this.deptObj.newDeptId = '';
+        this.modalRef = this.modalService.show(template);
+      }
+    });
+  }
+
+  onChangeDepartmentJobRoleMapping(template: TemplateRef<any>) {
+    this.cancelRequest();
+
+    let department: Department = new Department();
+    department.deptId = this.deptObj.newDeptId;
+    department.oldDeptId = this.oldDepartment;
+
+    this.departmentService.changeDepartmentJobRoleMapping(department).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        
+        department.deptId = this.oldDepartment;
+        this.departmentService.deleteDepartment(department).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+            this.page=1;
+          } else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -223,15 +257,15 @@ export class DeptConfigComponent implements OnInit {
         this.departmentDataForExcel = response.serviceResponse;
       }
 
-      const onlySpecificDataArr: Partial<Department>[] = this.departmentDataForExcel.map(
+      const onlySpecificDataArr = this.departmentDataForExcel.map(
         x => ({
-          name: x.name,
-          hodName: x.hodName,
-          createdByName: x.createdByName,
-          createdOn: x.createdOn
+          "Name": x.name,
+          "HOD Name": x.hodName,
+          "Created By Name": x.createdByName,
+          "Created On": x.createdOn
         })
       )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.name)
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
 
@@ -240,6 +274,7 @@ export class DeptConfigComponent implements OnInit {
   openDeleteDepartment(template: TemplateRef<any>, department: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.deptObj = department;
+    console.log(this.deptObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -251,7 +286,7 @@ export class DeptConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-    //pagination 
+  //pagination 
 
   page = 1;
   handlePageChange(event) {

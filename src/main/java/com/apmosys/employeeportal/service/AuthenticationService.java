@@ -45,31 +45,39 @@ public class AuthenticationService {
 			if (employee != null) {
 
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+				
+				if(!employee.getEmploymentstatus().equals("InActive")) {
+				
+					if (!isUserLoggedIn) {
+						String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
+						String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
 
-				if (!isUserLoggedIn) {
-					String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
-					String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
+						if (dbPassword.equals(orignalPassword)) {
 
-					if (dbPassword.equals(orignalPassword)) {
+							Random random = new Random();
+							int otp = random.nextInt(9999 - 1000)
+									+ 1000; /* Random number will be generated between 1000 and 9999 */
+							employee.setOtp(otp);
+							employeeRepository.save(employee);
 
-						Random random = new Random();
-						int otp = random.nextInt(9999 - 1000)
-								+ 1000; /* Random number will be generated between 1000 and 9999 */
-						employee.setOtp(otp);
-						employeeRepository.save(employee);
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Valid Credentials. OTP sent to email.");
 
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Valid Credentials. OTP sent to email.");
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Invalid Password");
+						}
 
 					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Invalid Password");
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
+						response.setServiceResponse("User already logged in.Do you want to logout of existing session ?");
 					}
-
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
-					response.setServiceResponse("User already logged in.Do you want to logout of existing session ?");
+					
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+					response.setServiceResponse("InActive User");
 				}
+				
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Invalid Credentials.");

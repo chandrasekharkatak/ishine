@@ -81,4 +81,6 @@ public class LeaveDTO {
 	private Long employeementId;
 	
 	private Integer reasonId;
+	
+	private Short oldLeaveTypeMasterId;
 }

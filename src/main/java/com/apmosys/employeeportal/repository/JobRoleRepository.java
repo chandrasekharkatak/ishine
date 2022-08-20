@@ -16,4 +16,8 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	
 	public Long countByDeptId(Long deptId);
 
+	public JobRole findByjobRoleId(Long jobRoleId);
+
+	public List<JobRole> findByDeptId(Long oldDeptId);
+
 }

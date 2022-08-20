@@ -135,7 +135,41 @@
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Job Role?</p>
-        <button type="button" class="btn btn-success" (click)="onDeleteJobRole(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="onDeleteJobRole(update_employee_jobRole_template,alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #update_employee_jobRole_template>
+    <div class="modal-body text-center">
+        <p>Job Role cannot be deleted as it is mapped to employee(s).<br>To delete Job Role, map employee to other job role.</p>
+        
+        <div class="row">
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label" ><span class="text-danger">*</span>Select Department</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId" (change)="getJobRolesByDept(jobRoleObj.departmentId)">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Select Job Role</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.newJobRoleId">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let jobRole of filterJobRoleListForMapping" value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-success" (click)="onChangeEmployeeJobRoleMapping(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
