@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.projections.Leave;
 
-public interface EmployeeLeavesMapRepository extends JpaRepository<EmployeeLeavesMap, Short> {
+public interface EmployeeLeavesMapRepository extends JpaRepository<EmployeeLeavesMap, Long> {
 	
 	
 	public List<EmployeeLeavesMap> findAllByEmpId(Long empId);
