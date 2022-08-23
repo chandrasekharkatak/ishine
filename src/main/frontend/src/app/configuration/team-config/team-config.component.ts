@@ -342,12 +342,17 @@ export class TeamConfigComponent implements OnInit {
 
   getAllTeamsByProjectId(projectId:any){
     this.allTeamList = [];
+    this.allActivityList = [];
 
     let teamObj = new Team();
     teamObj.projectId = projectId;
     this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamList = response.serviceResponse;
+        this.allTeamList = this.allTeamList.sort(function (a, b) {
+          return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
+        });
+
         console.log("allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
