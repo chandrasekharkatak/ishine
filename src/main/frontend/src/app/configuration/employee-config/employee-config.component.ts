@@ -835,7 +835,9 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
         console.log("employeeList By Role : ", employeeList)
-        this.managerList = employeeList
+        this.managerList = employeeList.sort(function (a, b) {
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
         console.log("managerList : ", this.managerList)
       } else {
         console.error(response.serviceResponse)

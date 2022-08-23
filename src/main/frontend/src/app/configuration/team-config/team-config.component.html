@@ -157,9 +157,9 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr *ngFor="let team of allTeamList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                        <th scope="col" class="info-label">{{i+1}}</th>
+                        <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{team.teamName}}</td>
-                        <td>{{team.teamLeadId}}</td>
+                        <td>{{team.teamLeadName}}</td>
                         <td>{{team.createdByName}}</td>
                         <td>{{team.createdOn}}</td>
                         <td>

@@ -393,9 +393,8 @@ public class TimesheetService {
 
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
-				existingTimesheet.setDate(stringToDateTimeParser
-						.getDate(outputFormat.format(inputFormat.parse(timesheetDTO.getDate())), "yyyy-MM-dd"));
-				/*
+				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+				/* 			
 				 * Only pending/rejected timesheet can be updated by employee. So even if
 				 * employee is updating pending timesheet or rejected timesheet the status
 				 * should be set to "pending" in db. Hence we have hard coded "status" of
