@@ -257,7 +257,7 @@ export class EmployeeConfigComponent implements OnInit {
 
         // Job Role
         if (this.employeeObj.departmentId) {
-          this.getJobRolesByDept(this.employeeObj.departmentId);
+          this.getJobRolesByDept(this.employeeObj.departmentId, this.employeeObj.jobRoleId);
         }
 
         // Certifications
@@ -300,7 +300,7 @@ export class EmployeeConfigComponent implements OnInit {
 
         // Job Role
         if (this.employeeObj.departmentId) {
-          this.getJobRolesByDept(this.employeeObj.departmentId);
+          this.getJobRolesByDept(this.employeeObj.departmentId, this.employeeObj.jobRoleId);
         }
 
         // Certifications
@@ -937,14 +937,10 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  getJobRolesByDept(departmentId: any) {
-    console.log("departmentId : ", departmentId);
-    console.log("this.allJobRoleList : ", this.allJobRoleList);
-
-
+  getJobRolesByDept(departmentId: any, jobRoleId?:any) {
     this.filteredJobRoleList = [];
     this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
-    console.log("filteredJobRoleList : ", this.filteredJobRoleList);
+    jobRoleId? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
 
   validateBirthDate(template: TemplateRef<any>){   
