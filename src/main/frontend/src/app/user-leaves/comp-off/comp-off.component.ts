@@ -63,7 +63,7 @@ export class CompOffComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showCompOffRequestTable();
+    this.showCreateForm();
   }
 
   disableMannualDateInput(){

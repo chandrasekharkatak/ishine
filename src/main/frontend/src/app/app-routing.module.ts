@@ -54,6 +54,19 @@ const routes: Routes = [
     { path: 'team-timesheet', component: TeamTimesheetComponent, },
   ]
   },
+  {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
+  children: [
+    { path: 'leave', component: LeaveComponent, },
+    { path: 'holiday', component: HolidaysComponent, },
+    { path: 'compOff', component: CompOffComponent, },
+  ]
+  },
+  {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
+  children: [
+    { path: 'my-timesheet', component: MyTimesheetComponent, },
+    { path: 'team-timesheet', component: TeamTimesheetComponent, },
+  ]
+  },
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
   children: [
     { path: 'my-team', component: MyTeamComponent, },

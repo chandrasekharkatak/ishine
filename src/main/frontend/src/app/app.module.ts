@@ -44,7 +44,7 @@ import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-tim
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { NgxPaginationModule } from 'ngx-pagination';
-
+import {MatListModule} from '@angular/material/list';
 @NgModule({
   declarations: [
     AppComponent,
@@ -91,7 +91,8 @@ import { NgxPaginationModule } from 'ngx-pagination';
     MatNativeDateModule,
     MatFormFieldModule,
     MatInputModule,
-    NgxPaginationModule
+    NgxPaginationModule,
+    MatListModule
   ],
   providers: [
     BsModalService,

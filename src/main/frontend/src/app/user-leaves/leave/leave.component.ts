@@ -87,10 +87,11 @@ export class LeaveComponent implements OnInit {
     this.sectionViewInit();
     // this.getAllLeaveTypes();
     this.getAllLeaveTypesByLeavePolicies();
+    
   }
 
   sectionViewInit(){
-    this.showLeaveBalanceTable();
+    this.showCreateForm();
   }
 
   disableMannualDateInput(){

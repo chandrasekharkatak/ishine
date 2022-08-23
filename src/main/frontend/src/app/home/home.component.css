@@ -11,9 +11,9 @@
     color: var(--raisin-black);
 }
 
-.req-card{
+/* .req-card{
     background: var(--ghost-white);
-}
+} */
 
 .req-card:hover{
     cursor: pointer;
@@ -25,4 +25,102 @@
 
 .my-pagination::ng-deep .ngx-pagination .current {
     background: #193d8a  !important;
+}
+
+.eventPhotosCarousel .carousel-inner{
+    /* height: 21.5rem;  */
+    height: 25rem; 
+}
+
+img{
+    display: block;
+    width: 100%;
+}
+
+.carousel-item .carousel-img{
+    object-fit: cover !important;
+    object-position: right !important;
+}
+
+.notifications{
+    color: var(--dark-red);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.leaveBucketContainer,.requestBucketContainer{
+    height: 15.625rem;
+}
+
+/* .drop-shadow, .main-section, .secondary-section{
+    box-shadow: 0 3px 10px rgb(0 0 0 / 0.2);
+} */
+
+.main-section{
+    width: 70%;
+}
+
+.secondary-section{
+    width: 28%;
+}
+
+.section-heading{
+    color: #193d8a;
+    font-weight: bold;
+}
+
+.leaveBucketContainer, .requestBucketContainer{
+    background-color: #fff;
+}
+
+.requestBucketContainer:not(:last-child){
+    border-bottom: 0.5px solid #d9d9d9;
+}
+
+.request-title{
+    margin: 1rem 0 ;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.birthdayList{
+    max-height: 25rem;
+}
+
+.birthdayList .card-body{
+    overflow-y: auto;
+}
+
+.timesheet-container{
+    height: 21.5rem;
+}
+
+.timesheetTabContent{
+    height: 100%;
+}
+
+.timesheet__tab-container{
+    padding: 0 1rem;
+    min-height: 100%;
+}
+
+.timesheet__tab-item__link{
+    color: var(--middle-grey);
+}
+
+.timesheet__tab-item__link.active{
+    color: var(--raisin-black);
+    font-weight: bold;
+    border-bottom: 5px solid var(--dark-cornflower-blue);
+}
+
+.quick-link:hover{
+    cursor: pointer;
+    color: #193d8a;
+    font-weight: bold;
+}
+
+.progress-bar{
+    background-color: #193d8a;
 }

@@ -50,15 +50,24 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
   }
 
   setActiveTab(){
-    const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
-    console.log(tab);
-  
-    tab.classList.add('active');
-    let activeRouteLink = tab.getAttribute('routerLink');
-    console.log("activeRouteLink :", activeRouteLink);
-    console.log("Router :",  this.router);
-    
-    this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+    this.route.queryParams.subscribe((params) => {
+      let tabName = params.tabName;
+      if(tabName){
+        const tab = document.getElementById(tabName);
+        tab.classList.add('active');
+        let activeRouteLink = tab.getAttribute('routerLink');
+        this.router.navigate(['./'+activeRouteLink], 
+        { relativeTo: this.route,
+          queryParams: params, 
+          queryParamsHandling: 'merge'
+        });
+      }else{
+        const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
+        tab.classList.add('active');
+        let activeRouteLink = tab.getAttribute('routerLink');
+        this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+      }
+    });
   }
 
   removeActiveTab(){

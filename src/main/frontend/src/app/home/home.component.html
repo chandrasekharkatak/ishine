@@ -1,4 +1,231 @@
-<div class="row card mb-0 pb-0">
+<div class="container-fluid p-2">
+    <!-- Leave & Request Bucket -->
+    <div class="row justify-content-between leaveStatus">
+        <app-accordion-item class="acc-content main-section leaveBucket" title="My Leave Details"
+        titleColor="var(--dark-cornflower-blue)" titleBg="#fff" contentBg="#fff">
+            <div class="container-fluid leaveBucketContainer">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div id="leaveBucketChart" style="width:100%; height:15.625rem;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="leaveApprovedChart" style="width:100%; height:15.625rem;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="leaveRequestChart" style="width:100%; height:15.625rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </app-accordion-item>
+        <app-accordion-item class="acc-content secondary-section requestBucket" title="Team Requests"
+        titleColor="var(--dark-cornflower-blue)" titleBg="#fff" contentBg="#fff">
+            <div class="container-fluid requestBucketContainer d-flex flex-column justify-content-around pr-4">
+                <div class="row p-0 d-flex justify-content-between request-display">
+                    <p class="request-title">Leave Requests</p> <h1 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span class="badge badge-secondary">{{leaveApplicationCount}}</span></h1>
+                </div>
+                <div class="row p-0 d-flex justify-content-between request-display">
+                    <p class="request-title">EOD Requests</p> <h1 class="req-card" ><span class="badge badge-secondary">10</span></h1>
+                </div>
+                <div class="row p-0 d-flex justify-content-between request-display">
+                    <p class="request-title">Comp-off Requests</p> <h1 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
+                </div>
+                <div class="row p-0 d-flex justify-content-between request-display">
+                    <p class="request-title">Reimbursement Requests</p> <h1 class="req-card" ><span class="badge badge-secondary">10</span></h1>
+                </div>
+            </div>
+        </app-accordion-item>
+    </div>
+
+    <!-- notifications -->
+    <div class="row notifications my-1">
+        <marquee>In continuation with the festive season, let's celebrate Janmashtami by wearing Ethnic Wear on 19th Aug'22. ApMoSys is excited to celebrate the day with lots of fun & games.</marquee>
+    </div>
+    <!-- Event Photos & Today's Birthday Display -->
+    <div class="row justify-content-between mb-2">
+        <div class="main-section card">
+            <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
+                <div class="carousel-inner">
+                  <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''" *ngFor="let image of eventImages; let i = index">
+                    <img class="carousel-img" src="../../assets/Images/{{image}}.jpeg" alt="Event Photo">
+                  </div>
+                </div>
+                <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+              </div>
+        </div>
+        <div class="secondary-section card birthdayList">
+            <div class="card-title px-1 pt-2">
+                <p class="section-heading m-0 pl-2">Today's Birthdays</p>
+            </div>
+            <div class="card-body p-0">
+                <mat-list class="p-0">
+                    <mat-list-item *ngFor="let employee of birthdayList">
+                        <img matListAvatar src="../../assets/Images/default-user-image.jpeg" alt="User Avatar">
+                        <h1 matLine>{{employee.name}}</h1>
+                        <p matLine>{{employee.departmentName}}</p>
+                    </mat-list-item>
+                </mat-list>
+            </div>
+        </div>
+    </div>
+    <!-- Timesheet Display -->
+    <div class="row justify-content-between mb-2 timesheet-container">
+        <div class="main-section card">
+            <ul class="nav nav-tabs" id="timesheetTab" role="tablist">
+                <li class="nav-item timesheet_tab-item">
+                    <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
+                    href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true">EOD Last 7 Days</a>
+                </li>
+                <li class="nav-item timesheet__tab-item">
+                    <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
+                    href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false">EOD This Month</a>
+                </li>
+                <li class="nav-item timesheet__tab-item">
+                    <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
+                    href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false">EOD Last Month</a>
+                </li>
+            </ul>
+        
+            <!-- tab Containers -->
+            <div class="tab-content timesheetTabContent" id="timesheetTabContent">
+                <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
+                    aria-labelledby="weekly-tabpanel">
+                    <div class="row col-md-12 p-0 m-0">
+                        <table class="table table-sm timesheet-table">
+                            <thead>
+                              <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Day</th>
+                                <th scope="col" colspan="3">Working Hours</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th scope="row">1</th>
+                                <td>19-08-2022</td>
+                                <td>Friday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">8 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">2</th>
+                                <td>18-08-2022</td>
+                                <td>Thursday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">6 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">3</th>
+                                <td>17-08-2022</td>
+                                <td>Wednesday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">4 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">4</th>
+                                <td>16-08-2022</td>
+                                <td>Tuesday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">2 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">5</th>
+                                <td>15-08-2022</td>
+                                <td>Monday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">6</th>
+                                <td>14-08-2022</td>
+                                <td>Sunday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">7</th>
+                                <td>13-08-2022</td>
+                                <td>Saturday</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 Hrs</div>
+                                      </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade timesheet__tab-container" id="thisMonth-tabpanel" role="tabpanel"
+                    aria-labelledby="thisMonth-tabpanel">
+                    <h1>EOD THIS MONTH</h1>
+                </div>
+                <div class="tab-pane fade timesheet__tab-container" id="lastMonth-tabpanel" role="tabpanel"
+                    aria-labelledby="lastMonth-tabpanel">
+                    <h1>EOD LAST MONTH</h1>
+                </div>
+            </div>
+        </div>
+        <div class="secondary-section card">
+            <div class="card-title px-1 pt-2">
+                <p class="section-heading m-0 pl-2">Total Timesheet Time</p>
+            </div>
+            <div class="card-body p-0">
+                <div class="row col">
+                    <div id="totalEODChart" style="width:100%; height:15.625rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Quick Links -->
+    <div class="row card d-flex align-items-center justify-content-center drop-shadow" style="height: 75px;">
+        <div class="col-md-3 text-center quick-link" (click)="showApplyLeaveForm()">
+            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+            <p class="text-uppercase m-0 ">Apply Leave</p>
+        </div>
+        <div class="col-md-3 text-center quick-link" (click)="showApplyCompOffForm()">
+            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+            <p class="text-uppercase m-0" >Apply Comp-off</p>
+        </div>
+        <div class="col-md-3 text-center quick-link" (click)="showApplyTimesheetForm()">
+            <h5><span class="badge badge-secondary"> <i class="fa-solid fa-calendar-check"></i></span></h5>
+            <p class="text-uppercase m-0" >Apply Timesheet</p>
+        </div>
+        <div class="col-md-3 text-center quick-link" (click)="showHolidayList()">
+            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+            <p class="text-uppercase m-0" >View Holidays</p>
+        </div>  
+    </div>
+</div>
+
+
+
+<!-- <div class="row card mb-0 pb-0">
     <app-accordion-item title="All Requests" titleBg="var(--dark-cornflower-blue)" titleColor="#fff" [showBody]="isReqPending">
         <div class="container-fluid">
          <div class="row justify-content-around">
@@ -49,7 +276,7 @@
          </div>
         </div>
      </app-accordion-item>
-</div>
+</div> -->
 
 <!-- Leaves Req Modal -->
 <ng-template #LeaveReq>

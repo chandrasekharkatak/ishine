@@ -28,6 +28,11 @@ body {
     background: var(--ghost-white);
 }
 
+img{
+    max-width: 100%;
+    display: block;
+}
+
 /* Overriding bootstrap css */
 .btn.btn-outline-primary{
     border-color: var(--dark-cornflower-blue);
@@ -68,3 +73,4 @@ input[type=number] {
     background: #90EE90;
     border-radius: 100%;
 }
+

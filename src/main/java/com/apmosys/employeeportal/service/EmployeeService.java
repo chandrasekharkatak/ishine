@@ -1512,5 +1512,34 @@ public class EmployeeService {
 		}
 		return employee;
 	}
+	
+	public ServiceResponse getAllEmployeesBirthDayToday() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> allEmployeeList = employeeRepository.getAllEmployeesBirthDayToday();
+
+			if (allEmployeeList != null) {
+				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+				allEmployeeList.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					empDTO.setName(object[0] != null ? object[0].toString() : null);
+					empDTO.setDepartmentName(object[1] != null ? object[1].toString() : null);
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is null.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 }

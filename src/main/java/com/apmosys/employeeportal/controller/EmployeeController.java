@@ -154,5 +154,10 @@ public class EmployeeController {
 		return response;		
 	}
 	
-	
+	@RequestMapping(value = "/getAllEmployeesBirthDayToday", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesBirthDayToday() {
+
+		ServiceResponse response = employeeService.getAllEmployeesBirthDayToday();
+		return response;
+	}
 }

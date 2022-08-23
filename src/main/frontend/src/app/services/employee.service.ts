@@ -60,6 +60,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeePanNumber`, employeeObj);
   }
 
+  getAllEmployeesBirthDayToday() {
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesBirthDayToday`);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);

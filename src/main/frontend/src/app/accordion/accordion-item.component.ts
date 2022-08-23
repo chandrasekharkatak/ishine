@@ -33,6 +33,7 @@ export class AccordionItemComponent implements OnInit {
 
   @Input()title: string = '';
   @Input()titleBg: string = 'var(--cultured)';
+  @Input()contentBg: string = 'transparent';
   @Input()titleColor: string = '#000';
   @Input()showBody = false;
 
