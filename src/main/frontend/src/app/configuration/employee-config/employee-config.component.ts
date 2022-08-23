@@ -157,6 +157,13 @@ export class EmployeeConfigComponent implements OnInit {
     DOC?.setAttribute('max', today);
   }
 
+  currentDateFilter = (d: Date)=>{
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    
+    return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+  }
+
   setYearOfPassingList(){
     for (let start = 1990; start < 2051; start++) {
       this.yearOfPassingList.push(start);
@@ -631,6 +638,7 @@ export class EmployeeConfigComponent implements OnInit {
   // CRUD
 
   onCreateEmployee(template: TemplateRef<any>) {
+    const dateFormat = 'YYYY-MM-DD';
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
@@ -638,11 +646,16 @@ export class EmployeeConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.employeeObj.isDraft = false;
-    // // transform date formats to dd-MM-yyyy
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    // transform date formats to YYYY-MM-DD
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
+    this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    if(this.employeeObj.certifications){
+      this.employeeObj.certifications.forEach(certificate => {
+        certificate.dateOfCompletion = moment(certificate.dateOfCompletion).format(dateFormat);
+      });
+    }
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
@@ -716,16 +729,17 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   onUpdateEmployee(template: TemplateRef<any>) {
-
+    const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
 
     this.employeeObj.isDraft = false;
-    // // transform date formats to dd-MM-yyyy
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy');
+    // transform date formats to YYYY-MM-DD
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
+    this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
 
     this.allCertificationList.forEach(certificaiton => {
+      certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
       console.log("All certificaiton : ", this.allCertificationList);
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
         console.log("New certificaiton : ", certificaiton);

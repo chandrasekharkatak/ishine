@@ -64,8 +64,13 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Birth</label>
-                                            <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth" (keydown)="disableMannualDateInput()"
-                                            (blur)="validateBirthDate(alert_message)">
+                                            <!-- <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth" (keydown)="disableMannualDateInput()"
+                                            (blur)="validateBirthDate(alert_message)"> -->
+                                            <div class="d-flex">
+                                                <input class="form-control" matInput id="DOB" [matDatepicker]="DOBPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (blur)="validateBirthDate(alert_message)" disabled>
+                                                <mat-datepicker-toggle matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
+                                            </div>
+                                            <mat-datepicker  #DOBPicker disabled="false"></mat-datepicker>
                                         </div>
                                     </div>
                                 </div>
@@ -343,7 +348,12 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date of completion</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="certification.dateOfCompletion">
+                                            <!-- <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="certification.dateOfCompletion"> -->
+                                            <div class="d-flex">
+                                                <input class="form-control" matInput id="DOC" [matDatepicker]="DOCPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of completion" [(ngModel)]="certification.dateOfCompletion" disabled>
+                                                <mat-datepicker-toggle matSuffix [for]="DOCPicker"></mat-datepicker-toggle>
+                                            </div>
+                                            <mat-datepicker  #DOCPicker disabled="false"></mat-datepicker>
                                         </div>
                                     </div>
                                 </div>
@@ -372,7 +382,12 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date Of Joining</label>
-                                            <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()">
+                                            <!-- <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()"> -->
+                                            <div class="d-flex">
+                                                <input class="form-control" matInput id="DOJ" [matDatepicker]="DOJPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining" disabled>
+                                                <mat-datepicker-toggle matSuffix [for]="DOJPicker"></mat-datepicker-toggle>
+                                            </div>
+                                            <mat-datepicker  #DOJPicker disabled="false"></mat-datepicker>
                                         </div>
                                     </div>
                                 </div>

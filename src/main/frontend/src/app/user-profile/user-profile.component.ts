@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { certification } from '../models/certification';
@@ -66,6 +67,13 @@ export class UserProfileComponent implements OnInit {
 
   ngAfterViewInit() {
     this.setCalenderMaxDate();
+  }
+
+  currentDateFilter = (d: Date)=>{
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    
+    return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
   setYearOfPassingList(){
@@ -501,12 +509,17 @@ export class UserProfileComponent implements OnInit {
   }
 
   onUpdateEmployeeInfo(template: TemplateRef<any>){
-
+    const dateFormat = 'YYYY-MM-DD';
     let inputValidated:boolean  = this.validateEmployeeObj(this.UpdateEmployeeInfo, template)
     if(!inputValidated) return;
 
+    // transform date formats to YYYY-MM-DD
+    this.UpdateEmployeeInfo.dateOfBirth = moment(this.UpdateEmployeeInfo.dateOfBirth ).format(dateFormat);
+    this.UpdateEmployeeInfo.dateOfJoining = moment(this.UpdateEmployeeInfo.dateOfJoining).format(dateFormat);
+
     this.allCertificationList.forEach(certificaiton => {
       console.log("All certificaiton : ", this.allCertificationList);
+      certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
         if((certificaiton != undefined && Object.keys(certificaiton).length !== 0)&& (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)){
           console.log("New certificaiton : ", certificaiton);
           this.updatedCertificationList.push(certificaiton);

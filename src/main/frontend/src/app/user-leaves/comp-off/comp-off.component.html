@@ -43,10 +43,10 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
+                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="setNoOfDays(alert_message)" disabled>
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #fromDatePicker ></mat-datepicker>
+                            <mat-datepicker #fromDatePicker disabled="false" ></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -56,10 +56,10 @@
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="compOffObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
+                                <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="compOffObj.toDate" (dateChange)="setNoOfDays(alert_message)" disabled>
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #toDatePicker ></mat-datepicker>
+                            <mat-datepicker #toDatePicker disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>

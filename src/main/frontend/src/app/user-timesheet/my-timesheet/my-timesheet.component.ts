@@ -326,10 +326,10 @@ export class MyTimesheetComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
         console.log("allActivityList :", allActivityList);
-        this.setAllProjectActivities(activityObj, allActivityList);
       } else {
         console.error(response.serviceResponse)
       }
+      this.setAllProjectActivities(activityObj, allActivityList);
     });
   }
 
