@@ -646,7 +646,7 @@ public class EmployeeService {
 						&& !employeedto.getUpdatedCertifications().isEmpty()) {
 					// Case 2 : Adding New certification
 					newCertificationlist = employeedto.getUpdatedCertifications().stream()
-							.filter((certification) -> certification.getEmployeeCertificateId() == null).toList();
+							.filter((certification) -> certification.getEmployeeCertificateId() == null).collect(Collectors.toList());
 					if (!newCertificationlist.isEmpty()) {
 						newCertificationlist.forEach((certification) -> {
 							certification.setEmpId(employeedto.getEmpId());
@@ -705,7 +705,7 @@ public class EmployeeService {
 					if (employeedto.getUpdatedPreviousEmploymentList() != null
 							&& !employeedto.getUpdatedPreviousEmploymentList().isEmpty()) {
 						newPreviousEmploymentList = employeedto.getUpdatedPreviousEmploymentList().stream()
-								.filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).toList();
+								.filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).collect(Collectors.toList());
 						if (!newPreviousEmploymentList.isEmpty()) {
 							newPreviousEmploymentList.forEach((previousEmployer) -> {
 								previousEmployer.setEmpId(employeedto.getEmpId());
@@ -1047,7 +1047,7 @@ public class EmployeeService {
 						&& !employeedto.getUpdatedCertifications().isEmpty()) {
 					// Case 2 : Adding New certification
 					newCertificationlist = employeedto.getUpdatedCertifications().stream()
-							.filter((certification) -> certification.getEmployeeCertificateId() == null).toList();
+							.filter((certification) -> certification.getEmployeeCertificateId() == null).collect(Collectors.toList());
 					if (!newCertificationlist.isEmpty()) {
 						newCertificationlist.forEach((certification) -> {
 							certification.setEmpId(employeedto.getEmpId());
@@ -1106,7 +1106,7 @@ public class EmployeeService {
 					if (employeedto.getUpdatedPreviousEmploymentList() != null
 							&& !employeedto.getUpdatedPreviousEmploymentList().isEmpty()) {
 						newPreviousEmploymentList = employeedto.getUpdatedPreviousEmploymentList().stream()
-								.filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).toList();
+								.filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).collect(Collectors.toList());
 						if (!newPreviousEmploymentList.isEmpty()) {
 							newPreviousEmploymentList.forEach((previousEmployer) -> {
 								previousEmployer.setEmpId(employeedto.getEmpId());
