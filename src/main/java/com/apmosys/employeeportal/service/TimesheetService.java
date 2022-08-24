@@ -447,6 +447,22 @@ public class TimesheetService {
 								timesheetActivityMapRepository.deleteById(activity.getTimesheetActivityMapId());
 
 							});
+					
+					timesheetDTO.getAllTimesheetActivities().stream()
+						.filter(activities -> activities.getTimesheetActivityMapId() != null)
+						.forEach((activity) -> {
+							
+							Optional<TimesheetActivityMap> existingMap = timesheetActivityMapRepository.findById(activity.getTimesheetActivityMapId());
+							
+							if(existingMap.isPresent()){
+								TimesheetActivityMap map = existingMap.get();
+								
+								map.setActivityId(activity.getActivityId());
+								map.setCompletionTime(activity.getCompletionTime());
+								map.setDescription(activity.getDescription());
+								timesheetActivityMapRepository.save(map);
+							}
+						});
 
 				}
 

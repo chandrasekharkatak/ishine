@@ -64,7 +64,11 @@
                 <p class="section-heading m-0 pl-2">Today's Birthdays</p>
             </div>
             <div class="card-body p-0">
-                <mat-list class="p-0">
+                <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
+                    <img class="placeholder-img" src="../../assets/Images/birthday-cake-icon.svg" alt="Birthday Icon">
+                    <h1 class="placeholder-text">No Birthday's Today</h1>
+                </div>
+                <mat-list *ngIf="birthdayList.length != 0"  class="p-0">
                     <mat-list-item *ngFor="let employee of birthdayList">
                         <img matListAvatar src="../../assets/Images/default-user-image.jpeg" alt="User Avatar">
                         <h1 matLine>{{employee.name}}</h1>
@@ -77,7 +81,7 @@
     <!-- Timesheet Display -->
     <div class="row justify-content-between mb-2 timesheet-container">
         <div class="main-section card">
-            <ul class="nav nav-tabs" id="timesheetTab" role="tablist">
+            <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
                 <li class="nav-item timesheet_tab-item">
                     <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
                     href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true">EOD Last 7 Days</a>

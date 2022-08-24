@@ -158,7 +158,17 @@
         </div>
       </div>
     </div>
-    <div class="row px-3">
+    <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+      <div class="col-md-4 mb-0">
+          <div class="info-wrapper">
+              <div class="form-group">
+                  <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                  <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" disabled></textarea>
+                </div>
+          </div>
+      </div>
+  </div>
+    <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
       <table class="table timesheet-details-table">
           <thead class="thead-light">
             <tr>

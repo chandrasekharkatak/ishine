@@ -267,7 +267,7 @@ export class MyTimesheetComponent implements OnInit {
     
     if(this.timesheetObj.dayType != 'Holiday'){
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
-
+  
       if(this.timesheetObj.allTimesheetActivities){
         let newTimesheetActivities = this.timesheetObj.allTimesheetActivities.filter(activity => !activity.timesheetId);
         console.log("newTimesheetActivities : ", newTimesheetActivities);
@@ -408,6 +408,21 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
+  viewAllMyActivitiesByTimesheetId(timesheet:any){
+    this.timesheetObj.allTimesheetActivities = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.timesheetId = timesheet.timesheetId;
+    this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.allTimesheetActivities = response.serviceResponse;
+        console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
 
   exportToExcel(): void {
 
@@ -449,6 +464,13 @@ export class MyTimesheetComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj:Timesheet){
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj = timesheetObj;
+    this.viewAllMyActivitiesByTimesheetId(this.timesheetObj);
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+ }
 
   //pagination 
 

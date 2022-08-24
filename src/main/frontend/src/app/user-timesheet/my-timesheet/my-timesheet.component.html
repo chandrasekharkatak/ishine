@@ -170,6 +170,8 @@
                       <td colspan="4" [innerHTML]="timesheet.description"></td>
                       <td>{{timesheet.status}}</td>
                       <td>
+                        <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                        (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
                         <button *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
                     </td>
                   </tr>
@@ -211,3 +213,65 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<!-- View Timesheet Details -->
+<ng-template #timesheet_details>
+    <div class="modal-header">
+      <h5 class="modal-title">Timesheet Details</h5>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="col-md-2 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label">Date</label>
+              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label">Day Type</label>
+              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+        <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                    <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" disabled></textarea>
+                  </div>
+            </div>
+        </div>
+    </div>
+      <div *ngIf="timesheetObj.dayType != 'Holiday'"  class="row px-3">
+        <table class="table timesheet-details-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Project Name</th>
+                <th scope="col" class="info-label">Activity</th>
+                <th scope="col" colspan="4" class="info-label">Description</th>
+                <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <td>{{i+1}}</td>
+                <td>{{activity.projectName}}</td>
+                <td>{{activity.activity}}</td>
+                <td colspan="4">{{activity.description}}</td>
+                <td>{{activity.completionTime}}</td>
+              </tr>
+            </tbody>
+        </table> 
+      </div>
+    </div>
+  </ng-template>

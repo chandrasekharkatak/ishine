@@ -124,3 +124,22 @@ img{
 .progress-bar{
     background-color: #193d8a;
 }
+
+.placeholder{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.placeholder-img{
+    width: 30%;
+    margin: 1em auto;
+}
+
+.placeholder-text{
+    color: #c0c0c0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+}
