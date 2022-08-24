@@ -315,7 +315,6 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
-
 						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setDayType(object[2] != null ? object[2].toString() : null);
