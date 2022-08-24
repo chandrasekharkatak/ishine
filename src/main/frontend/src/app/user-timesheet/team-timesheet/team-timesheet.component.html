@@ -92,7 +92,7 @@
                   </tr>
                   <tr *ngFor="let timesheet of allTeamTimesheetRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{i+1}}</td>
-                    <td>{{timesheet.empId}}</td>
+                    <td>{{timesheet.employeementId}}</td>
                     <td>{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
@@ -167,7 +167,7 @@
                 </div>
           </div>
       </div>
-  </div>
+    </div>
     <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
       <table class="table timesheet-details-table">
           <thead class="thead-light">
@@ -193,5 +193,8 @@
           </tbody>
       </table> 
     </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>
   </div>
 </ng-template>

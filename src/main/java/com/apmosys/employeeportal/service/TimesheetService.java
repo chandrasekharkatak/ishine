@@ -324,6 +324,7 @@ public class TimesheetService {
 						dto.setStatus(object[5] != null ? object[5].toString() : null);
 						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+						dto.setEmployeementId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 						dtoList.add(dto);
 					});
 

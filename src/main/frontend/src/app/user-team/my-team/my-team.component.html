@@ -31,7 +31,7 @@
           <th colspan="8" class="text-center info-label">No details to display...</th>
         </tr>
         <tr *ngFor="let teamView of teamViewList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-          <td class="info-label">{{i+1}}</td>
+          <td class="info-label">{{10*(page-1)+i+1}}</td>
           <td class="info-label">A-{{teamView.employeementId}}</td>
           <td class="info-label">{{teamView.name}}</td>
           <td class="info-label">{{teamView.email}}</td>
@@ -102,7 +102,7 @@
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
         <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-          <td class="info-label">{{i+1}}</td>
+          <td class="info-label">{{10*(page-1)+i+1}}</td>
           <td class="info-label">{{leaveHistory.createdByName}}</td>
           <td class="info-label">{{leaveHistory.fromDate}}</td>
           <td class="info-label">{{leaveHistory.toDate}}</td>
@@ -162,7 +162,7 @@
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
         <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-        <td class="info-label">{{i+1}}</td>
+        <td class="info-label">{{10*(page-1)+i+1}}</td>
         <td class="info-label">{{compOffHistory.createdByName}}</td>
         <td class="info-label">{{compOffHistory.fromDate}}</td>
         <td class="info-label">{{compOffHistory.toDate}}</td>
@@ -218,7 +218,7 @@
         <th colspan="9" class="text-center info-label">No details to display...</th>
       </tr>
         <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-            <td>{{i+1}}</td>
+            <td>{{10*(page-1)+i+1}}</td>
             <td>{{leaveApplication.leaveType}}</td>
             <td>{{leaveApplication.fromDate}}</td>
             <td>{{leaveApplication.toDate}}</td>
@@ -260,7 +260,7 @@
       <th colspan="9" class="text-center info-label">No details to display...</th>
     </tr>
       <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-          <td>{{i+1}}</td>
+          <td>{{10*(page-1)+i+1}}</td>
           <td>{{compOffApp.createdByName}}</td>
           <td>{{compOffApp.compOffReasons}}</td>
           <td>{{compOffApp.fromDate}}</td>
