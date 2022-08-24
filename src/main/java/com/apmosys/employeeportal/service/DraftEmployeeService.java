@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -429,7 +430,7 @@ public class DraftEmployeeService {
 				
 				if(employeedto.getUpdatedCertifications() != null && !employeedto.getUpdatedCertifications().isEmpty()) {
 					// Case 2 : Adding New certification
-					newCertificationlist = employeedto.getUpdatedCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() == null).toList();
+					newCertificationlist = employeedto.getUpdatedCertifications().stream().filter((certification) -> certification.getEmployeeCertificateId() == null).collect(Collectors.toList());
 					if (!newCertificationlist.isEmpty()) {
 						newCertificationlist.forEach((certification) -> {
 							certification.setEmpId(employeedto.getEmpId());
@@ -480,7 +481,7 @@ public class DraftEmployeeService {
 					}
 					
 					if(employeedto.getUpdatedPreviousEmploymentList() != null && !employeedto.getUpdatedPreviousEmploymentList().isEmpty()) {
-						newPreviousEmploymentList = employeedto.getUpdatedPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).toList();
+						newPreviousEmploymentList = employeedto.getUpdatedPreviousEmploymentList().stream().filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() == null).collect(Collectors.toList());
 						if (!newPreviousEmploymentList.isEmpty()) {
 							newPreviousEmploymentList.forEach((previousEmployer) -> {
 								previousEmployer.setEmpId(employeedto.getEmpId());
