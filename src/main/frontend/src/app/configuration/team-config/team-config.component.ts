@@ -36,6 +36,7 @@ export class TeamConfigComponent implements OnInit {
   isActivityForm:boolean = false;
   isTeamTable:boolean = false;
   isActivityTable:boolean = false;
+  isDisabled:boolean = false;
 
   //modal 
   alertMessage:any;
@@ -356,7 +357,8 @@ export class TeamConfigComponent implements OnInit {
         this.allTeamList = this.allTeamList.sort(function (a, b) {
           return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
         });
-
+        
+        this.isDisabled=false;
         console.log("allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)

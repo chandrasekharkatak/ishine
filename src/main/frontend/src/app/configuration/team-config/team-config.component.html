@@ -190,7 +190,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllTeamsByProjectId(activityObj.projectId)">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true;">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                               </select>
@@ -201,7 +201,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.teamId" [disabled]="!activityObj.projectId">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.teamId" [disabled]="(isDisabled) || (!activityObj.projectId)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
                               </select>
@@ -248,7 +248,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject)">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
     
@@ -260,7 +260,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedTeam" [disabled]="!selectedProject" (change)="getAllActivitiesByProjectIdAndTeamId(selectedProject, selectedTeam)">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedTeam" [disabled]="(!selectedProject) || (isDisabled)" (change)="getAllActivitiesByProjectIdAndTeamId(selectedProject, selectedTeam)">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
                           </select>
