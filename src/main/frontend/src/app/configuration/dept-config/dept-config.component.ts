@@ -3,6 +3,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { Department } from 'src/app/models/department';
+import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
 import { User } from 'src/app/models/user';
@@ -32,9 +33,11 @@ export class DeptConfigComponent implements OnInit {
 
   //obj
   deptObj: Department = new Department();
+  employeeObj: Employee = new Employee();
   allDeptList: any;
   filterAllDeptList: any;
   hodList: any = [];
+  hodListFilter: any = [];
   oldDepartment: any;
   newDepartment: any;
 
@@ -60,7 +63,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getAllEmployeeList(); // for HOD List
+    this.getHODList(); // for HOD List
 
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -232,15 +235,33 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
-  getAllEmployeeList() {
-    this.hodList = [];
+  // getAllEmployeeList() {
+  //   this.hodList = [];
 
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+  //   this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.hodList = response.serviceResponse;
+  //       console.log("hodList : ", this.hodList)
+  //       this.hodListFilter =  this.hodList.filter(x => x.jobRoleName.includes("-HOD"));
+  //     } else {
+  //       alert(response.serviceResponse)
+  //     }
+  //   });
+  // }
+
+  getHODList() {
+    this.hodList = [];
+    let employeeList = [];
+
+    this.employeeObj.role = "HOD";
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.hodList = response.serviceResponse;
-        console.log("hodList : ", this.hodList)
+        employeeList = response.serviceResponse;
+        console.log("employeeList By Role : ", employeeList)
+        this.hodList = employeeList;
+        console.log("managerList : ", this.hodList)
       } else {
-        alert(response.serviceResponse)
+        console.error(response.serviceResponse)
       }
     });
   }

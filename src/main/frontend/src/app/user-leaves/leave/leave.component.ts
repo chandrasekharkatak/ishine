@@ -178,14 +178,17 @@ export class LeaveComponent implements OnInit {
     this.leaveBalanceList = [];
   }
 
-  showUpdateForm(){
-    this.isForm = true;
-    this.isUpdation = true;
-    this.isCreation = false;
-
-    this.isLeaveApplicationsTable = false;
-    this.isLeaveHistoryTable = false;
-    this.isLeaveBalanceTable = false;
+  showUpdateForm(leaveHistory:Leave){	
+    this.isForm = true;	
+    this.isUpdation = true;	
+    this.isCreation = false;	
+    this.isLeaveApplicationsTable = false;	
+    this.isLeaveHistoryTable = false;	
+    this.isLeaveBalanceTable = false;	
+    	
+    this.leaveObj = Object.assign({}, leaveHistory);	
+    console.log(this.leaveObj.leaveTypeMasterId);	
+    console.log(this.leaveObj);	
   }
 
   // Modals
@@ -196,6 +199,12 @@ export class LeaveComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  openDeleteLeave(template: TemplateRef<any>, leaveHistory: any) {	
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+    this.leaveObj = leaveHistory;	
+    console.log(this.leaveObj);	
   }
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
@@ -446,6 +455,33 @@ export class LeaveComponent implements OnInit {
         }
       });
     });
+  }
+
+  onUpdateLeave(template: TemplateRef<any>) {
+    this.cancelRequest();	
+
+    this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.openAlertMod(template, response.serviceResponse);	
+        this.showLeaveHistoryTable();	
+      } else {	
+        this.openAlertMod(template, response.serviceResponse);	
+      }	
+    });	
+  }	
+
+  
+  deletePendingLeave(template: TemplateRef<any>) {	
+    this.cancelRequest();	
+
+    this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.openAlertMod(template, response.serviceResponse);	
+        this.showLeaveHistoryTable();	
+      } else {	
+        this.openAlertMod(template, response.serviceResponse);	
+      }	
+    });	
   }
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){

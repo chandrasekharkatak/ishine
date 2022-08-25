@@ -26,6 +26,20 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/deletePendingLeave" ,method = RequestMethod.POST)
+	public ServiceResponse deletePendingLeave(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.deletePendingLeave(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/updatePendingLeave" ,method = RequestMethod.POST)
+	public ServiceResponse updatePendingLeave(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.updatePendingLeave(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/updateLeaveStatus" ,method = RequestMethod.POST)
 	public ServiceResponse updateLeaveStatus(@RequestBody LeaveDTO leaveDTO) {
 		

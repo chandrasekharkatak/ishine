@@ -201,7 +201,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.teamId">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.teamId" [disabled]="!activityObj.projectId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
                               </select>
@@ -260,7 +260,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedTeam" (change)="getAllActivitiesByProjectIdAndTeamId(selectedProject, selectedTeam)">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedTeam" [disabled]="!selectedProject" (change)="getAllActivitiesByProjectIdAndTeamId(selectedProject, selectedTeam)">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
                           </select>

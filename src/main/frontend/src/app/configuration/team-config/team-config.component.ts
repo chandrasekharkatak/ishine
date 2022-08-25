@@ -49,6 +49,8 @@ export class TeamConfigComponent implements OnInit {
   activityObj:Activity = new Activity();
   allActivityList:any[] = [];
 
+  employeeObj: Employee = new Employee();
+
   clientList:any[] = [];
   projectList:any[] = [];
   employeeListByDept:any[] = [];
@@ -393,20 +395,21 @@ export class TeamConfigComponent implements OnInit {
   }
 
   // For Team Lead
-  getAllEmployeesByRole(){
-    this.teamLeadsList = [];
-    let employeeList = [];
-
-    this.employeeService.getAllEmployeesByRole().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
-        this.teamLeadsList = employeeList.filter(emp => emp.role == "Team Lead");
-        console.log("teamLeadsList : ", this.teamLeadsList)
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+  getAllEmployeesByRole(){	
+    this.teamLeadsList = [];	
+    let employeeList = [];	
+    
+    this.employeeObj.role = "Team Lead";	
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        employeeList = response.serviceResponse;	
+        console.log("employeeList By Role : ", employeeList)	
+        this.teamLeadsList = employeeList;	
+        console.log("teamLeadsList : ", this.teamLeadsList)	
+      } else {	
+        console.error(response.serviceResponse)	
+      }	
+    });	
   }
 
   getAllEmployeesByDepartmentIds(){

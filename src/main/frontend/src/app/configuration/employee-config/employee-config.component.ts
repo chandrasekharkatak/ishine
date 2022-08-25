@@ -574,12 +574,6 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.role)) {
-      this.alertMessage = "Please select employee Role !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)) {
       this.alertMessage = "Please select experience !!"
       this.openAlertMod(template, this.alertMessage);
@@ -826,24 +820,23 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  // For Reporting Manager List
   getManagerList() {
-    this.managerList = [];
-    let employeeList = [];
+    this.managerList = [];	
+    let employeeList = [];	
 
-    this.employeeService.getAllEmployeesByRole().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
-        this.managerList = employeeList.sort(function (a, b) {
-          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-        });
-        console.log("managerList : ", this.managerList)
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
+    this.employeeObj.role = "Manager";	
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        employeeList = response.serviceResponse;	
+        console.log("employeeList By Role : ", employeeList)	
+        this.managerList = employeeList;	
+        console.log("managerList : ", this.managerList)	
+      } else {	
+        console.error(response.serviceResponse)	
+      }	
+    });	
+  }	
+
 
   /* Employee Draft */
   onSaveDraftEmployee(template: TemplateRef<any>) {

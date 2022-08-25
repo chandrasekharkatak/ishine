@@ -128,6 +128,7 @@ export class BodyComponent implements OnInit {
     this.password = '';
     this.userNewPass = '';
     this.newpassword = '';
+    this.errorMsg = '';
   }
 
 
@@ -217,6 +218,7 @@ export class BodyComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+    this.reset();
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

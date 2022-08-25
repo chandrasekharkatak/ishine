@@ -112,6 +112,100 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
+	
+	@Transactional
+	public ServiceResponse deletePendingLeave(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			
+			Optional<EmployeeLeave> leaveObject = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
+			
+			if (leaveObject.isPresent()) {
+				
+				EmployeeLeave leaveToBeDeleted = leaveObject.get();
+				
+				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+				
+				EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
+						.findByEmpIdAndLeaveTypeMasterId(leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
+				
+				Float balance = employeeLeavesMap.getBalance();
+				balance = balance + leaveDTO.getNoOfDays();
+				Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
+				pendingForApproval = pendingForApproval - leaveDTO.getNoOfDays();
+				
+				employeeLeavesMap.setBalance(balance);
+				employeeLeavesMap.setPendingForApproval(pendingForApproval);
+				
+				System.out.println(employeeLeavesMap + " employee leave");
+				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
+				
+				if(dbResponse != null) {
+					
+					LeaveBalanceLog log = new LeaveBalanceLog();
+
+					log.setBalance(balance);
+					log.setEmpId(leaveToBeDeleted.getEmpId());
+					log.setLeaveTypeMasterId(leaveToBeDeleted.getLeaveTypeMasterId());
+					log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
+					log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+
+					leaveBalanceLogRepository.save(log);
+					
+				}
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Leave Application Deleted.");
+				
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application Not Found.");
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	@Transactional
+	public ServiceResponse updatePendingLeave(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			
+			Optional<EmployeeLeave> leaveObject = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
+			
+			if(leaveObject.isPresent()) {
+				
+				EmployeeLeave leaveToBeUpdated = leaveObject.get();
+				
+				leaveToBeUpdated.setReason(leaveDTO.getReason());
+				
+				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveToBeUpdated);
+				
+				if(dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave Application Updated.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave Application Updation Failed.");
+				}
+				
+			}
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 	public ServiceResponse getAllMyLeaveApplicationsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();

@@ -62,6 +62,17 @@ public class EmployeeController {
 		return response;		
 	}
 	
+	@RequestMapping(value="/updateEmployeeByEmpIdByList" , method = RequestMethod.POST, consumes="application/json")		
+	public ServiceResponse updateEmployeeByEmpIdByList(@RequestBody EmployeeDTO[] employeedto) {			
+				
+		ServiceResponse response = null;		
+				
+		 for (EmployeeDTO employee: employeedto) {		
+			 response = employeeService.updateEmployeeByEmpIdByList(employee);		
+		    }			
+		return response;		
+	}
+	
 	@RequestMapping(value="/deleteEmployeeByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse deleteEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {		
 		
@@ -91,10 +102,10 @@ public class EmployeeController {
 		return response;		
 	}
 	
-	@RequestMapping(value = "/getAllEmployeesByRole", method = RequestMethod.GET)
-	public ServiceResponse getAllEmployeesByRole() {
+	@RequestMapping(value = "/getAllEmployeesByRole", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByRole(@RequestBody EmployeeDTO employeedto) {
 
-		ServiceResponse response = employeeService.getAllEmployeesByRole();
+		ServiceResponse response = employeeService.getAllEmployeesByRole(employeedto);
 		return response;
 	}
 	

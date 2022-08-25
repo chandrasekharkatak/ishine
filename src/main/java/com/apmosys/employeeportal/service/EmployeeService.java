@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PreviousEmployment;
@@ -36,6 +38,7 @@ import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
@@ -54,6 +57,9 @@ public class EmployeeService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired					
+	JobRoleRepository jobRoleRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -222,7 +228,11 @@ public class EmployeeService {
 
 			employee.setEmployeementId(employeedto.getEmployeementId());
 			employee.setName(employeedto.getName());
-			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
+			if (employeedto.getDateOfBirth() == null) {					
+				employee.setDateOfBirth(stringToDateTimeParser.getDate("2001-01-01", "yyyy-MM-dd"));					
+			} else {					
+				employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));					
+			}
 			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
 			employee.setManagerId(employeedto.getManagerId());
 			employee.setEmail(employeedto.getEmail());
@@ -233,7 +243,11 @@ public class EmployeeService {
 			employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
 			employee.setMotherTongue(employeedto.getMotherTongue());
 			employee.setPassportNumber(employeedto.getPassportNumber());
-			employee.setAadhar(employeedto.getAadhar());
+			if (employeedto.getAadhar() == null) {					
+				employee.setAadhar(123456789012l);					
+			} else {					
+				employee.setAadhar(employeedto.getAadhar());					
+			}
 			employee.setPanNumber(employeedto.getPanNumber());
 			employee.setMobileNo(employeedto.getMobileNo());
 			employee.setLandline(employeedto.getLandline());
@@ -242,13 +256,31 @@ public class EmployeeService {
 			employee.setState(employeedto.getState());
 			employee.setCountry(employeedto.getCountry());
 			employee.setPincode(employeedto.getPincode());
-			employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
+			if (employeedto.getAlternateMobileNo() == null) {					
+				employee.setAlternateMobileNo(1111111111l);					
+			} else {					
+				employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());					
+			}
 			employee.setPermanentAddress(employeedto.getPermanentAddress());
 			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
 			employee.setRelation(employeedto.getRelation());
 			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
 			employee.setNoticePeriod(employeedto.getNoticePeriod());
-			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+			
+			LocalDate joinDate = stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd");		
+			LocalDate todayDate = LocalDate.now();		
+			LocalDate returnvalue = todayDate.minusMonths(9);		
+			Integer result = returnvalue.compareTo(joinDate);		
+					
+			if(employeedto.getEmploymentstatus().equals("N")) {		
+				employee.setEmploymentstatus("InActive");		
+			}else if(result <= 0) {		
+				employee.setEmploymentstatus("Probation");		
+			}else if(result >= 0) {		
+				employee.setEmploymentstatus("Confirmed");		
+			}		
+				
+//			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
 			employee.setBankName(employeedto.getBankName());
 			employee.setBankAccountNo(employeedto.getBankAccountNo());
 			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
@@ -262,8 +294,20 @@ public class EmployeeService {
 			employee.setPassingGrade(employeedto.getPassingGrade());
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
-			employee.setJobRoleId(employeedto.getJobRoleId());
-			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
+			
+			if(jobRoleRepository.findById(employeedto.getJobRoleId()).isEmpty())					
+			{					
+				employee.setJobRoleId(135L);					
+			}					
+			else					
+			{					
+				employee.setJobRoleId(employeedto.getJobRoleId());					
+			}					
+										
+			//employee.setJobRoleId(employeedto.getJobRoleId());				
+							
+			employee.setPassword(employeedto.getPassword());		
+			//employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
 			employee.setExperience(employeedto.getExperience());
 			employee.setRole(employeedto.getRole());
@@ -743,6 +787,50 @@ public class EmployeeService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse updateEmployeeByEmpIdByList(EmployeeDTO employeedto) {					
+		ServiceResponse response = new ServiceResponse();					
+		try {					
+								
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");					
+			Optional<Employee> employeeObject = Optional.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));					
+			if (employeeObject.isPresent()) {					
+									
+								
+				Employee m = employeeRepository.findByEmployeementId(employeedto.getManagerId());					
+				System.out.println(employeedto.getManagerId() + " : manager id");					
+									
+				Long primaryEmpId = m.getEmpId(); 					
+				System.out.println(primaryEmpId);					
+									
+				Employee employee = employeeObject.get();					
+									
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());					
+									
+				employee.setManagerId(primaryEmpId);	
+									
+				Employee dbResponse = employeeRepository.save(employee);					
+									
+				if (dbResponse != null) {					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);					
+					response.setServiceResponse("Employee Profile Updated.");					
+				} else {					
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
+					response.setServiceResponse("Employee Profile Updation Failed.");					
+				}					
+									
+			}else {					
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
+				response.setServiceResponse("Employee Profile Not found" + employeedto.getEmployeementId());					
+			}					
+								
+		}catch(Exception e) {					
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
+			response.setServiceResponse("Something went wrong");					
+			e.printStackTrace();					
+		}					
+		return response;					
+	}
 
 //	public ServiceResponse getAllEmployees() {
 //
@@ -1145,44 +1233,100 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse getAllEmployeesByRole() {
-		ServiceResponse response = new ServiceResponse();
-
-		try {
-
-			List<Object[]> objectlist = employeeRepository.getEmployeesByRole();
-
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-
-			Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {
-
-				if (!list.isEmpty()) {
-					list.forEach((object) -> {
-						EmployeeDTO dto = new EmployeeDTO();
-						dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setName(object[1] != null ? object[1].toString() : null);
-						dto.setRole(object[2] != null ? object[2].toString() : null);
-						dtoList.add(dto);
-					});
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Employee list is empty.");
-				}
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee list is null");
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		return response;
+//	public ServiceResponse getAllEmployeesByRole() {
+//		ServiceResponse response = new ServiceResponse();
+//
+//		try {
+//
+//			List<Object[]> objectlist = employeeRepository.getEmployeesByRole();
+//
+//			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+//
+//			Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {
+//
+//				if (!list.isEmpty()) {
+//					list.forEach((object) -> {
+//						EmployeeDTO dto = new EmployeeDTO();
+//						dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//						dto.setName(object[1] != null ? object[1].toString() : null);
+//						dto.setRole(object[2] != null ? object[2].toString() : null);
+//						dtoList.add(dto);
+//					});
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(dtoList);
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Employee list is empty.");
+//				}
+//
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee list is null");
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//		}
+//		return response;
+//	}
+	
+	public ServiceResponse getAllEmployeesByRole(EmployeeDTO employeedto) {	
+		ServiceResponse response = new ServiceResponse();	
+		try {	
+				
+			List<JobRole> jobRoleObj = jobRoleRepository.findAll();	
+				
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();	
+				
+			for(JobRole jobRole : jobRoleObj) {	
+					
+				String jobRoleName = jobRole.getName();	
+					
+				if (jobRoleName.contains("-")) {	
+					String jobname = jobRoleName.split("-")[1];	
+						
+						
+					if(jobname.equals(employeedto.getRole())) {	
+							
+						List<Object[]> objectlist = employeeRepository.getEmployeesByRole(jobRoleName);	
+							
+									Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {	
+							
+										if (!list.isEmpty()) {	
+											list.forEach((object) -> {	
+												EmployeeDTO dto = new EmployeeDTO();	
+												dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);	
+												dto.setName(object[1] != null ? object[1].toString() : null);	
+												dto.setJobRoleName(object[2] != null ? object[2].toString() : null);	
+												dtoList.add(dto);	
+											});	
+											response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+											response.setServiceResponse(dtoList);	
+										} else {	
+											response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+											response.setServiceResponse("Employee list is empty.");	
+										}	
+							
+									}, () -> {	
+										response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+										response.setServiceResponse("Employee list is null");	
+									});	
+							
+					}	
+						
+				}	
+			}	
+				
+		} catch (Exception e) {	
+			e.printStackTrace();	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
+			response.setServiceResponse("Something Went Wrong.");	
+			response.setServiceError(e.getMessage());	
+		}	
+		return response;	
 	}
 
 	public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {

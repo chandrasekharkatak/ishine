@@ -152,6 +152,8 @@ export class RoleConfigComponent implements OnInit {
     this.subFeatureList = [];
 
     this.jobRoleObj = Object.assign({}, jobRole)
+    this.jobRoleObj.name = jobRole.name.split("-")[0];
+    this.jobRoleObj.employeeRole = jobRole.name.split("-")[1];
     this.getSubfeaturesByJobRoleId();
     console.log("this.jobRoleObj : ", this.jobRoleObj);
 
@@ -177,6 +179,12 @@ export class RoleConfigComponent implements OnInit {
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)) {
       this.alertMessage = "Please select Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(jobRole.employeeRole)) {
+      this.alertMessage = "Please select Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

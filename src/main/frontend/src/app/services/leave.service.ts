@@ -49,6 +49,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAppliedLeaveApplicationsByEmpIdAndDateRange`, leaveObj);
   }
 
+  deletePendingLeave(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deletePendingLeave`, leaveObj);
+  }
+
+  updatePendingLeave(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updatePendingLeave`, leaveObj);
+  }
+
   /* Leave Type */
   createLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/createLeaveType`, leaveObj);

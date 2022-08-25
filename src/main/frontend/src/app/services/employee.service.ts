@@ -36,8 +36,8 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateEmployeeProfileByEmpId`, employeeObj);
   }
 
-  getAllEmployeesByRole() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesByRole`);
+  getAllEmployeesByRole(employeeObj: Employee) {	
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesByRole`, employeeObj);	
   }
 
   getAllEmployeesByDepartmentIds(employeeObj: Employee) {
