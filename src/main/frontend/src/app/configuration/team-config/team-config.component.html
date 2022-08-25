@@ -285,7 +285,7 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                   <tr *ngFor="let activity of allActivityList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" >
-                    <th scope="col" class="info-label">{{i+1}}</th>
+                    <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{activity.activity}}</td>
                     <td>{{activity.eta}} hr(s)</td>
                     <td>{{activity.createdByName}}</td>

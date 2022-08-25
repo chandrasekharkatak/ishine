@@ -122,6 +122,7 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.page=1;
 
     this.getAllMyLeaveApplicationsByEmpId();
   }
@@ -135,6 +136,7 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.page=1;
 
     this.getMyLeaveBalancesByEmpId();
   }
@@ -148,6 +150,7 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.page=1;
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
@@ -161,6 +164,7 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.page=1;
 
     this.getLeaveLogsByEmpId();
   }

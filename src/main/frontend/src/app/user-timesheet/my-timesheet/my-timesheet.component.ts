@@ -106,6 +106,7 @@ export class MyTimesheetComponent implements OnInit {
     this.isTimesheetForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.page=1;
 
     this.startDate = null;
     this.endDate = null;

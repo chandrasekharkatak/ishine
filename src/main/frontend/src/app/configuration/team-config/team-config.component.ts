@@ -136,6 +136,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTable = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.page=1;
 
     this.allTeamList = [];
   }
@@ -180,6 +181,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.page=1;
 
     this.allActivityList = [];
   }

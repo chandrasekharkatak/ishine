@@ -48,7 +48,7 @@
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr *ngFor="let timesheet of allTeamTimesheets | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                    <td>{{i+1}}</td>
+                    <td>{{10*(page-1)+i+1}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
                     <td colspan="4" [innerHTML]="timesheet.description"></td>
@@ -91,7 +91,7 @@
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr *ngFor="let timesheet of allTeamTimesheetRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                    <td>{{i+1}}</td>
+                    <td>{{10*(page-1)+i+1}}</td>
                     <td>{{timesheet.employeementId}}</td>
                     <td>{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
@@ -184,7 +184,7 @@
               <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
             <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-              <td>{{i+1}}</td>
+              <td>{{10*(page-1)+i+1}}</td>
               <td>{{activity.projectName}}</td>
               <td>{{activity.activity}}</td>
               <td colspan="4">{{activity.description}}</td>

@@ -115,7 +115,7 @@
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
             <tr *ngFor="let compOffReq of allCompOffRequests | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-                <td>{{i+1}}</td>
+                <td>{{10*(page-1)+i+1}}</td>
                 <td>{{compOffReq.compOffReasons}}</td>
                 <td>{{compOffReq.fromDate}}</td>
                 <td>{{compOffReq.toDate}}</td>
@@ -154,7 +154,7 @@
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
             <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-                <td>{{i+1}}</td>
+                <td>{{10*(page-1)+i+1}}</td>
                 <td>{{compOffApp.createdByName}}</td>
                 <td>{{compOffApp.compOffReasons}}</td>
                 <td>{{compOffApp.fromDate}}</td>

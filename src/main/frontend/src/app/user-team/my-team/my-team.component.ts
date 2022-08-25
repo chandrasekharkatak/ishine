@@ -89,6 +89,7 @@ export class MyTeamComponent implements OnInit {
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
     this.isTeamRequest = false;
+    this.page=1;
   }
 
   viewTeamLeaveHistory() {
@@ -100,6 +101,7 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = false;
     this.isViewTeam = false;
     this.isTeamRequest = false;
+    this.page=1;
   }
 
   viewLeaveHistory() {
@@ -108,6 +110,7 @@ export class MyTeamComponent implements OnInit {
     this.fromDate = null;
     this.toDate = null;
     this.teamViewLeaveHistoryList = [];
+    this.page=1;
   }
 
   viewCompOffHistory() {
@@ -116,6 +119,7 @@ export class MyTeamComponent implements OnInit {
     this.fromDate = null;
     this.toDate = null;
     this.teamViewCompOffHistoryList = [];
+    this.page=1;
   }
 
   viewTeamRequest() {
@@ -127,16 +131,19 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffHistory = false;
     this.isTeamLeaveHistory = false;
     this.isViewTeam = false;
+    this.page=1;
   }
 
   viewTeamLeaveRequest() {
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
+    this.page=1;
   }
 
   viewTeamCompOffRequest() {
     this.isLeaveRequest = false;
     this.isCompOffRequest = true;
+    this.page=1;
   }
 
   getAllTeamView() {
