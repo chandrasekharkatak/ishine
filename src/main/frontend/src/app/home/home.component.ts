@@ -9,6 +9,8 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as HighCharts from 'highcharts';
 import { Router } from '@angular/router';
 import { EmployeeService } from '../services/employee.service';
+import { Timesheet } from '../models/timesheet';
+import { TimesheetService } from '../services/timesheet.service';
 
 @Component({
   selector: 'app-home',
@@ -33,6 +35,8 @@ export class HomeComponent implements OnInit {
   compOffApplicationCount:any = 0;
   allCompOffApplications:any[] = [];
 
+  timesheetApplicationCount:any = 0;
+
   //export excel
   excelName:any = '';
 
@@ -46,13 +50,15 @@ export class HomeComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private router: Router,
     private employeeService: EmployeeService,
+    private timesheetService : TimesheetService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
   ngOnInit(): void {
-    // this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-    // this.countPendingCompOffRequestsByManagerId();
+    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+    this.countPendingCompOffRequestsByManagerId();
+    this.countMyReporteesTimesheetRequests();
 
     this.renderPieChart();
     this.getAllEmployeesBirthDayToday();
@@ -161,6 +167,26 @@ export class HomeComponent implements OnInit {
       }
     });
   }
+
+  /* Timesheets Applications Count
+  *  Added by suraj 07/08/2022
+  */
+  countMyReporteesTimesheetRequests(){
+    this.allCompOffApplications = []
+
+    let timesheet = new Timesheet();
+    timesheet.managerId = this.currentUser.empId;
+    this.timesheetService.countMyReporteesTimesheetRequests(timesheet).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetApplicationCount =  response.serviceResponse.applicationCount;
+        console.log("TimesheetApplicationCount : ", this.timesheetApplicationCount);
+      } else {
+        this.timesheetApplicationCount =  0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
 
 
   // Graphs 

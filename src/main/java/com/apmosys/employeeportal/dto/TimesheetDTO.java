@@ -36,4 +36,6 @@ public class TimesheetDTO {
 	private List<ActivityDTO> updatedTimesheetActivities;
 	
 	private Long employeementId;
+	
+	private Long applicationCount;
 }

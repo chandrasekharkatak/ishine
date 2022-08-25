@@ -112,37 +112,37 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
-	
+
 	@Transactional
 	public ServiceResponse deletePendingLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 
 		try {
-			
+
 			Optional<EmployeeLeave> leaveObject = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-			
+
 			if (leaveObject.isPresent()) {
-				
+
 				EmployeeLeave leaveToBeDeleted = leaveObject.get();
-				
+
 				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
-				
-				EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
-						.findByEmpIdAndLeaveTypeMasterId(leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
-				
+
+				EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
+						leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
+
 				Float balance = employeeLeavesMap.getBalance();
 				balance = balance + leaveDTO.getNoOfDays();
 				Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 				pendingForApproval = pendingForApproval - leaveDTO.getNoOfDays();
-				
+
 				employeeLeavesMap.setBalance(balance);
 				employeeLeavesMap.setPendingForApproval(pendingForApproval);
-				
+
 				System.out.println(employeeLeavesMap + " employee leave");
 				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
-				
-				if(dbResponse != null) {
-					
+
+				if (dbResponse != null) {
+
 					LeaveBalanceLog log = new LeaveBalanceLog();
 
 					log.setBalance(balance);
@@ -152,17 +152,17 @@ public class EmployeeLeaveService {
 					log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 
 					leaveBalanceLogRepository.save(log);
-					
+
 				}
-				
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Leave Application Deleted.");
-				
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Application Not Found.");
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -171,34 +171,34 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
-	
+
 	@Transactional
 	public ServiceResponse updatePendingLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 
 		try {
-			
+
 			Optional<EmployeeLeave> leaveObject = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-			
-			if(leaveObject.isPresent()) {
-				
+
+			if (leaveObject.isPresent()) {
+
 				EmployeeLeave leaveToBeUpdated = leaveObject.get();
-				
+
 				leaveToBeUpdated.setReason(leaveDTO.getReason());
-				
+
 				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveToBeUpdated);
-				
-				if(dbResponse != null) {
+
+				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave Application Updated.");
-				}else {
+				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave Application Updation Failed.");
 				}
-				
+
 			}
-			
-		}catch (Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -371,6 +371,7 @@ public class EmployeeLeaveService {
 						dto.setBalance(object[1] != null ? Float.parseFloat(object[1].toString()) : null);
 						dto.setPendingForApproval(object[2] != null ? Float.parseFloat(object[2].toString()) : null);
 						dto.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+						dto.setLeaveTypeCode(object[4] != null ? object[4].toString() : null);
 
 						dtoList.add(dto);
 					});
@@ -392,8 +393,7 @@ public class EmployeeLeaveService {
 					response.setServiceResponse1(employee.getEmpId());
 				}
 
-			}else
-			{
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee not found. Kindly check Employee ID.");
 			}
@@ -595,6 +595,84 @@ public class EmployeeLeaveService {
 		}
 		return response;
 
+	}
+
+	public ServiceResponse countMyReporteesPendingLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> list = employeeLeaveRepository
+					.countMyReporteesPendingLeaveApplicationsByLeaveType(leaveDTO.getManagerId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+			Optional.ofNullable(list).ifPresentOrElse((employeeLeavesList) -> {
+
+				if (employeeLeavesList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Application list is empty.Count is zero");
+				} else {
+					employeeLeavesList.forEach((object) -> {
+						LeaveDTO dto = new LeaveDTO();
+						dto.setApplicationCount(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+						dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Application list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse countMyApprovedLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> list = employeeLeaveRepository
+					.countMyApprovedLeaveApplicationsByLeaveType(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+			Optional.ofNullable(list).ifPresentOrElse((employeeLeavesList) -> {
+
+				if (employeeLeavesList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Application list is empty.Count is zero");
+				} else {
+					employeeLeavesList.forEach((object) -> {
+						LeaveDTO dto = new LeaveDTO();
+						dto.setApplicationCount(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+						dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Application list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
 
 }

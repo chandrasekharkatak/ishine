@@ -59,6 +59,13 @@ public class TimesheetController {
 		return response;
 	}	
 	
+	@RequestMapping(value = "/countMyReporteesTimesheetRequests", method = RequestMethod.POST)
+	public ServiceResponse countMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.countMyReporteesTimesheetRequests(timesheetDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/updateTimesheetRequestById", method = RequestMethod.POST)
 	public ServiceResponse updateTimesheetRequestById(@RequestBody TimesheetDTO timesheetDTO) {
 
