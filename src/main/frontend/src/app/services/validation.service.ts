@@ -24,6 +24,24 @@ export class ValidationService {
 
   }
 
+  validateAlphaNumericWithSpace(text: string): boolean {
+
+    const regex = /^[a-zA-Z0-9 ]+$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+
   validateNumber(text: string): boolean {
 
     const regex = /^[0-9]*$/;

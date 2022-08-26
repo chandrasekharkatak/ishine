@@ -43,10 +43,15 @@
     <!-- Event Photos & Today's Birthday Display -->
     <div class="row justify-content-between mb-2">
         <div class="main-section card">
+            <div *ngIf="!isImagesLoaded" class="container-fuid d-flex m-auto">
+                <div  class="spinner-border" role="status" style="height: 100px; width: 100px;"> 
+                    <span class="sr-only">Loading...</span>
+                  </div>
+            </div>
             <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
                 <div class="carousel-inner">
                   <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''" *ngFor="let image of eventImages; let i = index">
-                    <img class="carousel-img" src="../../assets/Images/{{image}}.jpeg" alt="Event Photo">
+                    <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo" title="{{image.eventName}}">
                   </div>
                 </div>
                 <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">

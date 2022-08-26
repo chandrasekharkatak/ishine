@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ConfigurationComponent } from './configuration/configuration.component';
 import { DeptConfigComponent } from './configuration/dept-config/dept-config.component';
 import { EmployeeConfigComponent } from './configuration/employee-config/employee-config.component';
+import { HomeConfigComponent } from './configuration/home-config/home-config.component';
 import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
 import { TeamConfigComponent } from './configuration/team-config/team-config.component';
@@ -39,39 +40,40 @@ const routes: Routes = [
       { path: 'role', component: RoleConfigComponent, },
       { path: 'leave', component: LeaveConfigComponent, },
       { path: 'team', component: TeamConfigComponent, },
+      { path: 'home-config', component: HomeConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
-  children: [
-    { path: 'leave', component: LeaveComponent, },
-    { path: 'holiday', component: HolidaysComponent, },
-    { path: 'compOff', component: CompOffComponent, },
-  ]
+    children: [
+      { path: 'leave', component: LeaveComponent, },
+      { path: 'holiday', component: HolidaysComponent, },
+      { path: 'compOff', component: CompOffComponent, },
+    ]
   },
   {path:'user-timesheet', component: UserTimesheetComponent, canActivate: [AuthGuard],
-  children: [
-    { path: 'my-timesheet', component: MyTimesheetComponent, },
-    { path: 'team-timesheet', component: TeamTimesheetComponent, },
-  ]
+    children: [
+      { path: 'my-timesheet', component: MyTimesheetComponent, },
+      { path: 'team-timesheet', component: TeamTimesheetComponent, },
+    ]
   },
   {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
-  children: [
-    { path: 'leave', component: LeaveComponent, },
-    { path: 'holiday', component: HolidaysComponent, },
-    { path: 'compOff', component: CompOffComponent, },
-  ]
+    children: [
+      { path: 'leave', component: LeaveComponent, },
+      { path: 'holiday', component: HolidaysComponent, },
+      { path: 'compOff', component: CompOffComponent, },
+    ]
   },
   {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
-  children: [
-    { path: 'my-timesheet', component: MyTimesheetComponent, },
-    { path: 'team-timesheet', component: TeamTimesheetComponent, },
-  ]
+    children: [
+      { path: 'my-timesheet', component: MyTimesheetComponent, },
+      { path: 'team-timesheet', component: TeamTimesheetComponent, },
+    ]
   },
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
-  children: [
-    { path: 'my-team', component: MyTeamComponent, },
-    { path: 'team-member', component: TeamMemberComponent, }
-  ]
+    children: [
+      { path: 'my-team', component: MyTeamComponent, },
+      { path: 'team-member', component: TeamMemberComponent, }
+    ]
   },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},

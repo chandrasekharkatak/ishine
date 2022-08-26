@@ -1,0 +1,113 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1">Set Announcement</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Upload Event Photos</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Event Photos List</button>
+    </div>
+</div>
+
+<!-- start :: upload Images Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Upload Images</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Event Name</label>
+                            <input type="text" class="form-control" maxlength="50" autocomplete="none" [(ngModel)]="eventName">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label mb-0"><span class="text-danger">*</span>Select Images</label>
+                            <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 10MB</small>
+                            <input type="file" multiple class="form-control p-1" (change)="onImageSelect($event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUploadImages(alert_message)">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: upload Images form -->
+
+<!-- start :: See all Photos Table -->
+<div class="row col-md-12" *ngIf="isTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Event Photos</h1>
+    </div>
+    <table class="table department-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Image Name</th>
+            <th scope="col" class="info-label">Event Name</th>
+            <th scope="col" class="info-label">Created by</th>
+            <th scope="col" class="info-label">Created on</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="eventImages.length == 0">
+                <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
+            </tr>
+          <tr *ngFor="let image of eventImages | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+            <td>{{image.imageName}}</td>
+            <td>{{image.eventName}}</td>
+            <td>{{image.createdByName}}</td>
+            <td>{{image.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openPreviewEventPhoto(preview_template,image)"><em>Preview</em></button>&nbsp;
+                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEventPhoto(delete_template,image)"><em class="fa fa-trash"></em></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>  
+      <pagination-controls class="my-pagination" [hidden]="eventImages.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="eventImages.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  -->
+</div>
+<!-- end :: see all Photos table -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete this Event Photo?</p>
+        <button type="button" class="btn btn-success" (click)="onDeleteEventPhoto(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #preview_template>
+    <div class="modal-header">
+        <p class="modal-title">{{imageObj.imageName}} - {{imageObj.eventName}}</p>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+    </div>
+    <div class="modal-body">
+        <div *ngIf="!isPreviewLoaded" class="container-fuid d-flex justify-content-center">
+            <div  class="spinner-border" role="status" style="height: 100px; width: 100px;"> 
+                <span class="sr-only">Loading...</span>
+              </div>
+        </div>
+        <img id="photoPreview" alt="Photo Preview">
+    </div>
+</ng-template>

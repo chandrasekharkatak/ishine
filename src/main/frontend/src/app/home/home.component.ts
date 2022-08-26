@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Leave } from '../models/leave';
@@ -9,6 +9,8 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as HighCharts from 'highcharts';
 import { Router } from '@angular/router';
 import { EmployeeService } from '../services/employee.service';
+import { ImageService } from '../services/image.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-home',
@@ -37,7 +39,8 @@ export class HomeComponent implements OnInit {
   excelName:any = '';
 
   birthdayList:any[] =[];
-  eventImages:any[] = ['event1', 'event2', 'event3', 'event4', 'event5'];
+  eventImages:any[] = [];
+  isImagesLoaded:boolean = false;
   
   constructor(
     private modalService: BsModalService,
@@ -46,6 +49,8 @@ export class HomeComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private router: Router,
     private employeeService: EmployeeService,
+    private imageService: ImageService,
+    private sanitizer: DomSanitizer,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -55,7 +60,16 @@ export class HomeComponent implements OnInit {
     // this.countPendingCompOffRequestsByManagerId();
 
     this.renderPieChart();
+    this.getAllEventPhotos();
     this.getAllEmployeesBirthDayToday();
+
+    // $('.carousel').carousel({
+    //   interval: 2000,
+    //   keyboard: true, 
+    //   pause: "hover",
+    //   ride: true,
+    //   wrap: false,
+    // }); 
   }
 
   // Leave Applications
@@ -412,6 +426,36 @@ export class HomeComponent implements OnInit {
   showHolidayList(){
     this.router.navigate(['/user-leaves'],
     { queryParams: {tabName: 'holidays-tab'}, queryParamsHandling: ''});
+  }
+
+  /* carousal Images */
+  getAllEventPhotos(){
+    this.eventImages = [];
+    this.isImagesLoaded = false;
+    document.getElementById('eventPhotosCarousel').style.display = 'none';
+
+    this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.eventImages =  response.serviceResponse;
+        console.log("eventImages : ", this.eventImages);
+        setTimeout(()=>{this.loadImages(this.eventImages);}, 1000)
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  loadImages(eventImages){
+    eventImages.forEach((photo, index) =>{
+      if(photo.imageBytes){
+        let objectURL = 'data:image/*;base64,' + photo.imageBytes;
+        let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+        let carouselImg = document.getElementById(`carouselImg${index}`);
+        carouselImg.setAttribute('src', src);
+      }
+    });
+    this.isImagesLoaded = true;
+    document.getElementById('eventPhotosCarousel').style.display = 'block';
   }
 
   //export to excel

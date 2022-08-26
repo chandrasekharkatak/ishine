@@ -45,6 +45,7 @@ import { MyTeamComponent } from './user-team/my-team/my-team.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { NgxPaginationModule } from 'ngx-pagination';
 import {MatListModule} from '@angular/material/list';
+import { HomeConfigComponent } from './configuration/home-config/home-config.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -76,6 +77,7 @@ import {MatListModule} from '@angular/material/list';
     TeamTimesheetComponent,
     MyTeamComponent,
     TeamMemberComponent,
+    HomeConfigComponent,
   ],
   imports: [
     BrowserModule,
