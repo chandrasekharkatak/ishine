@@ -20,4 +20,6 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 
 	public List<JobRole> findByDeptId(Long oldDeptId);
 
+
+
 }

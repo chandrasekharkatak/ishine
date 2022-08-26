@@ -26,6 +26,20 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/deletePendingLeave" ,method = RequestMethod.POST)
+	public ServiceResponse deletePendingLeave(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.deletePendingLeave(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/updatePendingLeave" ,method = RequestMethod.POST)
+	public ServiceResponse updatePendingLeave(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.updatePendingLeave(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/updateLeaveStatus" ,method = RequestMethod.POST)
 	public ServiceResponse updateLeaveStatus(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -87,6 +101,20 @@ public class EmployeeLeaveController {
 	public ServiceResponse getAppliedLeaveApplicationsByEmpIdAndDateRange(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/countMyReporteesPendingLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
+	public ServiceResponse countMyReporteesPendingLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.countMyReporteesPendingLeaveApplicationsByLeaveType(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/countMyApprovedLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
+	public ServiceResponse countMyApprovedLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveDTO);
 		return response;
 	}
 	

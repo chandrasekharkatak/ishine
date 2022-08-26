@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Project;
@@ -155,8 +156,7 @@ public class TimesheetService {
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
-			
-			if(!timesheetDTO.getDayType().equals("Holiday")) {
+			if (!timesheetDTO.getDayType().equals("Holiday")) {
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
 
 					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
@@ -185,7 +185,7 @@ public class TimesheetService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Timesheet not generated");
 				});
-			}else {
+			} else {
 				if (newTimesheetCreated == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Timesheet not generated");
@@ -315,7 +315,6 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
-
 						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setDayType(object[2] != null ? object[2].toString() : null);
@@ -324,6 +323,7 @@ public class TimesheetService {
 						dto.setStatus(object[5] != null ? object[5].toString() : null);
 						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+						dto.setEmployeementId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 						dtoList.add(dto);
 					});
 
@@ -335,6 +335,32 @@ public class TimesheetService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No  timesheets found. List is null.");
 			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Long applicationCount = timesheetsRepository.countMyReporteesTimesheetRequests(timesheetDTO.getManagerId());
+
+			if (applicationCount == 0) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No timesheet request(s) found.");
+
+			} else {
+				timesheetDTO = new TimesheetDTO();
+				timesheetDTO.setApplicationCount(applicationCount);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(timesheetDTO);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -394,7 +420,7 @@ public class TimesheetService {
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
 				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
-				/* 			
+				/*
 				 * Only pending/rejected timesheet can be updated by employee. So even if
 				 * employee is updating pending timesheet or rejected timesheet the status
 				 * should be set to "pending" in db. Hence we have hard coded "status" of
@@ -447,22 +473,23 @@ public class TimesheetService {
 								timesheetActivityMapRepository.deleteById(activity.getTimesheetActivityMapId());
 
 							});
-					
+
 					timesheetDTO.getAllTimesheetActivities().stream()
-						.filter(activities -> activities.getTimesheetActivityMapId() != null)
-						.forEach((activity) -> {
-							
-							Optional<TimesheetActivityMap> existingMap = timesheetActivityMapRepository.findById(activity.getTimesheetActivityMapId());
-							
-							if(existingMap.isPresent()){
-								TimesheetActivityMap map = existingMap.get();
-								
-								map.setActivityId(activity.getActivityId());
-								map.setCompletionTime(activity.getCompletionTime());
-								map.setDescription(activity.getDescription());
-								timesheetActivityMapRepository.save(map);
-							}
-						});
+							.filter(activities -> activities.getTimesheetActivityMapId() != null)
+							.forEach((activity) -> {
+
+								Optional<TimesheetActivityMap> existingMap = timesheetActivityMapRepository
+										.findById(activity.getTimesheetActivityMapId());
+
+								if (existingMap.isPresent()) {
+									TimesheetActivityMap map = existingMap.get();
+
+									map.setActivityId(activity.getActivityId());
+									map.setCompletionTime(activity.getCompletionTime());
+									map.setDescription(activity.getDescription());
+									timesheetActivityMapRepository.save(map);
+								}
+							});
 
 				}
 
@@ -559,7 +586,7 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
-						
+
 						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dtoList.add(dto);

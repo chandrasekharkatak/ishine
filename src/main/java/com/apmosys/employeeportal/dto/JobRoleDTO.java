@@ -23,6 +23,7 @@ public class JobRoleDTO {
 	private String updatedByName;
 	private String updatedOn;
 	private Long oldJobRoleId;
+	private String employeeRole;
 	
 	
 	

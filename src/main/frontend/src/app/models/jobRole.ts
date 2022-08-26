@@ -12,4 +12,5 @@ export class JobRole{
 	hodId:any;
 	oldJobRoleId:any;
 	newJobRoleId:any;
+	employeeRole:any;
 }

@@ -21,4 +21,6 @@ export class Timesheet{
 	startDate : any;
 	endDate : any;
     status:any;
+
+    applicationCount:any;
 }

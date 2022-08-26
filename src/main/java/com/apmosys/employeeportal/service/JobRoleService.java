@@ -49,7 +49,7 @@ public class JobRoleService {
 			JobRole newJobRole = new JobRole();
 			// Department department = new Department();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
-			newJobRole.setName(jobRoleDTO.getName());
+			newJobRole.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
 			// department.setDept_id(jobRoleDTO.getDepartmentId());
 			newJobRole.setDeptId(jobRoleDTO.getDepartmentId());
 
@@ -197,7 +197,7 @@ public class JobRoleService {
 				// department.setDept_id(jobRoleDTO.getDepartmentId());
 				jobRoleToBeUpdated.setUpdatedBy(jobRoleDTO.getUpdatedBy());
 				jobRoleToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				jobRoleToBeUpdated.setName(jobRoleDTO.getName());
+				jobRoleToBeUpdated.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
 				jobRoleToBeUpdated.setDeptId(jobRoleDTO.getDepartmentId());
 
 				JobRole dbResponse = jobRoleRepository.save(jobRoleToBeUpdated);

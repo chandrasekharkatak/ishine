@@ -26,6 +26,21 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.employeeRole">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Employee">Employee</option>
+                                <option value="Team Lead">Team Lead</option>
+                                <option value="HOD">HOD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="">SELECT</option>
+                              </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Department</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId">
                                 <option selected="selected" value="" disabled>Select</option>
@@ -126,7 +141,7 @@
                 <th colspan="8" class="text-center info-label">No Job Role to display...</th>
             </tr>
           <tr *ngFor="let jobRole of filterAllJobRoleList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-            <th class="info-label">{{i+1}}</th>
+            <th class="info-label">{{10*(page-1)+i+1}}</th>
             <td>{{jobRole.name}}</td>
             <td>{{jobRole.departmentName}}</td>
             <td>{{jobRole.createdBy}}</td>

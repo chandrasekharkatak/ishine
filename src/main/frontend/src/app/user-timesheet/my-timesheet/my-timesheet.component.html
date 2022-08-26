@@ -164,7 +164,7 @@
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr *ngFor="let timesheet of allMyTimesheets | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                      <td>{{i+1}}</td>
+                      <td>{{10*(page-1)+i+1}}</td>
                       <td>{{timesheet.date}}</td>
                       <td>{{timesheet.dayType}}</td>
                       <td colspan="4" [innerHTML]="timesheet.description"></td>

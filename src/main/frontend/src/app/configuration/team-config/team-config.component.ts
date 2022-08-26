@@ -36,6 +36,7 @@ export class TeamConfigComponent implements OnInit {
   isActivityForm:boolean = false;
   isTeamTable:boolean = false;
   isActivityTable:boolean = false;
+  isDisabled:boolean = false;
 
   //modal 
   alertMessage:any;
@@ -48,6 +49,8 @@ export class TeamConfigComponent implements OnInit {
 
   activityObj:Activity = new Activity();
   allActivityList:any[] = [];
+
+  employeeObj: Employee = new Employee();
 
   clientList:any[] = [];
   projectList:any[] = [];
@@ -134,6 +137,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTable = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.page=1;
 
     this.allTeamList = [];
   }
@@ -178,6 +182,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.page=1;
 
     this.allActivityList = [];
   }
@@ -352,7 +357,8 @@ export class TeamConfigComponent implements OnInit {
         this.allTeamList = this.allTeamList.sort(function (a, b) {
           return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
         });
-
+        
+        this.isDisabled=false;
         console.log("allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
@@ -393,20 +399,21 @@ export class TeamConfigComponent implements OnInit {
   }
 
   // For Team Lead
-  getAllEmployeesByRole(){
-    this.teamLeadsList = [];
-    let employeeList = [];
-
-    this.employeeService.getAllEmployeesByRole().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
-        this.teamLeadsList = employeeList.filter(emp => emp.role == "Team Lead");
-        console.log("teamLeadsList : ", this.teamLeadsList)
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+  getAllEmployeesByRole(){	
+    this.teamLeadsList = [];	
+    let employeeList = [];	
+    
+    this.employeeObj.role = "Team Lead";	
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        employeeList = response.serviceResponse;	
+        console.log("employeeList By Role : ", employeeList)	
+        this.teamLeadsList = employeeList;	
+        console.log("teamLeadsList : ", this.teamLeadsList)	
+      } else {	
+        console.error(response.serviceResponse)	
+      }	
+    });	
   }
 
   getAllEmployeesByDepartmentIds(){
