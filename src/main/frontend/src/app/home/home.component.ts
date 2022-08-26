@@ -38,6 +38,8 @@ export class HomeComponent implements OnInit {
   allCompOffApplications:any[] = [];
 
   timesheetApplicationCount:any = 0;
+  allTeamTimesheetRequests:any[] = [];
+  timesheetObj:Timesheet = new Timesheet();
 
   //export excel
   excelName:any = '';
@@ -186,7 +188,7 @@ export class HomeComponent implements OnInit {
   *  Added by suraj 07/08/2022
   */
   countMyReporteesTimesheetRequests(){
-    this.allCompOffApplications = []
+    this.allTeamTimesheetRequests = []
 
     let timesheet = new Timesheet();
     timesheet.managerId = this.currentUser.empId;
@@ -201,7 +203,53 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  getMyReporteesTimesheetRequests(){
+    this.allTeamTimesheetRequests = [];
 
+    let timesheetObj = new Timesheet();
+    timesheetObj.managerId = this.currentUser.empId;
+    timesheetObj.status = "Pending";
+    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamTimesheetRequests = response.serviceResponse;
+        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  /* Approve / Reject Timesheet requests */
+  updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
+    let timesheetObj = new Timesheet();
+    timesheetObj.timesheetId = timesheet.timesheetId;
+    timesheetObj.status = status;
+    this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.countMyReporteesTimesheetRequests();
+        this.getMyReporteesTimesheetRequests();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  /* View TImesheet details */ 
+  getAllMyActivitiesByTimesheetId(timesheet:any){
+    this.timesheetObj.allTimesheetActivities = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.timesheetId = timesheet.timesheetId;
+    this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.allTimesheetActivities = response.serviceResponse;
+        console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
   // Graphs 
   renderPieChart() {
@@ -521,6 +569,20 @@ export class HomeComponent implements OnInit {
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
       }
 
+  exportToExcelForTimesheet() {
+    this.excelName = 'AllTeamTimeSheetRequest.xlsx';
+
+    const onlySpecificDataArr: Partial<Timesheet>[] = this.allTeamTimesheetRequests.map(
+      x => ({
+        date: x.date,
+        dayType: x.dayType,
+        description: x.description,
+        status: x.status
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
+
   //pagination 
 
   page = 1;
@@ -529,6 +591,15 @@ export class HomeComponent implements OnInit {
   }
 
   // modals
+  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj:Timesheet){
+    this.cancelRequest();
+    
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj = timesheetObj;
+    this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+ }
+
   openReqMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }

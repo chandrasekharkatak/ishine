@@ -24,7 +24,7 @@
                     <p class="request-title">Leave Requests</p> <h1 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span class="badge badge-secondary">{{leaveApplicationCount}}</span></h1>
                 </div>
                 <div class="row p-0 d-flex justify-content-between request-display">
-                    <p class="request-title">EOD Requests</p> <h1 class="req-card" ><span class="badge badge-secondary">{{timesheetApplicationCount}}</span></h1>
+                    <p class="request-title">Timesheet Requests</p> <h1 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()"><span class="badge badge-secondary">{{timesheetApplicationCount}}</span></h1>
                 </div>
                 <div class="row p-0 d-flex justify-content-between request-display">
                     <p class="request-title">Comp-off Requests</p> <h1 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
@@ -289,10 +289,13 @@
 
 <!-- Leaves Req Modal -->
 <ng-template #LeaveReq>
+    <div class="modal-header">
+        <h4 class="table-header-title">My Reportee Leave Applications</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <div class="modal-body ">
-        <div class="table-header">
-            <h4 class="table-header-title">My Reportee Leave Applications</h4>
-        </div>
         <table class="table leaveApplication-table">
             <thead class="thead-light text-center">
               <tr>
@@ -340,10 +343,13 @@
 
 <!-- compOff Req Modal -->
 <ng-template #compOffReq>
+    <div class="modal-header">
+        <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <div class="modal-body">
-        <div class="table-header">
-            <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
-        </div>
         <table class="table compOffApplication-table">
             <thead class="thead-light">
               <tr>
@@ -385,6 +391,127 @@
     </div>
 </ng-template>
 
+<!-- Timesheet Req Modal -->
+<ng-template #TimesheetReq>
+    <div class="modal-header">
+        <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        
+        <table class="table teams-request-table" id="teams-request-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Employee Id</th>
+                <th scope="col" class="info-label">Name</th>
+                <th scope="col" class="info-label">Date</th>
+                <th scope="col" class="info-label">Day Type</th>
+                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="allTeamTimesheetRequests.length == 0">
+                <th colspan="9" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <td>{{10*(page-1)+i+1}}</td>
+                <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td colspan="4" [innerHTML]="timesheet.description"></td>
+                <td>{{timesheet.status}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                  <button class="btn btn-sm btn-outline-success" type="submit" title="Approve"
+                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                      class="fa-solid fa-check"></em></button>&nbsp;
+                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
+                      class="fa-solid fa-xmark"></em></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>   
+          <div class="my-buttons">
+            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #timesheet_details>
+    <div class="modal-header">
+      <h5 class="modal-title">Timesheet Details</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();openReqMod(TimesheetReq);">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="col-md-2 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label">Date</label>
+              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label">Day Type</label>
+              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+        <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                    <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" disabled></textarea>
+                  </div>
+            </div>
+        </div>
+      </div>
+      <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+        <table class="table timesheet-details-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Project Name</th>
+                <th scope="col" class="info-label">Activity</th>
+                <th scope="col" colspan="4" class="info-label">Description</th>
+                <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <td>{{10*(page-1)+i+1}}</td>
+                <td>{{activity.projectName}}</td>
+                <td>{{activity.activity}}</td>
+                <td colspan="4">{{activity.description}}</td>
+                <td>{{activity.completionTime}}</td>
+              </tr>
+            </tbody>
+        </table> 
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(TimesheetReq);">Close</button>
+    </div>
+  </ng-template>
 
 
 
