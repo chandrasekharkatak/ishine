@@ -38,4 +38,7 @@ public class TimesheetDTO {
 	private Long employeementId;
 	
 	private Long applicationCount;
+	
+	private String weekDayName;
+	private Float totalWorkingHours;
 }
