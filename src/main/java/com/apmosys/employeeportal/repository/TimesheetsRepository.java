@@ -26,5 +26,8 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getLast7DaysTimesheetsByEmpId(Long empId,LocalDate date);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getTimesheetsForHomePageByEmpId(Long empId, LocalDate start, LocalDate end);
+
 
 }

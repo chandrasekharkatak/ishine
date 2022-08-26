@@ -92,6 +92,13 @@ public class TimesheetController {
 
 		ServiceResponse response = timesheetService.getLast7DaysTimesheetsByEmpId(timesheetDTO);
 		return response;
+	}
+	
+	@RequestMapping(value = "/getTimesheetsForHomePageByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getTimesheetsForHomePageByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getTimesheetsForHomePageByEmpId(timesheetDTO);
+		return response;
 	}	
 	
 	
