@@ -46,6 +46,7 @@ import { TeamMemberComponent } from './user-team/team-member/team-member.compone
 import { NgxPaginationModule } from 'ngx-pagination';
 import {MatListModule} from '@angular/material/list';
 import { HomeConfigComponent } from './configuration/home-config/home-config.component';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 @NgModule({
   declarations: [
     AppComponent,
@@ -94,7 +95,8 @@ import { HomeConfigComponent } from './configuration/home-config/home-config.com
     MatFormFieldModule,
     MatInputModule,
     NgxPaginationModule,
-    MatListModule
+    MatListModule,
+    MatSortModule
   ],
   providers: [
     BsModalService,
