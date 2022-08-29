@@ -609,7 +609,7 @@ public class EmployeeLeaveService {
 
 				if (employeeLeavesList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Application list is empty.Count is zero");
+					response.setServiceResponse("Application list is empty.Count is zero.");
 				} else {
 					employeeLeavesList.forEach((object) -> {
 						LeaveDTO dto = new LeaveDTO();
