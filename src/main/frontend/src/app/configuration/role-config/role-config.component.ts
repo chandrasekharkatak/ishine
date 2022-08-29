@@ -21,6 +21,7 @@ import { Sort } from '@angular/material/sort';
 })
 export class RoleConfigComponent implements OnInit {
 
+    data:string;
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;

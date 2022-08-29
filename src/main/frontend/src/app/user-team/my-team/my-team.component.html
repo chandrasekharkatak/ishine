@@ -14,6 +14,9 @@
     <div class="table-header">
       <h1 class="table-header-title">My Team</h1>
   </div>
+  <div class="form-group ml-auto col-md-3">
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    </div>
   <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">	
     <thead class="thead-light">	
       <tr>	
@@ -30,7 +33,7 @@
         <tr *ngIf="teamViewList.length == 0">
           <th colspan="8" class="text-center info-label">No details to display...</th>
         </tr>
-        <tr *ngFor="let teamView of teamViewList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let teamView of teamViewList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td class="info-label">{{10*(page-1)+i+1}}</td>
           <td class="info-label">A-{{teamView.employeementId}}</td>
           <td class="info-label">{{teamView.name}}</td>
@@ -80,6 +83,9 @@
           </div>
       </div>
   </div>
+  <div class="form-group ml-auto col-md-3">
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    </div>
   <table class="table leave-history-table" id="leave-history-table" matSort (matSortChange)="sortViewLeaveHistory($event)">	
     <thead class="thead-light">	
       <tr>	
@@ -101,7 +107,7 @@
         <tr *ngIf="teamViewLeaveHistoryList.length == 0">
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
-        <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td class="info-label">{{10*(page-1)+i+1}}</td>
           <td class="info-label">{{leaveHistory.createdByName}}</td>
           <td class="info-label">{{leaveHistory.fromDate}}</td>
@@ -141,6 +147,9 @@
             </div>
         </div>
     </div>
+    <div class="form-group ml-auto col-md-3">
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+      </div>
     <table class="table compOff-history-table" id="compOff-history-table" matSort (matSortChange)="sortViewCompOffLeave($event)">	
       <thead class="thead-light">	
         <tr>	
@@ -161,7 +170,7 @@
         <tr *ngIf="teamViewCompOffHistoryList.length == 0">
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
-        <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
         <td class="info-label">{{10*(page-1)+i+1}}</td>
         <td class="info-label">{{compOffHistory.createdByName}}</td>
         <td class="info-label">{{compOffHistory.fromDate}}</td>
@@ -198,6 +207,9 @@
   <!-- Leave Request Table -->
   
   <div class="row col-md-12" *ngIf="isLeaveRequest">
+    <div class="form-group ml-auto col-md-3">
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+      </div>
     <table class="table leave-request-table" id="leave-request-table" matSort (matSortChange)="sortLeaveRequestTable($event)">	
       <thead class="thead-light text-center">	
         <tr>	
@@ -217,7 +229,7 @@
       <tr *ngIf="leaveApplicationList.length == 0">
         <th colspan="9" class="text-center info-label">No details to display...</th>
       </tr>
-        <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
             <td>{{10*(page-1)+i+1}}</td>
             <td>{{leaveApplication.leaveType}}</td>
             <td>{{leaveApplication.fromDate}}</td>
@@ -241,6 +253,9 @@
 <!-- CompOff Request table -->
 
 <div class="row col-md-12" *ngIf="isCompOffRequest">
+  <div class="form-group ml-auto col-md-3">
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    </div>
   <table class="table compOffApplication-table" id="compOffApplication-table" matSort (matSortChange)="sortCompOffRequestTable($event)">	
     <thead class="thead-light">	
       <tr>	
@@ -259,7 +274,7 @@
     <tr *ngIf="allCompOffApplications.length == 0">
       <th colspan="9" class="text-center info-label">No details to display...</th>
     </tr>
-      <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+      <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
           <td>{{10*(page-1)+i+1}}</td>
           <td>{{compOffApp.createdByName}}</td>
           <td>{{compOffApp.compOffReasons}}</td>

@@ -17,6 +17,7 @@ import { Sort } from '@angular/material/sort';
 })
 export class TeamTimesheetComponent implements OnInit {
 
+    data:string;
   feature="Team Timesheets";
   currentUser:User;
   userMapping:any = {};

@@ -140,6 +140,9 @@
                 </div>
             </div>
         </div>
+        <div class="form-group ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            </div>
         <div class="row">
             <table class="table teams-table" id="team-table" matSort (matSortChange)="sortTeam($event)">	
                 <thead class="thead-light">	
@@ -156,7 +159,7 @@
                     <tr *ngIf="allTeamList.length == 0">
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
-                    <tr *ngFor="let team of allTeamList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                    <tr *ngFor="let team of allTeamList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                         <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{team.teamName}}</td>
                         <td>{{team.teamLeadName}}</td>
@@ -268,6 +271,9 @@
                 </div>
             </div>
         </div>
+        <div class="form-group ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            </div>
         <div class="row">
             <table class="table activities-table" id="activities-table" matSort (matSortChange)="sortActivity($event)">	
                 <thead class="thead-light">	
@@ -284,7 +290,7 @@
                     <tr *ngIf="allActivityList.length == 0">
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
-                  <tr *ngFor="let activity of allActivityList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" >
+                  <tr *ngFor="let activity of allActivityList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" >
                     <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{activity.activity}}</td>
                     <td>{{activity.eta}} hr(s)</td>

@@ -20,6 +20,7 @@ import { Sort } from '@angular/material/sort';
 })
 export class MyTimesheetComponent implements OnInit {
   
+  data:string;
   feature="My Timesheets";
   currentUser:User;
   userMapping:any = {};

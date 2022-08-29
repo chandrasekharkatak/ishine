@@ -123,6 +123,9 @@
             </div>
         </div>
     </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
     <table class="table department-table"  matSort (matSortChange)="sortData($event)">	
         <thead class="thead-light">	
           <tr>	
@@ -140,7 +143,7 @@
             <tr *ngIf="filterAllJobRoleList.length == 0">
                 <th colspan="8" class="text-center info-label">No Job Role to display...</th>
             </tr>
-          <tr *ngFor="let jobRole of filterAllJobRoleList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+          <tr *ngFor="let jobRole of filterAllJobRoleList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <th class="info-label">{{10*(page-1)+i+1}}</th>
             <td>{{jobRole.name}}</td>
             <td>{{jobRole.departmentName}}</td>

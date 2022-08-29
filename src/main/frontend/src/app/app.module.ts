@@ -47,6 +47,7 @@ import { NgxPaginationModule } from 'ngx-pagination';
 import {MatListModule} from '@angular/material/list';
 import { HomeConfigComponent } from './configuration/home-config/home-config.component';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { Ng2SearchPipeModule } from 'ng2-search-filter';
 @NgModule({
   declarations: [
     AppComponent,
@@ -96,7 +97,8 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
     MatInputModule,
     NgxPaginationModule,
     MatListModule,
-    MatSortModule
+    MatSortModule,
+    Ng2SearchPipeModule
   ],
   providers: [
     BsModalService,

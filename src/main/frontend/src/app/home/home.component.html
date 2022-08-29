@@ -295,6 +295,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
     <div class="modal-body ">
         <table class="table leaveApplication-table">
             <thead class="thead-light text-center">
@@ -316,7 +319,7 @@
                 <tr *ngIf="leaveApplicationCount == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{i+1}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
@@ -349,6 +352,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
     <div class="modal-body">
         <table class="table compOffApplication-table">
             <thead class="thead-light">
@@ -368,7 +374,7 @@
                 <tr *ngIf="compOffApplicationCount == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let compOffApp of allCompOffApplications | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
@@ -399,6 +405,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
     <div class="modal-body">
         
         <table class="table teams-request-table" id="teams-request-table">
@@ -418,7 +427,7 @@
               <tr *ngIf="allTeamTimesheetRequests.length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
@@ -483,6 +492,9 @@
         </div>
       </div>
       <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+        <div class="form-group ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            </div>
         <table class="table timesheet-details-table">
             <thead class="thead-light">
               <tr>
@@ -497,7 +509,7 @@
               <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{activity.projectName}}</td>
                 <td>{{activity.activity}}</td>

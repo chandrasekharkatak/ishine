@@ -19,7 +19,7 @@ import { Sort } from '@angular/material/sort';
   styleUrls: ['./leave-config.component.css']
 })
 export class LeaveConfigComponent implements OnInit {
-
+  data:string;
   //flags 
   isCreation:boolean = false;
   isUpdation: boolean = false;

@@ -21,6 +21,7 @@ import { TimesheetService } from '../services/timesheet.service';
 })
 export class HomeComponent implements OnInit {
 
+    data:string;
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
