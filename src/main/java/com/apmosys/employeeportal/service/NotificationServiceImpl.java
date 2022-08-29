@@ -1,0 +1,170 @@
+package com.apmosys.employeeportal.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.apmosys.employeeportal.dto.NotificationDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.repository.NotificationRepository;
+import com.apmosys.employeeportal.serviceInterface.NotificationService;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+
+@Service
+public class NotificationServiceImpl implements NotificationService {
+
+	@Autowired
+	NotificationRepository notificationRepository;
+
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
+
+	public ServiceResponse addNotification(NotificationDTO notificationDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Notification notification = new Notification();
+
+			notification.setCreatedBy(notificationDTO.getCreatedBy());
+			notification.setNotificationMessage(notificationDTO.getNotificationMessage());
+
+			Notification newNotificationCreated = notificationRepository.save(notification);
+
+			if (newNotificationCreated.getNotificationId() != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("New notification created.");
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Failed to create new notification.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse updateNotification(NotificationDTO notificationDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Notification> existingNotification = notificationRepository
+					.findById(notificationDTO.getNotificationId());
+
+			if (existingNotification.isPresent()) {
+				Notification notification = existingNotification.get();
+
+				notification.setNotificationMessage(notificationDTO.getNotificationMessage());
+				notification.setUpdatedBy(notificationDTO.getUpdatedBy());
+				notification.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+
+				Notification updatedNotification = notificationRepository.save(notification);
+
+				if (updatedNotification.getNotificationId() != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Notification updated successfully.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to update notification.");
+				}
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No such notification available.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse deleteNotification(NotificationDTO notificationDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Notification> existingNotification = notificationRepository
+					.findById(notificationDTO.getNotificationId());
+
+			if (existingNotification.isPresent()) {
+				Notification notification = existingNotification.get();
+
+				notificationRepository.deleteById(notification.getNotificationId());
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Notification deleted successfully.");
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No such notification available.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse getAllNotifications() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> objectList = notificationRepository.getAllNotications();
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No notifications found. List is empty.");
+				} else {
+					List<NotificationDTO> dtoList = new ArrayList<NotificationDTO>();
+
+					list.forEach((object) -> {
+
+						NotificationDTO dto = new NotificationDTO();
+
+						dto.setNotificationId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+						dto.setNotificationMessage(object[1] != null ? object[1].toString() : null);
+						dto.setCreatedByName(object[2] != null ? object[2].toString() : null);
+						dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+						dto.setUpdatedByName(object[4] != null ? object[4].toString() : null);
+						dto.setUpdatedOn(object[5] != null ? object[5].toString() : null);
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No  notifications found. List is null.");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+}
