@@ -123,16 +123,16 @@
             </div>
         </div>
     </div>
-    <table class="table department-table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Role Name</th>
-            <th scope="col" class="info-label">Department</th>
-            <th scope="col" class="info-label">Created by</th>
-            <th scope="col" class="info-label">Created on</th>
-            <th scope="col" class="info-label">Updated by</th>
-            <th scope="col" class="info-label">Updated on</th>
+    <table class="table department-table"  matSort (matSortChange)="sortData($event)">	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="name">Role Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdBy">Created by</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>	
+            <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>	
+            <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
             <th *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>

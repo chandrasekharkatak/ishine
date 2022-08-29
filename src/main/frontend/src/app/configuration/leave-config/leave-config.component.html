@@ -97,14 +97,14 @@
             </div>
         </div>
     </div>
-    <table class="table holidays-table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Sr. No</th>
-            <th scope="col" class="info-label">Occasion</th>
-            <th scope="col" class="info-label">Day</th>
-            <th scope="col" class="info-label">Date</th>
-            <th scope="col" class="info-label">State</th>
+    <table class="table holidays-table" matSort (matSortChange)="sortData($event)">	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label" >Sr. No</th>	
+            <th scope="col" class="info-label"  mat-sort-header="occasion">Occasion</th>	
+            <th scope="col" class="info-label" mat-sort-header="dayOfTheWeek">Day</th>	
+            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday">Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="state">State</th>
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
@@ -220,15 +220,15 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Leave Types</h1>
     </div>
-    <table class="table balance-table">
-        <thead class="thead-light text-center">
-          <tr>
-            <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" class="info-label">Leave Code</th>
-            <th scope="col" class="info-label">Employee Gender</th>
-            <th scope="col" class="info-label">Default Leaves</th>
-            <th scope="col" class="info-label">Rules</th>
-            <th scope="col" class="info-label">Description</th>
+    <table class="table balance-table" matSort (matSortChange)="sortFunc($event)">	
+        <thead class="thead-light text-center" >	
+          <tr>	
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+            <th scope="col" class="info-label" mat-sort-header="leaveTypeCode">Leave Code</th>	
+            <th scope="col" class="info-label" mat-sort-header="gender">Employee Gender</th>	
+            <th scope="col" class="info-label" mat-sort-header="noOfDays">Default Leaves</th>	
+            <th scope="col" class="info-label" mat-sort-header="rules">Rules</th>	
+            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
@@ -545,15 +545,15 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Leave Policies</h1>
     </div>
-    <table class="table leave-policy-table">
-        <thead class="thead-light text-center">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Leave Policy Name</th>
-            <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" class="info-label desc-text-wrap">Description</th>
-            <th scope="col" class="info-label">Created By</th>
-            <th scope="col" class="info-label">Created On</th>
+    <table class="table leave-policy-table" matSort (matSortChange)="sortPolicy($event)">	
+        <thead class="thead-light text-center">	
+          <tr>	
+            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="leavePolicyName">Leave Policy Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+            <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description">Description</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>

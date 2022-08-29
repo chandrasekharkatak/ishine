@@ -16,6 +16,7 @@ import { TeamService } from 'src/app/services/team.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-team-config',
@@ -622,4 +623,62 @@ export class TeamConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
+
+  sortTeam(sort:Sort)	
+{	
+  console.log(sort);	
+  	
+const data=this.allTeamList;	
+if(!sort.active || sort.direction===''){	
+  this.allTeamList=data;	
+  return ;	
+} else {	
+  this.allTeamList=data.sort(	
+    (a , b)=>{	
+      const isAsc=sort.direction==='asc';	
+      switch(sort.active){	
+        case 'teamName':	
+          return compare(a.teamName.toLowerCase() , b.teamName.toLowerCase() , isAsc)	
+          case 'teamLeadName':	
+            return compare(a.teamLeadName.toLowerCase() , b.teamLeadName.toLowerCase() , isAsc)	
+            case 'createdByName':	
+              return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
+              case 'createdOn':	
+                return compare(a.createdOn , b.createdOn , isAsc)	
+          default :	
+          return 0;	
+      }	
+    }	
+  )	
+}	
+}	
+  sortActivity(sort:Sort){	
+    console.log(sort);	
+    const data=this.allActivityList;   	
+    if(!sort.active || sort.direction===''){	
+      this.allActivityList=data;	
+      return;	
+    }else {	
+      this.allActivityList=data.sort(	
+        (a,b)=>{	
+          const isAsc=sort.direction==='asc';	
+          switch(sort.active){	
+            case 'activity':	
+              return compare(a.activity.toLowerCase() ,b.activity.toLowerCase() , isAsc)	
+              case 'eta':	
+                return compare(a.eta , b.eta , isAsc)	
+                case 'createdByName':	
+                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
+                  case 'createdOn':	
+                    return compare(a.createdOn , b.createdOn , isAsc)	
+              default :	
+              return 0;	
+          }	
+        }	
+      )	
+    }	
+  }
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }

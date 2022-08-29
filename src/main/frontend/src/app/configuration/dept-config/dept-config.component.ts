@@ -13,6 +13,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-dept-config',
@@ -314,4 +315,43 @@ export class DeptConfigComponent implements OnInit {
     this.page = event;
   }
 
+  sortData(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.allDeptList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.allDeptList=data;	
+      return;	
+    }	
+    else {	
+      this.allDeptList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'name':	
+              return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+              case 'hodName':	
+                return compare(a.hodName.toLowerCase() , b.hodName.toLowerCase() , isAsc)	
+                case 'createdByName':	
+                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
+                  case 'createdOn':	
+                    return compare(a.createdOn , b.createdOn , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+}	
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+
 }
+

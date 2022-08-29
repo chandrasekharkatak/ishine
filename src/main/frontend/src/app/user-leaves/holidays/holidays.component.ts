@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { Holiday } from 'src/app/models/holiday';
@@ -52,4 +53,43 @@ export class HolidaysComponent implements OnInit {
     this.page = event;
   }
 
+  sortHoliday(sort:Sort){
+    console.log(sort);
+    const data=this.holidayList;
+    if(!sort.active || sort.direction===''){
+      this.holidayList=data;
+      return ;
+    }else {
+      this.holidayList=data.sort(
+        (a,b)=>{
+          const isAsc=sort.direction==='asc';
+          switch(sort.active){
+            case 'occasion':
+              return compare(a.occasion.toLowerCase() , b.occasion.toLowerCase() , isAsc)
+
+              case 'dayOfTheWeek':
+                return compare(a.dayOfTheWeek.toLowerCase() , b.dayOfTheWeek.toLowerCase() , isAsc)
+
+                case 'dateOfHoliday':
+                  return compare(a.dateOfHoliday , b.dateOfHoliday ,isAsc)
+
+                  case 'state':
+                    return compare(a.state , b.state , isAsc)
+
+                    default :
+                    return 0;
+              
+          }
+        }
+      )
+    }
+    
+  }
+
 }
+
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+}
+

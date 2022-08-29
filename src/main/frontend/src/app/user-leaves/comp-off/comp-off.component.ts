@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -307,4 +308,74 @@ handlePageChange(event) {
   this.page = event;
 }
 
+sortCompensatory(sort:Sort){	
+  console.log(sort);	
+  const data=this.allCompOffRequests;	
+  if(!sort.active || sort.direction===''){	
+    this.allCompOffRequests=data;	
+    return ;	
+  } else {	
+    this.allCompOffRequests=data.sort(	
+      (a,b)=>{	
+        const isAsc=sort.direction==='asc';	
+        switch(sort.active){	
+          case 'compOffReasons':	
+            return compare(a.compOffReasons , b.compOffReasons , isAsc)	
+            case 'fromDate':	
+              return compare(a.fromDate , b.fromDate , isAsc)	
+              case 'toDate':	
+                return compare(a.toDate , b.toDate , isAsc)	
+                case 'noOfDays':	
+                  return compare(a.noOfDays , b.noOfDays , isAsc)	
+                  case 'description':	
+                    return compare(a.description , b.description , isAsc)	
+                    case 'status':	
+                      return compare(a.status , b.status , isAsc)	
+                    default :	
+                    return 0;	
+        }	
+      }	
+    )	
+  }
+
+}
+
+sortReporteeCompensatory(sort:Sort){	
+  console.log(sort);	
+  const data=this.allCompOffApplications;	
+  if(!sort.active || sort.direction===''){	
+    this.allCompOffApplications=data;	
+    return ;	
+  } else {	
+    this.allCompOffApplications=data.sort(	
+      (a,b)=>{	
+        const isAsc=sort.direction==='asc';	
+        switch(sort.active){	
+          case 'createdByName':	
+            return compare(a.createdByName , b.createdByName , isAsc)	
+            case 'compOffReasons':	
+              return compare(a.compOffReasons , b.compOffReasons , isAsc)	
+              case 'fromDate':	
+                return compare(a.fromDate , b.fromDate , isAsc)	
+                case 'toDate':	
+                  return compare(a.toDate , b.toDate , isAsc)	
+                  case 'noOfDays':	
+                    return compare(a.noOfDays , b.noOfDays , isAsc)	
+                    case 'description':	
+                      return compare(a.description , b.description , isAsc)	
+                      case 'status':	
+                      return compare(a.status , b.status , isAsc)	
+                    default :	
+                    return 0;	
+        }	
+      }	
+    )	
+  }	
+  }	
+
+}
+
+	
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }

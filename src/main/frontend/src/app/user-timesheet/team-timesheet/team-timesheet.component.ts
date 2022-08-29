@@ -8,6 +8,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-team-timesheet',
@@ -234,4 +235,69 @@ export class TeamTimesheetComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
+  //sorting timesheet	
+  sortTimeSheet(sort:Sort){	
+    console.log(sort);	
+    const data=this.allTeamTimesheets;	
+   	
+    	
+    if(!sort.active || sort.direction===''){	
+      this.allTeamTimesheets=data;	
+      return;	
+    }else {	
+      this.allTeamTimesheets=data.sort(	
+        (a,b)=>{	
+          const isAsc=sort.direction==='asc';	
+          switch(sort.active){	
+            case 'date':	
+              return compare(a.date , b.date , isAsc)	
+              case 'dayType':	
+                return compare(a.dayType , b.dayType , isAsc)	
+                case 'status':	
+                  return compare(a.status , b.status , isAsc)	
+                default :	
+                return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+
+  sortAllTimesheet(sort: Sort){	
+    console.log(sort);	
+    const data=this.allTeamTimesheetRequests;	
+    if(!sort.active || sort.direction===''){	
+      this.allTeamTimesheetRequests=data;	
+      return;	
+    }else {	
+      this.allTeamTimesheetRequests=data.sort(	
+        (a,b)=>{	
+          const isAsc=sort.direction==='asc';	
+          switch(sort.active){	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName , b.employeeName , isAsc)	
+                case 'date':	
+                  return compare(a.date , b.date , isAsc)	
+                  case 'dayType':	
+                   return compare(a.dayType , b.dayType , isAsc)	
+                    case 'status':	
+                      return compare(a.status , b.status , isAsc)	
+                default :	
+                return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+    	
+  }
 }
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+}	
+

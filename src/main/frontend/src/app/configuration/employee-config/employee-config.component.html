@@ -645,15 +645,15 @@
         <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
         <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
     </div>
-    <table class="table employee-table">
-        <thead class="thead-light">
-          <tr>
-            <th *ngIf="!isDraftTable" scope="col" class="info-label">Employee Id</th>
-            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Full Name</th>
-            <th scope="col" class="info-label">Email Id</th>
-            <th scope="col" class="info-label">Employment Status</th>
-            <th scope="col" class="info-label">Date of Joining</th>
+    <table class="table employee-table" matSort (matSortChange)="sortData($event)" >	
+        <thead class="thead-light">	
+          <tr>	
+            <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
+            <th scope="col" class="info-label">Employment Status</th>	
+            <th scope="col" class="info-label" mat-sort-header="dateOfJoining" >Date of Joining</th>
             <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>

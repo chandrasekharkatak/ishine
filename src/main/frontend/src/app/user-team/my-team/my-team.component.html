@@ -14,16 +14,16 @@
     <div class="table-header">
       <h1 class="table-header-title">My Team</h1>
   </div>
-    <table class="table team-table" id="team-table">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" class="info-label">Sr No.</th>
-          <th scope="col" class="info-label">Employee Id</th>
-          <th scope="col" class="info-label">Name</th>
-          <th scope="col" class="info-label">Email</th>
-          <th scope="col" class="info-label">Designation</th>
-          <th scope="col" class="info-label">Mobile No.</th>
-          <th scope="col" class="info-label">Reports To</th>
+  <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">	
+    <thead class="thead-light">	
+      <tr>	
+        <th scope="col" class="info-label">Sr No.</th>	
+        <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+        <th scope="col" class="info-label" mat-sort-header="name">Name</th>	
+        <th scope="col" class="info-label" mat-sort-header="email">Email</th>	
+        <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>	
+        <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>	
+        <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
         </tr>
       </thead>
       <tbody>
@@ -80,21 +80,21 @@
           </div>
       </div>
   </div>
-    <table class="table leave-history-table" id="leave-history-table">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" class="info-label"> Sr No.</th>
-          <th scope="col" class="info-label">Employee </th>
-          <th scope="col" class="info-label">From</th>
-          <th scope="col" class="info-label">To</th>
-          <th scope="col" class="info-label">Apply Date</th>
-          <!-- <th scope="col" class="info-label">Approver</th>
-          <th scope="col" class="info-label">Approval Date</th> -->
-          <th scope="col" class="info-label">Duration</th>
-          <th scope="col" class="info-label">Status</th>
-          <th scope="col" class="info-label">Approved/Rejected By</th>
-          <th scope="col" class="info-label">Leave Reason</th>
-          <th scope="col" class="info-label">Type</th>
+  <table class="table leave-history-table" id="leave-history-table" matSort (matSortChange)="sortViewLeaveHistory($event)">	
+    <thead class="thead-light">	
+      <tr>	
+        <th scope="col" class="info-label"> Sr No.</th>	
+        <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
+        <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
+        <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
+        <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
+        <!-- <th scope="col" class="info-label">Approver</th>	
+        <th scope="col" class="info-label">Approval Date</th> -->	
+        <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+        <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+        <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
+        <th scope="col" class="info-label" mat-sort-header="reason">Leave Reason</th>	
+        <th scope="col" class="info-label" mat-sort-header="leaveType">Type</th>
         </tr>
       </thead>
       <tbody>
@@ -141,20 +141,20 @@
             </div>
         </div>
     </div>
-    <table class="table compOff-history-table" id="compOff-history-table">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" class="info-label"> Sr No.</th>
-          <th scope="col" class="info-label">Employee </th>
-          <th scope="col" class="info-label">From</th>
-          <th scope="col" class="info-label">To</th>
-          <th scope="col" class="info-label">Apply Date</th>
-          <!-- <th scope="col" class="info-label">Approver</th>
-          <th scope="col" class="info-label">Approval Date</th> -->
-          <th scope="col" class="info-label">Duration</th>
-          <th scope="col" class="info-label">Status</th>
-          <th scope="col" class="info-label">Approved/Rejected By</th>
-          <th scope="col" class="info-label">Comp-Off Reason</th>
+    <table class="table compOff-history-table" id="compOff-history-table" matSort (matSortChange)="sortViewCompOffLeave($event)">	
+      <thead class="thead-light">	
+        <tr>	
+          <th scope="col" class="info-label"> Sr No.</th>	
+          <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
+          <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
+          <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
+          <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
+          <!-- <th scope="col" class="info-label">Approver</th>	
+          <th scope="col" class="info-label">Approval Date</th> -->	
+          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+          <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+          <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
+          <th scope="col" class="info-label" mat-sort-header="reason">Comp-Off Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -198,18 +198,18 @@
   <!-- Leave Request Table -->
   
   <div class="row col-md-12" *ngIf="isLeaveRequest">
-  <table class="table leave-request-table" id="leave-request-table">
-    <thead class="thead-light text-center">
-      <tr>
-        <th scope="col" class="info-label">Sr No.</th>
-        <th scope="col" class="info-label">Leave Type</th>
-        <th scope="col" class="info-label">From Date</th>
-        <th scope="col" class="info-label">To Date</th>
-        <th scope="col" class="info-label">Duration</th>
-        <th scope="col" class="info-label">Status</th>
-        <th scope="col" class="info-label">Applied By</th>
-        <th scope="col" class="info-label">Applied On</th>
-        <th scope="col" class="info-label">Reason</th>
+    <table class="table leave-request-table" id="leave-request-table" matSort (matSortChange)="sortLeaveRequestTable($event)">	
+      <thead class="thead-light text-center">	
+        <tr>	
+          <th scope="col" class="info-label">Sr No.</th>	
+          <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+          <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+          <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+          <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+          <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+          <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
+          <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
         <th scope="col" class="info-label">Actions</th>
       </tr>
     </thead>
@@ -241,17 +241,17 @@
 <!-- CompOff Request table -->
 
 <div class="row col-md-12" *ngIf="isCompOffRequest">
-<table class="table compOffApplication-table" id="compOffApplication-table">
-  <thead class="thead-light">
-    <tr>
-      <th scope="col" class="info-label">Sr No.</th>
-      <th scope="col" class="info-label">Applied By</th>
-      <th scope="col" class="info-label">Applied For</th>
-      <th scope="col" class="info-label">From Date</th>
-      <th scope="col" class="info-label">To Date</th>
-      <th scope="col" class="info-label">Duration</th>
-      <th scope="col" class="info-label">Description</th>
-      <th scope="col" class="info-label">Status</th>
+  <table class="table compOffApplication-table" id="compOffApplication-table" matSort (matSortChange)="sortCompOffRequestTable($event)">	
+    <thead class="thead-light">	
+      <tr>	
+        <th scope="col" class="info-label">Sr No.</th>	
+        <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+        <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>	
+        <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+        <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+        <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+        <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
+        <th scope="col" class="info-label" mat-sort-header="status">Status</th>
       <th scope="col" class="info-label">Actions</th>
    </tr>
   </thead>

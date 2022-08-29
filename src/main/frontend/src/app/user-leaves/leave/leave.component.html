@@ -134,18 +134,18 @@
     <div class="table-header">
         <h1 class="table-header-title">My Leave History</h1>
     </div>
-    <table class="table history-table" id="history-table">
-        <thead class="thead-light text-center">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" class="info-label">From Date</th>
-            <th scope="col" class="info-label">To Date</th>
-            <th scope="col" class="info-label">Duration</th>
-            <th scope="col" class="info-label">Status</th>
-            <th scope="col" class="info-label">Applied By</th>
-            <th scope="col" class="info-label">Applied On</th>
-            <th scope="col" class="info-label">Reason</th>
+    <table class="table history-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
+        <thead class="thead-light text-center">	
+          <tr>	
+            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+            <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
+            <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
             <th scope="col" class="info-label">Action</th>
             <!-- <th scope="col" class="info-label">Comments</th> -->
           </tr>
@@ -182,18 +182,18 @@
     <div class="table-header">
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
-    <table class="table leaveApplication-table" id="leaveApplication-table">
-        <thead class="thead-light text-center">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" class="info-label">From Date</th>
-            <th scope="col" class="info-label">To Date</th>
-            <th scope="col" class="info-label">Duration</th>
-            <th scope="col" class="info-label">Status</th>
-            <th scope="col" class="info-label">Applied By</th>
-            <th scope="col" class="info-label">Applied On</th>
-            <th scope="col" class="info-label">Reason</th>
+    <table class="table leaveApplication-table" id="leaveApplication-table" matSort (matSortChange)="sortReporteeLog($event)">	
+        <thead class="thead-light text-center">	
+          <tr>	
+            <th scope="col" class="info-label" >Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+            <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
+            <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
             <!-- <th scope="col" class="info-label">Comments</th> -->
             <th scope="col" class="info-label">Actions</th>
           </tr>
@@ -230,13 +230,13 @@
     <div class="table-header">
         <h1 class="table-header-title">My Leave Balances</h1>
     </div>
-    <table class="table balance-table">
-        <thead class="thead-light text-center">
-          <tr>
-            <th scope="col" class="info-label">Leave Type</th>
-            <th scope="col" class="info-label">Balance</th>
-            <th scope="col" class="info-label">Leaves Pending for Approval</th>
-            <th scope="col" class="info-label">Effective Leave Balance</th>
+    <table class="table balance-table" matSort (matSortChange)="sortLeaveBalance($event)">	
+        <thead class="thead-light text-center">	
+          <tr>	
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+            <th scope="col" class="info-label" mat-sort-header="totalLeaveBalance">Balance</th>	
+            <th scope="col" class="info-label" mat-sort-header="pendingForApproval">Leaves Pending for Approval</th>	
+            <th scope="col" class="info-label" mat-sort-header="balance">Effective Leave Balance</th>
           </tr>
         </thead>
         <tbody class="text-center">
@@ -261,15 +261,15 @@
     <div class="table-header">
         <h1 class="table-header-title">My Leave Logs</h1>
     </div>
-    <table class="table log-table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Sr. No</th>
-            <th scope="col" class="info-label">Leave Types</th>
-            <th scope="col" class="info-label">Change</th>
-            <th scope="col" class="info-label">Balance</th>
-            <th scope="col" class="info-label">Message</th>
-            <th scope="col" class="info-label">Updated On</th>
+    <table class="table log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label" >Sr. No</th>	
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Types</th>	
+            <th scope="col" class="info-label" mat-sort-header="updateBalanceBy">Change</th>	
+            <th scope="col" class="info-label" mat-sort-header="balance">Balance</th>	
+            <th scope="col" class="info-label" mat-sort-header="message">Message</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Updated On</th>
           </tr>
         </thead>
         <tbody>

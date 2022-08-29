@@ -32,14 +32,14 @@
           </div>
         </div>
         <div class="row">
-            <table class="table teams-table" id="teams-table">
-                <thead class="thead-light">
-                  <tr>
-                    <th scope="col" class="info-label">Sr No.</th>
-                    <th scope="col" class="info-label">Date</th>
-                    <th scope="col" class="info-label">Day Type</th>
-                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" class="info-label">Status</th>
+          <table class="table teams-table" id="teams-table" matSort (matSortChange)="sortTimeSheet($event)">	
+            <thead class="thead-light">	
+              <tr>	
+                <th scope="col" class="info-label">Sr No.</th>	
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
+                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>	
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>
@@ -73,16 +73,16 @@
             <h1 class="table-header-title">All Timesheets Requests</h1>
         </div>
         <div class="row">
-            <table class="table teams-request-table" id="teams-request-table">
-                <thead class="thead-light">
-                  <tr>
-                    <th scope="col" class="info-label">Sr No.</th>
-                    <th scope="col" class="info-label">Employee Id</th>
-                    <th scope="col" class="info-label">Name</th>
-                    <th scope="col" class="info-label">Date</th>
-                    <th scope="col" class="info-label">Day Type</th>
-                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" class="info-label">Status</th>
+          <table class="table teams-request-table" id="teams-request-table" matSort (matSortChange)="sortAllTimesheet($event)">	
+            <thead class="thead-light">	
+              <tr>	
+                <th scope="col" class="info-label">Sr No.</th>	
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>	
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
+                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>	
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>

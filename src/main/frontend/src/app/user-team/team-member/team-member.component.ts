@@ -6,6 +6,7 @@ import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-team-member',
@@ -84,4 +85,51 @@ export class TeamMemberComponent implements OnInit {
     this.page = event;
   }
 
+  sortTeamMemberDetails(sort:Sort){
+    console.log(sort);
+    const data=this.viewTeamMemberList;
+    //console.log(data , "-------------------------------///////////");
+      if(!sort.active || sort.direction==='')
+      {
+        this.viewTeamMemberList=data;
+        return ;
+      }else {
+        this.viewTeamMemberList=data.sort(
+          (a , b)=>{
+            const isAsc=sort.direction==='asc';
+            switch(sort.active){
+              case 'employeementId':
+                return compare(a.employeementId , b.employeementId , isAsc)
+
+                case 'name':
+                  return compare(a.name , b.name , isAsc)
+
+                  case 'email':
+                  return compare(a.email , b.email , isAsc)
+
+                    case 'jobRoleName':
+                      return compare(a.jobRoleName , b.jobRoleName , isAsc)
+
+                      case 'mobileNo':
+                        return compare(a.mobileNo , b.mobileNo , isAsc)
+
+
+                default:
+                  return 0;
+            }
+          }
+        )
+      }
+    
+
+  }
+
+
+
+
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

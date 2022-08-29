@@ -14,6 +14,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 import * as moment from 'moment';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-leave',
@@ -664,5 +665,143 @@ export class LeaveComponent implements OnInit {
     handlePageChange(event) {	
       this.page = event;	
     }
+    sortLeaveHistory(sort:Sort){	
+      console.log(sort)	
+      const data=this.leaveHistoryList;	
+      	
+      if(!sort.active || sort.direction===''){	
+        this.leaveHistoryList=data;	
+        return ;	
+      }else {	
+        this.leaveHistoryList=data.sort(	
+          (a , b)=>{	
+            const isAsc=sort.direction==='asc';	
+            switch(sort.active){	
+              case 'leaveType':	
+                return compare(a.leaveType , b.leaveType , isAsc)	
+                case 'fromDate':	
+                  return compare(a.fromDate , b.fromDate , isAsc)	
+                  case 'toDate':	
+                    return compare(a.toDate , b.toDate ,isAsc)	
+                    case 'noOfDays':	
+                      return compare(a.noOfDays , b.noOfDays , isAsc)	
+                      case 'status':	
+                        return compare(a.status , b.status , isAsc)	
+                        case 'createdByName':	
+                          return compare(a.createdByName , b.createdByName , isAsc)	
+                          case 'createdOn':	
+                            return compare(a.createdOn , b.createdOn , isAsc)	
+                            case 'reason':	
+                              return compare(a.reason , b.reason , isAsc)	
+                default :	
+                return 0;	
+            }	
+          }	
+        )	
+      }	
+      	
+    }	
+    sortLeaveBalance(sort:Sort){	
+      console.log(sort);	
+      	
+      const data=this.leaveBalanceList;	
+      	
+      	
+      if(!sort.active || sort.direction===''){	
+        this.leaveBalanceList=data;	
+        return ;	
+      }else {	
+        this.leaveBalanceList=data.sort(	
+          (a , b)=>{	
+            const isAsc=sort.direction==='asc'	
+            switch(sort.active){	
+              case 'leaveType':	
+                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+                case 'totalLeaveBalance':	
+                  return compare(a.totalLeaveBalance , b.totalLeaveBalance ,isAsc)	
+                  case 'pendingForApproval':	
+                    return compare(a.pendingForApproval , b.pendingForApproval ,isAsc)	
+                    case 'balance':	
+                      return compare(a.balance , b.balance , isAsc)	
+                default :	
+                return 0;	
+            }	
+          }	
+        )	
+      }	
+    }	
+    sortLeaveBalanceChange(sort:Sort){	
+      console.log(sort);	
+      	
+      const data=this.leaveLogList; 	
+      if(!sort.active || sort.direction===''){	
+        this.leaveLogList=data;	
+        return ;	
+      }else {	
+        this.leaveLogList=data.sort(	
+          (a , b)=>{	
+            const isAsc=sort.direction==='asc'	
+            switch(sort.active){	
+              case 'leaveType':	
+                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+                case 'updateBalanceBy':	
+                  return compare(a.updateBalanceBy , b.updateBalanceBy ,isAsc)	
+                  case 'balance':	
+                    return compare(a.balance , b.balance ,isAsc)	
+                    case 'message':	
+                      return compare(a.message.toLowerCase() , b.message.toLowerCase() , isAsc)	
+                      case 'createdOn':	
+                      return compare(a.createdOn , b.createdOn , isAsc)	
+                    	
+                default :	
+                return 0;	
+            }	
+          }	
+        )	
+      }	
+     	
+      	
+    }	
+    sortReporteeLog(sort:Sort){	
+      console.log(sort)	
+      const data = this.leaveApplicationList;	
+      	
+      if(!sort.active || sort.direction===''){	
+        this.leaveApplicationList=data;	
+        return ;	
+      }else {	
+        this.leaveApplicationList=data.sort(	
+          (a , b)=>{	
+            const isAsc=sort.direction==='asc'	
+            switch(sort.active){	
+              case 'leaveType':	
+                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+                case 'fromDate':	
+                  return compare(a.fromDate , b.fromDate ,isAsc)	
+                  case 'toDate':	
+                    return compare(a.toDate , b.toDate ,isAsc)	
+                    case 'noOfDays':	
+                      return compare(a.noOfDays , b.noOfDays , isAsc)	
+                      case 'status':	
+                      return compare(a.status , b.status , isAsc)	
+                    	
+                      case 'createdByName':	
+                        return compare(a.createdByName , b.createdByName , isAsc)	
+                        case 'createdOn':	
+                          return compare(a.createdOn , b.createdOn , isAsc)	
+                          case 'reason':	
+                            return compare(a.reason , b.reason , isAsc)	
+                default :	
+                return 0;	
+            }	
+          }	
+        )	
+      }	
+      	
+    }	
 
+
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }

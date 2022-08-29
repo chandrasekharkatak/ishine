@@ -11,6 +11,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { DatePipe } from '@angular/common';
 import * as moment from 'moment';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -480,4 +481,35 @@ export class MyTimesheetComponent implements OnInit {
     this.page = event;
   }
 
+  // sorting .....	
+  sortMyTimesheet(sort:Sort){	
+    console.log(sort);	
+    const data=this.allMyTimesheets;	
+    if(!sort.active || sort.direction===''){	
+      this.allMyTimesheets=data;	
+      return;	
+    }else {	
+      this.allMyTimesheets=data.sort(	
+        (a,b)=>{	
+          const isAsc=sort.direction==='asc';	
+          switch(sort.active){	
+            case 'date':	
+              return compare(a.date , b.date , isAsc)	
+              case 'dayType':	
+                return compare(a.dayType , b.dayType , isAsc)	
+                case 'status':	
+                  return compare(a.status , b.status , isAsc)	
+                default :	
+                return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }
 }
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+}	
+

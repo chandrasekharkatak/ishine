@@ -2,15 +2,15 @@
   <h1 class="table-header-title">My Team Member</h1>
 </div>
 <div class="row col-md-12">
-    <table class="table team-table" id="team-table">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" class="info-label">Sr No.</th>
-          <th scope="col" class="info-label">Employee Id</th>
-          <th scope="col" class="info-label">Name</th>
-          <th scope="col" class="info-label">Email</th>
-          <th scope="col" class="info-label">Designation</th>
-          <th scope="col" class="info-label">Mobile No.</th>
+  <table class="table team-table" id="team-table" matSort (matSortChange)="sortTeamMemberDetails($event)">	
+    <thead class="thead-light">	
+      <tr>	
+        <th scope="col" class="info-label">Sr No.</th>	
+        <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+        <th scope="col" class="info-label" mat-sort-header="name">Name</th>	
+        <th scope="col" class="info-label" mat-sort-header="email">Email</th>	
+        <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>	
+        <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
         </tr>
       </thead>
       <tbody>

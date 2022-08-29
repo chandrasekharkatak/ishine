@@ -11,6 +11,7 @@ import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-leave-config',
@@ -970,4 +971,99 @@ exportToExcel(): void {
     this.page = event;
   }
 
+  sortData(sort:Sort){	
+    console.log(sort);	
+      
+    const data=this.holidayListFilter;	
+    if(!sort.active || sort.direction===''){	
+      this.holidayListFilter=data;	
+      return;	
+    }else {	
+      this.holidayListFilter=data.sort(	
+      (a,b)=>{	
+        const isAsc=sort.direction==='asc';	
+        switch(sort.active){	
+            
+          case 'occasion':	
+            return compare(a.occasion.toLowerCase() , b.occasion.toLowerCase() , isAsc)	
+            case 'dayOfTheWeek':	
+              return compare(a.dayOfTheWeek.toLowerCase() , b.dayOfTheWeek.toLowerCase() , isAsc)	
+              case 'dateOfHoliday':	
+                return compare(a.dateOfHoliday.toLowerCase() , b.dateOfHoliday.toLowerCase() , isAsc)	
+                case 'state':	
+                  return compare(a.state.toLowerCase() , b.state.toLowerCase() , isAsc)	
+                  default:	
+                    return 0;	
+        }	
+      }	
+      )	
+    }	
+      
+  }
+
+  sortFunc(sort:Sort){	
+    console.log(sort);	
+      
+    const data =this.leaveTypes;	
+    if(!sort.active || sort.direction===''){	
+      this.leaveTypes=data	
+      return ;	
+    }else {	
+      this.leaveTypes=data.sort(	
+        (a,b)=>{	
+          const isAsc=sort.direction==='asc';	
+          switch(sort.active){	
+              
+            case 'leaveType':	
+              return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase()  , isAsc)	
+              case 'leaveTypeCode':	
+                return compare(a.leaveTypeCode.toLowerCase() , b.leaveTypeCode.toLowerCase() , isAsc)	
+                case 'gender':	
+                  return compare(a.gender.toLowerCase() , b.gender.toLowerCase() , isAsc)	
+                  case 'noOfDays':	
+                    compare(a.noOfDays , b.noOfDays , isAsc)	
+                    case 'rules':	
+                      return compare(a.rules , b.rules ,isAsc)	
+                      case 'description':	
+                        return compare(a.description , b.description , isAsc)	
+          }	
+        }	
+      )	
+    }	
+      
+  }	
+  sortPolicy(sort:Sort){	
+    console.log(sort);	
+    const data=this.leavePolicyList;	
+  if(!sort.active || sort.direction===''){	
+    this.leavePolicyList=data;	
+    return;	
+  }	
+  else {	
+    this.leavePolicyList=data.sort(	
+      (a,b)=>{	
+        const isAsc=sort.direction==='asc';	
+        switch(sort.active){	
+          case 'leavePolicyName':	
+            return compare(a.leavePolicyName.toLowerCase() , b.leavePolicyName.toLowerCase()  , isAsc)	
+            case 'leaveType':	
+              return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+              case 'description':	
+                return compare(a.description , b.description , isAsc)	
+                case 'createdByName':	
+                  compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
+                  case 'createdOn':	
+                    return compare(a.createdOn , b.createdOn ,isAsc)	
+                    default :	
+                    return 0;	
+        }	
+      }	
+    )	
+  }	
+  }	
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }

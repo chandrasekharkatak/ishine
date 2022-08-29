@@ -53,14 +53,14 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Departments</h1>
     </div>
-    <table class="table department-table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" class="info-label">Department Name</th>
-            <th scope="col" class="info-label">Head of Department</th>
-            <th scope="col" class="info-label">Created by</th>
-            <th scope="col" class="info-label">Created on</th>
+    <table class="table department-table" matSort (matSortChange)="sortData($event)">	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label" >Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="name">Department Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="hodName">Head of Department</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
             <th *ngIf="userMapping.update_department || userMapping.delete_department" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>

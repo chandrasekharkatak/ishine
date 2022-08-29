@@ -12,6 +12,7 @@ import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-role-config',
@@ -433,6 +434,42 @@ export class RoleConfigComponent implements OnInit {
     this.page = event;
   }
 
+  sortData(sort:Sort){	
+    console.log(sort);	
+      
+    const data=this.filterAllJobRoleList;	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.filterAllJobRoleList=data;	
+      return;	
+    }else {	
+      this.filterAllJobRoleList=data.sort(	
+        (a,b)=>{	
+          const isAsc=sort.direction==='asc';	
+          switch(sort.active){	
+            case 'name':	
+              return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+              case 'departmentName':	
+                return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                case 'createdBy':	
+                  return compare(a.createdBy.toLowerCase() , b.createdBy.toLowerCase() ,isAsc)	
+                  case 'createdOn':	
+                    return compare(a.createdOn , b.createdOn , isAsc)	
+                    case 'updatedByName':	
+                      return compare(a.updatedByName.toLowerCase() , b.updatedByName.toLowerCase() ,isAsc)	
+                      case 'updatedOn':	
+                        return compare(a.updatedOn , b.updatedOn , isAsc)	
+              default:	
+                return 0;	
+          }	
+        }	
+      )	
+    }	
+      
+  }
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }
 
 

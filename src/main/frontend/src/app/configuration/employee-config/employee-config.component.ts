@@ -14,6 +14,7 @@ import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { DepartmentService } from 'src/app/services/department.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as moment from 'moment';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-employee-config',
@@ -996,4 +997,40 @@ export class EmployeeConfigComponent implements OnInit {
     this.page = event;
   }
 
+  sortData(sort: Sort){	
+    console.log(sort);  	
+       let data=this.allEmployeeList;	
+       console.log("anurag :" , this.allEmployeeList );	
+         
+         if(!sort.active || sort.direction ===''){	
+          this.allEmployeeList=data;	
+         return;	
+        }	
+         else {	
+          this.allEmployeeList=data.sort(	
+             (a , b )=>{	
+               const isAsc=sort.direction==='asc';	
+               switch(sort.active){	
+                  case 'employeementId':	
+                    return compare(a.employeementId, b.employeementId, isAsc); 	
+        
+                   case 'name':	
+                     return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc);	
+                   
+                    case 'email':	
+                      return compare(a.email , b.email , isAsc);	
+                      case 'dateOfJoining':	
+                          
+                        return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
+                   default:	
+                     return 0; 	
+                 }	
+             }	
+           )	
+         }	
+       }	
+            
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }
