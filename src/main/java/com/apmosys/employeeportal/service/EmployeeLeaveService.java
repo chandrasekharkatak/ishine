@@ -597,12 +597,12 @@ public class EmployeeLeaveService {
 
 	}
 
-	public ServiceResponse countMyReporteesPendingLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
+	public ServiceResponse countMyPendingLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
 			List<Object[]> list = employeeLeaveRepository
-					.countMyReporteesPendingLeaveApplicationsByLeaveType(leaveDTO.getManagerId());
+					.countMyPendingLeaveApplicationsByLeaveType(leaveDTO.getEmpId());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
 			Optional.ofNullable(list).ifPresentOrElse((employeeLeavesList) -> {

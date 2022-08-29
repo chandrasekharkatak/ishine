@@ -34,7 +34,7 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<EmployeeLeave> findByLeaveTypeMasterId(Short oldLeaveTypeMasterId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> countMyReporteesPendingLeaveApplicationsByLeaveType(Integer managerId);
+	public List<Object[]> countMyPendingLeaveApplicationsByLeaveType(Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> countMyApprovedLeaveApplicationsByLeaveType(Long empId);
