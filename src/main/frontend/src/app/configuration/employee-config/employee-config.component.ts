@@ -408,6 +408,11 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+      this.alertMessage = "Please enter Valid Blood Group !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)) {
       this.alertMessage = "Please enter father name !!"
@@ -630,6 +635,52 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    return true;
+  }
+
+  validateEmployeeDraftObj(employeeObj: Employee, template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
+      this.alertMessage = "Please enter Emp Id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateEmployeementId(employeeObj.employeementId)) {
+      this.alertMessage = "Please enter valid Employeement ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)) {
+      this.alertMessage = "Please enter Full Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.name)) {
+      this.alertMessage = "Please enter Valid Full Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.email)) {
+      this.alertMessage = "Please enter email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateEmail(employeeObj.email)) {
+      this.alertMessage = "Please enter valid email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfJoining)) {
+      this.alertMessage = "Please enter date of joining !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
+      this.alertMessage = "Please enter employment status !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     return true;
   }
@@ -845,10 +896,14 @@ export class EmployeeConfigComponent implements OnInit {
 
   /* Employee Draft */
   onSaveDraftEmployee(template: TemplateRef<any>) {
+    const dateFormat = 'YYYY-MM-DD';
+    let inputValidated: boolean = this.validateEmployeeDraftObj(this.employeeObj, template)
+    if (!inputValidated) return;
+
     this.employeeObj.isDraft = true;
     // // transform date formats to dd-MM-yyyy
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
+    this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
@@ -865,10 +920,11 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   onUpdateDraftEmployee(template: TemplateRef<any>) {
+    const dateFormat = 'YYYY-MM-DD';
     this.employeeObj.isDraft = true;
     // // transform date formats to dd-MM-yyyy
-    // this.employeeObj.dateOfBirth = this.datePipe.transform(this.employeeObj.dateOfBirth, 'dd-MM-yyyy');
-    // this.employeeObj.dateOfJoining = this.datePipe.transform(this.employeeObj.dateOfJoining, 'dd-MM-yyyy')
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
+    this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
@@ -887,6 +943,7 @@ export class EmployeeConfigComponent implements OnInit {
   onDeleteDraftEmployee(template: TemplateRef<any>) {
     this.cancelRequest();
 
+    this.employeeObj.draftEmpId = this.employeeObj.empId;
     this.employeeService.deleteDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -970,6 +1027,11 @@ export class EmployeeConfigComponent implements OnInit {
           }
       }
    }
+    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
+      this.employeeObj.dateOfBirth = undefined;
+      this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
+      return false;
+    }
   }
 
   // modals

@@ -16,7 +16,7 @@
   </div>
   <div class="form-group ml-auto col-md-3">
     <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
-    </div>
+  </div>
   <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">	
     <thead class="thead-light">	
       <tr>	
@@ -33,10 +33,10 @@
         <tr *ngIf="teamViewList.length == 0">
           <th colspan="8" class="text-center info-label">No details to display...</th>
         </tr>
-        <tr *ngFor="let teamView of teamViewList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" (click)="myTeamHierarchy(teamView)">
           <td class="info-label">{{10*(page-1)+i+1}}</td>
           <td class="info-label">A-{{teamView.employeementId}}</td>
-          <td class="info-label">{{teamView.name}}</td>
+          <td class="info-label myTeam-hierarchy">{{teamView.name}}</td>
           <td class="info-label">{{teamView.email}}</td>
           <td class="info-label">{{teamView.jobRoleName}}</td>
           <td class="info-label">{{teamView.mobileNo}}</td>

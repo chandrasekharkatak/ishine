@@ -64,6 +64,10 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesBirthDayToday`);
   }
 
+  getHierarchyByEmpId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getHierarchyByEmpId`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/previewImage`,formData);

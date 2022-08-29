@@ -171,4 +171,11 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployeesBirthDayToday();
 		return response;
 	}
+	
+	@RequestMapping(value = "/getHierarchyByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getHierarchyByEmpId(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.getHierarchyByEmpId(employeedto);
+		return response;
+	}
 }

@@ -49,7 +49,11 @@ public class JobRoleService {
 			JobRole newJobRole = new JobRole();
 			// Department department = new Department();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
-			newJobRole.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
+			if(jobRoleDTO.getEmployeeRole().equals("SELECT")){
+				newJobRole.setName(jobRoleDTO.getName());
+			}else {
+				newJobRole.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
+			}
 			// department.setDept_id(jobRoleDTO.getDepartmentId());
 			newJobRole.setDeptId(jobRoleDTO.getDepartmentId());
 
