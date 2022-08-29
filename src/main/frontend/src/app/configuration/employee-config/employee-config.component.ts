@@ -24,6 +24,7 @@ import { Sort } from '@angular/material/sort';
 export class EmployeeConfigComponent implements OnInit {
 
   feature = 'Employee Config';
+  data:string;
 
   //flags 
   isCreation: boolean = false;

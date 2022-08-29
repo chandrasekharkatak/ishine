@@ -645,6 +645,9 @@
         <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
         <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
     </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
     <table class="table employee-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
           <tr>	
@@ -661,7 +664,7 @@
             <tr *ngIf="allEmployeeList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-          <tr *ngFor="let employee of allEmployeeList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th>
             <td>{{employee.name}}</td>

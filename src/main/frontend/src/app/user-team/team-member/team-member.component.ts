@@ -15,6 +15,7 @@ import { Sort } from '@angular/material/sort';
 })
 export class TeamMemberComponent implements OnInit {
 
+    data:string;
   feature="Team Members";
   currentUser:User;
   userMapping:any = {};

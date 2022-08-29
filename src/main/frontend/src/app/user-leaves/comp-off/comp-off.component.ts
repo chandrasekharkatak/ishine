@@ -19,6 +19,7 @@ import * as XLSX from 'xlsx';
 })
 export class CompOffComponent implements OnInit {
 
+    data:string;
   //flags 
   isCreation:boolean = false;
   isForm: boolean = false;

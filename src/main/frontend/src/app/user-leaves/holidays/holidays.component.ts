@@ -14,6 +14,7 @@ import { HolidayService } from 'src/app/services/holiday.service';
 })
 export class HolidaysComponent implements OnInit {
 
+    data:string;
   feature="Holiday";
   currentUser:User;
   userMapping:any = {};

@@ -27,7 +27,7 @@ export class DeptConfigComponent implements OnInit {
   isUpdation: boolean = false;
   isForm: boolean = false;
   isTable: boolean = false;
-
+  data:string;
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();

@@ -31,6 +31,9 @@
             </div>
           </div>
         </div>
+        <div class="form-group ml-auto col-md-3">
+          <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+          </div>
         <div class="row">
           <table class="table teams-table" id="teams-table" matSort (matSortChange)="sortTimeSheet($event)">	
             <thead class="thead-light">	
@@ -47,7 +50,7 @@
                   <tr *ngIf="allTeamTimesheets.length == 0">
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheets | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                  <tr *ngFor="let timesheet of allTeamTimesheets |filter:data| paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
@@ -72,6 +75,9 @@
         <div class="row table-header">
             <h1 class="table-header-title">All Timesheets Requests</h1>
         </div>
+        <div class="form-group ml-auto col-md-3">
+          <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+          </div>
         <div class="row">
           <table class="table teams-request-table" id="teams-request-table" matSort (matSortChange)="sortAllTimesheet($event)">	
             <thead class="thead-light">	
@@ -90,7 +96,7 @@
                   <tr *ngIf="allTeamTimesheetRequests.length == 0">
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheetRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                  <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{timesheet.employeementId}}</td>
                     <td>{{timesheet.employeeName}}</td>
@@ -169,6 +175,9 @@
       </div>
     </div>
     <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+      <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
       <table class="table timesheet-details-table">
           <thead class="thead-light">
             <tr>
@@ -183,7 +192,7 @@
             <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
               <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <tr *ngFor="let activity of timesheetObj.allTimesheetActivities|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td>{{10*(page-1)+i+1}}</td>
               <td>{{activity.projectName}}</td>
               <td>{{activity.activity}}</td>
