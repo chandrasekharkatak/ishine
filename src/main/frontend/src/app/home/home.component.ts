@@ -49,6 +49,10 @@ export class HomeComponent implements OnInit {
   eventImages:any[] = [];
   isImagesLoaded:boolean = false;
   
+  leaveBalanceList:any[] = [];
+  approvedLeavesList:any[] = [];
+  pendingLeavesList:any[] = [];
+
   constructor(
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
@@ -71,6 +75,12 @@ export class HomeComponent implements OnInit {
     this.renderPieChart();
     this.getAllEventPhotos();
     this.getAllEmployeesBirthDayToday();
+
+    console.log("================= MY LEAVE DETAILS APIs =====================");
+    
+    this.getMyLeaveBalancesByEmpId();
+    this.countMyApprovedLeaveApplicationsByLeaveType();
+    this.countMyPendingLeaveApplicationsByLeaveType();
 
     // $('.carousel').carousel({
     //   interval: 2000,
@@ -252,160 +262,371 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  /* My Leave Details */
+  getMyLeaveBalancesByEmpId(){
+    this.leaveBalanceList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.employeementId = this.currentUser.employeementId;
+    this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveBalanceList = response.serviceResponse;
+        console.log("leaveBalanceList : ", this.leaveBalanceList);
+
+        let balanceChartData = this.leaveBalanceList.map(leaveType => {
+          if(leaveType.leaveTypeMasterId != null){
+            let data = {
+              name : leaveType.leaveTypeCode,
+              y : leaveType.balance
+            }
+
+            return data;
+          }
+        }).filter(data => data != undefined);
+        console.log("balanceChartData : ", balanceChartData);
+
+        let checkData = balanceChartData.filter(data => data.y != 0);
+        console.log("checkData :", checkData);
+        
+        if(checkData){
+          this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
+        }else{
+          this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
+        }
+      } else {
+        console.error(response.serviceResponse);
+        this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'No Data to Display');
+      }
+    });
+  }
+
+  countMyApprovedLeaveApplicationsByLeaveType(){
+    this.approvedLeavesList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.approvedLeavesList =  response.serviceResponse;
+        console.log("approvedLeaves : ", this.approvedLeavesList);
+
+        let approvedChartData = this.approvedLeavesList.map(leaveType => {
+          let data = {
+            name : leaveType.leaveTypeCode,
+            y : leaveType.applicationCount
+          }
+
+          return data;
+        }).filter(data => data != undefined);
+        console.log("approvedChartData : ", approvedChartData);
+        let checkData = approvedChartData.filter(data => data.y != 0);
+        console.log("checkData :", checkData);
+        
+        if(checkData){
+          this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
+        }else{
+          this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
+        }
+      } else {
+        console.error(response.serviceResponse);
+        this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'No Data to Display');
+      }
+    });
+  }
+
+  countMyPendingLeaveApplicationsByLeaveType(){
+    this.pendingLeavesList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.pendingLeavesList =  response.serviceResponse;
+        console.log("pendingLeavesList : ", this.pendingLeavesList);
+
+        let pendingChartData = this.pendingLeavesList.map(leaveType => {
+          let data = {
+            name : leaveType.leaveTypeCode,
+            y : leaveType.applicationCount
+          }
+
+          return data;
+        }).filter(data => data != undefined);
+        console.log("pendingChartData : ", pendingChartData);
+        let checkData = pendingChartData.filter(data => data.y != 0);
+        console.log("checkData :", checkData);
+        
+        if(checkData){
+          this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
+        }else{
+          this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'zero Leave Applications');
+        }
+
+      } else {
+        console.error(response.serviceResponse);
+        this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'No Data to Display');
+      }
+    });
+  }
+
+  renderLeaveChart(chartName:any, chartId:any, chartData:any, labelName:any){
+    HighCharts.chart(chartId, {
+      credits: {
+        enabled: false
+      },
+      chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie'
+      },
+      title: {
+        text: chartName
+      },
+      tooltip: {
+        pointFormat: '{series.name}: <b>{point.y:.1f}</b>'
+      },
+      plotOptions: {
+        pie: {
+          borderWidth: 0,
+          innerSize: '50%',
+          allowPointSelect: true,
+          cursor: 'pointer',
+          dataLabels: {
+            enabled: false,
+            format: '<b>{point.name}</b>: {point.y:.1f}'
+          }
+        }
+      },
+      series: [{
+        name: labelName,
+        colorByPoint: true,
+        type: undefined,
+        data: chartData
+      }],
+      colors:
+      ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
+       '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
+        '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
+      ],
+    });
+  }
+
+  renderPlaceholderChart(chartName:any, chartId:any, errorMsg:any){
+    HighCharts.chart(chartId, {
+      credits: {
+        enabled: false
+      },
+      chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie',
+        events: {
+          render() {
+            let chart:any = this,
+              x,
+              y;
+    
+    
+            //check if label exist after window resize
+            if (chart.label) {
+              chart.label.destroy();
+            };
+    
+            y = (chart.clipBox.height*1.3);
+            x = (chart.clipBox.width/2.5);
+            chart.label = chart.renderer.text(errorMsg, x, y)
+              .css({
+                color: '#b0b0b0',
+                fontSize: '10px'
+              })
+              .add();
+          }
+        }
+      },
+      title: {
+        text: chartName
+      },
+      plotOptions: {
+        series: {
+          enableMouseTracking: false
+        },
+        pie: {
+          borderWidth: 0,
+          innerSize: '50%',
+          allowPointSelect: true,
+          cursor: 'pointer',
+          dataLabels: {
+            enabled: false,
+            format: '<b>{point.name}</b>: {point.y:.1f}'
+          }
+        }
+      },
+      series: [{
+        name: "error",
+        colorByPoint: true,
+        type: undefined,
+        data: [{name: 'data', y: 1}]}],
+      colors:
+      ['#b0b0b0'],
+    });
+  }
+
   // Graphs 
   renderPieChart() {
     // Leave Bucket
-    HighCharts.chart('leaveBucketChart', {
-      credits: {
-        enabled: false
-      },
-      chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false,
-        type: 'pie'
-      },
-      title: {
-        text: 'Leave Bucket'
-      },
-      tooltip: {
-        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      plotOptions: {
-        pie: {
-          borderWidth: 0,
-          innerSize: '50%',
-          allowPointSelect: true,
-          cursor: 'pointer',
-          dataLabels: {
-            enabled: false,
-            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-          }
-        }
-      },
-      series: [{
-        name: 'Brands',
-        colorByPoint: true,
-        type: undefined,
-        data: [{
-          name: 'PL',
-          y: 61.41,
-        }, {
-          name: 'CL',
-          y: 27.74
-        }, {
-          name: 'LWP',
-          y: 10.85
-        }]
-      }],
-      colors:
-      ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-       '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-        '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-      ],
-    });
+    // HighCharts.chart('leaveBucketChart', {
+    //   credits: {
+    //     enabled: false
+    //   },
+    //   chart: {
+    //     plotBackgroundColor: null,
+    //     plotBorderWidth: null,
+    //     plotShadow: false,
+    //     type: 'pie'
+    //   },
+    //   title: {
+    //     text: 'Leave Bucket'
+    //   },
+    //   tooltip: {
+    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    //   },
+    //   plotOptions: {
+    //     pie: {
+    //       borderWidth: 0,
+    //       innerSize: '50%',
+    //       allowPointSelect: true,
+    //       cursor: 'pointer',
+    //       dataLabels: {
+    //         enabled: false,
+    //         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+    //       }
+    //     }
+    //   },
+    //   series: [{
+    //     name: 'Brands',
+    //     colorByPoint: true,
+    //     type: undefined,
+    //     data: [{
+    //       name: 'PL',
+    //       y: 61.41,
+    //     }, {
+    //       name: 'CL',
+    //       y: 27.74
+    //     }, {
+    //       name: 'LWP',
+    //       y: 10.85
+    //     }]
+    //   }],
+    //   colors:
+    //   ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
+    //    '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
+    //     '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
+    //   ],
+    // });
 
-    // Leave Approved 
-    HighCharts.chart('leaveApprovedChart', {
-      credits: {
-        enabled: false
-      },
-      chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false,
-        type: 'pie'
-      },
-      title: {
-        text: 'Leave Approved'
-      },
-      tooltip: {
-        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      plotOptions: {
-        pie: {
-          borderWidth: 0,
-          innerSize: '50%',
-          allowPointSelect: true,
-          cursor: 'pointer',
-          dataLabels: {
-            enabled: false,
-            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-          }
-        }
-      },
-      series: [{
-        name: 'Brands',
-        colorByPoint: true,
-        type: undefined,
-        data: [{
-          name: 'PL',
-          y: 61.41,
-        }, {
-          name: 'CL',
-          y: 27.74
-        }, {
-          name: 'LWP',
-          y: 10.85
-        }]
-      }],
-      colors:
-      ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-       '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-        '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-      ],
-    });
+    // // Leave Approved 
+    // HighCharts.chart('leaveApprovedChart', {
+    //   credits: {
+    //     enabled: false
+    //   },
+    //   chart: {
+    //     plotBackgroundColor: null,
+    //     plotBorderWidth: null,
+    //     plotShadow: false,
+    //     type: 'pie'
+    //   },
+    //   title: {
+    //     text: 'Leave Approved'
+    //   },
+    //   tooltip: {
+    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    //   },
+    //   plotOptions: {
+    //     pie: {
+    //       borderWidth: 0,
+    //       innerSize: '50%',
+    //       allowPointSelect: true,
+    //       cursor: 'pointer',
+    //       dataLabels: {
+    //         enabled: false,
+    //         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+    //       }
+    //     }
+    //   },
+    //   series: [{
+    //     name: 'Brands',
+    //     colorByPoint: true,
+    //     type: undefined,
+    //     data: [{
+    //       name: 'PL',
+    //       y: 61.41,
+    //     }, {
+    //       name: 'CL',
+    //       y: 27.74
+    //     }, {
+    //       name: 'LWP',
+    //       y: 10.85
+    //     }]
+    //   }],
+    //   colors:
+    //   ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
+    //    '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
+    //     '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
+    //   ],
+    // });
 
-    // Leave Request
-    HighCharts.chart('leaveRequestChart', {
-      credits: {
-        enabled: false
-      },
-      chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false,
-        type: 'pie'
-      },
-      title: {
-        text: 'Leave Requests'
-      },
-      tooltip: {
-        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      plotOptions: {
-        pie: {
-          borderWidth: 0,
-          innerSize: '50%',
-          allowPointSelect: true,
-          cursor: 'pointer',
-          dataLabels: {
-            enabled: false,
-            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-          }
-        }
-      },
-      series: [{
-        name: 'Brands',
-        colorByPoint: true,
-        type: undefined,
-        data: [{
-          name: 'PL',
-          y: 61.41,
-        }, {
-          name: 'CL',
-          y: 27.74
-        }, {
-          name: 'LWP',
-          y: 10.85
-        }]
-      }],
-      colors:
-      ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-       '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-        '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-      ],
-    });
+    // // Leave Request
+    // HighCharts.chart('leaveRequestChart', {
+    //   credits: {
+    //     enabled: false
+    //   },
+    //   chart: {
+    //     plotBackgroundColor: null,
+    //     plotBorderWidth: null,
+    //     plotShadow: false,
+    //     type: 'pie'
+    //   },
+    //   title: {
+    //     text: 'Leave Requests'
+    //   },
+    //   tooltip: {
+    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    //   },
+    //   plotOptions: {
+    //     pie: {
+    //       borderWidth: 0,
+    //       innerSize: '50%',
+    //       allowPointSelect: true,
+    //       cursor: 'pointer',
+    //       dataLabels: {
+    //         enabled: false,
+    //         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+    //       }
+    //     }
+    //   },
+    //   series: [{
+    //     name: 'Brands',
+    //     colorByPoint: true,
+    //     type: undefined,
+    //     data: [{
+    //       name: 'PL',
+    //       y: 61.41,
+    //     }, {
+    //       name: 'CL',
+    //       y: 27.74
+    //     }, {
+    //       name: 'LWP',
+    //       y: 10.85
+    //     }]
+    //   }],
+    //   colors:
+    //   ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
+    //    '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
+    //     '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
+    //   ],
+    // });
 
     // Total EOD 
     HighCharts.chart('totalEODChart', {

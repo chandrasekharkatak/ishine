@@ -127,4 +127,14 @@ export class LeaveService {
   getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(leavePolicyObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeavePolicyByEmployentStatusAndLeaveTypeMasterId`, leavePolicyObj);
   }
+
+
+  /* Home - Leave Summary */
+  countMyApprovedLeaveApplicationsByLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countMyApprovedLeaveApplicationsByLeaveType`, leaveObj);
+  }
+
+  countMyPendingLeaveApplicationsByLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countMyPendingLeaveApplicationsByLeaveType`, leaveObj);
+  }
 }
