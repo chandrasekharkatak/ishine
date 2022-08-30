@@ -10,6 +10,7 @@ import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { Sort } from '@angular/material/sort';
 
 @Component({
@@ -62,6 +63,7 @@ export class MyTeamComponent implements OnInit {
     private modalService: BsModalService,
     private teamViewService: TeamViewService,
     private leaveService: LeaveService,
+    private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private validationService:ValidationService,
   ) {
@@ -395,6 +397,19 @@ export class MyTeamComponent implements OnInit {
           )
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
         }
+  }
+
+  //myTeam-hierarchy	
+  myTeamHierarchy(employeeObj:Employee) {
+
+    this.employeeService.getHierarchyByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.teamViewList = response.serviceResponse;	
+        console.log("teamViewList : ", this.teamViewList);	
+      } else {	
+        console.error(response.serviceResponse);	
+      }	
+    });	
   }
 
 

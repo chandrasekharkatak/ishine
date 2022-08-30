@@ -1284,8 +1284,8 @@ public class EmployeeService {
 			for(JobRole jobRole : jobRoleObj) {	
 					
 				String jobRoleName = jobRole.getName();	
-					
-				if (jobRoleName.contains("-")) {	
+				
+				if (jobRoleName.contains("-")) {
 					String jobname = jobRoleName.split("-")[1];	
 						
 						
@@ -1678,6 +1678,42 @@ public class EmployeeService {
 			}
 
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse getHierarchyByEmpId(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> list = employeeRepository.getHierarchyByEmpId(employeedto.getEmpId());
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Hierarchy found");
+			} else {
+
+				list.forEach((object) -> {
+					EmployeeDTO dto = new EmployeeDTO();
+					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
+					dto.setName(object[1] != null ? object[1].toString(): null);
+					dto.setEmail(object[2] != null ? object[2].toString(): null);
+					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
+					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
+					dto.setManagerName(object[5] != null ? object[5].toString(): null);
+					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+			
+		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

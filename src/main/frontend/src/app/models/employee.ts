@@ -1,5 +1,6 @@
 export class Employee{
     empId:any;
+	draftEmpId:any;
 	employeementId:any;
 	name:any;
 	managerId:any;

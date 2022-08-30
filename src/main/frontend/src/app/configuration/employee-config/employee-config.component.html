@@ -651,8 +651,9 @@
     <table class="table employee-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
           <tr>	
-            <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
-            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	
+            <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
+            <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
             <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>	
             <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
             <th scope="col" class="info-label">Employment Status</th>	
@@ -665,8 +666,9 @@
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
           <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-            <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
-            <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th>
+            <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
+            <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
+            <td>A-{{employee.employeementId}}</td>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>
             <td>{{employee.employmentstatus}}</td>

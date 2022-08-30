@@ -78,7 +78,7 @@ export class ValidationService {
   }
 
   validateMobileNumber(text: string): boolean {
-    const regex = /^\d{10}$/;
+    const regex = /^[6-9]\d{9}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -200,7 +200,7 @@ export class ValidationService {
   }
 
   validateEmployeementId(text: any): boolean {
-    const regex = /^\d{1,6}$/;
+    const regex = /^[1-9]\d{1,6}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -234,6 +234,22 @@ export class ValidationService {
  
     const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
 
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateBloodGroup(text: string): boolean {
+    const regex = /(A|B|AB|O)[+-]/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

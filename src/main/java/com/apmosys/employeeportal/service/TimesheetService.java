@@ -636,7 +636,8 @@ public class TimesheetService {
 						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setWeekDayName(object[2] != null ? object[2].toString() : null);
-						dto.setTotalWorkingHours(object[1] != null ? Float.parseFloat(object[3].toString()) : null);
+						dto.setTotalWorkingHours(object[3] != null ? Float.parseFloat(object[3].toString()) : null);
+						dto.setStatus(object[4] != null ? object[4].toString() : null);
 						dtoList.add(dto);
 					});
 

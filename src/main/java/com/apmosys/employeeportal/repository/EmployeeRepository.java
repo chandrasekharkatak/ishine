@@ -67,6 +67,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 	public Employee findByName(String leaveStatusUpdatedByName);	
 	
 	public List<Employee> findByJobRoleId(Long oldJobRoleId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getHierarchyByEmpId(Long empId);
 	
 
 }

@@ -1,0 +1,48 @@
+package com.apmosys.employeeportal.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.apmosys.employeeportal.dto.NotificationDTO;
+import com.apmosys.employeeportal.serviceInterface.NotificationService;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+
+@RestController
+@RequestMapping(path = "/api")
+public class NotificationController {
+	
+	@Autowired
+	NotificationService notificationService;
+	
+	@RequestMapping(value = "/addNotification", method = RequestMethod.POST)
+	public ServiceResponse addNotification(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.addNotification(notificationDTO);
+		return response;
+	}
+
+	@RequestMapping(value = "/updateNotification", method = RequestMethod.POST)
+	public ServiceResponse updateNotification(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.updateNotification(notificationDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/deleteNotification", method = RequestMethod.POST)
+	public ServiceResponse deleteNotification(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.deleteNotification(notificationDTO);
+		return response;
+	}
+
+	@RequestMapping(value = "/getAllNotifications", method = RequestMethod.GET)
+	public ServiceResponse getAllNotifications() {
+
+		ServiceResponse response = notificationService.getAllNotifications();
+		return response;
+	}
+
+}
