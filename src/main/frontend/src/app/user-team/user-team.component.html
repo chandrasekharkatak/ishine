@@ -2,11 +2,11 @@
 
   <div class="row card">
     <ul class="nav nav-tabs team__tabs" id="teamTab" role="tablist">
-        <li class="nav-item team__tab-item" *ngIf="userMapping.my_team">
+        <li class="nav-item team__tab-item" *ngIf="userMapping.my_team" (click)="removeActiveTab()">
             <a class="nav-link team__tab-item__link" id="team-tab" data-toggle="tab" role="tab"
                 aria-controls="employee" aria-selected="true" routerLink="my-team">My Team</a>
         </li>
-        <li class="nav-item team__tab-item" *ngIf="userMapping.team_members">
+        <li class="nav-item team__tab-item" *ngIf="userMapping.team_members" (click)="removeActiveTab()">
             <a class="nav-link team__tab-item__link" id="team-tab" data-toggle="tab" role="tab"
                 aria-controls="employee" aria-selected="true" routerLink="team-member">Team Member</a>
         </li>
