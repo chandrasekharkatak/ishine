@@ -13,6 +13,8 @@ import { ImageService } from '../services/image.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Timesheet } from '../models/timesheet';
 import { TimesheetService } from '../services/timesheet.service';
+import { NotificationMessage } from '../models/notification';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-home',
@@ -53,6 +55,8 @@ export class HomeComponent implements OnInit {
   approvedLeavesList:any[] = [];
   pendingLeavesList:any[] = [];
 
+  notificationObj: NotificationMessage = new NotificationMessage();
+
   constructor(
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
@@ -63,24 +67,25 @@ export class HomeComponent implements OnInit {
     private timesheetService : TimesheetService,
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
+    private notificationService: NotificationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
   ngOnInit(): void {
-    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.countPendingCompOffRequestsByManagerId();
-    this.countMyReporteesTimesheetRequests();
-
-    this.renderPieChart();
+    this.getAllNotifications();
     this.getAllEventPhotos();
     this.getAllEmployeesBirthDayToday();
 
-    console.log("================= MY LEAVE DETAILS APIs =====================");
+    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+    this.countPendingCompOffRequestsByManagerId();
+    this.countMyReporteesTimesheetRequests();
     
     this.getMyLeaveBalancesByEmpId();
     this.countMyApprovedLeaveApplicationsByLeaveType();
     this.countMyPendingLeaveApplicationsByLeaveType();
+
+    this.renderPieChart();
 
     // $('.carousel').carousel({
     //   interval: 2000,
@@ -475,158 +480,6 @@ export class HomeComponent implements OnInit {
 
   // Graphs 
   renderPieChart() {
-    // Leave Bucket
-    // HighCharts.chart('leaveBucketChart', {
-    //   credits: {
-    //     enabled: false
-    //   },
-    //   chart: {
-    //     plotBackgroundColor: null,
-    //     plotBorderWidth: null,
-    //     plotShadow: false,
-    //     type: 'pie'
-    //   },
-    //   title: {
-    //     text: 'Leave Bucket'
-    //   },
-    //   tooltip: {
-    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-    //   },
-    //   plotOptions: {
-    //     pie: {
-    //       borderWidth: 0,
-    //       innerSize: '50%',
-    //       allowPointSelect: true,
-    //       cursor: 'pointer',
-    //       dataLabels: {
-    //         enabled: false,
-    //         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-    //       }
-    //     }
-    //   },
-    //   series: [{
-    //     name: 'Brands',
-    //     colorByPoint: true,
-    //     type: undefined,
-    //     data: [{
-    //       name: 'PL',
-    //       y: 61.41,
-    //     }, {
-    //       name: 'CL',
-    //       y: 27.74
-    //     }, {
-    //       name: 'LWP',
-    //       y: 10.85
-    //     }]
-    //   }],
-    //   colors:
-    //   ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-    //    '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-    //     '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-    //   ],
-    // });
-
-    // // Leave Approved 
-    // HighCharts.chart('leaveApprovedChart', {
-    //   credits: {
-    //     enabled: false
-    //   },
-    //   chart: {
-    //     plotBackgroundColor: null,
-    //     plotBorderWidth: null,
-    //     plotShadow: false,
-    //     type: 'pie'
-    //   },
-    //   title: {
-    //     text: 'Leave Approved'
-    //   },
-    //   tooltip: {
-    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-    //   },
-    //   plotOptions: {
-    //     pie: {
-    //       borderWidth: 0,
-    //       innerSize: '50%',
-    //       allowPointSelect: true,
-    //       cursor: 'pointer',
-    //       dataLabels: {
-    //         enabled: false,
-    //         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-    //       }
-    //     }
-    //   },
-    //   series: [{
-    //     name: 'Brands',
-    //     colorByPoint: true,
-    //     type: undefined,
-    //     data: [{
-    //       name: 'PL',
-    //       y: 61.41,
-    //     }, {
-    //       name: 'CL',
-    //       y: 27.74
-    //     }, {
-    //       name: 'LWP',
-    //       y: 10.85
-    //     }]
-    //   }],
-    //   colors:
-    //   ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-    //    '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-    //     '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-    //   ],
-    // });
-
-    // // Leave Request
-    // HighCharts.chart('leaveRequestChart', {
-    //   credits: {
-    //     enabled: false
-    //   },
-    //   chart: {
-    //     plotBackgroundColor: null,
-    //     plotBorderWidth: null,
-    //     plotShadow: false,
-    //     type: 'pie'
-    //   },
-    //   title: {
-    //     text: 'Leave Requests'
-    //   },
-    //   tooltip: {
-    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-    //   },
-    //   plotOptions: {
-    //     pie: {
-    //       borderWidth: 0,
-    //       innerSize: '50%',
-    //       allowPointSelect: true,
-    //       cursor: 'pointer',
-    //       dataLabels: {
-    //         enabled: false,
-    //         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-    //       }
-    //     }
-    //   },
-    //   series: [{
-    //     name: 'Brands',
-    //     colorByPoint: true,
-    //     type: undefined,
-    //     data: [{
-    //       name: 'PL',
-    //       y: 61.41,
-    //     }, {
-    //       name: 'CL',
-    //       y: 27.74
-    //     }, {
-    //       name: 'LWP',
-    //       y: 10.85
-    //     }]
-    //   }],
-    //   colors:
-    //   ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-    //    '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-    //     '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-    //   ],
-    // });
 
     // Total EOD 
     HighCharts.chart('totalEODChart', {
@@ -686,6 +539,20 @@ export class HomeComponent implements OnInit {
        '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
         '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
       ],
+    });
+  }
+
+  /* Notification */
+  getAllNotifications(){
+    this.eventImages = [];
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        let notificationList:any[] =  response.serviceResponse;
+        console.log("notificationList : ", notificationList);
+        if(notificationList) this.notificationObj = notificationList[0]; 
+      } else {
+        console.error(response.serviceResponse);
+      }
     });
   }
 

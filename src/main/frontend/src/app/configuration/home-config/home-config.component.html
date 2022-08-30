@@ -1,16 +1,16 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1">Set Announcement</button> -->
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Upload Event Photos</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Event Photos List</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isNotificationForm}" (click)="showNotificationForm()">Set Notification</button>
     </div>
 </div>
 
 <!-- start :: upload Images Form -->
 <div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isForm">
+    <div class="card col-md-12 px-0" *ngIf="isPhotoForm">
         <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isCreation">Upload Images</strong>
+            <strong>Upload Images</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -79,6 +79,33 @@
       <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="eventImages.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  -->
 </div>
 <!-- end :: see all Photos table -->
+
+<!-- start :: upload Images Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isNotificationForm">
+        <div class="card-header text-center text-uppercase">
+            <strong>Set Notification</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label mb-0"><span class="text-danger">*</span>Notification Message</label>
+                            <textarea class="form-control" id="notificationMsg" maxlength="5000" rows="3" [(ngModel)]="notificationObj.notificationMessage"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSetNotification(alert_message)">Set</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: upload Images form -->
 
 <ng-template #alert_message>
     <div class="modal-body text-center">

@@ -4,10 +4,12 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { EventPhoto } from 'src/app/models/EventPhoto';
 import { Feature } from 'src/app/models/feature';
+import { NotificationMessage } from 'src/app/models/notification';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ImageService } from 'src/app/services/image.service';
+import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -22,8 +24,8 @@ export class HomeConfigComponent implements OnInit {
   userMapping: any = {};
 
   //flags 
-  isCreation: boolean = false;
-  isForm: boolean = false;
+  isPhotoForm: boolean = false;
+  isNotificationForm: boolean = false;
   isTable: boolean = false;
 
   //modal 
@@ -37,6 +39,8 @@ export class HomeConfigComponent implements OnInit {
   eventImages:any[] = [];
   isPreviewLoaded:boolean = false;
 
+  notificationObj: NotificationMessage = new NotificationMessage();
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -44,6 +48,7 @@ export class HomeConfigComponent implements OnInit {
     private employeeService:EmployeeService,
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
+    private notificationService: NotificationService,
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
@@ -60,28 +65,40 @@ export class HomeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    this.showCreateForm();
+    this.showUploadPhotosForm();
   }
 
-  showCreateForm() {
-    this.isForm = true;
-    this.isCreation = true;
+  showUploadPhotosForm() {
+    this.isPhotoForm = true;
 
     this.isTable = false;
+    this.isNotificationForm = false;
     this.reset();
+  }
+
+  showNotificationForm() {
+    this.isNotificationForm = true;
+    
+    this.isPhotoForm = false;
+    this.isTable = false;
+    this.reset();
+
+    this.getAllNotifications();
   }
 
   showTable() {
     this.isTable = true;
 
-    this.isForm = false;
-    this.isCreation = false;
+    this.isPhotoForm = false;
+    this.isNotificationForm = false;
     this.getAllEventPhotos();
   }
 
   reset() {
     this.eventName = null;
     this.files = [];
+
+    this.notificationObj = new NotificationMessage();
   }
 
   onImageSelect(event:any){
@@ -172,6 +189,43 @@ export class HomeConfigComponent implements OnInit {
       this.isPreviewLoaded = true;
       previeImage.style.display = 'block';
     }
+  }
+
+  onSetNotification(template: TemplateRef<any>) {
+    if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
+      this.alertMessage = "Please enter Notification Message !!"
+      this.openAlertMod(template, this.alertMessage);
+    }else if(this.notificationObj.notificationMessage.length > 5000){
+      this.alertMessage = "Please enter Valid Notification Message, Use under 5000 characters !!"
+      this.openAlertMod(template, this.alertMessage);
+    }
+
+    this.notificationObj.updatedBy = this.currentUser.empId;;
+    this.notificationService.updateNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.reset();
+        setTimeout(() => {this.getAllNotifications()}, 2000);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+
+  /* Notifications */
+  getAllNotifications(){
+    this.notificationObj = new NotificationMessage();
+
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        let notificationList:any[] =  response.serviceResponse;
+        console.log("notificationList : ", notificationList);
+        if(notificationList) this.notificationObj = notificationList[0]; 
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
   //modals
