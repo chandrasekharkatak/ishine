@@ -297,7 +297,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.getManagerList();
     this.getAllDepartmentList();    
     
-
+    
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -678,6 +678,24 @@ export class EmployeeConfigComponent implements OnInit {
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
       this.alertMessage = "Please enter employment status !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.managerId)) {
+      this.alertMessage = "Please select manager !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.departmentId)) {
+      this.alertMessage = "Please select Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
+      this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

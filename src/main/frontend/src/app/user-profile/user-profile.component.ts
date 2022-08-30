@@ -180,10 +180,10 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup)){
-      this.alertMessage = "Please enter blood group !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+      this.alertMessage = "Please enter Valid Blood Group !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){

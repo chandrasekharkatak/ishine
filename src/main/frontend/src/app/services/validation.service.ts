@@ -264,4 +264,20 @@ export class ValidationService {
 
   }
 
+  validateAlphabeticCharacters(text: string): boolean {
+    const regex = /^[a-zA-Z ]*$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
 }

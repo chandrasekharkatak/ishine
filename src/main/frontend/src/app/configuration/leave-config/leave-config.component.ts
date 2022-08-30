@@ -365,6 +365,10 @@ export class LeaveConfigComponent implements OnInit {
       this.alertMessage = "Please enter occasion Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else if(!this.validationService.validateAlphabeticCharacters(holidayObj.occasion)){
+      this.alertMessage = "Please enter valid occasion Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     
     if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.dateOfHoliday)){
