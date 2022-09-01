@@ -18,7 +18,6 @@ import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.sun.net.httpserver.Request;
 
 @Service
 public class AuthenticationService {
