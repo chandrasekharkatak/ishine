@@ -81,4 +81,7 @@ public class EmployeeDTO {
 	private String isDraft;
 	
 	private String sessionString;
+	
+	//Anurag
+	//private Integer sessionTime;
 }

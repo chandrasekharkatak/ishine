@@ -2,6 +2,7 @@ import { Component, HostListener } from '@angular/core';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 
+
 interface SideNavToggle{
   screenWidth: number;
   collapsed: boolean;
@@ -19,6 +20,7 @@ export class AppComponent {
   currentUser:User = new User();
 
   constructor(private authenticationService: AuthenticationService){
+
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -35,4 +37,8 @@ export class AppComponent {
       
   //   })
   // }
+
+  //implementing cookies
+  
+  
 }

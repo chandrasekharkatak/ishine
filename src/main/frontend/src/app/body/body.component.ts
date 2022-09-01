@@ -42,6 +42,7 @@ export class BodyComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
+    
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -85,6 +86,8 @@ export class BodyComponent implements OnInit {
         this.authenticationService.stopUserSessionCheck();
         console.log(response.serviceResponse);
         sessionStorage.removeItem('currentUser');
+        // delete method call for cookies
+        this.authenticationService.deleteCookies();
         location.reload();
         this.router.navigate(['/login']);
       } else {

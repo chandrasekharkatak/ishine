@@ -12,6 +12,8 @@ import { SubfeatureService } from '../services/subfeature.service';
 import { ValidationService } from '../services/validation.service';
 import * as CryptoJS from 'crypto-js';
 import { EmployeeService } from '../services/employee.service';
+import { BnNgIdleService } from 'bn-ng-idle';
+import { BodyComponent } from '../body/body.component';
 
 @Component({
   selector: 'app-login',
@@ -61,10 +63,18 @@ export class LoginComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private subfeatureService: SubfeatureService,
     private employeeService: EmployeeService,
+    private bnIdle:BnNgIdleService,
+    private bodyComponent:BodyComponent
+    
   ) { }
 
-  ngOnInit(): void {
-  }
+
+  
+    ngOnInit(): void {
+     
+    }
+  
+    
 
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;
@@ -145,12 +155,11 @@ export class LoginComponent implements OnInit {
       this.isError=true;
       this.errorMsg='Please enter username !!';
       return;
-    }else if(!this.validationService.validateEmail(this.userName)){
+    }else if(!this.validationService.validateEmail(this.userName) ){
       this.isError=true;
       this.errorMsg='Please enter valid username !!';
       return;
-    }
-
+    } 
     if(!this.validationService.validateNullUndefinedEmptyString(this.password)){
       this.isError=true;
       this.errorMsg='Please enter password !!';
@@ -206,6 +215,9 @@ export class LoginComponent implements OnInit {
       let user = responseObj[0];
       this.allMappedSubfeatures = responseObj[1];
       this.authenticationService.sessionString = responseObj[2];
+      this.authenticationService.sessionTimeout= responseObj[3];
+      this.timeSession();
+      this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
 
       let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
       if (getAllSubFeaturesResp.serviceStatus == "Success") {
@@ -234,6 +246,16 @@ export class LoginComponent implements OnInit {
       this.isError = true;
       this.errorMsg = response.serviceResponse;
     }
+  }
+
+   
+  timeSession(){
+    this.bnIdle.startWatching(this.authenticationService.sessionTimeout).subscribe((isTimedOut: boolean) => {
+      if (isTimedOut) {
+       this.bodyComponent.userLogout();
+        console.log('session expired');
+      }
+    });
   }
 
   onSendOTP(){
@@ -417,4 +439,5 @@ export class LoginComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  
 }

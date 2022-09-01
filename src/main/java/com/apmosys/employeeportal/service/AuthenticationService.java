@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.sun.net.httpserver.Request;
 
 @Service
 public class AuthenticationService {
@@ -34,6 +35,9 @@ public class AuthenticationService {
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
 
+	@Value("${idle.session.timeout}")
+	private Integer sessionTimeout;
+
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
@@ -45,9 +49,9 @@ public class AuthenticationService {
 			if (employee != null) {
 
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
-				
-				if(!employee.getEmploymentstatus().equals("InActive")) {
-				
+
+				if (!employee.getEmploymentstatus().equals("InActive")) {
+
 					if (!isUserLoggedIn) {
 						String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
 						String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
@@ -58,6 +62,7 @@ public class AuthenticationService {
 							int otp = random.nextInt(9999 - 1000)
 									+ 1000; /* Random number will be generated between 1000 and 9999 */
 							employee.setOtp(otp);
+
 							employeeRepository.save(employee);
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -70,14 +75,15 @@ public class AuthenticationService {
 
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
-						response.setServiceResponse("User already logged in.Do you want to logout of existing session ?");
+						response.setServiceResponse(
+								"User already logged in.Do you want to logout of existing session ?");
 					}
-					
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("InActive User");
 				}
-				
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Invalid Credentials.");
@@ -94,6 +100,7 @@ public class AuthenticationService {
 
 	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+
 		try {
 			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
@@ -115,10 +122,11 @@ public class AuthenticationService {
 
 				}
 
-				Object[] object = new Object[3];
+				Object[] object = new Object[4];
 				object[0] = currentEmployeeDto;
 				object[1] = serviceResponse.getServiceResponse();
 				object[2] = sessionString;
+				object[3] = sessionTimeout;
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(object);
