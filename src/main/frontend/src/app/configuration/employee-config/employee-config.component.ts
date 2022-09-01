@@ -650,6 +650,12 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
+      this.alertMessage = "Please enter date of birth !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)) {
       this.alertMessage = "Please enter Full Name !!";
       this.openAlertMod(template, this.alertMessage);
