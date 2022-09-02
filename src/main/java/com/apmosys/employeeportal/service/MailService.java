@@ -8,34 +8,23 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class MailService {
 
-//	@Value("${spring.mail.username}")
-//	private String senderName;
-//
-//	@Value("${spring.mail.password}")
-//	private String pwd;
-//
-//	@Value("${spring.mail.port}")
-//	private String port;
-//
-//	@Value("${spring.mail.host}")
-//	private String host;
-//
-//	@Value("${spring.mail.sender}")
-//	private String sender;
-	
-	private String senderName = "@gmail.com";
-	private String pwd = "";
-	private String port = "587";
-	private String host = "smtp.gmail.com";
-	private String sender = "@gmail.com";
+	@Value("${mail.sender}")
+	private String sender;
+
+	@Value("${mail.password}")
+	private String pwd;
+
+	@Value("${mail.port}")
+	private String port;
+
+	@Value("${mail.host}")
+	private String host;	
 
 	public boolean sendMail(String receiver, String subject, String text) throws AddressException, MessagingException {
 
@@ -43,7 +32,7 @@ public class MailService {
 
 			Properties props = new Properties();
 
-			props.put("mail.smtp.user", senderName);
+			props.put("mail.smtp.user", sender);
 			props.put("mail.smtp.host", host);
 			props.put("mail.smtp.port", port);
 			props.put("mail.smtp.starttls.enable", "false");
@@ -52,7 +41,7 @@ public class MailService {
 			props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 			props.put("mail.smtp.socketFactory.fallback", "false");
 			props.put("mail.smtp.ssl.protocols", "TLSv1.2");
-			
+
 			props.remove("mail.smtp.socketFactory.class");
 			props.setProperty("mail.smtp.starttls.enable", "true");
 			SecurityManager security = System.getSecurityManager();
@@ -69,9 +58,8 @@ public class MailService {
 			MimeMessage msg = new MimeMessage(session);
 
 			msg.setSubject(subject);
-			// msg.setText(text,"text/html");
 			msg.setContent(text, "text/html");
-			msg.setFrom(new InternetAddress(senderName));
+			msg.setFrom(new InternetAddress(sender));
 
 			msg.setRecipients(javax.mail.Message.RecipientType.TO, InternetAddress.parse(receiver));
 
@@ -85,14 +73,14 @@ public class MailService {
 
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		MailService mailTest = new MailService();
 		try {
-			boolean flag = mailTest.sendMail("prasad.more@apmosys.com", "Test Mail", "This is a test mail!");
-			if(flag) {
+			boolean flag = mailTest.sendMail("suraj.honavar@apmosys.com", "Test Mail", "This is a test mail!");
+			if (flag) {
 				System.out.println("mail sent!");
-			}else {
+			} else {
 				System.out.println("Failed!");
 			}
 		} catch (MessagingException e) {
