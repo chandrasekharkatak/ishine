@@ -39,4 +39,6 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	@Query(nativeQuery = true)
 	public List<Object[]> countMyApprovedLeaveApplicationsByLeaveType(Long empId);
 
+	public List<EmployeeLeave> findByFromDate(LocalDate dateToday);
+
 }

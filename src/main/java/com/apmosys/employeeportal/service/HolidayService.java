@@ -38,26 +38,6 @@ public class HolidayService {
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
-			LocalDate holidayDtoDateOfHoliday = stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd");
-			LocalDate dbDateOfHoliday = null;
-			String dbState = null;
-			String dbOccasion = null;
-
-			List<Holiday> holidayData = holidayRepository.findAll();
-			for(Holiday dbHolidayData : holidayData) {
-				dbDateOfHoliday = dbHolidayData.getDateOfHoliday();
-				dbState = dbHolidayData.getState();
-				dbOccasion = dbHolidayData.getOccasion();
-			}
-			
-			if(holidayDtoDateOfHoliday.equals(dbDateOfHoliday) && holidayDTO.getState().equals(dbState) && holidayDTO.getOccasion().equals(dbOccasion)) {
-				
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Holiday already present on this Date");
-				
-			}else {
-			
 			     Holiday newHoliday = new Holiday();
 
 			     newHoliday.setOccasion(holidayDTO.getOccasion());
@@ -65,6 +45,7 @@ public class HolidayService {
 			     newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 			     newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 			     newHoliday.setState(holidayDTO.getState());
+			     newHoliday.setHolidayType(holidayDTO.getHolidayType());
 
 			     Holiday newHolidayCreated = holidayRepository.save(newHoliday);
 
@@ -76,7 +57,6 @@ public class HolidayService {
 			    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				    response.setServiceResponse("Failed to add new holiday.");
 			     }
-		  }	
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -102,6 +82,7 @@ public class HolidayService {
 				holiday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 				holiday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 				holiday.setState(holidayDTO.getState());
+				holiday.setHolidayType(holidayDTO.getHolidayType());
 				Holiday dbResponse = holidayRepository.save(holiday);
 
 				if (dbResponse != null) {
@@ -167,6 +148,7 @@ public class HolidayService {
 					dto.setDayOfTheWeek(holiday.getDayOfTheWeek());
 					dto.setOptionalHoliday(holiday.getOptionalHoliday());
 					dto.setState(holiday.getState());
+					dto.setHolidayType(holiday.getHolidayType());
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

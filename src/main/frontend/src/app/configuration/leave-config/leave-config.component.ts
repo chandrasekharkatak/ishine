@@ -361,28 +361,52 @@ export class LeaveConfigComponent implements OnInit {
   }
   validateHolidayObj(holidayObj:Holiday, template: TemplateRef<any>){
 
-    if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.occasion)){
-      this.alertMessage = "Please enter occasion Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphabeticCharacters(holidayObj.occasion)){
-      this.alertMessage = "Please enter valid occasion Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.dateOfHoliday)){
-      this.alertMessage = "Please select Date of Holiday !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    if(holidayObj.holidayType == "Festival" || holidayObj.holidayType == "nonWorking"){
 
-    if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.state)){
-      this.alertMessage = "Please select State !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+      if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.holidayType)){
+        this.alertMessage = "Please select Holiday Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.occasion)){
+        this.alertMessage = "Please enter occasion Name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(!this.validationService.validateAlphabeticCharacters(holidayObj.occasion)){
+        this.alertMessage = "Please enter valid occasion Name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      
+      if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.dateOfHoliday)){
+        this.alertMessage = "Please select Date of Holiday !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.state)){
+        this.alertMessage = "Please select State !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      return true;
+
+    }else if(holidayObj.holidayType == "WeekOff") {
+
+      if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.holidayType)){
+        this.alertMessage = "Please select Holiday Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(holidayObj.dateOfHoliday)){
+        this.alertMessage = "Please select Date of Holiday !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      return true;
     }
-    return true;
   }
   
   setHolidayWeekDay(){
