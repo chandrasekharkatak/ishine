@@ -1054,6 +1054,7 @@ export class EmployeeConfigComponent implements OnInit {
     if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
+      this.employeeObj.dateOfBirth = '';
       return false;
     }
   }

@@ -36,6 +36,9 @@ public class AuthenticationService {
 
 	@Value("${idle.session.timeout}")
 	private Integer sessionTimeout;
+	
+	@Autowired
+	private MailService mailService;
 
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 
@@ -63,6 +66,8 @@ public class AuthenticationService {
 							employee.setOtp(otp);
 
 							employeeRepository.save(employee);
+							
+							mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Valid Credentials. OTP sent to email.");
@@ -208,6 +213,8 @@ public class AuthenticationService {
 				int otp = random.nextInt(9999 - 1000) + 1000;
 				employee.setOtp(otp);
 				employeeRepository.save(employee);
+				
+				mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("OTP sent to emailId.");

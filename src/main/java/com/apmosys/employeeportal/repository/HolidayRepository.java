@@ -12,6 +12,8 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 
 	Holiday findByOccasion(String occasion);
 
+	List<Holiday> findByDateOfHoliday(LocalDate dateToday);
+
 	
 //	public List<Holiday> findByCustomHoliday(String customHoliday);
 

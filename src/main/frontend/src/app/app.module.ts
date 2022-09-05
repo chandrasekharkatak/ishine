@@ -44,10 +44,11 @@ import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-tim
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { NgxPaginationModule } from 'ngx-pagination';
-import {MatListModule} from '@angular/material/list';
+import { MatListModule } from '@angular/material/list';
 import { HomeConfigComponent } from './configuration/home-config/home-config.component';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Ng2SearchPipeModule } from 'ng2-search-filter';
+import { ClipboardModule } from 'ngx-clipboard';
 @NgModule({
   declarations: [
     AppComponent,
@@ -99,6 +100,7 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
     MatListModule,
     MatSortModule,
     Ng2SearchPipeModule,
+    ClipboardModule,
   ],
   providers: [
     BsModalService,

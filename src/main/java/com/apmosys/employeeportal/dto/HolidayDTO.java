@@ -18,5 +18,6 @@ public class HolidayDTO {
 	private Long deptId;
 	private String isActive;
 	private String state;
+	private String holidayType;
 	
 }

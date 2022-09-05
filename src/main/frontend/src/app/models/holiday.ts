@@ -7,6 +7,8 @@ export class Holiday{
 	customHoliday:any;
 	state:any;
 
+	holidayType:any;
+
 	deptId:any;
 	departmentHolidayMapId:any;
 	isActive:any;

@@ -56,7 +56,7 @@
                                 <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker" [disabled]="isUpdation" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="setNoOfDays(alert_message)" disabled>
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker disabled="false"></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" [disabled]="isUpdation" #fromDatePicker disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                                 <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [disabled]="isUpdation" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" disabled>
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker disabled="false"></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker [disabled]="isUpdation" disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>

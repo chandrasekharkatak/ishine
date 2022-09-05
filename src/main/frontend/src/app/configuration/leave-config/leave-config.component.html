@@ -22,6 +22,19 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Select Holiday Type</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="holidayObj.holidayType">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Festival">Festival</option>
+                                <option value="WeekOff">Week-Off</option>
+                                <option value="nonWorking">Non-Working</option>
+                              </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group" *ngIf="holidayObj.holidayType !== 'WeekOff'">
                             <label><span class="text-danger">*</span>Occasion</label>
                             <input type="text" class="form-control" (blur)="checkOccasion(alert_message)" autocomplete="none" [(ngModel)]="holidayObj.occasion">
                         </div>
@@ -29,7 +42,7 @@
                 </div>
                 <div class="col-md-2 mb-0">
                     <div class="info-wrapper">
-                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
+                        <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2" *ngIf="holidayObj.holidayType == 'Festival'">
                             <input class="custom-control-input" type="checkbox" id="optionalCheck" [(ngModel)]="holidayObj.optionalHoliday">
                             <label class="custom-control-label" for="optionalCheck">Optional Holiday</label>
                         </div>
@@ -55,7 +68,7 @@
                 </div>
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group">
+                        <div class="form-group" *ngIf="holidayObj.holidayType !== 'WeekOff'">
                             <label class="info-label"><span class="text-danger">*</span>State</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="holidayObj.state">
                                 <option selected="selected" value="" disabled>Select</option>

@@ -31,4 +31,6 @@ public class Holiday {
 	private String optionalHoliday;
 	
 	private String state;
+	
+	private String holidayType;
 }
