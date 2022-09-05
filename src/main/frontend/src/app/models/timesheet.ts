@@ -23,4 +23,8 @@ export class Timesheet{
     status:any;
 
     applicationCount:any;
+    employeementId : any;
+	weekDayName : any;
+	totalWorkingHours : any;
+    totalWorkingHoursPercentage : any;
 }

@@ -89,15 +89,15 @@
             <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
                 <li class="nav-item timesheet_tab-item">
                     <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
-                    href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true">EOD Last 7 Days</a>
+                    href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true" (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
                 </li>
                 <li class="nav-item timesheet__tab-item">
                     <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
-                    href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false">EOD This Month</a>
+                    href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
                 </li>
                 <li class="nav-item timesheet__tab-item">
                     <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
-                    href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false">EOD Last Month</a>
+                    href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
                 </li>
             </ul>
         
@@ -112,77 +112,21 @@
                                 <th scope="col">#</th>
                                 <th scope="col">Date</th>
                                 <th scope="col">Day</th>
+                                <th scope="col">Day Type</th>
+                                <th scope="col">Status</th>
                                 <th scope="col" colspan="3">Working Hours</th>
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
-                                <th scope="row">1</th>
-                                <td>19-08-2022</td>
-                                <td>Friday</td>
+                              <tr *ngFor="let timesheet of timesheetDetails; let i = index">
+                                <th scope="row">{{i+1}}</th>
+                                <td>{{timesheet.date}}</td>
+                                <td>{{timesheet.weekDayName}}</td>
+                                <td>{{timesheet.dayType}}</td>
+                                <td>{{timesheet.status}}</td>
                                 <td colspan="3">
                                     <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">8 Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="row">2</th>
-                                <td>18-08-2022</td>
-                                <td>Thursday</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">6 Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="row">3</th>
-                                <td>17-08-2022</td>
-                                <td>Wednesday</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">4 Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="row">4</th>
-                                <td>16-08-2022</td>
-                                <td>Tuesday</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">2 Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="row">5</th>
-                                <td>15-08-2022</td>
-                                <td>Monday</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="row">6</th>
-                                <td>14-08-2022</td>
-                                <td>Sunday</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="row">7</th>
-                                <td>13-08-2022</td>
-                                <td>Saturday</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 Hrs</div>
+                                        <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100">{{timesheet.totalWorkingHours}} Hrs</div>
                                       </div>
                                 </td>
                               </tr>
@@ -192,17 +136,17 @@
                 </div>
                 <div class="tab-pane fade timesheet__tab-container" id="thisMonth-tabpanel" role="tabpanel"
                     aria-labelledby="thisMonth-tabpanel">
-                    <h1>EOD THIS MONTH</h1>
+                    <h1>Calendar Here !!</h1>
                 </div>
                 <div class="tab-pane fade timesheet__tab-container" id="lastMonth-tabpanel" role="tabpanel"
                     aria-labelledby="lastMonth-tabpanel">
-                    <h1>EOD LAST MONTH</h1>
+                    <h1>Calendar Here !!</h1>
                 </div>
             </div>
         </div>
         <div class="secondary-section card">
             <div class="card-title px-1 pt-2">
-                <p class="section-heading m-0 pl-2">Total Timesheet Time</p>
+                <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
             </div>
             <div class="card-body p-0">
                 <div class="row col">
