@@ -215,11 +215,11 @@ export class LeaveComponent implements OnInit {
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
 
-    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveAppliedFor)){
-      this.alertMessage = "Please select leave Applied for !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveAppliedFor)){
+    //   this.alertMessage = "Please select leave Applied for !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveTypeMasterId)){
       this.alertMessage = "Please select Leave Type !!"
@@ -464,7 +464,9 @@ export class LeaveComponent implements OnInit {
   }
 
   onUpdateLeave(template: TemplateRef<any>) {
-    this.cancelRequest();	
+    this.cancelRequest();
+    let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
+    if(!inputValidated) return;
 
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
