@@ -23,5 +23,7 @@ public class EmployeeTeamMap {
 	
 	private Long empId;
 	private Long teamId;
+	
+	private Long jobRoleId;
 
 }

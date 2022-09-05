@@ -175,6 +175,8 @@
                       <td>
                         <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
                         (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                        <button class="btn btn-sm btn-outline-primary" type="submit" title="copy timesheet"
+                        (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
                         <button *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
                     </td>
                   </tr>

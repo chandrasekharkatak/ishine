@@ -12,6 +12,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { DatePipe } from '@angular/common';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
+import { ClipboardService } from 'ngx-clipboard';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -19,57 +20,58 @@ import { Sort } from '@angular/material/sort';
   styleUrls: ['./my-timesheet.component.css']
 })
 export class MyTimesheetComponent implements OnInit {
-  
-  data:string;
-  feature="My Timesheets";
-  currentUser:User;
-  userMapping:any = {};
+
+  data: string;
+  feature = "My Timesheets";
+  currentUser: User;
+  userMapping: any = {};
 
   //flags 
-  isCreation:boolean = false;
+  isCreation: boolean = false;
   isUpdation: boolean = false;
 
-  isTimesheetForm:boolean = false;
-  isTimesheetTable:boolean = false;
+  isTimesheetForm: boolean = false;
+  isTimesheetTable: boolean = false;
 
   //modal 
-  alertMessage:any;
+  alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
   //Obj
-  timesheetObj:Timesheet = new Timesheet();
-  allTimesheetActivities:any[] = []
-  allProjectsList:any[] = [];
-  allActivityList:any[] = [];
-  
-  allMyTimesheets:any[] = [];
-  timesheetActivities:any[] = [];
-  startDate:any;
-  endDate:any;
+  timesheetObj: Timesheet = new Timesheet();
+  allTimesheetActivities: any[] = []
+  allProjectsList: any[] = [];
+  allActivityList: any[] = [];
+
+  allMyTimesheets: any[] = [];
+  timesheetActivities: any[] = [];
+  startDate: any;
+  endDate: any;
 
   //excel
   excelName = '';
-  allMyTimesheetsDataForExcel:any[] = [];
+  allMyTimesheetsDataForExcel: any[] = [];
 
 
-  availableTimesheetDates:any[] = [];
-  availableTimesheets:any[] = [];
+  availableTimesheetDates: any[] = [];
+  availableTimesheets: any[] = [];
 
   constructor(
-    private validationService:ValidationService,
+    private validationService: ValidationService,
     private modalService: BsModalService,
-    private authenticationService : AuthenticationService,
-    private timesheetService : TimesheetService,
+    private authenticationService: AuthenticationService,
+    private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
     private datePipe: DatePipe,
-  ) { 
+    private clipboardService: ClipboardService
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
 
     // Dynamic Subfeature Flags 
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -78,22 +80,22 @@ export class MyTimesheetComponent implements OnInit {
     this.sectionViewInit();
   }
 
-  sectionViewInit(){
-    if(this.userMapping.add_timesheet){
+  sectionViewInit() {
+    if (this.userMapping.add_timesheet) {
       this.showCreateTimesheetForm();
-    }else if(this.userMapping.view_my_timesheets || this.userMapping.update_timesheet){
+    } else if (this.userMapping.view_my_timesheets || this.userMapping.update_timesheet) {
       this.showViewMyTimesheets()
     }
   }
 
-  disableMannualDateInput(){
+  disableMannualDateInput() {
     return false;
   }
 
-  showCreateTimesheetForm(){
+  showCreateTimesheetForm() {
     this.isTimesheetForm = true;
     this.isCreation = true;
-    
+
     this.isTimesheetTable = false;
     this.isUpdation = false;
 
@@ -102,13 +104,13 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllAvailableTimesheetByEmpId();
   }
 
-  showViewMyTimesheets(){
+  showViewMyTimesheets() {
     this.isTimesheetTable = true;
-    
+
     this.isTimesheetForm = false;
     this.isCreation = false;
     this.isUpdation = false;
-    this.page=1;
+    this.page = 1;
 
     this.startDate = null;
     this.endDate = null;
@@ -116,10 +118,10 @@ export class MyTimesheetComponent implements OnInit {
     this.allMyTimesheets = [];
   }
 
-  showUpdateTimesheetForm(timesheetObj:Timesheet){
+  showUpdateTimesheetForm(timesheetObj: Timesheet) {
     this.isTimesheetForm = true;
     this.isUpdation = true;
-    
+
     this.isTimesheetTable = false;
     this.isCreation = false;
 
@@ -128,7 +130,7 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllMyActivitiesByTimesheetId(timesheetObj);
   }
 
-  reset(){
+  reset() {
     this.timesheetObj = new Timesheet();
     this.timesheetObj.dayType = '';
 
@@ -145,88 +147,88 @@ export class MyTimesheetComponent implements OnInit {
     this.allTimesheetActivities.push(newActivityObj);
   }
 
-  removeInputActivityField(activityObj:any) {
+  removeInputActivityField(activityObj: any) {
     this.allTimesheetActivities.forEach((value, index) => {
-      if (value == activityObj){
-        if(this.isUpdation){
+      if (value == activityObj) {
+        if (this.isUpdation) {
           this.timesheetObj.updatedTimesheetActivities.push(value);
         }
         this.allTimesheetActivities.splice(index, 1);
-      } 
+      }
     });
   }
 
-  setAllProjectActivities(activityObj, allActivityList:any){
+  setAllProjectActivities(activityObj, allActivityList: any) {
     this.allTimesheetActivities.find(activity => activity === activityObj).projectActivities = allActivityList;
   }
 
-  setActivity(activityObj){
+  setActivity(activityObj) {
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
   }
 
   // Manage Timesheet Dates
-  timesheetDateFilter = (checkDate: Date)=>{
+  timesheetDateFilter = (checkDate: Date) => {
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
-    const time=checkDate?.getTime();
+    const time = checkDate?.getTime();
     let currentDate = new Date();
 
     // 7 days + 1 current Day
     let endDate = currentDate;
-    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays+1) * DAY_IN_MS));
-    
+    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
+
     return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
   }
 
   /* Timesheet */
-  validateTimesheetObj(timesheetObj:Timesheet, template: TemplateRef<any>){
+  validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
 
-    if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)){
+    if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)){
+
+    if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)) {
       this.alertMessage = "Please select Day Type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if(timesheetObj.dayType != 'Holiday'){
+    if (timesheetObj.dayType != 'Holiday') {
       let flag = true;
 
       this.allTimesheetActivities.forEach((activity, index) => {
-        if(!this.validationService.validateNullUndefinedEmptyString(activity.projectId)){
-          this.alertMessage = `Please select Project - ${index+1}!!`
-          flag = false;
-          return;
-        }
-  
-        if(!this.validationService.validateNullUndefinedEmptyString(activity.activityId)){
-          this.alertMessage = `Please select Activity - ${index+1}!!`
-          flag = false;
-          return;
-        }
-  
-        if(!this.validationService.validateNullUndefinedEmptyString(activity.description)){
-          this.alertMessage = `Please enter Activity Description - ${index+1}!!`
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
+          this.alertMessage = `Please select Project - ${index + 1}!!`
           flag = false;
           return;
         }
 
-        if(!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)){
-          this.alertMessage = `Please enter Activity Completion Time - ${index+1}!!`
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.activityId)) {
+          this.alertMessage = `Please select Activity - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.description)) {
+          this.alertMessage = `Please enter Activity Description - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
+          this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;
           return;
         }
       });
 
-      if(!flag){
+      if (!flag) {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    }else{
-      if(!this.validationService.validateNullUndefinedEmptyString(timesheetObj.description)){
+    } else {
+      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.description)) {
         this.alertMessage = "Please enter Timesheet Description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
@@ -236,18 +238,18 @@ export class MyTimesheetComponent implements OnInit {
     return true;
   }
 
-  onCreateTimesheet(template: TemplateRef<any>){
+  onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
-    let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
-    if(!inputValidated) return;
-    
-    if(this.timesheetObj.dayType != 'Holiday'){
+    let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
+    if (!inputValidated) return;
+
+    if (this.timesheetObj.dayType != 'Holiday') {
       console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
-    }else{
+    } else {
       this.timesheetObj.allTimesheetActivities = null;
     }
-    
+
     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Add timesheetObj : ", this.timesheetObj);
@@ -264,29 +266,29 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  onUpdateTimesheet(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateTimesheetObj(this.timesheetObj, template)
-    if(!inputValidated) return;
-    
-    if(this.timesheetObj.dayType != 'Holiday'){
+  onUpdateTimesheet(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
+    if (!inputValidated) return;
+
+    if (this.timesheetObj.dayType != 'Holiday') {
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
-  
-      if(this.timesheetObj.allTimesheetActivities){
+
+      if (this.timesheetObj.allTimesheetActivities) {
         let newTimesheetActivities = this.timesheetObj.allTimesheetActivities.filter(activity => !activity.timesheetId);
         console.log("newTimesheetActivities : ", newTimesheetActivities);
-        
-        if(newTimesheetActivities){
-          if(this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0){
+
+        if (newTimesheetActivities) {
+          if (this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0) {
             this.timesheetObj.updatedTimesheetActivities = [];
           }
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
-      }else{
-        if(this.timesheetObj.updatedTimesheetActivities == undefined || this.timesheetObj.updatedTimesheetActivities[0].length == 0){
+      } else {
+        if (this.timesheetObj.updatedTimesheetActivities == undefined || this.timesheetObj.updatedTimesheetActivities[0].length == 0) {
           this.timesheetObj.updatedTimesheetActivities = null;
         }
       }
-    }else{
+    } else {
       this.timesheetObj.updatedTimesheetActivities = null;
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
@@ -304,7 +306,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
 
-  getAllProjectsByEmpId(){
+  getAllProjectsByEmpId() {
     this.allProjectsList = [];
 
     let timesheetObj = new Timesheet();
@@ -319,7 +321,7 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllActivitiesByProjectIdandEmpId(activityObj:any){
+  getAllActivitiesByProjectIdandEmpId(activityObj: any) {
     let allActivityList = [];
 
     let timesheetObj = new Timesheet();
@@ -336,7 +338,7 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllAvailableTimesheetByEmpId(){
+  getAllAvailableTimesheetByEmpId() {
     this.availableTimesheets = [];
     console.log(" -- logged availableTimesheets -- ");
 
@@ -355,22 +357,22 @@ export class MyTimesheetComponent implements OnInit {
 
 
   /* View Timesheets */
-  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>){
+  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
 
-    if(this.endDate){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.startDate)){
+    if (this.endDate) {
+      if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-  
-      if(!this.validationService.validateNullUndefinedEmptyString(this.endDate)){
+
+      if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
         this.alertMessage = "Please enter End Date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    }else{
+    } else {
       return;
     }
 
@@ -390,7 +392,7 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllMyActivitiesByTimesheetId(timesheet:any){
+  getAllMyActivitiesByTimesheetId(timesheet: any) {
     this.allTimesheetActivities = [];
 
     let timesheetObj = new Timesheet();
@@ -403,15 +405,15 @@ export class MyTimesheetComponent implements OnInit {
         console.error(response.serviceResponse)
       }
 
-      if(this.allTimesheetActivities.length == 0){
+      if (this.allTimesheetActivities.length == 0) {
         this.addInputActivityField();
-      }else{
+      } else {
         this.allTimesheetActivities.forEach(activity => this.getAllActivitiesByProjectIdandEmpId(activity));
       }
     });
   }
 
-  viewAllMyActivitiesByTimesheetId(timesheet:any){
+  viewAllMyActivitiesByTimesheetId(timesheet: any) {
     this.timesheetObj.allTimesheetActivities = [];
 
     let timesheetObj = new Timesheet();
@@ -429,11 +431,11 @@ export class MyTimesheetComponent implements OnInit {
 
   exportToExcel(): void {
 
-    if(this.isTimesheetTable == true){
+    if (this.isTimesheetTable == true) {
       this.excelName = 'MyTimeSheet.xlsx'
 
-        this.allMyTimesheetsDataForExcel =  this.allMyTimesheets;
-  
+      this.allMyTimesheetsDataForExcel = this.allMyTimesheets;
+
       const onlySpecificDataArr: Partial<Timesheet>[] = this.allMyTimesheetsDataForExcel.map(
         x => ({
           date: x.date,
@@ -442,8 +444,8 @@ export class MyTimesheetComponent implements OnInit {
           status: x.status
         })
       )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
-  }
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    }
 
   }
 
@@ -455,9 +457,9 @@ export class MyTimesheetComponent implements OnInit {
 
 
   //modals
-  openUpdateConfimationModal(template: TemplateRef<any>, ){
+  openUpdateConfimationModal(template: TemplateRef<any>,) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
- }
+  }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -468,12 +470,38 @@ export class MyTimesheetComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj:Timesheet){
+  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.viewAllMyActivitiesByTimesheetId(this.timesheetObj);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
- }
+  }
+
+  async copyTimesheetDetailsToNotepad(timesheetObj: Timesheet) {
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj = timesheetObj;
+
+    let content = "Employment Id: A-" + this.currentUser.employeementId
+      + " Name: " + this.currentUser.name
+      + " Date: " + this.timesheetObj.date
+      + " Daytype: " + this.timesheetObj.dayType
+      + " ";
+
+    const response: any = await this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).toPromise();
+
+    if (response.serviceStatus == "Success") {
+      let activityList = response.serviceResponse;
+      let totalActivity = "";
+      activityList.forEach((eodActivity, index) => {
+        index = index + 1;
+        totalActivity += index + ")" + "Project Name: " + eodActivity.projectName + " Activity: " + eodActivity.activity
+          + " comments: " + eodActivity.description + " Time taken: " + eodActivity.completionTime + "hrs. ";
+      })
+      this.clipboardService.copy(content + " " + totalActivity);
+    } else if (response.serviceResponse = "No activities found.Activity list is empty") {
+      this.clipboardService.copy(content + " " + " comments: " + timesheetObj.description)
+    }
+  }
 
   //pagination 
 
@@ -483,34 +511,34 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   // sorting .....	
-  sortMyTimesheet(sort:Sort){	
-    console.log(sort);	
-    const data=this.allMyTimesheets;	
-    if(!sort.active || sort.direction===''){	
-      this.allMyTimesheets=data;	
-      return;	
-    }else {	
-      this.allMyTimesheets=data.sort(	
-        (a,b)=>{	
-          const isAsc=sort.direction==='asc';	
-          switch(sort.active){	
-            case 'date':	
-              return compare(a.date , b.date , isAsc)	
-              case 'dayType':	
-                return compare(a.dayType , b.dayType , isAsc)	
-                case 'status':	
-                  return compare(a.status , b.status , isAsc)	
-                default :	
-                return 0;	
-          }	
-        }	
-      )	
-    }	
-    	
-    	
+  sortMyTimesheet(sort: Sort) {
+    console.log(sort);
+    const data = this.allMyTimesheets;
+    if (!sort.active || sort.direction === '') {
+      this.allMyTimesheets = data;
+      return;
+    } else {
+      this.allMyTimesheets = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'date':
+              return compare(a.date, b.date, isAsc)
+            case 'dayType':
+              return compare(a.dayType, b.dayType, isAsc)
+            case 'status':
+              return compare(a.status, b.status, isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+
   }
 }
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
-}	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+}
 

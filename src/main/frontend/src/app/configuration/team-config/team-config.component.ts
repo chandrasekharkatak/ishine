@@ -25,75 +25,75 @@ import { Sort } from '@angular/material/sort';
 })
 export class TeamConfigComponent implements OnInit {
 
-    data:string;
-  feature="Team Config";
-  currentUser:User;
-  userMapping:any = {};
+  data: string;
+  feature = "Team Config";
+  currentUser: User;
+  userMapping: any = {};
 
   //flags 
-  isCreation:boolean = false;
+  isCreation: boolean = false;
   isUpdation: boolean = false;
 
-  isTeamForm:boolean = false;
-  isActivityForm:boolean = false;
-  isTeamTable:boolean = false;
-  isActivityTable:boolean = false;
-  isDisabled:boolean = false;
+  isTeamForm: boolean = false;
+  isActivityForm: boolean = false;
+  isTeamTable: boolean = false;
+  isActivityTable: boolean = false;
+  isDisabled: boolean = false;
 
   //modal 
-  alertMessage:any;
+  alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
   //Obj 
-  teamObj:Team = new Team();
-  allTeamMembers:any[] = [];
-  allTeamsList:any[] = [];
+  teamObj: Team = new Team();
+  allTeamMembers: any[] = [];
+  allTeamsList: any[] = [];
 
-  activityObj:Activity = new Activity();
-  allActivityList:any[] = [];
+  activityObj: Activity = new Activity();
+  allActivityList: any[] = [];
 
   employeeObj: Employee = new Employee();
 
-  clientList:any[] = [];
-  projectList:any[] = [];
-  employeeListByDept:any[] = [];
-  teamLeadsList:any[] = [];
-  
+  clientList: any[] = [];
+  projectList: any[] = [];
+  employeeListByDept: any[] = [];
+  teamLeadsList: any[] = [];
 
-  allDeptList:any[] = [];
-  allProjectListByManagerId:any[] = [];
-  allTeamList:any[] = [];
+
+  allDeptList: any[] = [];
+  allProjectListByManagerId: any[] = [];
+  allTeamList: any[] = [];
 
   //excel
-  teamDataForExcel:any[];
-  teamsByProjectIdDataForExcel:any[];
-  teamsActivityDataForExcel:any[];
+  teamDataForExcel: any[];
+  teamsByProjectIdDataForExcel: any[];
+  teamsActivityDataForExcel: any[];
 
-  selectedClient:any = '';
-  selectedProject:any = '';
-  selectedTeam:any = '';
+  selectedClient: any = '';
+  selectedProject: any = '';
+  selectedTeam: any = '';
   excelName = '';
   tableElement = '';
 
 
 
   constructor(
-    private validationService:ValidationService,
+    private validationService: ValidationService,
     private modalService: BsModalService,
-    private authenticationService : AuthenticationService,
-    private projectService : ProjectService,
-    private teamService : TeamService,
-    private employeeService : EmployeeService,
+    private authenticationService: AuthenticationService,
+    private projectService: ProjectService,
+    private teamService: TeamService,
+    private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
 
     // Dynamic Subfeature Flags 
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -105,22 +105,22 @@ export class TeamConfigComponent implements OnInit {
     this.getAllProjectListByProjectManagerId();
   }
 
-  sectionViewInit(){
-    if(this.userMapping.add_team){
+  sectionViewInit() {
+    if (this.userMapping.add_team) {
       this.showCreateTeamForm();
-    }else if( this.userMapping.view_teams || this.userMapping.update_team || this.userMapping.delete_team){
+    } else if (this.userMapping.view_teams || this.userMapping.update_team || this.userMapping.delete_team) {
       this.showViewTeams();
-    }else if( this.userMapping.add_activity){
+    } else if (this.userMapping.add_activity) {
       this.showCreateActivityForm();
-    }else if( this.userMapping.view_activities || this.userMapping.update_activity || this.userMapping.delete_activity){
+    } else if (this.userMapping.view_activities || this.userMapping.update_activity || this.userMapping.delete_activity) {
       this.showViewActivities();
     }
   }
 
-  showCreateTeamForm(){
+  showCreateTeamForm() {
     this.isTeamForm = true;
     this.isCreation = true;
-    
+
     this.isTeamTable = false;
     this.isActivityForm = false;
     this.isActivityTable = false;
@@ -129,25 +129,25 @@ export class TeamConfigComponent implements OnInit {
     this.reset();
   }
 
-  showViewTeams(){
+  showViewTeams() {
     this.selectedProject = '';
     this.selectedTeam = '';
     this.isTeamTable = true;
-    
+
     this.isTeamForm = false;
     this.isActivityForm = false;
     this.isActivityTable = false;
     this.isCreation = false;
     this.isUpdation = false;
-    this.page=1;
+    this.page = 1;
 
     this.allTeamList = [];
   }
 
-  showUpdateTeamForm(teamObj:Team){
+  showUpdateTeamForm(teamObj: Team) {
     this.isTeamForm = true;
     this.isUpdation = true;
-    
+
     this.isTeamTable = false;
     this.isActivityForm = false;
     this.isActivityTable = false;
@@ -156,16 +156,16 @@ export class TeamConfigComponent implements OnInit {
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
     this.getTeamMembersByTeamId(this.teamObj.teamId);
-    
+
     /* To Add New Members */
     this.allTeamMembers = [];
     this.addInputTeamMemberField();
   }
 
-  showCreateActivityForm(){
+  showCreateActivityForm() {
     this.isActivityForm = true;
     this.isCreation = true;
-    
+
     this.isTeamForm = false;
     this.isTeamTable = false;
     this.isActivityTable = false;
@@ -174,25 +174,25 @@ export class TeamConfigComponent implements OnInit {
     this.reset();
   }
 
-  showViewActivities(){
+  showViewActivities() {
     this.selectedProject = '';
     this.selectedTeam = '';
     this.isActivityTable = true;
-    
+
     this.isTeamForm = false;
     this.isTeamTable = false;
     this.isActivityForm = false;
     this.isCreation = false;
     this.isUpdation = false;
-    this.page=1;
+    this.page = 1;
 
     this.allActivityList = [];
   }
 
-  showUpdateActivityForm(activityObj:Activity){
+  showUpdateActivityForm(activityObj: Activity) {
     this.isActivityForm = true;
     this.isUpdation = true;
-    
+
     this.isTeamForm = false;
     this.isTeamTable = false;
     this.isActivityTable = false;
@@ -201,7 +201,7 @@ export class TeamConfigComponent implements OnInit {
     this.activityObj = Object.assign({}, activityObj);
   }
 
-  reset(){
+  reset() {
     this.teamObj = new Team();
     this.teamObj.projectId = '';
     this.teamObj.teamLeadId = '';
@@ -226,30 +226,30 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  
+
 
   /* Team Configuration */
-  validateTeamObj(teamObj:Team, template: TemplateRef<any>){
+  validateTeamObj(teamObj: Team, template: TemplateRef<any>) {
 
-    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.projectId)){
+    if (!this.validationService.validateNullUndefinedEmptyString(teamObj.projectId)) {
       this.alertMessage = "Please select Project Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.teamName)){
+    if (!this.validationService.validateNullUndefinedEmptyString(teamObj.teamName)) {
       this.alertMessage = "Please enter Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.teamLeadId)){
+
+    if (!this.validationService.validateNullUndefinedEmptyString(teamObj.teamLeadId)) {
       this.alertMessage = "Please select Team Lead !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)){
+    if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
       this.alertMessage = "Please select Department !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -259,14 +259,15 @@ export class TeamConfigComponent implements OnInit {
   }
 
 
-  onCreateTeam(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateTeamObj(this.teamObj, template)
-    if(!inputValidated) return;
-    
+  onCreateTeam(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
+    if (!inputValidated) return;
+
     console.log("allTeamMembers :", this.allTeamMembers, this.allTeamMembers[0]);
     this.teamObj.allTeamMemberList = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
     this.teamObj.createdBy = this.currentUser.empId;
     console.log("create teamObj : ", this.teamObj);
+    return;
     this.teamService.createTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -283,35 +284,35 @@ export class TeamConfigComponent implements OnInit {
   removeTeamMember(teamMember) {
     console.log("this.teamObj : ", this.teamObj);
     console.log();
-    
-    
+
+
     this.teamObj.allTeamMemberList?.forEach((value, index) => {
-      if (value == teamMember){
-        if(this.teamObj.updatedTeamMemberList[0]){
+      if (value == teamMember) {
+        if (this.teamObj.updatedTeamMemberList[0]) {
           this.teamObj.updatedTeamMemberList.push(value);
-        }else{
+        } else {
           this.teamObj.updatedTeamMemberList = [];
           this.teamObj.updatedTeamMemberList.push(value);
         }
         this.teamObj.allTeamMemberList.splice(index, 1);
-      } 
+      }
     });
     console.log("Updated Team Members : ", this.teamObj.updatedTeamMemberList);
-    
+
   }
 
-  onUpdateTeam(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateTeamObj(this.teamObj, template)
-    if(!inputValidated) return;
-    
+  onUpdateTeam(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
+    if (!inputValidated) return;
+
     this.allTeamMembers = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
 
-    if(this.teamObj.updatedTeamMemberList[0]){
-      if(this.allTeamMembers){
+    if (this.teamObj.updatedTeamMemberList[0]) {
+      if (this.allTeamMembers) {
         this.teamObj.updatedTeamMemberList = this.teamObj.updatedTeamMemberList.concat(this.allTeamMembers);
       }
-    }else{
-      if(this.allTeamMembers){
+    } else {
+      if (this.allTeamMembers) {
         this.teamObj.updatedTeamMemberList = [];
         this.teamObj.updatedTeamMemberList = this.teamObj.updatedTeamMemberList.concat(this.allTeamMembers);
       }
@@ -331,9 +332,9 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  onDeleteTeam(template: TemplateRef<any>){
+  onDeleteTeam(template: TemplateRef<any>) {
     this.cancelRequest();
-  
+
     this.teamService.deleteTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -347,7 +348,7 @@ export class TeamConfigComponent implements OnInit {
   }
 
 
-  getAllTeamsByProjectId(projectId:any){
+  getAllTeamsByProjectId(projectId: any) {
     this.allTeamList = [];
     this.allActivityList = [];
 
@@ -359,8 +360,8 @@ export class TeamConfigComponent implements OnInit {
         this.allTeamList = this.allTeamList.sort(function (a, b) {
           return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
         });
-        
-        this.isDisabled=false;
+
+        this.isDisabled = false;
         console.log("allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
@@ -368,7 +369,7 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  getTeamMembersByTeamId(teamId:any){
+  getTeamMembersByTeamId(teamId: any) {
     this.teamObj.allTeamMemberList = [];
 
     let teamObj = new Team();
@@ -385,7 +386,7 @@ export class TeamConfigComponent implements OnInit {
 
 
   // Project Details 
-  getAllProjectListByProjectManagerId(){
+  getAllProjectListByProjectManagerId() {
     this.allProjectListByManagerId = [];
 
     let projectObj = new Project();
@@ -401,24 +402,24 @@ export class TeamConfigComponent implements OnInit {
   }
 
   // For Team Lead
-  getAllEmployeesByRole(){	
-    this.teamLeadsList = [];	
-    let employeeList = [];	
-    
-    this.employeeObj.role = "Team Lead";	
-    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
-        employeeList = response.serviceResponse;	
-        console.log("employeeList By Role : ", employeeList)	
-        this.teamLeadsList = employeeList;	
-        console.log("teamLeadsList : ", this.teamLeadsList)	
-      } else {	
-        console.error(response.serviceResponse)	
-      }	
-    });	
+  getAllEmployeesByRole() {
+    this.teamLeadsList = [];
+    let employeeList = [];
+
+    this.employeeObj.role = "Team Lead";
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        employeeList = response.serviceResponse;
+        console.log("employeeList By Role : ", employeeList)
+        this.teamLeadsList = employeeList;
+        console.log("teamLeadsList : ", this.teamLeadsList)
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
 
-  getAllEmployeesByDepartmentIds(){
+  getAllEmployeesByDepartmentIds() {
     this.employeeListByDept = [];
 
     let empObj = new Employee();
@@ -433,7 +434,7 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  getAllDepartmentList(){
+  getAllDepartmentList() {
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -448,43 +449,43 @@ export class TeamConfigComponent implements OnInit {
 
 
   /* Activity Configuration */
-  validateActivityObj(activityObj:Activity, template: TemplateRef<any>){
+  validateActivityObj(activityObj: Activity, template: TemplateRef<any>) {
 
-    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.projectId)){
+    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.projectId)) {
       this.alertMessage = "Please select Project !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.teamId)){
+    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.teamId)) {
       this.alertMessage = "Please select Team Lead !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.activity)){
+    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.activity)) {
       this.alertMessage = "Please enter Activity !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)){
+
+    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
       this.alertMessage = "Please enter Activity ETA (Hours)!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(activityObj.eta < 0 || activityObj.eta > 999){
+    } else if (activityObj.eta < 0 || activityObj.eta > 999) {
       this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
+
     return true;
   }
 
-  onCreateActivity(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateActivityObj(this.activityObj, template)
-    if(!inputValidated) return;
-    
+  onCreateActivity(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateActivityObj(this.activityObj, template)
+    if (!inputValidated) return;
+
     this.activityObj.createdBy = this.currentUser.empId;
     console.log("create activity : ", this.activityObj);
     this.teamService.createActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
@@ -501,10 +502,10 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  onUpdateActivity(template: TemplateRef<any>){
-    let inputValidated:boolean  = this.validateActivityObj(this.activityObj, template)
-    if(!inputValidated) return;
-    
+  onUpdateActivity(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateActivityObj(this.activityObj, template)
+    if (!inputValidated) return;
+
     this.activityObj.updatedBy = this.currentUser.empId;
     console.log("update Activity : ", this.activityObj);
 
@@ -521,9 +522,9 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  onDeleteActivity(template: TemplateRef<any>){
+  onDeleteActivity(template: TemplateRef<any>) {
     this.cancelRequest();
-  
+
     this.teamService.deleteActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -537,7 +538,7 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  getAllActivitiesByProjectIdAndTeamId(projectId:any, teamId:any){
+  getAllActivitiesByProjectIdAndTeamId(projectId: any, teamId: any) {
     this.allActivityList = [];
 
     let activityObj = new Activity();
@@ -556,48 +557,48 @@ export class TeamConfigComponent implements OnInit {
 
   // download excel
 
-   exportToExcel(): void {
+  exportToExcel(): void {
 
-     if (this.isTeamTable == true) {
-       this.excelName = 'TeamSheet.xlsx';
+    if (this.isTeamTable == true) {
+      this.excelName = 'TeamSheet.xlsx';
 
-        this.teamsActivityDataForExcel = this.allTeamList;
+      this.teamsActivityDataForExcel = this.allTeamList;
 
-        const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
-          x => ({
-            "Team Name": x.teamName,	
-            "Team Lead Id": x.teamLeadId,	
-            "Created By": x.createdByName,	
-            "Created On": x.createdOn
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
+        x => ({
+          "Team Name": x.teamName,
+          "Team Lead Id": x.teamLeadId,
+          "Created By": x.createdByName,
+          "Created On": x.createdOn
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
 
-     }
-     if (this.isActivityTable == true) {
-       this.excelName = 'ActivitiesSheet.xlsx';
+    }
+    if (this.isActivityTable == true) {
+      this.excelName = 'ActivitiesSheet.xlsx';
 
-       this.teamsByProjectIdDataForExcel = this.allActivityList;
+      this.teamsByProjectIdDataForExcel = this.allActivityList;
 
-        const onlySpecificDataArr: Partial<Activity>[] = this.teamsByProjectIdDataForExcel.map(
-          x => ({
-            activity: x.activity,
-            eta: x.eta,
-            createdBy: x.createdBy,
-            createdOn: x.createdOn
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      const onlySpecificDataArr: Partial<Activity>[] = this.teamsByProjectIdDataForExcel.map(
+        x => ({
+          activity: x.activity,
+          eta: x.eta,
+          createdBy: x.createdBy,
+          createdOn: x.createdOn
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
 
-     }
-}
+    }
+  }
 
 
 
   //modals
-  openUpdateConfimationModal(template: TemplateRef<any>, ){
+  openUpdateConfimationModal(template: TemplateRef<any>,) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
- }
+  }
 
   openDeleteTeamMod(template: TemplateRef<any>, teamObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -618,68 +619,67 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-    //pagination 
+  //pagination 
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortTeam(sort:Sort)	
-{	
-  console.log(sort);	
-  	
-const data=this.allTeamList;	
-if(!sort.active || sort.direction===''){	
-  this.allTeamList=data;	
-  return ;	
-} else {	
-  this.allTeamList=data.sort(	
-    (a , b)=>{	
-      const isAsc=sort.direction==='asc';	
-      switch(sort.active){	
-        case 'teamName':	
-          return compare(a.teamName.toLowerCase() , b.teamName.toLowerCase() , isAsc)	
-          case 'teamLeadName':	
-            return compare(a.teamLeadName.toLowerCase() , b.teamLeadName.toLowerCase() , isAsc)	
-            case 'createdByName':	
-              return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
-              case 'createdOn':	
-                return compare(a.createdOn , b.createdOn , isAsc)	
-          default :	
-          return 0;	
-      }	
-    }	
-  )	
-}	
-}	
-  sortActivity(sort:Sort){	
-    console.log(sort);	
-    const data=this.allActivityList;   	
-    if(!sort.active || sort.direction===''){	
-      this.allActivityList=data;	
-      return;	
-    }else {	
-      this.allActivityList=data.sort(	
-        (a,b)=>{	
-          const isAsc=sort.direction==='asc';	
-          switch(sort.active){	
-            case 'activity':	
-              return compare(a.activity.toLowerCase() ,b.activity.toLowerCase() , isAsc)	
-              case 'eta':	
-                return compare(a.eta , b.eta , isAsc)	
-                case 'createdByName':	
-                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
-                  case 'createdOn':	
-                    return compare(a.createdOn , b.createdOn , isAsc)	
-              default :	
-              return 0;	
-          }	
-        }	
-      )	
-    }	
+  sortTeam(sort: Sort) {
+    console.log(sort);
+
+    const data = this.allTeamList;
+    if (!sort.active || sort.direction === '') {
+      this.allTeamList = data;
+      return;
+    } else {
+      this.allTeamList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'teamName':
+              return compare(a.teamName.toLowerCase(), b.teamName.toLowerCase(), isAsc)
+            case 'teamLeadName':
+              return compare(a.teamLeadName.toLowerCase(), b.teamLeadName.toLowerCase(), isAsc)
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
+            case 'createdOn':
+              return compare(a.createdOn, b.createdOn, isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+  sortActivity(sort: Sort) {
+    console.log(sort);
+    const data = this.allActivityList;
+    if (!sort.active || sort.direction === '') {
+      this.allActivityList = data;
+      return;
+    } else {
+      this.allActivityList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'activity':
+              return compare(a.activity.toLowerCase(), b.activity.toLowerCase(), isAsc)
+            case 'eta':
+              return compare(a.eta, b.eta, isAsc)
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
+            case 'createdOn':
+              return compare(a.createdOn, b.createdOn, isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
   }
 }
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

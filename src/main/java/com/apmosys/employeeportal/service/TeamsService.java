@@ -113,7 +113,7 @@ public class TeamsService {
 
 							map.setEmpId(teamMember.getEmpId());
 							map.setTeamId(teamCreated.getTeamId());
-
+							map.setJobRoleId(teamMember.getJobRoleId());
 							mapList.add(map);
 
 						});
