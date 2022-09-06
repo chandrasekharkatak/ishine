@@ -95,6 +95,7 @@ export class EmployeeConfigComponent implements OnInit {
   ];
   currDate:any;
   yearOfPassingList:any[] = [];
+  revoke_template: any;
 
   constructor(
     private employeeService: EmployeeService,
@@ -133,7 +134,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee) {
+    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {
@@ -1085,6 +1086,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.page = event;
   }
 
+  // implementing sorting functionality by anurag
+  
   sortData(sort: Sort){	
     console.log(sort);  	
        let data=this.allEmployeeList;	
@@ -1117,6 +1120,26 @@ export class EmployeeConfigComponent implements OnInit {
            )	
          }	
        }	
+       // implement Enable Account facilities by anurag
+
+      forEnableAccount(template: TemplateRef<any>, employee: any) {
+        this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+        this.employeeObj = employee;
+      }
+
+       onRevokeAccount(template: TemplateRef<any>) {
+        this.cancelRequest();
+        this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+          } else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
+      }
+    
+      
             
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

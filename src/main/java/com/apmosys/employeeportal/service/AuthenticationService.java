@@ -22,6 +22,9 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @Service
 public class AuthenticationService {
 
+	@Value("${valid.attempt}")
+	private Integer failedAttempt;
+	
 	@Autowired
 	EmployeeRepository employeeRepository;
 
@@ -37,6 +40,8 @@ public class AuthenticationService {
 	@Value("${idle.session.timeout}")
 	private Integer sessionTimeout;
 	
+	private Integer count = 0;
+	
 	@Autowired
 	private MailService mailService;
 
@@ -44,61 +49,72 @@ public class AuthenticationService {
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		try {
+		try {	
+				Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+				
 
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+				if (employee != null) {
+					System.out.println(count + "======");
+					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+					
+					if(employee.getInvalidAccessAttempt()>failedAttempt) {
+						
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Account Blocked !!");
+						
+					}else if(!employee.getEmploymentstatus().equals("InActive")) {
+						
+						if (!isUserLoggedIn) {
+							String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
+							String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
 
-			if (employee != null) {
+							if (dbPassword.equals(orignalPassword)) {
+								
+								Random random = new Random();
+								int otp = random.nextInt(9999 - 1000)
+										+ 1000; /* Random number will be generated between 1000 and 9999 */
+								employee.setOtp(otp);
+								employee.setInvalidAccessAttempt(0);
+								
+								employeeRepository.save(employee);
 
-				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
-
-				if (!employee.getEmploymentstatus().equals("InActive")) {
-
-					if (!isUserLoggedIn) {
-						String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
-						String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
-
-						if (dbPassword.equals(orignalPassword)) {
-
-							Random random = new Random();
-							int otp = random.nextInt(9999 - 1000)
-									+ 1000; /* Random number will be generated between 1000 and 9999 */
-							employee.setOtp(otp);
-
-							employeeRepository.save(employee);
-							
-							mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);
-
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Valid Credentials. OTP sent to email.");
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Valid Credentials. OTP sent to email.");
+								
+							}else {
+								
+								  count = employee.getInvalidAccessAttempt() + 1;
+								  System.out.println("counter :" + count);
+								  employee.setInvalidAccessAttempt(count);
+								  employeeRepository.save(employee);
+								  
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Invalid Password");
+								
+							}
 
 						} else {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Invalid Password");
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
+							response.setServiceResponse(
+									"User already logged in.Do you want to logout of existing session ?");
 						}
 
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
-						response.setServiceResponse(
-								"User already logged in.Do you want to logout of existing session ?");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("InActive User");
 					}
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("InActive User");
+					response.setServiceResponse("Invalid Credentials.");
 				}
 
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Invalid Credentials.");
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
 		return response;
 	}
 

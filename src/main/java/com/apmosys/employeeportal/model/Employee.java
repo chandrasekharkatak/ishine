@@ -110,8 +110,8 @@ public class Employee {
 	private String role;
 	private String workLocation;
 	
-	// Anurag 
-	//private Integer sessionTime;
+	@Column(nullable = false)
+	private Integer invalidAccessAttempt;
 	
 	
 }

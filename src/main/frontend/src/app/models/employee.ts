@@ -71,4 +71,7 @@ export class Employee{
 	updatedOn: any;	
 	updatedBy: any;
 	imageBytes:any;
+
+	invalidAccessAttempt:any;
+	failedAttempt:any;
 }

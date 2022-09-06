@@ -114,4 +114,7 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeOldPassword`, user);
    }	
 
+   revokeAccount(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/revokeAccount` , employeeObj);
+   }
 }

@@ -82,6 +82,7 @@ public class EmployeeDTO {
 	
 	private String sessionString;
 	
-	//Anurag
-	//private Integer sessionTime;
+	private Integer invalidAccessAttempt;
+	private Integer failedAttempt;
+	
 }

@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -176,6 +178,12 @@ public class EmployeeController {
 	public ServiceResponse getHierarchyByEmpId(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.getHierarchyByEmpId(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value ="/revokeAccount" , method = RequestMethod.POST)
+	public ServiceResponse revokeAccount(@RequestBody EmployeeDTO employeedto) {
+		ServiceResponse response=employeeService.revokeAccount(employeedto);
 		return response;
 	}
 }

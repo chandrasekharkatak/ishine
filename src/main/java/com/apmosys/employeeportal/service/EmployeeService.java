@@ -48,6 +48,9 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class EmployeeService {
+	
+	@Value("${valid.attempt}")	
+	private Integer failedAttempt;
 
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -930,6 +933,8 @@ public class EmployeeService {
 					empDTO.setDateOfJoining(
 							object[4] != null ? stringToDateTimeParser.formatDateToString(object[4].toString()) : null);
 					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+					empDTO.setInvalidAccessAttempt(object[6] != null ?Integer.parseInt(object[6].toString()):null);
+					empDTO.setFailedAttempt(failedAttempt);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1364,7 +1369,7 @@ public class EmployeeService {
 								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 								dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 								dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-								dto.setJobRoleId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+
 								dtoList.add(dto);
 
 							});
@@ -1721,5 +1726,41 @@ public class EmployeeService {
 		}
 		return response;
 	}
+	
+		public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				System.out.println("In service !!");
+
+				Employee employee = new Employee();
+				employee = employeeRepository.getById(employeedto.getEmpId());
+				System.out.println(" the employee id is  :" + employee);
+
+				System.out.println("number of invalid attempt :" + employee.getInvalidAccessAttempt());
+
+				if (employee.getInvalidAccessAttempt() > failedAttempt) {
+
+					employee.setInvalidAccessAttempt(0);
+					employeeRepository.save(employee);
+					System.out.println("you are in block section");
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Account is UnBlock !!");
+
+				} else {
+					System.out.println(" you are not  blocked");
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Unblock is Successfully !!");
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
+			}
+			return response;
+
+		}
+
 
 }
