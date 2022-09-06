@@ -267,7 +267,6 @@ export class TeamConfigComponent implements OnInit {
     this.teamObj.allTeamMemberList = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
     this.teamObj.createdBy = this.currentUser.empId;
     console.log("create teamObj : ", this.teamObj);
-    return;
     this.teamService.createTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

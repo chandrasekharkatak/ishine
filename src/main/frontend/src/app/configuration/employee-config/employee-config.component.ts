@@ -202,6 +202,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
     this.page=1;
+    this.data='';
 
     this.managerList = [];
     this.getAllEmployeeList();
@@ -216,6 +217,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.page=1;
+    this.data='';
 
     this.getAllDraftEmployees();
   }
