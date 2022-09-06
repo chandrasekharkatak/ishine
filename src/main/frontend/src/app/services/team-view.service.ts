@@ -27,4 +27,8 @@ export class TeamViewService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamMemberView`, employeeObj);
   }
 
+  revokeApprovedLeaveApplication(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/revokeApprovedLeaveApplication`, leaveObj);
+  }
+
 }

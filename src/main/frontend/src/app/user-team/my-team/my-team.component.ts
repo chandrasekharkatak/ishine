@@ -41,6 +41,7 @@ export class MyTeamComponent implements OnInit {
   isCompOffRequest: boolean = false;
 
   // Obj
+  leaveObj: Leave = new Leave();
   employeeObj: Employee = new Employee();
   teamViewList: any[] = [];
   teamViewLeaveHistoryList: any[] = [];
@@ -150,6 +151,14 @@ export class MyTeamComponent implements OnInit {
     this.page=1;
   }
 
+  //modal 
+
+  openRevokeApprovedLeaveApplication(leaveHistory :any,template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.leaveObj = leaveHistory;
+    console.log(this.leaveObj);
+  }
+
   getAllTeamView() {
     this.isViewTeam = true;
     this.teamViewList = []
@@ -197,6 +206,18 @@ export class MyTeamComponent implements OnInit {
         this.teamViewLeaveHistoryList = response.serviceResponse;
         console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
       } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onRevokeApprovedLeaveApplication(template: TemplateRef<any>) {
+    
+    this.teamViewService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
       }
     });
@@ -313,14 +334,14 @@ export class MyTeamComponent implements OnInit {
       if (this.isViewTeam == true) {
       this.excelName = 'MyTeam.xlsx';
 
-      const onlySpecificDataArr: Partial<Employee>[] = this.teamViewList.map(
+      const onlySpecificDataArr = this.teamViewList.map(
         x => ({
-          empId: x.empId,
-          name: x.name,
-          email: x.email,
-          jobRoleName: x.jobRoleName,
-          mobileNo: x.mobileNo,
-          managerName: x.managerName
+          "Emp Id": x.empId,
+          "Name": x.name,
+          "Email": x.email,
+          "Job Role Name": x.jobRoleName,
+          "Mobile No": x.mobileNo,
+          "Manager Name": x.managerName
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -329,16 +350,16 @@ export class MyTeamComponent implements OnInit {
       if (this.isLeaveHistory == true) {
       this.excelName = 'MyTeamLeaveHistory.xlsx';
 
-      const onlySpecificDataArr: Partial<Leave>[] = this.teamViewLeaveHistoryList.map(
+      const onlySpecificDataArr = this.teamViewLeaveHistoryList.map(
         x => ({
-          createdByName: x.createdByName,
-          fromDate: x.fromDate,
-          toDate: x.toDate,
-          createdOn: x.createdOn,
-          noOfDays: x.noOfDays,
-          status: x.status,
-          reason: x.reason,
-          leaveType: x.leaveType
+          "Created By Name": x.createdByName,
+          "From Date": x.fromDate,
+          "To Date": x.toDate,
+          "Created On": x.createdOn,
+          "No Of Days": x.noOfDays,
+          "Status": x.status,
+          "Reason": x.reason,
+          "Leave Type": x.leaveType
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -348,15 +369,15 @@ export class MyTeamComponent implements OnInit {
       if (this.isCompOffHistory == true) {
       this.excelName = 'MyTeamCompOffHistory.xlsx';
 
-      const onlySpecificDataArr: Partial<Leave>[] = this.teamViewCompOffHistoryList.map(
+      const onlySpecificDataArr = this.teamViewCompOffHistoryList.map(
         x => ({
-          createdByName: x.createdByName,
-          fromDate: x.fromDate,
-          toDate: x.toDate,
-          createdOn: x.createdOn,
-          noOfDays: x.noOfDays,
-          status: x.status,
-          reason: x.reason
+          "Created By Name": x.createdByName,
+          "From Date": x.fromDate,
+          "To Date": x.toDate,
+          "Created On": x.createdOn,
+          "No Of Days": x.noOfDays,
+          "Status": x.status,
+          "Reason": x.reason
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -366,16 +387,16 @@ export class MyTeamComponent implements OnInit {
     if (this.isLeaveRequest == true) {
         this.excelName = 'MyTeamLeaveRequests.xlsx';
   
-          const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationList.map(
+          const onlySpecificDataArr = this.leaveApplicationList.map(
             x => ({
-              leaveType: x.leaveType,
-              fromDate: x.fromDate,
-              toDate: x.toDate,
-              noOfDays: x.noOfDays,
-              status: x.status,
-              createdByName: x.createdByName,
-              createdOn: x.createdOn,
-              reason: x.reason
+              "Leave Type": x.leaveType,
+              "From Date": x.fromDate,
+              "To Date": x.toDate,
+              "No Of Days": x.noOfDays,
+              "Status": x.status,
+              "Created By Name": x.createdByName,
+              "Created On": x.createdOn,
+              "Reason": x.reason
             })
           )
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -384,15 +405,15 @@ export class MyTeamComponent implements OnInit {
       if (this.isCompOffRequest == true) {
           this.excelName = 'MyTeamCompOffRequests.xlsx';
     
-          const onlySpecificDataArr: Partial<Leave>[] = this.allCompOffApplications.map(
+          const onlySpecificDataArr = this.allCompOffApplications.map(
             x => ({
-              createdByName: x.createdByName,
-              compOffReasons: x.compOffReasons,
-              fromDate: x.fromDate,
-              toDate: x.toDate,
-              noOfDays: x.noOfDays,
-              description: x.description,
-              status: x.status
+              "Created By Name": x.createdByName,
+              "Comp Off Reasons": x.compOffReasons,
+              "From Date": x.fromDate,
+              "To Date": x.toDate,
+              "No Of Days": x.noOfDays,
+              "Description": x.description,
+              "Status": x.status
             })
           )
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)

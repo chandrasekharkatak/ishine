@@ -17,15 +17,21 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.EmployeeLeave;
+import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -45,6 +51,12 @@ public class TeamsService {
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	EmployeeLeavesMapRepository employeeLeavesMapRepository;
+	
+	@Autowired
+	LeaveBalanceLogRepository leaveBalanceLogRepository;
 
 	@Autowired
 	ModelMapper modelMapper;
@@ -441,6 +453,7 @@ public class TeamsService {
 					dto.setReason(object[6] != null ? object[6].toString() : null);
 					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					dtoList.add(dto);					
 					});
 
@@ -492,6 +505,58 @@ public class TeamsService {
 				response.setServiceResponse(dtoList);
 			}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<EmployeeLeave> leaveObj = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
+			
+			if(leaveObj.isPresent()) {
+				EmployeeLeave leaveToBeRevoked = leaveObj.get();
+				
+				Float noOfDays = leaveToBeRevoked.getNoOfDays();
+				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+				
+				// updating leave balance after leave revoked
+				
+				EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
+						.findByEmpIdAndLeaveTypeMasterId(leaveToBeRevoked.getEmpId(), leaveToBeRevoked.getLeaveTypeMasterId());
+				
+				Float newBalance = employeeLeaveMapObj.getBalance() + noOfDays;
+				employeeLeaveMapObj.setBalance(newBalance);
+				
+				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
+				
+				if(dbResponse != null) {
+					
+					LeaveBalanceLog log = new LeaveBalanceLog();
+
+					log.setBalance(newBalance);
+					log.setEmpId(leaveToBeRevoked.getEmpId());
+					log.setLeaveTypeMasterId(leaveToBeRevoked.getLeaveTypeMasterId());
+					log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", noOfDays.toString()));
+					log.setUpdateBalanceBy("+" + noOfDays);
+
+					leaveBalanceLogRepository.save(log);
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave Application revoked.");
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application not found");
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
