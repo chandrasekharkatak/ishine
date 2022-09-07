@@ -53,6 +53,9 @@ export class TimesheetService {
   updateTimesheetRequestById(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateTimesheetRequestById`, timesheetObj);
   }
+  revokeApprovedTimesheet(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/revokeApprovedTimesheet`, timesheetObj);
+  }
 
   /* Timesheet for Home Page */
   getTimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {

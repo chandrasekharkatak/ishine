@@ -99,9 +99,13 @@ public class TimesheetController {
 
 		ServiceResponse response = timesheetService.getTimesheetsForHomePageByEmpId(timesheetDTO);
 		return response;
-	}	
+	}
 	
+	@RequestMapping(value = "/revokeApprovedTimesheet", method = RequestMethod.POST)
+	public ServiceResponse revokeApprovedTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+		
+		ServiceResponse response = timesheetService.revokeApprovedTimesheet(timesheetDTO);
+		return response;
+	}
 	
-	
-
 }

@@ -660,4 +660,32 @@ public class TimesheetService {
 		return response;
 	}
 
+	public ServiceResponse revokeApprovedTimesheet(TimesheetDTO timesheetDTO) {
+		ServiceResponse response= new ServiceResponse();
+		try {
+			
+			Optional<Timesheet> timesheetObj = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
+			
+			timesheetObj.ifPresentOrElse((timesheetFound) -> {
+				
+				timesheetFound.setStatus("Pending");
+				timesheetsRepository.save(timesheetFound);
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Timesheet revoked successfully");
+				
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet not found.");
+			});
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }

@@ -170,7 +170,18 @@ export class TeamTimesheetComponent implements OnInit {
     });
   }
 
-  
+  revokeApprovedTimesheet(template: TemplateRef<any>) {
+    this.cancelRequest();
+
+    this.timesheetService.revokeApprovedTimesheet(this.timesheetObj).pipe(first()).subscribe((response :any) => {
+      if(response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showAllTimesheetsTable();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
   exportToExcel(): void {
 
@@ -201,16 +212,9 @@ export class TeamTimesheetComponent implements OnInit {
             status: x.status
           })
         )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
-
-
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName);
     }
   }
-
-
-
-
-
 
 
   //modals
@@ -226,6 +230,11 @@ export class TeamTimesheetComponent implements OnInit {
     this.alertMessage = message;
   }
 
+  openRevokeApprovedTimesheet(template: TemplateRef<any>, timesheet: any) {
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
   cancelRequest() {
     this.modalRef.hide();
   }
@@ -233,7 +242,7 @@ export class TeamTimesheetComponent implements OnInit {
     //pagination 
 
   page = 1;
-  handlePageChange(event) {
+    handlePageChange(event) {
     this.page = event;
   }
   //sorting timesheet	

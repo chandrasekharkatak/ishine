@@ -58,6 +58,7 @@
                     <td>{{timesheet.status}}</td>
                     <td>
                       <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Revoke" (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
                     </td>
                 </tr>
                 </tbody>
@@ -205,5 +206,13 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>
+  </div>
+</ng-template>
+
+<ng-template #revoke_timesheet>
+  <div class="modal-body text-center">
+      <p>Are you sure you want to revoke Timesheet?</p>
+      <button type="button" class="btn btn-success" (click)="revokeApprovedTimesheet(alert_message)">Yes, proceed</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>
