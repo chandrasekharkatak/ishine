@@ -74,6 +74,7 @@ public class AuthenticationService {
 								int otp = random.nextInt(9999 - 1000)
 										+ 1000; /* Random number will be generated between 1000 and 9999 */
 								employee.setOtp(otp);
+								mailService.sendMail(employeedto.getEmail(), "Regarding mail","please find your otp " +otp);
 								employee.setInvalidAccessAttempt(0);
 								
 								employeeRepository.save(employee);
