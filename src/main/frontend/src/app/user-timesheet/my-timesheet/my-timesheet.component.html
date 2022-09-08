@@ -87,7 +87,7 @@
                                     <div class="form-group">
                                         <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
                                         <textarea class="form-control" id="dayTypeDesc" rows="1" [(ngModel)]="activityObj.description"></textarea>
-                                      </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-1 mb-0">
@@ -157,7 +157,8 @@
                     <th scope="col" class="info-label">Sr No.</th>	
                     <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
                     <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
-                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>	
+                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                    <th scope="col" colspan="info-label" class="info-label">Total Time</th>
                     <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
@@ -171,6 +172,7 @@
                       <td>{{timesheet.date}}</td>
                       <td>{{timesheet.dayType}}</td>
                       <td colspan="4" [innerHTML]="timesheet.description"></td>
+                      <td>{{timesheet.totalTime}}</td>
                       <td>{{timesheet.status}}</td>
                       <td>
                         <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"

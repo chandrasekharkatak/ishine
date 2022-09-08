@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -92,6 +93,21 @@ public class TimesheetController {
 
 		ServiceResponse response = timesheetService.getLast7DaysTimesheetsByEmpId(timesheetDTO);
 		return response;
+	}
+	
+	/*		
+	 *	Data migration - Client & Project 		
+	 */		
+			
+	@RequestMapping(value="/addClientAndProjectByList" , method = RequestMethod.POST, consumes="application/json")		
+	public ServiceResponse addClientAndProjectByList(@RequestBody ProjectDTO[] projectDTO) {			
+				
+		ServiceResponse response = null;		
+				
+		 for (ProjectDTO project: projectDTO) {		
+			 response = timesheetService.addClientAndProjectByList(project);		
+		    }			
+		return response;		
 	}
 	
 	@RequestMapping(value = "/getTimesheetsForHomePageByEmpId", method = RequestMethod.POST)

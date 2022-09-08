@@ -41,4 +41,6 @@ public class TimesheetDTO {
 	
 	private String weekDayName;
 	private Float totalWorkingHours;
+	
+	private Float totalTime;
 }

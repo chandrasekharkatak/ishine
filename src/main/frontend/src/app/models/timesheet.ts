@@ -27,4 +27,7 @@ export class Timesheet{
 	weekDayName : any;
 	totalWorkingHours : any;
     totalWorkingHoursPercentage : any;
+
+    // how many hour employee worked
+    totalTime: any;
 }

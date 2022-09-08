@@ -41,6 +41,8 @@ public class Timesheet {
 	private String status;
 	private String remarks;
 	
+	private Float totalTime;
+	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	

@@ -16,4 +16,6 @@ public interface TimesheetActivityMapRepository extends JpaRepository<TimesheetA
 	@Transactional
 	public void deleteByTimesheetId(Long timesheetId);
 
+	public List<TimesheetActivityMap> findByTimesheetId(Long timesheetId);
+
 }
