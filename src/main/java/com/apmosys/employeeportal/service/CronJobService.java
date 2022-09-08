@@ -7,10 +7,16 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +24,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 
 @Service
 public class CronJobService {
@@ -41,6 +55,18 @@ public class CronJobService {
 	
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
+	
+	@Autowired				
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	HolidayRepository holidayRepository;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 
 	@Value("${po.db.url}")
 	private String url;
@@ -237,8 +263,204 @@ public class CronJobService {
 		   }catch(Exception e) {
 			e.printStackTrace();
 		   }
+	}
+	
+	//0 0 1 ? JAN *  - At 01:00:00am, in January
+	
+	@Scheduled(cron = "0 0 1 ? JAN *")
+	public void addingWeekOff() {
+		
+		try {
+			int monthCount = 1;
+			
+			// For adding 2nd & 4th Saturday
+			
+			while(monthCount <= 12) {
+				
+				int currentYear = LocalDate.now().getYear();
+				LocalDate dateToday = LocalDate.of(currentYear, monthCount, 1);
+				
+				LocalDate secondSaturday = dateToday.with(TemporalAdjusters.dayOfWeekInMonth(2, DayOfWeek.SATURDAY));
+				
+				  Holiday newHoliday = new Holiday();
+				  newHoliday.setDateOfHoliday(secondSaturday);
+				  newHoliday.setDayOfTheWeek("Saturday");
+				  newHoliday.setHolidayType("WeekOff");
+				  newHoliday.setOccasion("Saturday : second saturday");
+				  newHoliday.setState("all");
+				  newHoliday.setOptionalHoliday("false");
+				  
+				  holidayRepository.save(newHoliday);
+				  
+				LocalDate fourthSaturday = dateToday.with(TemporalAdjusters.dayOfWeekInMonth(4, DayOfWeek.SATURDAY));
+                 
+				  Holiday newHolidayObj = new Holiday();
+				  newHolidayObj.setDateOfHoliday(fourthSaturday);
+				  newHolidayObj.setDayOfTheWeek("Saturday");
+				  newHolidayObj.setHolidayType("WeekOff");
+				  newHolidayObj.setOccasion("Saturday : fourth saturday");
+				  newHolidayObj.setState("all");
+				  newHolidayObj.setOptionalHoliday("false");
+				  
+				  holidayRepository.save(newHolidayObj);
+				  
+			// For adding Sundays	  
+				
+				Calendar calander = new GregorianCalendar(currentYear, monthCount - 1, 1);
+		        do {
+		            int day = calander.get(Calendar.DAY_OF_WEEK);
+		            if (day == Calendar.SUNDAY) {
+		            	Date date = calander.getTime();
+		            	LocalDate sundayDate = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd").format(date));
+		            	
+		            	  Holiday holidayObj = new Holiday();
+		            	  holidayObj.setDateOfHoliday(sundayDate);
+		            	  holidayObj.setDayOfTheWeek("Sunday");
+		            	  holidayObj.setHolidayType("WeekOff");
+		            	  holidayObj.setOccasion("Sunday");
+		            	  holidayObj.setState("all");
+		            	  holidayObj.setOptionalHoliday("false");
+		            	  
+						  holidayRepository.save(holidayObj);
+						  
+		            }
+		            calander.add(Calendar.DAY_OF_YEAR, 1);
+		        }  while (calander.get(Calendar.MONTH) == monthCount-1);
+				
+				monthCount++;
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 	}
-
 	
+	//0 0 21 ? * * - At 21:00:00pm every day
+	
+		@Scheduled(cron = "0 0 21 ? * *")
+		public void automaticTimesheetFiller() {
+			
+			try {
+				
+				LocalDate dateToday = LocalDate.now();
+				
+				List<Employee> allEmployee = employeeRepository.findAll();
+				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+				
+			//	Timesheet filler for weekoff day : saturday & sunday
+				
+				if(!publicHoliday.isEmpty()) {
+					
+					for(Holiday holiday: publicHoliday) {
+						String holidayOccassion = holiday.getOccasion();
+						String dayOfWeek = holiday.getDayOfTheWeek();
+						
+						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
+							for(Employee empObj: allEmployee) {
+								
+								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empObj.getEmpId(),dateToday);
+								
+								if(empTimesheet == null) {
+									Timesheet newTimesheet = new Timesheet();
+									
+									newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+									newTimesheet.setDate(dateToday);
+									newTimesheet.setDayType("Holiday");
+									if(holidayOccassion.equals("Saturday")) {
+										newTimesheet.setDescription("WeekOff : Saturday");
+									}else{
+										newTimesheet.setDescription("WeekOff : Sunday");
+									}
+									newTimesheet.setEmpId(empObj.getEmpId());
+									newTimesheet.setStatus("Pending");
+									
+									timesheetsRepository.save(newTimesheet);
+								}				
+							}
+						}
+					}		
+				}
+				
+		   //	Timesheet filler for public Holiday
+				
+				if(!publicHoliday.isEmpty()) {
+					
+					for(Holiday holidays: publicHoliday) {
+						String holidayState = holidays.getState();
+						
+						for(Employee empObj: allEmployee) {
+							String workLocation = empObj.getWorkLocation();
+
+							if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+									|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
+								
+								Timesheet newTimesheet = new Timesheet();
+								
+								newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+								newTimesheet.setDate(dateToday);
+								newTimesheet.setDayType("Holiday");
+								newTimesheet.setDescription("Public Holiday");
+								newTimesheet.setEmpId(empObj.getEmpId());
+								newTimesheet.setStatus("Pending");
+								
+								timesheetsRepository.save(newTimesheet);
+								
+							}
+						}	
+					}
+				}
+				
+			//	Timesheet filler for leave days
+				
+				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+				
+				if(!employeeLeave.isEmpty()) {
+					
+					for(EmployeeLeave leaveObj: employeeLeave) {
+						Long empId = leaveObj.getEmpId();
+						Short approvedLeave = 2;
+						
+						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+						
+						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+							
+							Timesheet newTimesheet = new Timesheet();
+							
+							newTimesheet.getCommonProperty().setCreatedBy(empId);
+							newTimesheet.setDate(dateToday);
+							newTimesheet.setDayType("Working");
+							newTimesheet.setDescription("On leave");
+							newTimesheet.setEmpId(empId);
+							newTimesheet.setStatus("Pending");
+							
+							timesheetsRepository.save(newTimesheet);
+						}
+						
+						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+							LocalDate tempDateToday = dateToday;
+							
+							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+								
+								Timesheet newTimesheet = new Timesheet();
+								
+								newTimesheet.getCommonProperty().setCreatedBy(empId);
+								newTimesheet.setDate(tempDateToday);
+								newTimesheet.setDayType("Working");
+								newTimesheet.setDescription("On leave");
+								newTimesheet.setEmpId(empId);
+								newTimesheet.setStatus("Pending");
+								
+								timesheetsRepository.save(newTimesheet);
+								
+								tempDateToday = tempDateToday.plusDays(1);
+							}
+						}					
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 }	
