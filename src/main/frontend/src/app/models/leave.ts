@@ -63,6 +63,8 @@ export class Leave{
 
 	reasonId:any;
 
+	revokeReason:any;
+
 	//for changing leavetype mapping  	
 	newLeaveTypeMasterId:any;	
 	oldLeaveTypeMasterId:any;

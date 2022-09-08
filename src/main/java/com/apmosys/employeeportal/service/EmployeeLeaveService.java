@@ -1,10 +1,15 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +47,12 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
 
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -407,6 +418,71 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<EmployeeLeave> leaveObj = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
+			
+			if(leaveObj.isPresent()) {
+				EmployeeLeave leaveToBeRevoked = leaveObj.get();
+				
+				Float noOfDays = leaveToBeRevoked.getNoOfDays();
+				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+				
+				// updating leave balance after leave revoked
+				
+				EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
+						.findByEmpIdAndLeaveTypeMasterId(leaveToBeRevoked.getEmpId(), leaveToBeRevoked.getLeaveTypeMasterId());
+				
+				Float newBalance = employeeLeaveMapObj.getBalance() + noOfDays;
+				employeeLeaveMapObj.setBalance(newBalance);
+				
+				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
+				
+				if(dbResponse != null) {
+					
+					LeaveBalanceLog log = new LeaveBalanceLog();
+
+					log.setBalance(newBalance);
+					log.setEmpId(leaveToBeRevoked.getEmpId());
+					log.setLeaveTypeMasterId(leaveToBeRevoked.getLeaveTypeMasterId());
+					log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", noOfDays.toString()));
+					log.setUpdateBalanceBy("+" + noOfDays);
+
+					leaveBalanceLogRepository.save(log);
+					
+					//send mail to hr & manager
+					Optional<Employee> employee = employeeRepository.findById(leaveToBeRevoked.getEmpId());
+					if(!employee.isEmpty()) {
+						
+						Employee empObj = employee.get();
+						Optional<Employee> empManager = employeeRepository.findById(empObj.getManagerId());
+						
+						if(!empManager.isEmpty()) {
+							Employee empManagerObj = empManager.get();
+							mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress, "Leave revoked", "Employee have revoked its approved leave <br> EmpId : A-" + leaveToBeRevoked.getEmpId() + "<br> Reason : " + leaveDTO.getRevokeReason());
+						}
+					}
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave Application revoked.");
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application not found");
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 	@Transactional
 	public ServiceResponse updateLeavesByEmpId(LeaveDTO leaveDTO) {
@@ -495,6 +571,156 @@ public class EmployeeLeaveService {
 		return response;
 	}
 
+	public ServiceResponse updateLeaveBalanceByEmployeementId(LeaveDTO leaveDTO) {			
+		ServiceResponse response = new ServiceResponse();			
+		try {			
+								
+			System.out.println(leaveDTO.getEmployeementId() + " employeement id");			
+			Optional<Employee> EmpId = Optional.ofNullable(employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId()));			
+			if(EmpId.isPresent()) {			
+							
+				Employee employee = EmpId.get();			
+				Long primaryEmpid = employee.getEmpId();			
+				System.out.println(primaryEmpid + " primary empid");			
+							
+							
+					List<EmployeeLeavesMap> employeeLeavesList = employeeLeavesMapRepository.findAllByEmpId(primaryEmpid);			
+								
+					if (employeeLeavesList.isEmpty()) {			
+						System.out.println("in if block");			
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);			
+						response.setServiceResponse("No Leaves found.");			
+					} else {			
+									
+						for(EmployeeLeavesMap e: employeeLeavesList) {			
+							System.out.println(e.getLeaveTypeMasterId() + " leave type id");			
+										
+							if(e.getLeaveTypeMasterId() == 1) {			
+								e.setBalance(leaveDTO.getBalance());			
+								System.out.println(leaveDTO.getBalance() + " set balance");			
+    						}			
+//							else if(e.getLeaveTypeMasterId() == 3) {			
+//								e.setBalance(leaveDTO.getBalance());			
+//								System.out.println(leaveDTO.getBalance() + " set balance");			
+//							}			
+//							else if(e.getLeaveTypeMasterId() == 5) {			
+//								e.setBalance(leaveDTO.getBalance());			
+//								System.out.println(leaveDTO.getBalance() + " set balance");			
+//							}			
+						
+											
+							EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(e);			
+							System.out.println(dbResponse + " dp response");			
+										
+							if(dbResponse != null) {			
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);					
+								response.setServiceResponse("leave balance Updated.");			
+							}else {			
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
+								response.setServiceResponse("leave balance Updation Failed.");			
+							}			
+						}			
+									
+									
+					}			
+							
+			}			
+						
+		} catch (Exception e) {			
+			e.printStackTrace();			
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);			
+			response.setServiceResponse("Something Went Wrong.");			
+			response.setServiceError(e.getMessage());			
+		}			
+		return response;			
+	}	
+		
+	public ServiceResponse addOldLeaveApplicationByList(LeaveDTO leaveDTO) {			
+		ServiceResponse response = new ServiceResponse();			
+		try {			
+						
+			Optional<Employee> EmpId = Optional.ofNullable(employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId()));			
+			if(EmpId.isPresent()) {			
+							
+				Employee employee = EmpId.get();			
+				Long primaryEmpid = employee.getEmpId();			
+				Long managerId = employee.getManagerId();			
+				Long approverId;			
+							
+				Employee approverName = employeeRepository.findByName(leaveDTO.getLeaveStatusUpdatedByName());			
+				if(approverName == null) {			
+					approverId = (long) 2;			
+				}else {			
+					approverId = approverName.getEmpId();			
+				}			
+							
+			EmployeeLeave leaveApplication = new EmployeeLeave();			
+			leaveApplication.setEmpId(primaryEmpid);			
+						
+			if(leaveDTO.getLeaveType().equals("PL")) {			
+				leaveApplication.setLeaveTypeMasterId((short) 2);			
+			}else if(leaveDTO.getLeaveType().equals("LWP")) {			
+				leaveApplication.setLeaveTypeMasterId((short) 3);			
+			}			
+						
+			if(leaveDTO.getStatus().equals("Approved")) {			
+				leaveApplication.setLeaveStatusId((short) 2);			
+			}else if(leaveDTO.getStatus().equals("Rejected")) {			
+				leaveApplication.setLeaveStatusId((short) 3);			
+			}else if(leaveDTO.getStatus().equals("Pending")) {			
+				leaveApplication.setLeaveStatusId((short) 1);			
+			}			
+						
+			leaveApplication.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd"));			
+			leaveApplication.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd"));			
+			leaveApplication.setNoOfDays((Float) leaveDTO.getNoOfDays());			
+			leaveApplication.setReason(leaveDTO.getReason());			
+						
+			if(managerId == null) {			
+				leaveApplication.setManagerId(2);			
+			}else {			
+				leaveApplication.setManagerId(managerId.intValue());			
+			}			
+						
+			leaveApplication.setHodId(approverId);			
+			leaveApplication.setLeaveStatusUpdatedBy(approverId);			
+						
+			leaveApplication.getCommonProperty().setCreatedBy(primaryEmpid);			
+						
+						
+			final String OLD_FORMAT = "yyyy-MM-dd";			
+			final String NEW_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";			
+			String oldDateString = leaveDTO.getCreatedOn();			
+			String newDateString;			
+			DateFormat formatter = new SimpleDateFormat(OLD_FORMAT);			
+			Date d = formatter.parse(oldDateString);			
+			((SimpleDateFormat) formatter).applyPattern(NEW_FORMAT);			
+			newDateString = formatter.format(d);		
+			Timestamp ts = Timestamp.valueOf(newDateString);		
+					
+					
+			leaveApplication.getCommonProperty().setCreatedOn(ts);			
+			EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveApplication);			
+			System.out.println("db response=============================================");			
+			if(dbResponse != null) {			
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);					
+				response.setServiceResponse("Application created");			
+			}else {			
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
+				response.setServiceResponse("Application creation Failed.");			
+			}			
+							
+			}			
+						
+		}catch (Exception e) {			
+			e.printStackTrace();			
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);			
+			response.setServiceResponse("Something Went Wrong.");			
+			response.setServiceError(e.getMessage());			
+		}			
+		return response;			
+	}					
+	
 	public ServiceResponse getLeaveLogsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {

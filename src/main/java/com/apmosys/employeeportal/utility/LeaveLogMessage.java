@@ -14,6 +14,6 @@ public class LeaveLogMessage {
 	public static String requestDeductLeave = "Deducted 0.0 leaves. Employee requested for leave.";
 	public static String adminDeductLeave = "Deducted 0.0 leaves. Deducted by admin.";
 	
-	public static String leaveRevoked = "Added 0.0 leaves. Leave revoked by manager.";
+	public static String leaveRevoked = "Added 0.0 leaves. Leave revoked by employee.";
 
 }

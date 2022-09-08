@@ -170,7 +170,8 @@
                 <!-- <td>{{leaveHistory.description}}</td> -->
                 <td>	
                     <button *ngIf="leaveHistory.status == 'Pending'" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;	
-                    <button *ngIf="leaveHistory.status == 'Pending'" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeave(delete_leave_application,leaveHistory)"><em class="fa fa-trash"></em></button>	
+                    <button *ngIf="leaveHistory.status == 'Pending'" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeave(delete_leave_application,leaveHistory)"><em class="fa fa-trash"></em></button>&nbsp;
+                    <button *ngIf="(leaveHistory.status == 'Approved' && leaveHistory.fromDate > dateToday)" class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeApprovedLeaveApplication(revoke_approved_leave,leaveHistory)" title="Revoke"><em>Revoke</em></button>
                 </td>
             </tr>
         </tbody>
@@ -318,3 +319,21 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #revoke_approved_leave>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke leave Application?</p>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Reason</label>
+                        <textarea class="form-control" id="revokereason" rows="3" [(ngModel)]="leaveObj.revokeReason"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" (click)="onRevokeApprovedLeaveApplication(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+     </div>
+  </ng-template>

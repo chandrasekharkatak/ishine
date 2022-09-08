@@ -75,6 +75,39 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value="/revokeApprovedLeaveApplication" , method = RequestMethod.POST)
+	public ServiceResponse revokeApprovedLeaveApplication(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.revokeApprovedLeaveApplication(leaveDTO);		
+		return response;
+	}
+	
+	/*		
+	 *	Data migration - updateleavebalance, oldleaveApplication 		
+	 */		
+			
+	@RequestMapping(value="/updateLeaveBalanceByEmployeementId" , method = RequestMethod.POST, consumes="application/json")		
+	public ServiceResponse updateLeaveBalanceByEmployeementId(@RequestBody LeaveDTO[] leaveDTO) {			
+				
+		ServiceResponse response = null;		
+				
+		 for (LeaveDTO leave: leaveDTO) {		
+			 response = employeeLeaveService.updateLeaveBalanceByEmployeementId(leave);		
+		    }			
+		return response;		
+	}		
+			
+	@RequestMapping(value="/addOldLeaveApplicationByList" , method = RequestMethod.POST, consumes="application/json")		
+	public ServiceResponse addOldLeaveApplicationByList(@RequestBody LeaveDTO[] leaveDTO) {			
+				
+		ServiceResponse response = null;		
+				
+		 for (LeaveDTO leave: leaveDTO) {		
+			 response = employeeLeaveService.addOldLeaveApplicationByList(leave);		
+		    }			
+		return response;		
+	}
+	
 	/*
 	 * To update leave bucket of an employee eg: Add Compoff , monthly leave updation ,etc.
 	 */

@@ -83,4 +83,5 @@ public class LeaveDTO {
 	private Integer reasonId;
 	
 	private Short oldLeaveTypeMasterId;
+	private String revokeReason;
 }

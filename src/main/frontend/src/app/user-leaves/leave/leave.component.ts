@@ -44,6 +44,9 @@ export class LeaveComponent implements OnInit {
   userMapping:any = {};
   leaveObj:Leave = new Leave();
 
+  // for revoke approved leave
+  dateToday: any = new Date();
+
   leaveTypes:any[] = [];
   leaveHistoryList:any[] = [];
   leaveApplicationList:any[] = [];
@@ -89,7 +92,8 @@ export class LeaveComponent implements OnInit {
     this.sectionViewInit();
     // this.getAllLeaveTypes();
     this.getAllLeaveTypesByLeavePolicies();
-    
+
+    this.dateToday = this.datePipe.transform(this.dateToday,'yyyy-MM-dd');
   }
 
   sectionViewInit(){
@@ -211,6 +215,12 @@ export class LeaveComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
     this.leaveObj = leaveHistory;	
     console.log(this.leaveObj);	
+  }
+
+  openRevokeApprovedLeaveApplication(template: TemplateRef<any>, leaveHistory: any) {
+    this.modalRef = this.modalService.show(template);
+    this.leaveObj = leaveHistory;
+    console.log(this.leaveObj);
   }
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
@@ -612,6 +622,20 @@ export class LeaveComponent implements OnInit {
         console.log("holidayDates : ", this.holidayDates); 
         console.log("holidayList : ", this.holidayList);
       } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onRevokeApprovedLeaveApplication(template: TemplateRef<any>) {
+
+    this.cancelRequest();
+    this.leaveService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showLeaveHistoryTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
       }
     });
