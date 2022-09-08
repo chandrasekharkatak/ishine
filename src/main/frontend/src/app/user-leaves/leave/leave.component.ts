@@ -258,6 +258,18 @@ export class LeaveComponent implements OnInit {
     return true;
   }
 
+  validateRevokeObj(leaveObj:Leave, template: TemplateRef<any>){
+
+    this.cancelRequest();
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.revokeReason)){
+      this.alertMessage = "Please enter revoke reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    return true;
+  }
+
   setLeaveTypeCode(leaveTypeMasterId:any){
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
@@ -628,6 +640,8 @@ export class LeaveComponent implements OnInit {
   }
 
   onRevokeApprovedLeaveApplication(template: TemplateRef<any>) {
+    let inputValidated:boolean  = this.validateRevokeObj(this.leaveObj, template)
+    if(!inputValidated) return;
 
     this.cancelRequest();
     this.leaveService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
