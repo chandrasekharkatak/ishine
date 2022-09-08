@@ -116,6 +116,7 @@ export class MyTeamComponent implements OnInit {
     this.toDate = null;
     this.teamViewLeaveHistoryList = [];
     this.page=1;
+    this.data='';
   }
 
   viewCompOffHistory() {
@@ -125,6 +126,7 @@ export class MyTeamComponent implements OnInit {
     this.toDate = null;
     this.teamViewCompOffHistoryList = [];
     this.page=1;
+    this.data='';
   }
 
   viewTeamRequest() {
@@ -137,26 +139,21 @@ export class MyTeamComponent implements OnInit {
     this.isTeamLeaveHistory = false;
     this.isViewTeam = false;
     this.page=1;
+    this.data='';
   }
 
   viewTeamLeaveRequest() {
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
     this.page=1;
+    this.data='';
   }
 
   viewTeamCompOffRequest() {
     this.isLeaveRequest = false;
     this.isCompOffRequest = true;
     this.page=1;
-  }
-
-  //modal 
-
-  openRevokeApprovedLeaveApplication(leaveHistory :any,template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.leaveObj = leaveHistory;
-    console.log(this.leaveObj);
+    this.data='';
   }
 
   getAllTeamView() {
@@ -206,18 +203,6 @@ export class MyTeamComponent implements OnInit {
         this.teamViewLeaveHistoryList = response.serviceResponse;
         console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
       } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-  onRevokeApprovedLeaveApplication(template: TemplateRef<any>) {
-    
-    this.teamViewService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
       }
     });

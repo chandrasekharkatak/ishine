@@ -513,56 +513,5 @@ public class TeamsService {
 		}
 		return response;
 	}
-
-	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			
-			Optional<EmployeeLeave> leaveObj = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-			
-			if(leaveObj.isPresent()) {
-				EmployeeLeave leaveToBeRevoked = leaveObj.get();
-				
-				Float noOfDays = leaveToBeRevoked.getNoOfDays();
-				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
-				
-				// updating leave balance after leave revoked
-				
-				EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
-						.findByEmpIdAndLeaveTypeMasterId(leaveToBeRevoked.getEmpId(), leaveToBeRevoked.getLeaveTypeMasterId());
-				
-				Float newBalance = employeeLeaveMapObj.getBalance() + noOfDays;
-				employeeLeaveMapObj.setBalance(newBalance);
-				
-				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
-				
-				if(dbResponse != null) {
-					
-					LeaveBalanceLog log = new LeaveBalanceLog();
-
-					log.setBalance(newBalance);
-					log.setEmpId(leaveToBeRevoked.getEmpId());
-					log.setLeaveTypeMasterId(leaveToBeRevoked.getLeaveTypeMasterId());
-					log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", noOfDays.toString()));
-					log.setUpdateBalanceBy("+" + noOfDays);
-
-					leaveBalanceLogRepository.save(log);
-					
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Leave Application revoked.");
-				}
-				
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Leave Application not found");
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		return response;
-	}
+	
 }

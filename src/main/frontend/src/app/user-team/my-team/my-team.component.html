@@ -107,7 +107,7 @@
         <tr *ngIf="teamViewLeaveHistoryList.length == 0">
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
-        <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td class="info-label">{{10*(page-1)+i+1}}</td>
           <td class="info-label">{{leaveHistory.createdByName}}</td>
           <td class="info-label">{{leaveHistory.fromDate}}</td>
@@ -294,7 +294,9 @@
 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 
-<ng-template #alert_message >
+<!-- Modal Template -->
+
+<ng-template #alert_message>
   <div class="modal-body text-center">
       <p>{{alertMessage}}</p>
       <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;

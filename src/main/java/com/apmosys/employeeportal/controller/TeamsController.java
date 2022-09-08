@@ -91,12 +91,4 @@ public class TeamsController {
 		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryView(leaveDTO);		
 		return response;
 	}
-	
-	@RequestMapping(value="/revokeApprovedLeaveApplication" , method = RequestMethod.POST)
-	public ServiceResponse revokeApprovedLeaveApplication(@RequestBody LeaveDTO leaveDTO) {		
-		
-		ServiceResponse response =	teamsService.revokeApprovedLeaveApplication(leaveDTO);		
-		return response;
-	}
-
 }
