@@ -41,6 +41,7 @@ public class AuthenticationService {
 	private Integer sessionTimeout;
 	
 	private Integer count = 0;
+	private Integer invalidAccessAttempt=0;
 	
 	@Autowired
 	private MailService mailService;
@@ -49,12 +50,10 @@ public class AuthenticationService {
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		
 		try {	
 				Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
-				
-
 				if (employee != null) {
-					System.out.println(count + "======");
 					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 					
 					if(employee.getInvalidAccessAttempt()>failedAttempt) {
@@ -90,7 +89,7 @@ public class AuthenticationService {
 								  employeeRepository.save(employee);
 								  
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Invalid Password");
+								response.setServiceResponse("Invalid Credentials.");
 								
 							}
 
