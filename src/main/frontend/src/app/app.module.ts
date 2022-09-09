@@ -49,6 +49,7 @@ import { HomeConfigComponent } from './configuration/home-config/home-config.com
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { ClipboardModule } from 'ngx-clipboard';
+import { CalendarComponent } from './helpers/calendar/calendar.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -81,6 +82,7 @@ import { ClipboardModule } from 'ngx-clipboard';
     MyTeamComponent,
     TeamMemberComponent,
     HomeConfigComponent,
+    CalendarComponent,
   ],
   imports: [
     BrowserModule,

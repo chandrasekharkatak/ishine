@@ -1,0 +1,48 @@
+.calendar-days {
+    width: 150px;
+    height: 50px;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 3px;
+    position: relative;
+
+    cursor: pointer;
+}
+
+.calendar-days.weekend {
+    background-color: rgb(245, 245, 245);
+}
+
+.calendar-days.previous-month,
+.calendar-days.next-month {
+    color: grey;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+}
+
+.flex-center {
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+
+.hours {
+    position: absolute;
+    bottom: -2;
+    right: 0;
+}  
+
+.legends-color{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    display: inline-block;
+}

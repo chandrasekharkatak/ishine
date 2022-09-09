@@ -134,13 +134,13 @@
                           </table>
                     </div>
                 </div>
-                <div class="tab-pane fade timesheet__tab-container" id="thisMonth-tabpanel" role="tabpanel"
+                <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
                     aria-labelledby="thisMonth-tabpanel">
-                    <h1>Calendar Here !!</h1>
+                    <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
                 </div>
-                <div class="tab-pane fade timesheet__tab-container" id="lastMonth-tabpanel" role="tabpanel"
+                <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
                     aria-labelledby="lastMonth-tabpanel">
-                    <h1>Calendar Here !!</h1>
+                    <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
                 </div>
             </div>
         </div>

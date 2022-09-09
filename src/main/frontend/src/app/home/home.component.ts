@@ -16,6 +16,7 @@ import { TimesheetService } from '../services/timesheet.service';
 import { NotificationMessage } from '../models/notification';
 import { NotificationService } from '../services/notification.service';
 import * as moment from 'moment';
+import { CalendarComponent } from '../helpers/calendar/calendar.component';
 
 @Component({
   selector: 'app-home',
@@ -59,6 +60,8 @@ export class HomeComponent implements OnInit {
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
   
+  @ViewChild("thisMonthCal") thisMonthCalendar:CalendarComponent;
+  @ViewChild("lastMonthCal") lastMonthCalendar:CalendarComponent;
 
   constructor(
     private modalService: BsModalService,
@@ -80,23 +83,15 @@ export class HomeComponent implements OnInit {
     this.getAllEventPhotos();
     this.getAllEmployeesBirthDayToday();
 
-    // this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-    // this.countPendingCompOffRequestsByManagerId();
-    // this.countMyReporteesTimesheetRequests();
+    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+    this.countPendingCompOffRequestsByManagerId();
+    this.countMyReporteesTimesheetRequests();
     
-    // this.getMyLeaveBalancesByEmpId();
-    // this.countMyApprovedLeaveApplicationsByLeaveType();
-    // this.countMyPendingLeaveApplicationsByLeaveType();
+    this.getMyLeaveBalancesByEmpId();
+    this.countMyApprovedLeaveApplicationsByLeaveType();
+    this.countMyPendingLeaveApplicationsByLeaveType();
 
     this.getTimesheetsForHomePageByEmpId('Last 7 Days');
-
-    // $('.carousel').carousel({
-    //   interval: 2000,
-    //   keyboard: true, 
-    //   pause: "hover",
-    //   ride: true,
-    //   wrap: false,
-    // }); 
   }
 
   // Leave Applications
@@ -514,7 +509,8 @@ export class HomeComponent implements OnInit {
           dataLabels: {
             enabled: false,
             format: '<b>{point.name}</b>: {point.y:.1f}'
-          }
+          },
+          showInLegend: true
         }
       },
       series: [{
@@ -663,9 +659,10 @@ export class HomeComponent implements OnInit {
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
     const dateFormat = 'YYYY-MM-DD';
-    let fromDate;
-    let toDate;
+    let fromDate:any;
+    let toDate:any;
     let totaltimesheetDaysCount = 0;
+    let filledTimesheetDetails = []
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
@@ -700,64 +697,68 @@ export class HomeComponent implements OnInit {
 
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
-        let filledTimesheetDetails =  response.serviceResponse;
+        filledTimesheetDetails =  response.serviceResponse;
         console.log("filledTimesheetDetails : ", filledTimesheetDetails);
-        
-        let pendingCount = 0;
-        let approvedCount = 0;
-        let rejectedCount = 0;
-        let notFilledCount = 0;
-        
-        for (let date = moment(timesheetObj.startDate); date.isSameOrBefore(timesheetObj.endDate); date.add(1, 'days')) {
-          let newTimesheetObj = new Timesheet();
-          newTimesheetObj.date =  moment(date).format(dateFormat);
-
-          if (newTimesheetObj.date) {
-            let checkedTimesheet = filledTimesheetDetails.find(timesheet => timesheet.date == newTimesheetObj.date);
-
-            if (checkedTimesheet) {
-              newTimesheetObj = checkedTimesheet;
-              newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
-
-              // For Chart Data 
-              if(newTimesheetObj.status == "Pending") pendingCount++;
-              else if(newTimesheetObj.status == "Approved") approvedCount++;
-              else if(newTimesheetObj.status == "Rejected") rejectedCount++;
-            } else {
-              newTimesheetObj.totalWorkingHoursPercentage = "0%";
-              newTimesheetObj.status = "Not Filled";
-              newTimesheetObj.dayType = "Not Filled";
-              newTimesheetObj.weekDayName = this.getWeekDay(newTimesheetObj.date);
-              notFilledCount++;
-            }
-          }
-          this.timesheetDetails.push(newTimesheetObj);
-        }
-        
-        console.log("timesheetDetails : ", this.timesheetDetails); 
-        this.timesheetDetails.sort(this.dateCompare);
-
-        let timesheetChartData = [{
-          name: "Pending",
-          y: pendingCount
-        },
-        {
-          name: "Approved",
-          y: approvedCount
-        },
-        {
-          name: "Not Filled",
-          y: notFilledCount
-        },
-        {
-          name: "Rejected",
-          y: rejectedCount
-        }];
-
-        this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
       } else {
         console.error(response.serviceResponse);
       }
+
+      let pendingCount = 0;
+      let approvedCount = 0;
+      let rejectedCount = 0;
+      let notFilledCount = 0;
+
+      for (let date = moment(timesheetObj.startDate); date.isSameOrBefore(timesheetObj.endDate); date.add(1, 'days')) {
+        let newTimesheetObj = new Timesheet();
+        newTimesheetObj.date = moment(date).format(dateFormat);
+
+        if (newTimesheetObj.date) {
+          let checkedTimesheet = filledTimesheetDetails.find(timesheet => timesheet.date == newTimesheetObj.date);
+
+          if (checkedTimesheet) {
+            newTimesheetObj = checkedTimesheet;
+            newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
+
+            // For Chart Data 
+            if (newTimesheetObj.status == "Pending") pendingCount++;
+            else if (newTimesheetObj.status == "Approved") approvedCount++;
+            else if (newTimesheetObj.status == "Rejected") rejectedCount++;
+          } else {
+            newTimesheetObj.totalWorkingHoursPercentage = "0%";
+            newTimesheetObj.status = "Not Filled";
+            newTimesheetObj.dayType = "Not Filled";
+            newTimesheetObj.weekDayName = this.getWeekDay(newTimesheetObj.date);
+            notFilledCount++;
+          }
+        }
+        this.timesheetDetails.push(newTimesheetObj);
+      }
+
+      console.log("timesheetDetails : ", this.timesheetDetails);
+      this.timesheetDetails.sort(this.dateCompare);
+
+      let timesheetChartData = [{
+        name: "Pending",
+        y: pendingCount
+      },
+      {
+        name: "Approved",
+        y: approvedCount
+      },
+      {
+        name: "Not Filled",
+        y: notFilledCount
+      },
+      {
+        name: "Rejected",
+        y: rejectedCount
+      }];
+
+      this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
+      if (dateRange == 'This Month')
+        this.thisMonthCalendar.addTimesheetDetails();
+      else if (dateRange == 'Last Month')
+        this.lastMonthCalendar.addTimesheetDetails();
     });
   }
 
