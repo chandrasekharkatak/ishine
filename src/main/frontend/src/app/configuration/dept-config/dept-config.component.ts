@@ -224,6 +224,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   getAllDepartmentList() {
+    this.data=''
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {

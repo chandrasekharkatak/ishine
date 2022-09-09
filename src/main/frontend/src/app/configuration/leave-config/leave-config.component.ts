@@ -512,8 +512,10 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getAllHolidays(){
+    
     this.holidayList = [];
     this.holidayListFilter = [];
+    this.data=''
     
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -683,7 +685,7 @@ exportToExcel(): void {
 
   getAllLeaveTypes(){
     this.leaveTypes = [];
-
+    this.data=''
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
@@ -796,7 +798,7 @@ exportToExcel(): void {
 
   // Leave Policies
   validateLeavepolicyObj(leavePolicyObj:Leave, template: TemplateRef<any>){
-
+   
     if(!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leavePolicyName)){
       this.alertMessage = "Please enter Leave Policy Name !!"
       this.openAlertMod(template, this.alertMessage);
@@ -969,6 +971,8 @@ exportToExcel(): void {
   }
 
   getAllLeavePolicies(){
+
+    this.data=''
     this.leavePolicyList = [];
 
     this.leaveService.getAllLeavePolicy().pipe(first()).subscribe((response: any) => {

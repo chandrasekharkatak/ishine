@@ -140,6 +140,7 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
     this.page = 1;
+    this.data=''
 
     this.allTeamList = [];
   }
@@ -185,7 +186,7 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
     this.page = 1;
-
+    this.data=''
     this.allActivityList = [];
   }
 
@@ -356,9 +357,9 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamList = response.serviceResponse;
-        this.allTeamList = this.allTeamList.sort(function (a, b) {
-          return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
-        });
+        // this.allTeamList = this.allTeamList.sort(function (a, b) {
+        //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
+        // });
 
         this.isDisabled = false;
         console.log("allTeamList :", this.allTeamList);

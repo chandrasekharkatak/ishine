@@ -107,6 +107,7 @@ export class MyTeamComponent implements OnInit {
     this.isViewTeam = false;
     this.isTeamRequest = false;
     this.page=1;
+    this.data=''
   }
 
   viewLeaveHistory() {
