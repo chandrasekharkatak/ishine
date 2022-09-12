@@ -16,6 +16,7 @@
 .calendar-days.previous-month,
 .calendar-days.next-month {
     color: grey;
+    background-color:#eee;
     cursor: not-allowed;
     pointer-events: none;
 }
@@ -45,4 +46,21 @@
     border-radius: 50%;
 
     display: inline-block;
+    border: 0.2px solid #000;
+}
+
+.bg-white{
+    background-color: #fff;
+}
+
+.bg-yellow{
+    background-color: #FFFF00;
+}
+
+.bg-green{
+    background-color: #00ff00;
+}
+
+.bg-red{
+    background-color: #DC143C;
 }

@@ -3,7 +3,7 @@
       <div
         class="calendar-days"
         [class.weekend]="day.isWeekend"
-        [ngClass]="{'bg-danger': day.status === 'Not Filled', 'bg-warning' : day.status === 'Pending', 'bg-success' : day.status === 'Approved'}"
+        [ngClass]="{'bg-white': day.status === 'Not Filled', 'bg-yellow' : day.status === 'Pending', 'bg-green' : day.status === 'Approved'}"
         [ngClass]="day.className"
         *ngFor="let day of calendarItem"
       >
@@ -19,15 +19,15 @@
 
     <div class="legends row">
         <div class="mx-2">
-            <div class="legends-color bg-danger m-0 mr-2"></div>
+            <div class="legends-color bg-white m-0 mr-2"></div>
             <small class="legends-name">Not Filled</small>
         </div>
         <div class="mx-2">
-            <div class="legends-color bg-warning m-0 mr-2"></div>
+            <div class="legends-color bg-yellow m-0 mr-2"></div>
             <small class="legends-name">Pending</small>
         </div>
         <div class="mx-2">
-            <div class="legends-color bg-success m-0 mr-2"></div>
+            <div class="legends-color bg-green m-0 mr-2"></div>
             <small class="legends-name">Approved</small>
         </div>
     </div>
