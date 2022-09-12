@@ -12,6 +12,10 @@
     display: flex;
     justify-content: center;
     margin-bottom: 0.625rem;
+    width: 60%;
+    padding-left: 30%;
+
+    
 
     /* background-color: var(--dark-red);
     color: var(--ghost-white);
@@ -19,13 +23,13 @@
     border-radius: 5px; */
 }
 
-.auth__logo__text{
+/* .auth__logo__text{
     display: inline-block;
     margin-bottom: 0;
     padding: 0.5rem 1.05rem;
 
     color: var(--dark-cornflower-blue);
-}
+} */
 
 .auth__error__msg{
     margin-bottom: 0.625rem;
@@ -47,4 +51,8 @@
 .auth__link:focus{
     cursor: pointer;
     color: var(--dark-cornflower-blue);
+}
+
+.form-control{
+    width: 100%;
 }

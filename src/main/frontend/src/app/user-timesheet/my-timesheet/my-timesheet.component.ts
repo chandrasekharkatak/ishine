@@ -232,6 +232,10 @@ export class MyTimesheetComponent implements OnInit {
         this.alertMessage = "Please enter Timesheet Description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
+      } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
+        this.alertMessage = "Please enter character as string only valid in  Timesheet Description  !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
       }
     }
 

@@ -68,7 +68,7 @@
                                             (blur)="validateBirthDate(alert_message)"> -->
                                             <div class="d-flex">
                                                 <input class="form-control" matInput id="DOB" [matDatepicker]="DOBPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" disabled>
-                                                <mat-datepicker-toggle matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
+                                                <mat-datepicker-toggle  matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
                                             </div>
                                             <mat-datepicker  #DOBPicker disabled="false"></mat-datepicker>
                                         </div>

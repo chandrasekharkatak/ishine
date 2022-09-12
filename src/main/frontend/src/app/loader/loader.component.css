@@ -10,9 +10,12 @@
     
 
     .animated { 
-        background-image: url(../../assets/Images/apm_logo.jpg); 
+        background-image: url(../../assets/Images/ishine_logo_forLoader.jpg); 
         background-repeat: no-repeat;
         background-position: center; 
+        width: 25px;
+        height:25px;
+        padding-left: 100%;
         padding-top:95px;
         margin-bottom:60px;
         -webkit-animation-duration: 1s;
