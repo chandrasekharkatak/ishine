@@ -295,11 +295,16 @@
                 </div>
             </div>
             <div *ngFor="let employee of employeeData">
-                <div class="card border-primary mb-3" style="max-width: 30rem;">
-                <h6 class="ml-3 mt-2">Employee Name : {{employee.employeeName}}</h6>
-                <h6 class="ml-3">Department    : {{employee.departmentName}}</h6>
-                <h6 class="ml-3">JobRole       : {{employee.jobRoleName}}</h6>
-                <h6 class="ml-3">Manager Name  : {{employee.managerName}}</h6>
+                <div class="card border-primary mb-3" style="max-width: 50rem;">
+                    <div class="d-flex">
+                        <h6 class="ml-3 mt-2">Employee Name : <span style=" color: #193d8a;">{{employee.employeeName}}</span></h6>
+                        <h6 class="ml-3 mt-2">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
+                    </div>
+                    <div class="d-flex">
+                        <h6 class="ml-3">JobRole : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
+                        <h6 class="ml-3">Manager Name : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 class="ml-3">Employee Status : <span style=" color: #193d8a;">{{employee.employmentStatus}}</span></h6>
+                    </div>
                 </div>
             </div>
             <hr>

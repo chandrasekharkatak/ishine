@@ -408,6 +408,7 @@ public class EmployeeLeaveService {
 						empDto.setManagerName(object[0] != null ? object[0].toString() : null);
 						empDto.setJobRoleName(object[1] != null ? object[1].toString() : null);
 						empDto.setDepartmentName(object[2] != null ? object[2].toString() : null);
+						empDto.setEmploymentStatus(object[3] != null ? object[3].toString() : null);
 						empDto.setEmployeeName(employee.getName());
 						employeeDataList.add(empDto);
 					});

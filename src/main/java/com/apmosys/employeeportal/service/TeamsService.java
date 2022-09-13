@@ -254,7 +254,7 @@ public class TeamsService {
 						dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dto.setTeamMemberName(object[3] != null ? object[3].toString() : null);
+						dto.setTeamMemberName(object[5] != null ? object[5].toString() : null);
 						dtoList.add(dto);
 					});
 
