@@ -146,10 +146,10 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            <div class="form-group ml-auto col-md-3 search-box">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
             </div>
+        </div>
         <div class="row">
             <table class="table teams-table" id="teams-table" matSort (matSortChange)="sortMyTimesheet($event)">	
                 <thead class="thead-light">	

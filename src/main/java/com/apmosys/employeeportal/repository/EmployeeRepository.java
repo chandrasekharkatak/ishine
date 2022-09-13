@@ -70,6 +70,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getHierarchyByEmpId(Long empId);
+
+	public Long countByEmpId(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeData(Long empId);
 	
 
 }

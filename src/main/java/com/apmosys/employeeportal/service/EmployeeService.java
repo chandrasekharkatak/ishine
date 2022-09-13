@@ -38,6 +38,7 @@ import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -63,6 +64,9 @@ public class EmployeeService {
 	
 	@Autowired					
 	JobRoleRepository jobRoleRepository;
+	
+	@Autowired	
+	EmployeeTeamMapRepository employeeTeamMapRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -588,9 +592,28 @@ public class EmployeeService {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
 				Employee employeeToBeDeleted = employeeObject.get();
-				employeeRepository.deleteById(employeeToBeDeleted.getEmpId());
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Employee Profile Deleted");
+				Long count = employeeRepository.countByEmpId(employeeToBeDeleted.getEmpId());
+				
+				if (count == 0) {	
+					
+					employeeRepository.deleteById(employeeToBeDeleted.getEmpId());	
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse("Employee Profile Deleted");
+					
+				}else {	
+						
+					List<EmployeeTeamMap> deleteEmpFromTeam = employeeTeamMapRepository.findByEmpId(employeeToBeDeleted.getEmpId());	
+						
+					for(EmployeeTeamMap empToBeDeletedFromTeam :deleteEmpFromTeam) {	
+						// 1: Active   0: InActive	
+						empToBeDeletedFromTeam.setActive((long) 0);	
+						employeeTeamMapRepository.save(empToBeDeletedFromTeam);	
+					}	
+					employeeToBeDeleted.setEmploymentstatus("InActive");	
+					employeeRepository.save(employeeToBeDeleted);	
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse("Employment Status changed to InActive");	
+				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Profile Not Found");

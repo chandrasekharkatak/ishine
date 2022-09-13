@@ -84,4 +84,9 @@ public class LeaveDTO {
 	
 	private Short oldLeaveTypeMasterId;
 	private String revokeReason;
+	
+	private String managerName;
+	private String jobRoleName;
+	private String departmentName;
+	private String employeeName;
 }

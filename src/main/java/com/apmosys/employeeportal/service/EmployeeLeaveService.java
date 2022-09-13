@@ -369,7 +369,10 @@ public class EmployeeLeaveService {
 			if (employee != null) {
 				List<Object[]> employeeLeavesList = employeeLeavesMapRepository
 						.getMyLeaveBalancesByEmpId(employee.getEmpId());
+				List<Object[]> employeeData = employeeRepository
+						.getEmployeeData(employee.getEmpId());
 				List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+				List<LeaveDTO> employeeDataList = new ArrayList<LeaveDTO>();
 
 				if (employeeLeavesList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -399,10 +402,20 @@ public class EmployeeLeaveService {
 					dto.setBalance(totalbalance);
 					dto.setPendingForApproval(totalPendingForApproval);
 					dtoList.add(dto);
+					
+					employeeData.forEach((object) -> {
+						LeaveDTO empDto = new LeaveDTO();
+						empDto.setManagerName(object[0] != null ? object[0].toString() : null);
+						empDto.setJobRoleName(object[1] != null ? object[1].toString() : null);
+						empDto.setDepartmentName(object[2] != null ? object[2].toString() : null);
+						empDto.setEmployeeName(employee.getName());
+						employeeDataList.add(empDto);
+					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					response.setServiceResponse1(employee.getEmpId());
+					response.setServiceResponse2(employeeDataList);
 				}
 
 			} else {
