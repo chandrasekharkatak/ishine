@@ -70,12 +70,12 @@
             </div>
             <div class="card-body p-0">
                 <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
-                    <img class="placeholder-img" src="../../assets/Images/birthday-cake-icon.svg" alt="Birthday Icon">
+                    <img class="placeholder-img" src="assets/Images/birthday-cake-icon.svg" alt="Birthday Icon">
                     <h1 class="placeholder-text">No Birthday's Today</h1>
                 </div>
                 <mat-list *ngIf="birthdayList.length != 0"  class="p-0">
                     <mat-list-item *ngFor="let employee of birthdayList">
-                        <img matListAvatar src="../../assets/Images/default-user-image.jpeg" alt="User Avatar">
+                        <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
                         <h1 matLine>{{employee.name}}</h1>
                         <p matLine>{{employee.departmentName}}</p>
                     </mat-list-item>

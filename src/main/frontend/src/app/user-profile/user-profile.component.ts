@@ -512,7 +512,7 @@ export class UserProfileComponent implements OnInit {
         let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
         imageElement.setAttribute("src", src);
     }else{
-      imageElement.setAttribute("src", "../../assets/Images/default-user-image.jpeg");
+      imageElement.setAttribute("src", "assets/Images/default-user-image.jpeg");
     }
   }
 
