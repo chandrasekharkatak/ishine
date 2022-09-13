@@ -12,6 +12,7 @@ public class ServiceResponse {
 	private String errorStackTrace;
 	private String serviceMessage;
 	private Object serviceResponse1;
+	private Object serviceResponse2;
 	
 	
 	public Object getServiceResponse() {
@@ -49,6 +50,12 @@ public class ServiceResponse {
 	}
 	public void setServiceResponse1(Object serviceResponse1) {
 		this.serviceResponse1 = serviceResponse1;
+	}
+	public Object getServiceResponse2() {
+		return serviceResponse2;
+	}
+	public void setServiceResponse2(Object serviceResponse2) {
+		this.serviceResponse2 = serviceResponse2;
 	}
 	
 	@Override

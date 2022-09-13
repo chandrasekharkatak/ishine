@@ -68,7 +68,7 @@
                                             (blur)="validateBirthDate(alert_message)"> -->
                                             <div class="d-flex">
                                                 <input class="form-control" matInput id="DOB" [matDatepicker]="DOBPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" disabled>
-                                                <mat-datepicker-toggle matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
+                                                <mat-datepicker-toggle  matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
                                             </div>
                                             <mat-datepicker  #DOBPicker disabled="false"></mat-datepicker>
                                         </div>
@@ -674,8 +674,8 @@
             <td>{{employee.employmentstatus}}</td>
             <td>{{employee.dateOfJoining}}</td>
             <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
-                <button *ngIf="userMapping.update_employee" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button *ngIf="userMapping.delete_employee" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
+                <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
                 <button *ngIf="employee.invalidAccessAttempt > employee.failedAttempt" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
             </td>
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">

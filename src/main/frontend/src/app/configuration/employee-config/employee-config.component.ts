@@ -234,6 +234,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.pursuing = '';
     this.employeeObj.experience = '';
     this.employeeObj.workLocation = '';
+    this.employeeObj.dateOfBirth = '';
 
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
@@ -864,10 +865,10 @@ export class EmployeeConfigComponent implements OnInit {
 
   getAllEmployeeList() {
     this.allEmployeeList = [];
-
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+        
         console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
       } else {
@@ -1057,7 +1058,7 @@ export class EmployeeConfigComponent implements OnInit {
     if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      this.employeeObj.dateOfBirth = '';
+      this.employeeObj.dateOfBirth = this.reset;
       return false;
     }
   }
@@ -1140,8 +1141,7 @@ export class EmployeeConfigComponent implements OnInit {
           }
         });
       }
-    
-      
+   
             
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

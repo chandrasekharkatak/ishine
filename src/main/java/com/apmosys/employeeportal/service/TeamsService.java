@@ -126,6 +126,8 @@ public class TeamsService {
 							map.setEmpId(teamMember.getEmpId());
 							map.setTeamId(teamCreated.getTeamId());
 							map.setJobRoleId(teamMember.getJobRoleId());
+							// 1: Active  0: InActive
+							map.setActive((long) 1);
 							mapList.add(map);
 
 						});

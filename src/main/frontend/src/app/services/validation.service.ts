@@ -280,4 +280,56 @@ export class ValidationService {
 
   }
 
+
+  //
+  
+  validateAboutMeUserProfile(text:string): boolean {
+    const regex = (/^[A-Za-z ]*$/) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateDiscriptionUserProfile(text:string): boolean {
+    const regex = (/^[A-Za-z ]*$/) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateActivityTimesheetDiscription(text:string): boolean {
+    const regex = (/^[A-Za-z ]*$/) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+  
+
 }

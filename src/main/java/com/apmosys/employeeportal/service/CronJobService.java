@@ -18,6 +18,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -265,9 +266,9 @@ public class CronJobService {
 		   }
 	}
 	
-	//0 0 1 ? JAN *  - At 01:00:00am, in January
+	//0 0 1 1,2,3,4,5,6,7 JAN ? - At 01:00:00am, on the 1st, 2nd, 3rd, 4th, 5th, 6th and 7th day, in January
 	
-	@Scheduled(cron = "0 0 1 ? JAN *")
+	@Scheduled(cron = "0 0 1 1,2,3,4,5,6,7 JAN ?")
 	public void addingWeekOff() {
 		
 		try {
@@ -281,28 +282,36 @@ public class CronJobService {
 				LocalDate dateToday = LocalDate.of(currentYear, monthCount, 1);
 				
 				LocalDate secondSaturday = dateToday.with(TemporalAdjusters.dayOfWeekInMonth(2, DayOfWeek.SATURDAY));
+				List<Holiday> secondSaturdayData = holidayRepository.findByOccasionAndDateOfHoliday("Saturday : second saturday",secondSaturday);
 				
-				  Holiday newHoliday = new Holiday();
-				  newHoliday.setDateOfHoliday(secondSaturday);
-				  newHoliday.setDayOfTheWeek("Saturday");
-				  newHoliday.setHolidayType("WeekOff");
-				  newHoliday.setOccasion("Saturday : second saturday");
-				  newHoliday.setState("all");
-				  newHoliday.setOptionalHoliday("false");
-				  
-				  holidayRepository.save(newHoliday);
-				  
+				if(secondSaturdayData.isEmpty()) {
+					
+					Holiday newHoliday = new Holiday();
+					  newHoliday.setDateOfHoliday(secondSaturday);
+					  newHoliday.setDayOfTheWeek("Saturday");
+					  newHoliday.setHolidayType("WeekOff");
+					  newHoliday.setOccasion("Saturday : second saturday");
+					  newHoliday.setState("all");
+					  newHoliday.setOptionalHoliday("false");
+					  
+					  holidayRepository.save(newHoliday);
+				}
+				
 				LocalDate fourthSaturday = dateToday.with(TemporalAdjusters.dayOfWeekInMonth(4, DayOfWeek.SATURDAY));
-                 
-				  Holiday newHolidayObj = new Holiday();
-				  newHolidayObj.setDateOfHoliday(fourthSaturday);
-				  newHolidayObj.setDayOfTheWeek("Saturday");
-				  newHolidayObj.setHolidayType("WeekOff");
-				  newHolidayObj.setOccasion("Saturday : fourth saturday");
-				  newHolidayObj.setState("all");
-				  newHolidayObj.setOptionalHoliday("false");
-				  
-				  holidayRepository.save(newHolidayObj);
+                List<Holiday> fourthSaturdayData = holidayRepository.findByOccasionAndDateOfHoliday("Saturday : fourth saturday",fourthSaturday);
+				
+				if(fourthSaturdayData.isEmpty()) {
+					
+					Holiday newHoliday = new Holiday();
+					  newHoliday.setDateOfHoliday(fourthSaturday);
+					  newHoliday.setDayOfTheWeek("Saturday");
+					  newHoliday.setHolidayType("WeekOff");
+					  newHoliday.setOccasion("Saturday : fourth saturday");
+					  newHoliday.setState("all");
+					  newHoliday.setOptionalHoliday("false");
+					  
+					  holidayRepository.save(newHoliday);
+				}
 				  
 			// For adding Sundays	  
 				
@@ -312,17 +321,19 @@ public class CronJobService {
 		            if (day == Calendar.SUNDAY) {
 		            	Date date = calander.getTime();
 		            	LocalDate sundayDate = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd").format(date));
+		            	 List<Holiday> sundayData = holidayRepository.findByOccasionAndDateOfHoliday("Sunday",sundayDate);
 		            	
-		            	  Holiday holidayObj = new Holiday();
-		            	  holidayObj.setDateOfHoliday(sundayDate);
-		            	  holidayObj.setDayOfTheWeek("Sunday");
-		            	  holidayObj.setHolidayType("WeekOff");
-		            	  holidayObj.setOccasion("Sunday");
-		            	  holidayObj.setState("all");
-		            	  holidayObj.setOptionalHoliday("false");
-		            	  
-						  holidayRepository.save(holidayObj);
-						  
+		            	 if(sundayData.isEmpty()) {
+		            		 Holiday holidayObj = new Holiday();
+			            	  holidayObj.setDateOfHoliday(sundayDate);
+			            	  holidayObj.setDayOfTheWeek("Sunday");
+			            	  holidayObj.setHolidayType("WeekOff");
+			            	  holidayObj.setOccasion("Sunday");
+			            	  holidayObj.setState("all");
+			            	  holidayObj.setOptionalHoliday("false");
+			            	  
+							  holidayRepository.save(holidayObj);
+		            	 } 
 		            }
 		            calander.add(Calendar.DAY_OF_YEAR, 1);
 		        }  while (calander.get(Calendar.MONTH) == monthCount-1);

@@ -65,7 +65,13 @@ export class Leave{
 
 	revokeReason:any;
 
+	employeeName:any;
+
 	//for changing leavetype mapping  	
 	newLeaveTypeMasterId:any;	
 	oldLeaveTypeMasterId:any;
+
+	managerName:any;
+	jobRoleName:any;
+	departmentName:any;
 }

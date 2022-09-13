@@ -60,6 +60,7 @@ export class LeaveConfigComponent implements OnInit {
 
   leaveBalanceObj:Leave = new Leave();
   leaveBalanceList:any[] = [];
+  employeeData:any[] = [];
 
   leavePolicyObj:Leave = new Leave();
   leavePolicyList:any[] = [];
@@ -742,6 +743,7 @@ exportToExcel(): void {
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>){
     this.leaveBalanceList = [];
+    this.employeeData = [];
 
     if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)){
       this.alertMessage = "Please enter Employee ID !!"
@@ -754,12 +756,13 @@ exportToExcel(): void {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
         this.leaveBalanceObj.empId = response.serviceResponse1;
+        this.employeeData = response.serviceResponse2;
+        console.log("employeeData : ", this.employeeData);
         console.log("leaveBalanceList : ", this.leaveBalanceList);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-
   }
 
   leaveBalanceInputValidation(balance:any, template: TemplateRef<any>){

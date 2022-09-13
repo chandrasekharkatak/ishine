@@ -48,6 +48,7 @@ export class MyTeamComponent implements OnInit {
   teamViewCompOffHistoryList: any[] = [];
   leaveApplicationList: any[] = [];
   allCompOffApplications: any[] = [];
+  breadCrumbs:any[] = [];
 
   //excel
   leaveApplicationDataForExcel: any[];
@@ -406,12 +407,22 @@ export class MyTeamComponent implements OnInit {
         }
   }
 
+  hierarchyBreadCrumb(index){	
+    this.breadCrumbs.splice(index + 1);
+    this.employeeObj.name = this.breadCrumbs[this.breadCrumbs.length - 1];	
+    this.myTeamHierarchy(this.employeeObj.name);
+  }
+
   //myTeam-hierarchy	
   myTeamHierarchy(employeeObj:Employee) {
 
     this.employeeService.getHierarchyByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
-        this.teamViewList = response.serviceResponse;	
+        this.teamViewList = response.serviceResponse;
+        // this.breadCrumbs.push(employeeObj.name.concat(" > "));
+        if(!employeeObj.name.includes(">")){
+          this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
+        }
         console.log("teamViewList : ", this.teamViewList);	
       } else {	
         console.error(response.serviceResponse);	
