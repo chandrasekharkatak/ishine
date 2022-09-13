@@ -6,6 +6,7 @@ import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +16,16 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.unit.DataSize;
 import org.springframework.util.unit.DataUnit;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.apmosys.employeeportal.utility.LoggerInterceptor;
 
 @Configuration
 @EnableWebSecurity
 public class MyConfig implements WebMvcConfigurer{
 
+	
 	@Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -44,5 +49,14 @@ public class MyConfig implements WebMvcConfigurer{
             return http.build();
     }
 	
+	@Autowired
+	private LoggerInterceptor loggerInterceptor;
+	
+	
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(loggerInterceptor)
+				.addPathPatterns("/**");
+	}
 	
 }

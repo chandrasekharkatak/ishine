@@ -51,9 +51,11 @@ public class ServiceResponse {
 		this.serviceResponse1 = serviceResponse1;
 	}
 	
-	
-	
-	
-	
+	@Override
+	public String toString() {
+		return "ServiceResponse [serviceResponse=" + serviceResponse + ", serviceStatus=" + serviceStatus
+				+ ", serviceError=" + serviceError + ", errorStackTrace=" + errorStackTrace + ", serviceMessage="
+				+ serviceMessage + "]";
+	}	
 	
 }

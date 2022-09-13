@@ -50,6 +50,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
+import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor';
 @NgModule({
   declarations: [
     AppComponent,
@@ -109,6 +110,7 @@ import { CalendarComponent } from './helpers/calendar/calendar.component';
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
   ],
   bootstrap: [AppComponent]
 })
