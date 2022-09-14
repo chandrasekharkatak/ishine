@@ -77,6 +77,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.isAllTimesheetRequestTable = false;
     this.getAllTeamTimesheets();
     this.page=1;
+    this.data=''
   }
 
   showAllTimesheetRequestsTable(){
@@ -86,6 +87,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     this.getMyReporteesTimesheetRequests();
     this.page=1;
+    this.data=''
   }
 
   getAllTeamTimesheets(template?: TemplateRef<any>){

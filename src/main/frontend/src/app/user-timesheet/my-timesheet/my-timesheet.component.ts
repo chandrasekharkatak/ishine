@@ -116,6 +116,7 @@ export class MyTimesheetComponent implements OnInit {
     this.endDate = null;
 
     this.allMyTimesheets = [];
+    this.data=''
   }
 
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
@@ -212,6 +213,10 @@ export class MyTimesheetComponent implements OnInit {
 
         if (!this.validationService.validateNullUndefinedEmptyString(activity.description)) {
           this.alertMessage = `Please enter Activity Description - ${index + 1}!!`
+          flag = false;
+          return;
+        }else if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
+          this.alertMessage = `Please enter valid Description.`
           flag = false;
           return;
         }

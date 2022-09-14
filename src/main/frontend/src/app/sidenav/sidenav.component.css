@@ -32,6 +32,7 @@
 .sidenav .logo-container .logo-text{
     margin-left: 1.5rem;
     font-size: 24px;
+    padding-right: 30px;
     font-weight: 700;
     color: var(--cultured);
 }

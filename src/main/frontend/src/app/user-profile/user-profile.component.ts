@@ -161,7 +161,7 @@ export class UserProfileComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateDiscriptionUserProfile(employeeObj.viewsOnOrganisation)){
-      this.alertMessage = "Only string character will b valid in  your view on organisation !!";
+      this.alertMessage = "Only string character will be valid in  your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -188,7 +188,11 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aboutMe)){
+      this.alertMessage = "Please enter About me !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+     } else if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
       this.alertMessage = "Please enter Valid Blood Group !!"	
       this.openAlertMod(template, this.alertMessage);	
       return false;	
