@@ -83,6 +83,7 @@ export class MyTeamComponent implements OnInit {
     this.getAllTeamView();
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
+    this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
 
     console.log("alert template : ", this.alertTemplate);
     

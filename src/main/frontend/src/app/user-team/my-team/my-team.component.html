@@ -14,9 +14,13 @@
     <div class="table-header">
       <h1 class="table-header-title">My Team</h1>
   </div>
-  <p *ngFor="let breadcrumb of breadCrumbs; let a = index" (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
-  <div class="form-group ml-auto col-md-3">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+  <div class="container">
+    <div class="form-group ml-auto col-md-4">
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    </div>
+      <div class="row breadcrumb-div">
+        <p class="hierarchy-breadcrumb" *ngFor="let breadcrumb of breadCrumbs; let a = index" (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
+      </div>
   </div>
   <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">	
     <thead class="thead-light">	
