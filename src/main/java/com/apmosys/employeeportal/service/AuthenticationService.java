@@ -50,7 +50,7 @@ public class AuthenticationService {
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		
+
 		try {	
 				Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 				if (employee != null) {
@@ -120,7 +120,7 @@ public class AuthenticationService {
 
 	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		
 		try {
 			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());

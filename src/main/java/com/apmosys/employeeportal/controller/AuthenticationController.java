@@ -34,7 +34,7 @@ public class AuthenticationController {
 
 	@RequestMapping(value = "/authenticateUserWithOTP", method = RequestMethod.POST)
 	public ServiceResponse authenticateUserWithOTP(@RequestBody EmployeeDTO employeedto) {
-
+		
 		ServiceResponse response = authenticationService.authenticateUserWithOTP(employeedto);
 		return response;
 	}

@@ -62,7 +62,7 @@ public class ServiceResponse {
 	public String toString() {
 		return "ServiceResponse [serviceResponse=" + serviceResponse + ", serviceStatus=" + serviceStatus
 				+ ", serviceError=" + serviceError + ", errorStackTrace=" + errorStackTrace + ", serviceMessage="
-				+ serviceMessage + "]";
-	}	
-	
+				+ serviceMessage + ", serviceResponse1=" + serviceResponse1 + ", serviceResponse2=" + serviceResponse2
+				+ "]";
+	}
 }

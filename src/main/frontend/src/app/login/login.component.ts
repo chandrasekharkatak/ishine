@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -20,7 +20,7 @@ import { BodyComponent } from '../body/body.component';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit{
 
   //flags 
   isLoginForm:boolean=true;
@@ -64,17 +64,12 @@ export class LoginComponent implements OnInit {
     private subfeatureService: SubfeatureService,
     private employeeService: EmployeeService,
     private bnIdle:BnNgIdleService,
-    private bodyComponent:BodyComponent
-    
+    private bodyComponent:BodyComponent,
   ) { }
 
 
   
-    ngOnInit(): void {
-     
-    }
-  
-    
+    ngOnInit(): void {}
 
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;
