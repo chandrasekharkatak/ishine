@@ -1303,27 +1303,22 @@ public class EmployeeService {
 	
 	public ServiceResponse getAllEmployeesByRole(EmployeeDTO employeedto) {	
 		ServiceResponse response = new ServiceResponse();	
-		try {	
-				
-			List<JobRole> jobRoleObj = jobRoleRepository.findAll();	
-				
+		try {
+			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();	
 				
-			for(JobRole jobRole : jobRoleObj) {	
-					
-				String jobRoleName = jobRole.getName();	
+			for(JobRole jobRole : jobRoleObj) {
+				String jobRoleName = jobRole.getName();
 				
 				if (jobRoleName.contains("-")) {
 					String jobname = jobRoleName.split("-")[1];	
 						
-						
-					if(jobname.equals(employeedto.getRole())) {	
+					if(jobname.equals(employeedto.getRole())) {
 							
 						List<Object[]> objectlist = employeeRepository.getEmployeesByRole(jobRoleName);	
 							
 									Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {	
-							
-										if (!list.isEmpty()) {	
+										
 											list.forEach((object) -> {	
 												EmployeeDTO dto = new EmployeeDTO();	
 												dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);	
@@ -1332,12 +1327,8 @@ public class EmployeeService {
 												dtoList.add(dto);	
 											});	
 											response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-											response.setServiceResponse(dtoList);	
-										} else {	
-											response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-											response.setServiceResponse("Employee list is empty.");	
-										}	
-							
+											response.setServiceResponse(dtoList);
+											
 									}, () -> {	
 										response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
 										response.setServiceResponse("Employee list is null");	
