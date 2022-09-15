@@ -234,7 +234,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.pursuing = '';
     this.employeeObj.experience = '';
     this.employeeObj.workLocation = '';
-    this.employeeObj.dateOfBirth = '';
+   
 
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
@@ -740,6 +740,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
+        console.log(this.employeeObj.empId, "-----------------");
+        
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
       } else {
@@ -865,15 +867,18 @@ export class EmployeeConfigComponent implements OnInit {
 
   getAllEmployeeList() {
     this.allEmployeeList = [];
+      
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        
-        console.log("allEmployeeList : ", this.allEmployeeList)
+          // for(let x of this.allEmployeeList){
+          //   x.employeementId = "A-".concat(x.employeementId);
+          // }
+               console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
-      }
+      } 
     });
   }
 
@@ -893,7 +898,7 @@ export class EmployeeConfigComponent implements OnInit {
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          "Emp Id": x.employeementId,		
+          "Emp Id": "A-".concat(x.employeementId),
           "Name": x.name,		
           "Email": x.email,		
           "Employment Status": x.employmentstatus,		
@@ -1058,7 +1063,7 @@ export class EmployeeConfigComponent implements OnInit {
     if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      this.employeeObj.dateOfBirth = this.reset;
+      this.employeeObj.dateOfBirth = '';
       return false;
     }
   }
@@ -1094,8 +1099,6 @@ export class EmployeeConfigComponent implements OnInit {
   sortData(sort: Sort){	
     console.log(sort);  	
        let data=this.allEmployeeList;	
-       console.log("anurag :" , this.allEmployeeList );	
-         
          if(!sort.active || sort.direction ===''){	
           this.allEmployeeList=data;	
          return;	

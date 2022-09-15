@@ -1744,37 +1744,21 @@ public class EmployeeService {
 		public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
 			ServiceResponse response = new ServiceResponse();
 			try {
-				System.out.println("In service !!");
-
-				Employee employee = new Employee();
-				employee = employeeRepository.getById(employeedto.getEmpId());
-				System.out.println(" the employee id is  :" + employee);
-
-				System.out.println("number of invalid attempt :" + employee.getInvalidAccessAttempt());
-
-				if (employee.getInvalidAccessAttempt() > failedAttempt) {
-
+					Employee employee = employeeRepository.getById(employeedto.getEmpId());
 					employee.setInvalidAccessAttempt(0);
 					employeeRepository.save(employee);
-					System.out.println("you are in block section");
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Account is UnBlock !!");
-
-				} else {
-					System.out.println(" you are not  blocked");
+					response.setServiceResponse("Account is Unblock !!");
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Something Went Wrong.");
+					response.setServiceError(e.getMessage());
 				}
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Unblock is Successfully !!");
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-				response.setServiceResponse("Something Went Wrong.");
-				response.setServiceError(e.getMessage());
+				return response;
+
 			}
-			return response;
+
 
 		}
-
-
-}
