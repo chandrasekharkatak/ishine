@@ -27,3 +27,7 @@
 .search-box{
     margin-top: 35px;
 }
+
+.hierarchy-breadcrumb{
+    cursor: pointer;
+}
