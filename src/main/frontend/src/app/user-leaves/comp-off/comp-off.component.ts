@@ -90,7 +90,7 @@ export class CompOffComponent implements OnInit {
     this.isForm = false;
     this.isCreation = false;
     this.page=1;
-
+    this.data=''
     this.getAllCompOffRequestsByEmpId();
   }
 
@@ -101,7 +101,7 @@ export class CompOffComponent implements OnInit {
     this.isForm = false;
     this.isCreation = false;
     this.page=1;
-
+    this.data=''
     this.getPendingCompOffRequestsByManagerId();
   }
 

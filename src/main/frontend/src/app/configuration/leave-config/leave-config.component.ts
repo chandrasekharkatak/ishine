@@ -165,7 +165,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.page=1;
-
+    this.data=''
     this.getAllHolidays();
   }
 
@@ -181,7 +181,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.page=1;
-
+    this.data=''
     this.getAllLeaveTypes();
   }
 
@@ -294,7 +294,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.page=1;
-
+    this.data=''
     this.getAllLeavePolicies();
   }
 

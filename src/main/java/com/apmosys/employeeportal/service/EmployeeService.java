@@ -1741,30 +1741,14 @@ public class EmployeeService {
 		return response;
 	}
 	
-		public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
-			ServiceResponse response = new ServiceResponse();
-			try {
-				System.out.println("In service !!");
-
-				Employee employee = new Employee();
-				employee = employeeRepository.getById(employeedto.getEmpId());
-				System.out.println(" the employee id is  :" + employee);
-
-				System.out.println("number of invalid attempt :" + employee.getInvalidAccessAttempt());
-
-				if (employee.getInvalidAccessAttempt() > failedAttempt) {
-
-					employee.setInvalidAccessAttempt(0);
-					employeeRepository.save(employee);
-					System.out.println("you are in block section");
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Account is UnBlock !!");
-
-				} else {
-					System.out.println(" you are not  blocked");
-				}
+	public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+				Employee employee = employeeRepository.getById(employeedto.getEmpId());
+				employee.setInvalidAccessAttempt(0);
+				employeeRepository.save(employee);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Unblock is Successfully !!");
+				response.setServiceResponse("Account is Unblock !!");
 				
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1775,6 +1759,5 @@ public class EmployeeService {
 			return response;
 
 		}
-
 
 }

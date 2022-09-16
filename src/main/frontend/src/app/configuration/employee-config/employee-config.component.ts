@@ -893,7 +893,7 @@ export class EmployeeConfigComponent implements OnInit {
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          "Emp Id": x.employeementId,		
+          "Emp Id": "A-".concat(x.employeementId),		
           "Name": x.name,		
           "Email": x.email,		
           "Employment Status": x.employmentstatus,		
