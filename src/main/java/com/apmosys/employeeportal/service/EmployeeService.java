@@ -1512,7 +1512,7 @@ public class EmployeeService {
 			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
 					.findByEmployeementId(employeedto.getEmployeementId());
 
-			if (employeedto.getEmployeementId() == null) {
+			if (checkEmployeementId == null && checkDraftEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				if (checkEmployeementId != null) {
