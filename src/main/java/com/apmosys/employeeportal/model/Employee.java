@@ -113,5 +113,8 @@ public class Employee {
 	@Column(nullable = false)
 	private Integer invalidAccessAttempt;
 	
+	private String isNew;
+	private String secondaryEmail;
+	
 	
 }
