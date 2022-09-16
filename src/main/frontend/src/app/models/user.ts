@@ -20,4 +20,6 @@ export class User{
     sessionString:any;
 
     employeementId:any;
+
+    isUserInfoUpdated:boolean = false;
 }

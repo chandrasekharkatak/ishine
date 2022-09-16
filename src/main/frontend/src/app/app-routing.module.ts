@@ -27,11 +27,22 @@ import { UserTeamComponent } from './user-team/user-team.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
+import { DocumentUploadComponent } from './user-update-info/document-upload/document-upload.component';
+import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
+import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
+import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
   {path:'login', component: LoginComponent},
   {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
+  {path:'update-info', component: UserUpdateInfoComponent,
+    children: [
+      { path: 'employee-info', component: EmployeeInfoComponent, },
+      { path: 'document-upload', component: DocumentUploadComponent, },
+      { path: 'info-preview', component: InformationPreviewComponent, },
+    ]
+  },
   {path:'user-profile', component: UserProfileComponent, canActivate: [AuthGuard]},
   {path:'configuration', component: ConfigurationComponent, canActivate: [AuthGuard], 
     children: [

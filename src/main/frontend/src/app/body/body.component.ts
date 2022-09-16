@@ -54,25 +54,28 @@ export class BodyComponent implements OnInit {
     let styleClass = '';
 
     if(this.collapsed && this.screenWidth > 768){
-      if(this.currentUser) styleClass= 'body-trimmed body--active';
+      if(this.currentUser?.isUserInfoUpdated) styleClass= 'body-trimmed body--active';
       else styleClass= 'body-trimmed';
     }else if(this.collapsed && this.screenWidth <= 768 && this.screenWidth > 0){
-      if(this.currentUser) styleClass= 'body-md-screen body--active';
+      if(this.currentUser?.isUserInfoUpdated) styleClass= 'body-md-screen body--active';
       else styleClass= 'body-md-screen';
     }
     else{
-      if(this.currentUser) styleClass= 'body--active';
+      if(this.currentUser?.isUserInfoUpdated) styleClass= 'body--active';
+    
     }
     return styleClass;
   }
 
   getNavClass(): string{
     let styleClass = '';
-    if(this.collapsed && this.screenWidth > 768){
-      styleClass= 'navbar-trimmed'
-    }else if(this.collapsed && this.screenWidth <= 768 && this.screenWidth > 0){
-      styleClass= 'navbar-md-screen'
-    }
+      if(this.collapsed && this.screenWidth > 768){
+        if(this.currentUser?.isUserInfoUpdated) styleClass= 'navbar-trimmed'
+      }else if(this.collapsed && this.screenWidth <= 768 && this.screenWidth > 0){
+        if(this.currentUser?.isUserInfoUpdated) styleClass= 'navbar-md-screen'
+      }else{
+        if(this.currentUser?.isUserInfoUpdated) styleClass= 'navbar-md-screen';
+      }
     return styleClass;
   }
 
@@ -88,8 +91,8 @@ export class BodyComponent implements OnInit {
         sessionStorage.removeItem('currentUser');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
-        location.reload();
         this.router.navigate(['/login']);
+        location.reload();
       } else {
         console.error(response.serviceResponse);
       }

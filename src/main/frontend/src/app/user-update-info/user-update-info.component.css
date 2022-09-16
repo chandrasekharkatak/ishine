@@ -1,0 +1,4 @@
+.active{
+    color: var(--dark-cornflower-blue);
+    font-weight: bold;
+}

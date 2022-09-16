@@ -51,6 +51,10 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor';
+import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
+import { DocumentUploadComponent } from './user-update-info/document-upload/document-upload.component';
+import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -84,6 +88,10 @@ import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor'
     TeamMemberComponent,
     HomeConfigComponent,
     CalendarComponent,
+    UserUpdateInfoComponent,
+    EmployeeInfoComponent,
+    DocumentUploadComponent,
+    InformationPreviewComponent,
   ],
   imports: [
     BrowserModule,
