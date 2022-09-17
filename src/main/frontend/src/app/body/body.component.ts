@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, TemplateRef} from '@angular/core';
+import { Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../models/user';
 import { first } from 'rxjs/operators';
@@ -19,6 +19,9 @@ export class BodyComponent implements OnInit {
   @Input() screenWidth = 0;
   currentUser:User = new User();
 
+  @ViewChild("change_password")
+  changePasswordTemplate: TemplateRef<any>;
+
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
   fieldTextTypeOldPass: boolean = false;
@@ -35,6 +38,13 @@ export class BodyComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+
+  // stop modal to close
+  config = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard  : false
+  };
 
   constructor(
     private validationService: ValidationService,
@@ -78,7 +88,6 @@ export class BodyComponent implements OnInit {
 
   userLogout(){
     
-
     let user = new User();
     user.empId = this.currentUser.empId;
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
@@ -153,8 +162,17 @@ export class BodyComponent implements OnInit {
     });
   }
 
-  openChangePassword(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template);
+  openChangePassword(changePasswordTemplate) {
+    console.log(this.currentUser.isNew)
+    if(this.currentUser.isNew == 'true'){
+      this.modalRef = this.modalService.show(changePasswordTemplate,this.config);
+    }else{
+      this.modalRef = this.modalService.show(changePasswordTemplate);
+    }
+  }
+
+  openChangePasswordOnFirstTimeLoggin(){
+    this.openChangePassword(this.changePasswordTemplate);
   }
 
 
@@ -204,6 +222,9 @@ export class BodyComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.cancelRequest();
           this.openAlertMod(template, response.serviceResponse);
+          if(this.currentUser.isNew == "true"){
+            this.userLogout();
+          }
           this.reset();
         } else {
           this.isError = true;

@@ -17,6 +17,7 @@ import { NotificationMessage } from '../models/notification';
 import { NotificationService } from '../services/notification.service';
 import * as moment from 'moment';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { BodyComponent } from '../body/body.component';
 
 @Component({
   selector: 'app-home',
@@ -74,6 +75,7 @@ export class HomeComponent implements OnInit {
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
+    private bodyComponent: BodyComponent
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -92,6 +94,9 @@ export class HomeComponent implements OnInit {
     this.countMyPendingLeaveApplicationsByLeaveType();
 
     this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+    if(this.currentUser.isNew == "true"){
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+    }
   }
 
   // Leave Applications

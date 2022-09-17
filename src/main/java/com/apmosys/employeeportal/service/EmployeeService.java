@@ -261,7 +261,7 @@ public class EmployeeService {
 			employee.setName(employeedto.getName());
 			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
 			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
-			employee.setEmail(employeedto.getEmail());
+			employee.setEmail(employeedto.getSecondaryEmail());
 			employee.setSecondaryEmail(employeedto.getSecondaryEmail());
 			employee.setMobileNo(employeedto.getMobileNo());
 			employee.setManagerId(employeedto.getManagerId());
@@ -275,7 +275,7 @@ public class EmployeeService {
 			employee.setInvalidAccessAttempt(0);
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
-
+			employee.setIsNew("true");
 			Employee newEmployee = employeeRepository.save(employee);
 
 			if (newEmployee.getEmpId() != null) {
@@ -1542,6 +1542,7 @@ public class EmployeeService {
 			if (employee != null) {
 
 				employee.setPassword(employeedto.getNewPassword());
+				employee.setIsNew("false");
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {
@@ -1786,6 +1787,7 @@ public class EmployeeService {
 					employee.setGender(object[5] != null ? object[5].toString() : null);
 					employee.setDepartmentId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					employee.setEmployeementId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					employee.setIsNew(object[8] != null ? object[8].toString() : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 
 				});
