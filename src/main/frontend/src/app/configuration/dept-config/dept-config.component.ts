@@ -197,8 +197,20 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
+  validateChangeDepartmentMappingObj(deptObj: Department, template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.newDeptId)) {
+      this.alertMessage = "Please select a Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
   onChangeDepartmentJobRoleMapping(template: TemplateRef<any>) {
     this.cancelRequest();
+    let inputValidated: boolean = this.validateChangeDepartmentMappingObj(this.deptObj, template)
+    if (!inputValidated) return;
 
     let department: Department = new Department();
     department.deptId = this.deptObj.newDeptId;

@@ -245,8 +245,26 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
+  validateChangeEmployeeJobRoleMappingObj(jobRole: JobRole, template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)) {
+      this.alertMessage = "Please select Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.newJobRoleId)) {
+      this.alertMessage = "Please select Job Role !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
   onChangeEmployeeJobRoleMapping(template: TemplateRef<any>) {
     this.cancelRequest();
+    let inputValidated: boolean = this.validateChangeEmployeeJobRoleMappingObj(this.jobRoleObj, template)
+    if (!inputValidated) return;
 
     this.jobRoleObj.jobRoleId = this.jobRoleObj.newJobRoleId;
     this.jobRoleObj.oldJobRoleId = this.oldJobRole;

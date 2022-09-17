@@ -712,10 +712,21 @@ exportToExcel(): void {
         this.modalRef = this.modalService.show(template);	
       }	
     });	
-  }	
+  }
+
+  validateLeaveTypeMappingObj(leaveTypeObj:Leave, template: TemplateRef<any>){	
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveTypeObj.newLeaveTypeMasterId)){	
+      this.alertMessage = "Please select Leave Type !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }	
+    return true;	
+  }
 
   onChangeLeaveTypeMapping(template: TemplateRef<any>) {	
-    this.cancelRequest();	
+    this.cancelRequest();
+    let inputValidated:boolean  = this.validateLeaveTypeMappingObj(this.leaveTypeObj, template)	
+    if(!inputValidated) return;
 
     this.leaveTypeObj.leaveTypeMasterId = this.leaveTypeObj.newLeaveTypeMasterId;	
     this.leaveTypeObj.oldLeaveTypeMasterId = this.oldLeaveType;	
