@@ -36,7 +36,7 @@ const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
   {path:'login', component: LoginComponent},
   {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
-  {path:'update-info', component: UserUpdateInfoComponent,
+  {path:'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
     children: [
       { path: 'employee-info', component: EmployeeInfoComponent, },
       { path: 'document-upload', component: DocumentUploadComponent, },

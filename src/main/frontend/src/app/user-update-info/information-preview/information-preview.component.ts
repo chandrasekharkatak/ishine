@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Employee } from 'src/app/models/employee';
+import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 
 @Component({
   selector: 'app-information-preview',
@@ -7,9 +9,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class InformationPreviewComponent implements OnInit {
 
-  constructor() { }
+  currentEmployeeInfo:Employee = new Employee();
+
+  constructor(
+    private updateUserInfoService: UpdateUserInfoService,
+  ) { }
 
   ngOnInit(): void {
+    this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
+  }
+
+  onUpdate(){
+    alert("USER INFO Updated !!")
   }
 
 }

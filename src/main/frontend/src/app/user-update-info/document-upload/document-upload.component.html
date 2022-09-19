@@ -9,7 +9,7 @@
                 <div class="col-md-4">
                     <div class="info-wrapper">
                         <div class="form-group d-flex flex-column">
-                            <label class="info-label"><span class="text-danger">*</span>Document 1</label>
+                            <label class="info-label"><span class="text-danger">*</span>Aadhar Card : </label>
                             <input type="file">
                         </div>
                     </div>
@@ -19,28 +19,46 @@
                 <div class="col-md-4">
                     <div class="info-wrapper">
                         <div class="form-group d-flex flex-column">
-                            <label class="info-label"><span class="text-danger">*</span>Document 2</label>
+                            <label class="info-label"><span class="text-danger">*</span>Pan Card : </label>
                             <input type="file">
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div *ngIf="currentEmployeeInfo.pursuing == 'No'" class="row">
                 <div class="col-md-4">
                     <div class="info-wrapper">
                         <div class="form-group d-flex flex-column">
-                            <label class="info-label"><span class="text-danger">*</span>Document 3</label>
+                            <label class="info-label"><span class="text-danger">*</span>Recent Passing Certificate : </label>
                             <input type="file">
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-4 ">
-                    <div class="info-wrapper">
-                        <div class="form-group d-flex flex-column">
-                            <label class="info-label"><span class="text-danger">*</span>Document 4</label>
-                            <input type="file">
+            <div *ngIf="currentEmployeeInfo.certifications"  class="row flex-column px-3">
+                <hr>
+                <h4>Certifications</h4>
+                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
+                    <div class="col-md-4">
+                        <div class="info-wrapper">
+                            <div class="form-group d-flex flex-column">
+                                <label class="info-label"><span class="text-danger">*</span>Certificate - {{i+1}}: </label>
+                                <input type="file">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="row flex-column px-3">
+                <hr>
+                <h4>Previous Employment Documents</h4>
+                <div class="row">
+                    <div class="col-md-4 ">
+                        <div class="info-wrapper">
+                            <div class="form-group d-flex flex-column">
+                                <label class="info-label"><span class="text-danger">*</span>Experience Letter : </label>
+                                <input type="file">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -51,6 +69,6 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>  
 </div>
 <!-- end :: Upload Document form -->

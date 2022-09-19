@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Employee } from 'src/app/models/employee';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 
 @Component({
@@ -9,17 +9,21 @@ import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 })
 export class DocumentUploadComponent implements OnInit {
 
+  @Output() loadInfoPreview: EventEmitter<any> = new EventEmitter<any>();
+
+
+  currentEmployeeInfo:Employee = new Employee();
+
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
-    private router: Router,
-    private route:ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
+    this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
   }
 
   onSave(){
-    this.router.navigate(['../info-preview'], {relativeTo:this.route});
+    this.loadInfoPreview.emit();
   }
 
 }

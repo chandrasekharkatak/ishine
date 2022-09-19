@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.utility;
 
+
+
 public class ServiceResponse {
 
 	public static final String STATUS_FAIL="Fail";

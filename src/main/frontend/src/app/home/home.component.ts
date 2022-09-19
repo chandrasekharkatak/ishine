@@ -1,4 +1,4 @@
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Leave } from '../models/leave';
@@ -23,7 +23,7 @@ import { CalendarComponent } from '../helpers/calendar/calendar.component';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit {
 
     data:string;
   //modal 
@@ -60,8 +60,13 @@ export class HomeComponent implements OnInit {
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
   
-  @ViewChild("thisMonthCal") thisMonthCalendar:CalendarComponent;
-  @ViewChild("lastMonthCal") lastMonthCalendar:CalendarComponent;
+  @ViewChild("thisMonthCal") 
+  private thisMonthCalendar:CalendarComponent;
+  @ViewChild("lastMonthCal")
+  private lastMonthCalendar:CalendarComponent;
+
+  @ViewChild('updateInfo')
+  private updateInfoTempRef:TemplateRef<any>;
 
   constructor(
     private modalService: BsModalService,
@@ -92,6 +97,11 @@ export class HomeComponent implements OnInit {
     this.countMyPendingLeaveApplicationsByLeaveType();
 
     this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+  }
+
+  ngAfterViewInit(): void {
+    console.log("this.updateInfoTempRef : ", this.updateInfoTempRef);
+    // this.openUpdateInfo(this.updateInfoTempRef);
   }
 
   // Leave Applications
@@ -833,6 +843,10 @@ export class HomeComponent implements OnInit {
 
   openReqMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
+
+  openUpdateInfo(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false});
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

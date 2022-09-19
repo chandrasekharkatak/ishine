@@ -1,11 +1,13 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li id="employee-info" class="breadcrumb-item" routerLink="employee-info" routerLinkActive="active">Employee Information</li>
-        <li id="document-upload" class="breadcrumb-item" routerLink="document-upload" routerLinkActive="active">Document Upload</li>
-        <li id="info-preview" class="breadcrumb-item" routerLink="info-preview" routerLinkActive="active">Preview</li>
+        <li id="employee-info" class="breadcrumb-item" (click)="showEmployeeInfoForm()">Employee Information</li>
+        <li id="document-upload" class="breadcrumb-item" (click)="showDocumentUploadForm()">Document Upload</li>
+        <li id="info-preview" class="breadcrumb-item" (click)="showInfoPreviewForm()">Preview</li>
     </ol>
 </nav>
 <div class="container-fluid px-4">
-    <router-outlet></router-outlet>
+    <app-employee-info *ngIf="isEmployeeInfo"  (loadDocumentUpload)="showDocumentUploadForm()"></app-employee-info>
+    <app-document-upload *ngIf="isDocumentUpload" (loadInfoPreview)="showInfoPreviewForm()"></app-document-upload>
+    <app-information-preview *ngIf="isInfoPreview"></app-information-preview>
 </div>
 

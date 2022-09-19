@@ -234,11 +234,7 @@ export class LoginComponent implements OnInit{
         this.user.tabList = this.getTabList();
         sessionStorage.setItem('currentUser', JSON.stringify(this.user));
         this.authenticationService.setcurrentUserSubject(this.user);
-        if(this.user.isUserInfoUpdated){
-          this.router.navigate(['/home']);
-        }else{
-          this.router.navigate(['/update-info']);
-        }
+        this.router.navigate(['/home']);
         this.authenticationService.startUserSessionCheck();
       }
     } else {

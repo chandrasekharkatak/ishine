@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -33,16 +33,17 @@ export class EmployeeInfoComponent implements OnInit {
   currDate:any;
   yearOfPassingList:any[] = [];
 
+  @Output() loadDocumentUpload: EventEmitter<any> = new EventEmitter<any>();
+
   constructor(
     private employeeService: EmployeeService,
     private validationService: ValidationService,
     private modalService: BsModalService,
     private updateUserInfoService: UpdateUserInfoService,
-    private router: Router,
-    private route:ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
+    this.employeeObj = this.updateUserInfoService.getUserInfoObj();
   }
 
   reset() {
@@ -530,7 +531,9 @@ export class EmployeeInfoComponent implements OnInit {
 
 
   onSave(){
-    this.router.navigate(['../document-upload'], {relativeTo:this.route});
+    // this.router.navigate(['../document-upload'], {relativeTo:this.route});
+    this.updateUserInfoService.setUserInfoObj(this.employeeObj);
+    this.loadDocumentUpload.emit();
   }
 
 

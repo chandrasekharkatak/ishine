@@ -1,4 +1,4 @@
-<app-sidenav (onToggleSideNav)="onToggleSideNav($event)" *ngIf="currentUser && currentUser.isUserInfoUpdated"></app-sidenav>
+<app-sidenav (onToggleSideNav)="onToggleSideNav($event)" *ngIf="currentUser"></app-sidenav>
 <app-body
   [collapsed]="isSideNavCollapsed"
   [screenWidth]="screenWidth"
