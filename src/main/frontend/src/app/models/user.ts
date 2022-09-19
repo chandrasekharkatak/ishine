@@ -10,6 +10,7 @@ export class User{
     tabList:any;
     managerId:any;
     departmentId:any;
+    isNew:any;
 
     /* For Leave Policy */
     gender:any;

@@ -85,4 +85,7 @@ public class EmployeeDTO {
 	private Integer invalidAccessAttempt;
 	private Integer failedAttempt;
 	
+	private String isNew;
+	private String secondaryEmail;
+	
 }

@@ -219,23 +219,24 @@ export class LoginComponent implements OnInit{
         this.allSubFeatures = getAllSubFeaturesResp.serviceResponse;
         this.getFeatureList();
       
-        /*Mapping & tab list*/
-        this.user.otp = null;
-        this.user.empId = user.empId;
-        this.user.name = user.name;
-        this.user.managerId = user.managerId;
-        this.user.departmentId = user.departmentId;
-        this.user.employmentstatus = user.employmentstatus;
-        this.user.gender = user.gender;
-        this.user.dateOfJoining = user.dateOfJoining;
-        this.user.timesheetLockDays = user.timesheetLockDays;
-        this.user.employeementId = user.employeementId;
-        this.user.userMapping = this.getActiveSubFeatures();
-        this.user.tabList = this.getTabList();
-        sessionStorage.setItem('currentUser', JSON.stringify(this.user));
-        this.authenticationService.setcurrentUserSubject(this.user);
-        this.router.navigate(['/home']);
-        this.authenticationService.startUserSessionCheck();
+      /*Mapping & tab list*/
+      this.user.otp = null;
+      this.user.empId = user.empId;
+      this.user.name = user.name;
+      this.user.managerId = user.managerId;
+      this.user.departmentId = user.departmentId;
+      this.user.employmentstatus = user.employmentstatus;
+      this.user.gender = user.gender;
+      this.user.dateOfJoining = user.dateOfJoining;
+      this.user.timesheetLockDays = user.timesheetLockDays;
+      this.user.employeementId = user.employeementId;
+      this.user.isNew = user.isNew;
+      this.user.userMapping = this.getActiveSubFeatures();
+      this.user.tabList = this.getTabList();
+      sessionStorage.setItem('currentUser', JSON.stringify(this.user));
+      this.authenticationService.setcurrentUserSubject(this.user);
+      this.router.navigate(['/home']);
+      this.authenticationService.startUserSessionCheck();
       }
     } else {
       this.isError = true;

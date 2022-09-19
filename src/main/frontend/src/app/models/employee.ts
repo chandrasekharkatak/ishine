@@ -74,4 +74,5 @@ export class Employee{
 
 	invalidAccessAttempt:any;
 	failedAttempt:any;
+	secondaryEmail:any;
 }

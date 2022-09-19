@@ -188,14 +188,14 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aboutMe)){
-      this.alertMessage = "Please enter About me !!";
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup)){
+      this.alertMessage = "Please enter Blood group";
       this.openAlertMod(template, this.alertMessage);
       return false;
-     } else if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+     } else if (!this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
       this.alertMessage = "Please enter Valid Blood Group !!"	
       this.openAlertMod(template, this.alertMessage);	
-      return false;	
+      return false;
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){

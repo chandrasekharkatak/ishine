@@ -73,7 +73,7 @@ public class AuthenticationService {
 								int otp = random.nextInt(9999 - 1000)
 										+ 1000; /* Random number will be generated between 1000 and 9999 */
 								employee.setOtp(otp);
-								mailService.sendMail(employeedto.getEmail(), "Regarding mail","please find your otp " +otp);
+								mailService.sendMail(employeedto.getEmail(), "Regarding otp","please find your otp " +otp);
 								employee.setInvalidAccessAttempt(0);
 								
 								employeeRepository.save(employee);
@@ -225,18 +225,22 @@ public class AuthenticationService {
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
 			if (employee != null) {
-				Random random = new Random();
-				int otp = random.nextInt(9999 - 1000) + 1000;
-				employee.setOtp(otp);
-				employeeRepository.save(employee);
-				
-				mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("OTP sent to emailId.");
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Enter valid credentials.");
+				if(employee.getIsNew().equals("true")) {	
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				    response.setServiceResponse("Forgot Password feature is not for New User.");	
+				}else {	
+					Random random = new Random();	
+					int otp = random.nextInt(9999 - 1000) + 1000;	
+					employee.setOtp(otp);	
+					employeeRepository.save(employee);	
+						
+					mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse("OTP sent to emailId.");	
+				}	
+			} else {	
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				response.setServiceResponse("Enter valid credentials.");	
 			}
 
 		} catch (Exception e) {
