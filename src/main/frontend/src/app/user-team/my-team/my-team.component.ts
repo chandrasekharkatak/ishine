@@ -346,6 +346,7 @@ export class MyTeamComponent implements OnInit {
           "Created On": x.createdOn,
           "No Of Days": x.noOfDays,
           "Status": x.status,
+          "Approved/Rejected By":x.leaveStatusUpdatedByName,
           "Reason": x.reason,
           "Leave Type": x.leaveType
         })

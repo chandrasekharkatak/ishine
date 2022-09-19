@@ -49,7 +49,7 @@ export class RoleConfigComponent implements OnInit {
 
   roleDataForExcel: any[];
 
-  name = 'EmployeeRole.xlsx';
+  name = 'JobRole.xlsx';
 
   // for View Role By department 
   selectedDept:any = '';
@@ -404,12 +404,13 @@ export class RoleConfigComponent implements OnInit {
         this.roleDataForExcel = response.serviceResponse;
       }
 
-      const onlySpecificDataArr: Partial<JobRole>[] = this.roleDataForExcel.map(
+      const onlySpecificDataArr = this.roleDataForExcel.map(
         x => ({
-          name: x.name,
-          departmentName: x.departmentName,
-          createdBy: x.createdBy,
-          createdOn: x.createdOn
+          "Name": x.name,
+          "Employee Role":x.employeeRole,
+          "Department Name": x.departmentName,
+          "Created By": x.createdBy,
+          "created On": x.createdOn
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)

@@ -673,20 +673,20 @@ export class LeaveComponent implements OnInit {
     	
         const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationListDataForExcel.map(	
           x => ({	
-            leaveType: x.leaveType,	
-            fromDate: x.fromDate,	
-            toDate: x.toDate,	
-            noOfDays: x.noOfDays,	
-            status: x.status,	
-            createdByName: x.createdByName,	
-            createdOn: x.createdOn,	
-            reason: x.reason	
+            "leave Type": x.leaveType,	
+            "From Date": x.fromDate,	
+            "To Date": x.toDate,	
+            "No Of Days": x.noOfDays,	
+            "status": x.status,	
+            "Created By Name": x.createdByName,	
+            "Created On": x.createdOn,	
+            "Reason": x.reason	
           })	
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
       });
 
-    }	
+    }
     if(this.isLeaveLogTable == true){	
       this.elementName = 'log-table';	
       this.excelName = 'MyLeaveLogs.xlsx';	
