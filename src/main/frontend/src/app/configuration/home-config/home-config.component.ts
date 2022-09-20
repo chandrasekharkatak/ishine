@@ -200,7 +200,7 @@ export class HomeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
     }
 
-    this.notificationObj.updatedBy = this.currentUser.empId;;
+    this.notificationObj.updatedBy = this.currentUser.empId;
     this.notificationService.updateNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

@@ -51,6 +51,7 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor';
+import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -84,6 +85,7 @@ import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor'
     TeamMemberComponent,
     HomeConfigComponent,
     CalendarComponent,
+    PortalConfigComponent,
   ],
   imports: [
     BrowserModule,

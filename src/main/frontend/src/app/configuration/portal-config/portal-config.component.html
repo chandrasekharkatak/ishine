@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Portal Global Configuration</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Probation Period</label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.probationPeriod">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0 mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updateProbationPeriod(portalObj,alert_message)">Update Probation Period</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Notice Period</label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.noticePeriod">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0 mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updateNoticePeriod(portalObj,alert_message)">Update Notice Period</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

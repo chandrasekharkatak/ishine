@@ -24,6 +24,10 @@
             <a class="nav-link config__tab-item__link" id="home-config-tab" data-toggle="tab" role="tab"
                 aria-controls="home-config" aria-selected="false" routerLink="home-config">Home</a>
         </li>
+        <li class="nav-item config__tab-item" (click)="removeActiveTab()">
+            <a class="nav-link config__tab-item__link" id="portal-config-tab" data-toggle="tab" role="tab"
+                aria-controls="portal-config" aria-selected="false" routerLink="portal-config">Portal</a>
+        </li>
     </ul>
 
     <!-- tab Containers -->
