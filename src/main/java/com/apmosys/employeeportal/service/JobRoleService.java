@@ -49,11 +49,9 @@ public class JobRoleService {
 			JobRole newJobRole = new JobRole();
 			// Department department = new Department();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
-			if(jobRoleDTO.getEmployeeRole().equals("SELECT")){
-				newJobRole.setName(jobRoleDTO.getName());
-			}else {
-				newJobRole.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
-			}
+			newJobRole.setName(jobRoleDTO.getName());
+			newJobRole.setEmployeeRole(jobRoleDTO.getEmployeeRole());
+			
 			// department.setDept_id(jobRoleDTO.getDepartmentId());
 			newJobRole.setDeptId(jobRoleDTO.getDepartmentId());
 
@@ -164,13 +162,14 @@ public class JobRoleService {
 				for (Object[] object : allJobRoleList) {
 					JobRoleDTO jobRoleDTO = new JobRoleDTO();
 					jobRoleDTO.setName(object[0] != null ? object[0].toString() : null);
-					jobRoleDTO.setCreatedBy(object[1] != null ? object[1].toString() : null);
-					jobRoleDTO.setCreatedOn(object[2] != null ? object[2].toString() : null);
-					jobRoleDTO.setDepartmentId(object[3] != null ?Long.parseLong(object[3].toString()):null);
-					jobRoleDTO.setDepartmentName(object[4] != null ? object[4].toString() : null);
-					jobRoleDTO.setJobRoleId(object[5] != null ? Long.parseLong(object[5].toString()):null);
-					jobRoleDTO.setUpdatedByName(object[6] != null ? object[6].toString() : null);
-					jobRoleDTO.setUpdatedOn(object[7] != null ? object[7].toString() : null);
+					jobRoleDTO.setEmployeeRole(object[1] != null ? object[1].toString() : null);
+					jobRoleDTO.setCreatedBy(object[2] != null ? object[2].toString() : null);
+					jobRoleDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
+					jobRoleDTO.setDepartmentId(object[4] != null ?Long.parseLong(object[4].toString()):null);
+					jobRoleDTO.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					jobRoleDTO.setJobRoleId(object[6] != null ? Long.parseLong(object[6].toString()):null);
+					jobRoleDTO.setUpdatedByName(object[7] != null ? object[7].toString() : null);
+					jobRoleDTO.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					dtoList.add(jobRoleDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -201,9 +200,10 @@ public class JobRoleService {
 				// department.setDept_id(jobRoleDTO.getDepartmentId());
 				jobRoleToBeUpdated.setUpdatedBy(jobRoleDTO.getUpdatedBy());
 				jobRoleToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				jobRoleToBeUpdated.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
+				//jobRoleToBeUpdated.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
+				jobRoleToBeUpdated.setName(jobRoleDTO.getName());
+				jobRoleToBeUpdated.setEmployeeRole(jobRoleDTO.getEmployeeRole());
 				jobRoleToBeUpdated.setDeptId(jobRoleDTO.getDepartmentId());
-
 				JobRole dbResponse = jobRoleRepository.save(jobRoleToBeUpdated);
 
 				if (dbResponse != null) {

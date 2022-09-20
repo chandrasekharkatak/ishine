@@ -583,7 +583,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -705,7 +705,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
