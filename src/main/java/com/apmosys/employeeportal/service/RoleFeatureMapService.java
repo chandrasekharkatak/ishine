@@ -64,26 +64,59 @@ public class RoleFeatureMapService {
 		return serviceResponse;
 	}
 
+//	@Transactional
+//	public ServiceResponse updateRoleFeatureMapping(FeatureMasterDTO featureMasterDTO) {
+//		ServiceResponse serviceResponse = new ServiceResponse();
+//		try {
+//			Long jobRoleId = featureMasterDTO.getJobRoleId();
+//
+//			featureMasterDTO.getSubFeatures().stream().filter(subfeatures -> subfeatures.getRoleFeatureMapId() == null)
+//					.forEach(dto -> {
+//						RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+//						roleFeatureMap.setJobRoleId(jobRoleId);
+//						roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureMasterId());
+//						roleFeatureMapRepository.save(roleFeatureMap);
+//
+//					});
+//
+//			featureMasterDTO.getSubFeatures().stream().filter(subfeatures -> !subfeatures.getIsActive())
+//					.forEach(dto -> {
+//						roleFeatureMapRepository.deleteById(dto.getRoleFeatureMapId());
+//
+//					});
+//
+//			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			serviceResponse.setServiceResponse("Subfeatures of role updated.");
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			serviceResponse.setServiceResponse("Something Went Wrong.");
+//			serviceResponse.setServiceError(e.getMessage());
+//		}
+//		return serviceResponse;
+//	}
+
 	@Transactional
 	public ServiceResponse updateRoleFeatureMapping(FeatureMasterDTO featureMasterDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			Long jobRoleId = featureMasterDTO.getJobRoleId();
 
-			featureMasterDTO.getSubFeatures().stream().filter(subfeatures -> subfeatures.getRoleFeatureMapId() == null)
-					.forEach(dto -> {
-						RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
-						roleFeatureMap.setJobRoleId(jobRoleId);
-						roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureMasterId());
-						roleFeatureMapRepository.save(roleFeatureMap);
+			roleFeatureMapRepository.deleteByJobRoleId(jobRoleId);
 
-					});
+			List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
 
-			featureMasterDTO.getSubFeatures().stream().filter(subfeatures -> !subfeatures.getIsActive())
-					.forEach(dto -> {
-						roleFeatureMapRepository.deleteById(dto.getRoleFeatureMapId());
+			featureMasterDTO.getSubFeatures().forEach(dto -> {
 
-					});
+				RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+				roleFeatureMap.setJobRoleId(jobRoleId);
+				roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureMasterId());
+				roleFeatureMapList.add(roleFeatureMap);
+
+			});
+
+			roleFeatureMapRepository.saveAll(roleFeatureMapList);
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse("Subfeatures of role updated.");
