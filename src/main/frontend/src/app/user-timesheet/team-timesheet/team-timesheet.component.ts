@@ -155,6 +155,11 @@ export class TeamTimesheetComponent implements OnInit {
     });
   }
 
+  rejectTimesheetRequest(template: TemplateRef<any>){
+    this.cancelRequest();
+    this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
+  }
+
 
   /* View TImesheet details */ 
   getAllMyActivitiesByTimesheetId(timesheet:any){
@@ -233,6 +238,11 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   openRevokeApprovedTimesheet(template: TemplateRef<any>, timesheet: any) {
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
     this.timesheetObj = timesheet;
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }

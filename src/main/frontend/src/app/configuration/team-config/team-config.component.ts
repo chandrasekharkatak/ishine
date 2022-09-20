@@ -593,6 +593,15 @@ export class TeamConfigComponent implements OnInit {
     }
   }
 
+  checkTeamName(template :TemplateRef<any>){
+    this.teamService.checkTeamName(this.teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.teamObj.teamName = '';
+      }
+    });
+  }
+
 
 
   //modals

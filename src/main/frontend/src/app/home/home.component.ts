@@ -360,14 +360,14 @@ export class HomeComponent implements OnInit {
         console.log("checkData :", checkData);
         
         if(checkData){
-          this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
+          this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
         }else{
-          this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'zero Leave Applications');
+          this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
         }
 
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'No Data to Display');
+        this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
       }
     });
   }

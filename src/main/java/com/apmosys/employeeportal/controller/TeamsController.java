@@ -91,4 +91,11 @@ public class TeamsController {
 		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryView(leaveDTO);		
 		return response;
 	}
+	
+	@RequestMapping(value="/checkTeamName" , method = RequestMethod.POST)
+	public ServiceResponse checkTeamName(@RequestBody TeamDTO teamdto) {
+		
+		ServiceResponse response = teamsService.checkTeamName(teamdto);
+		return response;
+	}
 }

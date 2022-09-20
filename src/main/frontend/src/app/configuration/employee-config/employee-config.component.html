@@ -668,7 +668,7 @@
           <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
-            <td>A-{{employee.employeementId}}</td>
+            <td>{{employee.employeementId}}</td>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>
             <td>{{employee.employmentstatus}}</td>

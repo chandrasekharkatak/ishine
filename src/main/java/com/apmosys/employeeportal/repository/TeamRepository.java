@@ -14,4 +14,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Query(nativeQuery = true)
 	public List<Object[]> projectTeamsByProjectId(Integer projectId);
 
+	public Team findByTeamName(String teamName);
+
 }

@@ -22,7 +22,7 @@
         </tr>
         <tr *ngFor="let viewTeamMember of viewTeamMemberList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
           <td>{{10*(page-1)+i+1}}</td>
-          <td>A-{{viewTeamMember.employeementId}}</td>
+          <td>{{viewTeamMember.employeementId}}</td>
           <td>{{viewTeamMember.name}}</td>
           <td>{{viewTeamMember.email}}</td>
           <td>{{viewTeamMember.jobRoleName}}</td>

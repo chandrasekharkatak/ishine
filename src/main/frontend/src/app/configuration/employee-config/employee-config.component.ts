@@ -35,6 +35,8 @@ export class EmployeeConfigComponent implements OnInit {
   isDraft: boolean = false;
   isDraftTable: boolean = false;
 
+  
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -305,6 +307,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
+        this.employeeObj.draftEmpId = this.employeeObj.empId;
         console.log("employee :", this.employeeObj);
 
         // Job Role
@@ -737,9 +740,19 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
+    const tempObj = this.employeeObj;
+    console.log("tempObj : ", tempObj);
+
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
+        console.log("Delete Draft Employe : ", this.employeeObj);
+        this.employeeService.deleteDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            console.log(response.serviceResponse);
+          } else {
+            console.error(response.serviceResponse);
+          }
+        }); // deleting draft once employee is created
         console.log(this.employeeObj.empId, "-----------------");
         
         this.openAlertMod(template, response.serviceResponse);
@@ -854,7 +867,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   onDeleteEmployee(template: TemplateRef<any>) {
     this.cancelRequest();
-
+    this.employeeObj.employeementId=this.employeeObj.employeementId.substring(2); //A-1234 because in dto class employment id is declare as long so we need it 
+    console.log("Delete Employee : ", this.employeeObj);
+    
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -871,9 +886,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-          // for(let x of this.allEmployeeList){
-          //   x.employeementId = "A-".concat(x.employeementId);
-          // }
+          for(let x of this.allEmployeeList){
+            x.employeementId = "A-".concat(x.employeementId);
+          }
                console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
       } else {
@@ -977,6 +992,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.cancelRequest();
 
     this.employeeObj.draftEmpId = this.employeeObj.empId;
+    this.employeeObj.employeementId=this.employeeObj.employeementId.substring(2);
     this.employeeService.deleteDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -993,6 +1009,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllDraftEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+        for(let x of this.allEmployeeList){
+          x.employeementId="A-".concat(x.employeementId)
+        }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -1035,9 +1054,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   validateBirthDate(template: TemplateRef<any>){   
 
-    let birthdate = new Date(this.employeeObj.dateOfBirth);
-    let dtCurrent = new Date();
-
+  let birthdate = new Date(this.employeeObj.dateOfBirth);
+  let dtCurrent = new Date();
+    
     if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
@@ -1060,7 +1079,7 @@ export class EmployeeConfigComponent implements OnInit {
           }
       }
    }
-    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
+    if ((dtCurrent.getFullYear() - birthdate.getFullYear()) > 60) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
       this.employeeObj.dateOfBirth = '';
