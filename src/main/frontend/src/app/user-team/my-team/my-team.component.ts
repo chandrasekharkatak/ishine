@@ -327,7 +327,7 @@ export class MyTeamComponent implements OnInit {
           "Emp Id": x.empId,
           "Name": x.name,
           "Email": x.email,
-          "Job Role Name": x.jobRoleName,
+          "Designation Name": x.jobRoleName,
           "Mobile No": x.mobileNo,
           "Manager Name": x.managerName
         })
@@ -346,6 +346,7 @@ export class MyTeamComponent implements OnInit {
           "Created On": x.createdOn,
           "No Of Days": x.noOfDays,
           "Status": x.status,
+          "Approved/Rejected By":x.leaveStatusUpdatedByName,
           "Reason": x.reason,
           "Leave Type": x.leaveType
         })

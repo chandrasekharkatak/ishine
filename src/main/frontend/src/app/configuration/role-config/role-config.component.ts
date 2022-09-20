@@ -49,7 +49,7 @@ export class RoleConfigComponent implements OnInit {
 
   roleDataForExcel: any[];
 
-  name = 'EmployeeRole.xlsx';
+  name = 'JobRole.xlsx';
 
   // for View Role By department 
   selectedDept:any = '';
@@ -154,8 +154,6 @@ export class RoleConfigComponent implements OnInit {
     this.subFeatureList = [];
 
     this.jobRoleObj = Object.assign({}, jobRole)
-    this.jobRoleObj.name = jobRole.name.split("-")[0];
-    this.jobRoleObj.employeeRole = jobRole.name.split("-")[1];
     this.getSubfeaturesByJobRoleId();
     console.log("this.jobRoleObj : ", this.jobRoleObj);
 
@@ -174,7 +172,7 @@ export class RoleConfigComponent implements OnInit {
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
-      this.alertMessage = "Please enter Job Role Name !!"
+      this.alertMessage = "Please enter Designation Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -254,7 +252,7 @@ export class RoleConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.newJobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -404,12 +402,13 @@ export class RoleConfigComponent implements OnInit {
         this.roleDataForExcel = response.serviceResponse;
       }
 
-      const onlySpecificDataArr: Partial<JobRole>[] = this.roleDataForExcel.map(
+      const onlySpecificDataArr = this.roleDataForExcel.map(
         x => ({
-          name: x.name,
-          departmentName: x.departmentName,
-          createdBy: x.createdBy,
-          createdOn: x.createdOn
+          "Name": x.name,
+          "Employee Role":x.employeeRole,
+          "Department Name": x.departmentName,
+          "Created By": x.createdBy,
+          "created On": x.createdOn
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
