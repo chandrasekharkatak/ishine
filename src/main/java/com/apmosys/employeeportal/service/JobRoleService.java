@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.SubFeatureMaster;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.SubFeatureMasterRepository;
@@ -43,33 +45,35 @@ public class JobRoleService {
 	@Autowired
 	EmployeeRepository employeeRepository;
 
+	@Autowired
+	EmployeeRoleMasterRepository employeeRoleMasterRepository;
+
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			JobRole newJobRole = new JobRole();
-			// Department department = new Department();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
 			newJobRole.setName(jobRoleDTO.getName());
 			newJobRole.setEmployeeRole(jobRoleDTO.getEmployeeRole());
-			
-			// department.setDept_id(jobRoleDTO.getDepartmentId());
 			newJobRole.setDeptId(jobRoleDTO.getDepartmentId());
 
 			JobRole dbResponse = jobRoleRepository.save(newJobRole);
 			if (dbResponse != null) {
 
-				List<SubFeatureMaster> defaultSubFeatureMasterList = subFeatureMasterRepository
-						.findBySubFeatureType((short) 1);
+//				List<SubFeatureMaster> defaultSubFeatureMasterList = subFeatureMasterRepository
+//						.findBySubFeatureType((short) 1);
+				List<EmployeeRole> defaultSubFeatureList = employeeRoleMasterRepository
+						.findByEmployeeRoleAndPermission(newJobRole.getEmployeeRole(), "N");
 
-				if (defaultSubFeatureMasterList.isEmpty()) {
+				if (defaultSubFeatureList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("New Job Role Created. But Default SubFeatures List Is Empty.");
 					return response;
 				} else {
 					List<RoleFeatureMap> roleFeatureMapList = new ArrayList<RoleFeatureMap>();
-					for (SubFeatureMaster subFeatureMaster : defaultSubFeatureMasterList) {
+					for (EmployeeRole employeeRole : defaultSubFeatureList) {
 						RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
-						roleFeatureMap.setSubFeatureMasterId(subFeatureMaster.getSubFeatureMasterId());
+						roleFeatureMap.setSubFeatureMasterId(employeeRole.getSubFeatureMasterId());
 						roleFeatureMap.setJobRoleId(dbResponse.getJobRoleId());
 						roleFeatureMapList.add(roleFeatureMap);
 					}
@@ -97,7 +101,7 @@ public class JobRoleService {
 		}
 		return response;
 	}
-	
+
 	public ServiceResponse createJobRoleByList(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -165,9 +169,9 @@ public class JobRoleService {
 					jobRoleDTO.setEmployeeRole(object[1] != null ? object[1].toString() : null);
 					jobRoleDTO.setCreatedBy(object[2] != null ? object[2].toString() : null);
 					jobRoleDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
-					jobRoleDTO.setDepartmentId(object[4] != null ?Long.parseLong(object[4].toString()):null);
+					jobRoleDTO.setDepartmentId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 					jobRoleDTO.setDepartmentName(object[5] != null ? object[5].toString() : null);
-					jobRoleDTO.setJobRoleId(object[6] != null ? Long.parseLong(object[6].toString()):null);
+					jobRoleDTO.setJobRoleId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					jobRoleDTO.setUpdatedByName(object[7] != null ? object[7].toString() : null);
 					jobRoleDTO.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					dtoList.add(jobRoleDTO);
@@ -189,9 +193,9 @@ public class JobRoleService {
 
 	public ServiceResponse updateJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
+
 		System.out.println(jobRoleDTO);
-		
+
 		try {
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isPresent()) {
@@ -200,7 +204,8 @@ public class JobRoleService {
 				// department.setDept_id(jobRoleDTO.getDepartmentId());
 				jobRoleToBeUpdated.setUpdatedBy(jobRoleDTO.getUpdatedBy());
 				jobRoleToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				//jobRoleToBeUpdated.setName(jobRoleDTO.getName() + "-" + jobRoleDTO.getEmployeeRole());
+				// jobRoleToBeUpdated.setName(jobRoleDTO.getName() + "-" +
+				// jobRoleDTO.getEmployeeRole());
 				jobRoleToBeUpdated.setName(jobRoleDTO.getName());
 				jobRoleToBeUpdated.setEmployeeRole(jobRoleDTO.getEmployeeRole());
 				jobRoleToBeUpdated.setDeptId(jobRoleDTO.getDepartmentId());
@@ -256,29 +261,29 @@ public class JobRoleService {
 		}
 		return response;
 	}
-	
+
 	public ServiceResponse changeEmployeeJobRoleMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Employee> employeeJobRole = employeeRepository.findByJobRoleId(jobRoleDTO.getOldJobRoleId());
-			
-			if(!employeeJobRole.isEmpty()) {
-				for(Employee newJobRole: employeeJobRole) {
-				
+
+			if (!employeeJobRole.isEmpty()) {
+				for (Employee newJobRole : employeeJobRole) {
+
 					newJobRole.setJobRoleId(jobRoleDTO.getJobRoleId());
-					
+
 					Employee dbResponse = employeeRepository.save(newJobRole);
-					
-					if(dbResponse != null) {
+
+					if (dbResponse != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Job Role deleted");
-					}else {
+					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Employee Job role mapping Failed.");
 					}
 				}
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

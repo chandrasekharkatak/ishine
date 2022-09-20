@@ -12,7 +12,10 @@ import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import lombok.ToString;
+
 @Entity
+@ToString
 public class JobRole {
 
 	@Id
