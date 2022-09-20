@@ -64,6 +64,40 @@
             <div *ngIf="isUpdation" class="row ml-1 mt-5">
                 <h3>Features</h3> 
             </div>
+            <div *ngIf="isUpdation">
+                <div *ngFor="let feature of featureList" class="row">
+                    <div class="col-md-12">
+                        <div class="row px-4 list-heading">
+                            <h5 class="mb-0">{{feature.featureName}}</h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="list-container">
+                                    <ul class="list-group list-group-flush">
+                                        <li *ngFor="let subfeature of feature.subFeatures" class="list-group-item">
+                                            {{subfeature.subFeatureName}}
+                                            <label class="subfeature-checkbox">
+                                                <input type="checkbox" [(ngModel)]="subfeature.isActive" />
+                                                <span class="primary"></span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isUpdation && userMapping.update_role_feature_mapping" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="openUpdateConfimationModal(update_mapping_template)">Update Feature Mapping</button>
+                </div>
+            </div>
+
+
+        <!--
             <div *ngIf="isUpdation" class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -98,6 +132,7 @@
                     (click)="openUpdateConfimationModal(update_mapping_template)">Update Feature Mapping</button>
                 </div>
             </div>
+        -->
 
 
     </div>

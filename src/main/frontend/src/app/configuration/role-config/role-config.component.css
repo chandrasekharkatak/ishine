@@ -96,3 +96,9 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+
+.list-heading{
+    background: var(--ghost-white);
+    color: var(--raisin-black);
+    padding: 0.625em 1.25em;
+}
