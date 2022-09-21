@@ -63,7 +63,7 @@ public class JobRoleService {
 //				List<SubFeatureMaster> defaultSubFeatureMasterList = subFeatureMasterRepository
 //						.findBySubFeatureType((short) 1);
 				List<EmployeeRole> defaultSubFeatureList = employeeRoleMasterRepository
-						.findByEmployeeRoleAndPermission(newJobRole.getEmployeeRole(), "N");
+						.findByEmployeeRoleAndPermission(newJobRole.getEmployeeRole(), "Y");
 
 				if (defaultSubFeatureList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
