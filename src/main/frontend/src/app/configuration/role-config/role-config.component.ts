@@ -88,6 +88,9 @@ export class RoleConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
+    if(this.userMapping.create_role){
+      this.showCreateForm();
+    }
     if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
       //for role table data 
       this.showTable();

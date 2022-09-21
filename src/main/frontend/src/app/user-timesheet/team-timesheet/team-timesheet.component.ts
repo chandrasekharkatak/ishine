@@ -64,7 +64,11 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showAllTimesheetRequestsTable();
+    if(this.userMapping.view_my_teams_timesheets){
+      this.showAllTimesheetsTable();
+    }else if(this.userMapping.view_my_teams_timesheets_requests || this.userMapping.update_timesheet_request || this.userMapping.revoke_reportee_timesheet){
+      this.showAllTimesheetRequestsTable();
+    }
   }
 
   disableMannualDateInput(){

@@ -1,12 +1,12 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isHolidayForm && isCreation}" (click)="showAddHolidayForm()">Add Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isHolidayTable}" (click)="showHoliaysTable()">View Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">View Leave Types</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">View Leave Policies</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_holidays" [ngClass]="{'active' : isHolidayForm && isCreation}" (click)="showAddHolidayForm()">Add Holidays</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_holidays || userMapping.update_holidays || userMapping.delete_holiday" [ngClass]="{'active' : isHolidayTable}" (click)="showHoliaysTable()">View Holidays</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_type" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_types || userMapping.update_leave_type || userMapping.delete_leave_type" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">View Leave Types</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.manage_employee_leave_balance" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_ploicy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">View Leave Policies</button>
     </div>
 </div>
 
@@ -135,8 +135,8 @@
                 <td>{{holiday.dateOfHoliday}}</td>
                 <td>{{holiday.state}}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
+                    <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button *ngIf="userMapping.delete_holiday" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>
@@ -263,8 +263,8 @@
                 <td>{{leaveType.rules}}</td>
                 <td>{{leaveType.description}}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeaveType(delete_leave_type,leaveType)"><em class="fa fa-trash"></em></button>
+                    <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button *ngIf="userMapping.delete_leave_type" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeaveType(delete_leave_type,leaveType)"><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>
@@ -334,7 +334,7 @@
         </div>
     </div>
 </div>
-<!-- end ::  Add & Update Leave Type form -->
+<!-- end ::  Update Leave Balance form -->
 
 <!-- start :: Add & Update Leave Policy Form -->
 <div class="row">
@@ -604,8 +604,8 @@
                 <td>{{leavePolicy.createdByName}}</td>
                 <td>{{leavePolicy.createdOn}}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
+                    <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
                 </td>
             </tr>
         </tbody>

@@ -80,13 +80,17 @@ export class MyTeamComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
 
-    this.getAllTeamView();
-    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.getPendingCompOffRequestsByManagerId();
-    this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
+    this.sectionViewInit();    
+  }
 
-    console.log("alert template : ", this.alertTemplate);
-    
+  sectionViewInit() {
+    if(this.userMapping.view_my_team){
+      this.viewTeam();
+    }else if(this.userMapping.view_team_leave_history){
+      this.viewTeamLeaveHistory();
+    }else if (this.userMapping.view_team_all_requests || this.userMapping.update_pending_req){
+      this.viewTeamRequest();
+    }
   }
 
   viewTeam() {
@@ -97,6 +101,9 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = false;
     this.isTeamRequest = false;
     this.page=1;
+
+    this.getAllTeamView();
+    this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
   }
 
   viewTeamLeaveHistory() {
@@ -110,6 +117,8 @@ export class MyTeamComponent implements OnInit {
     this.isTeamRequest = false;
     this.page=1;
     this.data=''
+
+    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
 
   viewLeaveHistory() {
@@ -143,6 +152,8 @@ export class MyTeamComponent implements OnInit {
     this.isViewTeam = false;
     this.page=1;
     this.data='';
+
+    this.getPendingCompOffRequestsByManagerId();
   }
 
   viewTeamLeaveRequest() {
@@ -160,7 +171,6 @@ export class MyTeamComponent implements OnInit {
   }
 
   getAllTeamView() {
-    this.isViewTeam = true;
     this.teamViewList = []
 
     let employeeObj = new Employee();

@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Event Photos List</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isNotificationForm}" (click)="showNotificationForm()">Set Notification</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_event_photos || userMapping.delete_event_photos" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Event Photos List</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.set_notifications" [ngClass]="{'active' : isNotificationForm}" (click)="showNotificationForm()">Set Notification</button>
     </div>
 </div>
 
@@ -70,7 +70,7 @@
             <td>{{image.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openPreviewEventPhoto(preview_template,image)"><em>Preview</em></button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEventPhoto(delete_template,image)"><em class="fa fa-trash"></em></button>
+                <button *ngIf="userMapping.delete_event_photos" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEventPhoto(delete_template,image)"><em class="fa fa-trash"></em></button>
             </td>
           </tr>
         </tbody>

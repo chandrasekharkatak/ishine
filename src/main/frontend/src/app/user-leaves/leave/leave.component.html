@@ -1,10 +1,10 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_for_leave" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Apply Leave</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_history" [ngClass]="{'active' : isLeaveHistoryTable}" (click)="showLeaveHistoryTable()">View My Leave History</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_history || userMapping.update_leave_status ||userMapping.delete_leave_application || userMapping.revoke_leave_application" [ngClass]="{'active' : isLeaveHistoryTable}" (click)="showLeaveHistoryTable()">View My Leave History</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveApplicationsTable}" (click)="showLeaveApplicationsTable()">View My Reportee Leave Applications</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_reportee_leave_applications || userMapping.update_leave_applications_status" [ngClass]="{'active' : isLeaveApplicationsTable}" (click)="showLeaveApplicationsTable()">View My Reportee Leave Applications</button>
     </div>
 </div>
 
@@ -169,9 +169,9 @@
                 <td>{{leaveHistory.reason}}</td>
                 <!-- <td>{{leaveHistory.description}}</td> -->
                 <td>	
-                    <button *ngIf="leaveHistory.status == 'Pending'" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;	
-                    <button *ngIf="leaveHistory.status == 'Pending'" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeave(delete_leave_application,leaveHistory)"><em class="fa fa-trash"></em></button>&nbsp;
-                    <button *ngIf="(leaveHistory.status == 'Approved' && leaveHistory.fromDate > dateToday)" class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeApprovedLeaveApplication(revoke_approved_leave,leaveHistory)" title="Revoke"><em>Revoke</em></button>
+                    <button *ngIf="leaveHistory.status == 'Pending' && userMapping.update_leave_status" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;	
+                    <button *ngIf="leaveHistory.status == 'Pending'&& userMapping.delete_leave_application" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeave(delete_leave_application,leaveHistory)"><em class="fa fa-trash"></em></button>&nbsp;
+                    <button *ngIf="((leaveHistory.status == 'Approved' && leaveHistory.fromDate > dateToday) && userMapping.revoke_leave_application)" class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeApprovedLeaveApplication(revoke_approved_leave,leaveHistory)" title="Revoke"><em>Revoke</em></button>
                 </td>
             </tr>
         </tbody>
@@ -221,8 +221,8 @@
                 <td>{{leaveApplication.reason}}</td>
                 <!-- <td>{{leaveApplication.description}}</td> -->
                 <td>
-                    <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                 </td>
             </tr>
         </tbody>

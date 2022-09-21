@@ -17,6 +17,7 @@ import { NotificationMessage } from '../models/notification';
 import { NotificationService } from '../services/notification.service';
 import * as moment from 'moment';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { Feature } from '../models/feature';
 
 @Component({
   selector: 'app-home',
@@ -79,6 +80,15 @@ export class HomeComponent implements OnInit {
    }
 
   ngOnInit(): void {
+
+    // Dynamic Subfeature Flags 
+    /*    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+        featureMap.subFeatures?.forEach(sub => {
+          this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
+        console.log(this.feature , " : ", this.userMapping);
+    */
+
     this.getAllNotifications();
     this.getAllEventPhotos();
     this.getAllEmployeesBirthDayToday();

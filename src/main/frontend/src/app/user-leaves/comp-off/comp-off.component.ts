@@ -65,7 +65,13 @@ export class CompOffComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showCreateForm();
+    if(this.userMapping.apply_comp_off_req){
+      this.showCreateForm();
+    }else if(this.userMapping.view_comp_off_req_status || this.userMapping.update_comp_off_req){
+      this.showCompOffRequestTable();
+    }else if(this.userMapping.view_reportee_comp_off_applications || this.userMapping.update_comp_off_applications_status){
+      this.showCompOffApplicationsTable();
+    }
   }
 
   disableMannualDateInput(){
