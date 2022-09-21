@@ -38,6 +38,7 @@ public class PortalConfigService {
 					portaldto.setPortalConfigId(portal.getPortalConfigId());
 					portaldto.setConfigName(portal.getConfigName());
 					portaldto.setConfigPeriod(portal.getConfigPeriod());
+					portaldto.setMailTrigger(portal.getMailTrigger());
 					dtoList.add(portaldto);
 					
 				});
@@ -66,6 +67,7 @@ public class PortalConfigService {
 				portalConfigToBeUpdate.setUpdatedBy(protalConfigDTO.getUpdatedBy());
 				portalConfigToBeUpdate.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				portalConfigToBeUpdate.setConfigPeriod(protalConfigDTO.getConfigPeriod());
+				portalConfigToBeUpdate.setMailTrigger(protalConfigDTO.getMailTrigger());
 				PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
 				
 				if(dbResponse!=null) {

@@ -43,6 +43,7 @@ export class PortalConfigComponent implements OnInit {
         for(let portal of this.portalConfigList){
           if(portal.configName == 'Probation Period'){
             this.portalObj.probationPeriod = portal.configPeriod;
+            this.portalObj.probationMailTrigger = portal.mailTrigger;
           }
           if(portal.configName == 'Notice Period'){
             this.portalObj.noticePeriod = portal.configPeriod;
@@ -61,6 +62,11 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.probationMailTrigger)) {
+      this.alertMessage = "Please enter Probation Period Mail Trigger !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
 
     for(let portal of this.portalConfigList){
       if(portal.configName == 'Probation Period'){
@@ -68,6 +74,7 @@ export class PortalConfigComponent implements OnInit {
         portalObj.configName = portal.configName;
         portalObj.portalConfigId = portal.portalConfigId;
         portalObj.configPeriod = portalObj.probationPeriod;
+        portalObj.mailTrigger = portalObj.probationMailTrigger;
         portalObj.updatedBy = this.currentUser.empId;
 
         this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {

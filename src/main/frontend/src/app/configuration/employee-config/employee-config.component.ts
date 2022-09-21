@@ -564,6 +564,12 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.probationPeriod)) {
+      this.alertMessage = "Please enter Probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.noticePeriod)) {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);

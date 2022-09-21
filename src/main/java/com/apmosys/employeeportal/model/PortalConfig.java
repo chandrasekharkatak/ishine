@@ -25,6 +25,8 @@ public class PortalConfig {
 	
 	private Float configPeriod;
 	
+	private Float mailTrigger;
+	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
