@@ -13,8 +13,16 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Mail Trigger For Probation <small>(Days)</small></label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.probationMailTrigger">
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-4 mb-0 mt-4 pt-2">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updateProbationPeriod(portalObj,alert_message)">Update Probation Period</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updateProbationPeriod(portalObj,alert_message)">Update Probation Configuration</button>
                 </div>
             </div>
             <div class="row">

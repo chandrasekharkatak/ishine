@@ -15,6 +15,7 @@ public class ProtalConfigDTO {
 	private Float configPeriod;
 	private Float probationPeriod;
 	private Float noticePeriod;
+	private Float mailTrigger;
 	private String updatedOn;	
 	private Long updatedBy;
 

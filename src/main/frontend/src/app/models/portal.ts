@@ -5,4 +5,6 @@ export class Portal {
     probationPeriod:any;
     noticePeriod:any;
     updatedBy:any;
+    mailTrigger:any;
+    probationMailTrigger:any;
 }
