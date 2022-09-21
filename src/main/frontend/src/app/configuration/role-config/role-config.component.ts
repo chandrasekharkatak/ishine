@@ -155,7 +155,7 @@ export class RoleConfigComponent implements OnInit {
 
     this.jobRoleObj = Object.assign({}, jobRole)
     this.getSubfeaturesByJobRoleId();
-    console.log("this.jobRoleObj : ", this.jobRoleObj);
+    console.log("showUpdateForm --> jobRoleObj : ", this.jobRoleObj);
 
   }
 
@@ -317,19 +317,27 @@ export class RoleConfigComponent implements OnInit {
   }
 
   onUpdateFeatureMapping(template: TemplateRef<any>) {
-    let activeSubfeatures = this.subFeatureList.filter(sub => {
-      if (sub.roleFeatureMapId === null && sub.isActive == false) {
-        // to send only manipulated data ...
-      } else {
-        return sub
-      }
-    });
+    let updatedSubFeatureList : any[] = [];
 
+    this.featureList.forEach(feature => {
+        if(feature.subFeatures){
+          const subFeatureList = feature.subFeatures;
+          subFeatureList.forEach(subFeature => {
+              if(subFeature.isActive){
+                const _sub = new SubFeature();
+                _sub.subFeatureMasterId =  subFeature.subFeatureMasterId;
+                updatedSubFeatureList.push(_sub);
+              }        
+          });
+        }
+    });
+    
     let updateFeatureObj = new Feature();
-    updateFeatureObj.featureId = this.selectedFeature;
-    updateFeatureObj.subFeatures = activeSubfeatures;
+    updateFeatureObj.updatedBy = this.currentUser.empId; 
+    updateFeatureObj.subFeatures = updatedSubFeatureList;
     updateFeatureObj.jobRoleId = this.jobRoleObj.jobRoleId;
 
+    console.log("Update feature-mapping : ", updateFeatureObj);
     this.subfeatureService.updateRoleFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
