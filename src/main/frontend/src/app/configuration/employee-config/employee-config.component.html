@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Employee</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_employee || userMapping.view_all_employee" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Employees</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_employee || userMapping.update_employee || userMapping.delete_employee || userMapping.enable_employee_login" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Employees</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_draft" [ngClass]="{'active' : isDraftTable}" (click)="showDraftTable()">View All Employees Draft</button>
     </div>
 </div>

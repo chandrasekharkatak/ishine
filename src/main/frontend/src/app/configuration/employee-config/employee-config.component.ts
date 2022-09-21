@@ -137,7 +137,7 @@ export class EmployeeConfigComponent implements OnInit {
     if(this.userMapping.create_employee){
       this.showCreateForm();
     }
-    else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.enable_employee_login) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {
