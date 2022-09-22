@@ -7,4 +7,6 @@ export class Portal {
     updatedBy:any;
     mailTrigger:any;
     probationMailTrigger:any;
+    noticeMailTrigger:any;
+    allPortalConfigData:any
 }

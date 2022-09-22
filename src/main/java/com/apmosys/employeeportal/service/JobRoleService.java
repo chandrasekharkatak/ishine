@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -191,17 +192,36 @@ public class JobRoleService {
 		return response;
 	}
 
+	@Transactional
 	public ServiceResponse updateJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
-
-		System.out.println(jobRoleDTO);
 
 		try {
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isPresent()) {
 				JobRole jobRoleToBeUpdated = jobRoleObject.get();
-				// Department department = new Department();
-				// department.setDept_id(jobRoleDTO.getDepartmentId());
+
+				if (!jobRoleDTO.getEmployeeRole().equals(jobRoleToBeUpdated.getEmployeeRole())) {
+
+					roleFeatureMapRepository.deleteByJobRoleId(jobRoleDTO.getJobRoleId());
+
+					List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
+
+					List<EmployeeRole> defaultSubFeatureList = employeeRoleMasterRepository
+							.findByEmployeeRoleAndPermission(jobRoleDTO.getEmployeeRole(), "Y");
+					defaultSubFeatureList.forEach(dto -> {
+
+						RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+						roleFeatureMap.setJobRoleId(jobRoleDTO.getJobRoleId());
+						roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureMasterId());
+						roleFeatureMapList.add(roleFeatureMap);
+
+					});
+
+					roleFeatureMapRepository.saveAll(roleFeatureMapList);
+
+				}
+
 				jobRoleToBeUpdated.setUpdatedBy(jobRoleDTO.getUpdatedBy());
 				jobRoleToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				// jobRoleToBeUpdated.setName(jobRoleDTO.getName() + "-" +
