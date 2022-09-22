@@ -112,6 +112,6 @@ public class Employee {
 	
 	@Column(nullable = false)
 	private Integer invalidAccessAttempt;
-	
+	private Short probationPeriod;
 	
 }

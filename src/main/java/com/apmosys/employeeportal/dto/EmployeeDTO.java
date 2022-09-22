@@ -84,5 +84,6 @@ public class EmployeeDTO {
 	
 	private Integer invalidAccessAttempt;
 	private Integer failedAttempt;
+	private Short probationPeriod;
 	
 }

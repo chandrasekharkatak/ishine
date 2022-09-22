@@ -27,11 +27,15 @@
     background: #193d8a  !important;
 }
 
-/* .eventPhotosCarousel .carousel-inner{
+.eventPhotosCarousel{
+    display: none;
+}
+
+.eventPhotosCarousel .carousel-inner{
     /* height: 21.5rem;  */
-    /* min-height: 25rem;
-    height: 25rem;  */
-/* } */ */
+    min-height: 25rem;
+    height: 25rem; 
+}
 
 img{
     display: block;

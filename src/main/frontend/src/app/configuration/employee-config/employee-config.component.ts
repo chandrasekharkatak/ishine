@@ -15,6 +15,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
+import { PortalService } from 'src/app/services/portal.service';
 
 @Component({
   selector: 'app-employee-config',
@@ -51,6 +52,7 @@ export class EmployeeConfigComponent implements OnInit {
   allDeptList: any[] = [];
   filteredJobRoleList: any[] = [];
   employeeDataForExcel: any[] = [];
+  portalConfigList:any[] = [];
 
 
   allCertificationList: any[] = [];
@@ -107,7 +109,8 @@ export class EmployeeConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private portalService:PortalService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -136,7 +139,10 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    if(this.userMapping.create_employee){
+      this.showCreateForm();
+    }
+    else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.enable_employee_login) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {
@@ -192,6 +198,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.reset();
     this.getManagerList();
     this.getAllDepartmentList();
+    this.getAllPortalConfigData();
     setTimeout(this.setCalenderMaxDate, 1000);
   }
 
@@ -567,6 +574,12 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.probationPeriod)) {
+      this.alertMessage = "Please enter Probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.noticePeriod)) {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);
@@ -586,7 +599,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -708,7 +721,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1087,6 +1100,24 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
+  getAllPortalConfigData() {
+    this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.portalConfigList = response.serviceResponse;
+        for(let portal of this.portalConfigList){
+          if(portal.configName == 'Probation Period'){
+            this.employeeObj.probationPeriod = portal.configPeriod;
+          }
+          if(portal.configName == 'Notice Period'){
+            this.employeeObj.noticePeriod = portal.configPeriod;
+          }
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -1163,8 +1194,6 @@ export class EmployeeConfigComponent implements OnInit {
           }
         });
       }
-   
-            
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

@@ -27,6 +27,7 @@ import { UserTeamComponent } from './user-team/user-team.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
+import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -41,6 +42,7 @@ const routes: Routes = [
       { path: 'leave', component: LeaveConfigComponent, },
       { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
+      { path: 'portal-config', component: PortalConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

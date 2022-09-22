@@ -17,6 +17,7 @@ import { NotificationMessage } from '../models/notification';
 import { NotificationService } from '../services/notification.service';
 import * as moment from 'moment';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { Feature } from '../models/feature';
 
 @Component({
   selector: 'app-home',
@@ -79,19 +80,29 @@ export class HomeComponent implements OnInit {
    }
 
   ngOnInit(): void {
-    this.getAllNotifications();
-    this.getAllEventPhotos();
-    this.getAllEmployeesBirthDayToday();
 
-    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.countPendingCompOffRequestsByManagerId();
-    this.countMyReporteesTimesheetRequests();
+    // Dynamic Subfeature Flags 
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, " : ", this.userMapping);
     
-    this.getMyLeaveBalancesByEmpId();
-    this.countMyApprovedLeaveApplicationsByLeaveType();
-    this.countMyPendingLeaveApplicationsByLeaveType();
+    this.getAllNotifications();
+    if(this.userMapping.view_event_photos) this.getAllEventPhotos();
+    if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+    if(this.userMapping.view_all_team_requests){
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+      this.countPendingCompOffRequestsByManagerId();
+      this.countMyReporteesTimesheetRequests();
+    }
+    if(this.userMapping.view_my_leave_details){
+      this.getMyLeaveBalancesByEmpId();
+      this.countMyApprovedLeaveApplicationsByLeaveType();
+      this.countMyPendingLeaveApplicationsByLeaveType();
+    }
+    if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
 
-    this.getTimesheetsForHomePageByEmpId('Last 7 Days');
   }
 
   // Leave Applications
@@ -360,14 +371,14 @@ export class HomeComponent implements OnInit {
         console.log("checkData :", checkData);
         
         if(checkData){
-          this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
+          this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
         }else{
-          this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
+          this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'zero Leave Applications');
         }
 
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
+        this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'No Data to Display');
       }
     });
   }
@@ -580,7 +591,7 @@ export class HomeComponent implements OnInit {
   getAllEventPhotos(){
     this.eventImages = [];
     this.isImagesLoaded = false;
-    document.getElementById('eventPhotosCarousel').style.display = 'none';
+    // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
     this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {

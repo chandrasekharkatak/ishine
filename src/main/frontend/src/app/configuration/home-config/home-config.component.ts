@@ -55,17 +55,24 @@ export class HomeConfigComponent implements OnInit {
 
   ngOnInit(): void {
     // Dynamic Subfeature Flags 
-    // let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    // featureMap.subFeatures?.forEach(sub => {
-    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    // });
-    // console.log(this.feature, this.userMapping);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
   }
 
   sectionViewInit() {
-    this.showUploadPhotosForm();
+    if(this.userMapping.upload_event_photos){
+      this.showUploadPhotosForm();
+    }else if(this.userMapping.view_all_event_photos || this.userMapping.delete_event_photos){
+      this.showTable();
+    }else if(this.userMapping.set_notifications){
+      this.showNotificationForm();
+    }
+
   }
 
   showUploadPhotosForm() {
@@ -149,7 +156,6 @@ export class HomeConfigComponent implements OnInit {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
         this.reset();
-        this.showTable();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -201,7 +207,7 @@ export class HomeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
     }
 
-    this.notificationObj.updatedBy = this.currentUser.empId;;
+    this.notificationObj.updatedBy = this.currentUser.empId;
     this.notificationService.updateNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

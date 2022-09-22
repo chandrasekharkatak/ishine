@@ -77,7 +77,10 @@ export class DeptConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department) {
+    if(this.userMapping.create_department){
+      this.showCreateForm();
+    }
+    else if (this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department) {
       //for dept table data 
       this.showTable();
     }

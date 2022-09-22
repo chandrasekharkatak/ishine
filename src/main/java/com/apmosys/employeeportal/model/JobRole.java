@@ -12,7 +12,10 @@ import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import lombok.ToString;
+
 @Entity
+@ToString
 public class JobRole {
 
 	@Id
@@ -21,6 +24,7 @@ public class JobRole {
 	
 	private String name;
 	
+	private String employeeRole;
 //	@OneToOne(fetch = FetchType.EAGER)
 //	@JoinColumn(name = "deptId")
 	private Long deptId;
@@ -91,6 +95,16 @@ public class JobRole {
 	public void setUpdatedBy(int updatedBy) {
 		this.updatedBy = updatedBy;
 	}
+
+	public String getEmployeeRole() {
+		return employeeRole;
+	}
+
+	public void setEmployeeRole(String employeeRole) {
+		this.employeeRole = employeeRole;
+	}
+	
+	
 
 	
 }

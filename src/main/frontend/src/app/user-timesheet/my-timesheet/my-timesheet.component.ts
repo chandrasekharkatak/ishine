@@ -448,12 +448,13 @@ export class MyTimesheetComponent implements OnInit {
 
       this.allMyTimesheetsDataForExcel = this.allMyTimesheets;
 
-      const onlySpecificDataArr: Partial<Timesheet>[] = this.allMyTimesheetsDataForExcel.map(
+      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
         x => ({
-          date: x.date,
-          dayType: x.dayType,
-          description: x.description,
-          status: x.status
+          "Date": x.date,
+          "Day Type": x.dayType,
+          "Total Working Hours":x.totalTime,
+          "Description": x.description,
+          "Status": x.status
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)

@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Employee</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_employee || userMapping.view_all_employee" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Employees</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_employee || userMapping.update_employee || userMapping.delete_employee || userMapping.enable_employee_login" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Employees</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_draft" [ngClass]="{'active' : isDraftTable}" (click)="showDraftTable()">View All Employees Draft</button>
     </div>
 </div>
@@ -408,6 +408,14 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Probation Period</label>
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.probationPeriod">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Notice Period</label>
                                             <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod">
                                         </div>
@@ -438,7 +446,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Job Role</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Designation</label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.jobRoleId">
                                                 <option selected="selected" value="" >Select</option>
                                                 <option *ngFor="let jobRole of filteredJobRoleList" value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>
@@ -676,7 +684,7 @@
             <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
-                <button *ngIf="employee.invalidAccessAttempt > employee.failedAttempt" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
+                <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
             </td>
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
                 <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
