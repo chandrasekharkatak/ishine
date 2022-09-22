@@ -6,6 +6,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-portal-config',
@@ -14,8 +15,11 @@ import { User } from 'src/app/models/user';
 })
 export class PortalConfigComponent implements OnInit {
 
+  feature="Portal Config";
+  currentUser:User;
+  userMapping:any = {};
+
   alertMessage:any;
-  currentUser: User;
   modalRef: BsModalRef = new BsModalRef();
 
   portalObj:Portal = new Portal();
@@ -32,6 +36,13 @@ export class PortalConfigComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Dynamic Subfeature Flags 
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, " : ", this.userMapping);
+
     this.getAllPortalConfigData();
   }
 

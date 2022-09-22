@@ -27,6 +27,10 @@
     background: #193d8a  !important;
 }
 
+.eventPhotosCarousel{
+    display: none;
+}
+
 .eventPhotosCarousel .carousel-inner{
     /* height: 21.5rem;  */
     min-height: 25rem;

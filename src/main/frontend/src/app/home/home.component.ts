@@ -82,26 +82,27 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
 
     // Dynamic Subfeature Flags 
-    /*    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-        featureMap.subFeatures?.forEach(sub => {
-          this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-        });
-        console.log(this.feature , " : ", this.userMapping);
-    */
-
-    this.getAllNotifications();
-    this.getAllEventPhotos();
-    this.getAllEmployeesBirthDayToday();
-
-    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.countPendingCompOffRequestsByManagerId();
-    this.countMyReporteesTimesheetRequests();
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, " : ", this.userMapping);
     
-    this.getMyLeaveBalancesByEmpId();
-    this.countMyApprovedLeaveApplicationsByLeaveType();
-    this.countMyPendingLeaveApplicationsByLeaveType();
+    this.getAllNotifications();
+    if(this.userMapping.view_event_photos) this.getAllEventPhotos();
+    if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+    if(this.userMapping.view_all_team_requests){
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+      this.countPendingCompOffRequestsByManagerId();
+      this.countMyReporteesTimesheetRequests();
+    }
+    if(this.userMapping.view_my_leave_details){
+      this.getMyLeaveBalancesByEmpId();
+      this.countMyApprovedLeaveApplicationsByLeaveType();
+      this.countMyPendingLeaveApplicationsByLeaveType();
+    }
+    if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
 
-    this.getTimesheetsForHomePageByEmpId('Last 7 Days');
   }
 
   // Leave Applications
@@ -590,7 +591,7 @@ export class HomeComponent implements OnInit {
   getAllEventPhotos(){
     this.eventImages = [];
     this.isImagesLoaded = false;
-    document.getElementById('eventPhotosCarousel').style.display = 'none';
+    // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
     this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
