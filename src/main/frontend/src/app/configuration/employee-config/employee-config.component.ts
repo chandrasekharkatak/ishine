@@ -303,7 +303,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.getManagerList();
     this.getAllDepartmentList();    
     
-    
+    employee.employeementId= employee.employeementId.substring(2);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);

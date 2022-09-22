@@ -160,7 +160,9 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   setAllProjectActivities(activityObj, allActivityList: any) {
-    this.allTimesheetActivities.find(activity => activity === activityObj).projectActivities = allActivityList;
+    const selectedActivityObj = this.allTimesheetActivities.find(activity => activity === activityObj);
+    selectedActivityObj.activityId = '';
+    selectedActivityObj.projectActivities = allActivityList;
   }
 
   setActivity(activityObj) {
@@ -289,6 +291,7 @@ export class MyTimesheetComponent implements OnInit {
         if (newTimesheetActivities) {
           if (this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0) {
             this.timesheetObj.updatedTimesheetActivities = [];
+            this.timesheetObj.allTimesheetActivities=''
           }
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
@@ -389,7 +392,7 @@ export class MyTimesheetComponent implements OnInit {
     timesheetObj.empId = this.currentUser.empId;
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
-
+    
     console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
     this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
