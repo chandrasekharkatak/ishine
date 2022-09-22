@@ -99,7 +99,7 @@ export class LeaveComponent implements OnInit {
   sectionViewInit(){
     if(this.userMapping.apply_for_leave){
       this.showCreateForm();
-    }else if(this.userMapping.view_leave_history || this.userMapping.update_leave_status ||this.userMapping.delete_leave_application || this.userMapping.revoke_leave_application){
+    }else if(this.userMapping.view_leave_history || this.userMapping.update_leave ||this.userMapping.delete_leave_application || this.userMapping.revoke_leave_application){
       this.showLeaveHistoryTable();
     }else if(this.userMapping.view_leave_balance){
       this.showLeaveBalanceTable();

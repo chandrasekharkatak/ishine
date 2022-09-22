@@ -140,7 +140,7 @@ export class LeaveConfigComponent implements OnInit {
       this.showLeaveTypesTable();
     }else if (this.userMapping.manage_employee_leave_balance) {
       this.showLeaveBalanceForm();
-    }else if (this.userMapping.add_leave_ploicy) {
+    }else if (this.userMapping.add_leave_policy) {
       this.showAddLeavePolicyForm();
     }else if (this.userMapping.view_leave_policies || this.userMapping.update_leave_policy || this.userMapping.delete_leave_policy) {
       this.showLeavePoliciesTable();

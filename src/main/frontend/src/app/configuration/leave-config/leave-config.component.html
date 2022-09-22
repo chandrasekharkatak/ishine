@@ -5,7 +5,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_type" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_types || userMapping.update_leave_type || userMapping.delete_leave_type" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">View Leave Types</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.manage_employee_leave_balance" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_ploicy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">View Leave Policies</button>
     </div>
 </div>
