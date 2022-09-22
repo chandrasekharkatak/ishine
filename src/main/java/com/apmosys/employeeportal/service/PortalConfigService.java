@@ -59,28 +59,33 @@ public class PortalConfigService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Optional<PortalConfig> portalCongifObj = portalConfigRepository.findById(protalConfigDTO.getPortalConfigId());
-			
-			if(!portalCongifObj.isEmpty()) {
-				PortalConfig portalConfigToBeUpdate = portalCongifObj.get();
+			protalConfigDTO.getAllPortalConfigData().forEach((dto) -> {
 				
-				portalConfigToBeUpdate.setUpdatedBy(protalConfigDTO.getUpdatedBy());
-				portalConfigToBeUpdate.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				portalConfigToBeUpdate.setConfigPeriod(protalConfigDTO.getConfigPeriod());
-				portalConfigToBeUpdate.setMailTrigger(protalConfigDTO.getMailTrigger());
-				PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
+				Optional<PortalConfig> portalCongifObj = portalConfigRepository.findById(dto.getPortalConfigId());
 				
-				if(dbResponse!=null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Portal Global Configuration Updated Successfully.");
+				if(!portalCongifObj.isEmpty()) {
+					PortalConfig portalConfigToBeUpdate = portalCongifObj.get();
+					
+					portalConfigToBeUpdate.setUpdatedBy(dto.getUpdatedBy());
+					portalConfigToBeUpdate.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+					portalConfigToBeUpdate.setConfigPeriod(dto.getConfigPeriod());
+					portalConfigToBeUpdate.setMailTrigger(dto.getMailTrigger());
+					PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
+					
+					if(dbResponse!=null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Portal Global Configuration Updated Successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Portal Global Configuration Updation Failed.");
+					}
+					
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Portal Global Configuration Updation Failed.");
+					response.setServiceResponse("Portal Global Configuration not Found.");
 				}
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Portal Global Configuration not Found.");
-			}
+				
+			});
 			
 		}catch(Exception e) {
 			e.printStackTrace();

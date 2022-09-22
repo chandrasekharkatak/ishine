@@ -47,6 +47,7 @@ export class PortalConfigComponent implements OnInit {
           }
           if(portal.configName == 'Notice Period'){
             this.portalObj.noticePeriod = portal.configPeriod;
+            this.portalObj.noticeMailTrigger = portal.mailTrigger;
           }
         }
       } else {
@@ -55,7 +56,7 @@ export class PortalConfigComponent implements OnInit {
     });
   }
 
-  updateProbationPeriod(portalObj,template: TemplateRef<any>){
+  updatePortalGlobalConfiguration(portalObj,template: TemplateRef<any>){
 
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.probationPeriod)) {
       this.alertMessage = "Please enter Probation Period !!"
@@ -67,52 +68,43 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-
-    for(let portal of this.portalConfigList){
-      if(portal.configName == 'Probation Period'){
-
-        portalObj.configName = portal.configName;
-        portalObj.portalConfigId = portal.portalConfigId;
-        portalObj.configPeriod = portalObj.probationPeriod;
-        portalObj.mailTrigger = portalObj.probationMailTrigger;
-        portalObj.updatedBy = this.currentUser.empId;
-
-        this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, response.serviceResponse);
-          }else{
-            this.openAlertMod(template, response.serviceResponse);
-          }
-        });
-      }
-    }
-  }
-
-  updateNoticePeriod(portalObj,template: TemplateRef<any>){
-
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticePeriod)) {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-
-    for(let portal of this.portalConfigList){
-      if(portal.configName == 'Notice Period'){
-
-        portalObj.configName = portal.configName;
-        portalObj.portalConfigId = portal.portalConfigId;
-        portalObj.updatedBy = this.currentUser.empId;
-        portalObj.configPeriod = portalObj.noticePeriod;
-
-        this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, response.serviceResponse);
-          }else{
-            this.openAlertMod(template, response.serviceResponse);
-          }
-        });
-      }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticeMailTrigger)) {
+      this.alertMessage = "Please enter Notice Period Mail Trigger !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
     }
+
+    let tempArray = this.portalConfigList;    
+
+    tempArray.forEach((portalConfig,index)=> {
+      
+      if(index == 0)
+      {       
+        this.portalConfigList[0].configPeriod = this.portalObj.probationPeriod;
+        this.portalConfigList[0].mailTrigger = this.portalObj.probationMailTrigger;
+      }
+      else if(index == 1)
+      {
+        this.portalConfigList[1].configPeriod = this.portalObj.noticePeriod;
+        this.portalConfigList[1].mailTrigger = this.portalObj.noticeMailTrigger;
+      }
+      
+    })
+        this.portalObj.allPortalConfigData = this.portalConfigList;
+       
+         this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
+           if (response.serviceStatus == "Success") {
+             this.openAlertMod(template, response.serviceResponse);
+           }else{
+             this.openAlertMod(template, response.serviceResponse);
+           }
+         });
+  
   }
 
   //modal
