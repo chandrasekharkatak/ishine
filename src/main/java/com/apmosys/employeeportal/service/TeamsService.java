@@ -516,4 +516,24 @@ public class TeamsService {
 		return response;
 	}
 	
+	public ServiceResponse checkTeamName(TeamDTO teamdto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Team checkTeamNameByName=teamRepository.findByTeamName(teamdto.getTeamName());
+			if(checkTeamNameByName==null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team Name already exist!");
+				}
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

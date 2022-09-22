@@ -53,9 +53,9 @@ export class TeamMemberComponent implements OnInit {
     this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
-        // for(let x of this.viewTeamMemberList){
-        //   x.employeementId="A-".concat(x.employeementId)
-        // }
+        for(let x of this.viewTeamMemberList){
+          x.employeementId="A-".concat(x.employeementId)
+        }
         console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {
         console.error(response.serviceResponse);

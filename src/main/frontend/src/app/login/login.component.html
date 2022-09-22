@@ -34,7 +34,7 @@
                             <div class="d-flex">
                                 <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
                                 placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off" (keyup.enter)="onConfirmLoginOTP()" />
-                                <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+                                <span class="btn" style="margin-left: -50px;" id="passwordEye" (click)="toggleFieldTextType()">
                                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                                 </span>
                             </div>
