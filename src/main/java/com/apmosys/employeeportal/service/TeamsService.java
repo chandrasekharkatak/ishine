@@ -299,6 +299,7 @@ public class TeamsService {
 									EmployeeTeamMap map = new EmployeeTeamMap();
 									map.setEmpId(employee.getEmpId());
 									map.setTeamId(teamUpdated.getTeamId());
+									map.setActive((long) 1);
 									employeeTeamMapRepository.save(map);
 								});
 
