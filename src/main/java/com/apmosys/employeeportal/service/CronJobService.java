@@ -507,7 +507,7 @@ public class CronJobService {
 						probationMailTrigger = portalObj.getMailTrigger();
 					}else if(portalObj.getConfigName().equals("Notice Period")) {
 						noticePeriodMailTrigger = portalObj.getMailTrigger();
-					}
+					} 
 				}
 				
 				List<Object[]> employeeList = employeeRepository.getEmployeeInProbationAndNotice();
