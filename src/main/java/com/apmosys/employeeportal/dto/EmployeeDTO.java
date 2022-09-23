@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -87,5 +89,7 @@ public class EmployeeDTO {
 	
 	private String isNew;
 	private String secondaryEmail;
+    private Short probationPeriod;
+	private String dateOfResign;
 	
 }

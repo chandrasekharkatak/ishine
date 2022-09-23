@@ -248,11 +248,11 @@ public class EmployeeService {
 						+ " Kindly provide a different value for Employment ID.");
 				return response;
 			}
-			if (!validationService.validateManagerId(employeedto.getManagerId())) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Manager Id does not exists.");
-				return response;
-			}
+//			if (!validationService.validateManagerId(employeedto.getManagerId())) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Manager Id does not exists.");
+//				return response;
+//			}
 			if (!validationService.validateJobRoleId(employeedto.getJobRoleId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Job role Id does not exists.");
@@ -280,6 +280,7 @@ public class EmployeeService {
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setIsNew("true");
+			employee.setProbationPeriod(employeedto.getNoticePeriod());
 			Employee newEmployee = employeeRepository.save(employee);
 
 			if (newEmployee.getEmpId() != null) {
