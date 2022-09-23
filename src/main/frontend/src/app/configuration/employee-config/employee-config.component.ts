@@ -267,7 +267,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
-
+    employee.employeementId= employee.employeementId.substring(2);
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
