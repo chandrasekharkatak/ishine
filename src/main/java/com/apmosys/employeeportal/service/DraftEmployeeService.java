@@ -52,12 +52,12 @@ public class DraftEmployeeService {
 			
 			DraftEmployee employee = new DraftEmployee();			
 			
-			employee.setEmployeementId(employeedto.getEmployeementId());
-			employee.setName(employeedto.getName());
-			employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd") : null);
-			employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd") : null);
-			employee.setManagerId(employeedto.getManagerId());
-			employee.setEmail(employeedto.getEmail());
+	//		employee.setEmployeementId(employeedto.getEmployeementId());
+	//		employee.setName(employeedto.getName());
+	//		employee.setDateOfBirth(employeedto.getDateOfBirth() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(),"yyyy-MM-dd") : null);
+	//		employee.setDateOfJoining(employeedto.getDateOfJoining() != null ? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(),"yyyy-MM-dd") : null);
+	//		employee.setManagerId(employeedto.getManagerId());
+	//		employee.setEmail(employeedto.getEmail());
 			employee.setGender(employeedto.getGender());
 			employee.setBloodGroup(employeedto.getBloodGroup());
 			employee.setMaritalStatus(employeedto.getMaritalStatus());
@@ -67,7 +67,7 @@ public class DraftEmployeeService {
 			employee.setPassportNumber(employeedto.getPassportNumber());
 			employee.setAadhar(employeedto.getAadhar());
 			employee.setPanNumber(employeedto.getPanNumber());
-			employee.setMobileNo(employeedto.getMobileNo());
+	//		employee.setMobileNo(employeedto.getMobileNo());
 			employee.setLandline(employeedto.getLandline());
 			employee.setAddress(employeedto.getAddress());
 			employee.setCity(employeedto.getCity());
@@ -79,8 +79,8 @@ public class DraftEmployeeService {
 			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
 			employee.setRelation(employeedto.getRelation());
 			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
-			employee.setNoticePeriod(employeedto.getNoticePeriod());
-			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+	//		employee.setNoticePeriod(employeedto.getNoticePeriod());
+	//		employee.setEmploymentstatus(employeedto.getEmploymentstatus());
 			employee.setBankName(employeedto.getBankName());
 			employee.setBankAccountNo(employeedto.getBankAccountNo());
 			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
@@ -94,10 +94,10 @@ public class DraftEmployeeService {
 			employee.setPassingGrade(employeedto.getPassingGrade());
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
-			employee.setJobRoleId(employeedto.getJobRoleId());
-			employee.setExperience(employeedto.getExperience());
-			employee.setRole(employeedto.getRole());
-			employee.setWorkLocation(employeedto.getWorkLocation());
+	//		employee.setJobRoleId(employeedto.getJobRoleId());
+	//		employee.setExperience(employeedto.getExperience());
+	//		employee.setRole(employeedto.getRole());
+	//		employee.setWorkLocation(employeedto.getWorkLocation());
 		
 			
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
