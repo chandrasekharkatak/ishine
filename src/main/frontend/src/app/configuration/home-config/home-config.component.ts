@@ -156,6 +156,7 @@ export class HomeConfigComponent implements OnInit {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
         this.reset();
+        this.showTable()
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
