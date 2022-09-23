@@ -521,6 +521,8 @@ public class EmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
+					empDTO.setDateOfResign(
+							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -693,7 +695,9 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
-				
+				employee.setDateOfResign(employeedto.getDateOfResign() != null
+						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
+						: null);			
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {

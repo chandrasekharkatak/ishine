@@ -114,4 +114,7 @@ public class Employee {
 	private Integer invalidAccessAttempt;
 	private Short probationPeriod;
 	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate dateOfResign;
+	
 }

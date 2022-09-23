@@ -86,4 +86,6 @@ public class EmployeeDTO {
 	private Integer failedAttempt;
 	private Short probationPeriod;
 	
+	private String dateOfResign;
+	
 }

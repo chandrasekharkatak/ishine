@@ -843,6 +843,7 @@ export class EmployeeConfigComponent implements OnInit {
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
 
     this.allCertificationList.forEach(certificaiton => {
       certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
