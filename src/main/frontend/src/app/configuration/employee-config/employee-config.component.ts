@@ -844,6 +844,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
     this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if(this.employeeObj.dateOfResign == 'Invalid date'){
+      this.employeeObj.dateOfResign = null;
+    }
 
     this.allCertificationList.forEach(certificaiton => {
       certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
