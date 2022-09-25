@@ -103,6 +103,7 @@ export class MyTeamComponent implements OnInit {
     this.page=1;
 
     this.getAllTeamView();
+    this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
   }
 
@@ -430,11 +431,9 @@ export class MyTeamComponent implements OnInit {
 
   //myTeam-hierarchy	
   myTeamHierarchy(employeeObj:Employee) {
-
     this.employeeService.getHierarchyByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.teamViewList = response.serviceResponse;
-        // this.breadCrumbs.push(employeeObj.name.concat(" > "));
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }
