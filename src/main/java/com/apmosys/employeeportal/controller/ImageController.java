@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.EventPhotoDTO;
 import com.apmosys.employeeportal.service.ImageService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -47,6 +48,13 @@ public class ImageController {
 	public ServiceResponse deleteActivity(@RequestBody EventPhotoDTO eventPhotoDTO) {		
 		
 		ServiceResponse response =	imageService.deleteEventPhoto(eventPhotoDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)
+	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")List<MultipartFile> images,@RequestParam("uploadedBy")Long uploadedBy) {		
+		
+		ServiceResponse response =	imageService.uploadEmployeeDocument(images,uploadedBy);		
 		return response;
 	}
 }

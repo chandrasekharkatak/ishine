@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,11 +18,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.EventPhotoDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeDocument;
 import com.apmosys.employeeportal.model.EventPhoto;
+import com.apmosys.employeeportal.repository.EmployeeDocumentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EventPhotosRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -34,6 +38,9 @@ public class ImageService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeDocumentRepository employeeDocumentRepository;
 	
 	@Value("${file.location.image}")
 	private String imageFileLocation;
@@ -50,25 +57,26 @@ public class ImageService {
 			if (employeeObject.isPresent()) {
 				
 				if(!images.isEmpty()) {
-					for(MultipartFile image: images){
-						
-		                byte[] bytes = image.getBytes();
-		                Path path = Paths.get(imageFileLocation +  File.separator +image.getOriginalFilename());
-		                
-		                File checkExistingFile = new File(path.toString());
-		                if(!checkExistingFile.exists()) {
-							Files.write(path, bytes);
-
-							File savedFile = new File(path.toString());
-
-							if (savedFile.exists()) {
-								savedFiles.add(savedFile);
-							}
-		                }else {
-		                	errorMsg = image.getOriginalFilename() + " already exist,";
-							break;
-		                }
-		            }
+					imageUploader(images,imageFileLocation, savedFiles);
+//					for(MultipartFile image: images){
+//						
+//		                byte[] bytes = image.getBytes();
+//		                Path path = Paths.get(imageFileLocation +  File.separator +image.getOriginalFilename());
+//		                
+//		                File checkExistingFile = new File(path.toString());
+//		                if(!checkExistingFile.exists()) {
+//							Files.write(path, bytes);
+//
+//							File savedFile = new File(path.toString());
+//
+//							if (savedFile.exists()) {
+//								savedFiles.add(savedFile);
+//							}
+//		                }else {
+//		                	errorMsg = image.getOriginalFilename() + " already exist,";
+//							break;
+//		                }
+//		            }
 					
 					if(images.size() == savedFiles.size()) {
 						for(MultipartFile image: images){
@@ -211,4 +219,122 @@ public class ImageService {
 		}
 		return response;
 	}
+
+	public ServiceResponse uploadEmployeeDocument(List<MultipartFile> images,Long uploadedBy) {
+		ServiceResponse response = new ServiceResponse();
+		List<File> savedFiles = new ArrayList<File>();
+		String errorMsg = "";
+		try {
+
+			Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+
+			if (employeeObject.isPresent()) {
+				
+				if(!images.isEmpty()) {
+					String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + uploadedBy)).toString();
+					imageUploader(images,newPath, savedFiles);
+//					for(MultipartFile image: images){
+//		                byte[] bytes = image.getBytes();
+//		                Path path = Paths.get(newPath +  File.separator +image.getOriginalFilename());
+//		                
+//		                File checkExistingFile = new File(path.toString());
+//		                if(!checkExistingFile.exists()) {
+//							Files.write(path, bytes);
+//
+//							File savedFile = new File(path.toString());
+//
+//							if (savedFile.exists()) {
+//								savedFiles.add(savedFile);
+//							}
+//		                }else {
+//		                	errorMsg = image.getOriginalFilename() + " already exist,";
+//							break;
+//		                }
+//		            }
+					
+					if(images.size() == savedFiles.size()) {
+						for(MultipartFile image: images){
+							
+							EmployeeDocument newDoc = new EmployeeDocument();
+							newDoc.setDocumentName(image.getOriginalFilename());
+							
+				            CommonProperties commonProp = new CommonProperties();
+				            commonProp.setCreatedBy(uploadedBy);
+				            newDoc.setCommonProperty(commonProp);
+				               
+				            employeeDocumentRepository.save(newDoc);
+						}
+						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			             response.setServiceResponse("image Uploaded.");
+					}else {
+						for(File image: savedFiles){
+							image.delete();
+						}
+						response.setServiceResponse(errorMsg + "Upload Image Failed !!");
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					}
+				}else {
+					response.setServiceResponse("uploaded images Not Found !!");
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				}
+
+			} else {
+				response.setServiceResponse("User Not Found !!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+	
+	public List<File> imageUploader(List<MultipartFile> images, String locationOfImage, List<File> savedFiles) {
+		String errorMsg = "";
+		try {
+			for(MultipartFile image: images){
+				
+                byte[] bytes = image.getBytes();
+                Path path = Paths.get(locationOfImage +  File.separator + image.getOriginalFilename());
+                
+                File checkExistingFile = new File(path.toString());
+                if(!checkExistingFile.exists()) {
+					Files.write(path, bytes);
+
+					File savedFile = new File(path.toString());
+
+					if (savedFile.exists()) {
+						savedFiles.add(savedFile);
+					}
+                }else {
+                	errorMsg = image.getOriginalFilename() + " already exist,";
+					break;
+                }
+            }
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return savedFiles;
+	}
+	
+	
+//	public ServiceResponse fileUploader(List<MultipartFile> files,Long uploadedBy) {
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//			
+//			for(MultipartFile file: files){
+//				
+//				Path path = Paths
+//		                .get(imageFileLocation + File.separator + ((MultipartFile) file).getOriginalFilename());
+//		        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+//				
+//			}	
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//		}
+//		return response;
+//	}
+	
 }
