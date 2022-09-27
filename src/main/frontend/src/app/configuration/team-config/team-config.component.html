@@ -40,7 +40,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Team Lead</label>
+                            <label class="info-label">Team Lead</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>

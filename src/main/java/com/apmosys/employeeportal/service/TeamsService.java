@@ -163,7 +163,13 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			List<Object[]> objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
+			List<Object[]> objectList;
+			System.out.println(teamDTO.getTeamLeadId());
+			if(teamDTO.getTeamLeadId() == null) {
+				objectList = teamRepository.projectTeamsByProjectIdWithoutLead(teamDTO.getProjectId());
+			}else {
+				objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
+			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -172,20 +178,42 @@ public class TeamsService {
 					response.setServiceResponse("No teams found. Teams list is empty");
 				} else {
 					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+					
+					if(teamDTO.getTeamLeadId() == null) {
+						
+						list.forEach((object) -> {
 
-					list.forEach((object) -> {
+							TeamDTO dto = new TeamDTO();
 
-						TeamDTO dto = new TeamDTO();
+							dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+							dto.setProjectId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+							dto.setTeamName(object[3] != null ? object[3].toString() : null);
+							dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
+							dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+							dtoList.add(dto);
+						});
 
-						dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
-						dto.setTeamLeadName(object[2] != null ? object[2].toString() : null);
-						dto.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
-						dto.setTeamName(object[4] != null ? object[4].toString() : null);
-						dto.setCreatedByName(object[5] != null ? object[5].toString() : null);
-						dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
-						dtoList.add(dto);
-					});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						
+					}else {
+					
+						list.forEach((object) -> {
+
+							TeamDTO dto = new TeamDTO();
+
+							dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+							dto.setTeamLeadName(object[2] != null ? object[2].toString() : null);
+							dto.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
+							dto.setTeamName(object[4] != null ? object[4].toString() : null);
+							dto.setCreatedByName(object[5] != null ? object[5].toString() : null);
+							dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
+							dtoList.add(dto);
+						});
+						
+					}
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
