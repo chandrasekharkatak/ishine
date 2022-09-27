@@ -10,7 +10,7 @@
                     <div class="info-wrapper">
                         <div class="form-group d-flex flex-column">
                             <label class="info-label" for="aadhar-card"><span class="text-danger">*</span>Aadhar Card : </label>
-                            <input type="file" id="Aadhar-card" (change)="onImageSelect($event)">
+                            <input type="file" accept="image/jpeg" id="Aadhar-card" (change)="onImageSelect($event)">
                         </div>
                     </div>
                 </div>
@@ -20,7 +20,7 @@
                     <div class="info-wrapper">
                         <div class="form-group d-flex flex-column">
                             <label class="info-label" for="pan-card"><span class="text-danger">*</span>Pan Card : </label>
-                            <input type="file" id="Pan-card" (change)="onImageSelect($event)">
+                            <input type="file" accept="image/jpeg" id="Pan-card" (change)="onImageSelect($event)">
                         </div>
                     </div>
                 </div>
@@ -30,7 +30,7 @@
                     <div class="info-wrapper">
                         <div class="form-group d-flex flex-column">
                             <label class="info-label" for="recent-passing-certificate"><span class="text-danger">*</span>Recent Passing Certificate : </label>
-                            <input type="file" id="recent-passing-certificate" (change)="onImageSelect($event)">
+                            <input type="file" accept="image/jpeg" id="recent-passing-certificate" (change)="onImageSelect($event)">
                         </div>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                         <div class="info-wrapper">
                             <div class="form-group d-flex flex-column">
                                 <label class="info-label" for="certificate-{{i+1}}"><span class="text-danger">*</span>Certificate - {{i+1}}: </label>
-                                <input type="file" id="certificate-{{i+1}}" (change)="onImageSelect($event)">
+                                <input type="file" accept="image/jpeg" id="certificate-{{i+1}}" (change)="onImageSelect($event)">
                             </div>
                         </div>
                     </div>
@@ -57,7 +57,7 @@
                         <div class="info-wrapper">
                             <div class="form-group d-flex flex-column">
                                 <label class="info-label" for="experience-letter"><span class="text-danger">*</span>Experience Letter : </label>
-                                <input type="file" id="experience-letter" (change)="onImageSelect($event)">
+                                <input type="file" accept="image/jpeg" id="experience-letter" (change)="onImageSelect($event)">
                             </div>
                         </div>
                     </div>

@@ -371,11 +371,11 @@ export class EmployeeConfigComponent implements OnInit {
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
-      this.alertMessage = "Please enter Emp Id !!"
+      this.alertMessage = "Please enter Employment Id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateEmployeementId(employeeObj.employeementId)) {
-      this.alertMessage = "Please enter valid Employeement ID !!";
+      this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -400,11 +400,21 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)) {
-      this.alertMessage = "Please select gender !!"
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.secondaryEmail)) {
+      this.alertMessage = "Please enter email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateEmail(employeeObj.secondaryEmail)) {
+      this.alertMessage = "Please enter valid email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)) {
+    //   this.alertMessage = "Please select gender !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -412,59 +422,59 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
-      this.alertMessage = "Please enter Valid Blood Group !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+    //   this.alertMessage = "Please enter Valid Blood Group !!"	
+    //   this.openAlertMod(template, this.alertMessage);	
+    //   return false;	
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)) {
-      this.alertMessage = "Please enter father name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.fatherName)) {
-      this.alertMessage = "Please enter Valid father Name !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)) {
+    //   this.alertMessage = "Please enter father name !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.fatherName)) {
+    //   this.alertMessage = "Please enter Valid father Name !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth) && !this.validationService.validateAlphaWithSpace(employeeObj.placeOfBirth)) {
-      this.alertMessage = "Please enter Valid Place of birth !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth) && !this.validationService.validateAlphaWithSpace(employeeObj.placeOfBirth)) {
+    //   this.alertMessage = "Please enter Valid Place of birth !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)) {
-      this.alertMessage = "Please enter Valid Mother tongue number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)) {
+    //   this.alertMessage = "Please enter Valid Mother tongue number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber) && !this.validationService.validatePassportNumber(employeeObj.passportNumber)) {
-      this.alertMessage = "Please enter Valid Passport number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber) && !this.validationService.validatePassportNumber(employeeObj.passportNumber)) {
+    //   this.alertMessage = "Please enter Valid Passport number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)) {
-      this.alertMessage = "Please enter aadhar card number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (employeeObj.aadhar.toString().length != 12) {
-      this.alertMessage = "Please enter Valid aadhar card number !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)) {
+    //   this.alertMessage = "Please enter aadhar card number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (employeeObj.aadhar.toString().length != 12) {
+    //   this.alertMessage = "Please enter Valid aadhar card number !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)) {
-      this.alertMessage = "Please enter PAN card number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validatePancardNumber(employeeObj.panNumber)) {
-      this.alertMessage = "Please enter Valid PAN card number !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)) {
+    //   this.alertMessage = "Please enter PAN card number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validatePancardNumber(employeeObj.panNumber)) {
+    //   this.alertMessage = "Please enter Valid PAN card number !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.mobileNo)) {
       this.alertMessage = "Please enter mobile number !!"
@@ -476,81 +486,81 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)) {
-      this.alertMessage = "Please enter Current Address !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)) {
+    //   this.alertMessage = "Please enter Current Address !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)) {
-      this.alertMessage = "Please enter state !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.state)) {
-      this.alertMessage = "Please enter Valid state !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)) {
+    //   this.alertMessage = "Please enter state !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.state)) {
+    //   this.alertMessage = "Please enter Valid state !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)) {
-      this.alertMessage = "Please enter city !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.city)) {
-      this.alertMessage = "Please enter Valid city !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)) {
+    //   this.alertMessage = "Please enter city !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.city)) {
+    //   this.alertMessage = "Please enter Valid city !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)) {
-      this.alertMessage = "Please enter country !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.country)) {
-      this.alertMessage = "Please enter Valid country !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)) {
+    //   this.alertMessage = "Please enter country !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.country)) {
+    //   this.alertMessage = "Please enter Valid country !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)) {
-      this.alertMessage = "Please enter pincode !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validatePincodeNumber(employeeObj.pincode)) {
-      this.alertMessage = "Please enter Valid pincode !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)) {
+    //   this.alertMessage = "Please enter pincode !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validatePincodeNumber(employeeObj.pincode)) {
+    //   this.alertMessage = "Please enter Valid pincode !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo) && !this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)) {
-      this.alertMessage = "Please enter valid alternate mobile number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo) && !this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)) {
+    //   this.alertMessage = "Please enter valid alternate mobile number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)) {
-      this.alertMessage = "Please enter permanent address !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)) {
+    //   this.alertMessage = "Please enter permanent address !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactPerson) && !this.validationService.validateAlphaWithSpace(employeeObj.emergencyContactPerson)) {
-      this.alertMessage = "Please enter Valid Emergency Contact Person Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactPerson) && !this.validationService.validateAlphaWithSpace(employeeObj.emergencyContactPerson)) {
+    //   this.alertMessage = "Please enter Valid Emergency Contact Person Name !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.relation) && !this.validationService.validateAlphaWithSpace(employeeObj.relation)) {
-      this.alertMessage = "Please enter Valid Emergency Contact Person Relation !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.relation) && !this.validationService.validateAlphaWithSpace(employeeObj.relation)) {
+    //   this.alertMessage = "Please enter Valid Emergency Contact Person Relation !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactMobile) && !this.validationService.validateMobileNumber(employeeObj.emergencyContactMobile)) {
-      this.alertMessage = "Please enter Valid Emergency Contact Person Mobile Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactMobile) && !this.validationService.validateMobileNumber(employeeObj.emergencyContactMobile)) {
+    //   this.alertMessage = "Please enter Valid Emergency Contact Person Mobile Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfJoining)) {
       this.alertMessage = "Please enter date of joining !!"
@@ -560,6 +570,12 @@ export class EmployeeConfigComponent implements OnInit {
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
       this.alertMessage = "Please enter employment status !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.probationPeriod)) {
+      this.alertMessage = "Please enter Probation period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -600,45 +616,45 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
-      this.alertMessage = "Please enter Valid Bank Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
+    //   this.alertMessage = "Please enter Valid Bank Name !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankAccountNo) && !this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)) {
-      this.alertMessage = "Please enter Valid Bank Account Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankAccountNo) && !this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)) {
+    //   this.alertMessage = "Please enter Valid Bank Account Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode) && !this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)) {
-      this.alertMessage = "Please enter Valid Bank IFSC Code !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode) && !this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)) {
+    //   this.alertMessage = "Please enter Valid Bank IFSC Code !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.pfAccountNumber)) {
-      this.alertMessage = "Please enter Valid PF Account Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.pfAccountNumber)) {
+    //   this.alertMessage = "Please enter Valid PF Account Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.previousPfAccountNumber)) {
-      this.alertMessage = "Please enter Valid Previous PF Account Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.uan) && !this.validationService.validateAlphaNumeric(employeeObj.uan)) {
-      this.alertMessage = "Please enter Valid UAN Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber) && !this.validationService.validateAlphaNumeric(employeeObj.esicNumber)) {
-      this.alertMessage = "Please enter Valid ESIC Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.previousPfAccountNumber)) {
+    //   this.alertMessage = "Please enter Valid Previous PF Account Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.uan) && !this.validationService.validateAlphaNumeric(employeeObj.uan)) {
+    //   this.alertMessage = "Please enter Valid UAN Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber) && !this.validationService.validateAlphaNumeric(employeeObj.esicNumber)) {
+    //   this.alertMessage = "Please enter Valid ESIC Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     return true;
   }
 

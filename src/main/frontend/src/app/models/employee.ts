@@ -77,4 +77,6 @@ export class Employee{
 	secondaryEmail:any;
 
 	updateApplicationStatus:any;
+	probationPeriod:any;
+	dateOfResign:any;
 }

@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -9,12 +8,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,6 +30,7 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
@@ -42,8 +40,11 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
+import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
+import com.apmosys.employeeportal.utility.LogEvents;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -100,6 +101,9 @@ public class EmployeeService {
 
 	@Autowired
 	private MailService mailService;
+	
+	@Autowired
+	private LogsRepository logsRepository;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -244,11 +248,11 @@ public class EmployeeService {
 						+ " Kindly provide a different value for Employment ID.");
 				return response;
 			}
-			if (!validationService.validateManagerId(employeedto.getManagerId())) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Manager Id does not exists.");
-				return response;
-			}
+//			if (!validationService.validateManagerId(employeedto.getManagerId())) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Manager Id does not exists.");
+//				return response;
+//			}
 			if (!validationService.validateJobRoleId(employeedto.getJobRoleId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Job role Id does not exists.");
@@ -276,6 +280,7 @@ public class EmployeeService {
 			employee.setAboutMe("Add about yourself.");
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setIsNew("true");
+			employee.setProbationPeriod(employeedto.getNoticePeriod());
 			Employee newEmployee = employeeRepository.save(employee);
 
 			if (newEmployee.getEmpId() != null) {
@@ -312,6 +317,15 @@ public class EmployeeService {
 				if (list != null && updatedLogList != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee Profile Created.");
+					
+					Log log = new Log();
+
+					log.setEmpId(employeedto.getCreatedBy().longValue());
+					log.setEvent(LogEvents.CREATE);
+					log.setTableName(DbTable.EMPLOYEE);
+					log.setTableEntryId(newEmployee.getEmpId());
+
+					logsRepository.save(log);
 
 					List<Object[]> objectList = jobRoleRepository.getHoDByJobRoleId(newEmployee.getJobRoleId());
 					EmployeeDTO hod = new EmployeeDTO();
