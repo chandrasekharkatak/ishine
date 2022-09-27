@@ -974,7 +974,7 @@ export class EmployeeConfigComponent implements OnInit {
           "passingGrade":x.passingGrade,
           "yearOfPassing":x.yearOfPassing,
           "createdBy":x.createdBy,
-          "createdOn":x.createdOn
+          "createdOn":x.createdOn 
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
