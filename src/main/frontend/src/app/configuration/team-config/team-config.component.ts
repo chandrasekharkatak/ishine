@@ -242,7 +242,7 @@ export class TeamConfigComponent implements OnInit {
       this.alertMessage = "Please enter Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }
+    } 
 
     if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
       this.alertMessage = "Please select Department !!"
