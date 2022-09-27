@@ -66,7 +66,7 @@ public class TeamsService {
 
 		try {
 
-			List<Project> projectList = projectRepository.findAllByProjectManagerId(timesheetDTO.getProjectManagerId());
+			List<Project> projectList = projectRepository.findAll();
 
 			Optional.ofNullable(projectList).ifPresent((list) -> {
 

@@ -384,7 +384,7 @@ export class TeamConfigComponent implements OnInit {
     this.allProjectListByManagerId = [];
 
     let projectObj = new Project();
-    projectObj.projectManagerId = 184; //! Temp
+    // projectObj.projectManagerId = 184; //! Temp
     this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectListByManagerId = response.serviceResponse;
