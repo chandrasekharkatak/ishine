@@ -7,7 +7,7 @@
           <div class="card-body">
             <div class="row">
                 <app-accordion>
-                    <app-accordion-item class="acc-content" title="Basic Information">
+                    <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true" >
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -50,7 +50,7 @@
                         </div>
                     </app-accordion-item>
                 
-                    <app-accordion-item class="acc-content" title="Personal Information">
+                    <app-accordion-item class="acc-content" title="Personal Information" [showBody]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -99,7 +99,7 @@
                         </div>
                     </app-accordion-item>
                 
-                    <app-accordion-item class="acc-content" title="Contact Information">
+                    <app-accordion-item class="acc-content" title="Contact Information" [showBody]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -178,7 +178,7 @@
                         </div>
                     </app-accordion-item>
                 
-                    <app-accordion-item class="acc-content" title="Educational Information">
+                    <app-accordion-item class="acc-content" title="Educational Information" [showBody]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -245,7 +245,7 @@
                         </div>
                     </app-accordion-item>
                 
-                    <app-accordion-item class="acc-content" title="Employment Information">
+                    <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -302,7 +302,7 @@
                     </app-accordion-item>
                 
                     <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
-                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information" [showBody]="true">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -364,7 +364,7 @@
                         </div>
                     </app-accordion-item>
                 
-                    <app-accordion-item class="acc-content" title="Bank/PF Account Information">
+                    <app-accordion-item class="acc-content" title="Bank/PF Account Information" [showBody]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -416,7 +416,7 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdate()">Update</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSubmit()">Submit</button>
                 </div>
             </div>
           </div>

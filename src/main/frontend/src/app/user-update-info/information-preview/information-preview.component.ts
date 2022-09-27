@@ -19,8 +19,15 @@ export class InformationPreviewComponent implements OnInit {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
   }
 
-  onUpdate(){
-    alert("USER INFO Updated !!")
+  async onSubmit() {
+    const response:any = this.updateUserInfoService.updateEmployeeInfo();
+    console.log("onUpdate --> Preview : ", response);
+    
+    if (response.serviceStatus == "Success") {
+      console.log(response.serviceResponse);
+    } else {
+      console.error(response.serviceResponse);
+    }
   }
 
 }

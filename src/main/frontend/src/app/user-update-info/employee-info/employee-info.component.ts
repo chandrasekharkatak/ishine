@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
+import { AfterContentInit, Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -7,6 +7,7 @@ import { certification } from 'src/app/models/certification';
 import { Employee } from 'src/app/models/employee';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -16,7 +17,7 @@ import { ValidationService } from 'src/app/services/validation.service';
   templateUrl: './employee-info.component.html',
   styleUrls: ['./employee-info.component.css']
 })
-export class EmployeeInfoComponent implements OnInit {
+export class EmployeeInfoComponent implements OnInit{
 
   //modal 
   alertMessage: any;
@@ -40,10 +41,40 @@ export class EmployeeInfoComponent implements OnInit {
     private validationService: ValidationService,
     private modalService: BsModalService,
     private updateUserInfoService: UpdateUserInfoService,
-  ) { }
+    private authenticationService: AuthenticationService,
+  ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.updateUserInfoService.updateduserInfoObj.subscribe((employee:Employee)=>{
+      this.sectionViewInit(employee);
+    });
+  }
 
   ngOnInit(): void {
-    this.employeeObj = this.updateUserInfoService.getUserInfoObj();
+    
+    const employee:Employee = this.updateUserInfoService.getUserInfoObj();
+    this.sectionViewInit(employee);
+    this.setYearOfPassingList();
+    console.log("employeeObj :: ", this.employeeObj);
+  }
+
+  sectionViewInit(employee:Employee){
+    this.employeeObj = employee;
+
+    // Certifications
+    if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
+      this.addInputCertificationField();
+    } else {
+      this.allCertificationList = this.employeeObj.certifications;
+    }
+
+    // Prev. Employment
+    if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
+      this.addInputPreviousEmployerField();
+    } else {
+      this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
+    }
+
+    setTimeout(this.setCalenderMaxDate, 1000);
   }
 
   reset() {
@@ -75,13 +106,11 @@ export class EmployeeInfoComponent implements OnInit {
     const dateFormat = 'YYYY-MM-DD';
     const today = moment(new Date()).format(dateFormat);
 
-    let DOB = document.getElementById('DOB');
-    let DOJ = document.getElementById('DOJ');
-    let DOC = document.getElementById('DOC');
-
-    DOB?.setAttribute('max', today);
-    DOJ?.setAttribute('max', today);
-    DOC?.setAttribute('max', today);
+    let date_inputs = document.querySelectorAll('.date-input');
+    
+    date_inputs.forEach(element => {
+      element?.setAttribute('max', today);  
+    });
   }
 
   currentDateFilter = (d: Date)=>{
@@ -530,10 +559,27 @@ export class EmployeeInfoComponent implements OnInit {
   }
 
 
-  onSave(){
+  async onSave(){
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
-    this.updateUserInfoService.setUserInfoObj(this.employeeObj);
-    this.loadDocumentUpload.emit();
+    const dateFormat = 'YYYY-MM-DD';
+
+    // transform date formats to YYYY-MM-DD
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
+    // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
+
+    this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
+    this.employeeObj.createdBy = this.currentUser.empId;
+
+    console.log("onSave --> employeeObj : ", this.employeeObj);
+    const response = await this.updateUserInfoService.saveEmployeeInfo();
+    if (response?.serviceStatus == "Success") {
+      console.log(response.serviceResponse);
+      this.updateUserInfoService.setUserInfoObj(this.employeeObj);
+      this.loadDocumentUpload.emit();
+    } else {
+      console.error(response.serviceResponse);
+    }
   }
 
 

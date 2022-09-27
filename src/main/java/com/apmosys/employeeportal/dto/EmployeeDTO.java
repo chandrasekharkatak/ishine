@@ -87,5 +87,5 @@ public class EmployeeDTO {
 	
 	private String isNew;
 	private String secondaryEmail;
-	
+	private String updateApplicationStatus;
 }

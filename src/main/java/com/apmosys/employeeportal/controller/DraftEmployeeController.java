@@ -51,5 +51,12 @@ public class DraftEmployeeController {
 		ServiceResponse response =draftEmployeeService.deleteDraftEmployeeById(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value="/getDraftEmployeeByEmploymentId" , method = RequestMethod.POST)
+	public ServiceResponse getDraftEmployeeByEmploymentId(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = draftEmployeeService.getDraftEmployeeByEmploymentId(employeedto);
+		return response;
+	}
 
 }

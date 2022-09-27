@@ -43,6 +43,11 @@
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
+                                        <p class="info-label">Date of Birth</p>
+                                        <p class="info-text">{{employeeObj.dateOfBirth}}</p>
+                                    </div>
+
+                                    <!-- <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Birth</label>
                                             <div class="d-flex">
@@ -51,7 +56,7 @@
                                             </div>
                                             <mat-datepicker  #DOBPicker disabled="false"></mat-datepicker>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
@@ -325,12 +330,12 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date of completion</label>
-                                            <!-- <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="certification.dateOfCompletion"> -->
-                                            <div class="d-flex">
+                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="certification.dateOfCompletion" (keydown)="disableMannualDateInput()">
+                                            <!-- <div class="d-flex">
                                                 <input class="form-control" matInput id="DOC" [matDatepicker]="DOCPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of completion" [(ngModel)]="certification.dateOfCompletion" disabled>
                                                 <mat-datepicker-toggle matSuffix [for]="DOCPicker"></mat-datepicker-toggle>
                                             </div>
-                                            <mat-datepicker  #DOCPicker disabled="false"></mat-datepicker>
+                                            <mat-datepicker  #DOCPicker disabled="false"></mat-datepicker> -->
                                         </div>
                                     </div>
                                 </div>
@@ -422,8 +427,8 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Date Of Joining</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining">
+                                            <label class="info-label ">Date Of Joining</label>
+                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()">
                                         </div>
                                     </div>
                                 </div>
@@ -431,7 +436,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date of Relieving</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving">
+                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
                                         </div>
                                     </div>
                                 </div>

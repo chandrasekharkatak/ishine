@@ -55,6 +55,7 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { DocumentUploadComponent } from './user-update-info/document-upload/document-upload.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
+import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -92,6 +93,7 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
     EmployeeInfoComponent,
     DocumentUploadComponent,
     InformationPreviewComponent,
+    EmployeeUpdateListComponent,
   ],
   imports: [
     BrowserModule,

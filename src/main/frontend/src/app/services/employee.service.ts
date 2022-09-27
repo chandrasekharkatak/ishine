@@ -102,6 +102,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeEmail`, employeeObj);
   }
 
+  getDraftEmployeeByEmploymentId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getDraftEmployeeByEmploymentId`, employeeObj);
+  }
+
    /* update Employee Password */
 
    updateEmployeePassword(user: User){

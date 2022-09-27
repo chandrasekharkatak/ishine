@@ -235,6 +235,9 @@
 <ng-template #updateInfo>
     <div class="modal-header">
         <h4 class="table-header-title">Update Employee Information</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
     <div class="modal-body ">
         <app-user-update-info></app-user-update-info>

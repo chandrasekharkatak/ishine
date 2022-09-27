@@ -106,7 +106,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     console.log("this.updateInfoTempRef : ", this.updateInfoTempRef);
-    // this.openUpdateInfo(this.updateInfoTempRef);
+    if(this.currentUser.isUserInfoUpdated == false){
+      this.openUpdateInfo(this.updateInfoTempRef);
+    }
   }
 
   // Leave Applications
