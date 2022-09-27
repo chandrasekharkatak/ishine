@@ -291,7 +291,6 @@ export class MyTimesheetComponent implements OnInit {
         if (newTimesheetActivities) {
           if (this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0) {
             this.timesheetObj.updatedTimesheetActivities = [];
-            this.timesheetObj.allTimesheetActivities=''
           }
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
