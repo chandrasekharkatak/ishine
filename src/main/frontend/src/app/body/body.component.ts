@@ -144,11 +144,12 @@ export class BodyComponent implements OnInit {
     this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
 
     this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Fail") {
+      if (response.serviceStatus == "Success") {
+        this.oldPasswordValid = true;
+      } else {
         this.isError = true;
         this.errorMsg = response.serviceResponse;
-      } else {
-        this.oldPasswordValid = true;
+        this.oldPasswordValid = false;
       }
     });
   }
