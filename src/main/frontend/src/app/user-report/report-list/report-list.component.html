@@ -15,7 +15,7 @@
     <div class="form-group ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table leave-table" matSort (matSortChange)="sortData($event)" >	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
@@ -24,7 +24,7 @@
             <th scope="col" class="info-label">From Date</th>	
             <th scope="col" class="info-label">To Date</th>
             <th scope="col" class="info-label">No. of Days</th>	
-            <th scope="col" class="info-label">Reason</th>	
+            <th scope="col" class="info-label wide-col">Reason</th>	
             <th scope="col" class="info-label">Status</th>	
             <th scope="col" class="info-label">Manager Name</th>	
             <th scope="col" class="info-label">HOD Name</th>	
@@ -35,7 +35,7 @@
         </thead>
         <tbody>
             <tr *ngIf="allLeaveApplicationsList.length == 0">
-                <th colspan="13" class="text-center info-label">No details to display...</th>
+                <th colspan="17" class="text-center info-label">No details to display...</th>
             </tr>
             <tr *ngFor="let leave of allLeaveApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
@@ -44,7 +44,7 @@
                 <td>{{leave.fromDate}}</td>
                 <td>{{leave.toDate}}</td>
                 <td>{{leave.noOfDays}}</td>
-                <td>{{leave.reason}}</td>
+                <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
                 <td>{{leave.managerName}}</td>
                 <td>{{leave.hodName}}</td>
@@ -93,7 +93,7 @@
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td>{{timesheet.description}}</td>
+                <td colspan="4">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.totalWorkingHours}}</td>
                 <td>{{timesheet.createdOn}}</td>
@@ -119,7 +119,7 @@
     <div class="form-group ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
     </div>
-    <table class="table table-responsive employee-table" matSort (matSortChange)="sortData($event)" >	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>

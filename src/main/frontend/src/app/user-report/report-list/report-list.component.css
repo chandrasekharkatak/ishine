@@ -12,9 +12,17 @@
     color: var(--raisin-black);
 }
 
-.employee-table{
+.scrollable-table{
     width: 88vw;
+    height: 70vh;
 }
+
+
+.wide-col{
+    min-width: 300px;
+}
+
+
 
 .my-pagination::ng-deep .ngx-pagination .current {
     background: #193d8a  !important;
