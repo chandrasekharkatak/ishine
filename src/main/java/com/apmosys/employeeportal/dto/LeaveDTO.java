@@ -89,4 +89,6 @@ public class LeaveDTO {
 	private String jobRoleName;
 	private String departmentName;
 	private String employeeName;
+	
+	private String hodName;
 }

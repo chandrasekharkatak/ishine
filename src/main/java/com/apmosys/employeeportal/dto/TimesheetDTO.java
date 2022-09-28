@@ -43,4 +43,8 @@ public class TimesheetDTO {
 	private Float totalWorkingHours;
 	
 	private Float totalTime;
+	
+	private Long timesheetStatusUpdatedBy;
+	private String timesheetStatusUpdatedByName;
+	private String updatedOn;
 }

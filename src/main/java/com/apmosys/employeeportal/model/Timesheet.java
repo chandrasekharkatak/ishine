@@ -43,6 +43,8 @@ public class Timesheet {
 	
 	private Float totalTime;
 	
+	private Long timesheetStatusUpdatedBy;
+	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	

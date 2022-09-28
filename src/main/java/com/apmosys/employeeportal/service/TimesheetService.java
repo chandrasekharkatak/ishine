@@ -393,6 +393,7 @@ public class TimesheetService {
 			timesheetobject.ifPresentOrElse((timesheet) -> {
 
 				timesheet.setStatus(timesheetDTO.getStatus());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
 
 				Timesheet updatedTimesheet = timesheetsRepository.save(timesheet);
 

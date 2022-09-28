@@ -526,6 +526,7 @@ export class LeaveComponent implements OnInit {
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
     // 1 = pending , 2 = Approved , 3= Rejected
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     console.log("leaveApplication : ", leaveApplication);
     
