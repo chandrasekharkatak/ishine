@@ -54,8 +54,8 @@
               </tr>
         </tbody>
       </table>
-      <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+      <pagination-controls class="my-pagination" [hidden]="allLeaveApplicationsList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
 </div>
 <!-- end :: Leave Report table -->
 
@@ -104,8 +104,8 @@
             
         </tbody>
       </table>
-      <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+      <pagination-controls class="my-pagination" [hidden]="allTimesheetApplicationsList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
 </div>
 <!-- end :: Timesheet Report table -->
 

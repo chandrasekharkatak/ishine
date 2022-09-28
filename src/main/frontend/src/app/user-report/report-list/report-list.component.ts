@@ -30,13 +30,14 @@ export class ReportListComponent implements OnInit {
   isEmployeeReportTable:boolean = false;
 
   allEmployeeList:any[] = [];
-  employeeDataForExcel: any[] = [];
 
   allLeaveApplicationsList:any[] = [];
   leaveApplicationsDataForExcel: any[] = [];
 
   allTimesheetApplicationsList:any[] = [];
   timesheetApplicationsDataForExcel: any[] = [];
+
+  excelName:any;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -177,63 +178,105 @@ export class ReportListComponent implements OnInit {
   }
 
   // Excel Export 
-  name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeDataForExcel = response.serviceResponse;
-      }
-      const onlySpecificDataArr = this.employeeDataForExcel.map(
-        x => ({
-          "Emp Id": "A-".concat(x.employeementId),
-          "Name": x.name,		
-          "Email": x.email,		
-          "Employment Status": x.employmentstatus,
-          "Date Of Joining": x.dateOfJoining,
-          "Aadhar":x.aadhar,
-          "About Me":x.aboutMe,
-          "address":x.address,
-          "permanentAddress":x.permanentAddress,
-          "city":x.city,
-          "Blood Group":x.bloodGroup,
-          "date Of Birth":x.dateOfBirth,
-          "gender":x.gender,
-          "fatherName":x.fatherName,
-          "mobileNo":x.mobileNo,
-          "panNumber":x.panNumber,
-          "placeOfBirth":x.placeOfBirth,
-          "workLocation":x.workLocation,
-          "probationPeriod":x.probationPeriod,
-          "noticePeriod":x.noticePeriod,
-          "country":x.country,
-          "emergencyContactMobile":x.emergencyContactMobile,
-          "emergencyContactPerson":x.emergencyContactPerson,
-          "landline":x.landline,
-          "maritalStatus":x.maritalStatus,
-          "motherTongue":x.motherTongue,
-          "alternateMobileNo":x.alternateMobileNo,
-          "pincode":x.pincode,
-          "relation":x.relation,
-          "state":x.state,
-          "viewsOnOrganisation":x.viewsOnOrganisation,
-          "passportNumber":x.passportNumber,
-          "bankAccountNo":x.bankAccountNo,
-          "bankIFSCCode":x.bankIFSCCode,
-          "bankName":x.bankName,
-          "pfAccountNumber":x.pfAccountNumber,
-          "previousPfAccountNumber":x.previousPfAccountNumber,
-          "uan":x.uan,
-          "esicNumber":x.esicNumber,
-          "graduationType":x.graduationType,
-          "pursuing":x.pursuing,
-          "passingGrade":x.passingGrade,
-          "yearOfPassing":x.yearOfPassing,
-          "createdBy":x.createdBy,
-          "createdOn":x.createdOn 
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-    });
+
+    if(this.isLeaveReportTable == true){
+      this.excelName = 'leaveReport.xlsx';
+
+        const onlySpecificDataArr = this.allLeaveApplicationsList.map(
+          x => ({
+            "Employeement Id": x.employeementId,
+            "Employee Name":x.employeeName,
+            "Leave Type":x.leaveType,
+            "From Date":x.fromDate,
+            "To Date":x.toDate,
+            "No Of Days":x.noOfDays,
+            "Reason":x.reason,
+            "Status":x.status,
+            "Manager Name":x.managerName,
+            "HOD Name":x.hodName,
+            "Created On":x.createdOn,
+            "Updated On":x.updatedOn,
+            "Leave Status Updated By Name":x.leaveStatusUpdatedByName
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+    }
+
+    if(this.isTimesheetReportTable == true){
+      this.excelName = 'timesheetReport.xlsx';
+
+        const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
+          x => ({
+            "Employeement Id": x.employeementId,
+            "Employee Name":x.employeeName,
+            "date":x.date,
+            "dayType":x.dayType,
+            "description":x.description,
+            "status":x.status,
+            "totalWorkingHours":x.totalWorkingHours,
+            "createdOn":x.createdOn,
+            "updatedOn":x.updatedOn,
+            "timesheetStatusUpdatedByName":x.timesheetStatusUpdatedByName
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+    }
+
+    if(this.isEmployeeReportTable == true){
+      this.excelName = 'EmployeeReport.xlsx';
+
+        const onlySpecificDataArr = this.allEmployeeList.map(
+          x => ({
+            "Emp Id": x.employeementId,
+            "Name": x.name,		
+            "Email": x.email,		
+            "Employment Status": x.employmentstatus,
+            "Date Of Joining": x.dateOfJoining,
+            "Aadhar":x.aadhar,
+            "About Me":x.aboutMe,
+            "address":x.address,
+            "permanentAddress":x.permanentAddress,
+            "city":x.city,
+            "Blood Group":x.bloodGroup,
+            "date Of Birth":x.dateOfBirth,
+            "gender":x.gender,
+            "fatherName":x.fatherName,
+            "mobileNo":x.mobileNo,
+            "panNumber":x.panNumber,
+            "placeOfBirth":x.placeOfBirth,
+            "workLocation":x.workLocation,
+            "probationPeriod":x.probationPeriod,
+            "noticePeriod":x.noticePeriod,
+            "country":x.country,
+            "emergencyContactMobile":x.emergencyContactMobile,
+            "emergencyContactPerson":x.emergencyContactPerson,
+            "landline":x.landline,
+            "maritalStatus":x.maritalStatus,
+            "motherTongue":x.motherTongue,
+            "alternateMobileNo":x.alternateMobileNo,
+            "pincode":x.pincode,
+            "relation":x.relation,
+            "state":x.state,
+            "viewsOnOrganisation":x.viewsOnOrganisation,
+            "passportNumber":x.passportNumber,
+            "bankAccountNo":x.bankAccountNo,
+            "bankIFSCCode":x.bankIFSCCode,
+            "bankName":x.bankName,
+            "pfAccountNumber":x.pfAccountNumber,
+            "previousPfAccountNumber":x.previousPfAccountNumber,
+            "uan":x.uan,
+            "esicNumber":x.esicNumber,
+            "graduationType":x.graduationType,
+            "pursuing":x.pursuing,
+            "passingGrade":x.passingGrade,
+            "yearOfPassing":x.yearOfPassing,
+            "createdBy":x.createdBy,
+            "createdOn":x.createdOn 
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+    }
   }
 }
 
