@@ -1,6 +1,8 @@
 import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
+import { ImageService } from 'src/app/services/image.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 
 @Component({
@@ -17,11 +19,12 @@ export class DocumentUploadComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
 
   currentEmployeeInfo:Employee = new Employee();
-  uploadedFiles:any[] = [];
+  files:any[] = [];
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
     private modalService: BsModalService,
+    private imageService : ImageService,
   ) { }
 
   ngOnInit(): void {
@@ -29,30 +32,50 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   onSave(template: TemplateRef<any>){
-    if (this.uploadedFiles.length == 0) {
+    if (this.files.length == 0) {
       this.alertMessage = "Kindly Select Documents to Upload !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    this.loadInfoPreview.emit();
+    const formData = new FormData();
+    this.files.forEach((file) =>{
+      formData.append(`image`, file.image, file.imageName);
+      formData.append("inputName", file.inputName);  
+    });
+    formData.append("uploadedBy", this.currentEmployeeInfo.empId);
+
+    console.log("Upload Images : ", formData);
+    this.imageService.uploadEmployeeDocument(formData).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.openAlertMod(template, response.serviceResponse);
+        this.loadInfoPreview.emit();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
   onImageSelect(event:any){
-    const imgObj = {file : event.target.files[0], inputName : event.target.id};
+    const image = event.target.files[0];
+    const imageName = image.name;
+    const inputName = event.target.id;
 
-    let selectedFile = this.uploadedFiles.find(file => file.inputName == imgObj.inputName);
+    const imgObj = {image : image, imageName: imageName, inputName : inputName};
+
+    let selectedFile = this.files.find(file => file.inputName == imgObj.inputName);
     if(selectedFile){
-      selectedFile.file = imgObj.file; 
+      selectedFile.file = imgObj.image; 
     }else{
-      this.uploadedFiles.push(imgObj);
+      this.files.push(imgObj);
     }
     
-    console.log("Uploaded Files : ", this.uploadedFiles);
+    console.log("Selected Files : ", this.files);
     
   }
 
 
+  // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;

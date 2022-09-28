@@ -21,4 +21,9 @@ export class ImageService {
   deleteEventPhoto(imageObj: EventPhoto) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteEventPhoto`, imageObj);
   }
+
+  /* Document Upload */
+  uploadEmployeeDocument(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`employeeportal/api/uploadEmployeeDocument`,formData);
+  }
 }
