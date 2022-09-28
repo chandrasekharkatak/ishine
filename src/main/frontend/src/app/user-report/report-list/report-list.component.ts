@@ -8,6 +8,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-report-list',
@@ -18,6 +19,7 @@ export class ReportListComponent implements OnInit {
 
   feature = 'Reports';
   currentUser: User;
+  userMapping: any = {};
 
   data:string; //Search Data 
 
@@ -51,11 +53,24 @@ export class ReportListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+     // Dynamic Subfeature Flags 
+     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+     featureMap.subFeatures?.forEach(sub => {
+       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+     });
+     console.log(this.feature, this.userMapping);
+
     this.sectionViewInit();
   }
 
   sectionViewInit() {
-    this.showLeaveReportTable();
+    if(this.userMapping.leave_report){
+      this.showLeaveReportTable();
+    }else if(this.userMapping.timesheet_report){
+      this.showTimesheetReportTable();
+    }else if(this.userMapping.employee_report){
+      this.showEmployeeReportTable();
+    }
   }
 
   showLeaveReportTable(){
@@ -142,39 +157,6 @@ export class ReportListComponent implements OnInit {
   page = 1;
   handlePageChange(event) {
     this.page = event;
-  }
-
-  // sorting
-
-  sortData(sort: Sort) {
-    console.log(sort);
-    let data = this.allEmployeeList;
-    if (!sort.active || sort.direction === '') {
-      this.allEmployeeList = data;
-      return;
-    }
-    else {
-      this.allEmployeeList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc);
-
-            case 'name':
-              return compare(a.name.toLowerCase(), b.name.toLowerCase(), isAsc);
-
-            case 'email':
-              return compare(a.email, b.email, isAsc);
-            case 'dateOfJoining':
-
-              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
   }
 
   // Excel Export 

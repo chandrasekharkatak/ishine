@@ -59,7 +59,7 @@ export class UserReportComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   removeActiveTab(){
-    const tab = document.getElementById('configTab').querySelector('.nav-link.active');
+    const tab = document.getElementById('reportTab').querySelector('.nav-link.active');
     console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
