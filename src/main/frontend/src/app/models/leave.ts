@@ -74,4 +74,5 @@ export class Leave{
 	managerName:any;
 	jobRoleName:any;
 	departmentName:any;
+	hodName:any;
 }

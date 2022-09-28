@@ -1,0 +1,231 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet Report</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
+    </div>
+</div>
+
+
+<!-- start :: Leave Report Table -->
+<div class="row d-flex" *ngIf="isLeaveReportTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Leave Report</h1>
+    </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
+    <table class="table leave-table" matSort (matSortChange)="sortData($event)" >	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+            <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>	
+            <th scope="col" class="info-label">Leave Type</th>	
+            <th scope="col" class="info-label">From Date</th>	
+            <th scope="col" class="info-label">To Date</th>
+            <th scope="col" class="info-label">No. of Days</th>	
+            <th scope="col" class="info-label">Reason</th>	
+            <th scope="col" class="info-label">Status</th>	
+            <th scope="col" class="info-label">Manager Name</th>	
+            <th scope="col" class="info-label">HOD Name</th>	
+            <th scope="col" class="info-label">Created On</th>	
+            <th scope="col" class="info-label">Updated On</th>	
+            <th scope="col" class="info-label">Updated By</th>	
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="allLeaveApplicationsList.length == 0">
+                <th colspan="13" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr *ngFor="let leave of allLeaveApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                <td>{{leave.employeementId}}</td>
+                <td>{{leave.employeeName}}</td>
+                <td>{{leave.leaveType}}</td>
+                <td>{{leave.fromDate}}</td>
+                <td>{{leave.toDate}}</td>
+                <td>{{leave.noOfDays}}</td>
+                <td>{{leave.reason}}</td>
+                <td>{{leave.status}}</td>
+                <td>{{leave.managerName}}</td>
+                <td>{{leave.hodName}}</td>
+                <td>{{leave.createdOn}}</td>
+                <td>{{leave.updatedOn}}</td>
+                <td>{{leave.leaveStatusUpdatedByName}}</td>
+              </tr>
+        </tbody>
+      </table>
+      <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+</div>
+<!-- end :: Leave Report table -->
+
+
+<!-- start :: Timesheet Report Table -->
+<div class="row d-flex" *ngIf="isTimesheetReportTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Timesheet Report</h1>
+    </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
+    <table class="table timesheet-table" matSort (matSortChange)="sortData($event)" >	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+            <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>	
+            <th scope="col" class="info-label">Date</th>	
+            <th scope="col" class="info-label">Day Type</th>	
+            <th scope="col" colspan="4" class="info-label">Description</th>	
+            <th scope="col" class="info-label">Status</th>	
+            <th scope="col" class="info-label">Total Working Hours</th>	
+            <th scope="col" class="info-label">Created On</th>	
+            <th scope="col" class="info-label">Updated On</th>	
+            <th scope="col" class="info-label">Updated By</th>	
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="allTimesheetApplicationsList.length == 0" >
+                <th colspan="13" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr
+                *ngFor="let timesheet of allTimesheetApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td>{{timesheet.description}}</td>
+                <td>{{timesheet.status}}</td>
+                <td>{{timesheet.totalWorkingHours}}</td>
+                <td>{{timesheet.createdOn}}</td>
+                <td>{{timesheet.updatedOn}}</td>
+                <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
+            </tr>
+
+            
+        </tbody>
+      </table>
+      <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+</div>
+<!-- end :: Timesheet Report table -->
+
+
+<!-- start :: Employee Report Table -->
+<div class="row col-md-12" *ngIf="isEmployeeReportTable">
+    
+    <div class="row table-header">
+        <h1 class="table-header-title">Employee Report</h1>
+    </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    </div>
+    <table class="table table-responsive employee-table" matSort (matSortChange)="sortData($event)" >	
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+            <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
+            <th scope="col" class="info-label">Employment Status</th>	
+            <th scope="col" class="info-label" mat-sort-header="dateOfJoining" >Date of Joining</th>
+            <th scope="col" class="info-label">Aadhar Card</th>
+            <th scope="col" class="info-label">About Me</th>	
+            <th scope="col" class="info-label">Address</th>	
+            <th scope="col" class="info-label">Permanent Address</th>	
+            <th scope="col" class="info-label">City</th>	
+            <th scope="col" class="info-label">Blood group</th>	
+            <th scope="col" class="info-label">Date of Birth</th>	
+            <th scope="col" class="info-label">Gender</th>	
+            <th scope="col" class="info-label">Father Name</th>	
+            <th scope="col" class="info-label">Mobile Number</th>	
+            <th scope="col" class="info-label">Pan Number</th>	
+            <th scope="col" class="info-label">Place of Birth</th>	
+            <th scope="col" class="info-label">Work Location</th>	
+            <th scope="col" class="info-label">Probation Period</th>	
+            <th scope="col" class="info-label">Notice Period</th>	
+            <th scope="col" class="info-label">Country</th>	
+            <th scope="col" class="info-label">Emergency Contact Number</th>	
+            <th scope="col" class="info-label">Emergency Contact Person</th>	
+            <th scope="col" class="info-label">Landline</th>	
+            <th scope="col" class="info-label">Marital Status</th>	
+            <th scope="col" class="info-label">Mother Tongue</th>	
+            <th scope="col" class="info-label">Alternate Mobile Number</th>
+            <th scope="col" class="info-label">Pincode</th>	
+            <th scope="col" class="info-label">Relation</th>	
+            <th scope="col" class="info-label">State</th>	
+            <th scope="col" class="info-label">View On Organisation</th>	
+            <th scope="col" class="info-label">Passport Number</th>	
+            <th scope="col" class="info-label">Bank Account Number</th>	
+            <th scope="col" class="info-label">bank IFSC Code</th>	
+            <th scope="col" class="info-label">Bank Name</th>	
+            <th scope="col" class="info-label">PF Account Number</th>	
+            <th scope="col" class="info-label">Previous PF Account Number</th>	
+            <th scope="col" class="info-label">UAN</th>	
+            <th scope="col" class="info-label">ESIC Number</th>	
+            <th scope="col" class="info-label">Graduation Type</th>	
+            <th scope="col" class="info-label">Pursuing</th>	
+            <th scope="col" class="info-label">Passing Grade</th>	
+            <th scope="col" class="info-label">Year of Passing</th>	
+            <th scope="col" class="info-label">Created By</th>	
+            <th scope="col" class="info-label">Created On</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="allEmployeeList.length == 0">
+                <th colspan="44" class="text-center info-label">No details to display...</th>
+            </tr>
+          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+            <td>{{employee.employeementId}}</td>
+            <td>{{employee.name}}</td>
+            <td>{{employee.email}}</td>
+            <td>{{employee.employmentstatus}}</td>
+            <td>{{employee.dateOfJoining}}</td>
+            <td>{{employee.aadhar}}</td>
+            <td>{{employee.aboutMe}}</td>
+            <td>{{employee.addressaddress}}</td>
+            <td>{{employee.permanentAddress}}</td>
+            <td>{{employee.city}}</td>
+            <td>{{employee.bloodGroup}}</td>
+            <td>{{employee.dateOfBirth}}</td>
+            <td>{{employee.gender}}</td>
+            <td>{{employee.fatherName}}</td>
+            <td>{{employee.mobileNo}}</td>
+
+            <td>{{employee.panNumber}}</td>
+            <td>{{employee.placeOfBirth}}</td>
+            <td>{{employee.workLocation}}</td>
+            <td>{{employee.probationPeriod}}</td>
+            <td>{{employee.noticePeriod}}</td>
+            <td>{{employee.country}}</td>
+            <td>{{employee.emergencyContactMobile}}</td>
+            <td>{{employee.emergencyContactPerson}}</td>
+            <td>{{employee.landline}}</td>
+            <td>{{employee.maritalStatus}}</td>
+
+            <td>{{employee.motherTongue}}</td>
+            <td>{{employee.alternateMobileNo}}</td>
+            <td>{{employee.pincode}}</td>
+            <td>{{employee.relation}}</td>
+            <td>{{employee.state}}</td>
+            <td>{{employee.viewsOnOrganisation}}</td>
+            <td>{{employee.passportNumber}}</td>
+            <td>{{employee.bankAccountNo}}</td>
+            <td>{{employee.bankIFSCCode}}</td>
+            <td>{{employee.bankName}}</td>
+
+            <td>{{employee.pfAccountNumber}}</td>
+            <td>{{employee.previousPfAccountNumber}}</td>
+            <td>{{employee.uan}}</td>
+            <td>{{employee.esicNumber}}</td>
+            <td>{{employee.graduationType}}</td>
+            <td>{{employee.pursuing}}</td>
+            <td>{{employee.passingGrade}}</td>
+            <td>{{employee.yearOfPassing}}</td>
+            <td>{{employee.createdBy}}</td>
+            <td>{{employee.createdOn}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+</div>
+<!-- end :: Employee Report table -->

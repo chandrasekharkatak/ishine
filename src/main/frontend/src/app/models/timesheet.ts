@@ -32,4 +32,7 @@ export class Timesheet{
     totalTime: any;
 
     timesheetStatusUpdatedBy:any;
+    timesheetStatusUpdatedByName:any;
+    employeeName:any;
+
 }

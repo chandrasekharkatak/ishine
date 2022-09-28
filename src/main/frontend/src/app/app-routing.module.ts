@@ -28,6 +28,8 @@ import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
 import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
+import { UserReportComponent } from './user-report/user-report.component';
+import { ReportListComponent } from './user-report/report-list/report-list.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -75,6 +77,11 @@ const routes: Routes = [
     children: [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, }
+    ]
+  },
+  {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
+    children: [
+      { path: 'report-list', component: ReportListComponent, },
     ]
   },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},

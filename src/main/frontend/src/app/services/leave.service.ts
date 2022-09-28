@@ -141,4 +141,10 @@ export class LeaveService {
   countMyPendingLeaveApplicationsByLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/countMyPendingLeaveApplicationsByLeaveType`, leaveObj);
   }
+
+  /* Reports */
+  leaveReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/leaveReport`);
+  }
+
 }

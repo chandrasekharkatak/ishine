@@ -52,6 +52,8 @@ import { ClipboardModule } from 'ngx-clipboard';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor';
 import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
+import { UserReportComponent } from './user-report/user-report.component';
+import { ReportListComponent } from './user-report/report-list/report-list.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -86,6 +88,8 @@ import { PortalConfigComponent } from './configuration/portal-config/portal-conf
     HomeConfigComponent,
     CalendarComponent,
     PortalConfigComponent,
+    UserReportComponent,
+    ReportListComponent,
   ],
   imports: [
     BrowserModule,

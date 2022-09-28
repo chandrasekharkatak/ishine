@@ -61,4 +61,9 @@ export class TimesheetService {
   getTimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getTimesheetsForHomePageByEmpId`, timesheetObj);
   }
+
+  /* Reports */
+  timesheetReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/timesheetReport`);
+  }
 }
