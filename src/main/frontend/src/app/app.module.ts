@@ -54,6 +54,7 @@ import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor'
 import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
 import { UserReportComponent } from './user-report/user-report.component';
 import { ReportListComponent } from './user-report/report-list/report-list.component';
+import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -90,6 +91,7 @@ import { ReportListComponent } from './user-report/report-list/report-list.compo
     PortalConfigComponent,
     UserReportComponent,
     ReportListComponent,
+    CustomFilterComponent,
   ],
   imports: [
     BrowserModule,

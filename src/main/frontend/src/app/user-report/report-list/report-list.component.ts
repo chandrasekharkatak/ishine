@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
@@ -9,7 +9,13 @@ import { Sort } from '@angular/material/sort';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { Feature } from 'src/app/models/feature';
+import { Query } from 'src/app/models/query';
 
+class FilterData{
+  title:any;
+  columns:any;
+  queryList:any;
+}
 @Component({
   selector: 'app-report-list',
   templateUrl: './report-list.component.html',
@@ -40,6 +46,10 @@ export class ReportListComponent implements OnInit {
   timesheetApplicationsDataForExcel: any[] = [];
 
   excelName:any;
+
+  leaveColumns:any[] = ['employeementId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'reason', 'status', 'managerName', 'hodName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
+  queryList:any[] = [];
+  filterData:any = new FilterData();
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -117,6 +127,25 @@ export class ReportListComponent implements OnInit {
     });
   }
 
+  getCustomLeaveApplicationsList(queryObjList:any) {
+    this.allLeaveApplicationsList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList == queryObjList;
+
+    this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allLeaveApplicationsList = response.serviceResponse;
+        this.allLeaveApplicationsList.forEach(leave => {
+          leave.employeementId = "A-".concat(leave.employeementId);
+        });
+        console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+
   // Timesheet Report
   getAllTimesheetApplicationsList() {
     this.allTimesheetApplicationsList = [];
@@ -150,6 +179,26 @@ export class ReportListComponent implements OnInit {
         alert(response.serviceResponse)
       }
     });
+  }
+
+  /* Filter */
+  openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
+    console.log("columns : ", columns);
+    
+    this.filterData.title  = title;
+    this.filterData.columns = columns;
+    this.filterData.queryList = JSON.stringify(this.queryList);
+
+    console.log("filterData : ", this.filterData);
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  onFilterSubmit(queryList:any){
+    console.log("queryList : ", queryList);
+    this.queryList = queryList;
+    this.cancelRequest();
+
+    this.getCustomLeaveApplicationsList(queryList)
   }
 
 
@@ -259,6 +308,15 @@ export class ReportListComponent implements OnInit {
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
     }
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
   }
 }
 

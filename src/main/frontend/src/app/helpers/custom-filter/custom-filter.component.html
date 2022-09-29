@@ -1,0 +1,122 @@
+<div class="container-fluid">
+    <div class="row" *ngFor="let query of queryList;let i=index">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Field</label>
+                <select class="form-control" aria-hidden="true" [(ngModel)]="query.column" name="column">
+                    <option selected="selected" value="" disabled>Select</option>
+                    <option *ngFor="let c of columnList" [value]="c">{{c}}</option>
+                </select>
+                <span class="text-danger" *ngIf="invalidForm && !query.column">Required</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Operator</label>
+                <select class="form-control" aria-hidden="true" [(ngModel)]="query.operator" name="operator">
+                    <option selected="selected" value="" disabled>Select</option>
+                    <option *ngFor="let o of operatorList" [value]="o.symbol">{{o.name}}</option>
+                </select>
+                <span class="text-danger" *ngIf="invalidForm && !query.operator">Required</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Value</label>
+                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="query.value" placeholder="Value" name="value">
+                <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Conjunction</label>
+                <select class="form-control" aria-hidden="true" [(ngModel)]="query.conjunction" name="conjunction">
+                    <option selected="selected" value="" disabled>Select</option>
+                    <option *ngFor="let con of conjunctionList" [value]="con.symbol">{{con.name}}</option>
+                </select>
+                <span class="text-danger" *ngIf="invalidForm && !query.conjunction && i<queryList.length-1">Required</span>
+            </div>
+        </div>
+        <div class="col-md-3 pt-4 mt-2">
+            <button type="button" class="btn btn-outline-primary mx-1" (click)="addFilter(i)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+            <button *ngIf="queryList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeFilter(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+        </div>
+    </div>
+    <div class="row">
+        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="submit()" >Submit</button>
+        <button type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="clear()">Clear</button>
+    </div>
+</div>
+
+
+
+
+<!-- <div>
+    <div class="normal-form">
+        <ng-container >
+            <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="10px" grid *ngFor="let query of queryList;let i=index">
+                <div fxFlex="18%">
+                    <mat-form-field>
+                        <mat-label>Field</mat-label>
+                        <mat-select [(ngModel)]="query.column" name="column">
+                            <mat-option *ngFor="let c of columnList" [value]="c">
+                                {{c}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <span class="error" *ngIf="invalidForm && !query.column">Required</span>
+                </div>
+
+                <div fxFlex="18%">
+                    <mat-form-field>
+                        <mat-label>Operator</mat-label>
+                        <mat-select [(ngModel)]="query.operator" name="operator">
+                            <mat-option *ngFor="let o of operatorList" [value]="o.symbol">
+                                {{o.name}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <span class="error" *ngIf="invalidForm && !query.operator">Required</span>
+                </div>
+
+                <div fxFlex="18%">
+                    <mat-form-field>
+                        <input matInput [(ngModel)]="query.value" placeholder="Value" name="value">
+                    </mat-form-field>
+                    <span class="error" *ngIf="invalidForm && !query.value">Required</span>
+                </div>
+
+                <div fxFlex="18%" [ngClass]="i==queryList.length-1?'readonly':''">
+                    <mat-form-field>
+                        <mat-label>Conjunction</mat-label>
+                        <mat-select [(ngModel)]="query.conjunction" name="conjunction">
+                            <mat-option *ngFor="let con of conjunctionList" [value]="con.symbol">
+                                {{con.name}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <span class="error" *ngIf="invalidForm && !query.conjunction && i<queryList.length-1">Required</span>
+                </div>
+
+
+                <div fxFlex="18%">
+                    <button mat-icon-button color="accent" aria-label="Example icon button with a home icon"
+                        matTooltip="Add" (click)="addFilter(i)">
+                        <em class="fa fa-plus" aria-hidden="true"></em>
+                    </button>
+                    <button mat-icon-button color="primary" aria-label="Example icon button with a home icon"
+                        matTooltip="Delete" (click)="removeFilter(i)" *ngIf="queryList.length>1">
+                        <em class="fa fa-trash"></em>
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+        <div flexLayout="row wrap" fxLayoutGap="16px" grid>
+            <div fxFlex="100%">
+                <button mat-raised-button color="accent" style="margin-right: 16px;" (click)="submit()">Submit</button>
+
+                <button mat-raised-button color="accent" style="margin-right: 16px;" (click)="clear()">Clear</button>
+            </div>
+          </div>
+    </div>
+</div> -->

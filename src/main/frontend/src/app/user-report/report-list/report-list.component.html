@@ -12,9 +12,10 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Leave Report</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
-        </div>
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
+        <button type="button" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, leaveColumns, 'Filter Leave Report')"><i class="fa-solid fa-filter"></i></button>
+    </div>
     <table class="table table-responsive scrollable-table">	
         <thead class="thead-light">	
           <tr>	
@@ -117,8 +118,8 @@
         <h1 class="table-header-title">Employee Report</h1>
     </div>
     <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
-    </div>
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
+      </div>
     <table class="table table-responsive scrollable-table">	
         <thead class="thead-light">	
           <tr>	
@@ -229,3 +230,17 @@
       <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
 </div>
 <!-- end :: Employee Report table -->
+
+
+<!-- Filter Modal -->
+<ng-template #filter>
+  <div class="modal-header">
+      <b>{{filterData.title}}</b>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="modal-body ">
+    <app-custom-filter (filterSubmitted)="onFilterSubmit($event)" [data]="filterData"></app-custom-filter>
+  </div>
+</ng-template>
