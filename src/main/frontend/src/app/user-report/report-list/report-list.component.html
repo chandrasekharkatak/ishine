@@ -28,7 +28,6 @@
             <th scope="col" class="info-label wide-col">Reason</th>	
             <th scope="col" class="info-label">Status</th>	
             <th scope="col" class="info-label">Manager Name</th>	
-            <th scope="col" class="info-label">HOD Name</th>	
             <th scope="col" class="info-label">Created On</th>	
             <th scope="col" class="info-label">Updated On</th>	
             <th scope="col" class="info-label">Updated By</th>	
@@ -36,7 +35,7 @@
         </thead>
         <tbody>
             <tr *ngIf="allLeaveApplicationsList.length == 0">
-                <th colspan="17" class="text-center info-label">No details to display...</th>
+                <th colspan="16" class="text-center info-label">No details to display...</th>
             </tr>
             <tr *ngFor="let leave of allLeaveApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
@@ -48,7 +47,6 @@
                 <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
                 <td>{{leave.managerName}}</td>
-                <td>{{leave.hodName}}</td>
                 <td>{{leave.createdOn}}</td>
                 <td>{{leave.updatedOn}}</td>
                 <td>{{leave.leaveStatusUpdatedByName}}</td>

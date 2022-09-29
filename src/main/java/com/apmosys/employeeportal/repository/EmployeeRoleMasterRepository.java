@@ -9,5 +9,7 @@ import com.apmosys.employeeportal.model.EmployeeRole;
 public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole, Integer> {
 	
 	public List<EmployeeRole> findByEmployeeRoleAndPermission(String employeeRole,String permission);
+	
+	public List<EmployeeRole> findBySubFeatureMasterIdAndPermission(Long subFeatureMasterId,String permission);
 
 }

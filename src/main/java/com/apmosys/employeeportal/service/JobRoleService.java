@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRole;
@@ -302,6 +304,106 @@ public class JobRoleService {
 						response.setServiceResponse("Employee Job role mapping Failed.");
 					}
 				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse addNewSubFeatures(SubFeatureMasterDTO subFeatureMasterDTO) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+
+			List<EmployeeRole> employeeRoles = subFeatureMasterDTO.getEmployeeRoleList();
+
+			SubFeatureMaster subFeatureMaster = subFeatureMasterRepository
+					.findBySubFeatureName(subFeatureMasterDTO.getSubFeatureName());
+
+			if (subFeatureMaster != null) {
+
+				List<EmployeeRole> employeeRoleList = new ArrayList<>();
+
+				for (EmployeeRole role : employeeRoles) {
+					EmployeeRole employeeRole = new EmployeeRole();
+
+					employeeRole.setSubFeatureMasterId(subFeatureMaster.getSubFeatureMasterId());
+					employeeRole.setSubFeatureName(subFeatureMasterDTO.getSubFeatureName());
+
+					employeeRole.setEmployeeRole(role.getEmployeeRole());
+					employeeRole.setPermission(role.getPermission());
+
+					employeeRoleList.add(employeeRole);
+				}
+
+				List<EmployeeRole> list = employeeRoleMasterRepository.saveAll(employeeRoleList);
+				if (list.size() > 0) {
+					List<EmployeeRole> defaultSubFeatureList = employeeRoleMasterRepository
+							.findBySubFeatureMasterIdAndPermission(subFeatureMaster.getSubFeatureMasterId(), "Y");
+
+					if (defaultSubFeatureList.size() > 0) {
+
+						List<String> employeeRolelist = defaultSubFeatureList.stream().map((employeeRole) -> {
+							return employeeRole.getEmployeeRole();
+						}).collect(Collectors.toList());
+
+						List<Object[]> objectArrayList = roleFeatureMapRepository
+								.getRolesToBeMappedWithNewSubFeature(employeeRolelist);
+
+						Optional.ofNullable(objectArrayList).ifPresentOrElse((objectlist) -> {
+							if (objectlist.isEmpty()) {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Employee role list is empty.");
+							} else {
+								List<RoleFeatureMap> roleFeatureMapList = new ArrayList<RoleFeatureMap>();
+								for (EmployeeRole role : defaultSubFeatureList) {
+									for (Object[] object : objectlist) {
+										if (object[1].toString().equals(role.getEmployeeRole())) {
+											RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+											roleFeatureMap
+													.setSubFeatureMasterId(subFeatureMaster.getSubFeatureMasterId());
+											roleFeatureMap.setJobRoleId(
+													object[0] != null ? Long.parseLong(object[0].toString()) : null);
+											System.out.println("Subfeature mapped to " + role.getEmployeeRole()
+													+ " role. With job role id " + object[0].toString());
+
+											roleFeatureMapList.add(roleFeatureMap);
+										}
+									}
+								}
+
+								List<RoleFeatureMap> savedRoleFeatureMapList = roleFeatureMapRepository
+										.saveAll(roleFeatureMapList);
+
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Subfeature added to employee_role_master table.Role mappings added to role_subfeature_mapping");
+
+							}
+						}, () -> {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee role list is null.");
+						});
+
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse(
+								"Subfeature added to employee_role_master table. But no role mapping done as permission was set to"
+										+ " 'N'.");
+					}
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to add subfeature in subfeature_master_table.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Subfeature not found in subfeature_master_table.");
 			}
 
 		} catch (Exception e) {
