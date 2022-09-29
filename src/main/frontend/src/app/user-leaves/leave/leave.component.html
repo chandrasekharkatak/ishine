@@ -62,8 +62,8 @@
                 </div>
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group leave_day">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" [disabled]="isUpdation" (change)="setNoOfDays(alert_message)">
+                        <div class="form-group leave_day" *ngIf="isCreation">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>
@@ -88,8 +88,8 @@
                 </div>
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group leave_day">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType" [disabled]="isUpdation" (change)="setNoOfDays(alert_message)">
+                        <div class="form-group leave_day" *ngIf="isCreation">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType" (change)="setNoOfDays(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>

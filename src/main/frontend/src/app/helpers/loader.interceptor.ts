@@ -79,6 +79,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `employeeportal/api/getUserTypeCrudMappingsByUserTypeId`,
     `${this.baseUrl}` + `employeeportal/api/getAllUserTypeCrudMappings`,
     `${this.baseUrl}` + `employeeportal/api/changeLeaveTypeMapping`,
+
+    `${this.baseUrl}` + `employeeportal/api/getAllEventPhotos`,
   ]
 
   constructor(private loaderService: LoaderService) { }

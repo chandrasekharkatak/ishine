@@ -33,6 +33,8 @@ export class MyTimesheetComponent implements OnInit {
   isTimesheetForm: boolean = false;
   isTimesheetTable: boolean = false;
 
+  isTimesheetUpdate: boolean = false;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -125,6 +127,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.isTimesheetTable = false;
     this.isCreation = false;
+    this.isTimesheetUpdate = true;
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
@@ -161,9 +164,12 @@ export class MyTimesheetComponent implements OnInit {
 
   setAllProjectActivities(activityObj, allActivityList: any) {
     const selectedActivityObj = this.allTimesheetActivities.find(activity => activity === activityObj);
-    selectedActivityObj.activityId = '';
+    if(!this.isTimesheetUpdate){
+      selectedActivityObj.activityId = '';
+    } 
     selectedActivityObj.projectActivities = allActivityList;
-  }
+    this.isTimesheetUpdate = false;
+  } 
 
   setActivity(activityObj) {
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
@@ -291,6 +297,7 @@ export class MyTimesheetComponent implements OnInit {
         if (newTimesheetActivities) {
           if (this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0) {
             this.timesheetObj.updatedTimesheetActivities = [];
+            
           }
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
