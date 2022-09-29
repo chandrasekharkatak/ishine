@@ -9,11 +9,13 @@ import javax.persistence.Table;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "employee_role_master")
+@ToString
 public class EmployeeRole {
 
 	@Id

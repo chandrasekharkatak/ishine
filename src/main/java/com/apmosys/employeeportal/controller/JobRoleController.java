@@ -8,61 +8,67 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
 import com.apmosys.employeeportal.service.JobRoleService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
 @RequestMapping(path = "/api")
 public class JobRoleController {
-	
+
 	@Autowired
 	JobRoleService jobRoleService;
-	
-	
-	
-	@RequestMapping(value = "/createJobRole" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/createJobRole", method = RequestMethod.POST)
 	public ServiceResponse createJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
-		
+
 		ServiceResponse response = jobRoleService.createJobRole(jobRoleDTO);
 		return response;
 	}
-	
-	@RequestMapping(value="/createJobRoleByList" , method = RequestMethod.POST, consumes="application/json")
-	public ServiceResponse createEmployeeByList(@RequestBody JobRoleDTO[] jobRoleDTO) {	
-		
+
+	@RequestMapping(value = "/createJobRoleByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse createEmployeeByList(@RequestBody JobRoleDTO[] jobRoleDTO) {
+
 		ServiceResponse response = null;
-		
-		 for (JobRoleDTO jobrole: jobRoleDTO) {
-			 response = jobRoleService.createJobRoleByList(jobrole);
-		    }	
+
+		for (JobRoleDTO jobrole : jobRoleDTO) {
+			response = jobRoleService.createJobRoleByList(jobrole);
+		}
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/getAllJobRole")
 	public ServiceResponse getAllJobRole() {
-		
+
 		ServiceResponse response = jobRoleService.getAllJobRole();
 		return response;
 	}
-	
-	@RequestMapping(value = "/updateJobRole" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/updateJobRole", method = RequestMethod.POST)
 	public ServiceResponse updateJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
-		
+
 		ServiceResponse response = jobRoleService.updateJobRole(jobRoleDTO);
 		return response;
 	}
-	
-	@RequestMapping(value = "/deleteJobRole" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/deleteJobRole", method = RequestMethod.POST)
 	public ServiceResponse deleteJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
-		
+
 		ServiceResponse response = jobRoleService.deleteJobRole(jobRoleDTO);
 		return response;
 	}
-	
-	@RequestMapping(value = "/changeEmployeeJobRoleMapping" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/changeEmployeeJobRoleMapping", method = RequestMethod.POST)
 	public ServiceResponse changeEmployeeJobRoleMapping(@RequestBody JobRoleDTO jobRoleDTO) {
-		
+
 		ServiceResponse response = jobRoleService.changeEmployeeJobRoleMapping(jobRoleDTO);
+		return response;
+	}
+
+	@RequestMapping(value = "/addNewSubFeatures", method = RequestMethod.POST)
+	public ServiceResponse addNewSubFeatures(@RequestBody SubFeatureMasterDTO subFeatureMasterDTO) {
+
+		ServiceResponse response = jobRoleService.addNewSubFeatures(subFeatureMasterDTO);
 		return response;
 	}
 

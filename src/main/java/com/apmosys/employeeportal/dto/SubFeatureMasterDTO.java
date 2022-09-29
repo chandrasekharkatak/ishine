@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import com.apmosys.employeeportal.model.EmployeeRole;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,6 +21,7 @@ public class SubFeatureMasterDTO {
 	private boolean isActive;
 	private Long roleFeatureMapId;
 	private String tabName;
+	private List<EmployeeRole> employeeRoleList;
 
 	
 }
