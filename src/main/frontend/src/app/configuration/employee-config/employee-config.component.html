@@ -675,6 +675,7 @@
             <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
             <th scope="col" class="info-label">Employment Status</th>	
             <th scope="col" class="info-label" mat-sort-header="dateOfJoining" >Date of Joining</th>
+            <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
             <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft" scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
@@ -690,14 +691,18 @@
             <td>{{employee.email}}</td>
             <td>{{employee.employmentstatus}}</td>
             <td>{{employee.dateOfJoining}}</td>
+            <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
             <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
                 <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
             </td>
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
-                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button>
+                <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
+                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View"><em>view</em></button>&nbsp;
+                <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button>
             </td>
           </tr>
         </tbody>
@@ -735,6 +740,15 @@
     <div class="modal-body text-center">
         <p>Are you sure you want to Enable Account?</p>
         <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #reject_application>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.remarks"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)" (click)="rejectDraftEmployeeApplication(alert_message)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

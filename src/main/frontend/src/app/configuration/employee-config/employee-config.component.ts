@@ -99,7 +99,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   constructor(
     private employeeService: EmployeeService,
-    private validationService: ValidationService,
+    public validationService: ValidationService,
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
@@ -1000,8 +1000,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   getAllDraftEmployees() {
     this.allEmployeeList = [];
-
-    this.employeeService.getAllDraftEmployees().pipe(first()).subscribe((response: any) => {
+    let employeeObj = new Employee();
+    employeeObj.updateApplicationStatus = 'Pending For Approval';
+    this.employeeService.getAllDraftEmployees(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
@@ -1079,6 +1080,23 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
+  rejectDraftEmployeeApplication(template: TemplateRef<any>){
+
+    this.cancelRequest();
+    this.employeeObj.updateApplicationStatus = 'In-Progress';
+    this.employeeObj.updatedBy = this.currentUser.empId ;
+    this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse;
+        this.openAlertMod(template, response.serviceResponse);
+        this.showDraftTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -1093,6 +1111,11 @@ export class EmployeeConfigComponent implements OnInit {
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  openApplicationRejectionMod(template: TemplateRef<any> , employee: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.employeeObj = employee;
   }
 
   cancelRequest() {

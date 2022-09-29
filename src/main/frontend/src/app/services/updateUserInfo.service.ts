@@ -65,7 +65,7 @@ export class UpdateUserInfoService {
         this.userInfoObj.isDraft = true;
         console.log("saveEmployeeInfo : ", this.userInfoObj);
 
-        if (this.userInfoObj.updateApplicationStatus = "In-Progress") {
+        if (this.userInfoObj.updateApplicationStatus == "In-Progress") {
             
             response = await this.employeeService.updateDraftEmployee(this.userInfoObj).toPromise();
         } else {

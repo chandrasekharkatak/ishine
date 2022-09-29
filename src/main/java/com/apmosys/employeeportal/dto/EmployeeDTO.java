@@ -93,4 +93,7 @@ public class EmployeeDTO {
 	private String updateApplicationStatus;
     private Short probationPeriod;
 	private String dateOfResign;
+	
+	private String remarks;
+	private Long updatedBy;
 }

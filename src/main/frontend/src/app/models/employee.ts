@@ -79,4 +79,6 @@ export class Employee{
 	updateApplicationStatus:any;
 	probationPeriod:any;
 	dateOfResign:any;
+
+	remarks:any;
 }
