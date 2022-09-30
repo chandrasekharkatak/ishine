@@ -506,10 +506,8 @@ public class TeamsService {
 		try {
 			
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
-			System.out.println(start);
 
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
-			System.out.println(end);
 
 			List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(leaveDTO.getEmpId(),start,end);
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
