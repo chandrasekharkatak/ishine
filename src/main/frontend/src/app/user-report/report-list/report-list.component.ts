@@ -48,6 +48,7 @@ export class ReportListComponent implements OnInit {
   excelName:any;
 
   leaveColumns:any[] = ['employeementId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'reason', 'status', 'managerName', 'hodName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
+  employeeColumns:any[] = ['Employeement Id', 'Name', 'Department Name', 'Job Role', 'Manager Name', 'Employee Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   queryList:any[] = [];
   filterData:any = new FilterData();
 
@@ -181,6 +182,24 @@ export class ReportListComponent implements OnInit {
     });
   }
 
+  getCustomEmployeesList(queryObjList:any) {
+    this.allEmployeeList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse;
+        this.allEmployeeList.forEach(employee => {
+          employee.employeementId = "A-".concat(employee.employeementId);
+        });
+        console.log("allEmployeeList : ", this.allEmployeeList)
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
     console.log("columns : ", columns);
@@ -197,8 +216,16 @@ export class ReportListComponent implements OnInit {
     console.log("queryList : ", queryList);
     this.queryList = queryList;
     this.cancelRequest();
-
-    this.getCustomLeaveApplicationsList(queryList)
+    
+    if(this.filterData.title == 'Filter Leave Report'){
+      this.getCustomLeaveApplicationsList(queryList);
+    }
+    if(this.filterData.title == 'Filter Employee Report'){
+      this.getCustomEmployeesList(queryList);
+    }
+    if(this.filterData.title == ''){
+      
+    }
   }
 
 

@@ -932,6 +932,7 @@ public class EmployeeService {
 					empDTO.setWorkLocation(object[48] != null ? object[48].toString() : null);
 					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
 					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
+					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { User } from '../models/user';
+import { Query } from '../models/query';
 
 @Injectable({
   providedIn: 'root'
@@ -66,6 +67,10 @@ export class EmployeeService {
 
   getHierarchyByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getHierarchyByEmpId`, employeeObj);
+  }
+
+  customQueryForEmployeeReport(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForEmployeeReport`, queryObj);
   }
 
   /* Profile Image Upload */

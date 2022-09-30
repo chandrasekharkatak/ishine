@@ -115,14 +115,19 @@
     <div class="row table-header">
         <h1 class="table-header-title">Employee Report</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
-      </div>
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
+      <button type="button" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, employeeColumns, 'Filter Employee Report')"><i class="fa-solid fa-filter"></i></button>
+    </div>
     <table class="table table-responsive scrollable-table">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label">Employee Id</th>
-            <th scope="col" class="info-label">Full Name</th>	
+            <th scope="col" class="info-label">Full Name</th>
+            <th scope="col" class="info-label">Department</th>
+            <th scope="col" class="info-label">Job Role</th>
+            <th scope="col" class="info-label">Manager</th>
+            <th scope="col" class="info-label">Mobile Number</th>	
             <th scope="col" class="info-label">Email Id</th>	
             <th scope="col" class="info-label">Employment Status</th>	
             <th scope="col" class="info-label">Date of Joining</th>
@@ -134,8 +139,7 @@
             <th scope="col" class="info-label">Blood group</th>	
             <th scope="col" class="info-label">Date of Birth</th>	
             <th scope="col" class="info-label">Gender</th>	
-            <th scope="col" class="info-label">Father Name</th>	
-            <th scope="col" class="info-label">Mobile Number</th>	
+            <th scope="col" class="info-label">Father Name</th>
             <th scope="col" class="info-label">Pan Number</th>	
             <th scope="col" class="info-label">Place of Birth</th>	
             <th scope="col" class="info-label">Work Location</th>	
@@ -175,19 +179,22 @@
           <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
             <td>{{employee.employeementId}}</td>
             <td>{{employee.name}}</td>
+            <td>{{employee.departmentName}}</td>
+            <td>{{employee.jobRoleName}}</td>
+            <td>{{employee.managerName}}</td>
+            <td>{{employee.mobileNo}}</td>
             <td>{{employee.email}}</td>
             <td>{{employee.employmentstatus}}</td>
             <td>{{employee.dateOfJoining}}</td>
             <td>{{employee.aadhar}}</td>
             <td>{{employee.aboutMe}}</td>
-            <td>{{employee.addressaddress}}</td>
+            <td>{{employee.address}}</td>
             <td>{{employee.permanentAddress}}</td>
             <td>{{employee.city}}</td>
             <td>{{employee.bloodGroup}}</td>
             <td>{{employee.dateOfBirth}}</td>
             <td>{{employee.gender}}</td>
             <td>{{employee.fatherName}}</td>
-            <td>{{employee.mobileNo}}</td>
 
             <td>{{employee.panNumber}}</td>
             <td>{{employee.placeOfBirth}}</td>

@@ -87,5 +87,6 @@ public class EmployeeDTO {
 	private Short probationPeriod;
 	
 	private String dateOfResign;
+	List<CustomFilterDTO> queryList;
 	
 }
