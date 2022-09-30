@@ -50,7 +50,7 @@ export class ReportListComponent implements OnInit {
   leaveColumns:any[] = ['employeementId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'reason', 'status', 'managerName', 'hodName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   employeeColumns:any[] = ['Employeement Id', 'Name', 'Department Name', 'Job Role', 'Manager Name', 'Employee Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   queryList:any[] = [];
-  filterData:any = new FilterData();
+  filterData:any = new FilterData(); 
 
   constructor(
     private authenticationService: AuthenticationService,
