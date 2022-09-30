@@ -91,4 +91,5 @@ public class LeaveDTO {
 	private String employeeName;
 	
 	private String hodName;
+	List<CustomFilterDTO> queryList;
 }

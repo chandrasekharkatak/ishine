@@ -131,7 +131,7 @@ export class ReportListComponent implements OnInit {
     this.allLeaveApplicationsList = [];
 
     let queryObj = new Query();
-    queryObj.queryList == queryObjList;
+    queryObj.queryList = queryObjList;
 
     this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -141,7 +141,7 @@ export class ReportListComponent implements OnInit {
         });
         console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
-        alert(response.serviceResponse)
+        console.error(response.serviceResponse)
       }
     });
   }
