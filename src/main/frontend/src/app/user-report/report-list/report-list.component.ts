@@ -47,7 +47,7 @@ export class ReportListComponent implements OnInit {
 
   excelName:any;
 
-  leaveColumns:any[] = ['employeementId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'reason', 'status', 'managerName', 'hodName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
+  leaveColumns:any[] = ['employeementId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'reason', 'status', 'managerName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   employeeColumns:any[] = ['Employeement Id', 'Name', 'Department Name', 'Job Role', 'Manager Name', 'Employee Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
@@ -91,6 +91,7 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
 
     this.getAllLeaveApplicationsList();
+    this.data = ''
   }
 
   showTimesheetReportTable(){
@@ -100,6 +101,7 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
 
     this.getAllTimesheetApplicationsList();
+    this.data = ''
   }
 
   showEmployeeReportTable(){
@@ -109,6 +111,7 @@ export class ReportListComponent implements OnInit {
     this.isTimesheetReportTable = false;
 
     this.getAllEmployeeList();
+    this.data =''
   }
 
   // Leave Report 
@@ -195,7 +198,7 @@ export class ReportListComponent implements OnInit {
         });
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
-        console.error(response.serviceResponse)
+        console.log("List is empty",response.serviceResponse)
       }
     });
   }

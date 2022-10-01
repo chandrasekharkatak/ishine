@@ -25,6 +25,7 @@ import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -54,30 +55,72 @@ public class TimesheetService {
 	
 	@Autowired					
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
 
 	@Value("${timesheet.lock.days}")
 	private Integer timesheetLockDays;
 
+//	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//
+//			List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(timesheetDTO.getTeamId());
+//			System.out.println("projects :" +projectList.toString());
+////			List<Project> projectList = projectRepository.findAll();
+//
+//			if (projectList.isEmpty()) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No projects found for given employee Id.");
+//			} else {
+//				Type typeList = new TypeToken<List<ProjectDTO>>() {
+//				}.getType();
+//				List<ProjectDTO> previousEmploymentList = modelMapper.map(projectList, typeList);
+//
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(previousEmploymentList);
+//
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//		}
+//		return response;
+//	}
+
+	
+	
 	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
 		try {
 
-//			List<Project> projectList = projectRepository.findByEmpId(timesheetDTO.getEmpId());
-			List<Project> projectList = projectRepository.findAll();
+			List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(timesheetDTO.getEmpId());
+			List<TimesheetDTO> listDto = new ArrayList<TimesheetDTO>();
+			
+			if(!projectList.isEmpty()) {
+				TimesheetDTO timesheetDto = new TimesheetDTO();
 
-			if (projectList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No projects found for given employee Id.");
-			} else {
-				Type typeList = new TypeToken<List<ProjectDTO>>() {
-				}.getType();
-				List<ProjectDTO> previousEmploymentList = modelMapper.map(projectList, typeList);
-
+				for(Object[] object: projectList) {
+					timesheetDto = new TimesheetDTO();
+					timesheetDto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+					timesheetDto.setProjectName(object[1] != null ? object[1].toString() : null);
+					listDto.add(timesheetDto);
+					}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(previousEmploymentList);
-
+				response.setServiceResponse(listDto);
+				
+				System.out.println("Project List :"+timesheetDto);
+				System.out.println("List is : from dto "+listDto);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project List is empty !!");
 			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -87,6 +130,9 @@ public class TimesheetService {
 		return response;
 	}
 
+	
+	
+	
 	public ServiceResponse getAllActivitiesByProjectIdandEmpId(TimesheetDTO timesheetDTO) {
 
 		System.out.println(timesheetDTO);

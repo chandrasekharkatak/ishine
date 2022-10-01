@@ -47,4 +47,7 @@ public class TimesheetDTO {
 	private Long timesheetStatusUpdatedBy;
 	private String timesheetStatusUpdatedByName;
 	private String updatedOn;
+	
+	private Long teamId;
+	private String activity;
 }
