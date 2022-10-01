@@ -14,6 +14,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
@@ -57,26 +58,26 @@ public class ImageService {
 			if (employeeObject.isPresent()) {
 				
 				if(!images.isEmpty()) {
-					imageUploader(images,imageFileLocation, savedFiles);
-//					for(MultipartFile image: images){
-//						
-//		                byte[] bytes = image.getBytes();
-//		                Path path = Paths.get(imageFileLocation +  File.separator +image.getOriginalFilename());
-//		                
-//		                File checkExistingFile = new File(path.toString());
-//		                if(!checkExistingFile.exists()) {
-//							Files.write(path, bytes);
-//
-//							File savedFile = new File(path.toString());
-//
-//							if (savedFile.exists()) {
-//								savedFiles.add(savedFile);
-//							}
-//		                }else {
-//		                	errorMsg = image.getOriginalFilename() + " already exist,";
-//							break;
-//		                }
-//		            }
+				//	imageUploader(images,imageFileLocation, savedFiles);
+					for(MultipartFile image: images){
+						
+		                byte[] bytes = image.getBytes();
+		                Path path = Paths.get(imageFileLocation +  File.separator +image.getOriginalFilename());
+		                
+		                File checkExistingFile = new File(path.toString());
+		                if(!checkExistingFile.exists()) {
+							Files.write(path, bytes);
+
+							File savedFile = new File(path.toString());
+
+							if (savedFile.exists()) {
+								savedFiles.add(savedFile);
+							}
+		                }else {
+		                	errorMsg = image.getOriginalFilename() + " already exist,";
+							break;
+		                }
+		            }
 					
 					if(images.size() == savedFiles.size()) {
 						for(MultipartFile image: images){
@@ -220,7 +221,9 @@ public class ImageService {
 		return response;
 	}
 
-	public ServiceResponse uploadEmployeeDocument(List<MultipartFile> images,Long uploadedBy) {
+	public ServiceResponse uploadEmployeeDocument(List<MultipartFile> images,Long uploadedBy,
+			Long employeementId,Long empId) {
+		
 		ServiceResponse response = new ServiceResponse();
 		List<File> savedFiles = new ArrayList<File>();
 		String errorMsg = "";
@@ -231,34 +234,36 @@ public class ImageService {
 			if (employeeObject.isPresent()) {
 				
 				if(!images.isEmpty()) {
-					String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + uploadedBy)).toString();
-					imageUploader(images,newPath, savedFiles);
-//					for(MultipartFile image: images){
-//		                byte[] bytes = image.getBytes();
-//		                Path path = Paths.get(newPath +  File.separator +image.getOriginalFilename());
-//		                
+					String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + employeementId)).toString();
+			//		imageUploader(images,newPath, savedFiles);
+					for(MultipartFile image: images){
+		                byte[] bytes = image.getBytes();
+		                Path path = Paths.get(newPath +  File.separator +image.getOriginalFilename());
+		                
 //		                File checkExistingFile = new File(path.toString());
 //		                if(!checkExistingFile.exists()) {
-//							Files.write(path, bytes);
-//
-//							File savedFile = new File(path.toString());
-//
-//							if (savedFile.exists()) {
-//								savedFiles.add(savedFile);
-//							}
+							Files.write(path, bytes);
+
+							File savedFile = new File(path.toString());
+
+							if (savedFile.exists()) {
+								savedFiles.add(savedFile);
+							}
 //		                }else {
 //		                	errorMsg = image.getOriginalFilename() + " already exist,";
 //							break;
 //		                }
-//		            }
+		            }
 					
 					if(images.size() == savedFiles.size()) {
 						for(MultipartFile image: images){
 							
 							EmployeeDocument newDoc = new EmployeeDocument();
 							newDoc.setDocumentName(image.getOriginalFilename());
+							newDoc.setEmpId(empId);
+							newDoc.setEmployeementId(employeementId);
 							
-				            CommonProperties commonProp = new CommonProperties();
+							CommonProperties commonProp = new CommonProperties();
 				            commonProp.setCreatedBy(uploadedBy);
 				            newDoc.setCommonProperty(commonProp);
 				               
@@ -290,34 +295,34 @@ public class ImageService {
 		return response;
 	}
 	
-	public List<File> imageUploader(List<MultipartFile> images, String locationOfImage, List<File> savedFiles) {
-		String errorMsg = "";
-		try {
-			for(MultipartFile image: images){
-				
-                byte[] bytes = image.getBytes();
-                Path path = Paths.get(locationOfImage +  File.separator + image.getOriginalFilename());
-                
-                File checkExistingFile = new File(path.toString());
-                if(!checkExistingFile.exists()) {
-					Files.write(path, bytes);
-
-					File savedFile = new File(path.toString());
-
-					if (savedFile.exists()) {
-						savedFiles.add(savedFile);
-					}
-                }else {
-                	errorMsg = image.getOriginalFilename() + " already exist,";
-					break;
-                }
-            }
-			
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-		return savedFiles;
-	}
+//	public List<File> imageUploader(List<MultipartFile> images, String locationOfImage, List<File> savedFiles) {
+//		String errorMsg = "";
+//		try {
+//			for(MultipartFile image: images){
+//				
+//                byte[] bytes = image.getBytes();
+//                Path path = Paths.get(locationOfImage +  File.separator + image.getOriginalFilename());
+//                
+//                File checkExistingFile = new File(path.toString());
+//                if(!checkExistingFile.exists()) {
+//					Files.write(path, bytes);
+//
+//					File savedFile = new File(path.toString());
+//
+//					if (savedFile.exists()) {
+//						savedFiles.add(savedFile);
+//					}
+//                }else {
+//                	errorMsg = image.getOriginalFilename() + " already exist,";
+//					break;
+//                }
+//            }
+//			
+//		}catch(Exception e){
+//			e.printStackTrace();
+//		}
+//		return savedFiles;
+//	}
 	
 	
 //	public ServiceResponse fileUploader(List<MultipartFile> files,Long uploadedBy) {

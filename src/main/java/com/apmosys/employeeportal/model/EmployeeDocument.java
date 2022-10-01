@@ -20,6 +20,10 @@ public class EmployeeDocument {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long employeeDocumentId;
 	
+	private Long empId;
+	
+	private Long employeementId;
+	
 	private String documentName;
 	
 	@Embedded

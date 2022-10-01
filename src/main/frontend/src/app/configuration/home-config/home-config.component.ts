@@ -143,6 +143,8 @@ export class HomeConfigComponent implements OnInit {
     });
     formData.append("eventName", this.eventName);
     formData.append("uploadedBy", this.currentUser.empId);
+    formData.append("employeementId", this.currentUser.employeementId);
+    formData.append("empId", this.currentUser.empId);
 
     console.log("Upload Images : ", formData);
     this.imageService.uploadMultipleImages(formData).pipe(first()).subscribe((response: any) => {

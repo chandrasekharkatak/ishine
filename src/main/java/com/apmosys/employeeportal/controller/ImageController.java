@@ -51,9 +51,11 @@ public class ImageController {
 	}
 	
 	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)
-	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")List<MultipartFile> images,@RequestParam("uploadedBy")Long uploadedBy) {		
+	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")List<MultipartFile> images,
+			@RequestParam("uploadedBy")Long uploadedBy, @RequestParam("employeementId")Long employeementId,
+			@RequestParam("empId")Long empId) {		
 		
-		ServiceResponse response =	imageService.uploadEmployeeDocument(images,uploadedBy);		
+		ServiceResponse response =	imageService.uploadEmployeeDocument(images,uploadedBy,employeementId,empId);		
 		return response;
 	}
 }
