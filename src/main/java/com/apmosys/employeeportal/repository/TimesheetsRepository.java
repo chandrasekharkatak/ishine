@@ -34,5 +34,11 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTimesheetData();
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getLast9DaysPendingTimesheetReport(LocalDate start, LocalDate end);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getLast9DaysFilledTimesheetReport(LocalDate start, LocalDate end);
+
 
 }

@@ -34,20 +34,27 @@ public class TimesheetDTO {
 	private Long createdBy;
 	private List<ActivityDTO> allTimesheetActivities;
 	private List<ActivityDTO> updatedTimesheetActivities;
-	
+
 	private Long employeementId;
-	
+
 	private Long applicationCount;
-	
+
 	private String weekDayName;
 	private Float totalWorkingHours;
-	
+
 	private Float totalTime;
-	
+
 	private Long timesheetStatusUpdatedBy;
 	private String timesheetStatusUpdatedByName;
 	private String updatedOn;
-	
+
 	private Long teamId;
 	private String activity;
+
+	private String departmentName;
+	private String email;
+	private Long mobileNo;
+	private String managerName;
+	private Long pendingEodCount;
+	private String legend;
 }
