@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -98,11 +99,26 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
+			String teamLeadName = null;
+			
+			if(teamDTO.getTeamLeadId() != null) {
+				 
+				Optional<Employee> getTeamLeadData = employeeRepository.findById(teamDTO.getTeamLeadId());
+				if(!getTeamLeadData.isEmpty()) {
+					Employee empObj = getTeamLeadData.get();
+					
+					teamLeadName = empObj.getName();
+				}
+			}else {
+				teamLeadName = "NA";
+			}
+			
 			Team newTeam = new Team();
 
 			newTeam.setTeamName(teamDTO.getTeamName());
 			newTeam.setTeamLeadId(teamDTO.getTeamLeadId());
 			newTeam.setProjectId(teamDTO.getProjectId());
+			newTeam.setTeamLeadName(teamLeadName);
 			newTeam.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
 
 			Team teamCreated = teamRepository.save(newTeam);
@@ -163,13 +179,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			List<Object[]> objectList;
-			System.out.println(teamDTO.getTeamLeadId());
-			if(teamDTO.getTeamLeadId() == null) {
-				objectList = teamRepository.projectTeamsByProjectIdWithoutLead(teamDTO.getProjectId());
-			}else {
-				objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
-			}
+			List<Object[]> objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -177,44 +187,21 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
 				} else {
-					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
 					
-					if(teamDTO.getTeamLeadId() == null) {
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
 						
 						list.forEach((object) -> {
-
 							TeamDTO dto = new TeamDTO();
 
 							dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-							dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+							dto.setTeamLeadName(object[1] != null ? object[1].toString() : null);
 							dto.setProjectId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
 							dto.setTeamName(object[3] != null ? object[3].toString() : null);
 							dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
 							dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
 							dtoList.add(dto);
 						});
-
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse(dtoList);
 						
-					}else {
-					
-						list.forEach((object) -> {
-
-							TeamDTO dto = new TeamDTO();
-
-							dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-							dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
-							dto.setTeamLeadName(object[2] != null ? object[2].toString() : null);
-							dto.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
-							dto.setTeamName(object[4] != null ? object[4].toString() : null);
-							dto.setCreatedByName(object[5] != null ? object[5].toString() : null);
-							dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
-							dtoList.add(dto);
-						});
-						
-					}
-
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 				}
