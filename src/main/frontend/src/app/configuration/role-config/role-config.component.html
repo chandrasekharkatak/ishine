@@ -19,7 +19,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Designation Name</label>
                             <input type="text" class="form-control" maxlength="255" autocomplete="none"
-                            [(ngModel)]="jobRoleObj.name">
+                            [(ngModel)]="jobRoleObj.name" (blur)="checkJobRole(alert_message)">
                         </div>
                     </div>
                 </div>

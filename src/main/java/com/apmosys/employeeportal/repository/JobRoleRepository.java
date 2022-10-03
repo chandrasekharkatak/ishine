@@ -23,5 +23,7 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	public List<JobRole> findByEmployeeRole(String role);
 
 	public List<JobRole> findByEmployeeRoleNotIn(List<String> jobRoles);
+
+	public JobRole findByName(String name);
 	
 }

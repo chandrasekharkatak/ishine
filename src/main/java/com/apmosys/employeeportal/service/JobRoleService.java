@@ -415,4 +415,26 @@ public class JobRoleService {
 		return response;
 	}
 
+	public ServiceResponse checkJobRole(JobRoleDTO jobRoleDto) {
+	
+		ServiceResponse response = new ServiceResponse();
+		try {
+			JobRole checkExistingRole = jobRoleRepository.findByName(jobRoleDto.getName());
+			if(checkExistingRole == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("JobRole created !");
+			}else if(checkExistingRole !=null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("JobRole already exist!");
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
 }

@@ -212,6 +212,21 @@ export class RoleConfigComponent implements OnInit {
     });
   }
 
+  checkJobRole(template : TemplateRef<any>){
+    const regex = /^[a-zA-Z ]+$/;
+    if(regex.test(this.jobRoleObj.name)){
+      this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
+        if(response.serviceStatus =='Fail'){
+          this.openAlertMod(template, response.serviceResponse);
+          this.jobRoleObj.name = '';
+        }
+      })
+    } else {
+      this.openAlertMod(template, "Enter valid Designation !!");
+      this.jobRoleObj.name = '';
+    }
+  }
+
   onUpdateJobRole(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;

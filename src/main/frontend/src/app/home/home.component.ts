@@ -302,7 +302,7 @@ export class HomeComponent implements OnInit {
         let checkData = balanceChartData.filter(data => data.y != 0);
         console.log("checkData :", checkData);
         
-        if(checkData){
+        if(checkData && checkData.length != 0){
           this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
         }else{
           this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
@@ -336,7 +336,7 @@ export class HomeComponent implements OnInit {
         let checkData = approvedChartData.filter(data => data.y != 0);
         console.log("checkData :", checkData);
         
-        if(checkData){
+        if(checkData && checkData.length != 0){
           this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
         }else{
           this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
@@ -370,7 +370,7 @@ export class HomeComponent implements OnInit {
         let checkData = pendingChartData.filter(data => data.y != 0);
         console.log("checkData :", checkData);
         
-        if(checkData){
+        if(checkData && checkData.length != 0){
           this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
         }else{
           this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');

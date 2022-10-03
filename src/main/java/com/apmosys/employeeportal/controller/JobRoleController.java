@@ -71,5 +71,12 @@ public class JobRoleController {
 		ServiceResponse response = jobRoleService.addNewSubFeatures(subFeatureMasterDTO);
 		return response;
 	}
+	
+	@RequestMapping(value="/checkJobRole" , method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeEmail(@RequestBody JobRoleDTO jobRoleDto) {		
+		
+		ServiceResponse response = jobRoleService.checkJobRole(jobRoleDto);
+		return response;		
+	}
 
 }
