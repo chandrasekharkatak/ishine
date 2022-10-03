@@ -152,4 +152,8 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForLeaveReport`, queryObj);
   }
 
+  /* Report Dashboard */
+  getLast8DaysLeaveReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLast8DaysLeaveReport`);
+  }
 }

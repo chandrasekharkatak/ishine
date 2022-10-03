@@ -294,6 +294,7 @@
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onGetEmpLeaveBalance(alert_message)">Get Employee Leave Balance</button>
                 </div>
             </div>
+            <hr>
             <div *ngFor="let employee of employeeData">
                 <div class="card border-primary mb-3" style="max-width: 50rem;">
                     <div class="d-flex">
@@ -307,7 +308,6 @@
                     </div>
                 </div>
             </div>
-            <hr>
             <div class="row" *ngFor="let leaveBalance of leaveBalanceList">
                 <div *ngIf="leaveBalance.leaveType != 'Total'" class="col-md-4 mb-0">
                     <div class="info-wrapper">

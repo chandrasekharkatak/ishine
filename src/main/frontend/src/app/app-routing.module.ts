@@ -30,6 +30,7 @@ import { UserTimesheetComponent } from './user-timesheet/user-timesheet.componen
 import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
 import { UserReportComponent } from './user-report/user-report.component';
 import { ReportListComponent } from './user-report/report-list/report-list.component';
+import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -82,6 +83,7 @@ const routes: Routes = [
   {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
     children: [
       { path: 'report-list', component: ReportListComponent, },
+      { path: 'report-dashboard', component: ReportDashboardComponent }
     ]
   },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},

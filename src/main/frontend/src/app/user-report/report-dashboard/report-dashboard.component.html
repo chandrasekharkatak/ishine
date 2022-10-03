@@ -1,0 +1,138 @@
+<!-- Graph filter form -->
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Select Client</label>
+                            <select class="form-control" aria-hidden="true">
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span> Select Department</label>
+                            <select class="form-control" aria-hidden="true">
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <input id="occasionDate" type="date" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <input id="occasionDate" type="date" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+        <div class="row text-center">
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="leaveSummaryChart" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="timesheetStatusSummary" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <div class="text-center text-uppercase">
+                    <h4>Hour Based Segregation</h4>
+                    <div class="progress mt-4" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">0 - 5 hr 0.06 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">EOD 5 - 8 hr 0.26 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">EOD 8 - 9 hr 0.8 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">EOD 9 - 10 hr 36.43 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">EOD 10 and above hr 6.25 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">No EOD Submitted 43.01 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">Holidays 12.82 %</h4>
+                    </div>
+                    <div class="progress mt-2" style="height: 40px;">
+                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2">Working on Holidays 0.37 %</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="row text-center mt-5">
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="employeeSummary" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="projectStatus" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="performanceFeedbackSummary" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="departmentWiseSummary" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="leaveTrendAnalysis" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <div class="col-md-4">
+                    <div id="employeeJoinAndResign" style="height: 500px; width: 400px"></div>
+                </div>
+            </div>
+        </div> -->
+
+    </div>
+</div>

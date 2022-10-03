@@ -28,7 +28,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	EmployeeRepository employeeRepository;
 
 	@Override
-	public ServiceResponse getLast8DaysLeaveReport(LeaveDTO leaveDTO) {
+	public ServiceResponse getLast8DaysLeaveReport() {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
@@ -69,16 +69,12 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	}
 
 	@Override
-	public ServiceResponse getLast9DaysTimesheetReport(TimesheetDTO timesheetDTO) {
+	public ServiceResponse getLast9DaysTimesheetReport() {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			LocalDate start = LocalDate.now().minusDays(8);
 
-			System.out.println(start);
-
 			LocalDate end = LocalDate.now();
-
-			System.out.println(end);
 
 			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
 
@@ -141,7 +137,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				response.setServiceResponse(dtoList);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Leave history not found. Kindly check date range.");
+				response.setServiceResponse("Timesheet not found. Kindly check date range.");
 			}
 
 		} catch (Exception e) {

@@ -6,8 +6,8 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 
 public interface ReportDashboardService {
 
-	ServiceResponse getLast8DaysLeaveReport(LeaveDTO leaveDTO);
+	ServiceResponse getLast8DaysLeaveReport();
 
-	ServiceResponse getLast9DaysTimesheetReport(TimesheetDTO timesheetDTO);
+	ServiceResponse getLast9DaysTimesheetReport();
 
 }

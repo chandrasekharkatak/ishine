@@ -66,4 +66,9 @@ export class TimesheetService {
   timesheetReport(){
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/timesheetReport`);
   }
+
+  /* Reports Dashboard */
+  getLast9DaysTimesheetReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLast9DaysTimesheetReport`);
+  }
 }

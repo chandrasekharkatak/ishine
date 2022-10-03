@@ -20,17 +20,17 @@ public class ReportDashboardController {
 	ReportDashboardService reportDashboardService;
 	
 	
-	@RequestMapping(value = "/getLast8DaysLeaveReport" ,method = RequestMethod.POST)
-	public ServiceResponse getLast8DaysLeaveReport(@RequestBody LeaveDTO leaveDTO) {
+	@RequestMapping(value = "/getLast8DaysLeaveReport" ,method = RequestMethod.GET)
+	public ServiceResponse getLast8DaysLeaveReport() {
 		
-		ServiceResponse response = reportDashboardService.getLast8DaysLeaveReport(leaveDTO);
+		ServiceResponse response = reportDashboardService.getLast8DaysLeaveReport();
 		return response;
 	}
 	
-	@RequestMapping(value = "/getLast9DaysTimesheetReport" ,method = RequestMethod.POST)
-	public ServiceResponse getLast9DaysTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
+	@RequestMapping(value = "/getLast9DaysTimesheetReport" ,method = RequestMethod.GET)
+	public ServiceResponse getLast9DaysTimesheetReport() {
 		
-		ServiceResponse response = reportDashboardService.getLast9DaysTimesheetReport(timesheetDTO);
+		ServiceResponse response = reportDashboardService.getLast9DaysTimesheetReport();
 		return response;
 	}
 

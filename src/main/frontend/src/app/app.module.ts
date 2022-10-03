@@ -55,6 +55,7 @@ import { PortalConfigComponent } from './configuration/portal-config/portal-conf
 import { UserReportComponent } from './user-report/user-report.component';
 import { ReportListComponent } from './user-report/report-list/report-list.component';
 import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
+import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -92,6 +93,7 @@ import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.com
     UserReportComponent,
     ReportListComponent,
     CustomFilterComponent,
+    ReportDashboardComponent,
   ],
   imports: [
     BrowserModule,
