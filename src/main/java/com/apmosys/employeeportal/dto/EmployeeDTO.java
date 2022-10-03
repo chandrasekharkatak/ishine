@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import javax.persistence.Column;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -87,6 +89,14 @@ public class EmployeeDTO {
 	private Short probationPeriod;
 	
 	private String dateOfResign;
-	List<CustomFilterDTO> queryList;
+	private List<CustomFilterDTO> queryList;
+	
+	private String mothersName;
+	private String spouse;	
+	private String child1;
+	private String child2;
+	private String child3;
+	private Float totalExperience;
+	private String billable;
 	
 }

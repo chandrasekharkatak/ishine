@@ -155,6 +155,13 @@ public class EmployeeService {
 			employee.setWorkLocation(employeedto.getWorkLocation());
 			employee.setInvalidAccessAttempt(0);
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
+			employee.setMothersName(employeedto.getMothersName());
+			employee.setSpouse(employeedto.getSpouse());
+			employee.setChild1(employeedto.getChild1());
+			employee.setChild2(employeedto.getChild2());
+			employee.setChild3(employeedto.getChild3());
+			employee.setTotalExperience(employeedto.getTotalExperience());
+			employee.setBillable(employeedto.getBillable());
 			Employee newEmployee = employeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -933,6 +940,7 @@ public class EmployeeService {
 					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
 					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
 					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
+					empDTO.setExperience(object[52] != null ? object[52].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

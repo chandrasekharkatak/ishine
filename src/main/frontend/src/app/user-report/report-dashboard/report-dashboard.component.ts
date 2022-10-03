@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import * as HighCharts from 'highcharts';
 import HC_exportData from "highcharts/modules/export-data";
-import { first } from 'rxjs/operators';
+import { first, groupBy } from 'rxjs/operators';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 HC_exportData(HighCharts);
@@ -16,15 +17,18 @@ export class ReportDashboardComponent implements OnInit {
   data:any;
   leaveSumarryList:any[] = [];
   timsheetSummaryList:any[] = [];
+  allEmployeeList: any[] = [];
 
   constructor(
     private leaveService : LeaveService,
     private timesheetService : TimesheetService,
+    private employeeService: EmployeeService
   ) { }
 
   ngOnInit(): void {
     this.get8DaysLeaveReport();
     this.get9DayTimesheetReport();
+    this.getAllEmployeeList();
     //this.renderLeaveSummaryChart('Leave Summary','leaveSummaryChart',this.data,'Leave Summary Chart');
   //  this.renderTimesheetStatusSummaryChart('EOD Status Summary','EODStatusSummary',this.data,'EOD Status Chart');
     this.renderEmployeeSummaryChart('Employee Summary','employeeSummary',this.data,'Employee Summary Chart');
@@ -115,6 +119,125 @@ export class ReportDashboardComponent implements OnInit {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  getAllEmployeeList() {
+    this.allEmployeeList = [];
+      
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse;
+          for(let x of this.allEmployeeList){
+            x.employeementId = "A-".concat(x.employeementId);
+          }
+            console.log("allEmployeeList : ", this.allEmployeeList)
+            this.extractData();
+      } else {
+        alert(response.serviceResponse)
+      } 
+    });
+  }
+
+  extractData() {
+   
+    //Total Count
+    let countOfAllEmployees = this.allEmployeeList.length;
+    console.log("Count of all employees : ",countOfAllEmployees);    
+
+    //Fresher / Lateral Graph (Fresher/Experienced)
+    //Graph Based Employment Status(Probation/Confirmed/Resigned/In-Active)
+    //Male / Female Graph
+    //Age Wise Graph
+    let fresherCount = 0;
+    let experienceCount = 0;
+    let probationCount = 0;
+    let confirmedCount = 0;
+    let resignedCount = 0;
+    let inActiveCount = 0;
+    let maleCount = 0;
+    let femaleCount = 0;
+    let countBetween18and25 = 0;
+    let countBetween25and35 = 0;
+    let countBetween35and45 = 0;
+    let countAbove45 = 0;
+    this.allEmployeeList.forEach((employee)=>{
+
+      if(employee.experience == 'Fresher') fresherCount++;
+      else if (employee.experience == 'Experienced') experienceCount++;
+
+      if (employee.employmentstatus == "Probation") probationCount++;
+          else if (employee.employmentstatus == "Confirmed") confirmedCount++;
+          else if (employee.employmentstatus == "Resigned") resignedCount++;
+          else if (employee.employmentstatus == "In-Active") inActiveCount++;
+      
+      if(employee.gender == 'male') maleCount++;
+      else if(employee.gender == 'female') femaleCount++;
+
+      if(employee.dateOfBirth != null){
+       let age = this.getAge(employee.dateOfBirth);       
+       employee.age = age;
+       console.log(age);
+       if(age>= 18 && age <=25)countBetween18and25++;
+       else if (age>25 && age<= 35) countBetween25and35++;
+       else if (age>35 && age<= 45) countBetween35and45++;
+       else if (age>45) countAbove45++;       
+      }
+      
+    });      
+
+    //Department wise Employee Count
+    let departmentList = this.groupBy(this.allEmployeeList,'departmentName');
+    let employeeByDepartment = [];
+      for (let department in departmentList) {        
+         employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
+      }
+      
+    //Age Wise Graph
+
+    console.log("Freshers count: ",fresherCount);
+    console.log("Experience count: ",experienceCount);
+    console.log("----------------------------------------------------");
+    console.log("Probation employees: ",probationCount);
+    console.log("Confirmed employees: ",confirmedCount);
+    console.log("Resigned employees: ",resignedCount);
+    console.log("In-Active employees: ",inActiveCount);
+    console.log("----------------------------------------------------");
+    console.log("Male employees: ",maleCount);
+    console.log("Female employees: ",femaleCount);
+    console.log("----------------------------------------------------") 
+    console.log(employeeByDepartment);
+    console.log("----------------------------------------------------") 
+    console.log("Age 18-25: ",countBetween18and25);
+    console.log("Age 26-35: ",countBetween25and35);
+    console.log("Age 36-45: ",countBetween35and45);
+    console.log("Age above 45: ",countAbove45);
+    console.log("----------------------------------------------------") 
+
+    
+    
+  }
+
+  groupBy(objectArray, property) {
+    return objectArray.reduce((acc, obj) => {
+       const key = obj[property];
+       if (!acc[key]) {
+          acc[key] = [];
+       }
+       // Add object to list for given key's value
+       acc[key].push(obj);
+       return acc;
+    }, {});
+ }
+
+  getAge(dateString) {
+    var today = new Date();
+    var birthDate = new Date(dateString);
+    var age = today.getFullYear() - birthDate.getFullYear();
+    var m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   renderLeaveSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any){

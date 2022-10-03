@@ -117,4 +117,19 @@ public class Employee {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfResign;
 	
+	@Column(length = 50)
+	private String mothersName;
+	@Column(length = 50)
+	private String spouse;	
+	@Column(length = 50)
+	private String child1;
+	@Column(length = 50)
+	private String child2;
+	@Column(length = 50)
+	private String child3;
+	@Column(columnDefinition = "float DEFAULT NULL")
+	private Float totalExperience;
+	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
+	private String billable;
+	
 }
