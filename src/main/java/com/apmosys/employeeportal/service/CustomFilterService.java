@@ -35,64 +35,64 @@ public class CustomFilterService {
 					}
 					
 					switch (dto.getColumn()) {
-					case "employeementId": {
+					case "Employee Id": {
 						query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "employeeName": {
+					case "Full Name": {
 						query = query.append(" e.name ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "leaveType": {
+					case "Leave Type": {
 						query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
 
-					case "fromDate": {
+					case "From Date": {
 						query = query.append(" el.from_date ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "toDate": {
+					case "To Date": {
 						query = query.append(" el.to_date ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "noOfDays": {
+					case "No. of Days": {
 						query = query.append(" el.no_of_days ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "reason": {
+					case "Reason": {
 						query = query.append(" el.reason ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "status": {
+					case "Status": {
 						query = query.append(" ls.status ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "managerName": {
+					case "Manager Name": {
 						query = query.append(" e2.name ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "createdOn": {
+					case "Created On": {
 						query = query.append(" el.created_on ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "updatedOn": {
+					case "Updated On": {
 						query = query.append(" el.updated_on ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
-					case "leaveStatusUpdatedByName": {
-						query = query.append(" e3.leave_status_updated_by_name ").append(dto.getOperator() + " '")
+					case "Updated By": {
+						query = query.append(" e3.name ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
@@ -185,12 +185,12 @@ public class CustomFilterService {
 				}
 				
 				switch (dto.getColumn()) {
-				case "Employeement Id": {
+				case "Employee Id": {
 					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "Name": {
+				case "Full Name": {
 					query = query.append(" e.name ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
@@ -201,7 +201,7 @@ public class CustomFilterService {
 					break;
 				}
 
-				case "Employee Status": {
+				case "Employment Status": {
 					query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
@@ -411,7 +411,7 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "Department Name": {
+				case "Department": {
 					query = query.append(" d.name ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
@@ -421,7 +421,7 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "Manager Name": {
+				case "Manager": {
 					query = query.append(" e2.name ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;

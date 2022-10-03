@@ -47,8 +47,8 @@ export class ReportListComponent implements OnInit {
 
   excelName:any;
 
-  leaveColumns:any[] = ['employeementId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'reason', 'status', 'managerName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
-  employeeColumns:any[] = ['Employeement Id', 'Name', 'Department Name', 'Job Role', 'Manager Name', 'Employee Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
 
@@ -131,7 +131,7 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-  getCustomLeaveApplicationsList(queryObjList:any) {
+  getCustomLeaveApplicationsList(queryObjList:any , template:TemplateRef<any>) {
     this.allLeaveApplicationsList = [];
 
     let queryObj = new Query();
@@ -140,12 +140,18 @@ export class ReportListComponent implements OnInit {
     this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allLeaveApplicationsList = response.serviceResponse;
+        if(this.allLeaveApplicationsList.length != 0){
+          this.openAlertMod(template, "Leave Application Report found ")
+        }else {
+          this.openAlertMod(template, "No Leave Application Report found ")
+        }
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
         });
         console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
-        console.error(response.serviceResponse)
+        this.openAlertMod(template,response.serviceResponse)
+        
       }
     });
   }
@@ -185,7 +191,7 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-  getCustomEmployeesList(queryObjList:any) {
+  getCustomEmployeesList(queryObjList:any , template : TemplateRef<any>) {
     this.allEmployeeList = [];
 
     let queryObj = new Query();
@@ -193,12 +199,17 @@ export class ReportListComponent implements OnInit {
     this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+        if(this.allEmployeeList.length != 0){
+          this.openAlertMod(template, "Employee Report found")
+        }else{
+          this.openAlertMod(template, "No Data found")
+        }
         this.allEmployeeList.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
         });
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
-        console.log("List is empty",response.serviceResponse)
+        this.openAlertMod(template,response.serviceResponse)
       }
     });
   }
@@ -215,16 +226,16 @@ export class ReportListComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-  onFilterSubmit(queryList:any){
+  onFilterSubmit(queryList:any , template:TemplateRef<any>){
     console.log("queryList : ", queryList);
     this.queryList = queryList;
     this.cancelRequest();
     
     if(this.filterData.title == 'Filter Leave Report'){
-      this.getCustomLeaveApplicationsList(queryList);
+      this.getCustomLeaveApplicationsList(queryList,template);
     }
     if(this.filterData.title == 'Filter Employee Report'){
-      this.getCustomEmployeesList(queryList);
+      this.getCustomEmployeesList(queryList,template);
     }
     if(this.filterData.title == ''){
       
@@ -246,7 +257,7 @@ export class ReportListComponent implements OnInit {
 
         const onlySpecificDataArr = this.allLeaveApplicationsList.map(
           x => ({
-            "Employeement Id": x.employeementId,
+            "Employee Id": x.employeementId,
             "Employee Name":x.employeeName,
             "Leave Type":x.leaveType,
             "From Date":x.fromDate,
@@ -257,7 +268,7 @@ export class ReportListComponent implements OnInit {
             "Manager Name":x.managerName,
             "Created On":x.createdOn,
             "Updated On":x.updatedOn,
-            "Leave Status Updated By Name":x.leaveStatusUpdatedByName
+            "Updated By":x.leaveStatusUpdatedByName
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
@@ -288,9 +299,9 @@ export class ReportListComponent implements OnInit {
 
         const onlySpecificDataArr = this.allEmployeeList.map(
           x => ({
-            "Emp Id": x.employeementId,
-            "Name": x.name,		
-            "Email": x.email,		
+            "Employee Id": x.employeementId,
+            "Full Name": x.name,		
+            "Email Id": x.email,		
             "Employment Status": x.employmentstatus,
             "Date Of Joining": x.dateOfJoining,
             "Aadhar":x.aadhar,
@@ -306,7 +317,7 @@ export class ReportListComponent implements OnInit {
             "panNumber":x.panNumber,
             "placeOfBirth":x.placeOfBirth,
             "workLocation":x.workLocation,
-            "probationPeriod":x.probationPeriod,
+            "Probation Period":x.probationPeriod,
             "noticePeriod":x.noticePeriod,
             "country":x.country,
             "emergencyContactMobile":x.emergencyContactMobile,
@@ -317,7 +328,7 @@ export class ReportListComponent implements OnInit {
             "alternateMobileNo":x.alternateMobileNo,
             "pincode":x.pincode,
             "relation":x.relation,
-            "state":x.state,
+            "State":x.state,
             "viewsOnOrganisation":x.viewsOnOrganisation,
             "passportNumber":x.passportNumber,
             "bankAccountNo":x.bankAccountNo,

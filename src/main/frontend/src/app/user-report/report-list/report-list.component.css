@@ -31,3 +31,8 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+
+.thead-light{
+    position: sticky;
+    top: -0.5px;
+}

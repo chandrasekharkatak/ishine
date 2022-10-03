@@ -81,6 +81,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `employeeportal/api/changeLeaveTypeMapping`,
 
     `${this.baseUrl}` + `employeeportal/api/getAllEventPhotos`,
+    `${this.baseUrl}` + `employeeportal/api/customQueryForLeaveReport`,
+    `${this.baseUrl}` + `employeeportal/api/timesheetReport`,
+    `${this.baseUrl}` + `employeeportal/api/leaveReport`,
+    `${this.baseUrl}` + `employeeportal/api/customQueryForEmployeeReport`
   ]
 
   constructor(private loaderService: LoaderService) { }

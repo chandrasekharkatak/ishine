@@ -136,7 +136,7 @@
             <th scope="col" class="info-label">Address</th>	
             <th scope="col" class="info-label">Permanent Address</th>	
             <th scope="col" class="info-label">City</th>	
-            <th scope="col" class="info-label">Blood group</th>	
+            <th scope="col" class="info-label">Blood Group</th>	
             <th scope="col" class="info-label">Date of Birth</th>	
             <th scope="col" class="info-label">Gender</th>	
             <th scope="col" class="info-label">Father Name</th>
@@ -246,6 +246,13 @@
       </button>
   </div>
   <div class="modal-body ">
-    <app-custom-filter (filterSubmitted)="onFilterSubmit($event)" [data]="filterData"></app-custom-filter>
+    <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
+  </div>
+</ng-template>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
   </div>
 </ng-template>
