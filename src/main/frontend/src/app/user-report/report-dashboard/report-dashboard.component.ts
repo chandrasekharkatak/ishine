@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import * as HighCharts from 'highcharts';
 import HC_exportData from "highcharts/modules/export-data";
 import { first, groupBy } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 HC_exportData(HighCharts);
 
 @Component({
@@ -14,15 +16,35 @@ HC_exportData(HighCharts);
 })
 export class ReportDashboardComponent implements OnInit {
 
+  @ViewChild("leave_summary_template")
+  leaveSummaryTemplate: TemplateRef<any>;
+
+  @ViewChild("timesheet_summary_template")
+  timesheetSummaryTemplate: TemplateRef<any>;
+
+  modalRef: BsModalRef = new BsModalRef();
+
   data:any;
   leaveSumarryList:any[] = [];
   timsheetSummaryList:any[] = [];
   allEmployeeList: any[] = [];
 
+  modalTitle:any;
+  modalSummaryList:any[] = [];
+
+  zeroToFive:any;
+  fiveToEight:any;
+  eightToNine:any;
+  nineToTen:any;
+  tenAndAbove:any;
+  noEODSubmitted:any;
+
   constructor(
     private leaveService : LeaveService,
     private timesheetService : TimesheetService,
-    private employeeService: EmployeeService
+    private modalService: BsModalService,
+    private employeeService: EmployeeService,
+    private exportExcelService: ExportExcelService
   ) { }
 
   ngOnInit(): void {
@@ -68,7 +90,7 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("leaveStatusData : ", leaveStatusData);
-        this.renderLeaveSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves');
+        this.renderLeaveSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
       } else {
         console.error(response.serviceResponse);
       }
@@ -88,13 +110,34 @@ export class ReportDashboardComponent implements OnInit {
         let approvedCount = 0;
         let rejectedCount = 0;
 
+        let zeroToFiveCount = 0;
+        let fiveToEightCount = 0;
+        let eightToNineCount = 0;
+        let nineToTenCount = 0;
+        let tenAndAboveCount = 0;
+        let noEODSubmittedCount = 0;
+
         this.timsheetSummaryList.forEach(timesheet => {
 
           if (timesheet.legend == "Pending") pendingCount++;
           else if (timesheet.legend == "Approved") approvedCount++;
           else if (timesheet.legend == "Rejected") rejectedCount++;
           else if (timesheet.legend == "Pending By User") pendingByUserCount++;
+
+          
+          if(timesheet.totalWorkingHours > 0 && timesheet.totalWorkingHours <= 5) zeroToFiveCount++;
+          else if(timesheet.totalWorkingHours > 5 && timesheet.totalWorkingHours <= 8) fiveToEightCount++;
+          else if(timesheet.totalWorkingHours > 8 && timesheet.totalWorkingHours <= 9) eightToNineCount++;
+          else if(timesheet.totalWorkingHours > 9 && timesheet.totalWorkingHours <= 10) nineToTenCount++;
+          else if(timesheet.totalWorkingHours > 10) tenAndAboveCount++;
         });
+
+        this.zeroToFive = ((zeroToFiveCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
+        this.fiveToEight = ((fiveToEightCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
+        this.eightToNine = ((eightToNineCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
+        this.nineToTen = ((nineToTenCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
+        this.tenAndAbove = ((tenAndAboveCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
+        this.noEODSubmitted = ((pendingByUserCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
 
         let timesheetData  = [{
           name: "Pending",
@@ -114,7 +157,7 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("timesheetData : ", timesheetData);
-        this.renderTimesheetStatusSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet');
+        this.renderTimesheetStatusSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
       } else {
         console.error(response.serviceResponse);
       }
@@ -240,7 +283,7 @@ export class ReportDashboardComponent implements OnInit {
     return age;
   }
 
-  renderLeaveSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any){
+  renderLeaveSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openLeaveMod:any){
     HighCharts.chart(chartId, {
       credits: {
         enabled: false
@@ -282,12 +325,30 @@ export class ReportDashboardComponent implements OnInit {
           borderWidth: 0,
           allowPointSelect: true,
           cursor: 'pointer',
+          events: {
+            click: function (event) {
+              if(event.point.name == "Pending"){
+                openLeaveMod("Pending");
+              }if(event.point.name == "Rejected"){
+                openLeaveMod("Rejected");
+              }if(event.point.name == "Approved"){
+                openLeaveMod("Approved");
+              }
+            }
+          },
           dataLabels: {
-            enabled: false,
+            enabled: true,
             format: '<b>{point.name}</b>: {point.y:.1f}'
           },
           showInLegend: true
         }
+      },
+      legend: {
+        enabled: true,
+        labelFormatter: function () {
+          const point:any = this;
+          return this.name + ` : ${point.y}`;
+      }
       },
       series: [{
         name: labelName,
@@ -299,7 +360,7 @@ export class ReportDashboardComponent implements OnInit {
     });
   }
 
-  renderTimesheetStatusSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any){
+  renderTimesheetStatusSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openTimesheetMod:any){
     HighCharts.chart(chartId, {
       credits: {
         enabled: false
@@ -326,8 +387,24 @@ export class ReportDashboardComponent implements OnInit {
           borderWidth: 0,
           allowPointSelect: true,
           cursor: 'pointer',
+          events: {
+            click: function (event) {
+              if(event.point.name == "Pending"){
+                openTimesheetMod("Pending");
+              }
+              if(event.point.name == "Approved"){
+                openTimesheetMod("Approved");
+              }
+              if(event.point.name == "Rejected"){
+                openTimesheetMod("Rejected");
+              }
+              if(event.point.name == "Pending By User"){
+                openTimesheetMod("Pending By User");
+              }
+            }
+          },
           dataLabels: {
-            enabled: false,
+            enabled: true,
             format: '<b>{point.name}</b>: {point.y:.1f}'
           },
           showInLegend: true
@@ -339,6 +416,13 @@ export class ReportDashboardComponent implements OnInit {
         type: undefined,
         data: chartData
       }],
+      legend: {
+        enabled: true,
+        labelFormatter: function () {
+          const point:any = this;
+          return this.name + ` : ${point.y}`;
+      }
+      },
       colors: ['#193d8a', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4']
     });
   }
@@ -452,6 +536,137 @@ export class ReportDashboardComponent implements OnInit {
         }]
       }]
     });
+  }
+
+
+  // export excel
+
+  exportToExcelLeaveSummary(): void {
+    const onlySpecificDataArr = this.modalSummaryList.map(
+      x => ({
+        "Employment ID": x.employeementId,
+        "Name":x.name,
+        "Department Name": x.departmentName,
+        "From Date": x.fromDate,
+        "To Date": x.toDate,
+        "Status": x.status
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  }
+
+  exportToExcelTimesheetSummary(): void {
+    const onlySpecificDataArr = this.modalSummaryList.map(
+      x => ({
+        "Employment ID": x.employeementId,
+        "Name":x.employeeName,
+        "Department Name": x.departmentName,
+        "Email": x.email,
+        "Manager Name": x.managerName,
+        "Mobile No.": x.mobileNo,
+        "Pending EOD Count": x.pendingEodCount,
+        "Tpye": x.legend
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  }
+
+  //Pagination
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
+  // Models
+
+  openEodSegregation(template: TemplateRef<any>, titleName: any){
+    let modalTableList = this.timsheetSummaryList;
+    this.modalSummaryList = [];
+    if(titleName == "Employee Worked Between 0 to 5 hour"){
+      console.log("titleName");
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 0 && x.totalWorkingHours <= 5);
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "Employee Worked Between 5 to 8 hour"){
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 5 && x.totalWorkingHours <= 8);
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "Employee Worked Between 8 to 9 hour"){
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 8 && x.totalWorkingHours <= 9);
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "Employee Worked Between 9 to 10 hour"){
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 9 && x.totalWorkingHours <= 10);
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "Employee Worked More than 10 hour"){
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 10);
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "No Timesheet Submitted"){
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+  }
+
+  openLeaveSummaryTableModel(statusName:any) {
+    let modalTableList = this.leaveSumarryList;
+    this.modalSummaryList = [];
+    if(statusName == "Pending"){
+      this.modalTitle = "Pending Leave Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.status == "Pending");
+      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
+    }
+    if(statusName == "Rejected"){
+      this.modalTitle = "Rejected Leave Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.status == "Rejected");
+      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
+    }
+    if(statusName == "Approved"){
+      this.modalTitle = "Approved Leave Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.status == "Approved");
+      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
+    }
+  }
+
+  openTimesheetSummaryTableModel(legendName:any){
+    let modalTableList = this.timsheetSummaryList;
+    this.modalSummaryList = [];
+    if(legendName == "Pending"){
+      this.page=1;
+      this.modalTitle = "Pending Timesheet Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending");
+      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    }
+    if(legendName == "Rejected"){
+      this.page=1;
+      this.modalTitle = "Rejected Timesheet Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.legend == "Rejected");
+      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    }
+    if(legendName == "Approved"){
+      this.page=1;
+      this.modalTitle = "Approved Timesheet Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.legend == "Approved");
+      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    }
+    if(legendName == "Pending By User"){
+      this.page=1;
+      this.modalTitle = "Pending By User Timesheet Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
+      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    }
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
   }
 
 }
