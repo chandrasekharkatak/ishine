@@ -1,4 +1,43 @@
-<!-- start :: Upload Document Form -->
+<!-- start :: Upload Document Table -->
+<div class="row d-flex">
+    <table class="table employee-table">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col" class="info-label">Document Type</th>
+                <th scope="col" class="info-label">Upload Status</th>
+                <th scope="col" class="info-label">Actions</th>
+                <th scope="col" colspan="3" class="info-label">Preview</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let document of documentList;let i = index">
+                <td>{{document.documentType}}</td>
+                <td>{{document.uploadStatus}}</td>
+                <td>
+                    <input class="uploadFile" id="doc{{i+1}}" type="file" accept="image/jpeg"
+                        (change)="onImageSelect($event, i, document, alert_message)">
+                    <label class="btn btn-sm btn-outline-primary m-0" for="doc{{i+1}}">Upload</label>&nbsp;
+                    <!-- <button *ngIf="document.uploadStatus == 'Completed'" class="btn btn-sm btn-outline-primary" type="submit" >Preview</button> -->
+                </td>
+                <td colspan="3">
+                    <img *ngIf="document.uploadStatus == 'Completed'" class="d-inline-block" id="docPreview{{i+1}}" alt="Document Preview"
+                    style="width: 300px;" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="row mt-3">
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSave(alert_message)">Save</button>
+    </div>
+</div>
+<!-- end :: Upload Document Table -->
+
+
+
+<!-- start :: Upload Document Form 
 <div class="row">
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
@@ -71,7 +110,13 @@
         </div>
     </div>  
 </div>
-<!-- end :: Upload Document form -->
+<-- end :: Upload Document form -->
+
+<ng-template #upload_document>
+    <div class="modal-body">
+
+    </div>
+</ng-template>
 
 <ng-template #alert_message>
     <div class="modal-body text-center">

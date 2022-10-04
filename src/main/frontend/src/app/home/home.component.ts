@@ -780,6 +780,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
 
+  //Employee Info Update
+  openUpdateInfo(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false});
+  }
+
+  onDocSubmit(){
+    this.cancelRequest();
+  } 
+
   //export to excel
 
   exportToExcelForLeave() {
@@ -850,10 +859,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   openReqMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-  }
-
-  openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false});
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

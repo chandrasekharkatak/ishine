@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Employee } from 'src/app/models/employee';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 
@@ -10,6 +10,7 @@ import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 export class InformationPreviewComponent implements OnInit {
 
   currentEmployeeInfo:Employee = new Employee();
+  @Output() previewSubmit:EventEmitter<any> = new EventEmitter<any>();
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
@@ -20,11 +21,12 @@ export class InformationPreviewComponent implements OnInit {
   }
 
   async onSubmit() {
-    const response:any = this.updateUserInfoService.updateEmployeeInfo();
+    const response:any = await this.updateUserInfoService.updateEmployeeInfo();
     console.log("onUpdate --> Preview : ", response);
     
     if (response.serviceStatus == "Success") {
       console.log(response.serviceResponse);
+      this.previewSubmit.emit();
     } else {
       console.error(response.serviceResponse);
     }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.EventPhotoDTO;
 import com.apmosys.employeeportal.service.ImageService;
@@ -56,6 +57,20 @@ public class ImageController {
 			@RequestParam("empId")Long empId) {		
 		
 		ServiceResponse response =	imageService.uploadEmployeeDocument(images,uploadedBy,employeementId,empId);		
+		return response;
+	}
+	
+	@RequestMapping(value="/saveEmployeeDocuments" , method = RequestMethod.POST)
+	public ServiceResponse saveEmployeeDocuments(@RequestBody EmployeeDTO employeeDTO) {		
+		
+		ServiceResponse response =	imageService.saveEmployeeDocuments(employeeDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getEmployeeDocuments" , method = RequestMethod.POST)
+	public ServiceResponse getEmployeeDocuments(@RequestBody EmployeeDTO employeeDTO) {		
+		
+		ServiceResponse response =	imageService.getEmployeeDocuments(employeeDTO);		
 		return response;
 	}
 }

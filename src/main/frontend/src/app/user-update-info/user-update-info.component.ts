@@ -1,6 +1,8 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, SecurityContext, ViewChild, } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Employee } from '../models/employee';
+import { ImageService } from '../services/image.service';
 import { UpdateUserInfoService } from '../services/updateUserInfo.service';
 import { EmployeeUpdateListComponent } from './employee-update-list/employee-update-list.component';
 
@@ -17,13 +19,20 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   isDocumentUpload: boolean = false;
   isInfoPreview: boolean = false;
 
+  isPreview:boolean = false;
+
   @ViewChild("draftTable") 
   private myDraftTable: EmployeeUpdateListComponent;
 
   draftObj:Employee = new Employee();
+  previewObj:Employee = new Employee();
+
+  @Output() docSubmit:EventEmitter<any> = new EventEmitter<any>();
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
+    private imageService : ImageService,
+    private sanitizer: DomSanitizer,
   ) { }
 
   ngOnInit(): void {
@@ -76,11 +85,52 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     document.querySelector('#info-preview')?.classList.toggle('active');
   }
 
+  async showPreview(employeeObj:any){
+    console.log("employeeObj : ", employeeObj);
+    
+    let currentEmp = new Employee();
+    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.empId = employeeObj.empId;
+    currentEmp.isDraft = true;
+
+    this.previewObj = employeeObj;
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.previewObj.documentList = docResponse.serviceResponse;
+      console.log("this.previewObj.documentList : ", this.previewObj.documentList);
+    } else {
+      console.log(docResponse.serviceResponse);
+    }
+  
+    this.isPreview = true;
+
+    setTimeout(()=>{
+      this.previewObj.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500);
+  }
+
+  onBack(){
+    this.isPreview = false;
+    this.isDraftAvailable = true;
+  }
+
 
   onDraftEdit(isDraft: boolean) {
     this.isDraftAvailable = isDraft;
     this.updateUserInfoService.setUserInfoObj(this.draftObj)
     this.showEmployeeInfoForm();
+  }
+
+  onPreviewSubmit(){
+    this.docSubmit.emit();
   }
 
 }

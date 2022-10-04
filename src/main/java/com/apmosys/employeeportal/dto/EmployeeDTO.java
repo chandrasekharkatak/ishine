@@ -96,4 +96,6 @@ public class EmployeeDTO {
 	
 	private String remarks;
 	private Long updatedBy;
+	
+	private List<EmployeeDocumentDTO> documentList;
 }

@@ -623,13 +623,16 @@ export class UserProfileComponent implements OnInit {
     });
   }
 
-
-
-  // Modal
+  //Employee Info Update 
   openUpdateInfo(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false});
   }
 
+  onDocSubmit(){
+    this.cancelRequest();
+  }
+
+  // Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;

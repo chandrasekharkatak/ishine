@@ -234,41 +234,25 @@ public class ImageService {
 			if (employeeObject.isPresent()) {
 				
 				if(!images.isEmpty()) {
-					String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + employeementId)).toString();
-			//		imageUploader(images,newPath, savedFiles);
+					String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator+ "Documents" + File.separator +  "Draft" + File.separator + employeementId)).toString();
+			
 					for(MultipartFile image: images){
 		                byte[] bytes = image.getBytes();
+		                String extension = FilenameUtils.getExtension(image.getOriginalFilename());
 		                Path path = Paths.get(newPath +  File.separator +image.getOriginalFilename());
 		                
-//		                File checkExistingFile = new File(path.toString());
-//		                if(!checkExistingFile.exists()) {
-							Files.write(path, bytes);
+		                System.out.println("path : "+ path);
+		                
+		                Files.write(path, bytes);
 
-							File savedFile = new File(path.toString());
+						File savedFile = new File(path.toString());
 
-							if (savedFile.exists()) {
-								savedFiles.add(savedFile);
-							}
-//		                }else {
-//		                	errorMsg = image.getOriginalFilename() + " already exist,";
-//							break;
-//		                }
+						if (savedFile.exists()) {
+							savedFiles.add(savedFile);
+						}
 		            }
 					
 					if(images.size() == savedFiles.size()) {
-						for(MultipartFile image: images){
-							
-							EmployeeDocument newDoc = new EmployeeDocument();
-							newDoc.setDocumentName(image.getOriginalFilename());
-							newDoc.setEmpId(empId);
-							newDoc.setEmployeementId(employeementId);
-							
-							CommonProperties commonProp = new CommonProperties();
-				            commonProp.setCreatedBy(uploadedBy);
-				            newDoc.setCommonProperty(commonProp);
-				               
-				            employeeDocumentRepository.save(newDoc);
-						}
 						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			             response.setServiceResponse("image Uploaded.");
 					}else {
@@ -294,6 +278,145 @@ public class ImageService {
 
 		return response;
 	}
+
+	public ServiceResponse saveEmployeeDocuments(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<EmployeeDocument> documentList = new ArrayList<EmployeeDocument>();
+		
+		try {
+
+			if(!employeeDTO.getDocumentList().isEmpty()) {
+				for(EmployeeDocumentDTO doc : employeeDTO.getDocumentList()) {
+					
+					if(doc.getEmployeeDocumentId() != null) {
+						Optional<EmployeeDocument> checkDoc = employeeDocumentRepository.findByEmployeeDocumentIdAndIsDraft(doc.getEmployeeDocumentId(), employeeDTO.getIsDraft());
+						
+						if(checkDoc.isPresent()) {
+							
+							if(!checkDoc.get().getDocumentName().equals(doc.getDocumentName())) {
+								EmployeeDocument newDoc =  checkDoc.get();
+								
+								File savedFile = new File(imageFileLocation + File.separator+ "Documents" + File.separator +  "Draft" + File.separator + newDoc.getEmployeementId() + File.separator + newDoc.getDocumentName());
+								
+								if(savedFile.delete()) {
+
+									newDoc.setDocumentName(doc.getDocumentName());
+									
+									CommonProperties commonProp = new CommonProperties();
+									commonProp.setCreatedBy(doc.getCreatedBy());
+						            commonProp.setUpdatedBy(employeeDTO.getEmpId());
+						            newDoc.setCommonProperty(commonProp);
+									
+									documentList.add(newDoc);
+								}
+							}else {
+								documentList.add(checkDoc.get());
+							}
+						}else {
+							EmployeeDocument newDoc = new EmployeeDocument();
+							newDoc.setDocumentName(doc.getDocumentName());
+							newDoc.setDocumentType(doc.getDocumentType());
+							newDoc.setEmpId(employeeDTO.getEmpId());
+							newDoc.setEmployeementId(employeeDTO.getEmployeementId());
+							newDoc.setIsDraft(employeeDTO.getIsDraft()); 
+							
+							CommonProperties commonProp = new CommonProperties();
+				            commonProp.setCreatedBy(employeeDTO.getEmpId());
+				            newDoc.setCommonProperty(commonProp);
+				            
+				            documentList.add(newDoc);
+						}	
+					}else {
+						EmployeeDocument newDoc = new EmployeeDocument();
+						newDoc.setDocumentName(doc.getDocumentName());
+						newDoc.setDocumentType(doc.getDocumentType());
+						newDoc.setEmpId(employeeDTO.getEmpId());
+						newDoc.setEmployeementId(employeeDTO.getEmployeementId());
+						newDoc.setIsDraft(employeeDTO.getIsDraft()); 
+						
+						CommonProperties commonProp = new CommonProperties();
+			            commonProp.setCreatedBy(employeeDTO.getEmpId());
+			            newDoc.setCommonProperty(commonProp);
+			            
+			            documentList.add(newDoc);
+					}
+				}
+				
+				System.out.println(" ================= documentList ===================");				
+				System.out.println(documentList);
+				System.out.println(" ================= documentList ===================");
+				
+				List<EmployeeDocument> uploadedDocList = employeeDocumentRepository.saveAll(documentList);
+				
+				if(!uploadedDocList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse("Documents Uploaded.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse("Failed to upload Documents.");
+				}
+			}else {
+				response.setServiceResponse("Uploaded Documents Not Found !!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		
+		return response;
+	}
+	
+	public ServiceResponse getEmployeeDocuments(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<EmployeeDocumentDTO> documentList = new ArrayList<EmployeeDocumentDTO>();
+		
+		try {
+			
+			List<EmployeeDocument> documents = employeeDocumentRepository.findByEmpIdAndIsDraft(employeeDTO.getEmpId(), employeeDTO.getIsDraft());
+
+			if(!documents.isEmpty()) {
+				for(EmployeeDocument doc : documents) {
+					
+					EmployeeDocumentDTO docDTO = new EmployeeDocumentDTO();
+					
+					docDTO.setEmployeeDocumentId(doc.getEmployeeDocumentId());
+					docDTO.setDocumentName(doc.getDocumentName());
+					docDTO.setDocumentType(doc.getDocumentType());
+					docDTO.setIsDraft(doc.getIsDraft());
+					
+					byte[] imageByte;
+					
+					try {
+						imageByte = Files.readAllBytes(Paths.get(imageFileLocation + File.separator+ "Documents" + File.separator +  "Draft" + File.separator + doc.getEmployeementId() + File.separator + doc.getDocumentName()));
+						docDTO.setDocumentBytes(imageByte);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+		            documentList.add(docDTO);
+				}
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(documentList);
+			}else {
+				response.setServiceResponse("Documents Not Found !!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		
+		return response;
+	}
+	
 	
 //	public List<File> imageUploader(List<MultipartFile> images, String locationOfImage, List<File> savedFiles) {
 //		String errorMsg = "";

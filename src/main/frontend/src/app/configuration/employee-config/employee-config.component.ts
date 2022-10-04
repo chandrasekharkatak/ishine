@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Pipe, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, Pipe, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -15,6 +15,8 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
+import { ImageService } from 'src/app/services/image.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-employee-config',
@@ -97,6 +99,8 @@ export class EmployeeConfigComponent implements OnInit {
   yearOfPassingList:any[] = [];
   revoke_template: any;
 
+  previewObj:Employee = new Employee();
+
   constructor(
     private employeeService: EmployeeService,
     public validationService: ValidationService,
@@ -105,7 +109,9 @@ export class EmployeeConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private imageService : ImageService,
+    private sanitizer: DomSanitizer,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -1096,6 +1102,43 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
   
+  // Employee Info Preview 
+  async openEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
+
+    console.log("employeeObj : ", employeeObj);
+    
+    let currentEmp = new Employee();
+    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.empId = employeeObj.empId;
+    currentEmp.isDraft = true;
+
+    const infoResponse: any = await this.employeeService.getDraftEmployeeByEmploymentId(currentEmp).toPromise();
+    if (infoResponse.serviceStatus == "Success") {
+      this.previewObj = infoResponse.serviceResponse;
+      console.log("this.previewObj : ", this.previewObj);
+    } else {
+      console.error(infoResponse.serviceResponse)
+    }
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.previewObj.documentList = docResponse.serviceResponse;
+      console.log("this.previewObj.documentList : ", this.previewObj.documentList);
+    } else {
+      console.log(docResponse.serviceResponse);
+    }
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    setTimeout(()=>{
+      this.previewObj.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500)
+  }
 
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {

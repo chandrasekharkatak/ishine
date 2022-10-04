@@ -141,7 +141,7 @@ public class DraftEmployeeService {
 
 			if (dbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Draft Employee Profile Created.");
+				response.setServiceResponse(dbResponse);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Profile Creation Failed.");
@@ -531,7 +531,7 @@ public class DraftEmployeeService {
 
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Draft Employee Profile Updated.");
+					response.setServiceResponse(dbResponse);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Draft Employee Profile Updation Failed.");

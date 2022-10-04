@@ -307,7 +307,7 @@
                             <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
-                                        <p class="info-label">Employer Name</p>
+                                        <p class="info-label">Employer Name - {{i+1}}</p>
                                         <p class="info-text">{{previousEmployer.employerName}}</p>
                                     </div>
                                 </div>

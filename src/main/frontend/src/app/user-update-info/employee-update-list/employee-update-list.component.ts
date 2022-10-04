@@ -1,4 +1,7 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, SecurityContext, Input } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Employee } from 'src/app/models/employee';
+import { ImageService } from 'src/app/services/image.service';
 
 @Component({
   selector: 'app-employee-update-list',

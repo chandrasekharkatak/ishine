@@ -2,3 +2,13 @@
     color: var(--dark-cornflower-blue);
     font-weight: bold;
 }
+
+.breadcrumb-link{
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.restricted{
+    pointer-events: none;
+    cursor: default;
+}

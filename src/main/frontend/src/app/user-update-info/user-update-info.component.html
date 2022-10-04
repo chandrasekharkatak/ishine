@@ -5,14 +5,14 @@
 <div *ngIf="!isDraftAvailable" class="container-fluid px-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li id="employee-info" class="breadcrumb-item" (click)="showEmployeeInfoForm()">Employee Information</li>
-            <li id="document-upload" class="breadcrumb-item" (click)="showDocumentUploadForm()">Document Upload</li>
-            <li id="info-preview" class="breadcrumb-item" (click)="showInfoPreviewForm()">Preview</li>
+            <li id="employee-info" class="breadcrumb-item breadcrumb-link" (click)="showEmployeeInfoForm()">Employee Information</li>
+            <li id="document-upload" class="breadcrumb-item breadcrumb-link" [class.restricted]="isEmployeeInfo" (click)="showDocumentUploadForm()">Document Upload</li>
+            <li id="info-preview" class="breadcrumb-item breadcrumb-link" [class.restricted]="isEmployeeInfo || isDocumentUpload" (click)="showInfoPreviewForm()">Preview</li>
         </ol>
     </nav>
     <div class="container-fluid px-4">
         <app-employee-info *ngIf="isEmployeeInfo"  (loadDocumentUpload)="showDocumentUploadForm()"></app-employee-info>
         <app-document-upload *ngIf="isDocumentUpload" (loadInfoPreview)="showInfoPreviewForm()"></app-document-upload>
-        <app-information-preview *ngIf="isInfoPreview"></app-information-preview>
+        <app-information-preview *ngIf="isInfoPreview" (previewSubmit)="onPreviewSubmit()"></app-information-preview>
     </div>
 </div>

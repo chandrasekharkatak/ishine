@@ -643,12 +643,8 @@
                 <div class="col-md-12">
                     <button *ngIf="(isCreation && userMapping.create_employee) || (isDraft && userMapping.save_draft)" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onCreateEmployee(alert_message)">Create Employee</button>
-                    <button *ngIf="isCreation && userMapping.save_draft" type="submit" class="btn btn-outline-primary btn-sm mx-1"
-                    (click)="onSaveDraftEmployee(alert_message)">Save Draft</button>
                     <button *ngIf="isUpdation && userMapping.update_employee" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onUpdateEmployee(alert_message)">Update Employee</button>
-                    <button *ngIf="isDraft && userMapping.update_draft" type="submit" class="btn btn-outline-primary btn-sm mx-1"
-                    (click)="onUpdateDraftEmployee(alert_message)">Update Draft</button>
                 </div>
             </div>
           </div>
@@ -700,7 +696,7 @@
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
                 <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
-                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View"><em>view</em></button>&nbsp;
+                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View" (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>&nbsp;
                 <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
                 <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button>
             </td>
@@ -750,5 +746,466 @@
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.remarks"> </textarea><br>
         <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)" (click)="rejectDraftEmployeeApplication(alert_message)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #employee_info_preview>
+    <div class="modal-header">
+        <b>Employee Information</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body py-0">
+        <!-- start :: Preview Form -->
+        <div class="row ">
+            <div class="card px-3">
+                <div class="card-body">
+                    <div class="row">
+                        <app-accordion>
+                            <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Your views on our Organisation</p>
+                                                <p class="info-text">{{previewObj.viewsOnOrganisation}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Gender</p>
+                                                <p class="info-text info-highlight">{{previewObj.gender}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date of birth</p>
+                                                <p class="info-text">{{previewObj.dateOfBirth}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">About me</p>
+                                                <p class="info-text">{{previewObj.aboutMe}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Employee code</p>
+                                                <p class="info-text info-highlight">
+                                                    A-{{previewObj.employeementId}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Blood group</p>
+                                                <p class="info-text">{{previewObj.bloodGroup}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+
+                            <app-accordion-item class="acc-content" title="Personal Information" [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Father's Name</p>
+                                                <p class="info-text">{{previewObj.fatherName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Place of Birth</p>
+                                                <p class="info-text">{{previewObj.placeOfBirth}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Mother Tongue</p>
+                                                <p class="info-text">{{previewObj.motherTongue}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Martial Status</p>
+                                                <p class="info-text">{{previewObj.maritalStatus}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Passport Number</p>
+                                                <p class="info-text">{{previewObj.passportNumber}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Aadhar Number</p>
+                                                <p class="info-text">{{previewObj.aadhar}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">PAN Number</p>
+                                                <p class="info-text">{{previewObj.panNumber}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+
+                            <app-accordion-item class="acc-content" title="Contact Information" [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Mobile No.</p>
+                                                <p class="info-text">{{previewObj.mobileNo}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Landline No.</p>
+                                                <p class="info-text">022-{{previewObj.landline}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Current Address</p>
+                                                <p class="info-text">{{previewObj.address}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">State</p>
+                                                <p class="info-text">{{previewObj.state}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">City/Town</p>
+                                                <p class="info-text info-highlight">{{previewObj.city}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Country</p>
+                                                <p class="info-text info-highlight">{{previewObj.country}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label ">Pincode</p>
+                                                <p class="info-text info-highlight">{{previewObj.pincode}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Official Mobile No.</p>
+                                                <p class="info-text">{{previewObj.alternateMobileNo}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label ">Permanent Address</p>
+                                                <p class="info-text">{{previewObj.permanentAddress}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label ">Emergency Contact Person</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewObj.emergencyContactPerson}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Relation</p>
+                                                <p class="info-text">{{previewObj.relation}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label ">Emergency Contact Mobile Number</p>
+                                                <p class="info-text">{{previewObj.emergencyContactMobile}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+
+                            <app-accordion-item class="acc-content" title="Educational Information" [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Graduation</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewObj.graduationType}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Pursuing</p>
+                                                <p class="info-text info-highlight">{{previewObj.pursuing}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Year of Passing</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewObj.yearOfPassing}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Passing Grade</p>
+                                                <p class="info-text">{{previewObj.passingGrade}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="previewObj.certifications" class="row">
+                                        <hr>
+                                        <h4 class="info-label">Certifications</h4>
+                                        <div *ngFor="let certification of previewObj.certifications;let i = index"
+                                            class="row">
+                                            <div class="col-md-4 mb-0">
+                                                <div class="info-wrapper">
+                                                    <p class="info-label">Certification Name - {{i+1}}</p>
+                                                    <p class="info-text info-highlight">
+                                                        {{certification.certificationName}}</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-0">
+                                                <div class="info-wrapper">
+                                                    <p class="info-label">Duration</p>
+                                                    <p class="info-text info-highlight">{{certification.duration}}</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-0">
+                                                <div class="info-wrapper">
+                                                    <p class="info-label">Mode of Course</p>
+                                                    <p class="info-text info-highlight">{{certification.modeOfCourse}}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-0">
+                                                <div class="info-wrapper">
+                                                    <p class="info-label">Date of completion</p>
+                                                    <p class="info-text info-highlight">
+                                                        {{certification.dateOfCompletion}}</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-0">
+                                                <div class="info-wrapper">
+                                                    <p class="info-label">Certification Number</p>
+                                                    <p class="info-text info-highlight">
+                                                        {{certification.certificationNumber}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+
+                            <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date Of Joining</p>
+                                                <p class="info-text">{{previewObj.dateOfJoining}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Employment Status</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewObj.employmentstatus}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Notice Period</p>
+                                                <p class="info-text">{{previewObj.noticePeriod}} Days</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Manager</p>
+                                                <p class="info-text info-highlight">{{previewObj.managerName}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Department Name</p>
+                                                <p class="info-text">{{previewObj.departmentName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Job Role Name</p>
+                                                <p class="info-text">{{previewObj.jobRoleName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Exprience</p>
+                                                <p class="info-text">{{previewObj.experience}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Work Location <small>(State)</small></p>
+                                                <p class="info-text info-highlight">{{previewObj.workLocation}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+
+                            <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
+                            <app-accordion-item *ngIf="previewObj.experience == 'Exprienced'"
+                                class="acc-content" title="Previous Employment Information" [showBody]="true">
+                                <div class="container-fluid">
+                                    <div *ngFor="let previousEmployer of previewObj.previousEmploymentList;let i = index"
+                                        class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Employer Name - {{i+1}}</p>
+                                                <p class="info-text">{{previousEmployer.employerName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date Of Joining</p>
+                                                <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date of Relieving</p>
+                                                <p class="info-text">{{previousEmployer.dateOfRelieving}} Days</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Years of Experience</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previousEmployer.yearsOfExperience}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Designation</p>
+                                                <p class="info-text">{{previousEmployer.designation}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Manager Name</p>
+                                                <p class="info-text">{{previousEmployer.managerName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Manager Contact Number</p>
+                                                <p class="info-text">{{previousEmployer.managerContactNumber}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">HR Name</p>
+                                                <p class="info-text">{{previousEmployer.hrName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">HR Contact Number</p>
+                                                <p class="info-text">{{previousEmployer.hrContactNumber}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+
+                            <app-accordion-item class="acc-content" title="Bank/PF Account Information"
+                                [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Bank Name</p>
+                                                <p class="info-text">{{previewObj.bankName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Bank Account Number</p>
+                                                <p class="info-text">{{previewObj.bankAccountNo}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">IFSC</p>
+                                                <p class="info-text">{{previewObj.bankIFSCCode}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">PF Account Number</p>
+                                                <p class="info-text">{{previewObj.pfAccountNumber}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Previous PF Account Number</p>
+                                                <p class="info-text">{{previewObj.previousPfAccountNumber}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">UAN</p>
+                                                <p class="info-text">{{previewObj.uan}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">ESIC Account Number</p>
+                                                <p class="info-text">{{previewObj.esicNumber}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+                            <app-accordion-item class="acc-content" title="Employee Documents"
+                                [showBody]="true">
+                                <div class="container-fluid">
+                                    <div class="row flex-column px-4" *ngFor="let document of previewObj.documentList;let i = index">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">{{document.documentType}}</p>
+                                        </div>
+                                        <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview"/>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
+                        </app-accordion>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success btn-sm mx-1">Approve</button>
+                            <button type="submit" class="btn btn-danger btn-sm mx-1">Reject</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end :: Preview form -->
     </div>
 </ng-template>

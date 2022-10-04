@@ -13,9 +13,14 @@ public class EmployeeDocumentDTO {
 	private String documentName;
 	private byte[] documentBytes;
 	
+	private String documentType;
+	private String uploadStatus;
+	private String isDraft;
+	
 	private Long updatedBy;
 	private Long createdBy;
 	private String createdByName;
 	private String createdOn;
+	
 	
 }

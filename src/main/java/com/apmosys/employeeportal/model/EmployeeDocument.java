@@ -26,6 +26,10 @@ public class EmployeeDocument {
 	
 	private String documentName;
 	
+	private String documentType;
+	
+	private String isDraft;
+	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	

@@ -81,4 +81,5 @@ export class Employee{
 	dateOfResign:any;
 
 	remarks:any;
+	documentList:any;
 }

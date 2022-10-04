@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Employee } from '../models/employee';
 import { EventPhoto } from '../models/EventPhoto';
 
 @Injectable({
@@ -25,5 +26,13 @@ export class ImageService {
   /* Document Upload */
   uploadEmployeeDocument(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`employeeportal/api/uploadEmployeeDocument`,formData);
+  }
+
+  saveEmployeeDocuments(employeeObj: Employee){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/saveEmployeeDocuments`, employeeObj);
+  }
+
+  getEmployeeDocuments(employeeObj: Employee){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getEmployeeDocuments`, employeeObj);
   }
 }
