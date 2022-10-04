@@ -99,4 +99,6 @@ public class EmployeeDTO {
 	private Float totalExperience;
 	private String billable;
 	
+	private String managerEmail;
+	
 }
