@@ -530,6 +530,13 @@ public class EmployeeService {
 					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
 					empDTO.setDateOfResign(
 							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
+					empDTO.setBillable(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild1(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setChild2(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setChild3(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setMothersName(object[59] != null ? (object[59].toString()) : null);
+					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
+					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -704,7 +711,14 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setDateOfResign(employeedto.getDateOfResign() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
-						: null);			
+						: null);
+				employee.setBillable(employeedto.getBillable());
+				employee.setChild1(employeedto.getChild1());
+				employee.setChild2(employeedto.getChild2());
+				employee.setChild3(employeedto.getChild3());
+				employee.setMothersName(employeedto.getMothersName());
+				employee.setSpouse(employeedto.getSpouse());
+				employee.setTotalExperience(employeedto.getTotalExperience());
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -941,6 +955,13 @@ public class EmployeeService {
 					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
 					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
 					empDTO.setExperience(object[52] != null ? object[52].toString() : null);
+					empDTO.setBillable(object[53] != null ? (object[53].toString()) : null);
+					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
+					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1156,6 +1177,13 @@ public class EmployeeService {
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setExperience(employeedto.getExperience());
+				employee.setBillable(employeedto.getBillable());
+				employee.setChild1(employeedto.getChild1());
+				employee.setChild2(employeedto.getChild2());
+				employee.setChild3(employeedto.getChild3());
+				employee.setMothersName(employeedto.getMothersName());
+				employee.setSpouse(employeedto.getSpouse());
+				employee.setTotalExperience(employeedto.getTotalExperience());
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {

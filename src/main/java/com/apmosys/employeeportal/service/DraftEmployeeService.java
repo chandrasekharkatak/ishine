@@ -98,7 +98,14 @@ public class DraftEmployeeService {
 			employee.setExperience(employeedto.getExperience());
 			employee.setRole(employeedto.getRole());
 			employee.setWorkLocation(employeedto.getWorkLocation());
-		
+			employee.setBillable(employeedto.getBillable());
+			employee.setChild1(employeedto.getChild1());
+			employee.setChild2(employeedto.getChild2());
+			employee.setChild3(employeedto.getChild3());
+			employee.setMothersName(employeedto.getMothersName());
+			employee.setSpouse(employeedto.getSpouse());
+			employee.setTotalExperience(employeedto.getTotalExperience());
+			
 			
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 			
@@ -236,7 +243,13 @@ public class DraftEmployeeService {
 					empDTO.setExperience(object[50] != null ? (object[50].toString()) : null);
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
-
+					empDTO.setBillable(object[53] != null ? (object[53].toString()) : null);
+					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
+					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -406,6 +419,13 @@ public class DraftEmployeeService {
 				employee.setExperience(employeedto.getExperience());
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
+				employee.setBillable(employeedto.getBillable());
+				employee.setChild1(employeedto.getChild1());
+				employee.setChild2(employeedto.getChild2());
+				employee.setChild3(employeedto.getChild3());
+				employee.setMothersName(employeedto.getMothersName());
+				employee.setSpouse(employeedto.getSpouse());
+				employee.setTotalExperience(employeedto.getTotalExperience());
 				
 				// Certification
 				// Case 1 : Updating Existing certification 
