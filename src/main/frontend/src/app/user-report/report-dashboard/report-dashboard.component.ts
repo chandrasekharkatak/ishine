@@ -22,7 +22,13 @@ export class ReportDashboardComponent implements OnInit {
   @ViewChild("timesheet_summary_template")
   timesheetSummaryTemplate: TemplateRef<any>;
 
+  @ViewChild("employee_status_template")
+  employeeStatusTemplate: TemplateRef<any>;
+
   modalRef: BsModalRef = new BsModalRef();
+
+  isleaveTimesheetDashboard:boolean = false;
+  isEmployeeDashboard:boolean = false;
 
   data:any;
   leaveSumarryList:any[] = [];
@@ -39,6 +45,8 @@ export class ReportDashboardComponent implements OnInit {
   tenAndAbove:any;
   noEODSubmitted:any;
 
+  countOfAllEmployees:any;
+
   constructor(
     private leaveService : LeaveService,
     private timesheetService : TimesheetService,
@@ -48,13 +56,31 @@ export class ReportDashboardComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.get8DaysLeaveReport();
-    this.get9DayTimesheetReport();
-    this.getAllEmployeeList();
     //this.renderLeaveSummaryChart('Leave Summary','leaveSummaryChart',this.data,'Leave Summary Chart');
   //  this.renderTimesheetStatusSummaryChart('EOD Status Summary','EODStatusSummary',this.data,'EOD Status Chart');
-    this.renderEmployeeSummaryChart('Employee Summary','employeeSummary',this.data,'Employee Summary Chart');
-    this.renderProjectStatus('Project Summary','projectStatus',this.data,'Project Status Chart');
+    // this.renderEmployeeSummaryChart('Employee Summary','employeeSummary',this.data,'Employee Summary Chart');
+    // this.renderProjectStatus('Project Summary','projectStatus',this.data,'Project Status Chart');
+  
+    this.sectionViewInit();
+  }
+
+  sectionViewInit(){
+    this.leaveTimesheetDashboard();
+  }
+
+  leaveTimesheetDashboard(){
+    this.isleaveTimesheetDashboard = true;
+    this.isEmployeeDashboard = false;
+
+    this.get8DaysLeaveReport();
+    this.get9DayTimesheetReport();
+  }
+
+  employeeDashboard(){
+    this.isEmployeeDashboard = true;
+    this.isleaveTimesheetDashboard = false;
+
+    this.getAllEmployeeList();
   }
 
   get8DaysLeaveReport(){
@@ -90,7 +116,7 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("leaveStatusData : ", leaveStatusData);
-        this.renderLeaveSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
+        this.renderPieSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
       } else {
         console.error(response.serviceResponse);
       }
@@ -157,7 +183,7 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("timesheetData : ", timesheetData);
-        this.renderTimesheetStatusSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
+        this.renderPieSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
       } else {
         console.error(response.serviceResponse);
       }
@@ -184,8 +210,8 @@ export class ReportDashboardComponent implements OnInit {
   extractData() {
    
     //Total Count
-    let countOfAllEmployees = this.allEmployeeList.length;
-    console.log("Count of all employees : ",countOfAllEmployees);    
+    this.countOfAllEmployees = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive').length;
+    console.log("Count of all employees : ",this.countOfAllEmployees);    
 
     //Fresher / Lateral Graph (Fresher/Experienced)
     //Graph Based Employment Status(Probation/Confirmed/Resigned/In-Active)
@@ -193,16 +219,20 @@ export class ReportDashboardComponent implements OnInit {
     //Age Wise Graph
     let fresherCount = 0;
     let experienceCount = 0;
+
     let probationCount = 0;
     let confirmedCount = 0;
     let resignedCount = 0;
     let inActiveCount = 0;
+
     let maleCount = 0;
     let femaleCount = 0;
+
     let countBetween18and25 = 0;
     let countBetween25and35 = 0;
     let countBetween35and45 = 0;
     let countAbove45 = 0;
+
     this.allEmployeeList.forEach((employee)=>{
 
       if(employee.experience == 'Fresher') fresherCount++;
@@ -211,7 +241,7 @@ export class ReportDashboardComponent implements OnInit {
       if (employee.employmentstatus == "Probation") probationCount++;
           else if (employee.employmentstatus == "Confirmed") confirmedCount++;
           else if (employee.employmentstatus == "Resigned") resignedCount++;
-          else if (employee.employmentstatus == "In-Active") inActiveCount++;
+          else if (employee.employmentstatus == "InActive") inActiveCount++;
       
       if(employee.gender == 'male') maleCount++;
       else if(employee.gender == 'female') femaleCount++;
@@ -256,8 +286,80 @@ export class ReportDashboardComponent implements OnInit {
     console.log("Age above 45: ",countAbove45);
     console.log("----------------------------------------------------") 
 
-    
-    
+    /*
+    Chart Data for - Employee Status Graph.
+    */
+    let employeeStatusData  = [{
+          name: "Probation",
+          y: probationCount
+        },
+        {
+          name: "Confirmed",
+          y: confirmedCount
+        },
+        {
+          name: "Resigned",
+          y: resignedCount
+        },
+        {
+          name: "In-Active",
+          y: inActiveCount
+        }];
+
+        console.log("leaveStatusData : ", employeeStatusData);
+        this.renderPieSummaryChart('Employee Status Summary', 'employeeStatus', employeeStatusData, 'Employee Status', this.openEmployeeStatusTableModal.bind(this));
+
+
+        /*
+        Chart Data for - Department Wise Employee Summary Graph.
+       */
+
+        let departmentWiseEmployeeData = employeeByDepartment.map(dept => {
+          return [dept.departmentName, dept.employeeCount]
+        })
+        console.log("departmentWiseEmployeeData : ", departmentWiseEmployeeData);
+        this.renderColumnBarSummaryChart('Department Wise Employee','departmentWiseEmployee',departmentWiseEmployeeData,'Department');
+
+        /*
+        Chart Data for - Male / Female - Gender Summary Graph.
+       */
+
+        let genderData  = [{
+          name: "male",
+          y: maleCount
+        },
+        {
+          name: "female",
+          y: femaleCount
+        }];
+
+        console.log("genderData : ", genderData);
+        this.renderPieSummaryChart('Male / Female Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
+
+         /*
+        Chart Data for - Age Summary Graph.
+       */
+
+        let employeeAgeData  = [{
+          name: "18 to 25",
+          y: countBetween18and25
+        },
+        {
+          name: "25 to 35",
+          y: countBetween25and35
+        },
+        {
+          name: "35 to 45",
+          y: countBetween35and45
+        },
+        {
+          name: "45+",
+          y: countAbove45
+        }];
+
+        console.log("employeeAgeData : ", employeeAgeData);
+        this.renderPieSummaryChart('Age Summary', 'employeeAgeSummary', employeeAgeData, 'Employee Summary', this.openAgeSummayModalTable.bind(this));
+
   }
 
   groupBy(objectArray, property) {
@@ -283,7 +385,27 @@ export class ReportDashboardComponent implements OnInit {
     return age;
   }
 
-  renderLeaveSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openLeaveMod:any){
+  // leave / Timesheet Summary Dashboard Chart
+
+  renderPieSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
+    let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+
+    if(chartId == "leaveSummaryChart"){
+        colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+    }
+    if(chartId == "timesheetStatusSummary"){
+      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+    }
+    if(chartId == "employeeStatus"){
+      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+    }
+    if(chartId == "genderSummary"){
+      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+    }
+    if(chartId == "employeeAgeSummary"){
+      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+    }
+
     HighCharts.chart(chartId, {
       credits: {
         enabled: false
@@ -327,14 +449,22 @@ export class ReportDashboardComponent implements OnInit {
           cursor: 'pointer',
           events: {
             click: function (event) {
-              if(event.point.name == "Pending"){
-                openLeaveMod("Pending");
-              }if(event.point.name == "Rejected"){
-                openLeaveMod("Rejected");
-              }if(event.point.name == "Approved"){
-                openLeaveMod("Approved");
+              if(chartId == 'leaveSummaryChart'){
+                openMod(event.point.name);
               }
-            }
+              if(chartId == 'timesheetStatusSummary'){
+                openMod(event.point.name);
+              }
+              if(chartId == 'employeeStatus'){
+                openMod(event.point.name);
+              }
+              if(chartId == 'genderSummary'){
+                openMod(event.point.name);
+              }
+              if(chartId == 'employeeAgeSummary'){
+                openMod(event.point.name);
+              }
+            },
           },
           dataLabels: {
             enabled: true,
@@ -356,188 +486,59 @@ export class ReportDashboardComponent implements OnInit {
         type: undefined,
         data: chartData
       }],
-      colors: ['#DDDF00', '#64E572', '#ED561B']
+      colors: colors
     });
   }
 
-  renderTimesheetStatusSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openTimesheetMod:any){
+  // Employee Summary Dashboard
+
+  renderColumnBarSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any){
     HighCharts.chart(chartId, {
-      credits: {
-        enabled: false
-      },
       chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false,
-        type: 'pie'
+        type: 'column',
       },
       title: {
-        text: chartName
+        text: chartName,
+      },
+      subtitle: {
+        text: 'Data visualisation for analysing employee as per department',
+      },
+      xAxis: {
+        categories: chartData
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'No. Of Employees',
+          align: 'high',
+        },
+        labels: {
+          overflow: 'justify',
+        },
       },
       tooltip: {
-        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      accessibility: {
-        point: {
-          valueSuffix: '%'
-        }
+        valuePrefix: 'No. ',
       },
       plotOptions: {
-        pie: {
-          borderWidth: 0,
-          allowPointSelect: true,
-          cursor: 'pointer',
-          events: {
-            click: function (event) {
-              if(event.point.name == "Pending"){
-                openTimesheetMod("Pending");
-              }
-              if(event.point.name == "Approved"){
-                openTimesheetMod("Approved");
-              }
-              if(event.point.name == "Rejected"){
-                openTimesheetMod("Rejected");
-              }
-              if(event.point.name == "Pending By User"){
-                openTimesheetMod("Pending By User");
-              }
-            }
-          },
+        bar: {
           dataLabels: {
             enabled: true,
-            format: '<b>{point.name}</b>: {point.y:.1f}'
           },
           showInLegend: true
-        }
+        },
       },
-      series: [{
-        name: labelName,
-        colorByPoint: true,
-        type: undefined,
-        data: chartData
-      }],
-      legend: {
-        enabled: true,
-        labelFormatter: function () {
-          const point:any = this;
-          return this.name + ` : ${point.y}`;
-      }
+      credits: {
+        enabled: false,
       },
-      colors: ['#193d8a', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4']
+      series: [
+        {
+          type: 'column',
+          name: labelName,
+          data: chartData
+        },
+      ],
     });
   }
-
-  renderEmployeeSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any){
-    HighCharts.chart(chartId, {
-      credits: {
-        enabled: false
-      },
-      chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false
-      },
-      title: {
-          text: chartName
-      },
-      tooltip: {
-          pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      accessibility: {
-          point: {
-              valueSuffix: '%'
-          }
-      },
-      plotOptions: {
-          pie: {
-              dataLabels: {
-                  enabled: false,
-              },
-              startAngle: -90,
-              endAngle: 90,
-              center: ['50%', '75%'],
-              size: '110%',
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: 'Browser share',
-          innerSize: '50%',
-          data: [{
-            name: 'Chrome',
-            y: 38.41,
-            selected: true
-          }, {
-            name: 'Internet Explorer',
-            y: 11.84
-          },{
-            name: 'ABC Explorer',
-            y: 19.84
-          },{
-            name: 'EFG Explorer',
-            y: 15.84
-          },{
-            name: 'IJK Explorer',
-            y: 21.84
-          },{
-            name: 'LMN Explorer',
-            y: 11.84
-          }]
-      }]
-  });
-  }
-
-  renderProjectStatus(chartName:any, chartId:any, chartData:any, labelName:any){
-    HighCharts.chart(chartId, {
-      credits: {
-        enabled: false
-      },
-      chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false,
-        type: 'pie'
-      },
-      title: {
-        text: chartName
-      },
-      tooltip: {
-        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      accessibility: {
-        point: {
-          valueSuffix: '%'
-        }
-      },
-      plotOptions: {
-        pie: {
-          borderWidth: 0,
-          allowPointSelect: true,
-          cursor: 'pointer',
-          dataLabels: {
-            enabled: false,
-            format: '<b>{point.name}</b>: {point.y:.1f}'
-          },
-          showInLegend: true
-        }
-      },
-      series: [{
-        name: labelName,
-        colorByPoint: true,
-        type: undefined,
-        data: [{
-          name: 'Completed',
-          y: 10,
-          selected: true
-        }, {
-          name: 'In-Progress',
-          y: 12
-        }]
-      }]
-    });
-  }
-
 
   // export excel
 
@@ -584,32 +585,37 @@ export class ReportDashboardComponent implements OnInit {
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
     if(titleName == "Employee Worked Between 0 to 5 hour"){
-      console.log("titleName");
+      this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 0 && x.totalWorkingHours <= 5);
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     }
     if(titleName == "Employee Worked Between 5 to 8 hour"){
+      this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 5 && x.totalWorkingHours <= 8);
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     }
     if(titleName == "Employee Worked Between 8 to 9 hour"){
+      this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 8 && x.totalWorkingHours <= 9);
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     }
     if(titleName == "Employee Worked Between 9 to 10 hour"){
+      this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 9 && x.totalWorkingHours <= 10);
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     }
     if(titleName == "Employee Worked More than 10 hour"){
+      this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 10);
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     }
     if(titleName == "No Timesheet Submitted"){
+      this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
@@ -620,16 +626,19 @@ export class ReportDashboardComponent implements OnInit {
     let modalTableList = this.leaveSumarryList;
     this.modalSummaryList = [];
     if(statusName == "Pending"){
+      this.page=1;
       this.modalTitle = "Pending Leave Summary";
       this.modalSummaryList = modalTableList.filter(x => x.status == "Pending");
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
     }
     if(statusName == "Rejected"){
+      this.page=1;
       this.modalTitle = "Rejected Leave Summary";
       this.modalSummaryList = modalTableList.filter(x => x.status == "Rejected");
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
     }
     if(statusName == "Approved"){
+      this.page=1;
       this.modalTitle = "Approved Leave Summary";
       this.modalSummaryList = modalTableList.filter(x => x.status == "Approved");
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
@@ -662,6 +671,86 @@ export class ReportDashboardComponent implements OnInit {
       this.modalTitle = "Pending By User Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    }
+  }
+
+  openTotalCountModal(){
+    let modalTableList = this.allEmployeeList;
+    this.page = 1;
+    this.modalTitle = "All Active Employee Data";
+    this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
+    this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+  }
+
+  openEmployeeStatusTableModal(status:any){
+    let modalTableList = this.allEmployeeList;
+    if(status == "Probation"){
+      this.page=1;
+      this.modalTitle = "Employee In Probation";
+      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Probation");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(status == "Confirmed"){
+      this.page=1;
+      this.modalTitle = "Confirmed Employee";
+      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Confirmed");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(status == "Resigned"){
+      this.page=1;
+      this.modalTitle = "Resigned Employee";
+      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Resigned");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(status == "In-Active"){
+      this.page=1;
+      this.modalTitle = "In-Active Employee";
+      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "InActive");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+  }
+
+  openGenderSummaryModalTable(gender:any){
+    let modalTableList = this.allEmployeeList;
+    if(gender == "male"){
+      this.page=1;
+      this.modalTitle = "Male Employee Data";
+      this.modalSummaryList = modalTableList.filter(x => x.gender == "male");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(gender == "female"){
+      this.page=1;
+      this.modalTitle = "Female Employee Data";
+      this.modalSummaryList = modalTableList.filter(x => x.gender == "female");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+  }    
+
+  openAgeSummayModalTable(age:any){
+    let modalTableList = this.allEmployeeList;
+    if(age == "18 to 25"){
+      this.page=1;
+      this.modalTitle = "Employee Age Between 18 to 25";
+      this.modalSummaryList = modalTableList.filter(x => x.age>= 18 && x.age <=25);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(age == "25 to 35"){
+      this.page=1;
+      this.modalTitle = "Employee Age Between 25 to 35";
+      this.modalSummaryList = modalTableList.filter(x => x.age>25 && x.age<= 35);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(age == "35 to 45"){
+      this.page=1;
+      this.modalTitle = "Employee Age Between 35 to 45";
+      this.modalSummaryList = modalTableList.filter(x => x.age>35 && x.age<= 45);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(age == "45+"){
+      this.page=1;
+      this.modalTitle = "Employee Age Above 45";
+      this.modalSummaryList = modalTableList.filter(x => x.age > 45);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
     }
   }
 

@@ -1,5 +1,13 @@
-<!-- Graph filter form -->
-<div class="row">
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isleaveTimesheetDashboard}" (click)="leaveTimesheetDashboard()">Leave/Timesheet Dashboard</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isEmployeeDashboard}" (click)="employeeDashboard()">Employee Dashboard</button>
+    </div>
+</div>
+
+<!-- Leave/Timesheet Summary -->
+
+<div class="row" *ngIf="isleaveTimesheetDashboard">
     <div class="card col-md-12 px-0">
         <div class="row text-center">
             <div class="col-sm-6 col-md-4">
@@ -13,80 +21,84 @@
                 </div>
             </div>
             <div class="col-sm-6 col-md-4">
-                <div class="text-center text-uppercase">
-                    <h4>Hour Based Segregation</h4>
-                    <div class="progress mt-4" style="height: 20px;">
+                <div class="text-center text-uppercase mt-1">
+                    <small class="chart-title">Hour Based Segregation</small>
+                    <div class="progress mouse mt-4" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="zeroToFive" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 0 to 5 hour')">0 - 5 hr {{zeroToFive}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 0 to 5 hour')">0 - 5 hr {{zeroToFive}}</h6>
                     </div>
-                    <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="fiveToEight" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 5 to 8 hour')">EOD 5 - 8 hr {{fiveToEight}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 5 to 8 hour')">EOD 5 - 8 hr {{fiveToEight}}</h6>
                     </div>
-                    <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="eightToNine" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 8 to 9 hour')">EOD 8 - 9 hr {{eightToNine}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 8 to 9 hour')">EOD 8 - 9 hr {{eightToNine}}</h6>
                     </div>
-                    <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="nineToTen" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 9 to 10 hour')">EOD 9 - 10 hr {{nineToTen}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 9 to 10 hour')">EOD 9 - 10 hr {{nineToTen}}</h6>
                     </div>
-                    <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="tenAndAbove" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked More than 10 hour')">EOD 10 and above hr {{tenAndAbove}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked More than 10 hour')">EOD 10 and above hr {{tenAndAbove}}</h6>
                     </div>
-                    <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="noEODSubmitted" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100" (click)="openEodSegregation(EOD_Segregation_template,'No Timesheet Submitted')">No EOD Submitted {{noEODSubmitted}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'No Timesheet Submitted')">No EOD Submitted {{noEODSubmitted}}</h6>
                     </div>
-                    <!-- <div class="progress mt-2" style="height: 40px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="noEODSubmitted" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2" (click)="openEodSegregation(EOD_Segregation_template,'Holiday')">Holidays {{noEODSubmitted}}</h4>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Holiday')">Holidays {{noEODSubmitted}}</h6>
                     </div>
-                    <div class="progress mt-2" style="height: 40px;">
+                    <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="noEODSubmitted" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h4 class="justify-content-center d-flex position-absolute w-100 mt-2" (click)="openEodSegregation(EOD_Segregation_template,'Working On Holiday')">Working on Holidays {{noEODSubmitted}}</h4>
-                    </div> -->
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Working On Holiday')">Working on Holidays {{noEODSubmitted}}</h6>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- <div class="row text-center mt-5">
+    </div>
+</div>
+
+
+<div class="row" *ngIf="isEmployeeDashboard">
+    <div class="card col-md-12 px-0">
+        <div class="row text-center">
             <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="employeeSummary" style="height: 500px; width: 400px"></div>
+                <div class="card ml-5 mt-5" style="width: 300px;background-color: #d4e1fc;">
+                    <div class="card-body mouse" (click)="openTotalCountModal()">
+                        <small class="chart-title">Total Employee Count</small>
+                        <h2 class="card-title">{{countOfAllEmployees}}</h2>
+                    </div>
                 </div>
             </div>
             <div class="col-sm-6 col-md-4">
                 <div class="col-md-4">
-                    <div id="projectStatus" style="height: 500px; width: 400px"></div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="performanceFeedbackSummary" style="height: 500px; width: 400px"></div>
+                    <div id="departmentWiseEmployee" style="height: 300px; width: 900px"></div>
                 </div>
             </div>
         </div>
         <div class="row text-center">
             <div class="col-sm-6 col-md-4">
                 <div class="col-md-4">
-                    <div id="departmentWiseSummary" style="height: 500px; width: 400px"></div>
+                    <div id="employeeStatus" style="height: 300px; width: 400px"></div>
                 </div>
             </div>
             <div class="col-sm-6 col-md-4">
                 <div class="col-md-4">
-                    <div id="leaveTrendAnalysis" style="height: 500px; width: 400px"></div>
+                    <div id="genderSummary" style="height: 300px; width: 400px"></div>
                 </div>
             </div>
             <div class="col-sm-6 col-md-4">
                 <div class="col-md-4">
-                    <div id="employeeJoinAndResign" style="height: 500px; width: 400px"></div>
+                    <div id="employeeAgeSummary" style="height: 300px; width: 400px"></div>
                 </div>
             </div>
-        </div> -->
-
+        </div>
     </div>
 </div>
+
 
 <!-- table Modal Template -->
 
@@ -220,6 +232,52 @@
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td>{{leave.totalWorkingHours}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #employee_status_template>
+    <div class="modal-header">
+        <b>{{modalTitle}}</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body table-scroll">
+        <div class="row col-md-12">
+            <table class="table timesheet-table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label">Emp ID</th>
+                        <th scope="col" class="info-label">Name</th>
+                        <th scope="col" class="info-label">Department Name</th>
+                        <th scope="col" class="info-label">Email Id</th>
+                        <th scope="col" class="info-label">Manager Name</th>
+                        <th scope="col" class="info-label">Mobile No</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="modalSummaryList.length == 0">
+                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    </tr>
+                    <tr
+                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                        <td>{{leave.employeementId}}</td>
+                        <td>{{leave.employeeName}}</td>
+                        <td>{{leave.departmentName}}</td>
+                        <td>{{leave.email}}</td>
+                        <td>{{leave.managerName}}</td>
+                        <td>{{leave.mobileNo}}</td>
                     </tr>
                 </tbody>
             </table>

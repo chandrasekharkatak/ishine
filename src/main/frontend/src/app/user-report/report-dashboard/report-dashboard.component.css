@@ -10,3 +10,14 @@
     overflow: auto;
     padding-inline: 2rem;
 }
+
+.chart-title{
+    font-size: 18px;
+    text-transform: capitalize;
+    color: #333333;
+    user-select: none;
+}
+
+.mouse{
+    cursor: pointer;
+}
