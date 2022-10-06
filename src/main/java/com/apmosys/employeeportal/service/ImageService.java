@@ -231,7 +231,7 @@ public class ImageService {
 
 			Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
 
-			if (employeeObject.isPresent()) {
+//			if (employeeObject.isPresent()) {
 				
 				if(!images.isEmpty()) {
 					String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator+ "Documents" + File.separator +  "Draft" + File.separator + employeementId)).toString();
@@ -267,10 +267,10 @@ public class ImageService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				}
 
-			} else {
-				response.setServiceResponse("User Not Found !!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			}
+//			} else {
+//				response.setServiceResponse("User Not Found !!");
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
