@@ -141,6 +141,7 @@ export class HomeComponent implements OnInit {
   }
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
+    this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
@@ -213,6 +214,7 @@ export class HomeComponent implements OnInit {
   *  Added by suraj 07/08/2022
   */
   countMyReporteesTimesheetRequests(){
+    this.cancelRequest();
     this.allTeamTimesheetRequests = []
 
     let timesheet = new Timesheet();
@@ -229,6 +231,7 @@ export class HomeComponent implements OnInit {
   }
 
   getMyReporteesTimesheetRequests(){
+    this.cancelRequest();
     this.allTeamTimesheetRequests = [];
 
     let timesheetObj = new Timesheet();
@@ -246,6 +249,7 @@ export class HomeComponent implements OnInit {
 
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
+    this.cancelRequest();
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.status = status;
@@ -259,6 +263,16 @@ export class HomeComponent implements OnInit {
       }
     });
   }
+
+  rejectTimesheetRequest(template: TemplateRef<any>){
+    this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
+  }
+
+  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
 
   /* View TImesheet details */ 
   getAllMyActivitiesByTimesheetId(timesheet:any){
