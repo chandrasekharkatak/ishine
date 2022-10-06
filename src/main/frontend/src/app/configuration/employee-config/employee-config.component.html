@@ -696,9 +696,9 @@
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
                 <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
-                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View" (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>&nbsp;
-                <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button>
+                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View" (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
+                <!-- <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve" (click)="openApplicationApprovalMod(approve_application, employee)"><em class="fa-solid fa-check"></em></button>&nbsp;
+                <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button> -->
             </td>
           </tr>
         </tbody>
@@ -745,6 +745,14 @@
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.remarks"> </textarea><br>
         <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)" (click)="rejectDraftEmployeeApplication(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #approve_application>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to approvve this application?</p>
+        <button type="button" class="btn btn-success" (click)="approveDraftEmployeeApplication(alert_message)">Approve</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -1199,8 +1207,8 @@
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-12">
-                            <button type="submit" class="btn btn-success btn-sm mx-1">Approve</button>
-                            <button type="submit" class="btn btn-danger btn-sm mx-1">Reject</button>
+                            <button type="submit" class="btn btn-success btn-sm mx-1" (click)="openApplicationApprovalMod(approve_application, previewObj)">Approve</button>
+                            <button type="submit" class="btn btn-danger btn-sm mx-1" (click)="openApplicationRejectionMod(reject_application, previewObj)">Reject</button>
                         </div>
                     </div>
                 </div>

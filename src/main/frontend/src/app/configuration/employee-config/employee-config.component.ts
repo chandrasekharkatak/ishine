@@ -1101,6 +1101,21 @@ export class EmployeeConfigComponent implements OnInit {
       }
     });
   }
+
+  approveDraftEmployeeApplication(template: TemplateRef<any>){
+    this.cancelRequest();
+    this.employeeObj.updateApplicationStatus = 'Approved';
+    this.employeeObj.updatedBy = this.currentUser.empId ;
+    this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse;
+        this.openAlertMod(template, response.serviceResponse);
+        this.showDraftTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
   
   // Employee Info Preview 
   async openEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
@@ -1159,6 +1174,14 @@ export class EmployeeConfigComponent implements OnInit {
   openApplicationRejectionMod(template: TemplateRef<any> , employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;
+    console.log("For Approval : ", this.employeeObj);
+  }
+
+  openApplicationApprovalMod(template: TemplateRef<any> , employee: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.employeeObj = employee;
+    console.log("For Approval : ", this.employeeObj);
+    
   }
 
   cancelRequest() {
