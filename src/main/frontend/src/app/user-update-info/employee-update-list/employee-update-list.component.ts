@@ -11,6 +11,8 @@ import { ImageService } from 'src/app/services/image.service';
 export class EmployeeUpdateListComponent implements OnInit {
   myDraftList:any[] = [];
   @Output() draftEdit:EventEmitter<any> = new EventEmitter<any>();
+  @Output() showPreview:EventEmitter<any> = new EventEmitter<any>();
+
 
   constructor() { }
 
@@ -24,6 +26,10 @@ export class EmployeeUpdateListComponent implements OnInit {
 
   onDelete(){
 
+  }
+
+  onShowPreview(){
+    this.showPreview.emit();
   }
     
 }

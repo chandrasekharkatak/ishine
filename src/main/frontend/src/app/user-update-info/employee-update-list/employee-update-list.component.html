@@ -25,7 +25,7 @@
               class="fa fa-trash"></em></button>&nbsp;
         </td>
         <td *ngIf="employee.updateApplicationStatus == 'Pending For Approval'">
-          <button class="btn btn-sm btn-outline-primary"
+          <button class="btn btn-sm btn-outline-primary" (click)="onShowPreview()"
             type="submit"><em>View</em></button>&nbsp;
           <button class="btn btn-sm btn-outline-danger" (click)="onDelete()"
             type="submit"><em>Revoke</em></button>&nbsp;

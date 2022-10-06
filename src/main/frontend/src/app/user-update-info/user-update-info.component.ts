@@ -85,15 +85,15 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     document.querySelector('#info-preview')?.classList.toggle('active');
   }
 
-  async showPreview(employeeObj:any){
-    console.log("employeeObj : ", employeeObj);
+  async onShowPreview(){
+    console.log("draftObj : ", this.draftObj);
     
     let currentEmp = new Employee();
-    currentEmp.employeementId = employeeObj.employeementId;
-    currentEmp.empId = employeeObj.empId;
+    currentEmp.employeementId = this.draftObj.employeementId;
+    currentEmp.empId = this.draftObj.empId;
     currentEmp.isDraft = true;
 
-    this.previewObj = employeeObj;
+    this.previewObj = this.draftObj;
 
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
@@ -120,6 +120,10 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   onBack(){
     this.isPreview = false;
     this.isDraftAvailable = true;
+
+    setTimeout(()=> {
+      this.myDraftTable.myDraftList.push(this.draftObj);
+    }, 500)
   }
 
 
