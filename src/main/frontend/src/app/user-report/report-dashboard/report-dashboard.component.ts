@@ -44,6 +44,8 @@ export class ReportDashboardComponent implements OnInit {
   nineToTen:any;
   tenAndAbove:any;
   noEODSubmitted:any;
+  holiday:any;
+  workingOnHoliday:any;
 
   countOfAllEmployees:any;
 
@@ -142,28 +144,43 @@ export class ReportDashboardComponent implements OnInit {
         let nineToTenCount = 0;
         let tenAndAboveCount = 0;
         let noEODSubmittedCount = 0;
+        let holidayCount = 0;
+        let workingOnHolidayCount = 0;
+
+        let totalListCount = 0;
 
         this.timsheetSummaryList.forEach(timesheet => {
 
           if (timesheet.legend == "Pending") pendingCount++;
           else if (timesheet.legend == "Approved") approvedCount++;
           else if (timesheet.legend == "Rejected") rejectedCount++;
-          else if (timesheet.legend == "Pending By User") pendingByUserCount++;
+          // else if (timesheet.legend == "Pending By User") pendingByUserCount++;
 
-          
-          if(timesheet.totalWorkingHours > 0 && timesheet.totalWorkingHours <= 5) zeroToFiveCount++;
-          else if(timesheet.totalWorkingHours > 5 && timesheet.totalWorkingHours <= 8) fiveToEightCount++;
-          else if(timesheet.totalWorkingHours > 8 && timesheet.totalWorkingHours <= 9) eightToNineCount++;
-          else if(timesheet.totalWorkingHours > 9 && timesheet.totalWorkingHours <= 10) nineToTenCount++;
-          else if(timesheet.totalWorkingHours > 10) tenAndAboveCount++;
+          if(timesheet.dayType == 'Working' && timesheet.totalWorkingHours > 0 && timesheet.totalWorkingHours <= 5) zeroToFiveCount++;
+          else if(timesheet.dayType == 'Working' && timesheet.totalWorkingHours > 5 && timesheet.totalWorkingHours <= 8) fiveToEightCount++;
+          else if(timesheet.dayType == 'Working' && timesheet.totalWorkingHours > 8 && timesheet.totalWorkingHours <= 9) eightToNineCount++;
+          else if(timesheet.dayType == 'Working' && timesheet.totalWorkingHours > 9 && timesheet.totalWorkingHours <= 10) nineToTenCount++;
+          else if(timesheet.dayType == 'Working' && timesheet.totalWorkingHours > 10) tenAndAboveCount++;
+          else if(timesheet.dayType == 'Holiday') holidayCount++;
+          else if(timesheet.dayType == 'Non-working') workingOnHolidayCount++;
+
+          if(timesheet.legend == "Pending By User"){
+            totalListCount = totalListCount + timesheet.pendingEodCount;
+            pendingByUserCount = pendingByUserCount + timesheet.pendingEodCount;
+          }else{
+            totalListCount++;
+          }
+
         });
 
-        this.zeroToFive = ((zeroToFiveCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
-        this.fiveToEight = ((fiveToEightCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
-        this.eightToNine = ((eightToNineCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
-        this.nineToTen = ((nineToTenCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
-        this.tenAndAbove = ((tenAndAboveCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
-        this.noEODSubmitted = ((pendingByUserCount / this.timsheetSummaryList.length) * 100).toFixed(2) + "%";
+        this.zeroToFive = ((zeroToFiveCount / totalListCount) * 100).toFixed(2) + "%";
+        this.fiveToEight = ((fiveToEightCount / totalListCount) * 100).toFixed(2) + "%";
+        this.eightToNine = ((eightToNineCount / totalListCount) * 100).toFixed(2) + "%";
+        this.nineToTen = ((nineToTenCount / totalListCount) * 100).toFixed(2) + "%";
+        this.tenAndAbove = ((tenAndAboveCount / totalListCount) * 100).toFixed(2) + "%";
+        this.noEODSubmitted = ((pendingByUserCount / totalListCount) * 100).toFixed(2) + "%";
+        this.holiday = ((holidayCount / totalListCount) * 100).toFixed(2) + "%";
+        this.workingOnHoliday = ((workingOnHolidayCount / totalListCount) * 100).toFixed(2) + "%";
 
         let timesheetData  = [{
           name: "Pending",
@@ -630,7 +647,23 @@ export class ReportDashboardComponent implements OnInit {
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Pending EOD Count": x.pendingEodCount,
-        "Tpye": x.legend
+        "Type": x.legend
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"));
+  }
+
+  exportToExcelEODSegregation(): void {
+    const onlySpecificDataArr = this.modalSummaryList.map(
+      x => ({
+        "Employment ID": x.employeementId,
+        "Name":x.employeeName,
+        "Department Name": x.departmentName,
+        "Email": x.email,
+        "Manager Name": x.managerName,
+        "Mobile No.": x.mobileNo,
+        "Day Type": x.legend,
+        "Total Working Hours": x.totalWorkingHours
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"));
@@ -646,6 +679,7 @@ export class ReportDashboardComponent implements OnInit {
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
+        "Total Experience": x.totalExperience,
         "Gender": x.gender,
         "Age": x.age
       })
@@ -699,6 +733,18 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "Holiday"){
+      this.page=1;
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == "Holiday");
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+    if(titleName == "Working On Holiday"){
+      this.page=1;
+      this.modalTitle = titleName;
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == "Non-working");
       this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     }
   }

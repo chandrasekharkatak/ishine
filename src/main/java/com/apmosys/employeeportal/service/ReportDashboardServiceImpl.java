@@ -74,7 +74,9 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 		try {
 			LocalDate start = LocalDate.now().minusDays(8);
 
-			LocalDate end = LocalDate.now();
+			LocalDate end = LocalDate.now().minusDays(1);
+			
+			System.out.println("\n\n start : "+ start + " END :"+ end +"\n\n");
 
 			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
 
@@ -95,7 +97,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setMobileNo(employee[27] != null ? Long.parseLong(employee[27].toString()) : null);
 					dto.setManagerName(employee[51] != null ? employee[51].toString() : null);
 					dto.setEmpId(employee[50] != null ? Long.parseLong(employee[50].toString()) : null);
-					dto.setPendingEodCount(9L);
+					dto.setPendingEodCount(8L);
 					dto.setLegend("Pending By User");
 
 					timesheetList.forEach((timesheet) -> {
@@ -107,7 +109,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
 
-							Long pendingEodCount = 9 - filledEodCount;
+							Long pendingEodCount = 8 - filledEodCount;
 
 							dto.setPendingEodCount(pendingEodCount);
 
@@ -129,6 +131,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 						dto.setMobileNo(filledTimesheet[5] != null ? Long.parseLong(filledTimesheet[5].toString()) : null);
 						dto.setDate(filledTimesheet[6] != null ? filledTimesheet[6].toString() : null);
 						dto.setTotalWorkingHours(filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
+						dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
 						dtoList.add(dto);
 					});
 				}
