@@ -22,7 +22,7 @@ export class ReportDashboardComponent implements OnInit {
   @ViewChild("timesheet_summary_template")
   timesheetSummaryTemplate: TemplateRef<any>;
 
-  @ViewChild("employee_status_template")
+  @ViewChild("employee_summary_template")
   employeeStatusTemplate: TemplateRef<any>;
 
   modalRef: BsModalRef = new BsModalRef();
@@ -233,6 +233,12 @@ export class ReportDashboardComponent implements OnInit {
     let countBetween35and45 = 0;
     let countAbove45 = 0;
 
+    let experienceCountBetween0and1 = 0;
+    let experienceCountBetween1and2 = 0;
+    let experienceCountBetween2and5 = 0;
+    let experienceCountBetween5and10 = 0;
+    let experienceCountAbove10 = 0;
+
     this.allEmployeeList.forEach((employee)=>{
 
       if(employee.experience == 'Fresher') fresherCount++;
@@ -255,9 +261,20 @@ export class ReportDashboardComponent implements OnInit {
        else if (age>35 && age<= 45) countBetween35and45++;
        else if (age>45) countAbove45++;       
       }
-      
-    });      
 
+      if(employee.dateOfJoining != null && employee.totalExperience != null){
+        let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
+        employee.totalExperience = empTotalExperience.toFixed(1);
+        console.log(empTotalExperience);
+        if(empTotalExperience >= 0 && empTotalExperience <= 1)experienceCountBetween0and1++;
+        else if(empTotalExperience > 1 && empTotalExperience <= 2)experienceCountBetween1and2++;
+        else if(empTotalExperience > 2 && empTotalExperience <= 5)experienceCountBetween2and5++;
+        else if(empTotalExperience > 5 && empTotalExperience <= 10)experienceCountBetween5and10++;
+        else if(empTotalExperience > 10)experienceCountAbove10++;
+      }
+      
+    });
+  
     //Department wise Employee Count
     let departmentList = this.groupBy(this.allEmployeeList,'departmentName');
     let employeeByDepartment = [];
@@ -284,7 +301,13 @@ export class ReportDashboardComponent implements OnInit {
     console.log("Age 26-35: ",countBetween25and35);
     console.log("Age 36-45: ",countBetween35and45);
     console.log("Age above 45: ",countAbove45);
-    console.log("----------------------------------------------------") 
+    console.log("----------------------------------------------------")
+    console.log("experience 0-1: ",experienceCountBetween0and1);
+    console.log("experience 1-2: ",experienceCountBetween1and2);
+    console.log("experience 2-5: ",experienceCountBetween2and5);
+    console.log("experience 5-10: ",experienceCountBetween5and10);
+    console.log("experience Above 10: ",experienceCountAbove10);
+    console.log("----------------------------------------------------")
 
     /*
     Chart Data for - Employee Status Graph.
@@ -318,7 +341,7 @@ export class ReportDashboardComponent implements OnInit {
           return [dept.departmentName, dept.employeeCount]
         })
         console.log("departmentWiseEmployeeData : ", departmentWiseEmployeeData);
-        this.renderColumnBarSummaryChart('Department Wise Employee','departmentWiseEmployee',departmentWiseEmployeeData,'Department');
+        this.renderColumnBarSummaryChart('Department Wise Employee','departmentWiseEmployee',departmentWiseEmployeeData,'Department', this.openDepartmentWiseEmployeeModalTable.bind(this));
 
         /*
         Chart Data for - Male / Female - Gender Summary Graph.
@@ -360,6 +383,34 @@ export class ReportDashboardComponent implements OnInit {
         console.log("employeeAgeData : ", employeeAgeData);
         this.renderPieSummaryChart('Age Summary', 'employeeAgeSummary', employeeAgeData, 'Employee Summary', this.openAgeSummayModalTable.bind(this));
 
+        /*
+        Chart Data for - Employee Experience Graph Data.
+       */
+
+        let experienceData = [{
+          name: "0 to 1",
+          y: experienceCountBetween0and1
+        },{
+          name: "1 to 2",
+          y: experienceCountBetween1and2
+        },
+        {
+          name: "2 to 5",
+          y: experienceCountBetween2and5
+        },
+        {
+          name: "5 to 10",
+          y: experienceCountBetween5and10
+        },
+        {
+          name: "10+",
+          y: experienceCountAbove10
+        }];
+
+        let totalExperienceData = experienceData.map(exp => {
+          return [exp.name, exp.y]
+        })
+        this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,'Experience', this.openEmployeeExperienceModalTable.bind(this));
   }
 
   groupBy(objectArray, property) {
@@ -385,26 +436,20 @@ export class ReportDashboardComponent implements OnInit {
     return age;
   }
 
+  totalExperience(dateOfJoining, workExperience) {
+    var today = new Date().getTime();
+    var joiningDate = new Date(dateOfJoining).getTime();
+
+    let difference = (today - joiningDate);
+    var experienceInApmosys = difference / (1000 * 60 * 60 * 24 * 365);
+    var employeeTotalExperience = experienceInApmosys + workExperience;
+    return employeeTotalExperience;
+  }
+
   // leave / Timesheet Summary Dashboard Chart
 
   renderPieSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
     let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-
-    if(chartId == "leaveSummaryChart"){
-        colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-    }
-    if(chartId == "timesheetStatusSummary"){
-      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-    }
-    if(chartId == "employeeStatus"){
-      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-    }
-    if(chartId == "genderSummary"){
-      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-    }
-    if(chartId == "employeeAgeSummary"){
-      colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-    }
 
     HighCharts.chart(chartId, {
       credits: {
@@ -492,7 +537,8 @@ export class ReportDashboardComponent implements OnInit {
 
   // Employee Summary Dashboard
 
-  renderColumnBarSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any){
+  renderColumnBarSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
+
     HighCharts.chart(chartId, {
       chart: {
         type: 'column',
@@ -500,9 +546,9 @@ export class ReportDashboardComponent implements OnInit {
       title: {
         text: chartName,
       },
-      subtitle: {
-        text: 'Data visualisation for analysing employee as per department',
-      },
+      // subtitle: {
+      //   text: 'Data visualisation for analysing employee as per department',
+      // },
       xAxis: {
         categories: chartData
       },
@@ -520,6 +566,21 @@ export class ReportDashboardComponent implements OnInit {
         valuePrefix: 'No. ',
       },
       plotOptions: {
+        series: {
+          cursor: 'pointer',
+          point: {
+            events: {
+              click: function(event) {
+                if(chartId == 'employeeExperienceSummary'){
+                  openMod(event.point.name);
+                }
+                if(chartId == 'departmentWiseEmployee'){
+                  openMod(event.point.name);
+                }
+              }
+            },
+          },
+        },
         bar: {
           dataLabels: {
             enabled: true,
@@ -529,6 +590,9 @@ export class ReportDashboardComponent implements OnInit {
       },
       credits: {
         enabled: false,
+      },
+      legend: {
+        enabled: false
       },
       series: [
         {
@@ -567,6 +631,23 @@ export class ReportDashboardComponent implements OnInit {
         "Mobile No.": x.mobileNo,
         "Pending EOD Count": x.pendingEodCount,
         "Tpye": x.legend
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"));
+  }
+
+  exportToExcelEmployeeSummary():void {
+    const onlySpecificDataArr = this.modalSummaryList.map(
+      x => ({
+        "Employment ID": x.employeementId,
+        "Name":x.employeeName,
+        "Department Name": x.departmentName,
+        "Email": x.email,
+        "Manager Name": x.managerName,
+        "Mobile No.": x.mobileNo,
+        "Status": x.employmentstatus,
+        "Gender": x.gender,
+        "Age": x.age
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -750,6 +831,48 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee Age Above 45";
       this.modalSummaryList = modalTableList.filter(x => x.age > 45);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+  }
+
+  openDepartmentWiseEmployeeModalTable(pointName:any){
+    let modalTableList = this.allEmployeeList;
+      this.page=1;
+      this.modalTitle = "Employee(s) in "+pointName;
+      this.modalSummaryList = modalTableList.filter(x => x.departmentName == pointName);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+  }
+
+  openEmployeeExperienceModalTable(pointName:any){
+    let modalTableList = this.allEmployeeList;
+    if(pointName == "0 to 1"){
+      this.page=1;
+      this.modalTitle = "Employee(s) with 0 to 1 YOE";
+      this.modalSummaryList = modalTableList.filter(x => x.totalExperience != null && x.totalExperience >= 0 && x.totalExperience <=1);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(pointName == "1 to 2"){
+      this.page=1;
+      this.modalTitle = "Employee(s) with 1 to 2 YOE";
+      this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <=2);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(pointName == "2 to 5"){
+      this.page=1;
+      this.modalTitle = "Employee(s) with 2 to 5 YOE";
+      this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <=5);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(pointName == "5 to 10"){
+      this.page=1;
+      this.modalTitle = "Employee(s) with 5 to 10 YOE";
+      this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <=10);
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(pointName == "10+"){
+      this.page=1;
+      this.modalTitle = "Employee(s) with 10+ YOE";
+      this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 10);
       this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
     }
   }

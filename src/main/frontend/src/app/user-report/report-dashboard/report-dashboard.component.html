@@ -65,17 +65,22 @@
 <div class="row" *ngIf="isEmployeeDashboard">
     <div class="card col-md-12 px-0">
         <div class="row text-center">
-            <div class="col-sm-6 col-md-4">
-                <div class="card ml-5 mt-5" style="width: 300px;background-color: #d4e1fc;">
+            <div class="col-sm-6 col-md-2">
+                <div class="card ml-2 mt-5">
                     <div class="card-body mouse" (click)="openTotalCountModal()">
-                        <small class="chart-title">Total Employee Count</small>
+                        <small class="chart-title">Employee Count</small>
                         <h2 class="card-title">{{countOfAllEmployees}}</h2>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-md-4">
+            <div class="col-sm-6 col-md-5">
                 <div class="col-md-4">
-                    <div id="departmentWiseEmployee" style="height: 300px; width: 900px"></div>
+                    <div id="departmentWiseEmployee" style="height: 300px; width: 500px"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-5">
+                <div class="col-md-4">
+                    <div id="employeeExperienceSummary" style="height: 300px; width: 500px"></div>
                 </div>
             </div>
         </div>
@@ -244,7 +249,7 @@
     </div>
 </ng-template>
 
-<ng-template #employee_status_template>
+<ng-template #employee_summary_template>
     <div class="modal-header">
         <b>{{modalTitle}}</b>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
@@ -262,7 +267,11 @@
                         <th scope="col" class="info-label">Department Name</th>
                         <th scope="col" class="info-label">Email Id</th>
                         <th scope="col" class="info-label">Manager Name</th>
-                        <th scope="col" class="info-label">Mobile No</th>
+                        <th scope="col" class="info-label">Mobile No.</th>
+                        <th scope="col" class="info-label">Status</th>
+                        <th scope="col" class="info-label">Total Experience</th>
+                        <th scope="col" class="info-label">Gender</th>
+                        <th scope="col" class="info-label">Age</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -273,18 +282,22 @@
                         *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                         <th class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
-                        <td>{{leave.employeeName}}</td>
+                        <td>{{leave.name}}</td>
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
+                        <td>{{leave.employmentstatus}}</td>
+                        <td>{{leave.totalExperience}}</td>
+                        <td>{{leave.gender}}</td>
+                        <td>{{leave.age}}</td>
                     </tr>
                 </tbody>
             </table>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEmployeeSummary()"><em
                     class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>
