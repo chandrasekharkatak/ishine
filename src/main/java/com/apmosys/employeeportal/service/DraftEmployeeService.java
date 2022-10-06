@@ -16,11 +16,13 @@ import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.utility.DbTable;
@@ -54,6 +56,9 @@ public class DraftEmployeeService {
 
 	@Autowired
 	private MailService mailService;
+	
+	@Autowired
+	private EmployeeRepository employeeRepository;
 
 	public ServiceResponse createDraftEmployee(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -530,6 +535,14 @@ public class DraftEmployeeService {
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 				if (dbResponse != null) {
+					if(dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
+						Employee employeeObj = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+
+						if (employeeObj != null) {
+							employeeObj.setIsUserInfoUpdated("true");
+							employeeRepository.save(employeeObj);
+						}
+					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dbResponse);
 				} else {

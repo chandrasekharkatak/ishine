@@ -22,5 +22,6 @@ export class User{
 
     employeementId:any;
 
-    isUserInfoUpdated:boolean = false;
+    isUserInfoUpdated:boolean = true;
+    updateFormCounter:number = 0;
 }

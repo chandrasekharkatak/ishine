@@ -120,4 +120,6 @@ public class Employee {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfResign;
 	
+	private String isUserInfoUpdated;
+	
 }

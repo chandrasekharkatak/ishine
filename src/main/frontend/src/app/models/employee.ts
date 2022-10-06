@@ -82,4 +82,5 @@ export class Employee{
 
 	remarks:any;
 	documentList:any;
+	isUserInfoUpdated:boolean = true;
 }

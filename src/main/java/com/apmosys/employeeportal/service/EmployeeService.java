@@ -1802,6 +1802,7 @@ public class EmployeeService {
 					employee.setDepartmentId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					employee.setEmployeementId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					employee.setIsNew(object[8] != null ? object[8].toString() : null);
+					employee.setIsUserInfoUpdated(object[9] != null ? object[9].toString() : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 
 				});

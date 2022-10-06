@@ -98,4 +98,5 @@ public class EmployeeDTO {
 	private Long updatedBy;
 	
 	private List<EmployeeDocumentDTO> documentList;
+	private String isUserInfoUpdated;
 }
