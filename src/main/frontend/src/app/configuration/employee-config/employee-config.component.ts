@@ -17,6 +17,7 @@ import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 import { ImageService } from 'src/app/services/image.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Document } from 'src/app/models/document';
 
 @Component({
   selector: 'app-employee-config',
@@ -1091,6 +1092,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.cancelRequest();
     this.employeeObj.updateApplicationStatus = 'In-Progress';
     this.employeeObj.updatedBy = this.currentUser.empId ;
+    if(this.employeeObj.documentList){
+      this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
+    }
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1106,6 +1110,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.cancelRequest();
     this.employeeObj.updateApplicationStatus = 'Approved';
     this.employeeObj.updatedBy = this.currentUser.empId ;
+    if(this.employeeObj.documentList){
+      this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
+    }
     this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1174,14 +1181,11 @@ export class EmployeeConfigComponent implements OnInit {
   openApplicationRejectionMod(template: TemplateRef<any> , employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;
-    console.log("For Approval : ", this.employeeObj);
   }
 
   openApplicationApprovalMod(template: TemplateRef<any> , employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
-    this.employeeObj = employee;
-    console.log("For Approval : ", this.employeeObj);
-    
+    this.employeeObj = employee;    
   }
 
   cancelRequest() {
