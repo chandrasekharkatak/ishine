@@ -296,6 +296,22 @@ public class TeamsService {
 		try {
 			List<EmployeeTeamMap> allTeamMemberList = teamDTO.getAllTeamMemberList();
 			List<EmployeeTeamMap> updatedTeamMemberList = teamDTO.getUpdatedTeamMemberList();
+			
+			String teamLeadName = null;
+			TeamDTO teamObj = new TeamDTO();
+
+			if (teamDTO.getTeamLeadId() != null) {
+
+				Optional<Employee> getTeamLeadData = employeeRepository.findById(teamDTO.getTeamLeadId());
+				if (!getTeamLeadData.isEmpty()) {
+					Employee empObj = getTeamLeadData.get();
+
+					teamLeadName = empObj.getName();
+					teamObj.setTeamLeadName(teamLeadName);	
+				}
+			} else {
+				teamLeadName = "NA";
+			}
 
 			if (!updatedTeamMemberList.isEmpty()) {
 				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
@@ -304,6 +320,7 @@ public class TeamsService {
 
 					teamFound.setTeamName(teamDTO.getTeamName());
 					teamFound.setTeamLeadId(teamDTO.getTeamLeadId());
+					teamFound.setTeamLeadName(teamObj.getTeamLeadName());
 					Team teamUpdated = teamRepository.save(teamFound);
 
 					if (teamUpdated.getTeamId() != null) {
@@ -348,6 +365,7 @@ public class TeamsService {
 
 					teamFound.setTeamName(teamDTO.getTeamName());
 					teamFound.setTeamLeadId(teamDTO.getTeamLeadId());
+					teamFound.setTeamLeadName(teamObj.getTeamLeadName());
 					Team teamUpdated = teamRepository.save(teamFound);
 					
 					if (teamUpdated.getTeamId() != null) {
