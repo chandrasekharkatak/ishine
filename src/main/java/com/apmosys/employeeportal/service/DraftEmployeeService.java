@@ -261,7 +261,7 @@ public class DraftEmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setEmpId(object[53] != null ? Long.parseLong(object[53].toString()) : null);
-					
+
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -860,12 +860,40 @@ public class DraftEmployeeService {
 				Employee updatedEmployee = employeeRepository.save(employee);
 
 				if (updatedEmployee != null) {
+
+					/*
+					 * DELETE PREVIOUSLY APPROVED IMAGES,CERTIFICATES AND PREVIOUS_EMPLOYMENT -
+					 * START
+					 */
+
+					List<EmployeeDocument> approvedDocumentList = employeeDocumentRepository
+							.findByEmpId(employeedto.getEmpId());
+					List<EmployeeCertificate> approvedCertificationsList = employeeCertificateRepository
+							.findByEmpId(employeedto.getEmpId());
+					List<PreviousEmployment> approvedPreviousEmploymentList = previousEmploymentRepository
+							.findByEmpId(employeedto.getEmpId());
+
+					approvedDocumentList.forEach((list) -> {
+						employeeDocumentRepository.deleteById(list.getEmployeeDocumentId());
+					});
+					approvedCertificationsList.forEach((list) -> {
+						employeeCertificateRepository.deleteById(list.getEmployeeCertificateId());
+					});
+					approvedPreviousEmploymentList.forEach((list) -> {
+						previousEmploymentRepository.deleteById(list.getPreviousEmploymentId());
+					});
+
+					/*
+					 * DELETE PREVIOUSLY APPROVED EXISTING IMAGES,CERTIFICATES AND
+					 * PREVIOUS_EMPLOYMENT - END
+					 */
+
 					List<EmployeeDocument> documentList = employeeDocumentRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employeedto.getDraftEmpId());
 					List<EmployeeCertificate> certificationsList = employeeCertificateRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employeedto.getDraftEmpId());
 					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employeedto.getDraftEmpId());
 
 					if (documentList != null) {
 
@@ -920,9 +948,8 @@ public class DraftEmployeeService {
 						}
 						previousEmploymentRepository.saveAll(list);
 					}
-					
-					draftEmployeeRepository.deleteById(employeedto.getEmpId());
-					
+
+					draftEmployeeRepository.deleteById(employeedto.getDraftEmpId());
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee profile updated.");
