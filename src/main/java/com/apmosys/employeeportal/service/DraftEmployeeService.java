@@ -378,7 +378,7 @@ public class DraftEmployeeService {
 		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
 
 		try {
-			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employee = employeeObject.get();
 
@@ -465,7 +465,7 @@ public class DraftEmployeeService {
 							.collect(Collectors.toList());
 					if (!newCertificationlist.isEmpty()) {
 						newCertificationlist.forEach((certification) -> {
-							certification.setEmpId(employeedto.getEmpId());
+							certification.setEmpId(employeedto.getDraftEmpId());
 
 						});
 						employeeService.addCertifications(newCertificationlist, employeedto.getIsDraft());
@@ -482,7 +482,7 @@ public class DraftEmployeeService {
 				// Previous Employer
 				if (employeedto.getExperience().equals("Fresher")) {
 					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employeedto.getDraftEmpId());
 
 					if (!previousEmploymentList.isEmpty()) {
 						previousEmploymentList.stream()
@@ -525,7 +525,7 @@ public class DraftEmployeeService {
 								.collect(Collectors.toList());
 						if (!newPreviousEmploymentList.isEmpty()) {
 							newPreviousEmploymentList.forEach((previousEmployer) -> {
-								previousEmployer.setEmpId(employeedto.getEmpId());
+								previousEmployer.setEmpId(employeedto.getDraftEmpId());
 
 							});
 							employeeService.addPreviousEmployer(newPreviousEmploymentList, employeedto.getIsDraft());

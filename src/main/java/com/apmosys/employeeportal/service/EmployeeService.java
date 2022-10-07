@@ -281,6 +281,7 @@ public class EmployeeService {
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setIsNew("true");
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
+			employee.setIsUserInfoUpdated("true");
 			Employee newEmployee = employeeRepository.save(employee);
 
 			if (newEmployee.getEmpId() != null) {
