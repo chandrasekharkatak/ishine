@@ -65,5 +65,12 @@ public class DraftEmployeeController {
 		ServiceResponse response = draftEmployeeService.rejectDraftEmployeeApplication(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value="/approveDraftEmployeeApplication" , method = RequestMethod.POST)
+	public ServiceResponse approveDraftEmployeeApplication(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = draftEmployeeService.approveDraftEmployeeApplication(employeedto);
+		return response;
+	}
 
 }

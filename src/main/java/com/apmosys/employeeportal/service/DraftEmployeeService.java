@@ -1,9 +1,9 @@
 package com.apmosys.employeeportal.service;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -18,10 +19,12 @@ import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
+import com.apmosys.employeeportal.model.EmployeeDocument;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
+import com.apmosys.employeeportal.repository.EmployeeDocumentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
@@ -56,9 +59,12 @@ public class DraftEmployeeService {
 
 	@Autowired
 	private MailService mailService;
-	
+
 	@Autowired
 	private EmployeeRepository employeeRepository;
+
+	@Autowired
+	private EmployeeDocumentRepository employeeDocumentRepository;
 
 	public ServiceResponse createDraftEmployee(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -535,7 +541,7 @@ public class DraftEmployeeService {
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 				if (dbResponse != null) {
-					if(dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
+					if (dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
 						Employee employeeObj = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 
 						if (employeeObj != null) {
@@ -807,4 +813,134 @@ public class DraftEmployeeService {
 		return response;
 	}
 
+	@Transactional
+	public ServiceResponse approveDraftEmployeeApplication(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			// System.out.println(employeedto);
+			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+			if (employee != null) {
+				System.out.println(employee);
+
+				employee.setGender(employeedto.getGender());
+				employee.setBloodGroup(employeedto.getBloodGroup());
+				employee.setMaritalStatus(employeedto.getMaritalStatus());
+				employee.setFatherName(employeedto.getFatherName());
+				employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
+				employee.setMotherTongue(employeedto.getMotherTongue());
+				employee.setPassportNumber(employeedto.getPassportNumber());
+				employee.setAadhar(employeedto.getAadhar());
+				employee.setPanNumber(employeedto.getPanNumber());
+				employee.setLandline(employeedto.getLandline());
+				employee.setAddress(employeedto.getAddress());
+				employee.setCity(employeedto.getCity());
+				employee.setState(employeedto.getState());
+				employee.setCountry(employeedto.getCountry());
+				employee.setPincode(employeedto.getPincode());
+				employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
+				employee.setPermanentAddress(employeedto.getPermanentAddress());
+				employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
+				employee.setRelation(employeedto.getRelation());
+				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+				employee.setBankName(employeedto.getBankName());
+				employee.setBankAccountNo(employeedto.getBankAccountNo());
+				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
+				employee.setPfAccountNumber(employeedto.getPfAccountNumber());
+				employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
+				employee.setUan(employeedto.getUan());
+				employee.setEsicNumber(employeedto.getEsicNumber());
+				employee.setGraduationType(employeedto.getGraduationType());
+				employee.setPursuing(employeedto.getPursuing());
+				employee.setYearOfPassing(employeedto.getYearOfPassing());
+				employee.setPassingGrade(employeedto.getPassingGrade());
+				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
+
+				// Update employee
+				Employee updatedEmployee = employeeRepository.save(employee);
+
+				if (updatedEmployee != null) {
+					List<EmployeeDocument> documentList = employeeDocumentRepository
+							.findByEmpId(employeedto.getEmpId());
+					List<EmployeeCertificate> certificationsList = employeeCertificateRepository
+							.findByEmpId(employeedto.getEmpId());
+					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
+							.findByEmpId(employeedto.getEmpId());
+
+					if (documentList != null) {
+
+						List<EmployeeDocument> list = new ArrayList<>();
+
+						File directoryPath = new File(imageFileLocation + File.separator + "Documents" + File.separator
+								+ "Draft" + File.separator + employeedto.getEmployeementId());
+						String[] contents = directoryPath.list();
+
+						List<String> filesInFolder = Arrays.asList(contents);
+
+						for (EmployeeDocument document : documentList) {
+							document.setIsDraft("false");
+							document.setEmpId(employee.getEmpId());
+							list.add(document);
+
+						}
+						employeeDocumentRepository.saveAll(list);
+
+//						for (EmployeeDocument document : documentList) {
+//
+//							for (int i = 0; i < contents.length; i++) {
+//								if (contents[i].equals(document.getDocumentName())) {
+//									System.out.println(contents[i]);
+//								}
+//
+//							}
+//						}
+
+					}
+
+					if (certificationsList != null) {
+
+						List<EmployeeCertificate> list = new ArrayList<>();
+
+						for (EmployeeCertificate certificate : certificationsList) {
+							certificate.setIsDraft("false");
+							certificate.setEmpId(employee.getEmpId());
+							list.add(certificate);
+						}
+						employeeCertificateRepository.saveAll(list);
+					}
+
+					if (previousEmploymentList != null) {
+
+						List<PreviousEmployment> list = new ArrayList<>();
+
+						for (PreviousEmployment previousEmployment : previousEmploymentList) {
+							previousEmployment.setIsDraft("false");
+							previousEmployment.setEmpId(employee.getEmpId());
+							list.add(previousEmployment);
+						}
+						previousEmploymentRepository.saveAll(list);
+					}
+					
+					draftEmployeeRepository.deleteById(employeedto.getEmpId());
+					
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee profile updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee profile updation failed.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee profile not found.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }
