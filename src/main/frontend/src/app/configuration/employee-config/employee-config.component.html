@@ -497,7 +497,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Employer Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -505,7 +505,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date Of Joining</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining">
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -513,7 +513,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date of Relieving</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving">
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -521,7 +521,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Years of Experience</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience">
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -529,7 +529,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Designation</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -537,7 +537,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Manager Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -545,7 +545,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Manager Contact Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -553,7 +553,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">HR Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -561,14 +561,14 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">HR Contact Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber" disabled>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-2 d-flex align-items-center">
                                     <div class="form-group m-0 mt-2 mb-2">
-                                        <button *ngIf="i != 4" type="button" class="btn btn-outline-primary mx-1" (click)="addInputPreviousEmployerField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputPreviousEmployerField(previousEmployer)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                        <button *ngIf="i != 4" type="button" class="btn btn-outline-primary mx-1" (click)="addInputPreviousEmployerField()" disabled><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputPreviousEmployerField(previousEmployer)" disabled><i class="fa fa-trash" aria-hidden="true"></i></button>
                                     </div>
                                 </div>
                             </div>

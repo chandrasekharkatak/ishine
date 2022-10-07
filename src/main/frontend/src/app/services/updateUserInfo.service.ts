@@ -3,7 +3,9 @@ import { EventEmitter, Injectable, OnInit } from "@angular/core";
 import * as moment from "moment";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { first } from "rxjs/operators";
+import { certification } from "../models/certification";
 import { Employee } from "../models/employee";
+import { PreviousEmployer } from "../models/previousEmployer";
 import { User } from "../models/user";
 import { AuthenticationService } from "./authentication.service";
 import { EmployeeService } from "./employee.service";
@@ -42,6 +44,13 @@ export class UpdateUserInfoService {
         this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.userInfoObj = response.serviceResponse;
+            if(this.userInfoObj.certifications){
+                this.userInfoObj.certifications.forEach((certification:certification) => certification.employeeCertificateId = null);
+            }
+            if(this.userInfoObj.previousEmploymentList){
+                this.userInfoObj.certifications.forEach((previousEmployer:PreviousEmployer) => previousEmployer.previousEmploymentId = null);
+            }
+
             console.log("userInfoObj : ", this.userInfoObj);
             this.updateduserInfoObj.emit(this.userInfoObj);
           } else {

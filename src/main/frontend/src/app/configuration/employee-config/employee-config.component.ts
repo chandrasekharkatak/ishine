@@ -1150,7 +1150,7 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       console.log(docResponse.serviceResponse);
     }
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
     setTimeout(()=>{
       this.previewObj.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {

@@ -568,7 +568,7 @@ public class EmployeeService {
 					stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
 			employeeCertificate.setDuration(certificate.getDuration());
 			employeeCertificate.setEmpId(certificate.getEmpId());
-			employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
+//			employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
 			employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
 			employeeCertificate.setIsDraft(isDraft);
 			list.add(employeeCertificate);

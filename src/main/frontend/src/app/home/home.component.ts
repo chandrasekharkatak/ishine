@@ -782,7 +782,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false});
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
   }
 
   onDocSubmit(){
