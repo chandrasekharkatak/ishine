@@ -468,6 +468,10 @@ export class ReportDashboardComponent implements OnInit {
   renderPieSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
     let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
 
+    if(chartId == "genderSummary"){
+      colors = ['#88D2B8','#D288A2'];
+    }
+
     HighCharts.chart(chartId, {
       credits: {
         enabled: false

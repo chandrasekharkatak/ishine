@@ -26,3 +26,8 @@
     width: 200px;
     background-color: #7cb5ec;
 }
+
+.graph{
+    border-right: .5px solid #d0d0d0;
+    border-bottom: .5px solid #d0d0d0;
+}

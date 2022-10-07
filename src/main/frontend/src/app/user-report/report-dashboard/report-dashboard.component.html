@@ -8,19 +8,15 @@
 <!-- Leave/Timesheet Summary -->
 
 <div class="row" *ngIf="isleaveTimesheetDashboard">
-    <div class="card col-md-12 px-0">
+    <div class="card col-md-12 p-4">
         <div class="row text-center">
-            <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="leaveSummaryChart" style="height: 300px; width: 400px"></div>
-                </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="leaveSummaryChart" style="height: 300px; width: 400px"></div>
             </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="timesheetStatusSummary" style="height: 300px; width: 400px"></div>
-                </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="timesheetStatusSummary" style="height: 300px; width: 400px"></div>
             </div>
-            <div class="col-sm-6 col-md-4">
+            <div class="col-sm-6 col-md-4 graph">
                 <div class="text-center text-uppercase mt-1">
                     <small class="chart-title">Hour Based Segregation</small>
                     <div class="progress mouse mt-4" style="height: 25px;">
@@ -65,40 +61,26 @@
 <div class="row" *ngIf="isEmployeeDashboard">
     <div class="card col-md-12 px-0">
         <div class="row text-center">
-            <div class="col-sm-6 col-md-2">
-                <div class="card ml-2 mt-5">
-                    <div class="card-body mouse" (click)="openTotalCountModal()">
-                        <small class="chart-title">Employee Count</small>
-                        <h2 class="card-title">{{countOfAllEmployees}}</h2>
-                    </div>
-                </div>
+            <div class="col-sm-6 col-md-2 graph mouse d-flex flex-column justify-content-center align-items-center" (click)="openTotalCountModal()">
+                <small class="chart-title">Employee Count</small>
+                <h2 class="card-title">{{countOfAllEmployees}}</h2>
             </div>
-            <div class="col-sm-6 col-md-5">
-                <div class="col-md-4">
-                    <div id="departmentWiseEmployee" style="height: 300px; width: 500px"></div>
-                </div>
+            <div class="col-md-5 graph">
+                <div id="departmentWiseEmployee" style="height: 300px; width: 500px"></div>
             </div>
-            <div class="col-sm-6 col-md-5">
-                <div class="col-md-4">
-                    <div id="employeeExperienceSummary" style="height: 300px; width: 500px"></div>
-                </div>
+            <div class="col-sm-6 col-md-5 graph">
+                <div id="employeeExperienceSummary" style="height: 300px; width: 500px"></div>
             </div>
         </div>
         <div class="row text-center">
-            <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="employeeStatus" style="height: 300px; width: 400px"></div>
-                </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="employeeStatus" style="height: 300px; width: 400px"></div>
             </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="genderSummary" style="height: 300px; width: 400px"></div>
-                </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="genderSummary" style="height: 300px; width: 400px"></div>
             </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="col-md-4">
-                    <div id="employeeAgeSummary" style="height: 300px; width: 400px"></div>
-                </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="employeeAgeSummary" style="height: 300px; width: 400px"></div>
             </div>
         </div>
     </div>
