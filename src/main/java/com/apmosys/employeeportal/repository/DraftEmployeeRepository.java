@@ -12,7 +12,7 @@ import com.apmosys.employeeportal.model.Employee;
 @Repository
 public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Long>{
 
-	DraftEmployee findByEmployeementId(Long employeementId);
+	public DraftEmployee findByEmployeementId(Long employeementId);
 
 	DraftEmployee findByEmail(String email);
 
@@ -32,9 +32,12 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 	List<DraftEmployee> findByPanNumberAndDraftEmpId(String panNumber, Long draftEmpId);
 
 	@Query(nativeQuery = true)
-	List<Object[]> getAllDraftEmployees();
+	List<Object[]> getAllDraftEmployees(String status);
 
 	@Query(nativeQuery = true)
 	List<Object[]> getDraftEmployeeByEmpId(Long empId);
+	
+	@Query(nativeQuery = true)
+	List<Object[]> getDraftEmployeeByEmployeementId(Long employeementId);
 
 }

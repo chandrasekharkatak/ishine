@@ -1,0 +1,37 @@
+<!-- start :: See all Table -->
+<div class="row d-flex">
+  <table class="table employee-table">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col" class="info-label">Employee Id</th>
+        <th scope="col" class="info-label">Full Name</th>
+        <th scope="col" class="info-label">Email Id</th>
+        <th scope="col" class="info-label">Application Status</th>
+        <th scope="col" class="info-label">Applied On</th>
+        <th scope="col" class="info-label">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let employee of myDraftList, let i = index">
+        <td>A-{{employee.employeementId}}</td>
+        <td>{{employee.name}}</td>
+        <td>{{employee.email}}</td>
+        <td>{{employee.updateApplicationStatus}}</td>
+        <td>{{employee.createdOn}}</td>
+        <td *ngIf="employee.updateApplicationStatus == 'In-Progress'">
+          <button class="btn btn-sm btn-outline-primary" (click)="onEdit()" type="submit"><em
+              class="fa fa-edit"></em></button>&nbsp;
+          <button class="btn btn-sm btn-outline-danger" (click)="onDelete()" type="submit"><em
+              class="fa fa-trash"></em></button>&nbsp;
+        </td>
+        <td *ngIf="employee.updateApplicationStatus == 'Pending For Approval'">
+          <button class="btn btn-sm btn-outline-primary" (click)="onShowPreview()"
+            type="submit"><em>View</em></button>&nbsp;
+          <button class="btn btn-sm btn-outline-danger" (click)="onDelete()"
+            type="submit"><em>Revoke</em></button>&nbsp;
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<!-- end :: see all table -->

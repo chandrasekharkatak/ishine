@@ -51,6 +51,11 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 import { EmployeePortalInterceptor } from './helpers/employeePortal.interceptor';
+import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
+import { DocumentUploadComponent } from './user-update-info/document-upload/document-upload.component';
+import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
+import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
 import { UserReportComponent } from './user-report/user-report.component';
 import { ReportListComponent } from './user-report/report-list/report-list.component';
@@ -89,6 +94,11 @@ import { ReportDashboardComponent } from './user-report/report-dashboard/report-
     TeamMemberComponent,
     HomeConfigComponent,
     CalendarComponent,
+    UserUpdateInfoComponent,
+    EmployeeInfoComponent,
+    DocumentUploadComponent,
+    InformationPreviewComponent,
+    EmployeeUpdateListComponent,
     PortalConfigComponent,
     UserReportComponent,
     ReportListComponent,

@@ -82,5 +82,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 	@Query(nativeQuery = true)
 	public List<Object[]> getManagerEmail(Long empId);
 	
+	public boolean existsByEmployeementId(Long employeementId);
+	
+	public boolean existsByManagerId(Long managerId);
+	
 
 }

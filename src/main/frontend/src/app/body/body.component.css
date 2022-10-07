@@ -28,8 +28,7 @@
 .navbar{
     /* height: 3.3608rem; */
     height: 4rem;
-    width: calc(100%-5rem);
-    margin-left: 5rem;
+    width: 100%;
     z-index: 1;
     transition: all .5s ease;
     background: #fff;

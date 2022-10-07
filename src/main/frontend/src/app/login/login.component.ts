@@ -230,8 +230,10 @@ export class LoginComponent implements OnInit{
       this.user.dateOfJoining = user.dateOfJoining;
       this.user.timesheetLockDays = user.timesheetLockDays;
       this.user.employeementId = user.employeementId;
+      this.user.isNew = user.isNew;
+      this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
       this.user.userMapping = this.getActiveSubFeatures();
-      this.user.tabList = this.getTabList();
+      this.user.tabList = this.getTabList();      
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       this.router.navigate(['/home']);

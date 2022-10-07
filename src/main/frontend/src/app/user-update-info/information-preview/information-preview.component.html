@@ -1,0 +1,425 @@
+<!-- start :: Preview Form -->
+<div class="row ">
+    <div class="card updateInfoTab">
+        <div class="card-header text-center text-uppercase">
+            <strong>Preview</strong>  
+          </div>
+          <div class="card-body">
+            <div class="row">
+                <app-accordion>
+                    <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true" >
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Your views on our Organisation</p>
+                                        <p class="info-text">{{currentEmployeeInfo.viewsOnOrganisation}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Gender</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.gender}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date of birth</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfBirth}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">About me</p>
+                                        <p class="info-text">{{currentEmployeeInfo.aboutMe}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Employee code</p>
+                                        <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Blood group</p>
+                                        <p class="info-text">{{currentEmployeeInfo.bloodGroup}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                
+                    <app-accordion-item class="acc-content" title="Personal Information" [showBody]="true">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Father's Name</p>
+                                        <p class="info-text">{{currentEmployeeInfo.fatherName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Place of Birth</p>
+                                        <p class="info-text">{{currentEmployeeInfo.placeOfBirth}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Mother Tongue</p>
+                                        <p class="info-text">{{currentEmployeeInfo.motherTongue}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Martial Status</p>
+                                        <p class="info-text">{{currentEmployeeInfo.maritalStatus}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Passport Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.passportNumber}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Aadhar Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.aadhar}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">PAN Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.panNumber}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                
+                    <app-accordion-item class="acc-content" title="Contact Information" [showBody]="true">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Mobile No.</p>
+                                        <p class="info-text">{{currentEmployeeInfo.mobileNo}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Landline No.</p>
+                                        <p class="info-text">022-{{currentEmployeeInfo.landline}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Current Address</p>
+                                        <p class="info-text">{{currentEmployeeInfo.address}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">State</p>
+                                        <p class="info-text">{{currentEmployeeInfo.state}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">City/Town</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.city}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Country</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.country}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label ">Pincode</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.pincode}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Official Mobile No.</p>
+                                        <p class="info-text">{{currentEmployeeInfo.alternateMobileNo}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label ">Permanent Address</p>
+                                        <p class="info-text">{{currentEmployeeInfo.permanentAddress}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label ">Emergency Contact Person</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.emergencyContactPerson}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Relation</p>
+                                        <p class="info-text">{{currentEmployeeInfo.relation}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label ">Emergency Contact Mobile Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.emergencyContactMobile}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                
+                    <app-accordion-item class="acc-content" title="Educational Information" [showBody]="true">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Graduation</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.graduationType}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Pursuing</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.pursuing}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Year of Passing</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Passing Grade</p>
+                                        <p class="info-text">{{currentEmployeeInfo.passingGrade}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div *ngIf="currentEmployeeInfo.certifications" class="row">
+                                <hr>
+                                <h4 class="info-label" >Certifications</h4>
+                                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Certification Name - {{i+1}}</p>
+                                            <p class="info-text info-highlight">{{certification.certificationName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Duration</p>
+                                            <p class="info-text info-highlight">{{certification.duration}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Mode of Course</p>
+                                            <p class="info-text info-highlight">{{certification.modeOfCourse}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date of completion</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Certification Number</p>
+                                            <p class="info-text info-highlight">{{certification.certificationNumber}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                
+                    <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Joining</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfJoining}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Employment Status</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.employmentstatus}}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Notice Period</p>
+                                        <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Manager</p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.managerName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Department Name</p>
+                                        <p class="info-text">{{currentEmployeeInfo.departmentName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Job Role Name</p>
+                                        <p class="info-text">{{currentEmployeeInfo.jobRoleName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Exprience</p>
+                                        <p class="info-text">{{currentEmployeeInfo.experience}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Work Location <small>(State)</small></p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                
+                    <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
+                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information" [showBody]="true">
+                        <div class="container-fluid">
+                            <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Employer Name - {{i+1}}</p>
+                                        <p class="info-text">{{previousEmployer.employerName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Joining</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date of Relieving</p>
+                                        <p class="info-text">{{previousEmployer.dateOfRelieving}} Days</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Years of Experience</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Designation</p>
+                                        <p class="info-text">{{previousEmployer.designation}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Manager Name</p>
+                                        <p class="info-text">{{previousEmployer.managerName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Manager Contact Number</p>
+                                        <p class="info-text">{{previousEmployer.managerContactNumber}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">HR Name</p>
+                                        <p class="info-text">{{previousEmployer.hrName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">HR Contact Number</p>
+                                        <p class="info-text">{{previousEmployer.hrContactNumber}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                
+                    <app-accordion-item class="acc-content" title="Bank/PF Account Information" [showBody]="true">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Bank Name</p>
+                                        <p class="info-text">{{currentEmployeeInfo.bankName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Bank Account Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.bankAccountNo}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">IFSC</p>
+                                        <p class="info-text">{{currentEmployeeInfo.bankIFSCCode}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">PF Account Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.pfAccountNumber}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Previous PF Account Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.previousPfAccountNumber}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">UAN</p>
+                                        <p class="info-text">{{currentEmployeeInfo.uan}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">ESIC Account Number</p>
+                                        <p class="info-text">{{currentEmployeeInfo.esicNumber}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                </app-accordion>                
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSubmit()">Submit</button>
+                </div>
+            </div>
+          </div>
+    </div>
+</div>
+<!-- end :: Preview form -->

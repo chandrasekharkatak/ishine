@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
+import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -42,6 +42,9 @@ export class UserProfileComponent implements OnInit {
   updatedCertificationList:any[] = [];
   updatedPreviousEmployment:any[] = [];
   yearOfPassingList:any[] = [];
+
+  @ViewChild('updateInfo')
+  private updateInfoTempRef:TemplateRef<any>;
 
   constructor(
     private employeeService:EmployeeService,
@@ -95,22 +98,24 @@ export class UserProfileComponent implements OnInit {
   showUpdateProfile(){
     this.isUpdateProfile = true;
 
-    this.UpdateEmployeeInfo = Object.assign(this.currentEmployeeInfo,{});
-    this.addInputCertificationField();
-    if(this.UpdateEmployeeInfo.certifications){
-      this.allCertificationList = this.UpdateEmployeeInfo.certifications;
-    }
-    // else{
-    //   this.addInputCertificationField();
+    this.openUpdateInfo(this.updateInfoTempRef);
+    
+    // this.UpdateEmployeeInfo = Object.assign(this.currentEmployeeInfo,{});
+    // this.addInputCertificationField();
+    // if(this.UpdateEmployeeInfo.certifications){
+    //   this.allCertificationList = this.UpdateEmployeeInfo.certifications;
     // }
+    // // else{
+    // //   this.addInputCertificationField();
+    // // }
 
-    this.addInputPreviousEmployerField();
-    if(this.UpdateEmployeeInfo.previousEmploymentList){
-      this.allPreviousEmployment = this.UpdateEmployeeInfo.previousEmploymentList;
-    }
-    // else{
-    //   this.addInputPreviousEmployerField();
+    // this.addInputPreviousEmployerField();
+    // if(this.UpdateEmployeeInfo.previousEmploymentList){
+    //   this.allPreviousEmployment = this.UpdateEmployeeInfo.previousEmploymentList;
     // }
+    // // else{
+    // //   this.addInputPreviousEmployerField();
+    // // }
   }
 
   showViewProfile(){
@@ -195,7 +200,7 @@ export class UserProfileComponent implements OnInit {
      } else if (!this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
       this.alertMessage = "Please enter Valid Blood Group !!"	
       this.openAlertMod(template, this.alertMessage);	
-      return false;	
+      return false;
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){
@@ -618,7 +623,14 @@ export class UserProfileComponent implements OnInit {
     });
   }
 
+  //Employee Info Update 
+  openUpdateInfo(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false});
+  }
 
+  onDocSubmit(){
+    this.cancelRequest();
+  }
 
   // Modal
   openAlertMod(template: TemplateRef<any>, message: any) {

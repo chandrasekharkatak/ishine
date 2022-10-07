@@ -1,4 +1,4 @@
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Leave } from '../models/leave';
@@ -17,6 +17,7 @@ import { NotificationMessage } from '../models/notification';
 import { NotificationService } from '../services/notification.service';
 import * as moment from 'moment';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { BodyComponent } from '../body/body.component';
 import { Feature } from '../models/feature';
 
 @Component({
@@ -24,7 +25,7 @@ import { Feature } from '../models/feature';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit {
 
     data:string;
   //modal 
@@ -61,8 +62,13 @@ export class HomeComponent implements OnInit {
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
   
-  @ViewChild("thisMonthCal") thisMonthCalendar:CalendarComponent;
-  @ViewChild("lastMonthCal") lastMonthCalendar:CalendarComponent;
+  @ViewChild("thisMonthCal") 
+  private thisMonthCalendar:CalendarComponent;
+  @ViewChild("lastMonthCal")
+  private lastMonthCalendar:CalendarComponent;
+
+  @ViewChild('updateInfo')
+  private updateInfoTempRef:TemplateRef<any>;
 
   constructor(
     private modalService: BsModalService,
@@ -75,6 +81,7 @@ export class HomeComponent implements OnInit {
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
+    private bodyComponent: BodyComponent
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -102,6 +109,19 @@ export class HomeComponent implements OnInit {
       this.countMyPendingLeaveApplicationsByLeaveType();
     }
     if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+
+
+    this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+    if(this.currentUser.isNew == "true"){
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+    }
+  }
+
+  ngAfterViewInit(): void {    
+    if(this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0){
+      this.openUpdateInfo(this.updateInfoTempRef);
+      this.currentUser.updateFormCounter = 1;
+    }
 
   }
 
@@ -785,6 +805,15 @@ export class HomeComponent implements OnInit {
     });
   }
 
+
+  //Employee Info Update
+  openUpdateInfo(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+  }
+
+  onDocSubmit(){
+    this.cancelRequest();
+  } 
 
   //export to excel
 

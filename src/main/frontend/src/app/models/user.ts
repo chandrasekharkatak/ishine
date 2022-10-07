@@ -10,6 +10,7 @@ export class User{
     tabList:any;
     managerId:any;
     departmentId:any;
+    isNew:any;
 
     /* For Leave Policy */
     gender:any;
@@ -20,4 +21,7 @@ export class User{
     sessionString:any;
 
     employeementId:any;
+
+    isUserInfoUpdated:boolean = true;
+    updateFormCounter:number = 0;
 }

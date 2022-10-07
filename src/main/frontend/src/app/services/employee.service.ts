@@ -95,8 +95,8 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteDraftEmployeeById`, employeeObj);
   }
 
-  getAllDraftEmployees() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`);
+  getAllDraftEmployees(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`,employeeObj);
   }
 
   getDraftEmployeeByEmpId(employeeObj: Employee) {
@@ -105,6 +105,18 @@ export class EmployeeService {
 
   checkEmployeeEmail(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeeEmail`, employeeObj);
+  }
+
+  getDraftEmployeeByEmploymentId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getDraftEmployeeByEmploymentId`, employeeObj);
+  }
+
+  rejectDraftEmployeeApplication(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/rejectDraftEmployeeApplication`, employeeObj);
+  }
+
+  approveDraftEmployeeApplication(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/approveDraftEmployeeApplication`, employeeObj);
   }
 
    /* update Employee Password */

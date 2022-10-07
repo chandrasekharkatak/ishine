@@ -74,7 +74,13 @@ export class Employee{
 
 	invalidAccessAttempt:any;
 	failedAttempt:any;
+	secondaryEmail:any;
 
+	updateApplicationStatus:any;
 	probationPeriod:any;
-	dateOfResign:any
+	dateOfResign:any;
+
+	remarks:any;
+	documentList:any;
+	isUserInfoUpdated:boolean = true;
 }

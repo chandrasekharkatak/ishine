@@ -31,10 +31,10 @@ public class DraftEmployeeController {
 		return response;
 	}
 	
-	@RequestMapping(value="/getAllDraftEmployees" , method = RequestMethod.GET)
-	public ServiceResponse getAllDraftEmployees() {		
+	@RequestMapping(value="/getAllDraftEmployees" , method = RequestMethod.POST)
+	public ServiceResponse getAllDraftEmployees(@RequestBody EmployeeDTO employeedto) {		
 		
-		ServiceResponse response =draftEmployeeService.getAllDraftEmployees();
+		ServiceResponse response =draftEmployeeService.getAllDraftEmployees(employeedto);
 		return response;		
 	}
 	
@@ -49,6 +49,27 @@ public class DraftEmployeeController {
 	public ServiceResponse deleteDraftEmployeeById(@RequestBody EmployeeDTO employeedto) {		
 		
 		ServiceResponse response =draftEmployeeService.deleteDraftEmployeeById(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value="/getDraftEmployeeByEmploymentId" , method = RequestMethod.POST)
+	public ServiceResponse getDraftEmployeeByEmploymentId(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = draftEmployeeService.getDraftEmployeeByEmploymentId(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value="/rejectDraftEmployeeApplication" , method = RequestMethod.POST)
+	public ServiceResponse rejectDraftEmployeeApplication(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = draftEmployeeService.rejectDraftEmployeeApplication(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value="/approveDraftEmployeeApplication" , method = RequestMethod.POST)
+	public ServiceResponse approveDraftEmployeeApplication(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = draftEmployeeService.approveDraftEmployeeApplication(employeedto);
 		return response;
 	}
 

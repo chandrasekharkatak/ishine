@@ -2,7 +2,10 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.Column;
+
 
 import lombok.Getter;
 import lombok.Setter;
@@ -101,4 +104,16 @@ public class EmployeeDTO {
 	
 	private String managerEmail;
 	
+	private String isNew;
+	private String secondaryEmail;
+
+	private String updateApplicationStatus;
+    private Short probationPeriod;
+	private String dateOfResign;
+	
+	private String remarks;
+	private Long updatedBy;
+	
+	private List<EmployeeDocumentDTO> documentList;
+	private String isUserInfoUpdated;
 }

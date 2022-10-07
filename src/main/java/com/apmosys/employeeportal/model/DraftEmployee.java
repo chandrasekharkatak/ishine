@@ -102,6 +102,7 @@ public class DraftEmployee {
 	
 	private String role;
 	private String workLocation;
+	private String updateApplicationStatus;
 	
 	@Column(length = 50)
 	private String mothersName;

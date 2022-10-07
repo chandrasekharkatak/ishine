@@ -1,0 +1,581 @@
+<!-- start :: Update Form -->
+<div class="row ">
+    <div class="card updateInfoTab">
+        <div class="card-header text-center text-uppercase">
+            <strong>Employee Information</strong>  
+          </div>
+          <div class="card-body">
+            <div class="row">
+                <app-accordion>
+                    <app-accordion-item class="acc-content" title="Basic Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Emp Id</p>
+                                        <p class="info-text info-highlight">{{employeeObj.employeementId}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Full Name</p>
+                                        <p class="info-text">{{employeeObj.name}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Email ID</p>
+                                        <p class="info-text">{{employeeObj.email}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Gender</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.gender">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date of Birth</p>
+                                        <p class="info-text">{{employeeObj.dateOfBirth}}</p>
+                                    </div>
+
+                                    <!-- <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Date of Birth</label>
+                                            <div class="d-flex">
+                                                <input class="form-control" matInput id="DOB" [matDatepicker]="DOBPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" disabled>
+                                                <mat-datepicker-toggle  matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
+                                            </div>
+                                            <mat-datepicker  #DOBPicker disabled="false"></mat-datepicker>
+                                        </div>
+                                    </div> -->
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Blood Group</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Marital Status</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.maritalStatus">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="single">Single</option>
+                                                <option value="married">Married</option>
+                                                <option value="other">Other</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+            
+                    <app-accordion-item class="acc-content" title="Personal Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Father's Name</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.fatherName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Place of Birth</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.placeOfBirth">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Mother Tongue</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.motherTongue">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Passport Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.passportNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Aadhar Number</label>
+                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar" (blur)="checkEmployeeAadharNumber(alert_message)">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>PAN Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber" (blur)="checkEmployeePanNumber(alert_message)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+    
+                    <app-accordion-item class="acc-content" title="Contact Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Mobile Number</p>
+                                        <p class="info-text">{{employeeObj.mobileNo}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Landline Number</label>
+                                            <input type="number"  maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.landline">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Current Address</label>
+                                            <input type="text" maxlength="1000" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.address">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>State</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.state">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>City / Town</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.city">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Country</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.country">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <label class="info-label"><span class="text-danger">*</span>Pincode</label>
+                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Alternate Mobile Number</label>
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Permanent Address</label>
+                                            <input type="text" maxlength="1000" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.permanentAddress">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Emergency Contact Person</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactPerson">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Relation</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.relation">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Emergency Contact Mobile Number</label>
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+    
+                    <app-accordion-item class="acc-content" title="Educational Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Graduation Type</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.graduationType">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="HSC">HSC</option>
+                                                <option value="Diploma">Diploma</option>
+                                                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                                <option value="Master's Degree">Master's Degree</option>
+                                                <option value="Doctorate (PhD)">Doctorate (PhD)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Pursuing</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.pursuing">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="No">No</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="employeeObj.pursuing == 'No'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Year of Passing</label>
+                                            <!-- <input type="number" maxlength="4" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.yearOfPassing"> -->
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.yearOfPassing" (change)="stringToNumber(employeeObj.yearOfPassing)">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option *ngFor="let year of yearOfPassingList" [value]=year>{{year}}</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Passing Grade</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.passingGrade">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <h4 class="info-label" >Certifications</h4>
+                            <div *ngFor="let certification of allCertificationList;let i = index" class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Certification Name - {{i+1}}</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="certification.certificationName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Duration</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="certification.duration">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="3 Months">3 Months</option>
+                                                <option value="6 Months">6 Months</option>
+                                                <option value="1 Year">1 Year</option>
+                                                <option value="More than 1 Year">More than 1 Year</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Mode of Course</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="certification.modeOfCourse">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Offline">Offline</option>
+                                                <option value="Online">Online</option>
+                                                <option value="Both">Both</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Date of completion</label>
+                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="certification.dateOfCompletion" (keydown)="disableMannualDateInput()">
+                                            <!-- <div class="d-flex">
+                                                <input class="form-control" matInput id="DOC" [matDatepicker]="DOCPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of completion" [(ngModel)]="certification.dateOfCompletion" disabled>
+                                                <mat-datepicker-toggle matSuffix [for]="DOCPicker"></mat-datepicker-toggle>
+                                            </div>
+                                            <mat-datepicker  #DOCPicker disabled="false"></mat-datepicker> -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Certification Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="certification.certificationNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center">
+                                    <div class="form-group m-0 mt-3 mb-1">
+                                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputCertificationField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputCertificationField(certification)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+
+                    <app-accordion-item class="acc-content" title="Employment Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Joining</p>
+                                        <p class="info-text">{{employeeObj.dateOfJoining}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Employment Status</p>
+                                        <p class="info-text info-highlight">{{employeeObj.employmentstatus}}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Notice Period</p>
+                                        <p class="info-text">{{employeeObj.noticePeriod}} Days</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Manager</p>
+                                        <p class="info-text info-highlight">{{employeeObj.managerName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Department Name</p>
+                                        <p class="info-text info-highlight">{{employeeObj.departmentName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Job Role Name</p>
+                                        <p class="info-text info-highlight">{{employeeObj.jobRoleName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Exprience</p>
+                                        <p class="info-text info-highlight">{{employeeObj.experience}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Work Location <small>(State)</small></p>
+                                        <p class="info-text info-highlight">{{employeeObj.workLocation}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+    
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                        <div class="container-fluid">
+                            <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Employer Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label ">Date Of Joining</label>
+                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Date of Relieving</label>
+                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Years of Experience</label>
+                                            <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Designation</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Manager Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Manager Contact Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">HR Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">HR Contact Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center">
+                                    <div class="form-group m-0 mt-2 mb-2">
+                                        <button *ngIf="i != 4" type="button" class="btn btn-outline-primary mx-1" (click)="addInputPreviousEmployerField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputPreviousEmployerField(previousEmployer)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+    
+                    <app-accordion-item class="acc-content" title="Bank/PF Account Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Bank Name</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Bank Account Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankAccountNo">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">IFSC</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankIFSCCode">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">PF Account Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pfAccountNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Previous PF Account Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.previousPfAccountNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">UAN</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.uan">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">ESIC Account Number</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.esicNumber">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
+                </app-accordion>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSave()">Save</button>
+                </div>
+            </div>
+          </div>
+    </div>
+</div>
+<!-- end :: update form -->
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

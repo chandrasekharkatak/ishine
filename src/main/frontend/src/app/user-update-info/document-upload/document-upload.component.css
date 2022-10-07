@@ -1,0 +1,29 @@
+/* Upload Button Styles */
+.uploadFile{
+    width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+/* .uploadFile + label {
+    font-size: 1.25em;
+    font-weight: 700;
+    padding: 6px 12px;
+    border: 1px solid var(--dark-cornflower-blue);
+    border-radius: 2px;
+    color: var(--dark-cornflower-blue);
+    background-color: #fff;
+    display: inline-block;
+
+    cursor: pointer;
+    transition: all 0.5ms ease-in-out;
+}
+
+.uploadFile:focus + label,
+.uploadFile + label:hover {
+    background-color: var(--dark-cornflower-blue);
+    color: #fff;
+} */

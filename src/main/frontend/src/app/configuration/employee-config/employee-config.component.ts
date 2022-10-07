@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Pipe, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, Pipe, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -15,7 +15,9 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
-import { PortalService } from 'src/app/services/portal.service';
+import { ImageService } from 'src/app/services/image.service';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Document } from 'src/app/models/document';
 
 @Component({
   selector: 'app-employee-config',
@@ -36,8 +38,6 @@ export class EmployeeConfigComponent implements OnInit {
   isDraft: boolean = false;
   isDraftTable: boolean = false;
 
-  
-
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -52,7 +52,6 @@ export class EmployeeConfigComponent implements OnInit {
   allDeptList: any[] = [];
   filteredJobRoleList: any[] = [];
   employeeDataForExcel: any[] = [];
-  portalConfigList:any[] = [];
 
 
   allCertificationList: any[] = [];
@@ -101,16 +100,19 @@ export class EmployeeConfigComponent implements OnInit {
   yearOfPassingList:any[] = [];
   revoke_template: any;
 
+  previewObj:Employee = new Employee();
+
   constructor(
     private employeeService: EmployeeService,
-    private validationService: ValidationService,
+    public validationService: ValidationService,
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
-    private portalService:PortalService,) {
+    private imageService : ImageService,
+    private sanitizer: DomSanitizer,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -139,10 +141,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.create_employee){
-      this.showCreateForm();
-    }
-    else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.enable_employee_login) {
+    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {
@@ -198,7 +197,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.reset();
     this.getManagerList();
     this.getAllDepartmentList();
-    this.getAllPortalConfigData();
     setTimeout(this.setCalenderMaxDate, 1000);
   }
 
@@ -243,7 +241,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.pursuing = '';
     this.employeeObj.experience = '';
     this.employeeObj.workLocation = '';
-   
+    this.employeeObj.dateOfBirth = '';
 
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
@@ -267,7 +265,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
-    employee.employeementId= employee.employeementId.substring(2);
+
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -310,11 +308,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.getManagerList();
     this.getAllDepartmentList();    
     
-    employee.employeementId= employee.employeementId.substring(2);
+    
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
-        this.employeeObj.draftEmpId = this.employeeObj.empId;
         console.log("employee :", this.employeeObj);
 
         // Job Role
@@ -381,11 +378,11 @@ export class EmployeeConfigComponent implements OnInit {
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
-      this.alertMessage = "Please enter Emp Id !!"
+      this.alertMessage = "Please enter Employment Id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateEmployeementId(employeeObj.employeementId)) {
-      this.alertMessage = "Please enter valid Employeement ID !!";
+      this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -410,11 +407,21 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)) {
-      this.alertMessage = "Please select gender !!"
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.secondaryEmail)) {
+      this.alertMessage = "Please enter email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateEmail(employeeObj.secondaryEmail)) {
+      this.alertMessage = "Please enter valid email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)) {
+    //   this.alertMessage = "Please select gender !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -422,59 +429,59 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
-      this.alertMessage = "Please enter Valid Blood Group !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+    //   this.alertMessage = "Please enter Valid Blood Group !!"	
+    //   this.openAlertMod(template, this.alertMessage);	
+    //   return false;	
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)) {
-      this.alertMessage = "Please enter father name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.fatherName)) {
-      this.alertMessage = "Please enter Valid father Name !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)) {
+    //   this.alertMessage = "Please enter father name !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.fatherName)) {
+    //   this.alertMessage = "Please enter Valid father Name !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth) && !this.validationService.validateAlphaWithSpace(employeeObj.placeOfBirth)) {
-      this.alertMessage = "Please enter Valid Place of birth !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth) && !this.validationService.validateAlphaWithSpace(employeeObj.placeOfBirth)) {
+    //   this.alertMessage = "Please enter Valid Place of birth !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)) {
-      this.alertMessage = "Please enter Valid Mother tongue number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)) {
+    //   this.alertMessage = "Please enter Valid Mother tongue number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber) && !this.validationService.validatePassportNumber(employeeObj.passportNumber)) {
-      this.alertMessage = "Please enter Valid Passport number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber) && !this.validationService.validatePassportNumber(employeeObj.passportNumber)) {
+    //   this.alertMessage = "Please enter Valid Passport number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)) {
-      this.alertMessage = "Please enter aadhar card number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (employeeObj.aadhar.toString().length != 12) {
-      this.alertMessage = "Please enter Valid aadhar card number !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)) {
+    //   this.alertMessage = "Please enter aadhar card number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (employeeObj.aadhar.toString().length != 12) {
+    //   this.alertMessage = "Please enter Valid aadhar card number !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)) {
-      this.alertMessage = "Please enter PAN card number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validatePancardNumber(employeeObj.panNumber)) {
-      this.alertMessage = "Please enter Valid PAN card number !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.panNumber)) {
+    //   this.alertMessage = "Please enter PAN card number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validatePancardNumber(employeeObj.panNumber)) {
+    //   this.alertMessage = "Please enter Valid PAN card number !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.mobileNo)) {
       this.alertMessage = "Please enter mobile number !!"
@@ -486,81 +493,81 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)) {
-      this.alertMessage = "Please enter Current Address !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)) {
+    //   this.alertMessage = "Please enter Current Address !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)) {
-      this.alertMessage = "Please enter state !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.state)) {
-      this.alertMessage = "Please enter Valid state !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)) {
+    //   this.alertMessage = "Please enter state !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.state)) {
+    //   this.alertMessage = "Please enter Valid state !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)) {
-      this.alertMessage = "Please enter city !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.city)) {
-      this.alertMessage = "Please enter Valid city !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)) {
+    //   this.alertMessage = "Please enter city !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.city)) {
+    //   this.alertMessage = "Please enter Valid city !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)) {
-      this.alertMessage = "Please enter country !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.country)) {
-      this.alertMessage = "Please enter Valid country !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)) {
+    //   this.alertMessage = "Please enter country !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateAlphaWithSpace(employeeObj.country)) {
+    //   this.alertMessage = "Please enter Valid country !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)) {
-      this.alertMessage = "Please enter pincode !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validatePincodeNumber(employeeObj.pincode)) {
-      this.alertMessage = "Please enter Valid pincode !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)) {
+    //   this.alertMessage = "Please enter pincode !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validatePincodeNumber(employeeObj.pincode)) {
+    //   this.alertMessage = "Please enter Valid pincode !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo) && !this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)) {
-      this.alertMessage = "Please enter valid alternate mobile number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo) && !this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)) {
+    //   this.alertMessage = "Please enter valid alternate mobile number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)) {
-      this.alertMessage = "Please enter permanent address !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)) {
+    //   this.alertMessage = "Please enter permanent address !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactPerson) && !this.validationService.validateAlphaWithSpace(employeeObj.emergencyContactPerson)) {
-      this.alertMessage = "Please enter Valid Emergency Contact Person Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactPerson) && !this.validationService.validateAlphaWithSpace(employeeObj.emergencyContactPerson)) {
+    //   this.alertMessage = "Please enter Valid Emergency Contact Person Name !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.relation) && !this.validationService.validateAlphaWithSpace(employeeObj.relation)) {
-      this.alertMessage = "Please enter Valid Emergency Contact Person Relation !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.relation) && !this.validationService.validateAlphaWithSpace(employeeObj.relation)) {
+    //   this.alertMessage = "Please enter Valid Emergency Contact Person Relation !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactMobile) && !this.validationService.validateMobileNumber(employeeObj.emergencyContactMobile)) {
-      this.alertMessage = "Please enter Valid Emergency Contact Person Mobile Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.emergencyContactMobile) && !this.validationService.validateMobileNumber(employeeObj.emergencyContactMobile)) {
+    //   this.alertMessage = "Please enter Valid Emergency Contact Person Mobile Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfJoining)) {
       this.alertMessage = "Please enter date of joining !!"
@@ -599,7 +606,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Designation !!"
+      this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -616,45 +623,45 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
-      this.alertMessage = "Please enter Valid Bank Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
+    //   this.alertMessage = "Please enter Valid Bank Name !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankAccountNo) && !this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)) {
-      this.alertMessage = "Please enter Valid Bank Account Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankAccountNo) && !this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)) {
+    //   this.alertMessage = "Please enter Valid Bank Account Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode) && !this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)) {
-      this.alertMessage = "Please enter Valid Bank IFSC Code !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode) && !this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)) {
+    //   this.alertMessage = "Please enter Valid Bank IFSC Code !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.pfAccountNumber)) {
-      this.alertMessage = "Please enter Valid PF Account Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.pfAccountNumber)) {
+    //   this.alertMessage = "Please enter Valid PF Account Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.previousPfAccountNumber)) {
-      this.alertMessage = "Please enter Valid Previous PF Account Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.uan) && !this.validationService.validateAlphaNumeric(employeeObj.uan)) {
-      this.alertMessage = "Please enter Valid UAN Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber) && !this.validationService.validateAlphaNumeric(employeeObj.esicNumber)) {
-      this.alertMessage = "Please enter Valid ESIC Number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber) && !this.validationService.validateAlphaNumeric(employeeObj.previousPfAccountNumber)) {
+    //   this.alertMessage = "Please enter Valid Previous PF Account Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.uan) && !this.validationService.validateAlphaNumeric(employeeObj.uan)) {
+    //   this.alertMessage = "Please enter Valid UAN Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+    // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber) && !this.validationService.validateAlphaNumeric(employeeObj.esicNumber)) {
+    //   this.alertMessage = "Please enter Valid ESIC Number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     return true;
   }
 
@@ -721,7 +728,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Designation !!"
+      this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -753,21 +760,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
-    const tempObj = this.employeeObj;
-    console.log("tempObj : ", tempObj);
-
     this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("Delete Draft Employe : ", this.employeeObj);
-        this.employeeService.deleteDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            console.log(response.serviceResponse);
-          } else {
-            console.error(response.serviceResponse);
-          }
-        }); // deleting draft once employee is created
-        console.log(this.employeeObj.empId, "-----------------");
-        
+        this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
       } else {
@@ -778,8 +773,8 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   checkEmail(template: TemplateRef<any>) {
-    const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-   //const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+
+    const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
     if(regex.test(this.employeeObj.email))
     {
       this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -791,7 +786,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
     else
     {
-      this.openAlertMod(template, "Please valid email id !!");
+      this.openAlertMod(template, "Please enter apmosys email id !!");
       this.employeeObj.email = '';
     }
 
@@ -843,10 +838,6 @@ export class EmployeeConfigComponent implements OnInit {
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
-    this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
-    if(this.employeeObj.dateOfResign == 'Invalid date'){
-      this.employeeObj.dateOfResign = null;
-    }
 
     this.allCertificationList.forEach(certificaiton => {
       certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
@@ -884,9 +875,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   onDeleteEmployee(template: TemplateRef<any>) {
     this.cancelRequest();
-    this.employeeObj.employeementId=this.employeeObj.employeementId.substring(2); //A-1234 because in dto class employment id is declare as long so we need it 
-    console.log("Delete Employee : ", this.employeeObj);
-    
+
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -899,18 +888,15 @@ export class EmployeeConfigComponent implements OnInit {
 
   getAllEmployeeList() {
     this.allEmployeeList = [];
-      
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-          for(let x of this.allEmployeeList){
-            x.employeementId = "A-".concat(x.employeementId);
-          }
-               console.log("allEmployeeList : ", this.allEmployeeList)
+        
+        console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
-      } 
+      }
     });
   }
 
@@ -930,51 +916,11 @@ export class EmployeeConfigComponent implements OnInit {
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          "Emp Id": "A-".concat(x.employeementId),
+          "Emp Id": "A-".concat(x.employeementId),		
           "Name": x.name,		
           "Email": x.email,		
-          "Employment Status": x.employmentstatus,
-          "Date Of Joining": x.dateOfJoining,
-          "Aadhar":x.aadhar,
-          "About Me":x.aboutMe,
-          "address":x.address,
-          "permanentAddress":x.permanentAddress,
-          "city":x.city,
-          "Blood Group":x.bloodGroup,
-          "date Of Birth":x.dateOfBirth,
-          "gender":x.gender,
-          "fatherName":x.fatherName,
-          "mobileNo":x.mobileNo,
-          "panNumber":x.panNumber,
-          "placeOfBirth":x.placeOfBirth,
-          "workLocation":x.workLocation,
-          "probationPeriod":x.probationPeriod,
-          "noticePeriod":x.noticePeriod,
-          "country":x.country,
-          "emergencyContactMobile":x.emergencyContactMobile,
-          "emergencyContactPerson":x.emergencyContactPerson,
-          "landline":x.landline,
-          "maritalStatus":x.maritalStatus,
-          "motherTongue":x.motherTongue,
-          "alternateMobileNo":x.alternateMobileNo,
-          "pincode":x.pincode,
-          "relation":x.relation,
-          "state":x.state,
-          "viewsOnOrganisation":x.viewsOnOrganisation,
-          "passportNumber":x.passportNumber,
-          "bankAccountNo":x.bankAccountNo,
-          "bankIFSCCode":x.bankIFSCCode,
-          "bankName":x.bankName,
-          "pfAccountNumber":x.pfAccountNumber,
-          "previousPfAccountNumber":x.previousPfAccountNumber,
-          "uan":x.uan,
-          "esicNumber":x.esicNumber,
-          "graduationType":x.graduationType,
-          "pursuing":x.pursuing,
-          "passingGrade":x.passingGrade,
-          "yearOfPassing":x.yearOfPassing,
-          "createdBy":x.createdBy,
-          "createdOn":x.createdOn 
+          "Employment Status": x.employmentstatus,		
+          "Date Of Joining": x.dateOfJoining
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
@@ -1049,7 +995,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.cancelRequest();
 
     this.employeeObj.draftEmpId = this.employeeObj.empId;
-    this.employeeObj.employeementId=this.employeeObj.employeementId.substring(2);
     this.employeeService.deleteDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1062,13 +1007,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   getAllDraftEmployees() {
     this.allEmployeeList = [];
-
-    this.employeeService.getAllDraftEmployees().pipe(first()).subscribe((response: any) => {
+    let employeeObj = new Employee();
+    employeeObj.updateApplicationStatus = 'Pending For Approval';
+    this.employeeService.getAllDraftEmployees(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        for(let x of this.allEmployeeList){
-          x.employeementId="A-".concat(x.employeementId)
-        }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -1111,9 +1054,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   validateBirthDate(template: TemplateRef<any>){   
 
-  let birthdate = new Date(this.employeeObj.dateOfBirth);
-  let dtCurrent = new Date();
-    
+    let birthdate = new Date(this.employeeObj.dateOfBirth);
+    let dtCurrent = new Date();
+
     if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
@@ -1136,30 +1079,88 @@ export class EmployeeConfigComponent implements OnInit {
           }
       }
    }
-    if ((dtCurrent.getFullYear() - birthdate.getFullYear()) > 60) {
+    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      this.employeeObj.dateOfBirth = '';
+      this.employeeObj.dateOfBirth = this.reset;
       return false;
     }
   }
 
-  getAllPortalConfigData() {
-    this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
+  rejectDraftEmployeeApplication(template: TemplateRef<any>){
+
+    this.cancelRequest();
+    this.employeeObj.updateApplicationStatus = 'In-Progress';
+    this.employeeObj.updatedBy = this.currentUser.empId ;
+    if(this.employeeObj.documentList){
+      this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
+    }
+    this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.portalConfigList = response.serviceResponse;
-        for(let portal of this.portalConfigList){
-          if(portal.configName == 'Probation Period'){
-            this.employeeObj.probationPeriod = portal.configPeriod;
-          }
-          if(portal.configName == 'Notice Period'){
-            this.employeeObj.noticePeriod = portal.configPeriod;
-          }
-        }
+        this.allEmployeeList = response.serviceResponse;
+        this.openAlertMod(template, response.serviceResponse);
+        this.showDraftTable();
       } else {
-        console.error(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  approveDraftEmployeeApplication(template: TemplateRef<any>){
+    this.cancelRequest();
+    this.employeeObj.updateApplicationStatus = 'Approved';
+    this.employeeObj.updatedBy = this.currentUser.empId ;
+    if(this.employeeObj.documentList){
+      this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
+    }  
+
+    this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse;
+        this.openAlertMod(template, response.serviceResponse);
+        this.showDraftTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  // Employee Info Preview 
+  async openEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
+
+    console.log("employeeObj : ", employeeObj);
+    
+    let currentEmp = new Employee();
+    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.empId = employeeObj.empId;
+    currentEmp.isDraft = true;
+
+    const infoResponse: any = await this.employeeService.getDraftEmployeeByEmpId(currentEmp).toPromise();
+    if (infoResponse.serviceStatus == "Success") {
+      this.previewObj = infoResponse.serviceResponse;
+      console.log("this.previewObj : ", this.previewObj);
+    } else {
+      console.error(infoResponse.serviceResponse)
+    }
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.previewObj.documentList = docResponse.serviceResponse;
+      console.log("this.previewObj.documentList : ", this.previewObj.documentList);
+    } else {
+      console.log(docResponse.serviceResponse);
+    }
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+    setTimeout(()=>{
+      this.previewObj.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500)
   }
 
   // modals
@@ -1178,6 +1179,16 @@ export class EmployeeConfigComponent implements OnInit {
     this.alertMessage = message;
   }
 
+  openApplicationRejectionMod(template: TemplateRef<any> , employee: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.employeeObj = employee;
+  }
+
+  openApplicationApprovalMod(template: TemplateRef<any> , employee: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.employeeObj = employee;    
+  }
+
   cancelRequest() {
     this.modalRef.hide();
   }
@@ -1193,6 +1204,8 @@ export class EmployeeConfigComponent implements OnInit {
   sortData(sort: Sort){	
     console.log(sort);  	
        let data=this.allEmployeeList;	
+       console.log("anurag :" , this.allEmployeeList );	
+         
          if(!sort.active || sort.direction ===''){	
           this.allEmployeeList=data;	
          return;	
@@ -1238,6 +1251,8 @@ export class EmployeeConfigComponent implements OnInit {
           }
         });
       }
+   
+            
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
