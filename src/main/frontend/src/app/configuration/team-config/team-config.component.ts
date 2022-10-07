@@ -242,13 +242,7 @@ export class TeamConfigComponent implements OnInit {
       this.alertMessage = "Please enter Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }
-
-    if (!this.validationService.validateNullUndefinedEmptyString(teamObj.teamLeadId)) {
-      this.alertMessage = "Please select Team Lead !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    } 
 
     if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
       this.alertMessage = "Please select Department !!"
@@ -390,7 +384,7 @@ export class TeamConfigComponent implements OnInit {
     this.allProjectListByManagerId = [];
 
     let projectObj = new Project();
-    projectObj.projectManagerId = 5; //! Temp
+    // projectObj.projectManagerId = 184; //! Temp
     this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectListByManagerId = response.serviceResponse;
@@ -406,7 +400,7 @@ export class TeamConfigComponent implements OnInit {
     this.teamLeadsList = [];
     let employeeList = [];
 
-    this.employeeObj.role = "Team Lead";
+    this.employeeObj.role = "TeamLead";
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
@@ -593,6 +587,14 @@ export class TeamConfigComponent implements OnInit {
     }
   }
 
+  checkTeamName(template :TemplateRef<any>){
+    this.teamService.checkTeamName(this.teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.teamObj.teamName = '';
+      }
+    });
+  } 
 
 
   //modals

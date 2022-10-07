@@ -18,6 +18,7 @@ import { NotificationService } from '../services/notification.service';
 import * as moment from 'moment';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
 import { BodyComponent } from '../body/body.component';
+import { Feature } from '../models/feature';
 
 @Component({
   selector: 'app-home',
@@ -86,17 +87,29 @@ export class HomeComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
-    this.getAllNotifications();
-    this.getAllEventPhotos();
-    this.getAllEmployeesBirthDayToday();
 
-    this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.countPendingCompOffRequestsByManagerId();
-    this.countMyReporteesTimesheetRequests();
+    // Dynamic Subfeature Flags 
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, " : ", this.userMapping);
     
-    this.getMyLeaveBalancesByEmpId();
-    this.countMyApprovedLeaveApplicationsByLeaveType();
-    this.countMyPendingLeaveApplicationsByLeaveType();
+    this.getAllNotifications();
+    if(this.userMapping.view_event_photos) this.getAllEventPhotos();
+    if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+    if(this.userMapping.view_all_team_requests){
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+      this.countPendingCompOffRequestsByManagerId();
+      this.countMyReporteesTimesheetRequests();
+    }
+    if(this.userMapping.view_my_leave_details){
+      this.getMyLeaveBalancesByEmpId();
+      this.countMyApprovedLeaveApplicationsByLeaveType();
+      this.countMyPendingLeaveApplicationsByLeaveType();
+    }
+    if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+
 
     this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     if(this.currentUser.isNew == "true"){
@@ -109,6 +122,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.openUpdateInfo(this.updateInfoTempRef);
       this.currentUser.updateFormCounter = 1;
     }
+
   }
 
   // Leave Applications
@@ -147,6 +161,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
+    this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
@@ -252,6 +267,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
+    this.cancelRequest();
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.status = status;
@@ -265,6 +281,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+  rejectTimesheetRequest(template: TemplateRef<any>){
+    this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
+  }
+
+  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
 
   /* View TImesheet details */ 
   getAllMyActivitiesByTimesheetId(timesheet:any){
@@ -308,7 +334,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         let checkData = balanceChartData.filter(data => data.y != 0);
         console.log("checkData :", checkData);
         
-        if(checkData){
+        if(checkData && checkData.length != 0){
           this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
         }else{
           this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
@@ -342,7 +368,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         let checkData = approvedChartData.filter(data => data.y != 0);
         console.log("checkData :", checkData);
         
-        if(checkData){
+        if(checkData && checkData.length != 0){
           this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
         }else{
           this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
@@ -376,15 +402,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         let checkData = pendingChartData.filter(data => data.y != 0);
         console.log("checkData :", checkData);
         
-        if(checkData){
+        if(checkData && checkData.length != 0){
           this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
         }else{
-          this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'zero Leave Applications');
+          this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
         }
 
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Pending Leave Request', 'leaveRequestChart', 'No Data to Display');
+        this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
       }
     });
   }
@@ -597,7 +623,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   getAllEventPhotos(){
     this.eventImages = [];
     this.isImagesLoaded = false;
-    document.getElementById('eventPhotosCarousel').style.display = 'none';
+    // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
     this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {

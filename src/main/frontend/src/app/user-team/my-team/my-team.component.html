@@ -4,7 +4,7 @@
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Request</button>
     </div>
-  </div>
+</div>
   
   
   
@@ -40,7 +40,7 @@
         </tr>
         <tr *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" (click)="myTeamHierarchy(teamView)">
           <td class="info-label">{{10*(page-1)+i+1}}</td>
-          <td class="info-label">A-{{teamView.employeementId}}</td>
+          <td class="info-label">{{teamView.employeementId}}</td>
           <td class="info-label myTeam-hierarchy">{{teamView.name}}</td>
           <td class="info-label">{{teamView.email}}</td>
           <td class="info-label">{{teamView.jobRoleName}}</td>

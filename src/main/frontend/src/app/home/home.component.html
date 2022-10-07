@@ -1,7 +1,7 @@
 <div class="container-fluid p-2">
     <!-- Leave & Request Bucket -->
     <div class="row justify-content-between leaveStatus">
-        <app-accordion-item class="acc-content main-section leaveBucket" title="My Leave Details"
+        <app-accordion-item *ngIf="userMapping.view_my_leave_details" class="acc-content main-section leaveBucket" title="My Leave Details"
         titleColor="var(--dark-cornflower-blue)" titleBg="#fff" contentBg="#fff">
             <div class="container-fluid leaveBucketContainer">
                 <div class="row">
@@ -17,7 +17,7 @@
                 </div>
             </div>
         </app-accordion-item>
-        <app-accordion-item class="acc-content secondary-section requestBucket" title="Team Requests"
+        <app-accordion-item *ngIf="userMapping.view_all_team_requests" class="acc-content secondary-section requestBucket" title="Team Requests"
         titleColor="var(--dark-cornflower-blue)" titleBg="#fff" contentBg="#fff">
             <div class="container-fluid requestBucketContainer d-flex flex-column justify-content-around pr-4">
                 <div class="row p-0 d-flex justify-content-between request-display">
@@ -29,9 +29,9 @@
                 <div class="row p-0 d-flex justify-content-between request-display">
                     <p class="request-title">Comp-off Requests</p> <h1 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
                 </div>
-                <div class="row p-0 d-flex justify-content-between request-display">
+                <!-- <div class="row p-0 d-flex justify-content-between request-display">
                     <p class="request-title">Reimbursement Requests</p> <h1 class="req-card" ><span class="badge badge-secondary">10</span></h1>
-                </div>
+                </div> -->
             </div>
         </app-accordion-item>
     </div>
@@ -42,7 +42,7 @@
     </div>
     <!-- Event Photos & Today's Birthday Display -->
     <div class="row justify-content-between mb-2">
-        <div class="main-section card">
+        <div *ngIf="userMapping.view_event_photos" class="main-section card">
             <div *ngIf="!isImagesLoaded" class="container-fuid d-flex m-auto">
                 <div  class="spinner-border" role="status" style="height: 100px; width: 100px;"> 
                     <span class="sr-only">Loading...</span>
@@ -64,7 +64,7 @@
                 </a>
               </div>
         </div>
-        <div class="secondary-section card birthdayList">
+        <div *ngIf="userMapping.view_birthday_list" class="secondary-section card birthdayList">
             <div class="card-title px-1 pt-2">
                 <p class="section-heading m-0 pl-2">Today's Birthdays</p>
             </div>
@@ -84,7 +84,7 @@
         </div>
     </div>
     <!-- Timesheet Display -->
-    <div class="row justify-content-between mb-2 timesheet-container">
+    <div *ngIf="userMapping.view_timesheet_display" class="row justify-content-between mb-2 timesheet-container">
         <div class="main-section card">
             <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
                 <li class="nav-item timesheet_tab-item">
@@ -109,7 +109,7 @@
                         <table class="table table-sm timesheet-table">
                             <thead>
                               <tr>
-                                <th scope="col">#</th>
+                                <th scope="col">Sr.No</th>
                                 <th scope="col">Date</th>
                                 <th scope="col">Day</th>
                                 <th scope="col">Day Type</th>
@@ -156,7 +156,7 @@
         </div>
     </div>
     <!-- Quick Links -->
-    <div class="row card d-flex align-items-center justify-content-center drop-shadow" style="height: 75px;">
+    <div *ngIf="userMapping.view_quick_links" class="row card d-flex align-items-center justify-content-center drop-shadow" style="height: 75px;">
         <div class="col-md-3 text-center quick-link" (click)="showApplyLeaveForm()">
             <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
             <p class="text-uppercase m-0 ">Apply Leave</p>
@@ -288,8 +288,8 @@
                     <td>{{leaveApplication.reason}}</td>
                     <!-- <td>{{leaveApplication.description}}</td> -->
                     <td>
-                        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
             </tbody>
@@ -341,8 +341,8 @@
                     <td>{{compOffApp.description}}</td>
                     <td>{{compOffApp.status}}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
             </tbody>
@@ -395,11 +395,11 @@
                 <td>
                   <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
                     (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                  <button class="btn btn-sm btn-outline-success" type="submit" title="Approve"
+                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
                     (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
                       class="fa-solid fa-check"></em></button>&nbsp;
-                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
+                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                  (click)="cancelRequest();opnenRejectTimesheet(reject_timesheet, timesheet)"><em
                       class="fa-solid fa-xmark"></em></button>
                 </td>
               </tr>
@@ -491,3 +491,12 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #reject_timesheet>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Reject Timesheet?</p>
+        <button type="button" class="btn btn-success" (click)="rejectTimesheetRequest(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>
+  

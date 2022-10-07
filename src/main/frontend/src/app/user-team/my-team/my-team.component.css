@@ -20,8 +20,10 @@
     padding-top: 10px;
 }
 
-.myTeam-hierarchy {
+.myTeam-hierarchy:hover {
     cursor: pointer;
+    text-decoration: underline;
+    color: #193d8a;
 }
 
 .search-box{

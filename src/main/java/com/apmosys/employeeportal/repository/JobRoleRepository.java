@@ -25,6 +25,10 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getHoDByJobRoleId(Long jobRoleId);
 
+	public List<JobRole> findByEmployeeRole(String role);
 
+	public List<JobRole> findByEmployeeRoleNotIn(List<String> jobRoles);
 
+	public JobRole findByName(String name);
+	
 }

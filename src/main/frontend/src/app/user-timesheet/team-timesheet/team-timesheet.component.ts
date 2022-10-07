@@ -64,7 +64,11 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showAllTimesheetRequestsTable();
+    if(this.userMapping.view_my_teams_timesheets){
+      this.showAllTimesheetsTable();
+    }else if(this.userMapping.view_my_teams_timesheets_requests || this.userMapping.update_timesheet_request || this.userMapping.revoke_reportee_timesheet){
+      this.showAllTimesheetRequestsTable();
+    }
   }
 
   disableMannualDateInput(){
@@ -145,6 +149,7 @@ export class TeamTimesheetComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.status = status;
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -153,6 +158,11 @@ export class TeamTimesheetComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  rejectTimesheetRequest(template: TemplateRef<any>){
+    this.cancelRequest();
+    this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
   }
 
 
@@ -233,6 +243,11 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   openRevokeApprovedTimesheet(template: TemplateRef<any>, timesheet: any) {
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
     this.timesheetObj = timesheet;
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }

@@ -30,4 +30,8 @@ export class JobRoleService {
   changeEmployeeJobRoleMapping(jobRoleObj: JobRole) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/changeEmployeeJobRoleMapping`, jobRoleObj);
   }
+  
+  checkJobRole(jobRoleObj : JobRole) {
+    return this.http.post(`${this.baseUrl}`+`employeeportal/api/checkJobRole`, jobRoleObj);
+  }
 }

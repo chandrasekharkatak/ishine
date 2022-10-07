@@ -9,13 +9,16 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 
 @Repository
-public interface RoleFeatureMapRepository extends JpaRepository<RoleFeatureMap,Long> {
-	
-	
+public interface RoleFeatureMapRepository extends JpaRepository<RoleFeatureMap, Long> {
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getTabsByRoleId(Long roleId);
-	
-	
+
 	public List<RoleFeatureMap> findByJobRoleId(Long roleId);
+
+	public Integer deleteByJobRoleId(Long roleId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getRolesToBeMappedWithNewSubFeature(List<String> employeeRolelist);
 
 }

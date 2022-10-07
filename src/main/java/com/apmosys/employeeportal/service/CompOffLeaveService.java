@@ -13,10 +13,12 @@ import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.CompOffMaster;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -38,6 +40,9 @@ public class CompOffLeaveService {
 
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
+	
+	@Autowired
+	LeaveTypeMasterRepository leaveTypeMasterRepository;
 
 	public ServiceResponse getAllCompOffReasons() {
 		ServiceResponse response = new ServiceResponse();
@@ -197,7 +202,8 @@ public class CompOffLeaveService {
 		try {
 
 			Optional<CompOffLeave> leaveObject = compOffLeaveRepository.findById(leaveDTO.getCompOffLeaveId());
-
+			LeaveTypeMaster leavetypeObj = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
+			
 			if (leaveObject.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No compoff request(s) found.");
@@ -214,7 +220,7 @@ public class CompOffLeaveService {
 				if (leaveDTO.getLeaveStatusId() == 2) {
 					// 1 = CO
 					EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
-							.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), (short) 1);
+							.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leavetypeObj.getLeaveTypeMasterId());
 
 					employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + compOffLeave.getNoOfDays());
 					employeeLeavesMapRepository.save(employeeLeavesMap);
@@ -222,7 +228,7 @@ public class CompOffLeaveService {
 					LeaveBalanceLog log = new LeaveBalanceLog();
 					log.setBalance(employeeLeavesMap.getBalance());
 					log.setEmpId(leaveDTO.getEmpId());
-					log.setLeaveTypeMasterId((short) 1);
+					log.setLeaveTypeMasterId(leavetypeObj.getLeaveTypeMasterId());
 					log.setMessage(
 							LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
 					log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());

@@ -104,4 +104,19 @@ public class DraftEmployee {
 	private String workLocation;
 	private String updateApplicationStatus;
 	
+	@Column(length = 50)
+	private String mothersName;
+	@Column(length = 50)
+	private String spouse;	
+	@Column(length = 50)
+	private String child1;
+	@Column(length = 50)
+	private String child2;
+	@Column(length = 50)
+	private String child3;
+	@Column(columnDefinition = "float DEFAULT NULL")
+	private Float totalExperience;
+	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
+	private String billable;
+	
 }

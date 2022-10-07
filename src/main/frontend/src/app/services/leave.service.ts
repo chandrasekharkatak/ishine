@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Leave } from '../models/leave';
+import { Query } from '../models/query';
 
 @Injectable({
   providedIn: 'root'
@@ -140,5 +141,19 @@ export class LeaveService {
 
   countMyPendingLeaveApplicationsByLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/countMyPendingLeaveApplicationsByLeaveType`, leaveObj);
+  }
+
+  /* Reports */
+  leaveReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/leaveReport`);
+  }
+
+  customQueryForLeaveReport(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForLeaveReport`, queryObj);
+  }
+
+  /* Report Dashboard */
+  getLast8DaysLeaveReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLast8DaysLeaveReport`);
   }
 }

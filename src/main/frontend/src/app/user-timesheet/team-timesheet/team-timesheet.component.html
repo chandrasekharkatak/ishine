@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets" [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request" [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet" [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
     </div>
 </div>
 
@@ -60,7 +60,7 @@
                     <td>{{timesheet.status}}</td>
                     <td>
                       <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Revoke" (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
+                      <button *ngIf="userMapping.revoke_reportee_timesheet"  class="btn btn-sm btn-outline-danger" type="submit" title="Revoke" (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
                     </td>
                 </tr>
                 </tbody>
@@ -115,9 +115,9 @@
                       <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
                         (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
                           class="fa-solid fa-check"></em></button>&nbsp;
-                      <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                        (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
-                          class="fa-solid fa-xmark"></em></button>
+                          <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                          (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                            class="fa-solid fa-xmark"></em></button>  
                     </td>
                   </tr>
                 </tbody>
@@ -217,6 +217,14 @@
   <div class="modal-body text-center">
       <p>Are you sure you want to revoke Timesheet?</p>
       <button type="button" class="btn btn-success" (click)="revokeApprovedTimesheet(alert_message)">Yes, proceed</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #reject_timesheet>
+  <div class="modal-body text-center">
+      <p>Are you sure you want to Reject Timesheet?</p>
+      <button type="button" class="btn btn-success" (click)="rejectTimesheetRequest(alert_message)">Yes, proceed</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>

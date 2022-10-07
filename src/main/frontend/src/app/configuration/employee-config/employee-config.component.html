@@ -430,6 +430,18 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Date Of Resign</label>
+                                            <div class="d-flex">
+                                                <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" disabled>
+                                                <mat-datepicker-toggle matSuffix [for]="DORPicker"></mat-datepicker-toggle>
+                                            </div>
+                                            <mat-datepicker  #DORPicker disabled="false"></mat-datepicker>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">

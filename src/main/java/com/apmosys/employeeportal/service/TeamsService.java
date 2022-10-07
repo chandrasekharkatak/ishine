@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -66,7 +67,7 @@ public class TeamsService {
 
 		try {
 
-			List<Project> projectList = projectRepository.findAllByProjectManagerId(timesheetDTO.getProjectManagerId());
+			List<Project> projectList = projectRepository.findAll();
 
 			Optional.ofNullable(projectList).ifPresent((list) -> {
 
@@ -98,11 +99,26 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
+			String teamLeadName = null;
+			
+			if(teamDTO.getTeamLeadId() != null) {
+				 
+				Optional<Employee> getTeamLeadData = employeeRepository.findById(teamDTO.getTeamLeadId());
+				if(!getTeamLeadData.isEmpty()) {
+					Employee empObj = getTeamLeadData.get();
+					
+					teamLeadName = empObj.getName();
+				}
+			}else {
+				teamLeadName = "NA";
+			}
+			
 			Team newTeam = new Team();
 
 			newTeam.setTeamName(teamDTO.getTeamName());
 			newTeam.setTeamLeadId(teamDTO.getTeamLeadId());
 			newTeam.setProjectId(teamDTO.getProjectId());
+			newTeam.setTeamLeadName(teamLeadName);
 			newTeam.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
 
 			Team teamCreated = teamRepository.save(newTeam);
@@ -171,22 +187,21 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
 				} else {
+					
 					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+						
+						list.forEach((object) -> {
+							TeamDTO dto = new TeamDTO();
 
-					list.forEach((object) -> {
-
-						TeamDTO dto = new TeamDTO();
-
-						dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setTeamLeadId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
-						dto.setTeamLeadName(object[2] != null ? object[2].toString() : null);
-						dto.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
-						dto.setTeamName(object[4] != null ? object[4].toString() : null);
-						dto.setCreatedByName(object[5] != null ? object[5].toString() : null);
-						dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
-						dtoList.add(dto);
-					});
-
+							dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setTeamLeadName(object[1] != null ? object[1].toString() : null);
+							dto.setProjectId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+							dto.setTeamName(object[3] != null ? object[3].toString() : null);
+							dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
+							dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+							dtoList.add(dto);
+						});
+						
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 				}
@@ -281,6 +296,22 @@ public class TeamsService {
 		try {
 			List<EmployeeTeamMap> allTeamMemberList = teamDTO.getAllTeamMemberList();
 			List<EmployeeTeamMap> updatedTeamMemberList = teamDTO.getUpdatedTeamMemberList();
+			
+			String teamLeadName = null;
+			TeamDTO teamObj = new TeamDTO();
+
+			if (teamDTO.getTeamLeadId() != null) {
+
+				Optional<Employee> getTeamLeadData = employeeRepository.findById(teamDTO.getTeamLeadId());
+				if (!getTeamLeadData.isEmpty()) {
+					Employee empObj = getTeamLeadData.get();
+
+					teamLeadName = empObj.getName();
+					teamObj.setTeamLeadName(teamLeadName);	
+				}
+			} else {
+				teamLeadName = "NA";
+			}
 
 			if (!updatedTeamMemberList.isEmpty()) {
 				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
@@ -289,6 +320,7 @@ public class TeamsService {
 
 					teamFound.setTeamName(teamDTO.getTeamName());
 					teamFound.setTeamLeadId(teamDTO.getTeamLeadId());
+					teamFound.setTeamLeadName(teamObj.getTeamLeadName());
 					Team teamUpdated = teamRepository.save(teamFound);
 
 					if (teamUpdated.getTeamId() != null) {
@@ -299,6 +331,7 @@ public class TeamsService {
 									EmployeeTeamMap map = new EmployeeTeamMap();
 									map.setEmpId(employee.getEmpId());
 									map.setTeamId(teamUpdated.getTeamId());
+									map.setActive((long) 1);
 									employeeTeamMapRepository.save(map);
 								});
 
@@ -332,6 +365,7 @@ public class TeamsService {
 
 					teamFound.setTeamName(teamDTO.getTeamName());
 					teamFound.setTeamLeadId(teamDTO.getTeamLeadId());
+					teamFound.setTeamLeadName(teamObj.getTeamLeadName());
 					Team teamUpdated = teamRepository.save(teamFound);
 					
 					if (teamUpdated.getTeamId() != null) {
@@ -477,10 +511,8 @@ public class TeamsService {
 		try {
 			
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
-			System.out.println(start);
 
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
-			System.out.println(end);
 
 			List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(leaveDTO.getEmpId(),start,end);
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
@@ -516,4 +548,24 @@ public class TeamsService {
 		return response;
 	}
 	
+	public ServiceResponse checkTeamName(TeamDTO teamdto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Team checkTeamNameByName=teamRepository.findByTeamName(teamdto.getTeamName());
+			if(checkTeamNameByName==null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team Name already exist!");
+				}
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

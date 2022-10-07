@@ -14,23 +14,27 @@ import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -39,8 +43,10 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class CronJobService {
@@ -68,6 +74,15 @@ public class CronJobService {
 	
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
+	
+	@Autowired
+	PortalConfigRepository portalConfigRepository;
+	
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	MailService mailService;
 
 	@Value("${po.db.url}")
 	private String url;
@@ -77,6 +92,9 @@ public class CronJobService {
 
 	@Value("${po.db.password}")
 	private String password;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
 	
 //	0 0 0 * * * for every midnight
 //	*/20 * * * * *  for every 20 secs
@@ -469,6 +487,71 @@ public class CronJobService {
 						}					
 					}
 				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// 0 0 12 ? * * - At 12:00:00pm every day
+		
+		@Scheduled(cron="${mailTrigger.time}")
+		public void protalConfigMailTrigger() {
+			try {
+				
+				List<PortalConfig> portalConfigObj = portalConfigRepository.findAll();
+				Float probationMailTrigger = null;
+				Float noticePeriodMailTrigger = null;
+				
+				for(PortalConfig portalObj :portalConfigObj) {
+					if(portalObj.getConfigName().equals("Probation Period")) {
+						probationMailTrigger = portalObj.getMailTrigger();
+					}else if(portalObj.getConfigName().equals("Notice Period")) {
+						noticePeriodMailTrigger = portalObj.getMailTrigger();
+					} 
+				}
+				
+				List<Object[]> employeeList = employeeRepository.getEmployeeInProbationAndNotice();
+				List<EmployeeDTO> listDTO = new ArrayList<EmployeeDTO>();
+				
+				if(employeeList != null) {
+					for(Object[] object: employeeList) {
+						EmployeeDTO empdto = new EmployeeDTO();
+						empdto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						empdto.setName(object[1] != null ? object[1].toString() : null);
+						empdto.setEmail(object[2] != null ? object[2].toString() : null);
+						empdto.setProbationPeriod(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+						empdto.setNoticePeriod(object[4] != null ? Short.parseShort(object[4].toString()) : null);
+						empdto.setDateOfJoining(object[5] != null ? object[5].toString() : null);
+						empdto.setDateOfResign(object[6] != null ? object[6].toString() : null);
+						
+						listDTO.add(empdto);
+					}
+				}
+				for(EmployeeDTO employeeData: listDTO) {
+					if(employeeData.getDateOfResign() == null) {
+						LocalDate confirmationDate = stringToDateTimeParser.getDate(employeeData.getDateOfJoining(), "yyyy-MM-dd").plusDays(employeeData.getProbationPeriod());
+						LocalDate mailTriggerDate = confirmationDate.minusDays(probationMailTrigger.shortValue());
+						if(LocalDate.now().equals(mailTriggerDate)) {
+							mailService.sendMailWithCC(employeeData.getEmail(),hrMailAddress,"Regarding Probation Period","Employee with EmpId : A-"
+						                    + employeeData.getEmployeementId() + "<br> Name : " + employeeData.getName()
+						                    + "<br> will complete its probation period in " + probationMailTrigger.shortValue() + " days");
+						}
+						
+					}
+					
+					if(employeeData.getDateOfResign() != null){
+						
+						LocalDate relievingDate = stringToDateTimeParser.getDate(employeeData.getDateOfResign(), "yyyy-MM-dd").plusDays(employeeData.getNoticePeriod());
+						LocalDate mailTriggerDate = relievingDate.minusDays(noticePeriodMailTrigger.shortValue());
+						if(LocalDate.now().equals(mailTriggerDate)) {
+							mailService.sendMailWithCC(employeeData.getEmail(),hrMailAddress,"Regarding Notice Period","Employee with EmpId : A-"
+						                    + employeeData.getEmployeementId() + "<br> Name : " + employeeData.getName()
+						                    + "<br> will complete its Notice period in " + noticePeriodMailTrigger.shortValue() + " days");
+						}
+						
+					}
+				}
+				
 			}catch(Exception e) {
 				e.printStackTrace();
 			}

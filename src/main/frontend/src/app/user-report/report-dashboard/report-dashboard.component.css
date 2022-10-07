@@ -1,0 +1,33 @@
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
+}
+
+.table-scroll{
+    overflow: auto;
+    padding-inline: 2rem;
+}
+
+.chart-title{
+    font-size: 18px;
+    text-transform: capitalize;
+    color: #333333;
+    user-select: none;
+}
+
+.mouse{
+    cursor: pointer;
+}
+
+.count-graph{
+    width: 200px;
+    background-color: #7cb5ec;
+}
+
+.graph{
+    border-right: .5px solid #d0d0d0;
+    border-bottom: .5px solid #d0d0d0;
+}

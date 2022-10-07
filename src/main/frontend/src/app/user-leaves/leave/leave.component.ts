@@ -97,7 +97,17 @@ export class LeaveComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showCreateForm();
+    if(this.userMapping.apply_for_leave){
+      this.showCreateForm();
+    }else if(this.userMapping.view_leave_history || this.userMapping.update_leave ||this.userMapping.delete_leave_application || this.userMapping.revoke_leave_application){
+      this.showLeaveHistoryTable();
+    }else if(this.userMapping.view_leave_balance){
+      this.showLeaveBalanceTable();
+    }else if(this.userMapping.view_leave_balance_log){
+      this.showLeaveLogTable();
+    }else if(this.userMapping.view_reportee_leave_applications || this.userMapping.update_leave_applications_status){
+      this.showLeaveApplicationsTable();
+    }
   }
 
   disableMannualDateInput(){
@@ -442,13 +452,13 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.toDate)){
-      this.alertMessage = "Please select To Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(this.toDateFilter == null){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.toDate)){
+        this.alertMessage = "Please select To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
-
     if(this.leaveObj.fromDate == this.leaveObj.toDate){
       this.leaveObj.toDateDayType = 0;
     }
@@ -516,6 +526,7 @@ export class LeaveComponent implements OnInit {
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
     // 1 = pending , 2 = Approved , 3= Rejected
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     console.log("leaveApplication : ", leaveApplication);
     
@@ -673,20 +684,20 @@ export class LeaveComponent implements OnInit {
     	
         const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationListDataForExcel.map(	
           x => ({	
-            leaveType: x.leaveType,	
-            fromDate: x.fromDate,	
-            toDate: x.toDate,	
-            noOfDays: x.noOfDays,	
-            status: x.status,	
-            createdByName: x.createdByName,	
-            createdOn: x.createdOn,	
-            reason: x.reason	
+            "leave Type": x.leaveType,	
+            "From Date": x.fromDate,	
+            "To Date": x.toDate,	
+            "No Of Days": x.noOfDays,	
+            "status": x.status,	
+            "Created By Name": x.createdByName,	
+            "Created On": x.createdOn,	
+            "Reason": x.reason	
           })	
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
       });
 
-    }	
+    }
     if(this.isLeaveLogTable == true){	
       this.elementName = 'log-table';	
       this.excelName = 'MyLeaveLogs.xlsx';	

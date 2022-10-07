@@ -41,7 +41,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `employeeportal/api/updateDraftEmployeeById`,
     `${this.baseUrl}` + `employeeportal/api/deleteDraftEmployeeById`,
     `${this.baseUrl}` + `employeeportal/api/getAllDraftEmployees`,
-    `${this.baseUrl}` + `employeeportal/api/rejectDraftEmployeeApplication`,
 
     `${this.baseUrl}` + `employeeportal/api/addHoliday`,
     `${this.baseUrl}` + `employeeportal/api/updateHoliday`,
@@ -80,6 +79,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `employeeportal/api/getUserTypeCrudMappingsByUserTypeId`,
     `${this.baseUrl}` + `employeeportal/api/getAllUserTypeCrudMappings`,
     `${this.baseUrl}` + `employeeportal/api/changeLeaveTypeMapping`,
+
+    `${this.baseUrl}` + `employeeportal/api/getAllEventPhotos`,
+    `${this.baseUrl}` + `employeeportal/api/customQueryForLeaveReport`,
+    `${this.baseUrl}` + `employeeportal/api/timesheetReport`,
+    `${this.baseUrl}` + `employeeportal/api/leaveReport`,
+    `${this.baseUrl}` + `employeeportal/api/customQueryForEmployeeReport`
   ]
 
   constructor(private loaderService: LoaderService) { }

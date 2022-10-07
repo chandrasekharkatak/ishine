@@ -55,7 +55,7 @@
         <h1 class="table-header-title">Departments</h1>
     </div>
     <div class="form-group ml-auto col-md-3">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
     <table class="table department-table" matSort (matSortChange)="sortData($event)">	
         <thead class="thead-light">	
@@ -80,7 +80,7 @@
             <td>{{dept.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td *ngIf="userMapping.update_department || userMapping.delete_department">
                 <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em class="fa fa-trash"></em></button>
+                <button *ngIf="userMapping.delete_department" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em class="fa fa-trash"></em></button>
             </td>
           </tr>
         </tbody>
@@ -101,7 +101,7 @@
 
 <ng-template #update_jobRole_department_template>
     <div class="modal-body text-center">
-        <p>Department cannot be deleted as it is mapped to job role(s).<br>To delete Department change job role mapping.</p>
+        <p>Department cannot be deleted as it is mapped to Designation(s).<br>To delete Department change designation mapping.</p>
         <div class="col-md-12 mb-0">
             <div class="info-wrapper">
                 <div class="form-group d-flex">

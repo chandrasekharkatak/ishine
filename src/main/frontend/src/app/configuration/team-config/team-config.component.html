@@ -31,7 +31,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Name</label>
-                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="teamObj.teamName">
+                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="teamObj.teamName"  (blur)="checkTeamName(alert_message)">
                         </div>
                     </div>
                 </div>
@@ -40,7 +40,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Team Lead</label>
+                            <label class="info-label">Team Lead</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>
@@ -140,7 +140,7 @@
                 </div>
             </div>
             <div class="form-group ml-auto col-md-3 search-box">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
         </div>
         <div class="row">

@@ -30,4 +30,9 @@ export class Timesheet{
 
     // how many hour employee worked
     totalTime: any;
+
+    timesheetStatusUpdatedBy:any;
+    timesheetStatusUpdatedByName:any;
+    employeeName:any;
+
 }

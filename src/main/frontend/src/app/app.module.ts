@@ -56,6 +56,11 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { DocumentUploadComponent } from './user-update-info/document-upload/document-upload.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
+import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
+import { UserReportComponent } from './user-report/user-report.component';
+import { ReportListComponent } from './user-report/report-list/report-list.component';
+import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
+import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -94,6 +99,11 @@ import { EmployeeUpdateListComponent } from './user-update-info/employee-update-
     DocumentUploadComponent,
     InformationPreviewComponent,
     EmployeeUpdateListComponent,
+    PortalConfigComponent,
+    UserReportComponent,
+    ReportListComponent,
+    CustomFilterComponent,
+    ReportDashboardComponent,
   ],
   imports: [
     BrowserModule,

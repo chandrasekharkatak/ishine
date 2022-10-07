@@ -1,0 +1,558 @@
+package com.apmosys.employeeportal.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.apmosys.employeeportal.dto.CustomFilterDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+
+@Service
+public class CustomFilterService {
+	
+	@PersistenceContext
+    private EntityManager entityManager;
+	
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
+
+	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
+			StringBuilder query = new StringBuilder("");
+			
+				for(CustomFilterDTO dto: queryList) {
+					if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
+						dto.setValue("%"+dto.getValue()+"%");
+					}
+					
+					switch (dto.getColumn()) {
+					case "Employee Id": {
+						query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Full Name": {
+						query = query.append(" e.name ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Leave Type": {
+						query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+
+					case "From Date": {
+						query = query.append(" el.from_date ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "To Date": {
+						query = query.append(" el.to_date ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "No. of Days": {
+						query = query.append(" el.no_of_days ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Reason": {
+						query = query.append(" el.reason ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Status": {
+						query = query.append(" ls.status ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Manager Name": {
+						query = query.append(" e2.name ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Created On": {
+						query = query.append(" el.created_on ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Updated On": {
+						query = query.append(" el.updated_on ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Updated By": {
+						query = query.append(" e3.name ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					default:
+						break;
+					}
+				}
+				return query;
+	    }
+	
+	public List<Object[]> getCustomLeaveReport(String customQuery) {
+		try {
+			
+			Session session = entityManager.unwrap(Session.class);
+			
+			try {				
+				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date, "
+						+ "el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
+						+ "el.updated_on, e3.name as statusUpdateBy from employee_leave el "
+						+ "inner join employee e on el.emp_id = e.emp_id "
+						+ "inner join leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
+						+ "inner join leave_status ls on el.leave_status_id = ls.leave_status_id "
+						+ "inner join employee e2 on el.manager_id = e2.emp_id "
+						+ "inner join employee e3 on el.leave_status_updated_by = e3.emp_id where "+customQuery;
+				
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}finally {
+				if(session!=null && session.isOpen()) {
+					session.close();
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+	
+	public ServiceResponse customQueryForLeaveReport(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
+			List<Object[]> list = getCustomLeaveReport(subQuery.toString());
+			
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+			if (list != null) {
+				list.forEach((object) -> {
+					LeaveDTO leavedto = new LeaveDTO();
+
+					leavedto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					leavedto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+					leavedto.setLeaveType(object[2] != null ? object[2].toString() : null);
+					leavedto.setFromDate(object[3] != null ? object[3].toString() : null);
+					leavedto.setToDate(object[4] != null ? object[4].toString() : null);
+					leavedto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					leavedto.setReason(object[6] != null ? object[6].toString() : null);
+					leavedto.setStatus(object[7] != null ? object[7].toString() : null);
+					leavedto.setManagerName(object[8] != null ? object[8].toString() : null);
+					leavedto.setCreatedOn(object[9] != null ? object[9].toString() : null);
+					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
+					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
+					dtoList.add(leavedto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("leave Application list is empty.");
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return response;
+	}
+	
+	public StringBuilder createQueryForEmployeeReport(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+		
+			for(CustomFilterDTO dto: queryList) {
+				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
+					dto.setValue("%"+dto.getValue()+"%");
+				}
+				
+				switch (dto.getColumn()) {
+				case "Employee Id": {
+					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Full Name": {
+					query = query.append(" e.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "email": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+
+				case "Employment Status": {
+					query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Date Of Joining": {
+					query = query.append(" e.date_of_joining ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "aadhar": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "aboutMe": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "address": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "permanentAddress": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "City": {
+					query = query.append(" e.city ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Blood Group": {
+					query = query.append(" e.blood_group ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "dateOfBirth": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Gender": {
+					query = query.append(" e.gender ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "fatherName": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "mobileNo": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "panNumber": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "placeOfBirth": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Work Location": {
+					query = query.append(" e.work_location ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Probation Period": {
+					query = query.append(" e.probation_period ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Notice Period": {
+					query = query.append(" e.notice_period ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "country": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "emergencyContactMobile": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "emergencyContactPerson": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "landline": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Marital Status": {
+					query = query.append(" e.marital_status ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "motherTongue": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "alternateMobileNo": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "pincode": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "relation": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "State": {
+					query = query.append(" e.state ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "viewsOnOrganisation": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "passportNumber": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "bankAccountNo": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "bankIFSCCode": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Bank Name": {
+					query = query.append(" e.bank_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "pfAccountNumber": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "previousPfAccountNumber": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "uan": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "esicNumber": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "graduationType": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "pursuing": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "passingGrade": {
+					query = query.append("  ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "yearOfPassing": {
+					query = query.append(" ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Created By": {
+					query = query.append(" e.created_by ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Created On": {
+					query = query.append(" e.created_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Department": {
+					query = query.append(" d.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Job Role": {
+					query = query.append(" jr.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Manager": {
+					query = query.append(" e2.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			return query;
+     }
+	
+	 List<Object[]> getCustomEmployeeReport(String customQuery) {
+		try {
+			Session session = entityManager.unwrap(Session.class);
+			
+			try {				
+				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, "
+						+ "e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth, "
+						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person, "
+						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing, "
+						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name, "
+						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number, "
+						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, "
+						+ "e.previous_pf_account_number, e.relation, e.state, e.uan, "
+						+ "e.views_on_organisation, e.year_of_passing, "
+						+ "jr.dept_id, jr.name as jobrolename, "
+						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager FROM employee e "
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+				
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}finally {
+				if(session!=null && session.isOpen()) {
+					session.close();
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+
+	public ServiceResponse customQueryForEmployeeReport(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
+			List<Object[]> list = getCustomEmployeeReport(subQuery.toString());
+			
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+			if (list != null) {
+				list.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					
+					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
+					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
+					empDTO.setBankAccountNo(object[4] != null ? object[4].toString() : null);
+					empDTO.setBankIFSCCode(object[5] != null ? object[5].toString() : null);
+					empDTO.setBankName(object[6] != null ? object[6].toString() : null);
+					empDTO.setBloodGroup(object[7] != null ? object[7].toString() : null);
+					empDTO.setCity(object[8] != null ? object[8].toString() : null);
+					empDTO.setCountry(object[9] != null ? object[9].toString() : null);
+					empDTO.setCreatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+					empDTO.setCreatedOn(object[11] != null ? (object[11].toString()) : null);
+					empDTO.setDateOfBirth(
+							object[12] != null ? stringToDateTimeParser.formatDateToString(object[12].toString())
+									: null);
+					empDTO.setDateOfJoining(
+							object[13] != null ? stringToDateTimeParser.formatDateToString(object[13].toString())
+									: null);
+					empDTO.setEmail(object[14] != null ? object[14].toString() : null);
+					empDTO.setEmergencyContactMobile(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					empDTO.setEmergencyContactPerson(object[16] != null ? object[16].toString() : null);
+					empDTO.setEmploymentstatus(object[17] != null ? object[17].toString() : null);
+					empDTO.setEsicNumber(object[18] != null ? object[18].toString() : null);
+					empDTO.setFatherName(object[19] != null ? object[19].toString() : null);
+					empDTO.setGender(object[20] != null ? object[20].toString() : null);
+					empDTO.setGraduationType(object[21] != null ? object[21].toString() : null);
+					empDTO.setPursuing(object[22] != null ? object[22].toString() : null);
+					empDTO.setJobRoleId(object[23] != null ? Long.parseLong(object[23].toString()) : null);
+					empDTO.setLandline(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+					empDTO.setManagerId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+					empDTO.setMaritalStatus(object[26] != null ? object[26].toString() : null);
+					empDTO.setMobileNo(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+					empDTO.setMotherTongue(object[28] != null ? object[28].toString() : null);
+					empDTO.setName(object[29] != null ? object[29].toString() : null);
+					empDTO.setNoticePeriod(object[30] != null ? Short.parseShort(object[30].toString()) : null);
+					empDTO.setAlternateMobileNo(object[31] != null ? Long.parseLong(object[31].toString()) : null);
+					empDTO.setPanNumber(object[32] != null ? object[32].toString() : null);
+					empDTO.setPassportNumber(object[33] != null ? object[33].toString() : null);
+					empDTO.setPermanentAddress(object[34] != null ? object[34].toString() : null);
+					empDTO.setPfAccountNumber(object[35] != null ? object[35].toString() : null);
+					empDTO.setPincode(object[36] != null ? Integer.parseInt(object[36].toString()) : null);
+					empDTO.setPlaceOfBirth(object[37] != null ? object[37].toString() : null);
+					empDTO.setPassingGrade(object[38] != null ? object[38].toString() : null);
+					empDTO.setPreviousPfAccountNumber(object[39] != null ? object[39].toString() : null);
+					empDTO.setRelation(object[40] != null ? object[40].toString() : null);
+					empDTO.setState(object[41] != null ? object[41].toString() : null);
+					empDTO.setUan(object[42] != null ? object[42].toString() : null);
+					empDTO.setViewsOnOrganisation(object[43] != null ? object[43].toString() : null);
+					empDTO.setYearOfPassing(object[44] != null ? Short.parseShort(object[44].toString()) : null);
+					empDTO.setDepartmentId(object[45] != null ? Long.parseLong(object[45].toString()) : null);
+					empDTO.setJobRoleName(object[46] != null ? object[46].toString() : null);
+					empDTO.setDepartmentName(object[47] != null ? object[47].toString() : null);
+					empDTO.setWorkLocation(object[48] != null ? object[48].toString() : null);
+					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
+					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
+					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee list is empty.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+	}
+	
+}

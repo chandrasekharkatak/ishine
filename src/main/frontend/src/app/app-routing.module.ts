@@ -31,6 +31,10 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
+import { UserReportComponent } from './user-report/user-report.component';
+import { ReportListComponent } from './user-report/report-list/report-list.component';
+import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -52,6 +56,7 @@ const routes: Routes = [
       { path: 'leave', component: LeaveConfigComponent, },
       { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
+      { path: 'portal-config', component: PortalConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -84,6 +89,12 @@ const routes: Routes = [
     children: [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, }
+    ]
+  },
+  {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
+    children: [
+      { path: 'report-list', component: ReportListComponent, },
+      { path: 'report-dashboard', component: ReportDashboardComponent }
     ]
   },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},

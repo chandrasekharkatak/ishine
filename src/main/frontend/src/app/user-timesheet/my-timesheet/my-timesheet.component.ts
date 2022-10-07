@@ -33,6 +33,8 @@ export class MyTimesheetComponent implements OnInit {
   isTimesheetForm: boolean = false;
   isTimesheetTable: boolean = false;
 
+  isTimesheetUpdate: boolean = false;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -125,6 +127,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.isTimesheetTable = false;
     this.isCreation = false;
+    this.isTimesheetUpdate = true;
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
@@ -160,8 +163,13 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   setAllProjectActivities(activityObj, allActivityList: any) {
-    this.allTimesheetActivities.find(activity => activity === activityObj).projectActivities = allActivityList;
-  }
+    const selectedActivityObj = this.allTimesheetActivities.find(activity => activity === activityObj);
+    if(!this.isTimesheetUpdate){
+      selectedActivityObj.activityId = '';
+    } 
+    selectedActivityObj.projectActivities = allActivityList;
+    this.isTimesheetUpdate = false;
+  } 
 
   setActivity(activityObj) {
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
@@ -289,6 +297,7 @@ export class MyTimesheetComponent implements OnInit {
         if (newTimesheetActivities) {
           if (this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0) {
             this.timesheetObj.updatedTimesheetActivities = [];
+            
           }
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
@@ -389,7 +398,7 @@ export class MyTimesheetComponent implements OnInit {
     timesheetObj.empId = this.currentUser.empId;
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
-
+    
     console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
     this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -445,12 +454,13 @@ export class MyTimesheetComponent implements OnInit {
 
       this.allMyTimesheetsDataForExcel = this.allMyTimesheets;
 
-      const onlySpecificDataArr: Partial<Timesheet>[] = this.allMyTimesheetsDataForExcel.map(
+      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
         x => ({
-          date: x.date,
-          dayType: x.dayType,
-          description: x.description,
-          status: x.status
+          "Date": x.date,
+          "Day Type": x.dayType,
+          "Total Working Hours":x.totalTime,
+          "Description": x.description,
+          "Status": x.status
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)

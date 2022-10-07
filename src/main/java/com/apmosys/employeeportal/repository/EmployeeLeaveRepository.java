@@ -41,4 +41,10 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	public List<EmployeeLeave> findByFromDate(LocalDate dateToday);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getLeaveReport();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getLast8DaysLeaveReport(LocalDate fromDate, LocalDate toDate);
+
 }

@@ -13,16 +13,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -49,6 +52,9 @@ public class EmployeeLeaveService {
 	EmployeeRepository employeeRepository;
 	
 	@Autowired
+	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
 	private MailService mailService;
 	
 	@Value("${hr.mail}")
@@ -59,9 +65,25 @@ public class EmployeeLeaveService {
 		ServiceResponse response = new ServiceResponse();
 
 		try {
+			//LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
-
+			
+			System.out.println("Leave DTO check :"+leaveDTO);
+			
+			List<Object[]> empObj = employeeRepository.getManagerEmail(leaveDTO.getEmpId());
+			
+			EmployeeDTO empDto = new EmployeeDTO();
+			
+				empObj.forEach((object) -> {
+					
+					empDto.setEmail(object[0] != null ? object[0].toString() : null);
+					empDto.setManagerEmail(object[1] != null ? object[1].toString() : null);
+					empDto.setName(object[2] != null ? object[2].toString() : null);
+					empDto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()): null);
+					});
+				
+			
 			// HERE : Effective Leave Balance = employeeLeavesMap.getBalance()
 			if (!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP") && (employeeLeavesMap.getBalance() == 0
 					|| employeeLeavesMap.getBalance() < leaveDTO.getNoOfDays())) {
@@ -99,7 +121,7 @@ public class EmployeeLeaveService {
 
 			if (dbResponse1 != null && dbResponse2 != null) {
 				LeaveBalanceLog log = new LeaveBalanceLog();
-
+				
 				log.setBalance(balance);
 				log.setEmpId(leaveDTO.getEmpId());
 				log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
@@ -110,6 +132,12 @@ public class EmployeeLeaveService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Leave application submitted.");
+				
+				
+			mailService.sendMailWithCC(hrMailAddress,empDto.getManagerEmail(),"Regarding Leave Application",
+					"Employee Id : A-"+empDto.getEmployeementId()+"<br>"+
+					"Employee Name :-  "+ empDto.getName()+"  has applied for leave ");
+			
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Creation Failed.");

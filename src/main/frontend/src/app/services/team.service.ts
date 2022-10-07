@@ -51,5 +51,8 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllActivitiesByProjectIdAndTeamId`, activityObj);
   }
 
+  checkTeamName(teamObj :Team){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkTeamName` , teamObj);
+  }
 
 }

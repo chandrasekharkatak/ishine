@@ -80,13 +80,17 @@ export class MyTeamComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
 
-    this.getAllTeamView();
-    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.getPendingCompOffRequestsByManagerId();
-    this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
+    this.sectionViewInit();    
+  }
 
-    console.log("alert template : ", this.alertTemplate);
-    
+  sectionViewInit() {
+    if(this.userMapping.view_my_team){
+      this.viewTeam();
+    }else if(this.userMapping.view_team_leave_history){
+      this.viewTeamLeaveHistory();
+    }else if (this.userMapping.view_team_all_requests || this.userMapping.update_pending_req){
+      this.viewTeamRequest();
+    }
   }
 
   viewTeam() {
@@ -97,6 +101,10 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = false;
     this.isTeamRequest = false;
     this.page=1;
+
+    this.getAllTeamView();
+    this.breadCrumbs = [];
+    this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
   }
 
   viewTeamLeaveHistory() {
@@ -110,6 +118,8 @@ export class MyTeamComponent implements OnInit {
     this.isTeamRequest = false;
     this.page=1;
     this.data=''
+
+    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
 
   viewLeaveHistory() {
@@ -143,6 +153,8 @@ export class MyTeamComponent implements OnInit {
     this.isViewTeam = false;
     this.page=1;
     this.data='';
+
+    this.getPendingCompOffRequestsByManagerId();
   }
 
   viewTeamLeaveRequest() {
@@ -160,7 +172,6 @@ export class MyTeamComponent implements OnInit {
   }
 
   getAllTeamView() {
-    this.isViewTeam = true;
     this.teamViewList = []
 
     let employeeObj = new Employee();
@@ -168,6 +179,9 @@ export class MyTeamComponent implements OnInit {
     this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
+        for(let x of this.teamViewList){
+          x.employeementId="A-".concat(x.employeementId)
+        }
         console.log("teamViewList : ", this.teamViewList);
       } else {
         console.error(response.serviceResponse);
@@ -327,7 +341,7 @@ export class MyTeamComponent implements OnInit {
           "Emp Id": x.empId,
           "Name": x.name,
           "Email": x.email,
-          "Job Role Name": x.jobRoleName,
+          "Designation Name": x.jobRoleName,
           "Mobile No": x.mobileNo,
           "Manager Name": x.managerName
         })
@@ -346,6 +360,7 @@ export class MyTeamComponent implements OnInit {
           "Created On": x.createdOn,
           "No Of Days": x.noOfDays,
           "Status": x.status,
+          "Approved/Rejected By":x.leaveStatusUpdatedByName,
           "Reason": x.reason,
           "Leave Type": x.leaveType
         })
@@ -416,11 +431,9 @@ export class MyTeamComponent implements OnInit {
 
   //myTeam-hierarchy	
   myTeamHierarchy(employeeObj:Employee) {
-
     this.employeeService.getHierarchyByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.teamViewList = response.serviceResponse;
-        // this.breadCrumbs.push(employeeObj.name.concat(" > "));
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }
