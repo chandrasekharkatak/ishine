@@ -117,15 +117,12 @@ public class Employee {
 
 	private String isNew;
 	private String secondaryEmail;
-	private Short probationPeriod;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfResign;
 	
 	private String isUserInfoUpdated;
 
-	@JsonFormat(pattern = "dd/MM/yyyy")
-	private LocalDate dateOfResign;
 	
 	@Column(length = 50)
 	private String mothersName;

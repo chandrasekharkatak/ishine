@@ -284,7 +284,7 @@ public class EmployeeService {
 			employee.setViewsOnOrganisation("Add your views.");
 			employee.setIsNew("true");
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
-			employee.setIsUserInfoUpdated("true");
+			employee.setIsUserInfoUpdated("false");
 
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
 			employee.setMothersName(employeedto.getMothersName());
@@ -1119,81 +1119,6 @@ public class EmployeeService {
 		return response;
 	}
 
-//	public ServiceResponse getAllEmployees() {
-//		ServiceResponse response = new ServiceResponse();
-//		try {
-//			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
-//
-//			if (allEmployeeList != null) {
-//				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-//				allEmployeeList.forEach((object) -> {
-//					EmployeeDTO empDTO = new EmployeeDTO();
-//					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//					empDTO.setName(object[1] != null ? object[1].toString() : null);
-//					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
-//					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
-//					empDTO.setDateOfJoining(
-//							object[4] != null ? stringToDateTimeParser.formatDateToString(object[4].toString()) : null);
-//					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-//					empDTO.setInvalidAccessAttempt(object[6] != null ?Integer.parseInt(object[6].toString()):null);
-//					empDTO.setFailedAttempt(failedAttempt);
-//					dtoList.add(empDTO);
-//				});
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse(dtoList);
-//			} else {
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				response.setServiceResponse("Employee List is null.");
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something Went Wrong.");
-//			response.setServiceError(e.getMessage());
-//		}
-//		return response;
-//	}
-
-
-	public ServiceResponse getAllEmployees() {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
-
-			if (allEmployeeList != null) {
-				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-				allEmployeeList.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setName(object[1] != null ? object[1].toString() : null);
-					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
-					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
-					empDTO.setDateOfJoining(
-							object[4] != null ? stringToDateTimeParser.formatDateToString(object[4].toString()) : null);
-					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					empDTO.setInvalidAccessAttempt(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
-					empDTO.setFailedAttempt(failedAttempt);
-					dtoList.add(empDTO);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee List is null.");
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		return response;
-	}
-
-
-
 	public ServiceResponse previewImage(MultipartFile image) {
 		ServiceResponse response = new ServiceResponse();
 
@@ -1488,81 +1413,39 @@ public class EmployeeService {
 		return response;
 	}
 
-//	public ServiceResponse getAllEmployeesByRole() {
-//		ServiceResponse response = new ServiceResponse();
-//
-//		try {
-//
-//			List<Object[]> objectlist = employeeRepository.getEmployeesByRole();
-//
-//			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-//
-//			Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {
-//
-//				if (!list.isEmpty()) {
-//					list.forEach((object) -> {
-//						EmployeeDTO dto = new EmployeeDTO();
-//						dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//						dto.setName(object[1] != null ? object[1].toString() : null);
-//						dto.setRole(object[2] != null ? object[2].toString() : null);
-//						dtoList.add(dto);
-//					});
-//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//					response.setServiceResponse(dtoList);
-//				} else {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Employee list is empty.");
-//				}
-//
-//			}, () -> {
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				response.setServiceResponse("Employee list is null");
-//			});
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something Went Wrong.");
-//			response.setServiceError(e.getMessage());
-//		}
-//		return response;
-//	}
-
-
 	public ServiceResponse getAllEmployeesByRole(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
-			for (JobRole jobRole : jobRoleObj) {
-				String jobRoleName = jobRole.getName();
+			List<JobRole> jobRoleObj;
+			List<String> jobRoles = new ArrayList<String>(Arrays.asList("Employee", "HR"));
+			if (employeedto.getRole().equals("Manager")) {
+				jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
+			} else {
+				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
+			}
+			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
 
-				if (jobRoleName.contains("-")) {
-					String jobname = jobRoleName.split("-")[1];
+			if (!jobRoleObj.isEmpty()) {
+				for (JobRole roleObj : jobRoleObj) {
+					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getName());
 
-					if (jobname.equals(employeedto.getRole())) {
+					Optional.ofNullable(empList).ifPresentOrElse((list) -> {
 
-						List<Object[]> objectlist = employeeRepository.getEmployeesByRole(jobRoleName);
-
-						Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {
-
-							list.forEach((object) -> {
-								EmployeeDTO dto = new EmployeeDTO();
-								dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-								dto.setName(object[1] != null ? object[1].toString() : null);
-								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
-								dtoList.add(dto);
-							});
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse(dtoList);
-
-						}, () -> {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Employee list is null");
+						list.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setName(object[1] != null ? object[1].toString() : null);
+							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
+							employeeList.add(dto);
 						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(employeeList);
 
-					}
+					}, () -> {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No Employee Found");
+					});
 
 				}
 			}
@@ -1574,100 +1457,6 @@ public class EmployeeService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
-
-	
-//	public ServiceResponse getAllEmployeesByRole(EmployeeDTO employeedto) {	
-//		ServiceResponse response = new ServiceResponse();	
-//		try {
-//			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-//			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();	
-//				
-//			for(JobRole jobRole : jobRoleObj) {
-//				String jobRoleName = jobRole.getName();
-//				
-//				if (jobRoleName.contains("-")) {
-//					String jobname = jobRoleName.split("-")[1];	
-//						
-//					if(jobname.equals(employeedto.getRole())) {
-//							
-//						List<Object[]> objectlist = employeeRepository.getEmployeesByRole(jobRoleName);	
-//							
-//									Optional.ofNullable(objectlist).ifPresentOrElse((list) -> {	
-//										
-//											list.forEach((object) -> {	
-//												EmployeeDTO dto = new EmployeeDTO();	
-//												dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);	
-//												dto.setName(object[1] != null ? object[1].toString() : null);	
-//												dto.setJobRoleName(object[2] != null ? object[2].toString() : null);	
-//												dtoList.add(dto);	
-//											});	
-//											response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-//											response.setServiceResponse(dtoList);
-//											
-//									}, () -> {	
-//										response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-//										response.setServiceResponse("Employee list is null");	
-//									});	
-//							
-//					}	
-//						
-//				}	
-//			}	
-//				
-//		} catch (Exception e) {	
-//			e.printStackTrace();	
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
-//			response.setServiceResponse("Something Went Wrong.");	
-//			response.setServiceError(e.getMessage());	
-//		}	
-//		return response;	
-//	}
-	
-	public ServiceResponse getAllEmployeesByRole(EmployeeDTO employeedto) {	
-		ServiceResponse response = new ServiceResponse();	
-		try {
-			
-			List<JobRole> jobRoleObj;
-			List<String> jobRoles = new ArrayList<String>(Arrays.asList("Employee","HR"));
-			if(employeedto.getRole().equals("Manager")) {
-				jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
-			}else {
-				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
-			}
-			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
-			
-			if(!jobRoleObj.isEmpty()) {
-				for(JobRole roleObj :jobRoleObj) {
-					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getName());
-					
-					Optional.ofNullable(empList).ifPresentOrElse((list) -> {	
-						
-							list.forEach((object) -> {	
-								EmployeeDTO dto = new EmployeeDTO();	
-								dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);	
-								dto.setName(object[1] != null ? object[1].toString() : null);	
-								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);	
-								employeeList.add(dto);	
-							});	
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-							response.setServiceResponse(employeeList);
-							
-					}, () -> {	
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-						response.setServiceResponse("No Employee Found");	
-					});
-					
-				}
-			}
-			
-			
-		} catch (Exception e) {	
-			e.printStackTrace();	
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
-			response.setServiceResponse("Something Went Wrong.");	
-			response.setServiceError(e.getMessage());	
-		}	
-		return response;	
 
 	}
 
@@ -2067,7 +1856,6 @@ public class EmployeeService {
 		return response;
 	}
 
-
 	public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -2085,27 +1873,6 @@ public class EmployeeService {
 		}
 		return response;
 
-	
-		public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
-			ServiceResponse response = new ServiceResponse();
-			try {
-					Employee employee = employeeRepository.getById(employeedto.getEmpId());
-					employee.setInvalidAccessAttempt(0);
-					employeeRepository.save(employee);
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Account is Unblock !!");
-					
-				} catch (Exception e) {
-					e.printStackTrace();
-					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-					response.setServiceResponse("Something Went Wrong.");
-					response.setServiceError(e.getMessage());
-				}
-				return response;
-
-			}
-
-
 	}
 
-		}
+}

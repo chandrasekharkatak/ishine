@@ -89,9 +89,6 @@ public class EmployeeDTO {
 	
 	private Integer invalidAccessAttempt;
 	private Integer failedAttempt;
-	private Short probationPeriod;
-	
-	private String dateOfResign;
 	private List<CustomFilterDTO> queryList;
 	
 	private String mothersName;
