@@ -452,13 +452,13 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.toDate)){
-      this.alertMessage = "Please select To Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(this.toDateFilter == null){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.toDate)){
+        this.alertMessage = "Please select To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
-
     if(this.leaveObj.fromDate == this.leaveObj.toDate){
       this.leaveObj.toDateDayType = 0;
     }

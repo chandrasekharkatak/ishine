@@ -214,7 +214,6 @@ export class HomeComponent implements OnInit {
   *  Added by suraj 07/08/2022
   */
   countMyReporteesTimesheetRequests(){
-    this.cancelRequest();
     this.allTeamTimesheetRequests = []
 
     let timesheet = new Timesheet();
@@ -231,7 +230,6 @@ export class HomeComponent implements OnInit {
   }
 
   getMyReporteesTimesheetRequests(){
-    this.cancelRequest();
     this.allTeamTimesheetRequests = [];
 
     let timesheetObj = new Timesheet();

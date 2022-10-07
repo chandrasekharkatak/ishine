@@ -386,7 +386,7 @@
                     (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
                       class="fa-solid fa-check"></em></button>&nbsp;
                   <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                  (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                  (click)="cancelRequest();opnenRejectTimesheet(reject_timesheet, timesheet)"><em
                       class="fa-solid fa-xmark"></em></button>
                 </td>
               </tr>
