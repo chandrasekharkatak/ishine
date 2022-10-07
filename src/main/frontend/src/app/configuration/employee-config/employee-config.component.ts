@@ -1135,7 +1135,7 @@ export class EmployeeConfigComponent implements OnInit {
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = true;
 
-    const infoResponse: any = await this.employeeService.getDraftEmployeeByEmploymentId(currentEmp).toPromise();
+    const infoResponse: any = await this.employeeService.getDraftEmployeeByEmpId(currentEmp).toPromise();
     if (infoResponse.serviceStatus == "Success") {
       this.previewObj = infoResponse.serviceResponse;
       console.log("this.previewObj : ", this.previewObj);
