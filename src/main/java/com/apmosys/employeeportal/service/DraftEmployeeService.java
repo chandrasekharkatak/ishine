@@ -207,7 +207,7 @@ public class DraftEmployeeService {
 			if (!objectList.isEmpty()) {
 
 				for (Object[] object : objectList) {
-					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setDraftEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
 					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
@@ -260,7 +260,8 @@ public class DraftEmployeeService {
 					empDTO.setExperience(object[50] != null ? (object[50].toString()) : null);
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
-
+					empDTO.setEmpId(object[53] != null ? Long.parseLong(object[53].toString()) : null);
+					
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
