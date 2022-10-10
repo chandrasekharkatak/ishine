@@ -61,14 +61,14 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj = employee;
 
     // Certifications
-    if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
+    if ((this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) && this.allCertificationList.length == 0) {
       this.addInputCertificationField();
     } else {
       this.allCertificationList = this.employeeObj.certifications;
     }
 
     // Prev. Employment
-    if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
+    if ((this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) && this.allPreviousEmployment.length == 0) {
       this.addInputPreviousEmployerField();
     } else {
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
@@ -225,7 +225,7 @@ export class EmployeeInfoComponent implements OnInit{
     if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
       this.employeeObj.dateOfBirth = undefined;
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      this.employeeObj.dateOfBirth = this.reset;
+      this.employeeObj.dateOfBirth = '';
       return false;
     }
   }

@@ -50,8 +50,14 @@ export class DocumentUploadComponent implements OnInit {
   async setDocumentList() {
     this.documentList = [];
     let employeeObj = new Employee();
-    employeeObj.empId = this.currentEmployeeInfo.empId;
-    (this.currentEmployeeInfo.empId == this.currentEmployeeInfo.draftEmpId) ? employeeObj.isDraft = true : employeeObj.isDraft = false;
+
+    if(this.currentEmployeeInfo.draftEmpId){
+      employeeObj.empId = this.currentEmployeeInfo.draftEmpId;
+      employeeObj.isDraft = true;
+    }else{
+      employeeObj.empId = this.currentEmployeeInfo.empId;
+      employeeObj.isDraft = false;
+    }
 
     let response: any = await this.imageService.getEmployeeDocuments(employeeObj).toPromise();
     if (response.serviceStatus == 'Success') {
@@ -123,13 +129,16 @@ export class DocumentUploadComponent implements OnInit {
   onSave(template: TemplateRef<any>){
     console.log("Selected Files : ", this.files);
     console.log("documentList : ", this.documentList);
-
+    
+    this.documentList = this.documentList.filter(doc => doc.documentName != null);
+    
     let employeeObj = new Employee();
     employeeObj.employeementId = this.currentEmployeeInfo.employeementId;
     employeeObj.empId = this.currentEmployeeInfo.draftEmpId;
     employeeObj.documentList = this.documentList;
     employeeObj.isDraft = true;
 
+    console.log("Save Documents : ", employeeObj);
     this.imageService.saveEmployeeDocuments(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);

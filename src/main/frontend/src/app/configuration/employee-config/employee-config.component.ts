@@ -41,6 +41,7 @@ export class EmployeeConfigComponent implements OnInit {
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  previewModalRef: BsModalRef = new BsModalRef();
 
   //Obj 
   currentUser: User;
@@ -1090,6 +1091,7 @@ export class EmployeeConfigComponent implements OnInit {
   rejectDraftEmployeeApplication(template: TemplateRef<any>){
 
     this.cancelRequest();
+    this.cancelApplication();
     this.employeeObj.updateApplicationStatus = 'In-Progress';
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
@@ -1108,6 +1110,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   approveDraftEmployeeApplication(template: TemplateRef<any>){
     this.cancelRequest();
+    this.cancelApplication();
     this.employeeObj.updateApplicationStatus = 'Approved';
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
@@ -1150,7 +1153,7 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       console.log(docResponse.serviceResponse);
     }
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
     setTimeout(()=>{
       this.previewObj.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {
@@ -1187,6 +1190,10 @@ export class EmployeeConfigComponent implements OnInit {
   openApplicationApprovalMod(template: TemplateRef<any> , employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;    
+  }
+
+  cancelApplication(){
+    this.previewModalRef.hide();
   }
 
   cancelRequest() {
