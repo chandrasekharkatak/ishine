@@ -18,6 +18,7 @@ import { Sort } from '@angular/material/sort';
 import { ImageService } from 'src/app/services/image.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Document } from 'src/app/models/document';
+import { PortalService } from 'src/app/services/portal.service';
 
 @Component({
   selector: 'app-employee-config',
@@ -52,6 +53,7 @@ export class EmployeeConfigComponent implements OnInit {
   allDeptList: any[] = [];
   filteredJobRoleList: any[] = [];
   employeeDataForExcel: any[] = [];
+  portalConfigList:any[] = [];
 
 
   allCertificationList: any[] = [];
@@ -112,7 +114,8 @@ export class EmployeeConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
     private imageService : ImageService,
-    private sanitizer: DomSanitizer,) {
+    private sanitizer: DomSanitizer,
+    private portalService:PortalService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -197,6 +200,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.reset();
     this.getManagerList();
     this.getAllDepartmentList();
+    this.getAllPortalConfigData();
+    this.employeeObj.employmentstatus = "Probation";
     setTimeout(this.setCalenderMaxDate, 1000);
   }
 
@@ -1161,6 +1166,24 @@ export class EmployeeConfigComponent implements OnInit {
         }
       });
     }, 500)
+  }
+
+  getAllPortalConfigData() {
+    this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.portalConfigList = response.serviceResponse;
+        for(let portal of this.portalConfigList){
+          if(portal.configName == 'Probation Period'){
+            this.employeeObj.probationPeriod = portal.configPeriod;
+          }
+          if(portal.configName == 'Notice Period'){
+            this.employeeObj.noticePeriod = portal.configPeriod;
+          }
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
   // modals
