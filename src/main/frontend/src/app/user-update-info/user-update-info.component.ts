@@ -1,7 +1,10 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, SecurityContext, ViewChild, } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
+import { EmployeeService } from '../services/employee.service';
 import { ImageService } from '../services/image.service';
 import { UpdateUserInfoService } from '../services/updateUserInfo.service';
 import { EmployeeUpdateListComponent } from './employee-update-list/employee-update-list.component';
@@ -29,10 +32,16 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   @Output() docSubmit:EventEmitter<any> = new EventEmitter<any>();
 
+  //modal 
+  alertMessage: any;
+  modalRef: BsModalRef = new BsModalRef();
+
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
+    private employeeService: EmployeeService,
+    private modalService: BsModalService,
   ) { }
 
   ngOnInit(): void {
@@ -137,4 +146,26 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     this.docSubmit.emit();
   }
 
+  onRevoke(template: TemplateRef<any>){
+    this.draftObj.updateApplicationStatus = 'In-Progress';
+    this.draftObj.updatedBy = this.updateUserInfoService.currentUser.empId ;
+    console.log(this.draftObj);
+    // this.employeeService.rejectDraftEmployeeApplication(this.draftObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   } else {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   }
+    // });
+  }
+
+  // modals
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
+  }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, SecurityContext, Input } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, SecurityContext, Input, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Employee } from 'src/app/models/employee';
 import { ImageService } from 'src/app/services/image.service';
@@ -12,9 +12,13 @@ export class EmployeeUpdateListComponent implements OnInit {
   myDraftList:any[] = [];
   @Output() draftEdit:EventEmitter<any> = new EventEmitter<any>();
   @Output() showPreview:EventEmitter<any> = new EventEmitter<any>();
+  @Output() draftRevoke:EventEmitter<any> = new EventEmitter<any>();
 
 
-  constructor() { }
+
+  constructor() {
+    
+   }
 
   ngOnInit(): void {
 
@@ -26,6 +30,10 @@ export class EmployeeUpdateListComponent implements OnInit {
 
   onDelete(){
 
+  }
+
+  onRevoke(){
+    this.draftRevoke.emit();
   }
 
   onShowPreview(){

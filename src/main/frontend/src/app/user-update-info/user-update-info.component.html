@@ -1,5 +1,5 @@
 <div *ngIf="isDraftAvailable && !isPreview" class="container-fluid px-4">
-    <app-employee-update-list (draftEdit)="onDraftEdit($event)" (showPreview)="onShowPreview()" #draftTable ></app-employee-update-list>
+    <app-employee-update-list (draftEdit)="onDraftEdit($event)" (showPreview)="onShowPreview()" (draftRevoke)="onRevoke(alert_message)" #draftTable ></app-employee-update-list>
 </div>
 
 <div *ngIf="!isDraftAvailable" class="container-fluid px-4">
@@ -466,3 +466,26 @@
     </div>
 </div>
 <!-- end :: Preview form -->
+
+<!-- <ng-template #delete_draft_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Employee Draft?</p>
+        <button type="button" class="btn btn-success" (click)="onDeleteDraftEmployee(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template> -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<!-- <ng-template #revoke_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Enable Account?</p>
+        <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template> -->

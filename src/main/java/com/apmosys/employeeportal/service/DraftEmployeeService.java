@@ -130,8 +130,6 @@ public class DraftEmployeeService {
 			employee.setMothersName(employeedto.getMothersName());
 			employee.setSpouse(employeedto.getSpouse());
 			employee.setTotalExperience(employeedto.getTotalExperience());
-			
-			
 
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
@@ -270,7 +268,8 @@ public class DraftEmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 
-				//	empDTO.setEmpId(object[53] != null ? Long.parseLong(object[53].toString()) : null);
+					// empDTO.setEmpId(object[53] != null ? Long.parseLong(object[53].toString()) :
+					// null);
 
 					empDTO.setBillable(object[53] != null ? (object[53].toString()) : null);
 					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
@@ -351,15 +350,18 @@ public class DraftEmployeeService {
 		ServiceResponse response = new ServiceResponse();
 		List<EmployeeCertificate> certificationlist = new ArrayList<EmployeeCertificate>();
 		List<PreviousEmployment> previousEmploymentList = new ArrayList<PreviousEmployment>();
-
+		List<EmployeeDocument> documentList = new ArrayList<EmployeeDocument>();
 		try {
 
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employeeToBeDeleted = employeeObject.get();
 
-				previousEmploymentList = previousEmploymentRepository.findByEmpId(employeeToBeDeleted.getDraftEmpId());
-				certificationlist = employeeCertificateRepository.findByEmpId(employeeToBeDeleted.getDraftEmpId());
+				previousEmploymentList = previousEmploymentRepository
+						.findByEmpIdAndIsDraft(employeeToBeDeleted.getDraftEmpId(), "true");
+				certificationlist = employeeCertificateRepository
+						.findByEmpIdAndIsDraft(employeeToBeDeleted.getDraftEmpId(), "true");
+				documentList = employeeDocumentRepository.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(), "true");
 
 				if (previousEmploymentList != null && !previousEmploymentList.isEmpty()) {
 					previousEmploymentList.forEach((prevEmployer) -> {
@@ -370,6 +372,12 @@ public class DraftEmployeeService {
 				if (certificationlist != null && !certificationlist.isEmpty()) {
 					certificationlist.forEach((certification) -> {
 						employeeCertificateRepository.deleteById(certification.getEmployeeCertificateId());
+					});
+				}
+
+				if (documentList != null && !documentList.isEmpty()) {
+					documentList.forEach((document) -> {
+						employeeDocumentRepository.deleteById(document.getEmployeeDocumentId());
 					});
 				}
 
@@ -453,7 +461,6 @@ public class DraftEmployeeService {
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
 
-
 				employee.setBillable(employeedto.getBillable());
 				employee.setChild1(employeedto.getChild1());
 				employee.setChild2(employeedto.getChild2());
@@ -461,7 +468,7 @@ public class DraftEmployeeService {
 				employee.setMothersName(employeedto.getMothersName());
 				employee.setSpouse(employeedto.getSpouse());
 				employee.setTotalExperience(employeedto.getTotalExperience());
-				
+
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -827,6 +834,48 @@ public class DraftEmployeeService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Draft Employee Application Rejected");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Draft Employee Application Not Found");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse revokeDraftEmployeeApplication(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
+
+			if (employeeObject.isPresent()) {
+				DraftEmployee draftEmployee = employeeObject.get();
+
+				// change status from 'Pending For Approval' to 'In-progress'
+				draftEmployee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
+				draftEmployeeRepository.save(draftEmployee);
+
+				// log revoked message
+				Log log = new Log();
+				log.setEmpId(employeedto.getUpdatedBy());
+				log.setEvent(LogEvents.UPDATE);
+				log.setTableName(DbTable.DRAFT_EMPLOYEE);
+				log.setTableEntryId(draftEmployee.getDraftEmpId());
+				log.setPayload(employeedto.getRemarks());
+				logsRepository.save(log);
+
+				// trigger mail to employee
+				mailService.sendMail(draftEmployee.getEmail(), "Regarding employee profile creation",
+						"Your application has been revoked.Kindly resubmit details on IShine portal. <br>");
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Draft employee application revoked");
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Application Not Found");
