@@ -77,7 +77,14 @@ public class DraftEmployeeController {
 	public ServiceResponse updateDraftStatusById(@RequestBody EmployeeDTO employeedto) {		
 		
 		ServiceResponse response =draftEmployeeService.updateDraftStatusById(employeedto);
-		return response;		
+		return response;
+	}		
+
+	@RequestMapping(value="/revokeDraftEmployeeApplication" , method = RequestMethod.POST)
+	public ServiceResponse revokeDraftEmployeeApplication(@RequestBody EmployeeDTO employeedto) {		
+		
+		ServiceResponse response = draftEmployeeService.revokeDraftEmployeeApplication(employeedto);
+		return response;
 	}
 
 }

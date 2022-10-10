@@ -792,7 +792,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
     else
     {
-      this.openAlertMod(template, "Please enter apmosys email id !!");
+      this.openAlertMod(template, "Please enter valid email id !!");
       this.employeeObj.email = '';
     }
 

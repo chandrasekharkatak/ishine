@@ -116,6 +116,7 @@ export class ReportListComponent implements OnInit {
 
   // Leave Report 
   getAllLeaveApplicationsList() {
+    this.queryList=[];
     this.allLeaveApplicationsList = [];
 
     this.leaveService.leaveReport().pipe(first()).subscribe((response: any) => {
@@ -176,6 +177,7 @@ export class ReportListComponent implements OnInit {
 
   // Employee Report 
   getAllEmployeeList() {
+    this.queryList=[];
     this.allEmployeeList = [];
 
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {

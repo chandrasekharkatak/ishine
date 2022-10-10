@@ -111,7 +111,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
 
 
-    this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     if(this.currentUser.isNew == "true"){
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
     }

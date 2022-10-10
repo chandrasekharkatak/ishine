@@ -174,7 +174,7 @@
         </thead>
         <tbody>
             <tr *ngIf="allEmployeeList.length == 0">
-                <th colspan="44" class="text-center info-label">No details to display...</th>
+                <th colspan="20" class="text-center info-label">No details to display...</th>
             </tr>
           <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
             <td>{{employee.employeementId}}</td>
