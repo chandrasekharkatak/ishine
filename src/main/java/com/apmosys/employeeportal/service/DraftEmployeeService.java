@@ -671,7 +671,7 @@ public class DraftEmployeeService {
 			if (!objectList.isEmpty()) {
 
 				for (Object[] object : objectList) {
-					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setDraftEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
 					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
@@ -741,9 +741,9 @@ public class DraftEmployeeService {
 				}
 
 				List<EmployeeCertificate> certificationsList = employeeCertificateRepository
-						.findByEmpIdAndIsDraft(empDTO.getEmpId(), employeedto.getIsDraft());
+						.findByEmpIdAndIsDraft(empDTO.getDraftEmpId(), employeedto.getIsDraft());
 				List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-						.findByEmpIdAndIsDraft(empDTO.getEmpId(), employeedto.getIsDraft());
+						.findByEmpIdAndIsDraft(empDTO.getDraftEmpId(), employeedto.getIsDraft());
 
 				if (!certificationsList.isEmpty()) {
 
