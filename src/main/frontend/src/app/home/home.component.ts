@@ -282,14 +282,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  rejectTimesheetRequest(template: TemplateRef<any>){
-    this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
-  }
+  // rejectTimesheetRequest(template: TemplateRef<any>){
+  //   this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
+  // }
 
-  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
-    this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-  }
+  // opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+  //   this.timesheetObj = timesheet;
+  //   this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  // }
 
 
   /* View TImesheet details */ 

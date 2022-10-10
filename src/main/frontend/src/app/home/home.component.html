@@ -399,7 +399,7 @@
                     (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
                       class="fa-solid fa-check"></em></button>&nbsp;
                   <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                  (click)="cancelRequest();opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                  (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
                       class="fa-solid fa-xmark"></em></button>
                 </td>
               </tr>
@@ -492,11 +492,11 @@
     </div>
 </ng-template>
 
-<ng-template #reject_timesheet>
+<!-- <ng-template #reject_timesheet>
     <div class="modal-body text-center">
         <p>Are you sure you want to Reject Timesheet?</p>
         <button type="button" class="btn btn-success" (click)="rejectTimesheetRequest(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
   </ng-template>
-  
+   -->

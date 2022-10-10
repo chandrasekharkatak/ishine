@@ -444,8 +444,14 @@ public class TimesheetService {
 				Timesheet updatedTimesheet = timesheetsRepository.save(timesheet);
 
 				if (updatedTimesheet.getEmpId() != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Timesheet status updated.");
+					if(updatedTimesheet.getStatus().equals("Approved")) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Timesheet status Approved.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Timesheet status Rejected.");
+					}
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Timesheet status updation failed.");
