@@ -487,6 +487,16 @@
                                 </div>
                             </div>
                         </app-accordion-item>
+                        <app-accordion-item class="acc-content" title="Employee Documents">
+                                <div class="container-fluid">
+                                    <div class="row flex-column px-4" *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">{{document.documentType}}</p>
+                                        </div>
+                                        <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview"/>
+                                    </div>
+                                </div>
+                            </app-accordion-item>
                     </app-accordion>
 
                 </div>
@@ -1083,7 +1093,7 @@
         </button>
     </div>
     <div class="modal-body ">
-        <app-user-update-info (docSubmit)="onDocSubmit()"></app-user-update-info>
+        <app-user-update-info (docSubmit)="onDocSubmit()" (draftDelete)="cancelRequest()"></app-user-update-info>
     </div>
 </ng-template>
 

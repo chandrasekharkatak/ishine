@@ -10,6 +10,7 @@ import { Feature } from '../models/feature';
 import { PreviousEmployer } from '../models/previousEmployer';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
+import { ImageService } from '../services/image.service';
 import { ValidationService } from '../services/validation.service';
 
 @Component({
@@ -52,7 +53,8 @@ export class UserProfileComponent implements OnInit {
     private authenticationService: AuthenticationService, 
     private datePipe: DatePipe,
     private modalService: BsModalService,
-    private sanitizer: DomSanitizer,) {
+    private sanitizer: DomSanitizer,
+    private imageService : ImageService,) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
@@ -496,22 +498,40 @@ export class UserProfileComponent implements OnInit {
     return true;
   }
 
-  onGetEmployeeInfo(){
+  async onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
     console.log("currentEmp : ", currentEmp);
     
-    this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.currentEmployeeInfo = response.serviceResponse;
-        console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
-        this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
-        
-      } else {
-        alert(response.serviceResponse);
-      }
-    });
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+      console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
+      this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.currentEmployeeInfo.documentList = docResponse.serviceResponse;
+      console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
+    } else {
+      console.log(docResponse.serviceResponse);
+    }
+
+    setTimeout(()=>{
+      this.currentEmployeeInfo.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500);
   }
 
   loadProfileImage(imageByte:any){

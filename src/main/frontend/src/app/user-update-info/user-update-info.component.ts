@@ -31,6 +31,8 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   previewObj:Employee = new Employee();
 
   @Output() docSubmit:EventEmitter<any> = new EventEmitter<any>();
+  @Output() draftDelete:EventEmitter<any> = new EventEmitter<any>();
+
 
   //modal 
   alertMessage: any;
@@ -99,7 +101,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     
     let currentEmp = new Employee();
     currentEmp.employeementId = this.draftObj.employeementId;
-    currentEmp.empId = this.draftObj.empId;
+    currentEmp.empId = this.draftObj.draftEmpId;
     currentEmp.isDraft = true;
 
     this.previewObj = this.draftObj;
@@ -147,22 +149,46 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   }
 
   onRevoke(template: TemplateRef<any>){
+    this.cancelRequest();
+
     this.draftObj.updateApplicationStatus = 'In-Progress';
     this.draftObj.updatedBy = this.updateUserInfoService.currentUser.empId ;
     console.log(this.draftObj);
-    // this.employeeService.rejectDraftEmployeeApplication(this.draftObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   } else {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   }
-    // });
+    this.employeeService.revokeDraftEmployeeApplication(this.draftObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onDelete(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    console.log(this.draftObj);
+    this.employeeService.deleteDraftEmployee(this.draftObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.draftDelete.emit();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  openOnRevokeMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  openOnDeleteMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
   cancelRequest() {

@@ -272,31 +272,31 @@ export class InformationPreviewComponent implements OnInit {
     if(employeeObj.certifications.length !== 0){
       employeeObj.certifications.forEach((certification:certification, index) =>{
         if(!this.validationService.validateNullUndefinedEmptyString(certification.certificationName)){
-          this.alertMessage = `Please Enter Certification Name - ${index}!!`;
+          this.alertMessage = `Please Enter Certification Name - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.duration)){
-          this.alertMessage = `Please Select Duration - ${index}!!`;
+          this.alertMessage = `Please Select Duration - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.modeOfCourse)){
-          this.alertMessage = `Please Select Mode Of Course - ${index}!!`;
+          this.alertMessage = `Please Select Mode Of Course - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.dateOfCompletion)){
-          this.alertMessage = `Please Select Date of Completion - ${index}!!`;
+          this.alertMessage = `Please Select Date of Completion - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.certificationNumber)){
-          this.alertMessage = `Please Enter Certification Number - ${index}!!`;
+          this.alertMessage = `Please Enter Certification Number - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
@@ -311,49 +311,49 @@ export class InformationPreviewComponent implements OnInit {
       }else{
         employeeObj.previousEmploymentList.forEach((previousEmployer, index) =>{
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
-            this.alertMessage = `Please Enter Employer Name - ${index}!!`;
+            this.alertMessage = `Please Enter Employer Name - ${index+1}!!`;
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
       
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
-            this.alertMessage = `Please Enter Date of Joining - ${index}!!`
+            this.alertMessage = `Please Enter Date of Joining - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
       
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfRelieving)){
-            this.alertMessage = `Please Enter Date of Relieving - ${index}!!`
+            this.alertMessage = `Please Enter Date of Relieving - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.yearsOfExperience)){
-            this.alertMessage = `Please Enter Years of Experience - ${index}!!`
+            this.alertMessage = `Please Enter Years of Experience - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
-            this.alertMessage = `Please Enter Manager Name - ${index}!!`
+            this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerContactNumber)){
-            this.alertMessage = `Please Enter Manager Contact Number - ${index}!!`
+            this.alertMessage = `Please Enter Manager Contact Number - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
-            this.alertMessage = `Please Enter HR Name - ${index}!!`
+            this.alertMessage = `Please Enter HR Name - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
-            this.alertMessage = `Please Enter HR Contact Number - ${index}!!`
+            this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
             return false;
           }

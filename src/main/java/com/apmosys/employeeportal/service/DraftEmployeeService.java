@@ -591,14 +591,6 @@ public class DraftEmployeeService {
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 				if (dbResponse != null) {
-					if (dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
-						Employee employeeObj = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
-
-						if (employeeObj != null) {
-							employeeObj.setIsUserInfoUpdated("true");
-							employeeRepository.save(employeeObj);
-						}
-					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dbResponse);
 				} else {
@@ -1078,6 +1070,15 @@ public class DraftEmployeeService {
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 				if (dbResponse != null) {
+					if (dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
+						Employee employeeObj = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+
+						if (employeeObj != null) {
+							employeeObj.setIsUserInfoUpdated("true");
+							employeeRepository.save(employeeObj);
+						}
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dbResponse);
 				} else {

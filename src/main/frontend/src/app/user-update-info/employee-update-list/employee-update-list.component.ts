@@ -13,6 +13,7 @@ export class EmployeeUpdateListComponent implements OnInit {
   @Output() draftEdit:EventEmitter<any> = new EventEmitter<any>();
   @Output() showPreview:EventEmitter<any> = new EventEmitter<any>();
   @Output() draftRevoke:EventEmitter<any> = new EventEmitter<any>();
+  @Output() draftDelete:EventEmitter<any> = new EventEmitter<any>();
 
 
 
@@ -29,7 +30,7 @@ export class EmployeeUpdateListComponent implements OnInit {
   }
 
   onDelete(){
-
+    this.draftDelete.emit();
   }
 
   onRevoke(){

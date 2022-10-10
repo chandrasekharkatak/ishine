@@ -123,6 +123,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateDraftStatusById`, employeeObj);
   }
 
+  revokeDraftEmployeeApplication(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/revokeDraftEmployeeApplication`, employeeObj);
+  }
+
    /* update Employee Password */
 
    updateEmployeePassword(user: User){
