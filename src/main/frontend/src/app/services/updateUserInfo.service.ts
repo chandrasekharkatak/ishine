@@ -86,10 +86,11 @@ export class UpdateUserInfoService {
     }
 
     async updateEmployeeInfo(): Promise<any> {
+        this.userInfoObj.updatedBy = this.currentUser.empId;
         this.userInfoObj.isDraft = true;
         this.userInfoObj.updateApplicationStatus = "Pending For Approval";
         console.log("updateEmployeeInfo : ", this.userInfoObj);
-        return await this.employeeService.updateDraftEmployee(this.userInfoObj).toPromise();
+        return await this.employeeService.updateDraftStatusById(this.userInfoObj).toPromise();
     }
 
     async getDraftByEmpId():Promise<Employee>{

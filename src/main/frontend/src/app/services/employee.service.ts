@@ -119,6 +119,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/approveDraftEmployeeApplication`, employeeObj);
   }
 
+  updateDraftStatusById(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateDraftStatusById`, employeeObj);
+  }
+
    /* update Employee Password */
 
    updateEmployeePassword(user: User){

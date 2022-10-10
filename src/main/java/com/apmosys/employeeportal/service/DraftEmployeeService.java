@@ -998,4 +998,38 @@ public class DraftEmployeeService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse updateDraftStatusById(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
+			if (employeeObject.isPresent()) {
+				DraftEmployee employee = employeeObject.get();
+
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
+				employee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
+				
+				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dbResponse);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Profile Updation Submit Failed.");
+				}
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Draft Employee Profile Not Found");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

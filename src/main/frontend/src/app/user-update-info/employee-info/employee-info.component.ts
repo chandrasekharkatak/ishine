@@ -58,17 +58,19 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   sectionViewInit(employee:Employee){
+    this.allCertificationList = [];
+    this.allPreviousEmployment = [];
     this.employeeObj = employee;
 
     // Certifications
-    if ((this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) && this.allCertificationList.length == 0) {
+    if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
       this.addInputCertificationField();
     } else {
       this.allCertificationList = this.employeeObj.certifications;
     }
 
-    // Prev. Employment
-    if ((this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) && this.allPreviousEmployment.length == 0) {
+    // Prev. Employment    
+    if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
       this.addInputPreviousEmployerField();
     } else {
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
@@ -238,7 +240,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
-    this.allCertificationList.forEach(certificaiton => {
+    this.allCertificationList?.forEach(certificaiton => {
       certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
       console.log("All certificaiton : ", this.allCertificationList);
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
@@ -247,7 +249,7 @@ export class EmployeeInfoComponent implements OnInit{
       }
     });
 
-    this.allPreviousEmployment.forEach(prevEmployer => {
+    this.allPreviousEmployment?.forEach(prevEmployer => {
       console.log("All Prev Employer : ", this.allPreviousEmployment);
       if ((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0) && (prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)) {
         console.log("New Prev Employer : ", prevEmployer);

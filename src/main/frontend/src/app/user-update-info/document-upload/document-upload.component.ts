@@ -129,6 +129,15 @@ export class DocumentUploadComponent implements OnInit {
   onSave(template: TemplateRef<any>){
     console.log("Selected Files : ", this.files);
     console.log("documentList : ", this.documentList);
+
+    this.currentEmployeeInfo.documentList = this.documentList;
+    this.updateUserInfoService.setUserInfoObj(this.currentEmployeeInfo);
+    
+    if (this.documentList.filter(doc => doc.documentName != null).length == 0) {
+      this.alertMessage = "Kindly Select Images !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     
     this.documentList = this.documentList.filter(doc => doc.documentName != null);
     

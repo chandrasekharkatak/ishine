@@ -170,7 +170,7 @@
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
-                                        <p class="info-label ">Emergency Contact Mobile Number</p>
+                                        <p class="info-label ">Emergency Contact Number</p>
                                         <p class="info-text">{{currentEmployeeInfo.emergencyContactMobile}}</p>
                                     </div>
                                 </div>
@@ -416,10 +416,17 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSubmit()">Submit</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSubmit(alert_message)">Submit</button>
                 </div>
             </div>
           </div>
     </div>
 </div>
 <!-- end :: Preview form -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

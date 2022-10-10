@@ -137,4 +137,11 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     this.docSubmit.emit();
   }
 
+  onRevoke(){
+
+  }
+
+  onDelete(){
+    
+  }
 }
