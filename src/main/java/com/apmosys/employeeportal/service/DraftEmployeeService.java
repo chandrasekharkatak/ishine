@@ -363,6 +363,21 @@ public class DraftEmployeeService {
 						.findByEmpIdAndIsDraft(employeeToBeDeleted.getDraftEmpId(), "true");
 				documentList = employeeDocumentRepository.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(), "true");
 
+				File directoryPath = new File(imageFileLocation + File.separator + "Documents" + File.separator
+						+ "Draft" + File.separator + employeedto.getEmployeementId());
+				String[] contents = directoryPath.list();
+
+				for (EmployeeDocument document : documentList) {
+
+					for (int i = 0; i < contents.length; i++) {
+						if (contents[i].equals(document.getDocumentName())) {
+							File file = new File(directoryPath.getAbsolutePath() + File.separator + contents[i]);
+							file.delete();
+						}
+
+					}
+				}
+
 				if (previousEmploymentList != null && !previousEmploymentList.isEmpty()) {
 					previousEmploymentList.forEach((prevEmployer) -> {
 						previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
