@@ -180,7 +180,7 @@ public class EmployeeLeaveService {
 				System.out.println(employeeLeavesMap + " employee leave");
 				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
 
-				if (dbResponse != null) {
+				if (dbResponse != null) { 
 
 					LeaveBalanceLog log = new LeaveBalanceLog();
 
@@ -331,7 +331,8 @@ public class EmployeeLeaveService {
 			Optional<EmployeeLeave> leaveApplication = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
-
+			System.out.println("leaveDTO.getEmpId() : -- " +leaveDTO.getEmpId());
+			System.out.println("leaveDTO.getLeaveTypeMasterId() : -- " +leaveDTO.getLeaveTypeMasterId());
 			if (leaveApplication.isPresent()) {
 				EmployeeLeave pendingLeaveApplication = leaveApplication.get();
 
