@@ -45,11 +45,11 @@
 <!-- end :: upload Images form -->
 
 <!-- start :: See all Photos Table -->
-<div class="row col-md-12" *ngIf="isTable">
+<div class="row d-flex" *ngIf="isTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Event Photos</h1>
     </div>
-    <table class="table department-table">
+    <table class="table table-responsive scrollable-table">
         <thead class="thead-light">
           <tr>
             <th scope="col" class="info-label">Image Name</th>
@@ -63,7 +63,7 @@
             <tr *ngIf="eventImages.length == 0">
                 <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
             </tr>
-          <tr *ngFor="let image of eventImages | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+          <tr *ngFor="let image of eventImages | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
             <td>{{image.imageName}}</td>
             <td>{{image.eventName}}</td>
             <td>{{image.createdByName}}</td>

@@ -94,14 +94,14 @@
 <!-- end :: Apply CompOff form -->
 
 <!-- start :: My compOff Request Table -->
-<div class="row col-md-12" *ngIf="isCompOffRequestsTable">
+<div class="row d-flex " *ngIf="isCompOffRequestsTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">My Compensatory off Requests</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table compOffRequest-table" id="compOffRequest-table" matSort (matSortChange)="sortCompensatory($event)">	
+    <table class="table table-responsive scrollable-table " id="compOffRequest-table" matSort (matSortChange)="sortCompensatory($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>	
@@ -117,8 +117,8 @@
             <tr *ngIf="allCompOffRequests.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-            <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
+            <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                <td>{{20*(page-1)+i+1}}</td>
                 <td>{{compOffReq.compOffReasons}}</td>
                 <td>{{compOffReq.fromDate}}</td>
                 <td>{{compOffReq.toDate}}</td>
@@ -134,14 +134,14 @@
 <!-- end :: My compOff Request table -->
 
 <!-- start :: compOff Application Table -->
-<div class="row col-md-12" *ngIf="isCompOffApplicationsTable">
+<div class="row d-flex" *ngIf="isCompOffApplicationsTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table compOffApplication-table" id="compOffApplication-table" matSort (matSortChange)="sortReporteeCompensatory($event)">	
+    <table class="table table-responsive scrollable-table " id="compOffApplication-table" matSort (matSortChange)="sortReporteeCompensatory($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>	
@@ -159,8 +159,8 @@
             <tr *ngIf="allCompOffApplications.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-            <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
+            <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                <td>{{20*(page-1)+i+1}}</td>
                 <td>{{compOffApp.createdByName}}</td>
                 <td>{{compOffApp.compOffReasons}}</td>
                 <td>{{compOffApp.fromDate}}</td>

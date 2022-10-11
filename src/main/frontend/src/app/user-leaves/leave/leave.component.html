@@ -130,14 +130,14 @@
 <!-- end :: create & update form -->
 
 <!-- start :: Leave History Table -->
-<div class="row col-md-12" *ngIf="isLeaveHistoryTable">
+<div class="row d-flex" *ngIf="isLeaveHistoryTable">
     <div class="table-header">
         <h1 class="table-header-title">My Leave History</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table history-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
+    <table class="table table-responsive scrollable-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
         <thead class="thead-light text-center">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>	
@@ -157,7 +157,7 @@
             <tr *ngIf="leaveHistoryList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{leaveHistory.leaveType}}</td>
                 <td>{{leaveHistory.fromDate}}</td>
@@ -182,14 +182,14 @@
 <!-- end :: Leave History table -->
 
 <!-- start :: Leave Applications Table -->
-<div class="row col-md-12" *ngIf="isLeaveApplicationsTable">
+<div class="row d-flex" *ngIf="isLeaveApplicationsTable">
     <div class="table-header">
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table leaveApplication-table" id="leaveApplication-table" matSort (matSortChange)="sortReporteeLog($event)">	
+    <table class="table table-responsive scrollable-table " id="leaveApplication-table" matSort (matSortChange)="sortReporteeLog($event)">	
         <thead class="thead-light text-center">	
           <tr>	
             <th scope="col" class="info-label" >Sr No.</th>	
@@ -209,7 +209,7 @@
             <tr *ngIf="leaveApplicationList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{leaveApplication.leaveType}}</td>
                 <td>{{leaveApplication.fromDate}}</td>
@@ -233,14 +233,14 @@
 <!-- end :: Leave Applications table -->
 
 <!-- start :: Leave Balance Table -->
-<div class="row col-md-12" *ngIf="isLeaveBalanceTable">
+<div class="row d-flex" *ngIf="isLeaveBalanceTable">
     <div class="table-header">
         <h1 class="table-header-title">My Leave Balances</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table balance-table" matSort (matSortChange)="sortLeaveBalance($event)">	
+    <table class="table table-responsive scrollable-table " matSort (matSortChange)="sortLeaveBalance($event)">	
         <thead class="thead-light text-center">	
           <tr>	
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
@@ -253,7 +253,7 @@
             <tr *ngIf="leaveBalanceList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leaveType of leaveBalanceList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }">
+            <tr *ngFor="let leaveType of leaveBalanceList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
                 <td>{{leaveType.leaveType}}</td>
                 <td>{{leaveType.totalLeaveBalance}} days(s)</td>
                 <td>{{leaveType.pendingForApproval}} day(s)</td>
@@ -267,14 +267,14 @@
 <!-- end :: Leave Balance table -->
 
 <!-- start :: Leave log Table -->
-<div class="row col-md-12" *ngIf="isLeaveLogTable">
+<div class="row d-flex" *ngIf="isLeaveLogTable">
     <div class="table-header">
         <h1 class="table-header-title">My Leave Logs</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+    <table class="table table-responsive scrollable-table " matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" >Sr. No</th>	
@@ -289,7 +289,7 @@
             <tr *ngIf="leaveLogList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let log of leaveLogList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <tr *ngFor="let log of leaveLogList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{log.rowNumber}}</td>
                 <td>{{log.leaveType}}</td>
                 <td>{{log.updateBalanceBy}}</td>

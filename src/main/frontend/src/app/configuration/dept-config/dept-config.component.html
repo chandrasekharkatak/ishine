@@ -49,15 +49,15 @@
 <!-- end :: create & update form -->
 
 <!-- start :: See all Table -->
-<div class="row col-md-12" *ngIf="isTable">
+<div class="row d-flex" *ngIf="isTable">
     
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Departments</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
     <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
-    <table class="table department-table" matSort (matSortChange)="sortData($event)">	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" >Sr No.</th>	
@@ -72,8 +72,8 @@
             <tr *ngIf="allDeptList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-          <tr *ngFor="let dept of allDeptList |filter:data |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-            <th class="info-label">{{10*(page-1)+i+1}}</th>
+          <tr *ngFor="let dept of allDeptList |filter:data |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+            <th class="info-label">{{17*(page-1)+i+1}}</th>
             <td>{{dept.name}}</td>
             <td>{{dept.hodName}}</td>
             <td>{{dept.createdByName}}</td>

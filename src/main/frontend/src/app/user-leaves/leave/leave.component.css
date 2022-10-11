@@ -39,3 +39,21 @@
 .balance-table > tbody > tr:last-child { 
     font-weight: bold;
 }
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+} 
+
+.col{
+    min-width: 300px;
+}
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.info-label{
+    width: 300px;
+}

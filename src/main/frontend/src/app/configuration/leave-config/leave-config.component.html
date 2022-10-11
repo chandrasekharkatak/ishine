@@ -91,7 +91,7 @@
 <!-- end ::  Add & Update Holiday form -->
 
 <!-- start :: holidays Table -->
-<div class="row col-md-12" *ngIf="isHolidayTable">
+<div class="row d-flex" *ngIf="isHolidayTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Holidays</h1>
     </div>
@@ -113,7 +113,7 @@
             </div>
         </div>
     </div>
-    <table class="table holidays-table" matSort (matSortChange)="sortData($event)">	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" >Sr. No</th>	
@@ -128,8 +128,8 @@
             <tr *ngIf="holidayListFilter.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let holiday of holidayListFilter|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
+            <tr *ngFor="let holiday of holidayListFilter|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                <td>{{20*(page-1)+i+1}}</td>
                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                 <td>{{holiday.dayOfTheWeek}}</td>
                 <td>{{holiday.dateOfHoliday}}</td>
@@ -232,14 +232,14 @@
 <!-- end ::  Add & Update Leave Type form -->
 
 <!-- start :: Leave Type Table -->
-<div class="row col-md-12" *ngIf="isLeaveRuleTable">
+<div class="row d-flex" *ngIf="isLeaveRuleTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Leave Types</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
-    <table class="table balance-table" matSort (matSortChange)="sortFunc($event)">	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortFunc($event)">	
         <thead class="thead-light text-center" >	
           <tr>	
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
@@ -255,7 +255,7 @@
             <tr *ngIf="leaveTypes.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leaveType of leaveTypes|filter:data | paginate: { itemsPerPage: 10, currentPage: page }">
+            <tr *ngFor="let leaveType of leaveTypes|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
                 <td>{{leaveType.leaveType}}</td>
                 <td>{{leaveType.leaveTypeCode}}</td>
                 <td>{{leaveType.gender}}</td>
@@ -573,14 +573,14 @@
 <!-- end ::  Add & Update Leave Policy form -->
 
 <!-- start :: Leave Policy Table -->
-<div class="row col-md-12" *ngIf="isLeavePolicyTable">
+<div class="row d-flex" *ngIf="isLeavePolicyTable">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Leave Policies</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
-    <table class="table leave-policy-table" matSort (matSortChange)="sortPolicy($event)">	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortPolicy($event)">	
         <thead class="thead-light text-center">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>	
@@ -596,8 +596,8 @@
             <tr *ngIf="leavePolicyList.length === 0">
                 <th colspan="10" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leavePolicy of leavePolicyList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
+            <tr *ngFor="let leavePolicy of leavePolicyList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                <td>{{20*(page-1)+i+1}}</td>
                 <td>{{leavePolicy.leavePolicyName}}</td>
                 <td>{{leavePolicy.leaveType}}</td>
                 <td class="desc-text-wrap">{{leavePolicy.description}}</td>
