@@ -274,7 +274,15 @@ public class EmployeeService {
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
-			employee.setExperience(employeedto.getExperience());
+			
+			if(employeedto.getExperience().equals("Fresher")){
+				employee.setExperience(employeedto.getExperience());
+				employee.setTotalExperience(0f);
+			}else {
+				employee.setExperience(employeedto.getExperience());
+				employee.setTotalExperience(employeedto.getTotalExperience());
+			}
+			
 			employee.setNoticePeriod(employeedto.getNoticePeriod());
 			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
 			employee.setWorkLocation(employeedto.getWorkLocation());
@@ -292,7 +300,6 @@ public class EmployeeService {
 			employee.setChild1(employeedto.getChild1());
 			employee.setChild2(employeedto.getChild2());
 			employee.setChild3(employeedto.getChild3());
-			employee.setTotalExperience(employeedto.getTotalExperience());
 			employee.setBillable(employeedto.getBillable());
 
 			Employee newEmployee = employeeRepository.save(employee);

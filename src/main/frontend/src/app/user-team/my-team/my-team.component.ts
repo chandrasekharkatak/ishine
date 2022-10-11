@@ -179,9 +179,9 @@ export class MyTeamComponent implements OnInit {
     this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
-        for(let x of this.teamViewList){
-          x.employeementId="A-".concat(x.employeementId)
-        }
+        // for(let x of this.teamViewList){
+        //   x.employeementId="A-".concat(x.employeementId)
+        // }
         console.log("teamViewList : ", this.teamViewList);
       } else {
         console.error(response.serviceResponse);

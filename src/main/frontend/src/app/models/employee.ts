@@ -83,4 +83,8 @@ export class Employee{
 	remarks:any;
 	documentList:any;
 	isUserInfoUpdated:boolean = true;
+
+	dateOfRelieving:any;
+	relievingMonth:any;
+	joiningMonth:any;
 }

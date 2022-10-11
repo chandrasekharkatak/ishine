@@ -33,7 +33,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 		try {
 
 			LocalDate start = LocalDate.now().minusDays(8);
-
+			
 			LocalDate end = LocalDate.now();
 
 			List<Object[]> list = employeeLeaveRepository.getLast8DaysLeaveReport(start, end);
@@ -52,6 +52,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setFromDate(object[3] != null ? object[3].toString() : null);
 					dto.setToDate(object[4] != null ? object[4].toString() : null);
 					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setLeaveType(object[6] != null ? object[6].toString() : null);
 					dtoList.add(dto);
 				});
 
@@ -75,8 +76,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			LocalDate start = LocalDate.now().minusDays(8);
 
 			LocalDate end = LocalDate.now().minusDays(1);
-			
-			System.out.println("\n\n start : "+ start + " END :"+ end +"\n\n");
 
 			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
 
