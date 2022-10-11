@@ -816,7 +816,7 @@ public class DraftEmployeeService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getEmpId());
+			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 
 			if (employeeObject.isPresent()) {
 				DraftEmployee draftEmployee = employeeObject.get();
@@ -874,7 +874,7 @@ public class DraftEmployeeService {
 				log.setEvent(LogEvents.UPDATE);
 				log.setTableName(DbTable.DRAFT_EMPLOYEE);
 				log.setTableEntryId(draftEmployee.getDraftEmpId());
-				log.setPayload(employeedto.getRemarks());
+				log.setPayload("Application revoked by employee.");
 				logsRepository.save(log);
 
 				// trigger mail to employee
@@ -1035,7 +1035,7 @@ public class DraftEmployeeService {
 					draftEmployeeRepository.deleteById(employeedto.getDraftEmpId());
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Employee profile updated.");
+					response.setServiceResponse("Employee profile approved.");
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee profile updation failed.");

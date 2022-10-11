@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.model.Employee;
 
 @Repository
-public interface EmployeeRepository extends JpaRepository<Employee, Long>{
-	
+public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+
 	public Employee findByEmail(String email);
 
 	@Query(nativeQuery = true)
@@ -21,8 +21,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 //	@Query(nativeQuery = true)	
 //	public List<Object[]> getEmployeesByRole();	
-		
-	@Query(nativeQuery = true)	
+
+	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByRole(String role);
 
 	@Query(nativeQuery = true)
@@ -33,13 +33,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTeamMemberView(Long managerId);
-    
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllHolidayByEmpWorkLocation(Long empId);
-	
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployeesBirthDayToday();
-	
+
 	public Long countByJobRoleId(Long jobRoleId);
 
 	public Employee findByEmployeementId(Long employeementId);
@@ -49,7 +49,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 	public List<Employee> findByAadhar(Long aadhar);
 
 	public List<Employee> findByPanNumber(String panNumber);
-	
+
 	@Query(value = "FROM Employee e WHERE e.mobileNo = :mobileNo AND e.empId != :empId")
 	public List<Employee> findByMobileNoAndEmpId(Long mobileNo, Long empId);
 
@@ -61,11 +61,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInfoOnLogin(String email);
-	
+
 	public boolean existsByEmail(String email);
-	
-	public Employee findByName(String leaveStatusUpdatedByName);	
-	
+
+	public Employee findByName(String leaveStatusUpdatedByName);
+
 	public List<Employee> findByJobRoleId(Long oldJobRoleId);
 
 	@Query(nativeQuery = true)
@@ -81,10 +81,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getManagerEmail(Long empId);
-	
+
 	public boolean existsByEmployeementId(Long employeementId);
-	
+
 	public boolean existsByManagerId(Long managerId);
-	
+
+	public boolean existsByEmpId(Long empId);
 
 }

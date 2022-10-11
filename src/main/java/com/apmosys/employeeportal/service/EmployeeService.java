@@ -338,6 +338,8 @@ public class EmployeeService {
 					log.setEvent(LogEvents.CREATE);
 					log.setTableName(DbTable.EMPLOYEE);
 					log.setTableEntryId(newEmployee.getEmpId());
+					log.setRemarks("Employee profile created.");
+
 
 					logsRepository.save(log);
 
