@@ -299,6 +299,7 @@ export class ReportDashboardComponent implements OnInit {
 
     let maleCount = 0;
     let femaleCount = 0;
+    let otherCount = 0;
 
     let countBetween18and25 = 0;
     let countBetween25and35 = 0;
@@ -350,6 +351,7 @@ export class ReportDashboardComponent implements OnInit {
       
       if(employee.gender == 'male') maleCount++;
       else if(employee.gender == 'female') femaleCount++;
+      else if(employee.gender == 'other') otherCount++;
 
       if(employee.dateOfBirth != null){
        let age = this.getAge(employee.dateOfBirth);       
@@ -425,6 +427,7 @@ export class ReportDashboardComponent implements OnInit {
     console.log("----------------------------------------------------");
     console.log("Male employees: ",maleCount);
     console.log("Female employees: ",femaleCount);
+    console.log("Other employees: ", otherCount);
     console.log("----------------------------------------------------") 
     console.log(employeeByDepartment);
     console.log("----------------------------------------------------") 
@@ -486,10 +489,14 @@ export class ReportDashboardComponent implements OnInit {
         {
           name: "female",
           y: femaleCount
-        }];
+        },
+        {	
+          name: "other",	
+            y: otherCount	
+          }];
 
         console.log("genderData : ", genderData);
-        this.renderPieSummaryChart('Male / Female Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
+        this.renderPieSummaryChart('Gender Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
 
          /*
         Chart Data for - Age Summary Graph.
@@ -632,7 +639,7 @@ export class ReportDashboardComponent implements OnInit {
     let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
 
     if(chartId == "genderSummary"){
-      colors = ['#88D2B8','#D288A2'];
+      colors = ['#88D2B8','#D288A2','#F33323'];
     }
 
     HighCharts.chart(chartId, {
@@ -729,18 +736,37 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
+        style:{	
+          fontWeight: 'bold',	
+          color:'#000000'	
+        }
       },
       xAxis: {
-        categories: chartData
+        categories: chartData,
+        labels: {	
+          overflow: 'justify',	
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+          }	
+        },
       },
       yAxis: {
         min: 0,
         title: {
           text: 'No. Of Employees',
           align: 'high',
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+          }
         },
         labels: {
           overflow: 'justify',
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+          }
         },
       },
       tooltip: {
