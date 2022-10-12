@@ -1,0 +1,95 @@
+<!-- <div class="card-header text-center text-uppercase">
+    <strong>Policies</strong>
+</div> -->
+
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_policy" [ngClass]="{'active' : isDocumentForm}" (click)="showDocumentForm()">Upload Policies</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_documents || userMapping.delete_document" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Documents</button>
+    </div>
+</div>
+
+<!-- document upload form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isDocumentForm" >
+        <div class="card-header text-center text-uppercase">
+            <strong>Upload Policies</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Policy Name</label>
+                            <input type="text" class="form-control" maxlength="50" autocomplete="none" [(ngModel)]="policyName">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label mb-0"><span class="text-danger">*</span>Select File</label>
+                            <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 20MB</small>
+                            <input type="file" accept=".pdf,.doc" multiple class="form-control p-1" (change)="onFileSelect($event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUploadFiles(alert_message)">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- start :: See all Documents Table -->
+<div class="row col-md-12" *ngIf="isTable">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Documents</h1>
+    </div>
+    <table class="table department-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">File Name</th>	
+            <th scope="col" class="info-label">Policy Name</th>
+            <th scope="col" class="info-label">Created By</th>
+            <th scope="col" class="info-label">Created On</th>
+            <th scope="col" class="info-label">Action</th>	  
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="document.length == 0">
+                <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
+            </tr>
+          <tr *ngFor="let doc of document | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">
+            <td>{{doc.fileName}}</td>
+            <td>{{doc.policyName}}</td>
+            <td>{{doc.createdByName}}</td>
+            <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+            <td>
+                <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button> 
+            </td>
+          </tr>
+        </tbody>
+      </table>  
+       <pagination-controls class="my-pagination" [hidden]="document.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+</div>
+<!-- end :: see all Documents table -->
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete this Document?</p>
+        <button type="button" class="btn btn-success" (click)="onDeleteDocument(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

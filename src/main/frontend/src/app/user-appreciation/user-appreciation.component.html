@@ -1,0 +1,69 @@
+<div class="row card">
+    <div class="card col-md-12 px-0" >
+        <div class="card-header text-center text-uppercase">
+            <strong >Appreciation</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label" ><span class="text-danger">*</span>Select Employee Name</label>
+                            <select class="form-control" [(ngModel)]="employeeObj.empId" name="Appreciation" aria-hidden="true" (change)="getManagerByEmpId(employeeObj.empId)">
+                                <option selected="selected" value="" disabled>Select</option>
+
+                               <option *ngFor="let appr of allEmployee" value="{{appr.empId}}">{{appr.name}}</option> 
+                              </select> 
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Reporting To</label>
+                            <input type="text" [(ngModel)]="employeeObj.managerName" class="form-control" maxlength="255" autocomplete="none"   disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Appreciation Type</label>
+                            <select class="form-control" [(ngModel)]="employeeObj.appreciateType" aria-hidden="true" >
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="You are my Star">You are my Star</option>
+                                <option value="You are Gem of a Person">You are Gem of a Person</option>
+                                <option value="You are a Problem Solver">You are a Problem Solver</option>
+                                <option value="You are Supportive">You are Supportive</option>
+                                <option value="You are Reliable">You are Reliable</option>
+                                <option value="You are a Motivator">You are a Motivator</option>                               
+                              </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                            <textarea class="form-control" id="Desc" [(ngModel)]="employeeObj.reason" rows="3" ></textarea>
+                          </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                   
+                        <!-- <button  type="submit" class="btn btn-primary btn-sm mx-1" >Submit</button> -->
+                        <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="submitAppreciation(alert_message)" >Submit</button>
+                  
+                </div>
+               
+            </div>            
+    </div>
+</div>
+</div>
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

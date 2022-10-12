@@ -61,6 +61,9 @@ import { UserReportComponent } from './user-report/user-report.component';
 import { ReportListComponent } from './user-report/report-list/report-list.component';
 import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
 import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
+import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
+import { UserPoliciesComponent } from './user-policies/user-policies.component';
+import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -104,6 +107,9 @@ import { ReportDashboardComponent } from './user-report/report-dashboard/report-
     ReportListComponent,
     CustomFilterComponent,
     ReportDashboardComponent,
+    UserAppreciationComponent,
+    UserPoliciesComponent,
+    UploadPoliciesComponent,
   ],
   imports: [
     BrowserModule,

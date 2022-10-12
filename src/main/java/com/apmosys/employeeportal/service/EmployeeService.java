@@ -1883,5 +1883,38 @@ public class EmployeeService {
 		return response;
 
 	}
+	public ServiceResponse getEmployees() {	
+		ServiceResponse response = new ServiceResponse();	
+			
+		try {	
+			List<Object[]> allEmployees = employeeRepository.getEmployees();	
+			List<EmployeeDTO> empDTO = new ArrayList<>();	
+			if(!allEmployees.isEmpty()) {	
+				for(Object[] obj : allEmployees ) {	
+				EmployeeDTO employeeDTO = new EmployeeDTO();	
+				employeeDTO.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);	
+				employeeDTO.setEmployeementId(obj[1] != null ? Long.parseLong(obj[1].toString()) : null);	
+				employeeDTO.setManagerName(obj[2] != null ? obj[2].toString() : null);	
+				employeeDTO.setName(obj[3] != null ? obj[3].toString() : null);	
+				employeeDTO.setEmail(obj[4] != null ? obj[4].toString() : null);	
+				employeeDTO.setManagerMail(obj[5] != null ? obj[5].toString() : null);	
+				empDTO.add(employeeDTO);	
+			}	
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+				response.setServiceResponse(empDTO);		
+			}else {	
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				response.setServiceResponse("Employee List is empty.");	
+			}	
+		} catch (Exception e) {	
+			// TODO Auto-generated catch block	
+			e.printStackTrace();	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
+			response.setServiceResponse("Something Went Wrong.");	
+			response.setServiceError(e.getMessage());	
+		}	
+		return response;	
+	}	
+	
 
 }

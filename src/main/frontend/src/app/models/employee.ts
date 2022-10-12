@@ -2,11 +2,11 @@ export class Employee{
     empId:any;
 	draftEmpId:any;
 	employeementId:any;
-	name:any;
+	//name:any;
 	managerId:any;
 	dateOfJoining:any;
 	dateOfBirth:any;
-	email:any;
+	//email:any;
 	gender:any;
 	bloodGroup:any;
 	maritalStatus:any;
@@ -87,4 +87,22 @@ export class Employee{
 	dateOfRelieving:any;
 	relievingMonth:any;
 	joiningMonth:any;
+
+
+	empIdAppreciated:any;
+	appreciateType:any;	
+    reason:any;	
+	//emailAppreciated:any;
+	
+	//name
+    name:any;
+    nameAppreciate: any;
+    //MAILID
+    email:any;
+    emailAppreciated:any;;
+    //employementID
+	appreciationBy:any;
+	appreciationTo:any;
+
+	managerMail:any;
 }

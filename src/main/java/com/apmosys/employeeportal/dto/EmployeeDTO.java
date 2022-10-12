@@ -113,4 +113,20 @@ public class EmployeeDTO {
 	
 	private List<EmployeeDocumentDTO> documentList;
 	private String isUserInfoUpdated;
+	
+	//appreciation	
+		private String appreciateType;		
+		private String reason;		
+		private Long empIdAppreciated;	
+		//name	
+		// private String name;	
+		private String nameAppreciate;	
+		//MAILID	
+		// private String email;	
+		private String emailAppreciated;	
+		//employementID	
+		private Long appreciationBy;	
+		private Long appreciationTo;	
+				
+		private String managerMail;	
 }

@@ -35,6 +35,9 @@ import { PortalConfigComponent } from './configuration/portal-config/portal-conf
 import { UserReportComponent } from './user-report/user-report.component';
 import { ReportListComponent } from './user-report/report-list/report-list.component';
 import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
+import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
+import { UserPoliciesComponent } from './user-policies/user-policies.component';
+import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -57,6 +60,8 @@ const routes: Routes = [
       { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
       { path: 'portal-config', component: PortalConfigComponent, },
+      { path: 'upload-policies', component: UploadPoliciesComponent, },
+
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -97,6 +102,9 @@ const routes: Routes = [
       { path: 'report-dashboard', component: ReportDashboardComponent }
     ]
   },
+  {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
+  {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
+
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
