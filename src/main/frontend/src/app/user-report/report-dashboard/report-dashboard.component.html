@@ -64,9 +64,13 @@
 <div class="row" *ngIf="isEmployeeDashboard">
     <div class="card col-md-12 px-0">
         <div class="row text-center">
-            <div class="col-sm-6 col-md-2 graph mouse d-flex flex-column justify-content-center align-items-center" (click)="openTotalCountModal()">
-                <small class="chart-title">Employee Count</small>
-                <h2 class="card-title">{{countOfAllEmployees}}</h2>
+            <div class="col-sm-6 col-md-2 graph d-flex flex-column justify-content-center align-items-center">
+                <small class="chart-title mouse" (click)="openTotalCountModal('All Active Employee')">Employee Count</small>
+                <h2 class="card-title mouse" (click)="openTotalCountModal('All Active Employee')">{{countOfAllEmployees}}</h2>
+                <br>
+                <br>
+                <small class="chart-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">Employee In Probation<br>(After 6 months) Count</small>
+                <h2 class="card-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">{{employeeInProbationAfter6MonthsCount}}</h2>
             </div>
             <div class="col-md-5 graph">
                 <div id="departmentWiseEmployee" style="height: 300px; width: 500px"></div>
@@ -91,7 +95,7 @@
                 <div id="fresherLateralChart" style="height: 300px; width: 400px"></div>
             </div>
             <div class="col-sm-6 col-md-4 graph">
-                <div id="leaveTrendAnalysis" style="height: 300px; width: 400px"></div>
+                <!-- <div id="leaveTrendAnalysis" style="height: 300px; width: 400px"></div> -->
             </div>
             <div class="col-sm-6 col-md-4 graph">
                 <div id="employeeJoinAndResign" style="height: 300px; width: 400px"></div>
@@ -268,6 +272,7 @@
                         <th scope="col" class="info-label">Department Name</th>
                         <th scope="col" class="info-label">Email Id</th>
                         <th scope="col" class="info-label">Manager Name</th>
+                        <th scope="col" class="info-label">Date Of Joining</th>
                         <th scope="col" class="info-label">Mobile No.</th>
                         <th scope="col" class="info-label">Status</th>
                         <th scope="col" class="info-label">Total Experience</th>
@@ -287,6 +292,7 @@
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
+                        <td>{{leave.dateOfJoining}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td>{{leave.employmentstatus}}</td>
                         <td>{{leave.totalExperience}}</td>

@@ -55,9 +55,12 @@ export class ReportDashboardComponent implements OnInit {
   holiday:any;
   workingOnHoliday:any;
 
+  dateFormat:any = 'YYYY-MM-DD';
+
   alertMessage:any;
 
   countOfAllEmployees:any;
+  employeeInProbationAfter6MonthsCount = 0;
 
   filterData:any = new FilterData();
   queryList:any[] = [];
@@ -230,14 +233,14 @@ export class ReportDashboardComponent implements OnInit {
 
   getAllEmployeeList() {
     this.allEmployeeList = [];
-    const dateFormat = 'YYYY-MM-DD';
+    this.employeeInProbationAfter6MonthsCount = 0;
       
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
           for(let x of this.allEmployeeList){
             x.employeementId = "A-".concat(x.employeementId);
-            x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(dateFormat);
+            x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
           }
@@ -251,7 +254,7 @@ export class ReportDashboardComponent implements OnInit {
 
   getCustomEmployeesList(queryObjList:any , template : TemplateRef<any>) {
     this.allEmployeeList = [];
-    const dateFormat = 'YYYY-MM-DD';
+    this.employeeInProbationAfter6MonthsCount = 0;
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
@@ -267,7 +270,7 @@ export class ReportDashboardComponent implements OnInit {
           }
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);
-            employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(dateFormat);
+            employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
             employee.joiningMonth = moment(employee.dateOfJoining).format('MMMM');
           });
@@ -341,31 +344,32 @@ export class ReportDashboardComponent implements OnInit {
     let resignDecCount = 0;
 
     this.allEmployeeList.forEach((employee)=>{
-      let dateToday = moment().year();
+      let currentYear = moment().year();
+      let dateToday = moment().format(this.dateFormat);
 
-      if(employee.experience == 'Fresher') fresherCount++;
-      else if (employee.experience == 'Experienced') experienceCount++;
+      if(employee.experience == 'Fresher' && employee.employmentstatus != 'InActive') fresherCount++;
+      else if (employee.experience == 'Experienced' && employee.employmentstatus != 'InActive') experienceCount++;
 
       if (employee.employmentstatus == "Probation") probationCount++;
           else if (employee.employmentstatus == "Confirmed") confirmedCount++;
           else if (employee.employmentstatus == "Resigned") resignedCount++;
           else if (employee.employmentstatus == "InActive") inActiveCount++;
       
-      if(employee.gender == 'male') maleCount++;
-      else if(employee.gender == 'female') femaleCount++;
-      else if(employee.gender == 'other') otherCount++;
-
-      if(employee.dateOfBirth != null){
+      if(employee.gender == 'male' && employee.employmentstatus != 'InActive') maleCount++;
+      else if(employee.gender == 'female' && employee.employmentstatus != 'InActive') femaleCount++;
+      else if(employee.gender == 'other' && employee.employmentstatus != 'InActive') otherCount++;
+ 
+      if(employee.dateOfBirth != null && employee.employmentstatus != 'InActive'){
        let age = this.getAge(employee.dateOfBirth);       
        employee.age = age;
        console.log(age);
        if(age>= 18 && age <=25)countBetween18and25++;
        else if (age>25 && age<= 35) countBetween25and35++;
        else if (age>35 && age<= 45) countBetween35and45++;
-       else if (age>45) countAbove45++;       
+       else if (age>45) countAbove45++;
       }
 
-      if(employee.dateOfJoining != null && employee.totalExperience != null){
+      if(employee.dateOfJoining != null && employee.totalExperience != null && employee.employmentstatus != 'InActive'){
         let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
         employee.totalExperience = empTotalExperience.toFixed(1);
         console.log(empTotalExperience);
@@ -376,36 +380,39 @@ export class ReportDashboardComponent implements OnInit {
         else if(empTotalExperience > 10)experienceCountAbove10++;
       }
       
-      if(employee.joiningMonth == 'January' && moment(employee.dateOfJoining).year() == dateToday)joiningJanCount++;
-      else if(employee.joiningMonth == 'February' && moment(employee.dateOfJoining).year() == dateToday)joiningFebCount++;
-      else if(employee.joiningMonth == 'March' && moment(employee.dateOfJoining).year() == dateToday)joiningMarCount++;
-      else if(employee.joiningMonth == 'April' && moment(employee.dateOfJoining).year() == dateToday)joiningAprilCount++;
-      else if(employee.joiningMonth == 'May' && moment(employee.dateOfJoining).year() == dateToday)joiningMayCount++;
-      else if(employee.joiningMonth == 'June' && moment(employee.dateOfJoining).year() == dateToday)joiningJuneCount++;
-      else if(employee.joiningMonth == 'July' && moment(employee.dateOfJoining).year() == dateToday)joiningJulyCount++;
-      else if(employee.joiningMonth == 'August' && moment(employee.dateOfJoining).year() == dateToday)joiningAugCount++;
-      else if(employee.joiningMonth == 'September' && moment(employee.dateOfJoining).year() == dateToday)joiningSepCount++;
-      else if(employee.joiningMonth == 'October' && moment(employee.dateOfJoining).year() == dateToday)joiningOctoberCount++;
-      else if(employee.joiningMonth == 'November' && moment(employee.dateOfJoining).year() == dateToday)joiningNovCount++;
-      else if(employee.joiningMonth == 'December' && moment(employee.dateOfJoining).year() == dateToday)joiningDecCount++;
+      if(employee.joiningMonth == 'January' && moment(employee.dateOfJoining).year() == currentYear)joiningJanCount++;
+      else if(employee.joiningMonth == 'February' && moment(employee.dateOfJoining).year() == currentYear)joiningFebCount++;
+      else if(employee.joiningMonth == 'March' && moment(employee.dateOfJoining).year() == currentYear)joiningMarCount++;
+      else if(employee.joiningMonth == 'April' && moment(employee.dateOfJoining).year() == currentYear)joiningAprilCount++;
+      else if(employee.joiningMonth == 'May' && moment(employee.dateOfJoining).year() == currentYear)joiningMayCount++;
+      else if(employee.joiningMonth == 'June' && moment(employee.dateOfJoining).year() == currentYear)joiningJuneCount++;
+      else if(employee.joiningMonth == 'July' && moment(employee.dateOfJoining).year() == currentYear)joiningJulyCount++;
+      else if(employee.joiningMonth == 'August' && moment(employee.dateOfJoining).year() == currentYear)joiningAugCount++;
+      else if(employee.joiningMonth == 'September' && moment(employee.dateOfJoining).year() == currentYear)joiningSepCount++;
+      else if(employee.joiningMonth == 'October' && moment(employee.dateOfJoining).year() == currentYear)joiningOctoberCount++;
+      else if(employee.joiningMonth == 'November' && moment(employee.dateOfJoining).year() == currentYear)joiningNovCount++;
+      else if(employee.joiningMonth == 'December' && moment(employee.dateOfJoining).year() == currentYear)joiningDecCount++;
 
-      if(employee.relievingMonth == 'January' && moment(employee.dateOfRelieving).year() == dateToday)resignJanCount++;
-      else if(employee.relievingMonth == 'February' && moment(employee.dateOfRelieving).year() == dateToday)resignFebCount++;
-      else if(employee.relievingMonth == 'March' && moment(employee.dateOfRelieving).year() == dateToday)resignMarCount++;
-      else if(employee.relievingMonth == 'April' && moment(employee.dateOfRelieving).year() == dateToday)resignAprilCount++;
-      else if(employee.relievingMonth == 'May' && moment(employee.dateOfRelieving).year() == dateToday)resignMayCount++;
-      else if(employee.relievingMonth == 'June' && moment(employee.dateOfRelieving).year() == dateToday)resignJuneCount++;
-      else if(employee.relievingMonth == 'July' && moment(employee.dateOfRelieving).year() == dateToday)resignJulyCount++;
-      else if(employee.relievingMonth == 'August' && moment(employee.dateOfRelieving).year() == dateToday)resignAugCount++;
-      else if(employee.relievingMonth == 'September' && moment(employee.dateOfRelieving).year() == dateToday)resignSepCount++;
-      else if(employee.relievingMonth == 'October' && moment(employee.dateOfRelieving).year() == dateToday)resignOctoberCount++;
-      else if(employee.relievingMonth == 'November' && moment(employee.dateOfRelieving).year() == dateToday)resignNovCount++;
-      else if(employee.relievingMonth == 'December' && moment(employee.dateOfRelieving).year() == dateToday)resignDecCount++;
+      if(employee.relievingMonth == 'January' && moment(employee.dateOfRelieving).year() == currentYear)resignJanCount++;
+      else if(employee.relievingMonth == 'February' && moment(employee.dateOfRelieving).year() == currentYear)resignFebCount++;
+      else if(employee.relievingMonth == 'March' && moment(employee.dateOfRelieving).year() == currentYear)resignMarCount++;
+      else if(employee.relievingMonth == 'April' && moment(employee.dateOfRelieving).year() == currentYear)resignAprilCount++;
+      else if(employee.relievingMonth == 'May' && moment(employee.dateOfRelieving).year() == currentYear)resignMayCount++;
+      else if(employee.relievingMonth == 'June' && moment(employee.dateOfRelieving).year() == currentYear)resignJuneCount++;
+      else if(employee.relievingMonth == 'July' && moment(employee.dateOfRelieving).year() == currentYear)resignJulyCount++;
+      else if(employee.relievingMonth == 'August' && moment(employee.dateOfRelieving).year() == currentYear)resignAugCount++;
+      else if(employee.relievingMonth == 'September' && moment(employee.dateOfRelieving).year() == currentYear)resignSepCount++;
+      else if(employee.relievingMonth == 'October' && moment(employee.dateOfRelieving).year() == currentYear)resignOctoberCount++;
+      else if(employee.relievingMonth == 'November' && moment(employee.dateOfRelieving).year() == currentYear)resignNovCount++;
+      else if(employee.relievingMonth == 'December' && moment(employee.dateOfRelieving).year() == currentYear)resignDecCount++;
 
+      if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
+        if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months') > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
+      }
     });
   
     //Department wise Employee Count
-    let departmentList = this.groupBy(this.allEmployeeList,'departmentName');
+    let departmentList = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive'),'departmentName');
     let employeeByDepartment = [];
       for (let department in departmentList) {        
          employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
@@ -549,7 +556,7 @@ export class ReportDashboardComponent implements OnInit {
         this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,'Experience', this.openEmployeeExperienceModalTable.bind(this));
 
         /*
-        Chart Data for - Employee Experience Graph Data.
+        Chart Data for - Employee Fresher - Lateral Graph Data.
        */
 
         let fresherLateralData  = [{
@@ -557,12 +564,12 @@ export class ReportDashboardComponent implements OnInit {
           y: fresherCount
         },
         {
-          name: "Experience",
+          name: "Lateral",
           y: experienceCount
         }];
 
         console.log("genderData : ", genderData);
-        this.renderPieSummaryChart('Fresher /Experience Summary', 'fresherLateralChart', fresherLateralData, 'Employee Summary', this.openFresherLateralModalTable.bind(this));
+        this.renderPieSummaryChart('Fresher - Lateral Summary', 'fresherLateralChart', fresherLateralData, 'Employee Summary', this.openFresherLateralModalTable.bind(this));
 
         /*
         Chart Data for - Employee Join VS Resign
@@ -582,6 +589,8 @@ export class ReportDashboardComponent implements OnInit {
         })
         console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
+
+        this.renderLineGraphChart('Leave Trend Analysis Graph', 'leaveTrendAnalysis', this.zeroToFive, 'Leave Trend',this.openTimesheetSummaryTableModel.bind(this));
   }
 
   groupBy(objectArray, property) {
@@ -694,6 +703,8 @@ export class ReportDashboardComponent implements OnInit {
                 openMod(event.point.name);
               }
               if(chartId == 'employeeAgeSummary'){
+                openMod(event.point.name);
+              }if(chartId == 'fresherLateralChart'){
                 openMod(event.point.name);
               }
             },
@@ -873,6 +884,58 @@ export class ReportDashboardComponent implements OnInit {
       },
       series: chartData
     });
+  }
+
+  renderLineGraphChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
+    HighCharts.chart(chartId, {
+      title: {
+          text: chartName
+      },
+      yAxis: {
+          title: {
+              text: 'Number of Employees'
+          }
+      },
+      xAxis: {
+          accessibility: {
+              rangeDescription: 'Range: 2010 to 2020'
+          }
+      },
+      plotOptions: {
+          series: {
+              label: {
+                  connectorAllowed: false
+              },
+              pointStart: 2010
+          }
+      },
+      series: [{
+          type: "line",
+          name: 'Installation & Developers',
+          data: [43934, 48656, 65165, 81827, 112143, 142383,
+              171533, 165174, 155157, 161454, 154610]
+      }, {
+          type: "line",
+          name: 'Manufacturing',
+          data: [24916, 37941, 29742, 29851, 32490, 30282,
+              38121, 36885, 33726, 34243, 31050]
+      }, {
+          type: "line",
+          name: 'Sales & Distribution',
+          data: [11744, 30000, 16005, 19771, 20185, 24377,
+              32147, 30912, 29243, 29213, 25663]
+      }, {
+          type: "line",
+          name: 'Operations & Maintenance',
+          data: [null, null, null, null, null, null, null,
+              null, 11164, 11218, 10077]
+      }, {
+          type: "line",
+          name: 'Other',
+          data: [21908, 5548, 8105, 11248, 8989, 11816, 18274,
+              17300, 13053, 11906, 10073]
+      }]
+  });
   }
 
     /* Filter */
@@ -1077,15 +1140,17 @@ export class ReportDashboardComponent implements OnInit {
     }
   }
 
-  openTotalCountModal(){
+  openTotalCountModal(title:any){
+    this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList;
     this.page = 1;
-    this.modalTitle = "All Active Employee Data";
+    this.modalTitle = title;
     this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
     this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
   }
 
   openEmployeeStatusTableModal(status:any){
+    this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList;
     if(status == "Probation"){
       this.page=1;
@@ -1114,7 +1179,8 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openGenderSummaryModalTable(gender:any){
-    let modalTableList = this.allEmployeeList;
+    this.modalSummaryList = [];
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(gender == "male"){
       this.page=1;
       this.modalTitle = "Male Employee Data";
@@ -1130,7 +1196,8 @@ export class ReportDashboardComponent implements OnInit {
   }    
 
   openAgeSummayModalTable(age:any){
-    let modalTableList = this.allEmployeeList;
+    this.modalSummaryList = [];
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(age == "18 to 25"){
       this.page=1;
       this.modalTitle = "Employee Age Between 18 to 25";
@@ -1158,7 +1225,8 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openDepartmentWiseEmployeeModalTable(pointName:any){
-    let modalTableList = this.allEmployeeList;
+    this.modalSummaryList = [];
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
       this.modalTitle = "Employee(s) in "+pointName;
       this.modalSummaryList = modalTableList.filter(x => x.departmentName == pointName);
@@ -1166,7 +1234,8 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openEmployeeExperienceModalTable(pointName:any){
-    let modalTableList = this.allEmployeeList;
+    this.modalSummaryList = [];
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(pointName == "0 to 1"){
       this.page=1;
       this.modalTitle = "Employee(s) with 0 to 1 YOE";
@@ -1199,11 +1268,21 @@ export class ReportDashboardComponent implements OnInit {
     }
   }
 
-  openFresherLateralModalTable(){
-
+  openFresherLateralModalTable(pointName:any){
+    this.modalSummaryList = [];
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+      this.page=1;
+      this.modalTitle = "Employee(s) "+pointName;
+      if(pointName == 'Lateral'){
+        this.modalSummaryList = modalTableList.filter(x => x.experience == 'Experienced');
+      }else{
+        this.modalSummaryList = modalTableList.filter(x => x.experience == 'Fresher');
+      }
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
   }
 
   openEmployeeJoinResignModalTable(category:any, name:any){
+    this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList;
     let dateToday = moment().year();
 

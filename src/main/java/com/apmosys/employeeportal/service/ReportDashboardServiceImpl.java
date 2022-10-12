@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,6 +132,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 						dto.setDate(filledTimesheet[6] != null ? filledTimesheet[6].toString() : null);
 						dto.setTotalWorkingHours(filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
 						dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
+						dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
 						dtoList.add(dto);
 					});
 				}
@@ -143,6 +145,50 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			}
 
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse getLeaveTrendAnalysisReport() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			ServiceResponse lastEightDayResponse = getLast8DaysLeaveReport();
+			
+			if(lastEightDayResponse.getServiceStatus().equals("Success")) {
+				List<LeaveDTO> leavedata = (List<LeaveDTO>)lastEightDayResponse.getServiceResponse();
+				
+				List<LeaveDTO> newLeaveData = new ArrayList<>();
+		
+				if(leavedata != null) {
+					leavedata.forEach((obj) -> {
+						LocalDate tempdate = LocalDate.parse(obj.getFromDate());
+						LocalDate toDate = LocalDate.parse(obj.getToDate());
+						
+						while(ChronoUnit.DAYS.between(tempdate, toDate) <= 0) {
+							LeaveDTO dto = new LeaveDTO();
+							
+							dto.setEmployeementId(obj.getEmployeementId());
+							dto.setDepartmentName(obj.getDepartmentName());
+							dto.setEmployeeName(obj.getEmployeeName());
+							dto.setFromDate(obj.getFromDate());
+							dto.setToDate(obj.getToDate());
+							dto.setStatus(obj.getStatus());
+							dto.setLeaveType(obj.getLeaveType());
+							newLeaveData.add(dto);
+							
+							tempdate.plusDays(1);
+						}
+						
+					});
+				}
+				System.out.println(newLeaveData +  " ====");
+			}	
+		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
