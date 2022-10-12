@@ -1110,6 +1110,9 @@ public class EmployeeService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					empDTO.setDateOfResign(
+							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
+									: null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -289,6 +289,8 @@ export class ReportDashboardComponent implements OnInit {
     //Graph Based Employment Status(Probation/Confirmed/Resigned/In-Active)
     //Male / Female Graph
     //Age Wise Graph
+    // Total Experience Graph
+    // Join vs Resign Graph
     let fresherCount = 0;
     let experienceCount = 0;
 
@@ -408,12 +410,6 @@ export class ReportDashboardComponent implements OnInit {
       for (let department in departmentList) {        
          employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
       }
-    
-    //Employee Join Vs resign
-    var empList = this.multipleGroupByArray(this.allEmployeeList, function (item) {
-      return [item.joiningMonth, item.relievingMonth];
-    });
-    
 
     //Age Wise Graph
 
