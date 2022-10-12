@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 
 @Service
 public class ValidationService {
@@ -14,6 +15,15 @@ public class ValidationService {
 
 	@Autowired
 	JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	SurveyQuestionRepository surveyQuestionRepository;
+	
+	public boolean validateEmpId(Long empId) {
+
+		return (employeeRepository.existsByEmpId(empId)) ? true : false;
+
+	}
 
 	public boolean validateEmploymentId(Long employeementId) {
 
@@ -30,6 +40,12 @@ public class ValidationService {
 	public boolean validateJobRoleId(Long jobRoleId) {
 
 		return (jobRoleRepository.existsByJobRoleId(jobRoleId)) ? true : false;
+
+	}
+	
+	public boolean validateSurveyId(Long surveyId) {
+
+		return (surveyQuestionRepository.existsBySurveyId(surveyId)) ? true : false;
 
 	}
 
