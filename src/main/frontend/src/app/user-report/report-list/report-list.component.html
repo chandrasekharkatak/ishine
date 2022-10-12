@@ -14,7 +14,7 @@
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
-        <button type="button" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, leaveColumns, 'Filter Leave Report')"><i class="fa-solid fa-filter"></i></button>
+        <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, leaveColumns, 'Filter Leave Report')"><i class="fa-solid fa-filter"></i></button>
     </div>
     <table class="table table-responsive scrollable-table">	
         <thead class="thead-light">	
@@ -64,11 +64,11 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Timesheet Report</h1>
     </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
+        <input type="text" id="buttonPosition" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
-    <table class="table timesheet-table">	
-        <thead class="thead-light">	
+    <table class="table table-responsive scrollable-table">	
+        <thead class="thead-light table-scroll">	
           <tr>	
             <th scope="col" class="info-label">Employee Id</th>
             <th scope="col" class="info-label">Full Name</th>	
@@ -110,14 +110,14 @@
 
 
 <!-- start :: Employee Report Table -->
-<div class="row col-md-12" *ngIf="isEmployeeReportTable">
+<div class="row d-flex" *ngIf="isEmployeeReportTable">
     
-    <div class="row table-header">
+    <div class="col-md-12 table-header">
         <h1 class="table-header-title">Employee Report</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
       <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
-      <button type="button" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, employeeColumns, 'Filter Employee Report')"><i class="fa-solid fa-filter"></i></button>
+      <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, employeeColumns, 'Filter Employee Report')"><i class="fa-solid fa-filter"></i></button>
     </div>
     <table class="table table-responsive scrollable-table">	
         <thead class="thead-light">	

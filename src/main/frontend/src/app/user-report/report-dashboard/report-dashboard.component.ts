@@ -1042,49 +1042,49 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 0 && x.totalWorkingHours <= 5);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked Between 5 to 8 hour"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 5 && x.totalWorkingHours <= 8);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked Between 8 to 9 hour"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 8 && x.totalWorkingHours <= 9);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked Between 9 to 10 hour"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 9 && x.totalWorkingHours <= 10);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked More than 10 hour"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 10);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "No Timesheet Submitted"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Holiday"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == "Holiday");
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Working On Holiday"){
       this.page=1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == "Non-working");
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
   }
 

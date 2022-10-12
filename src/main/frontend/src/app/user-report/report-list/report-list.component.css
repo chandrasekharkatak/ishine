@@ -1,5 +1,5 @@
 .table-header{
-    width: 100%;
+    width: 90%;
     height: 50px;
     background: var(--ghost-white);
     margin-bottom: 1em;
@@ -15,14 +15,19 @@
 .scrollable-table{
     width: 88vw;
     height: 70vh;
+    margin-right: 0px !important;
 }
-
+.table-scroll{
+    font-size: 0.9rem;
+}
 
 .wide-col{
-    min-width: 300px;
+    min-width: 100px;
 }
 
-
+/* .table{
+    overflow-x: auto;
+} */
 
 .my-pagination::ng-deep .ngx-pagination .current {
     background: #193d8a  !important;
@@ -35,4 +40,16 @@
 .thead-light th{
     position: sticky;
     top: -0.7px;
+}
+
+.info-label{
+    width: 200px !important;
+}
+
+/* .form-control{
+    margin-right: 30px;
+} */
+
+#buttonPosition{
+    margin-right: 40px !important;
 }

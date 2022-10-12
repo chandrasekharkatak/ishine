@@ -446,6 +446,11 @@ export class LeaveComponent implements OnInit {
     toDate?.setAttribute('min', fromDate);
   }
 
+  resetToDate(){
+    this.leaveObj.toDate = '';
+    this.leaveObj.noOfDays = '';
+  }
+
   setNoOfDays(template: TemplateRef<any>){
     if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.fromDate)){
       this.alertMessage = "Please select from date !!"
