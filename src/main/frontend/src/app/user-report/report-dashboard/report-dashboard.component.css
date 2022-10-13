@@ -43,7 +43,7 @@
 } 
 
 .wide-col{
-    min-width: 300px;
+    min-width: 180px;
 }
 
 .thead-light th{
@@ -54,3 +54,4 @@
 .info-label{
     width: 300px;
 }
+

@@ -57,4 +57,6 @@ public class TimesheetDTO {
 	private String managerName;
 	private Long pendingEodCount;
 	private String legend;
+	private String rejectReason;
+	
 }

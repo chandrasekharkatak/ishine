@@ -41,3 +41,7 @@
 .info-label{
     width: 300px;
 }
+
+.wide-col{
+    min-width: 200px;
+}

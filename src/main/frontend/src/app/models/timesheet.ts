@@ -34,5 +34,6 @@ export class Timesheet{
     timesheetStatusUpdatedBy:any;
     timesheetStatusUpdatedByName:any;
     employeeName:any;
-
+    rejectReason:any;
+    email:any;
 }

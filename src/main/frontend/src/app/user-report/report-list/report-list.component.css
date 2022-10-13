@@ -17,12 +17,12 @@
     height: 70vh;
     margin-right: 0px !important;
 }
-.table-scroll{
+/* .table-scroll{
     font-size: 0.9rem;
-}
+} */
 
 .wide-col{
-    min-width: 100px;
+    min-width: 250px;
 }
 
 /* .table{

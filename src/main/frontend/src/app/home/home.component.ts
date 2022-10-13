@@ -19,6 +19,7 @@ import * as moment from 'moment';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
 import { BodyComponent } from '../body/body.component';
 import { Feature } from '../models/feature';
+import { ValidationService } from '../services/validation.service';
 
 @Component({
   selector: 'app-home',
@@ -81,7 +82,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
-    private bodyComponent: BodyComponent
+    private bodyComponent: BodyComponent,
+    public validationService: ValidationService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -269,6 +271,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cancelRequest();
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
+    timesheetObj.email = timesheet.email;
+    timesheetObj.rejectReason = timesheet.rejectReason;
     timesheetObj.status = status;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -281,13 +285,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  rejectTimesheetRequest(template: TemplateRef<any>){
+  
+  rejectTimesheetRequest(template: TemplateRef<any> , ){
     this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
   }
 
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+    this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
 

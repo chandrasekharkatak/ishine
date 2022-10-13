@@ -399,7 +399,7 @@
                     (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
                       class="fa-solid fa-check"></em></button>&nbsp;
                   <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                  (click)="updateTimesheetRequestById(alert_message, timesheet, 'Rejected')"><em
+                  (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
                       class="fa-solid fa-xmark"></em></button>
                 </td>
               </tr>
@@ -487,8 +487,25 @@
 <!-- Modals templates -->
 <ng-template #alert_message>
     <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
+       <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+<!-- <ng-template #reject_timesheet>
+    <div class="modal-body">
+        <span class="text-danger">*<small>Please provide reason</small></span>
+        <textarea name="comment" id="" style="width: 100%;" [(ngModel)]="timesheetObj.rejectReason" rows="10"></textarea>
+        <button type="button" class="btn btn-success" id="btn" (click)="rejectTimesheetRequest(alert_message)" >Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" id="btn" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template> -->
+
+  <ng-template #reject_timesheet>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 

@@ -240,7 +240,7 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortFunc($event)">	
-        <thead class="thead-light text-center" >	
+        <thead class="thead-light" >	
           <tr>	
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
             <th scope="col" class="info-label" mat-sort-header="leaveTypeCode">Leave Code</th>	
@@ -251,9 +251,9 @@
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
-        <tbody class="text-center">
+        <tbody>
             <tr *ngIf="leaveTypes.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+                <th colspan="8" class="info-label">No details to display...</th>
             </tr>
             <tr *ngFor="let leaveType of leaveTypes|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
                 <td>{{leaveType.leaveType}}</td>
