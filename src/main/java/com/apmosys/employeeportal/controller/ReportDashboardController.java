@@ -20,10 +20,10 @@ public class ReportDashboardController {
 	ReportDashboardService reportDashboardService;
 	
 	
-	@RequestMapping(value = "/getLast8DaysLeaveReport" ,method = RequestMethod.GET)
-	public ServiceResponse getLast8DaysLeaveReport() {
+	@RequestMapping(value = "/getLast8DaysLeaveReport" ,method = RequestMethod.POST)
+	public ServiceResponse getLast8DaysLeaveReport(@RequestBody LeaveDTO leaveDto) {
 		
-		ServiceResponse response = reportDashboardService.getLast8DaysLeaveReport();
+		ServiceResponse response = reportDashboardService.getLast8DaysLeaveReport(leaveDto);
 		return response;
 	}
 	
@@ -31,6 +31,13 @@ public class ReportDashboardController {
 	public ServiceResponse getLast9DaysTimesheetReport() {
 		
 		ServiceResponse response = reportDashboardService.getLast9DaysTimesheetReport();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getLeaveTrendAnalysisReport" ,method = RequestMethod.POST)
+	public ServiceResponse getLeaveTrendAnalysisReport(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = reportDashboardService.getLeaveTrendAnalysisReport(leaveDto);
 		return response;
 	}
 

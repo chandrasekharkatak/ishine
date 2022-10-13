@@ -153,11 +153,11 @@ export class LeaveService {
   }
 
   /* Report Dashboard */
-  getLast8DaysLeaveReport(){
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLast8DaysLeaveReport`);
+  getLast8DaysLeaveReport(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLast8DaysLeaveReport`, leaveObj);
   }
 
-  getLeaveTrendAnalysisReport(){
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLeaveTrendAnalysisReport`);
+  getLeaveTrendAnalysisReport(leaveObj : Leave){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeaveTrendAnalysisReport`, leaveObj);
   }
 }

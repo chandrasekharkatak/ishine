@@ -92,4 +92,7 @@ public class LeaveDTO {
 	
 	private String hodName;
 	List<CustomFilterDTO> queryList;
+	
+	private String startDate;
+	private String endDate;
 }

@@ -9,6 +9,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Query } from 'src/app/models/query';
 import * as moment from 'moment';
+import { Leave } from 'src/app/models/leave';
 HC_exportData(HighCharts);
 
 class FilterData{
@@ -43,6 +44,7 @@ export class ReportDashboardComponent implements OnInit {
   timsheetSummaryList:any[] = [];
   allEmployeeList: any[] = [];
   leaveTrendAnalysisList:any[] = [];
+  allLeaveTypes:any[] = [];
 
   modalTitle:any;
   modalSummaryList:any[] = [];
@@ -83,6 +85,7 @@ export class ReportDashboardComponent implements OnInit {
 
   sectionViewInit(){
     this.leaveTimesheetDashboard();
+    this.getAllLeaveTypes();
   }
 
   leaveTimesheetDashboard(){
@@ -103,8 +106,12 @@ export class ReportDashboardComponent implements OnInit {
 
   get8DaysLeaveReport(){
     this.leaveSumarryList = [];
+    let leaveObj= new Leave();
 
-    this.leaveService.getLast8DaysLeaveReport().pipe(first()).subscribe((response: any) => {
+     leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
+     leaveObj.endDate = moment().format(this.dateFormat);
+
+    this.leaveService.getLast8DaysLeaveReport(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveSumarryList = response.serviceResponse;
         console.log("leaveSumarryList : ", this.leaveSumarryList);
@@ -141,17 +148,84 @@ export class ReportDashboardComponent implements OnInit {
     });
   }
 
-  getLeaveTrendAnalysisReport(){
-    this.leaveSumarryList = [];
+  getDatesInRange(startDate, endDate) {
+    const date = startDate;
 
-    this.leaveService.getLeaveTrendAnalysisReport().pipe(first()).subscribe((response: any) => {
+    const dates = [];
+
+    while (date <= endDate) {
+      dates.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
+    return dates;
+  }
+
+  getAllLeaveTypes() {
+    this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allLeaveTypes = response.serviceResponse;
+        console.log("leaveTypes : ", this.allLeaveTypes);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getLeaveTrendAnalysisReport() {
+    this.leaveSumarryList = [];
+    let leaveObj = new Leave();
+
+    leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
+    leaveObj.endDate = moment().format(this.dateFormat);
+
+    const d1 = new Date(leaveObj.startDate);
+    const d2 = new Date(leaveObj.endDate);
+
+    let dateRange = this.getDatesInRange(d1, d2);
+
+    let formattedDateRange = [];
+
+    dateRange.forEach((date) => {
+      formattedDateRange.push(date.toISOString().split('T')[0]);
+    })
+
+    this.leaveService.getLeaveTrendAnalysisReport(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTrendAnalysisList = response.serviceResponse;
-        console.log(" leaveTrendAnalysisList : ", this.leaveTrendAnalysisList);
 
-        
+        let chartData = [];
+        let leaveTypes = [];
 
+        let leaveObj = this.allLeaveTypes.forEach(obj => {
+          leaveTypes.push(obj.leaveType);
+        });
 
+        let data = leaveTypes.map(leaveType => {
+          chartData.push({ type: 'line', name: leaveType, data: [] });
+          let leaveData = this.leaveTrendAnalysisList.filter(leaveTrendAnalysis => leaveTrendAnalysis.leaveType == leaveType)
+          return leaveData;
+        });
+
+        console.log("data :", data);
+        console.log("ChartData : ", chartData);
+        console.log("dateRange : ", dateRange);
+
+        data.forEach(leaveDataArr => {
+
+          dateRange.forEach(date => {
+            let leaveType: any;
+            let dataByDate = leaveDataArr.filter(leaveApplication => {
+              leaveType = leaveApplication.leaveType;
+              if (leaveApplication.fromDate == moment(date).format(this.dateFormat)) return leaveApplication;
+            });
+
+            chartData.find(chartDataObj => chartDataObj.name == leaveType)?.data.push(dataByDate.length)
+          });
+        });
+
+        console.log("Final ChartData : ", chartData);
+
+        this.renderLineGraphChart('Leave Trend Analysis Graph', 'leaveTrendAnalysis', chartData, 'Leave Trend', formattedDateRange, this.openLeaveAnalysisTableModel.bind(this));
       } else {
         console.error(response.serviceResponse);
       }
@@ -598,8 +672,6 @@ export class ReportDashboardComponent implements OnInit {
         })
         console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
-
-        this.renderLineGraphChart('Leave Trend Analysis Graph', 'leaveTrendAnalysis', this.zeroToFive, 'Leave Trend',this.openTimesheetSummaryTableModel.bind(this));
   }
 
   groupBy(objectArray, property) {
@@ -919,59 +991,39 @@ export class ReportDashboardComponent implements OnInit {
     });
   }
 
-  renderLineGraphChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
+  renderLineGraphChart(chartName:any, chartId:any, chartData:any, labelName:any, category:any, openMod:any){
     HighCharts.chart(chartId, {
       title: {
           text: chartName
       },
       yAxis: {
           title: {
-              text: 'Number of Employees',
-              style:{
-                fontWeight: 'bold',
-                color: '#000000'
-              }
+              text: 'Number of Leaves'
           }
       },
       xAxis: {
-          accessibility: {
-              rangeDescription: 'Range: 2010 to 2020'
-          }
+        categories: category
       },
       plotOptions: {
           series: {
               label: {
                   connectorAllowed: false
               },
-              pointStart: 2010
+              point: {
+                events: {
+                  click: function(event) {
+                    if(chartId == 'leaveTrendAnalysis'){
+                      openMod(event.point.series.name);
+                    }
+                  }
+                },
+              },
           }
       },
-      series: [{
-          type: "line",
-          name: 'Installation & Developers',
-          data: [43934, 48656, 65165, 81827, 112143, 142383,
-              171533, 165174, 155157, 161454, 154610]
-      }, {
-          type: "line",
-          name: 'Manufacturing',
-          data: [24916, 37941, 29742, 29851, 32490, 30282,
-              38121, 36885, 33726, 34243, 31050]
-      }, {
-          type: "line",
-          name: 'Sales & Distribution',
-          data: [11744, 30000, 16005, 19771, 20185, 24377,
-              32147, 30912, 29243, 29213, 25663]
-      }, {
-          type: "line",
-          name: 'Operations & Maintenance',
-          data: [null, null, null, null, null, null, null,
-              null, 11164, 11218, 10077]
-      }, {
-          type: "line",
-          name: 'Other',
-          data: [21908, 5548, 8105, 11248, 8989, 11816, 18274,
-              17300, 13053, 11906, 10073]
-      }]
+      credits: {
+        enabled: false,
+      },
+      series: chartData
   });
   }
 
@@ -1347,6 +1399,8 @@ export class ReportDashboardComponent implements OnInit {
       this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
     }
   }
+
+  openLeaveAnalysisTableModel(){}
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });

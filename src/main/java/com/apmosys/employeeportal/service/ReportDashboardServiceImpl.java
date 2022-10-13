@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class ReportDashboardServiceImpl implements ReportDashboardService {
@@ -27,17 +28,15 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired	
+	StringToDateTimeParser stringToDateTimeParser;
 
 	@Override
-	public ServiceResponse getLast8DaysLeaveReport() {
+	public ServiceResponse getLast8DaysLeaveReport(LeaveDTO leaveDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-
-			LocalDate start = LocalDate.now().minusDays(8);
-			
-			LocalDate end = LocalDate.now();
-
-			List<Object[]> list = employeeLeaveRepository.getLast8DaysLeaveReport(start, end);
+			List<Object[]> list = employeeLeaveRepository.getLast8DaysLeaveReport(stringToDateTimeParser.getDate(leaveDto.getStartDate(), "yyyy-MM-dd"), stringToDateTimeParser.getDate(leaveDto.getEndDate(), "yyyy-MM-dd"));
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (list.isEmpty()) {
@@ -154,47 +153,48 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	}
 
 	
-	public ServiceResponse getLeaveTrendAnalysisReport() {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			ServiceResponse lastEightDayResponse = getLast8DaysLeaveReport();
-			
-			if(lastEightDayResponse.getServiceStatus().equals("Success")) {
-				List<LeaveDTO> leavedata = (List<LeaveDTO>)lastEightDayResponse.getServiceResponse();
+	@Override	
+	public ServiceResponse getLeaveTrendAnalysisReport(LeaveDTO leaveDto) {	
+		ServiceResponse response = new ServiceResponse();	
+		try {	
+			ServiceResponse lastEightDayResponse = getLast8DaysLeaveReport(leaveDto);	
 				
-				List<LeaveDTO> newLeaveData = new ArrayList<>();
-		
-				if(leavedata != null) {
-					leavedata.forEach((obj) -> {
-						LocalDate tempdate = LocalDate.parse(obj.getFromDate());
-						LocalDate toDate = LocalDate.parse(obj.getToDate());
-						
-						while(ChronoUnit.DAYS.between(tempdate, toDate) <= 0) {
-							LeaveDTO dto = new LeaveDTO();
+			if(lastEightDayResponse.getServiceStatus().equals("Success")) {	
+				List<LeaveDTO> leavedata = (List<LeaveDTO>)lastEightDayResponse.getServiceResponse();	
+					
+				List<LeaveDTO> newLeaveData = new ArrayList<>();	
+			
+				if(leavedata != null) {	
+					leavedata.forEach((obj) -> {	
+						LocalDate tempdate = LocalDate.parse(obj.getFromDate());	
+						LocalDate toDate = LocalDate.parse(obj.getToDate());	
+						long i = 0L;	
 							
-							dto.setEmployeementId(obj.getEmployeementId());
-							dto.setDepartmentName(obj.getDepartmentName());
-							dto.setEmployeeName(obj.getEmployeeName());
-							dto.setFromDate(obj.getFromDate());
-							dto.setToDate(obj.getToDate());
-							dto.setStatus(obj.getStatus());
-							dto.setLeaveType(obj.getLeaveType());
-							newLeaveData.add(dto);
-							
-							tempdate.plusDays(1);
-						}
-						
-					});
-				}
-				System.out.println(newLeaveData +  " ====");
-			}	
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		return response;
-	}
-
+						while(i <= ChronoUnit.DAYS.between(tempdate, toDate)) {	
+							LeaveDTO dto = new LeaveDTO();	
+								
+							dto.setEmployeementId(obj.getEmployeementId());	
+							dto.setDepartmentName(obj.getDepartmentName());	
+							dto.setEmployeeName(obj.getEmployeeName());	
+							dto.setFromDate(tempdate.toString());	
+							dto.setToDate(obj.getToDate());	
+							dto.setStatus(obj.getStatus());	
+							dto.setLeaveType(obj.getLeaveType());	
+							newLeaveData.add(dto);	
+								
+							tempdate = tempdate.plusDays(1);	
+						}	
+					});	
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse(newLeaveData);	
+				}	
+			}		
+		}catch(Exception e) {	
+			e.printStackTrace();	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
+			response.setServiceResponse("Something Went Wrong.");	
+			response.setServiceError(e.getMessage());	
+		}	
+		return response;	
+	}	
 }

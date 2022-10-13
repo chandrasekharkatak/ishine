@@ -75,4 +75,8 @@ export class Leave{
 	jobRoleName:any;
 	departmentName:any;
 	hodName:any;
+
+	// for graph
+	startDate:any;
+	endDate:any
 }
