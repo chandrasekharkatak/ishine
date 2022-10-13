@@ -13,4 +13,10 @@ export class PoliciesService {
   getAllDocument() {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDocument`);
   }
+  downloadDocument(policyID: string) {
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/downloadDocument/${policyID}`, {
+      responseType: 'blob'
+    });
+  }
 }
+

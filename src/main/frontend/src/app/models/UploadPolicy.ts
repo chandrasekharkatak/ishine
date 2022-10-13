@@ -1,5 +1,5 @@
 export class UploadPolicy{
-    policyId: any;
+    policyID: any;
 	policyName: any;
 	fileName: any;
 	fileBytes: any;

@@ -15,6 +15,6 @@ public interface SurveyService {
 
 	ServiceResponse getAnsweredSurveysByEmpId(SurveyDTO surveyDTO);
 
-	ServiceResponse deleteSurvey(SurveyDTO surveyDTO);
+	ServiceResponse changeSurveyStatus(SurveyDTO surveyDTO);
 
 }

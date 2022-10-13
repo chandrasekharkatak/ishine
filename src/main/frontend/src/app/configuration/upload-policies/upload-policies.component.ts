@@ -9,6 +9,8 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
+import { saveAs } from "file-saver";
+
 
 
 @Component({
@@ -172,6 +174,11 @@ export class UploadPoliciesComponent implements OnInit {
   }
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  
+  downloadFile(doc: any) {
+    this.uploadPoliciesService.downloadDocument( doc.policyID).subscribe(blob => saveAs(blob,doc.fileName));
   }
 
   page = 1;
