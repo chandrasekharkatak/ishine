@@ -1,12 +1,15 @@
 <div class="col-md-12 table-header">
-    <h1 class="table-header-title">Policies</h1>
+    <!-- <h1 class="table-header-title">Policies</h1> -->
   </div>
   <div class="row card">
   <div class="row col-md-12">
       
-      
+    <div class="col-md-12 table-header">
+      <h1 class="table-header-title">Policies</h1> 
+    </div>
       <div class="form-group ml-auto col-md-3">
-      <input type="text" class="form-control" placeholder="Search" >	
+        
+      <!-- <input type="text" class="form-control" placeholder="Search" >	 -->
       </div>
       <table class="table Policies-table" >	
           <thead class="thead-light">	
@@ -22,15 +25,18 @@
             <tr *ngIf="document.length == 0">
               <th colspan="6" class="text-center info-label">No Document to display...</th>
             </tr>
-            <tr *ngFor="let doc of document ">
+            <tr *ngFor="let doc of document | paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
   
               <td>{{doc.fileName}}</td>
               <td>{{doc.policyName}}</td>
               <td>{{doc.createdByName}}</td>
               <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-              <td>Download</td>
+              <td><button  class="btn btn-sm btn-outline-danger"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> 
+              <!-- </td> -->
           </tbody>
         </table>
+        <pagination-controls class="my-pagination" [hidden]="document.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+
        
   </div>
   </div>

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.model.UploadPolicy;
 
 @Repository
@@ -16,6 +17,6 @@ public interface UploadPolicyRepository extends JpaRepository<UploadPolicy, Long
 	public List<Object[]> getAllDocuments();
 
 	@Query(nativeQuery = true)
-	public UploadPolicy findByPolicyID(Long policyID);
+	public List<Object[]> findByPolicyID(Long policyID);
 
 }

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.servlet.ServletContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,8 +31,7 @@ public class UploadPolicyService {
 	@Autowired
 	private  UploadPolicyRepository UploadPolicyRepository;
 	
-	@Autowired
-	private ServletContext servletContext;
+	
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
@@ -191,10 +191,26 @@ public class UploadPolicyService {
 	}
 
 
-	
+	public Resource getTemplateFile(Long policyID) throws FileNotFoundException {
+		Resource resource=null;
+		String filename=null;
+		try {
+		List<Object[]> object = UploadPolicyRepository.findByPolicyID(policyID);
+		for (Object[] objectlist : object) {
+		     filename= (String)objectlist[3];
+		    System.out.println("ssssssssssssssss" +filename);
+		}
+		
+		String Location = documentFileLocation + File.separator + filename;
+		File file = new File(Location);
+		if (file.exists()) {
+			resource = new FileSystemResource(Location);
+		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		// throw new FileNotFoundException("File not found ");
+		}
+		return resource;
 
-	
-	
-	
-
+	}
 }

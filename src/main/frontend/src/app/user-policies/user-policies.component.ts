@@ -4,6 +4,7 @@ import { PoliciesService } from '../services/policies.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { saveAs } from "file-saver";
 
 
 
@@ -42,6 +43,14 @@ export class UserPoliciesComponent implements OnInit {
         console.error(response.serviceResponse);
       }
     });
+  }
+  
+  downloadFile(doc: any) {
+    this.policiesService.downloadDocument( doc.policyID).subscribe(blob => saveAs(blob,doc.fileName));
+  }
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
   }
 
 }
