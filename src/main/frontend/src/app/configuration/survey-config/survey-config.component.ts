@@ -67,12 +67,17 @@ export class SurveyConfigComponent implements OnInit {
     this.isSurveyForm = true;
     
     this.isSurveyList = false;
+
+    this.surveyObj = new Survey();
+    this.allSurveyQuestionList = [new SurveyQuestion()];
   }
 
   showSurveys(){
     this.isSurveyList = true;
     
     this.isSurveyForm = false;
+
+    this.getAllSurveys();
   }
  
   // Manage Questions
@@ -136,7 +141,7 @@ export class SurveyConfigComponent implements OnInit {
 
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("createSurvey SUCCESS : ", response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
         this.getAllSurveys();
       }else{
         this.openAlertMod(template, response.serviceResponse);
@@ -157,13 +162,46 @@ export class SurveyConfigComponent implements OnInit {
     });
   }
 
+  onSurveyPreview(surveyObj:Survey, template: TemplateRef<any>){
+
+    console.log("For Preiew Survey : ", surveyObj);
+    this.surveyObj = new Survey();
+    this.allSurveyQuestionList = [];
+    
+    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allSurveyQuestionList = response.serviceResponse;
+        console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+
+        this.surveyObj = surveyObj;
+        this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
+          survey.optionsList = JSON.parse(survey.options);
+          survey.required = JSON.parse(survey.required);
+        });
+
+        const surveyTemplate: string = this.createTemplate();
+
+        let previewObj = new Survey();
+        previewObj.surveyName = surveyObj.surveyName;
+        previewObj.description = surveyObj.description;
+        previewObj.surveyQuestionList = this.allSurveyQuestionList;
+        previewObj.surveyTemplate = surveyTemplate;
+
+        console.log("previewObj : ", previewObj);
+        this.openSurveyPreviewMod(template, previewObj);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   createTemplate():string{
    console.log("this.surveyObj : ", this.surveyObj);
    console.log("this.allSurveyQuestionList : ", this.allSurveyQuestionList);
 
    let surveyTemplate = ``;
 
-   this.allSurveyQuestionList.forEach((question:SurveyQuestion) => {
+   this.allSurveyQuestionList.forEach((question:SurveyQuestion, qIndex) => {
 
     let finalQuestionTemplate = ``;
     const questionStartTemplate = `<div class="row"><div class="form-group">`
@@ -180,12 +218,12 @@ export class SurveyConfigComponent implements OnInit {
      } else if (question.optionType == "checkbox") {
 
       let optionTemplate = '';
-      question.optionsList.forEach((option:SurveyOption,index) => {
+      question.optionsList.forEach((option:SurveyOption, opIndex) => {
         let checkboxTemplate: any =
         `
           <div class="form-check">
-           <input class="form-check-input" type="checkbox" id="check-option-${index+1}" value="${option.optionValue}">
-           <label class="form-check-label" for="check-option-${index+1}">${option.optionValue}</label>
+           <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}">
+           <label class="form-check-label" for="q-${qIndex+1}-check-option-${opIndex+1}">${option.optionValue}</label>
            </div>
          `;
 
@@ -200,8 +238,8 @@ export class SurveyConfigComponent implements OnInit {
         let radioboxTemplate: any =
         `
         <div class="form-check">
-         <input class="form-check-input" type="radio" name="radio-option-${index+1}" id="radio-option-${index+1}" value="${option.optionValue}">
-         <label class="form-check-label" for="radio-option-${index+1}">${option.optionValue}</label>
+         <input class="form-check-input" type="radio" name="q-${qIndex+1}-radio-option" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}">
+         <label class="form-check-label" for="q-${qIndex+1}-radio-option-${index+1}">${option.optionValue}</label>
          </div>
        `;
 
@@ -234,5 +272,10 @@ export class SurveyConfigComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+  
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
   }
 }

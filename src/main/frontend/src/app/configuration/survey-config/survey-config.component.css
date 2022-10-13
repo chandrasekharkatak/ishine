@@ -20,3 +20,11 @@
 .question-icon{
     color: var(--dark-cornflower-blue);
 }
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
+}
