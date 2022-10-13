@@ -32,7 +32,7 @@ public class AppreciationService {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
-			
+			String mailAddresses = hrMailAddress;
 			System.out.println(hrMailAddress);
 			
 			Appreciation appreciation = new Appreciation();
@@ -56,9 +56,9 @@ public class AppreciationService {
 	  
 			String text="Hi " + appreciationDTO.getNameAppreciate() + ",<br> " + "You have been appreciated by :" + appreciationDTO.getName() + " as<br> \""
 					+ appreciationDTO.getAppreciateType() + "\"<br>" + "Comment: " + appreciationDTO.getReason();
-			hrMailAddress=hrMailAddress +","+ appreciationDTO.getManagerMail()+","+appreciationDTO.getEmail();
-			System.out.println(hrMailAddress);
-			mailService.sendMailWithCC(appreciationDTO.getEmailAppreciated(), hrMailAddress, subject,text );
+			mailAddresses=mailAddresses +","+ appreciationDTO.getManagerMail()+","+appreciationDTO.getEmail();
+			System.out.println(mailAddresses);
+			mailService.sendMailWithCC(appreciationDTO.getEmailAppreciated(), mailAddresses, subject,text );
 
 			if(dbResponse!=null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
