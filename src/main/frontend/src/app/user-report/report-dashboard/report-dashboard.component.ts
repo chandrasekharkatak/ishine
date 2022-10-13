@@ -42,6 +42,7 @@ export class ReportDashboardComponent implements OnInit {
   leaveSumarryList:any[] = [];
   timsheetSummaryList:any[] = [];
   allEmployeeList: any[] = [];
+  leaveTrendAnalysisList:any[] = [];
 
   modalTitle:any;
   modalSummaryList:any[] = [];
@@ -97,7 +98,7 @@ export class ReportDashboardComponent implements OnInit {
     this.isleaveTimesheetDashboard = false;
 
     this.getAllEmployeeList();
-    this.getTrendAnalysis();
+    this.getLeaveTrendAnalysisReport();
   }
 
   get8DaysLeaveReport(){
@@ -140,13 +141,21 @@ export class ReportDashboardComponent implements OnInit {
     });
   }
 
-  getTrendAnalysis(){
-    //Leave type wise per day leave count
+  getLeaveTrendAnalysisReport(){
+    this.leaveSumarryList = [];
 
-    // var leaveList = this.multipleGroupByArray(this.leaveSumarryList, function (item) {
-    //   return [item.leaveType, item.fromDate];
-    // });
-    //   console.log(leaveList, " leaveList");
+    this.leaveService.getLeaveTrendAnalysisReport().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveTrendAnalysisList = response.serviceResponse;
+        console.log(" leaveTrendAnalysisList : ", this.leaveTrendAnalysisList);
+
+        
+
+
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
   get9DayTimesheetReport(){
@@ -1142,10 +1151,15 @@ export class ReportDashboardComponent implements OnInit {
 
   openTotalCountModal(title:any){
     this.modalSummaryList = [];
+    let dateToday = moment().format(this.dateFormat);
     let modalTableList = this.allEmployeeList;
     this.page = 1;
     this.modalTitle = title;
-    this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
+    if(title == 'All Active Employee'){
+      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
+    }else{
+      this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months') > 6 && x.employmentstatus == 'Probation');
+    }
     this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
   }
 
