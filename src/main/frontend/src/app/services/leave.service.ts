@@ -156,4 +156,8 @@ export class LeaveService {
   getLast8DaysLeaveReport(){
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLast8DaysLeaveReport`);
   }
+
+  getLeaveTrendAnalysisReport(){
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getLeaveTrendAnalysisReport`);
+  }
 }
