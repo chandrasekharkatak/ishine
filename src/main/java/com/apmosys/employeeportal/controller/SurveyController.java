@@ -52,10 +52,10 @@ public class SurveyController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/deleteSurvey", method = RequestMethod.POST)
-	public ServiceResponse deleteSurvey(@RequestBody SurveyDTO surveyDTO) {
+	@RequestMapping(value = "/changeSurveyStatus", method = RequestMethod.POST)
+	public ServiceResponse changeSurveyStatus(@RequestBody SurveyDTO surveyDTO) {
 
-		ServiceResponse response = surveyService.deleteSurvey(surveyDTO);
+		ServiceResponse response = surveyService.changeSurveyStatus(surveyDTO);
 		return response;
 	}
 

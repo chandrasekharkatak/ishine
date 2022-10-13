@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
+import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyEmployeeResponse;
 import com.apmosys.employeeportal.model.SurveyQuestion;
@@ -18,6 +19,7 @@ import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 import com.apmosys.employeeportal.repository.SurveyRepository;
 import com.apmosys.employeeportal.serviceInterface.SurveyService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class SurveyServiceImpl implements SurveyService {
@@ -33,6 +35,9 @@ public class SurveyServiceImpl implements SurveyService {
 
 	@Autowired
 	SurveyEmployeeResponseRepository surveyEmployeeResponseRepository;
+
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
 
 	@Override
 	@Transactional
@@ -275,11 +280,43 @@ public class SurveyServiceImpl implements SurveyService {
 		}
 		return response;
 	}
-	
+
 	@Override
-	public ServiceResponse deleteSurvey(SurveyDTO surveyDTO) {
-		// TODO Auto-generated method stub
-		return null;
+	public ServiceResponse changeSurveyStatus(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
+			if (surveyObject.isPresent()) {
+				Survey surveyToBeDeleted = surveyObject.get();
+
+				surveyToBeDeleted.setIsActive(surveyDTO.getIsActive());
+				surveyToBeDeleted.setUpdatedBy(surveyDTO.getUpdatedBy());
+				surveyToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+
+				Survey surveyupdated = surveyRepository.save(surveyToBeDeleted);
+
+				if (surveyupdated.getSurveyId() != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Survey status changed.");
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to change status.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey Not Found.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
 
 }
