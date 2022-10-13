@@ -1,0 +1,22 @@
+/* overritting checkBox */
+.custom-control-lg .custom-control-label::before,
+.custom-control-lg .custom-control-label::after {
+    top: 0.1rem !important;
+    left: -2rem !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+}
+
+.custom-control-lg .custom-control-label {
+    margin-left: 0.5rem !important;
+    font-size: 1rem !important;
+}
+
+.question-input{
+    border-bottom: 1px solid #d0d0d0;
+    margin-bottom: 1rem;
+}
+
+.question-icon{
+    color: var(--dark-cornflower-blue);
+}

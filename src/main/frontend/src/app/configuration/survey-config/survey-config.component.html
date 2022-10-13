@@ -1,0 +1,145 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1">Create Survey</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1">View All Surveys</button>
+    </div>
+</div>
+<!-- start :: Create Survey Form -->
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Create Survey</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Survey Name</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.surveyName">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Description</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.description">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div *ngFor="let question of allSurveyQuestionList; let i = index" class="row" [class.question-input]="allSurveyQuestionList.length>1">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-8 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span><b>Question - {{i+1}}</b></label>
+                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.question">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Options Type</label>
+                                    <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option value="checkbox">checkbox</option>
+                                        <option value="radio">radio</option>
+                                        <option value="text">text</option>
+                                      </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pt-4 mt-2">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="addQuestion(i)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                            <button *ngIf="allSurveyQuestionList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Description</label>
+                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.description">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
+                                    <input class="custom-control-input" type="checkbox" id="requiredCheck{{i+1}}" [(ngModel)]="question.required">
+                                    <label class="custom-control-label" for="requiredCheck{{i+1}}"><span class="text-danger">*</span>Required</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
+                        <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">option - {{i+1}}</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="option.optionValue">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 pt-4 mt-2">
+                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                    <button *ngIf="question.optionsList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeOption(i, question)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="question.optionType == 'text'" class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" autocomplete="none" readonly value="Text Answer here...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="onPreiew(preview_template)">Preview</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSubmit(alert_message)">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: Create Survey Form -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to In-Active this survey?</p>
+        <button type="button" class="btn btn-success" >Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #preview_template>
+    <div class="modal-header">
+        <b class="modal-title">{{surveyObj.surveyName}} <small class="d-block text-secondary">{{surveyObj.description}}</small></b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
+    </div>
+</ng-template>
