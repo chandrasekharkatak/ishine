@@ -780,7 +780,8 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmail(template: TemplateRef<any>) {
 
-    const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+    const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
     if(regex.test(this.employeeObj.email))
     {
       this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {

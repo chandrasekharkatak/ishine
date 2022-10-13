@@ -31,7 +31,7 @@
             <div class="form-group">
                 <label class="info-label">Conjunction</label>
                 <select class="form-control" aria-hidden="true" [(ngModel)]="query.conjunction" name="conjunction">
-                    <option selected="selected" value="" >Select</option>
+                    <option selected="selected" value="" ></option>
                     <option *ngFor="let con of conjunctionList" [value]="con.symbol">{{con.name}}</option>
                 </select>
                 <span class="text-danger" *ngIf="invalidForm && !query.conjunction && i<queryList.length-1">Required</span>

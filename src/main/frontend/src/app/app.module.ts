@@ -63,6 +63,9 @@ import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.com
 import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { SurveyConfigComponent } from './configuration/survey-config/survey-config.component';
+import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
+import { UserPoliciesComponent } from './user-policies/user-policies.component';
+import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -107,7 +110,10 @@ import { SurveyConfigComponent } from './configuration/survey-config/survey-conf
     CustomFilterComponent,
     ReportDashboardComponent,
     UserSurveyComponent,
-    SurveyConfigComponent
+    SurveyConfigComponent,
+    UserAppreciationComponent,
+    UserPoliciesComponent,
+    UploadPoliciesComponent,
   ],
   imports: [
     BrowserModule,

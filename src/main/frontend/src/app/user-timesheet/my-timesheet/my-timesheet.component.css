@@ -23,3 +23,21 @@
 .search-box{
     margin-top: 35px;
 }
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+} 
+
+.col{
+    min-width: 300px;
+}
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.info-label{
+    width: 250px;
+}

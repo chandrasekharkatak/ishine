@@ -426,6 +426,11 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Experience": {
+					query = query.append(" e.total_experience ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				default:
 					break;
 				}
@@ -438,20 +443,37 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {				
-				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, "
-						+ "e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth, "
-						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person, "
-						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing, "
-						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name, "
-						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number, "
-						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, "
-						+ "e.previous_pf_account_number, e.relation, e.state, e.uan, "
-						+ "e.views_on_organisation, e.year_of_passing, "
-						+ "jr.dept_id, jr.name as jobrolename, "
-						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager FROM employee e "
+//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, "
+//						+ "e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth, "
+//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person, "
+//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing, "
+//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name, "
+//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number, "
+//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, "
+//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan, "
+//						+ "e.views_on_organisation, e.year_of_passing, "
+//						+ "jr.dept_id, jr.name as jobrolename, "
+//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager FROM employee e "
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+				
+				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,"
+						+ " e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,"
+						+ " e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,"
+						+ " e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,"
+						+ " e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,"
+						+ " e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,"
+						+ " e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,"
+						+ " e.previous_pf_account_number, e.relation, e.state, e.uan,"
+						+ " e.views_on_organisation, e.year_of_passing,"
+						+ "  jr.dept_id, jr.name as jobrolename,"
+						+ " d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, "
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience "
+						+ "FROM employee e "
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where"+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -540,6 +562,14 @@ public class CustomFilterService {
 					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
 					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
 					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
+					empDTO.setExperience(object[52] != null ? object[52].toString() : null);
+					empDTO.setBillable(object[53] != null ? object[53].toString() : null);
+					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
+					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

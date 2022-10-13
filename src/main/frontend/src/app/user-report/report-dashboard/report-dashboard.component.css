@@ -30,4 +30,27 @@
 .graph{
     border-right: .5px solid #d0d0d0;
     border-bottom: .5px solid #d0d0d0;
+    /* border: .5px solid #d0d0d0; */
+    /* box-shadow: 0 0 30px rgba(0, 0, 0, 0.1); */
+    overflow: hidden;
+    /* border-radius: 15px; */
+}
+
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+} 
+
+.wide-col{
+    min-width: 300px;
+}
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.info-label{
+    width: 300px;
 }

@@ -122,7 +122,7 @@
 <!-- end :: create & update Team -->
 
 <!-- start :: View Teams -->
-<div class="container-fluid row" *ngIf="isTeamTable">
+<div class="row d-flex" *ngIf="isTeamTable">
     <div class="col-md-12">
         <div class="row table-header">
             <h1 class="table-header-title">All Teams</h1>
@@ -139,12 +139,12 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group ml-auto col-md-3 search-box">
+            <div class="form-group d-flex flex-row ml-auto col-md-3 search-box">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
         </div>
         <div class="row">
-            <table class="table teams-table" id="team-table" matSort (matSortChange)="sortTeam($event)">	
+            <table class="table table-responsive scrollable-table" id="team-table" matSort (matSortChange)="sortTeam($event)">	
                 <thead class="thead-light">	
                   <tr>	
                     <th scope="col" class="info-label">Sr No.</th>	
@@ -159,8 +159,8 @@
                     <tr *ngIf="allTeamList.length == 0">
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
-                    <tr *ngFor="let team of allTeamList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                        <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
+                    <tr *ngFor="let team of allTeamList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                        <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{team.teamName}}</td>
                         <td>{{team.teamLeadName}}</td>
                         <td>{{team.createdByName}}</td>
@@ -241,7 +241,7 @@
 <!-- end :: create & update Activity -->
 
 <!-- start :: View Activities -->
-<div class="container-fluid row" *ngIf="isActivityTable">
+<div class="row d-flex" *ngIf="isActivityTable">
     <div class="col-md-12">
         <div class="row table-header">
             <h1 class="table-header-title">All Activities</h1>
@@ -270,12 +270,12 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group col-md-3 ml-auto search-box">
+            <div class="form-group d-flex flex-row col-md-3 ml-auto search-box">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
             </div>
         </div>
         <div class="row">
-            <table class="table activities-table" id="activities-table" matSort (matSortChange)="sortActivity($event)">	
+            <table class="table table-responsive scrollable-table " id="activities-table" matSort (matSortChange)="sortActivity($event)">	
                 <thead class="thead-light">	
                   <tr>	
                     <th scope="col" class="info-label">Sr No.</th>	
@@ -290,8 +290,8 @@
                     <tr *ngIf="allActivityList.length == 0">
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
-                  <tr *ngFor="let activity of allActivityList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" >
-                    <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
+                  <tr *ngFor="let activity of allActivityList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                    <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                     <td>{{activity.activity}}</td>
                     <td>{{activity.eta}} hr(s)</td>
                     <td>{{activity.createdByName}}</td>

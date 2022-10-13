@@ -187,5 +187,12 @@ public class EmployeeController {
 		return response;
 	}
 
+	@RequestMapping(value = "/empdetails",method = RequestMethod.GET)
+	   public ServiceResponse getEmployees() {
+			ServiceResponse response = employeeService.getEmployees();
+			return response;
+		   
+	   }
+
 
 }

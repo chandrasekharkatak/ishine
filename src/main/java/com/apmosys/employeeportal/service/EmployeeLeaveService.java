@@ -134,7 +134,7 @@ public class EmployeeLeaveService {
 				response.setServiceResponse("Leave application submitted.");
 				
 				
-			mailService.sendMailWithCC(hrMailAddress,empDto.getManagerEmail(),"Regarding Leave Application",
+			mailService.sendMailWithCC(hrMailAddress,empDto.getManagerEmail() + " , " + empDto.getEmail(),"Regarding Leave Application",
 					"Employee Id : A-"+empDto.getEmployeementId()+"<br>"+
 					"Employee Name :-  "+ empDto.getName()+"  has applied for leave ");
 			

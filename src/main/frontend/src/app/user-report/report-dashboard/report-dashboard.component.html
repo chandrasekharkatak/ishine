@@ -2,6 +2,7 @@
     <div class="col-md-12 px-0">
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isleaveTimesheetDashboard}" (click)="leaveTimesheetDashboard()">Leave/Timesheet Dashboard</button>
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isEmployeeDashboard}" (click)="employeeDashboard()">Employee Dashboard</button>
+      <button type="button" class="btn btn-sm btn-outline-primary mx-1 float-right" *ngIf="isEmployeeDashboard" (click)="openFilterModal(filter, employeeColumns, 'Filter Employee Report')"><i class="fa-solid fa-filter"></i></button>
     </div>
 </div>
 
@@ -11,17 +12,19 @@
     <div class="card col-md-12 p-4">
         <div class="row text-center">
             <div class="col-sm-6 col-md-4 graph">
-                <div id="leaveSummaryChart" style="height: 300px; width: 400px"></div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary mx-1 float-right" (click)="openFilterModal(filter, leaveSummaryColumns, 'Filter Leave Summary')"><i class="fa-solid fa-filter"></i></button> -->
+                <div id="leaveSummaryChart" style="height: 300px;"></div>
             </div>
             <div class="col-sm-6 col-md-4 graph">
-                <div id="timesheetStatusSummary" style="height: 300px; width: 400px"></div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary mx-1 float-right" (click)="openFilterModal(filter, timesheetSummaryColumns, 'Filter Timesheet Summary')"><i class="fa-solid fa-filter"></i></button> -->
+                <div id="timesheetStatusSummary" style="height: 300px;"></div>
             </div>
             <div class="col-sm-6 col-md-4 graph">
-                <div class="text-center text-uppercase mt-1">
+                <div class="text-center mt-1">
                     <small class="chart-title">Hour Based Segregation</small>
                     <div class="progress mouse mt-4" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="zeroToFive" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 0 to 5 hour')">0 - 5 hr {{zeroToFive}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 0 to 5 hour')">EOD 0 - 5 hr {{zeroToFive}}</h6>
                     </div>
                     <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="fiveToEight" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
@@ -61,9 +64,13 @@
 <div class="row" *ngIf="isEmployeeDashboard">
     <div class="card col-md-12 px-0">
         <div class="row text-center">
-            <div class="col-sm-6 col-md-2 graph mouse d-flex flex-column justify-content-center align-items-center" (click)="openTotalCountModal()">
-                <small class="chart-title">Employee Count</small>
-                <h2 class="card-title">{{countOfAllEmployees}}</h2>
+            <div class="col-sm-6 col-md-2 graph d-flex flex-column justify-content-center align-items-center">
+                <small class="chart-title mouse" (click)="openTotalCountModal('All Active Employee')">Employee Count</small>
+                <h2 class="card-title mouse" (click)="openTotalCountModal('All Active Employee')">{{countOfAllEmployees}}</h2>
+                <br>
+                <br>
+                <small class="chart-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">Employee In Probation<br>(After 6 months) Count</small>
+                <h2 class="card-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">{{employeeInProbationAfter6MonthsCount}}</h2>
             </div>
             <div class="col-md-5 graph">
                 <div id="departmentWiseEmployee" style="height: 300px; width: 500px"></div>
@@ -81,6 +88,17 @@
             </div>
             <div class="col-sm-6 col-md-4 graph">
                 <div id="employeeAgeSummary" style="height: 300px; width: 400px"></div>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="fresherLateralChart" style="height: 300px; width: 400px"></div>
+            </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <!-- <div id="leaveTrendAnalysis" style="height: 300px; width: 400px"></div> -->
+            </div>
+            <div class="col-sm-6 col-md-4 graph">
+                <div id="employeeJoinAndResign" style="height: 300px; width: 400px"></div>
             </div>
         </div>
     </div>
@@ -117,7 +135,7 @@
                     *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{leave.employeementId}}</td>
-                    <td>{{leave.name}}</td>
+                    <td>{{leave.employeeName}}</td>
                     <td>{{leave.departmentName}}</td>
                     <td>{{leave.fromDate}}</td>
                     <td>{{leave.toDate}}</td>
@@ -140,9 +158,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body table-scroll">
+    <div class="modal-body d-flex">
         <div class="row col-md-12">
-            <table class="table timesheet-table">
+            <table class="table table-responsive scrollable-table">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
@@ -161,8 +179,8 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
@@ -190,9 +208,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body table-scroll">
+    <div class="modal-body d-flex">
         <div class="row col-md-12">
-            <table class="table timesheet-table">
+            <table class="table table-responsive scrollable-table">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
@@ -211,8 +229,8 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
@@ -240,9 +258,12 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body table-scroll">
+    <div class="modal-body d-flex">
         <div class="row col-md-12">
-            <table class="table timesheet-table">
+            <div class="form-group ml-auto col-md-3">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">		
+        </div>
+            <table class="table table-responsive scrollable-table">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
@@ -251,6 +272,7 @@
                         <th scope="col" class="info-label">Department Name</th>
                         <th scope="col" class="info-label">Email Id</th>
                         <th scope="col" class="info-label">Manager Name</th>
+                        <th scope="col" class="info-label">Date Of Joining</th>
                         <th scope="col" class="info-label">Mobile No.</th>
                         <th scope="col" class="info-label">Status</th>
                         <th scope="col" class="info-label">Total Experience</th>
@@ -263,13 +285,14 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
-                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
                         <td>{{leave.name}}</td>
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
+                        <td>{{leave.dateOfJoining}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td>{{leave.employmentstatus}}</td>
                         <td>{{leave.totalExperience}}</td>
@@ -286,3 +309,23 @@
         </div>
     </div>
 </ng-template>
+
+<!-- Filter Modal -->
+<ng-template #filter>
+    <div class="modal-header">
+        <b>{{filterData.title}}</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body ">
+      <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
+    </div>
+  </ng-template>
+  
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
+    </div>
+  </ng-template>

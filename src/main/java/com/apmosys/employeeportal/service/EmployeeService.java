@@ -274,7 +274,15 @@ public class EmployeeService {
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
-			employee.setExperience(employeedto.getExperience());
+			
+			if(employeedto.getExperience().equals("Fresher")){
+				employee.setExperience(employeedto.getExperience());
+				employee.setTotalExperience(0f);
+			}else {
+				employee.setExperience(employeedto.getExperience());
+				employee.setTotalExperience(employeedto.getTotalExperience());
+			}
+			
 			employee.setNoticePeriod(employeedto.getNoticePeriod());
 			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
 			employee.setWorkLocation(employeedto.getWorkLocation());
@@ -292,7 +300,6 @@ public class EmployeeService {
 			employee.setChild1(employeedto.getChild1());
 			employee.setChild2(employeedto.getChild2());
 			employee.setChild3(employeedto.getChild3());
-			employee.setTotalExperience(employeedto.getTotalExperience());
 			employee.setBillable(employeedto.getBillable());
 
 			Employee newEmployee = employeeRepository.save(employee);
@@ -338,6 +345,8 @@ public class EmployeeService {
 					log.setEvent(LogEvents.CREATE);
 					log.setTableName(DbTable.EMPLOYEE);
 					log.setTableEntryId(newEmployee.getEmpId());
+					log.setRemarks("Employee profile created.");
+
 
 					logsRepository.save(log);
 
@@ -1101,6 +1110,9 @@ public class EmployeeService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					empDTO.setDateOfResign(
+							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
+									: null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1874,5 +1886,38 @@ public class EmployeeService {
 		return response;
 
 	}
+	public ServiceResponse getEmployees() {	
+		ServiceResponse response = new ServiceResponse();	
+			
+		try {	
+			List<Object[]> allEmployees = employeeRepository.getEmployees();	
+			List<EmployeeDTO> empDTO = new ArrayList<>();	
+			if(!allEmployees.isEmpty()) {	
+				for(Object[] obj : allEmployees ) {	
+				EmployeeDTO employeeDTO = new EmployeeDTO();	
+				employeeDTO.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);	
+				employeeDTO.setEmployeementId(obj[1] != null ? Long.parseLong(obj[1].toString()) : null);	
+				employeeDTO.setManagerName(obj[2] != null ? obj[2].toString() : null);	
+				employeeDTO.setName(obj[3] != null ? obj[3].toString() : null);	
+				employeeDTO.setEmail(obj[4] != null ? obj[4].toString() : null);	
+				employeeDTO.setManagerMail(obj[5] != null ? obj[5].toString() : null);	
+				empDTO.add(employeeDTO);	
+			}	
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+				response.setServiceResponse(empDTO);		
+			}else {	
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				response.setServiceResponse("Employee List is empty.");	
+			}	
+		} catch (Exception e) {	
+			// TODO Auto-generated catch block	
+			e.printStackTrace();	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
+			response.setServiceResponse("Something Went Wrong.");	
+			response.setServiceError(e.getMessage());	
+		}	
+		return response;	
+	}	
+	
 
 }

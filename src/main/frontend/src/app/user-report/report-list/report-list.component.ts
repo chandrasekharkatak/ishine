@@ -137,25 +137,29 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-
-    this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allLeaveApplicationsList = response.serviceResponse;
-        if(this.allLeaveApplicationsList.length != 0){
-          this.openAlertMod(template, "Leave Application Report found ")
-        }else {
-          this.openAlertMod(template, "No Leave Application Report found ")
+    if(queryObjList == ''){
+      this.getAllLeaveApplicationsList();
+    }else {
+      this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allLeaveApplicationsList = response.serviceResponse;
+          if(this.allLeaveApplicationsList.length != 0){
+            this.openAlertMod(template, "Leave Application Report found ")
+          }else {
+            this.openAlertMod(template, "No Leave Application Report found ")
+          }
+          this.allLeaveApplicationsList.forEach(leave => {
+            leave.employeementId = "A-".concat(leave.employeementId);
+          });
+          console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
+        } else {
+          this.openAlertMod(template,response.serviceResponse)
+          
         }
-        this.allLeaveApplicationsList.forEach(leave => {
-          leave.employeementId = "A-".concat(leave.employeementId);
-        });
-        console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
-      } else {
-        this.openAlertMod(template,response.serviceResponse)
-        
-      }
-    });
-  }
+      });  
+    }
+
+     }
 
   // Timesheet Report
   getAllTimesheetApplicationsList() {
@@ -198,22 +202,26 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList = response.serviceResponse;
-        if(this.allEmployeeList.length != 0){
-          this.openAlertMod(template, "Employee Report found")
-        }else{
-          this.openAlertMod(template, "No Data found")
+    if(queryObjList == ''){
+      this.getAllEmployeeList();
+    }else {
+      this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployeeList = response.serviceResponse;
+          if(this.allEmployeeList.length != 0){
+            this.openAlertMod(template, "Employee Report found")
+          }else{
+            this.openAlertMod(template, "No Data found")
+          }
+          this.allEmployeeList.forEach(employee => {
+            employee.employeementId = "A-".concat(employee.employeementId);
+          });
+          console.log("allEmployeeList : ", this.allEmployeeList)
+        } else {
+          this.openAlertMod(template,response.serviceResponse)
         }
-        this.allEmployeeList.forEach(employee => {
-          employee.employeementId = "A-".concat(employee.employeementId);
-        });
-        console.log("allEmployeeList : ", this.allEmployeeList)
-      } else {
-        this.openAlertMod(template,response.serviceResponse)
-      }
-    });
+      });
+    }
   }
 
   /* Filter */
