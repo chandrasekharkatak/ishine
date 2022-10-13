@@ -667,7 +667,12 @@ export class ReportDashboardComponent implements OnInit {
         type: 'pie'
       },
       title: {
-        text: chartName
+        text: chartName,
+        style:{	
+          fontWeight: 'bold',	
+          color: '#000000'	
+        }
+        
       },
       tooltip: {
         pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -835,6 +840,10 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
+        style:{	
+          fontWeight: 'bold',	
+          color: '#000000'	
+        }
       },
       xAxis: {
         categories: [
@@ -850,16 +859,31 @@ export class ReportDashboardComponent implements OnInit {
           "October",
           "November",
           "December"
-        ]
+        ],
+        labels:{	
+          style:{	
+            fontWeight: 'bold',	
+            color: '#000000'	
+          }	
+        }
+        
       },
       yAxis: {
         min: 0,
         title: {
           text: 'No. Of Employees',
           align: 'high',
+          style:{	
+            fontWeight: 'bold',	
+            color: '#000000'	
+          }
         },
         labels: {
           overflow: 'justify',
+          style:{
+            fontWeight: 'bold',
+            color: '#000000'
+          }
         },
       },
       tooltip: {
@@ -902,7 +926,11 @@ export class ReportDashboardComponent implements OnInit {
       },
       yAxis: {
           title: {
-              text: 'Number of Employees'
+              text: 'Number of Employees',
+              style:{
+                fontWeight: 'bold',
+                color: '#000000'
+              }
           }
       },
       xAxis: {
@@ -1050,7 +1078,7 @@ export class ReportDashboardComponent implements OnInit {
     if(titleName == "Employee Worked Between 0 to 5 hour"){
       this.page=1;
       this.modalTitle = titleName;
-      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 0 && x.totalWorkingHours <= 5);
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours >= 0 && x.totalWorkingHours <= 5);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked Between 5 to 8 hour"){
@@ -1205,6 +1233,12 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Female Employee Data";
       this.modalSummaryList = modalTableList.filter(x => x.gender == "female");
+      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    }
+    if(gender == "other"){	
+      this.page=1;	
+      this.modalTitle = "Other Employee Data";	
+      this.modalSummaryList = modalTableList.filter(x => x.gender == "other");	
       this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
     }
   }    
