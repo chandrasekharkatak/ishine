@@ -938,7 +938,11 @@ public class DraftEmployeeService {
 				employee.setYearOfPassing(employeedto.getYearOfPassing());
 				employee.setPassingGrade(employeedto.getPassingGrade());
 				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
-
+				employee.setSpouse(employeedto.getSpouse());
+				employee.setChild1(employeedto.getChild1());
+				employee.setChild2(employeedto.getChild2());
+				employee.setChild3(employeedto.getChild3());
+				employee.setBillable(employeedto.getBillable());
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);
 
