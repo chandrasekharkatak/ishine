@@ -32,7 +32,7 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryTemplate: TemplateRef<any>;
 
   @ViewChild("employee_summary_template")
-  employeeStatusTemplate: TemplateRef<any>;
+  employeeSummaryTemplate: TemplateRef<any>;
 
   modalRef: BsModalRef = new BsModalRef();
 
@@ -1115,7 +1115,7 @@ export class ReportDashboardComponent implements OnInit {
                 events: {
                   click: function(event) {
                     if(chartId == 'leaveTrendAnalysis'){
-                      openMod(event.point.series.name);
+                      openMod(event.point.series.name,this.category);
                     }
                   }
                 },
@@ -1348,7 +1348,7 @@ export class ReportDashboardComponent implements OnInit {
     }else{
       this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months') > 6 && x.employmentstatus == 'Probation');
     }
-    this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
   openEmployeeStatusTableModal(status:any){
@@ -1358,25 +1358,25 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee In Probation";
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Probation");
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(status == "Confirmed"){
       this.page=1;
       this.modalTitle = "Confirmed Employee";
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Confirmed");
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(status == "Resigned"){
       this.page=1;
       this.modalTitle = "Resigned Employee";
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Resigned");
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(status == "In-Active"){
       this.page=1;
       this.modalTitle = "In-Active Employee";
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "InActive");
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
   }
 
@@ -1387,19 +1387,19 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Male Employee Data";
       this.modalSummaryList = modalTableList.filter(x => x.gender == "male");
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(gender == "female"){
       this.page=1;
       this.modalTitle = "Female Employee Data";
       this.modalSummaryList = modalTableList.filter(x => x.gender == "female");
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(gender == "other"){	
       this.page=1;	
       this.modalTitle = "Other Employee Data";	
       this.modalSummaryList = modalTableList.filter(x => x.gender == "other");	
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
   }    
 
@@ -1410,25 +1410,25 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee Age Between 18 to 25";
       this.modalSummaryList = modalTableList.filter(x => x.age>= 18 && x.age <=25);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(age == "25 to 35"){
       this.page=1;
       this.modalTitle = "Employee Age Between 25 to 35";
       this.modalSummaryList = modalTableList.filter(x => x.age>25 && x.age<= 35);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(age == "35 to 45"){
       this.page=1;
       this.modalTitle = "Employee Age Between 35 to 45";
       this.modalSummaryList = modalTableList.filter(x => x.age>35 && x.age<= 45);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(age == "45+"){
       this.page=1;
       this.modalTitle = "Employee Age Above 45";
       this.modalSummaryList = modalTableList.filter(x => x.age > 45);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
   }
 
@@ -1438,7 +1438,7 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee(s) in "+pointName;
       this.modalSummaryList = modalTableList.filter(x => x.departmentName == pointName);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
   openEmployeeExperienceModalTable(pointName:any){
@@ -1448,31 +1448,31 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee(s) with 0 to 1 YOE";
       this.modalSummaryList = modalTableList.filter(x => x.totalExperience != null && x.totalExperience >= 0 && x.totalExperience <=1);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(pointName == "1 to 2"){
       this.page=1;
       this.modalTitle = "Employee(s) with 1 to 2 YOE";
       this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <=2);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(pointName == "2 to 5"){
       this.page=1;
       this.modalTitle = "Employee(s) with 2 to 5 YOE";
       this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <=5);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(pointName == "5 to 10"){
       this.page=1;
       this.modalTitle = "Employee(s) with 5 to 10 YOE";
       this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <=10);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(pointName == "10+"){
       this.page=1;
       this.modalTitle = "Employee(s) with 10+ YOE";
       this.modalSummaryList = modalTableList.filter(x => x.totalExperience > 10);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
   }
 
@@ -1486,7 +1486,7 @@ export class ReportDashboardComponent implements OnInit {
       }else{
         this.modalSummaryList = modalTableList.filter(x => x.experience == 'Fresher');
       }
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
   openEmployeeJoinResignModalTable(category:any, name:any){
@@ -1498,17 +1498,24 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee(s) "+name+" in "+category;
       this.modalSummaryList = modalTableList.filter(x => x.joiningMonth == category && moment(x.dateOfJoining).year() == dateToday);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
     if(name == 'Resigned'){
       this.page=1;
       this.modalTitle = "Employee(s) "+name+" in "+category;
       this.modalSummaryList = modalTableList.filter(x => x.relievingMonth == category && moment(x.dateOfRelieving).year() == dateToday);
-      this.modalRef = this.modalService.show(this.employeeStatusTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
     }
   }
 
-  openLeaveAnalysisTableModel(){}
+  openLeaveAnalysisTableModel(pointName:any, category:any){
+    this.modalSummaryList = [];
+    let modalTableList = this.leaveTrendAnalysisList;
+      this.page=1;
+      this.modalTitle = pointName + " taken on " + category;
+      this.modalSummaryList = modalTableList.filter(x => x.leaveType == pointName && x.fromDate == category);
+      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
+  }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
