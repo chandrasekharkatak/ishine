@@ -33,4 +33,10 @@ public class CustomFilterController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/customQueryForLeaveTrendAnalysisReport", method = RequestMethod.POST)
+	public ServiceResponse customQueryForLeaveTrendAnalysisReport(@RequestBody LeaveDTO leaveDTO) {
+		ServiceResponse response = customFilterService.customQueryForLeaveTrendAnalysisReport(leaveDTO);
+		return response;
+	}
+	
 }

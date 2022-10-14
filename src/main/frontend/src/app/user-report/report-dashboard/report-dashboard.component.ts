@@ -41,6 +41,7 @@ export class ReportDashboardComponent implements OnInit {
 
   data:any;
   leaveSumarryList:any[] = [];
+  uniqueLeaveSumarryList:any[] = [];
   timsheetSummaryList:any[] = [];
   allEmployeeList: any[] = [];
   leaveTrendAnalysisList:any[] = [];
@@ -67,7 +68,7 @@ export class ReportDashboardComponent implements OnInit {
 
   filterData:any = new FilterData();
   queryList:any[] = [];
-  leaveSummaryColumns:any[] = [];
+  leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns:any[] = [];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
@@ -115,42 +116,70 @@ export class ReportDashboardComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveSumarryList = response.serviceResponse;
         console.log("leaveSumarryList : ", this.leaveSumarryList);
-
-        let pendingCount = 0;
-        let approvedCount = 0;
-        let rejectedCount = 0;
-
-        this.leaveSumarryList.forEach(leaveStatus => {
-
-          if (leaveStatus.status == "Pending") pendingCount++;
-          else if (leaveStatus.status == "Approved") approvedCount++;
-          else if (leaveStatus.status == "Rejected") rejectedCount++;
-        });
-
-        let leaveStatusData  = [{
-          name: "Pending",
-          y: pendingCount
-        },
-        {
-          name: "Approved",
-          y: approvedCount
-        },
-        {
-          name: "Rejected",
-          y: rejectedCount
-        }];
-
-        console.log("leaveStatusData : ", leaveStatusData);
-        this.renderPieSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
+        this.extractLeaveReportData();
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
+  extractLeaveReportData(){
+    let pendingCount = 0;
+    let approvedCount = 0;
+    let rejectedCount = 0;
+
+    this.uniqueLeaveSumarryList = this.leaveSumarryList.filter((value, index, self) =>
+      index === self.findIndex((t) => (
+        t.employeementId === value.employeementId && t.fromDate === value.fromDate
+      ))
+    )
+    console.log(this.uniqueLeaveSumarryList, " uniqueIds ");
+
+    this.uniqueLeaveSumarryList.forEach(leaveStatus => {
+      if (leaveStatus.status == "Pending") pendingCount++;
+      else if (leaveStatus.status == "Approved") approvedCount++;
+      else if (leaveStatus.status == "Rejected") rejectedCount++;
+    });
+
+    let leaveStatusData = [{
+      name: "Pending",
+      y: pendingCount
+    },
+    {
+      name: "Approved",
+      y: approvedCount
+    },
+    {
+      name: "Rejected",
+      y: rejectedCount
+    }];
+
+    console.log("leaveStatusData : ", leaveStatusData);
+    this.renderPieSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
+        
+  }
+
+  getCustomLeaveReport(queryObjList:any , template:TemplateRef<any>) {
+    this.leaveSumarryList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    if(queryObjList == ''){
+      this.get8DaysLeaveReport();
+    }else {
+      this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.leaveSumarryList = response.serviceResponse;
+          this.extractLeaveReportData();
+        } else {
+          this.openAlertMod(template,response.serviceResponse);
+        }
+      });  
+    }
+  }
+
   getDatesInRange(startDate, endDate) {
     const date = startDate;
-
     const dates = [];
 
     while (date <= endDate) {
@@ -178,20 +207,35 @@ export class ReportDashboardComponent implements OnInit {
     leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
     leaveObj.endDate = moment().format(this.dateFormat);
 
-    const d1 = new Date(leaveObj.startDate);
-    const d2 = new Date(leaveObj.endDate);
+    this.leaveService.getLeaveTrendAnalysisReport(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveTrendAnalysisList = response.serviceResponse;
+        this.extractLeaveTrendAnalysisData(leaveObj);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  extractLeaveTrendAnalysisData(leaveObject:any){
+    this.leaveSumarryList = [];
+
+    const d1 = new Date(leaveObject.startDate);
+    const d2 = new Date(leaveObject.endDate);
 
     let dateRange = this.getDatesInRange(d1, d2);
-
     let formattedDateRange = [];
 
     dateRange.forEach((date) => {
       formattedDateRange.push(date.toISOString().split('T')[0]);
     })
 
-    this.leaveService.getLeaveTrendAnalysisReport(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveTrendAnalysisList = response.serviceResponse;
+    this.leaveTrendAnalysisList = this.leaveTrendAnalysisList.filter((value, index, self) =>
+      index === self.findIndex((t) => (
+        t.employeementId === value.employeementId && t.fromDate === value.fromDate
+      ))
+    )
+    console.log(this.leaveTrendAnalysisList, " uniqueTrendAnalysisList ");
 
         let chartData = [];
         let leaveTypes = [];
@@ -199,7 +243,7 @@ export class ReportDashboardComponent implements OnInit {
         let leaveObj = this.allLeaveTypes.forEach(obj => {
           leaveTypes.push(obj.leaveType);
         });
-
+        
         let data = leaveTypes.map(leaveType => {
           chartData.push({ type: 'line', name: leaveType, data: [] });
           let leaveData = this.leaveTrendAnalysisList.filter(leaveTrendAnalysis => leaveTrendAnalysis.leaveType == leaveType)
@@ -211,25 +255,57 @@ export class ReportDashboardComponent implements OnInit {
         console.log("dateRange : ", dateRange);
 
         data.forEach(leaveDataArr => {
-
           dateRange.forEach(date => {
             let leaveType: any;
             let dataByDate = leaveDataArr.filter(leaveApplication => {
               leaveType = leaveApplication.leaveType;
               if (leaveApplication.fromDate == moment(date).format(this.dateFormat)) return leaveApplication;
             });
-
             chartData.find(chartDataObj => chartDataObj.name == leaveType)?.data.push(dataByDate.length)
           });
         });
-
         console.log("Final ChartData : ", chartData);
-
         this.renderLineGraphChart('Leave Trend Analysis Graph', 'leaveTrendAnalysis', chartData, 'Leave Trend', formattedDateRange, this.openLeaveAnalysisTableModel.bind(this));
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+  }
+
+  getCustomLeaveTrendAnalysisReport(queryObjList:any , template:TemplateRef<any>) {
+    this.leaveTrendAnalysisList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    if(queryObjList == ''){
+      this.getLeaveTrendAnalysisReport();
+    }else {
+      let tempFrom = "";
+      let tempTo = "";
+      queryObj.queryList.forEach((query)=> {
+        if(query.column == 'From Date')
+        {
+          tempFrom = query.value;
+        }else{
+          tempFrom = moment().subtract(8, 'd').format(this.dateFormat);
+        }
+        if(query.column == 'To Date')
+        {
+          tempTo = query.value;
+        }else{
+          tempTo = moment().format(this.dateFormat);
+        }
+      });
+
+      this.leaveService.customQueryForLeaveTrendAnalysisReport(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.leaveTrendAnalysisList = response.serviceResponse;
+          let leaveObj = new Leave();
+          leaveObj.startDate = tempFrom;
+          leaveObj.endDate = tempTo;
+          console.log()
+          this.extractLeaveTrendAnalysisData(leaveObj);
+        } else {
+          this.openAlertMod(template,response.serviceResponse);
+        }
+      });  
+    }
   }
 
   get9DayTimesheetReport(){
@@ -239,8 +315,16 @@ export class ReportDashboardComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.timsheetSummaryList = response.serviceResponse;
         console.log("timsheetSummaryList : ", this.timsheetSummaryList);
+        this.extractTimesheetReportData();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
-        let pendingByUserCount = 0;
+  extractTimesheetReportData(){
+
+    let pendingByUserCount = 0;
         let pendingCount = 0;
         let approvedCount = 0;
         let rejectedCount = 0;
@@ -308,10 +392,6 @@ export class ReportDashboardComponent implements OnInit {
 
         console.log("timesheetData : ", timesheetData);
         this.renderPieSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
   }
 
   getAllEmployeeList() {
@@ -985,7 +1065,7 @@ export class ReportDashboardComponent implements OnInit {
         enabled: false,
       },
       legend: {
-        enabled: false
+        enabled: true
       },
       series: chartData
     });
@@ -1068,6 +1148,12 @@ export class ReportDashboardComponent implements OnInit {
 
       if(this.filterData.title == 'Filter Employee Report'){
         this.getCustomEmployeesList(queryList,template);
+      }
+      if(this.filterData.title == 'Filter Leave Summary'){
+        this.getCustomLeaveReport(queryList,template);
+      }
+      if(this.filterData.title == 'Filter Leave Trend Chart'){
+        this.getCustomLeaveTrendAnalysisReport(queryList,template);
       }
     }
 
@@ -1200,7 +1286,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openLeaveSummaryTableModel(statusName:any) {
-    let modalTableList = this.leaveSumarryList;
+    let modalTableList = this.uniqueLeaveSumarryList;
     this.modalSummaryList = [];
     if(statusName == "Pending"){
       this.page=1;

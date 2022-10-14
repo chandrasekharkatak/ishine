@@ -160,4 +160,8 @@ export class LeaveService {
   getLeaveTrendAnalysisReport(leaveObj : Leave){
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeaveTrendAnalysisReport`, leaveObj);
   }
+
+  customQueryForLeaveTrendAnalysisReport(queryObj: Query){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForLeaveTrendAnalysisReport`, queryObj);
+  }
 }

@@ -43,6 +43,7 @@ public class ReportService {
 					leavedto.setCreatedOn(object[9] != null ? object[9].toString() : null);
 					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
+					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

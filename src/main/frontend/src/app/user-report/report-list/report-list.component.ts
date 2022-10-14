@@ -47,7 +47,7 @@ export class ReportListComponent implements OnInit {
 
   excelName:any;
 
-  leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
@@ -143,6 +143,13 @@ export class ReportListComponent implements OnInit {
       this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
+
+          this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
+            index === self.findIndex((t) => (
+              t.employeementId === value.employeementId && t.fromDate === value.fromDate
+            ))
+          )
+
           if(this.allLeaveApplicationsList.length != 0){
             this.openAlertMod(template, "Leave Application Report found ")
           }else {
@@ -154,12 +161,10 @@ export class ReportListComponent implements OnInit {
           console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
         } else {
           this.openAlertMod(template,response.serviceResponse)
-          
         }
       });  
     }
-
-     }
+  }
 
   // Timesheet Report
   getAllTimesheetApplicationsList() {

@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,6 +98,26 @@ public class CustomFilterService {
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
+					case "Team Name": {
+						query = query.append(" t.team_name ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Project Name": {
+						query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Client Name": {
+						query = query.append(" p.client ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
+					case "Department": {
+						query = query.append(" d.name ").append(dto.getOperator() + " '")
+								.append(dto.getValue() + "' ").append(dto.getConjunction());
+						break;
+					}
 					default:
 						break;
 					}
@@ -109,14 +131,27 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {				
-				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date, "
-						+ "el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy from employee_leave el "
-						+ "inner join employee e on el.emp_id = e.emp_id "
-						+ "inner join leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
-						+ "inner join leave_status ls on el.leave_status_id = ls.leave_status_id "
-						+ "inner join employee e2 on el.manager_id = e2.emp_id "
-						+ "inner join employee e3 on el.leave_status_updated_by = e3.emp_id where "+customQuery;
+//				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date, "
+//						+ "el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
+//						+ "el.updated_on, e3.name as statusUpdateBy from employee_leave el "
+//						+ "inner join employee e on el.emp_id = e.emp_id "
+//						+ "inner join leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
+//						+ "inner join leave_status ls on el.leave_status_id = ls.leave_status_id "
+//						+ "inner join employee e2 on el.manager_id = e2.emp_id "
+//						+ "inner join employee e3 on el.leave_status_updated_by = e3.emp_id where "+customQuery;
+				
+				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,p.client_name from employee_leave el "
+						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
+						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
+						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
+						+ "INNER JOIN employee e2 on el.manager_id = e2.emp_id "
+						+ "INNER JOIN employee e3 on el.leave_status_updated_by = e3.emp_id "
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -140,7 +175,6 @@ public class CustomFilterService {
 	public ServiceResponse customQueryForLeaveReport(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
 			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
 			List<Object[]> list = getCustomLeaveReport(subQuery.toString());
 			
@@ -162,6 +196,7 @@ public class CustomFilterService {
 					leavedto.setCreatedOn(object[9] != null ? object[9].toString() : null);
 					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
+					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -170,6 +205,47 @@ public class CustomFilterService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("leave Application list is empty.");
 			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return response;
+	}
+	
+	public ServiceResponse customQueryForLeaveTrendAnalysisReport(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			ServiceResponse customQueryForLeaveReportResponse = customQueryForLeaveReport(leaveDTO);	
+			
+			if(customQueryForLeaveReportResponse.getServiceStatus().equals("Success")) {	
+				List<LeaveDTO> leavedata = (List<LeaveDTO>)customQueryForLeaveReportResponse.getServiceResponse();	
+					
+				List<LeaveDTO> newLeaveData = new ArrayList<>();
+			
+				if(leavedata != null) {	
+					leavedata.forEach((obj) -> {	
+						LocalDate tempdate = LocalDate.parse(obj.getFromDate());	
+						LocalDate toDate = LocalDate.parse(obj.getToDate());	
+						long i = 0L;	
+							
+						while(i <= ChronoUnit.DAYS.between(tempdate, toDate)) {	
+							LeaveDTO dto = new LeaveDTO();	
+								
+							dto.setEmployeementId(obj.getEmployeementId());	
+							dto.setDepartmentName(obj.getDepartmentName());	
+							dto.setEmployeeName(obj.getEmployeeName());	
+							dto.setFromDate(tempdate.toString());	
+							dto.setToDate(obj.getToDate());	
+							dto.setStatus(obj.getStatus());	
+							dto.setLeaveType(obj.getLeaveType());	
+							newLeaveData.add(dto);	
+								
+							tempdate = tempdate.plusDays(1);	
+						}	
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse(newLeaveData);	
+				}	
+			}		
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -442,22 +518,7 @@ public class CustomFilterService {
 		try {
 			Session session = entityManager.unwrap(Session.class);
 			
-			try {				
-//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, "
-//						+ "e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth, "
-//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person, "
-//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing, "
-//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name, "
-//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number, "
-//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, "
-//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan, "
-//						+ "e.views_on_organisation, e.year_of_passing, "
-//						+ "jr.dept_id, jr.name as jobrolename, "
-//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager FROM employee e "
-//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
-				
+			try {
 				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,"
 						+ " e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,"
 						+ " e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,"
