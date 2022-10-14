@@ -138,7 +138,7 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
     <table class="table table-responsive scrollable-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
-        <thead class="thead-light text-center">	
+        <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>	
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
@@ -153,7 +153,7 @@
             <!-- <th scope="col" class="info-label">Comments</th> -->
           </tr>
         </thead>
-        <tbody class="text-center">
+        <tbody>
             <tr *ngIf="leaveHistoryList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
@@ -190,7 +190,7 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
     <table class="table table-responsive scrollable-table " id="leaveApplication-table" matSort (matSortChange)="sortReporteeLog($event)">	
-        <thead class="thead-light text-center">	
+        <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" >Sr No.</th>	
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
@@ -205,7 +205,7 @@
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
-        <tbody class="text-center">
+        <tbody>
             <tr *ngIf="leaveApplicationList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
@@ -249,7 +249,7 @@
             <th scope="col" class="info-label" mat-sort-header="balance">Effective Leave Balance</th>
           </tr>
         </thead>
-        <tbody class="text-center">
+        <tbody>
             <tr *ngIf="leaveBalanceList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>

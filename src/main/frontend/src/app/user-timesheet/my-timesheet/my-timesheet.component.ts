@@ -410,6 +410,11 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
+  resetToDate(){
+    this.endDate = ''
+    this.allMyTimesheets=[]; 
+  }
+
   getAllMyActivitiesByTimesheetId(timesheet: any) {
     this.allTimesheetActivities = [];
 

@@ -682,6 +682,8 @@ public class EmployeeService {
 					empDTO.setMothersName(object[59] != null ? (object[59].toString()) : null);
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
+					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
+					
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -814,6 +816,7 @@ public class EmployeeService {
 						: null);
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
+				employee.setSecondaryEmail(employeedto.getSecondaryEmail());
 				employee.setGender(employeedto.getGender());
 				employee.setBloodGroup(employeedto.getBloodGroup());
 				employee.setMaritalStatus(employeedto.getMaritalStatus());

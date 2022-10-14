@@ -216,7 +216,7 @@
       <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
     </div>
     <table class="table leave-request-table" id="leave-request-table" matSort (matSortChange)="sortLeaveRequestTable($event)">	
-      <thead class="thead-light text-center">	
+      <thead class="thead-light">	
         <tr>	
           <th scope="col" class="info-label">Sr No.</th>	
           <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
@@ -230,7 +230,7 @@
         <th scope="col" class="info-label">Actions</th>
       </tr>
     </thead>
-    <tbody class="text-center">
+    <tbody>
       <tr *ngIf="leaveApplicationList.length == 0">
         <th colspan="9" class="text-center info-label">No details to display...</th>
       </tr>
