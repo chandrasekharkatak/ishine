@@ -994,15 +994,37 @@ export class ReportDashboardComponent implements OnInit {
   renderLineGraphChart(chartName:any, chartId:any, chartData:any, labelName:any, category:any, openMod:any){
     HighCharts.chart(chartId, {
       title: {
-          text: chartName
+          text: chartName,
+          style:{
+            color: '#000000',
+            fontWeight: 'bold'
+          }
       },
       yAxis: {
           title: {
-              text: 'Number of Leaves'
+              text: 'Number of Leaves',
+              style:{
+                color:'#000000',
+                fontWeight: 'bold'
+              }
+          },
+          labels:{
+            overflow: 'justify',
+            style:{
+              color: '#000000',
+              fontWeight: 'bold'
+            }
           }
       },
       xAxis: {
-        categories: category
+        categories: category,
+        labels:{
+          overflow: 'justify',
+          style:{
+            color: '#000000',
+            fontWeight: 'bold'
+          }
+        }
       },
       plotOptions: {
           series: {
