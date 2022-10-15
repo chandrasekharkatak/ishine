@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Timesheet } from '../models/timesheet';
+import { Query } from '../models/query';
 
 @Injectable({
   providedIn: 'root'
@@ -65,6 +66,14 @@ export class TimesheetService {
   /* Reports */
   timesheetReport(){
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/timesheetReport`);
+  }
+
+  customTimesheetApplicationsList(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customTimesheetApplicationsList`, queryObj);
+  }
+
+  customQueryForTimesheetSummaryChart(queryObj: Query){
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForTimesheetSummaryChart`, queryObj);
   }
 
   /* Reports Dashboard */

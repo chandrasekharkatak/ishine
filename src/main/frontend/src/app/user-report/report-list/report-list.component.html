@@ -67,8 +67,9 @@
         <h1 class="table-header-title">Timesheet Report</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" id="buttonPosition" class="form-control" placeholder="Search" [(ngModel)]="data">	
-        </div>
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
+      <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, timesheetColumns, 'Filter Timesheet Report')"><i class="fa-solid fa-filter"></i></button>
+    </div>
     <table class="table table-responsive scrollable-table">	
         <thead class="thead-light table-scroll">	
           <tr>	

@@ -58,5 +58,7 @@ public class TimesheetDTO {
 	private Long pendingEodCount;
 	private String legend;
 	private String rejectReason;
+	private List<CustomFilterDTO> queryList;
+	private String employmentstatus;
 	
 }

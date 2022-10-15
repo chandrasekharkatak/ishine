@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -27,6 +29,9 @@ public class CustomFilterService {
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	EmployeeRepository employeeRepository;
 
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
 			StringBuilder query = new StringBuilder("");
@@ -207,6 +212,9 @@ public class CustomFilterService {
 			}
 		}catch(Exception e){
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
@@ -248,6 +256,9 @@ public class CustomFilterService {
 			}		
 		}catch(Exception e){
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
@@ -534,7 +545,7 @@ public class CustomFilterService {
 						+ "FROM employee e "
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where"+customQuery;
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -642,6 +653,398 @@ public class CustomFilterService {
 			
 		}catch(Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public StringBuilder createQueryForTimesheetReport(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+		
+			for(CustomFilterDTO dto: queryList) {
+				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
+					dto.setValue("%"+dto.getValue()+"%");
+				}
+				
+				switch (dto.getColumn()) {
+				case "Employee Id": {
+					query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Full Name": {
+					query = query.append(" e1.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Date": {
+					query = query.append(" et.date ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Day Type": {
+					query = query.append(" et.day_type ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Status": {
+					query = query.append(" et.status ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Total Working Hour": {
+					query = query.append(" et.total_time ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Team Name": {
+					query = query.append(" t.team_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Project Name": {
+					query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Client Name": {
+					query = query.append(" p.client_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "From Date": {
+					query = query.append(" et.date ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "To Date": {
+					query = query.append(" et.date ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Created On": {
+					query = query.append(" et.created_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Updated On": {
+					query = query.append(" et.updated_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Updated By": {
+					query = query.append(" e2.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			return query;
+     }
+	
+	 List<Object[]> getCustomTimesheetReport(String customQuery) {
+		try {
+			Session session = entityManager.unwrap(Session.class);
+			
+			try {
+				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, "
+						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name "
+						+ "FROM employee_timesheets et "
+						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id "
+						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id "
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+				
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}finally {
+				if(session!=null && session.isOpen()) {
+					session.close();
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+
+	public ServiceResponse customTimesheetApplicationsList(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
+			List<Object[]> list = getCustomTimesheetReport(subQuery.toString());
+			
+			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+			if (list != null) {
+				list.forEach((object) -> {
+					TimesheetDTO timesheetDto = new TimesheetDTO();
+					
+					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
+					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
+					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
+					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
+					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
+					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
+					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					dtoList.add(timesheetDto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet list is empty.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public StringBuilder createQueryForTimesheetSummaryChart(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+		
+			for(CustomFilterDTO dto: queryList) {
+				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
+					dto.setValue("%"+dto.getValue()+"%");
+				}
+				
+				switch (dto.getColumn()) {
+				case "Employee Id": {
+					query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Full Name": {
+					query = query.append(" e.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Date": {
+					query = query.append(" et.date ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Day Type": {
+					query = query.append(" et.day_type ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Status": {
+					query = query.append(" et.status ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Total Working Hour": {
+					query = query.append(" et.total_time ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Team Name": {
+					query = query.append(" t.team_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Project Name": {
+					query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Client Name": {
+					query = query.append(" p.client_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "From Date": {
+					query = query.append(" et.date ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "To Date": {
+					query = query.append(" et.date ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Created On": {
+					query = query.append(" et.created_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Updated On": {
+					query = query.append(" et.updated_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Updated By": {
+					query = query.append(" e2.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			return query;
+     }
+	
+	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery, List<CustomFilterDTO> queryList) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Session session = entityManager.unwrap(Session.class);
+			String fromDate = null;
+			String toDate = null;
+			
+			for(CustomFilterDTO dto: queryList) {
+				if(dto.getColumn().equals("From Date")) {
+					fromDate = dto.getValue();
+				}
+				if(dto.getColumn().equals("To Date")) {
+					toDate = dto.getValue();
+				}
+			}
+			
+			try {
+				String q1="SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets et "
+						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
+						+ "WHERE date between '"+fromDate+"' and '"+toDate+"' "
+						+ "group by e.emp_id";
+				
+				System.out.println(q1);
+				
+				String q2="SELECT et.status,e.employeement_id,e.name,d.name dept,e.email,e.mobile_no,date,total_time working_hours, "
+						+ "et.day_type, e2.name manager, t.team_name,p.project_name,p.client_name "
+						+ "FROM employee_timesheets et "
+						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+						+ "INNER JOIN employee e2 on e2.emp_id = e.manager_id "
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+				
+				System.out.println(q2);
+				
+				Query query1 = session.createSQLQuery(q1);
+				Query query2 = session.createSQLQuery(q2);
+				
+				
+				List<Object[]> timesheetList = query1.getResultList();
+
+				List<Object[]> employeeList = employeeRepository.getAllEmployees();
+
+				List<Object[]> filledTimesheetList = query2.getResultList();
+				
+				LocalDate startDate = LocalDate.parse(fromDate);
+				LocalDate endDate = LocalDate.parse(toDate);
+				Long pendingEOdNumber = ChronoUnit.DAYS.between(startDate, endDate);
+
+				List<TimesheetDTO> dtoList = new ArrayList<>();
+
+				if (timesheetList != null) {
+					employeeList.forEach((employee) -> {
+						TimesheetDTO dto = new TimesheetDTO();
+
+						dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+						dto.setEmployeeName(employee[29] != null ? employee[29].toString() : null);
+						dto.setDepartmentName(employee[47] != null ? employee[47].toString() : null);
+						dto.setEmail(employee[14] != null ? employee[14].toString() : null);
+						dto.setMobileNo(employee[27] != null ? Long.parseLong(employee[27].toString()) : null);
+						dto.setManagerName(employee[51] != null ? employee[51].toString() : null);
+						dto.setEmpId(employee[50] != null ? Long.parseLong(employee[50].toString()) : null);
+						dto.setPendingEodCount(pendingEOdNumber);
+						dto.setLegend("Pending By User");
+
+						timesheetList.forEach((timesheet) -> {
+
+							Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+							Long employeeEmpId = employee[50] != null ? Long.parseLong(employee[50].toString()) : null;
+
+							if (timesheetEmpId.equals(employeeEmpId)) {
+
+								Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+
+								Long pendingEodCount = pendingEOdNumber - filledEodCount;
+
+								dto.setPendingEodCount(pendingEodCount);
+
+							}
+
+						});
+						dtoList.add(dto);
+					});
+
+					if (filledTimesheetList != null) {
+						filledTimesheetList.forEach((filledTimesheet) -> {
+							TimesheetDTO dto = new TimesheetDTO();
+							
+							dto.setLegend(filledTimesheet[0] != null ? filledTimesheet[0].toString() : null);
+							dto.setEmployeementId(filledTimesheet[1] != null ? Long.parseLong(filledTimesheet[1].toString()) : null);
+							dto.setEmployeeName(filledTimesheet[2] != null ? filledTimesheet[2].toString() : null);
+							dto.setDepartmentName(filledTimesheet[3] != null ? filledTimesheet[3].toString() : null);
+							dto.setEmail(filledTimesheet[4] != null ? filledTimesheet[4].toString() : null);
+							dto.setMobileNo(filledTimesheet[5] != null ? Long.parseLong(filledTimesheet[5].toString()) : null);
+							dto.setDate(filledTimesheet[6] != null ? filledTimesheet[6].toString() : null);
+							dto.setTotalWorkingHours(filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
+							dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
+							dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
+							dtoList.add(dto);
+						});
+					}
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Timesheet not found. Kindly check date range.");
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}finally {
+				if(session!=null && session.isOpen()) {
+					session.close();
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+	}
+
+	public ServiceResponse customQueryForTimesheetSummaryChart(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			StringBuilder subQuery = createQueryForTimesheetSummaryChart(timesheetDTO.getQueryList());
+			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(), timesheetDTO.getQueryList());
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}

@@ -16,7 +16,7 @@
                 <div id="leaveSummaryChart" style="height: 300px;"></div>
             </div>
             <div class="col-sm-6 col-md-4 graph">
-                <!-- <button type="button" class="btn btn-sm btn-outline-primary mx-1 float-right" (click)="openFilterModal(filter, timesheetSummaryColumns, 'Filter Timesheet Summary')"><i class="fa-solid fa-filter"></i></button> -->
+                <button type="button" class="btn btn-sm btn-outline-primary mx-1 float-right" (click)="openFilterModal(filter, timesheetSummaryColumns, 'Filter Timesheet Summary')"><i class="fa-solid fa-filter"></i></button>
                 <div id="timesheetStatusSummary" style="height: 300px;"></div>
             </div>
             <div class="col-sm-6 col-md-4 graph">
@@ -170,10 +170,13 @@
                         <th scope="col" class="info-label wide-col">Emp ID</th>
                         <th scope="col" class="info-label wide-col">Name</th>
                         <th scope="col" class="info-label wide-col">Department Name</th>
+                        <th scope="col" class="info-label wide-col">Timesheet Date</th>
+                        <th scope="col" class="info-label wide-col">Day Type</th>
                         <th scope="col" class="info-label wide-col">Email Id</th>
                         <th scope="col" class="info-label wide-col">Manager Name</th>
                         <th scope="col" class="info-label wide-col">Mobile No</th>
                         <th scope="col" class="info-label wide-col">Pending EOD Count</th>
+                        <th scope="col" class="info-label wide-col">Total Working Hour</th>
                         <th scope="col" class="info-label wide-col">Type</th>
                     </tr>
                 </thead>
@@ -187,10 +190,13 @@
                         <td>{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
+                        <td>{{leave.date}}</td>
+                        <td>{{leave.dayType}}</td>
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td>{{leave.pendingEodCount}}</td>
+                        <td>{{leave.totalWorkingHours}}</td>
                         <td>{{leave.legend}}</td>
                     </tr>
                 </tbody>
@@ -223,6 +229,7 @@
                         <th scope="col" class="info-label wide-col wide-col">Email Id</th>
                         <th scope="col" class="info-label wide-col wide-col">Manager Name</th>
                         <th scope="col" class="info-label wide-col wide-col">Mobile No</th>
+                        <th scope="col" class="info-label wide-col wide-col">Timesheet Date</th>
                         <th scope="col" class="info-label wide-col wide-col">Day Type</th>
                         <th scope="col" class="info-label wide-col wide-col">Total Working Hour</th>
                     </tr>
@@ -240,6 +247,7 @@
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
+                        <td>{{leave.date}}</td>
                         <td>{{leave.dayType}}</td>
                         <td>{{leave.totalWorkingHours}}</td>
                     </tr>
