@@ -82,6 +82,10 @@ export class EmployeeInfoComponent implements OnInit{
     }
 
     // child info
+    console.log("   this.employeeObj.child1 ", this.employeeObj.child1);
+    console.log("   this.employeeObj.child2 ", this.employeeObj.child2);
+    console.log("   this.employeeObj.child3 ", this.employeeObj.child3);
+    
     if(this.employeeObj.child1 == null || this.employeeObj.child2 == null || this.employeeObj.child3 == null){
       this.addInputChildField();
     }else{
@@ -108,7 +112,6 @@ export class EmployeeInfoComponent implements OnInit{
   removeInputChildField(childObj){
     this.allChildList.forEach((child, index) => {
       if (child == childObj) {
-        this.updatedChildList.push(child);
         this.allChildList.splice(index, 1);
       }
     });
@@ -294,6 +297,8 @@ export class EmployeeInfoComponent implements OnInit{
         this.updatedPreviousEmployment.push(prevEmployer);
       }
     });
+
+  
     
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
@@ -301,10 +306,15 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.updatedCertifications = (this.updatedCertificationList.length === 0) ? null : this.updatedCertificationList;
     this.employeeObj.updatedPreviousEmploymentList = (this.updatedPreviousEmployment.length === 0) ? null : this.updatedPreviousEmployment;
 
-    this.employeeObj.child1 = (this.allChildList[0] !== null || this.allChildList[0].childName !== "")? this.allChildList[0].childName : null;
-    this.employeeObj.child2 = (this.allChildList[1] !== null || this.allChildList[1].childName !== "")? this.allChildList[1].childName : null;
-    this.employeeObj.child3 = (this.allChildList[2] !== null || this.allChildList[2].childName !== "")? this.allChildList[2].childName : null;
-
+    
+    for (let index = 0; index < 3; index++) {
+      if(this.allChildList[index] && this.allChildList[index]?.childName !== ""){
+        this.employeeObj[`child${index+1}`] = this.allChildList[index].childName;
+      }else{
+        this.employeeObj[`child${index+1}`] = null;
+      }
+    }
+ 
     this.employeeObj.createdBy = this.currentUser.empId;
 
     console.log("onSave --> employeeObj : ", this.employeeObj);
