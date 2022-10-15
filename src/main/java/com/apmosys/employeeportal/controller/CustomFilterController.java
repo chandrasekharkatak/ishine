@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.CustomFilterService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -36,6 +37,18 @@ public class CustomFilterController {
 	@RequestMapping(value = "/customQueryForLeaveTrendAnalysisReport", method = RequestMethod.POST)
 	public ServiceResponse customQueryForLeaveTrendAnalysisReport(@RequestBody LeaveDTO leaveDTO) {
 		ServiceResponse response = customFilterService.customQueryForLeaveTrendAnalysisReport(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/customTimesheetApplicationsList", method = RequestMethod.POST)
+	public ServiceResponse customTimesheetApplicationsList(@RequestBody TimesheetDTO timesheetDTO) {
+		ServiceResponse response = customFilterService.customTimesheetApplicationsList(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/customQueryForTimesheetSummaryChart", method = RequestMethod.POST)
+	public ServiceResponse customQueryForTimesheetSummaryChart(@RequestBody TimesheetDTO timesheetDTO) {
+		ServiceResponse response = customFilterService.customQueryForTimesheetSummaryChart(timesheetDTO);
 		return response;
 	}
 	

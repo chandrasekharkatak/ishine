@@ -1,4 +1,5 @@
 export class Employee{
+
     empId:any;
 	draftEmpId:any;
 	employeementId:any;
@@ -105,4 +106,11 @@ export class Employee{
 	appreciationTo:any;
 
 	managerMail:any;
+	spouse:any;
+	child1:any;
+	child2:any;
+	child3:any;
+	billable:any;
+
+	updateChild:any;
 }

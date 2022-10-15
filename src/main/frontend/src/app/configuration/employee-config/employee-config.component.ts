@@ -248,6 +248,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.experience = '';
     this.employeeObj.workLocation = '';
     this.employeeObj.dateOfBirth = '';
+    this.employeeObj.billable = '';
 
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
@@ -625,6 +626,12 @@ export class EmployeeConfigComponent implements OnInit {
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
       this.alertMessage = "Please select employee Work Location !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
+      this.alertMessage = "Please select billable !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1270,6 +1277,10 @@ export class EmployeeConfigComponent implements OnInit {
   page = 1;
   handlePageChange(event) {
     this.page = event;
+  }
+
+  onPage(){
+    this.page=1;
   }
 
   // implementing sorting functionality by anurag

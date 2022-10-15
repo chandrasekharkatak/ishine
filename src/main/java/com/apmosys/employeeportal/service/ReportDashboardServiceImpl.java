@@ -87,6 +87,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 			if (timesheetList != null) {
 				employeeList.forEach((employee) -> {
+					
 					TimesheetDTO dto = new TimesheetDTO();
 
 					dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
@@ -98,6 +99,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setEmpId(employee[50] != null ? Long.parseLong(employee[50].toString()) : null);
 					dto.setPendingEodCount(8L);
 					dto.setLegend("Pending By User");
+					dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
 
 					timesheetList.forEach((timesheet) -> {
 

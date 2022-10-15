@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { certification } from 'src/app/models/certification';
+import { Child } from 'src/app/models/Child';
 import { Employee } from 'src/app/models/employee';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { User } from 'src/app/models/user';
@@ -34,6 +35,9 @@ export class EmployeeInfoComponent implements OnInit{
   currDate:any;
   yearOfPassingList:any[] = [];
 
+  allChildList:any [] = [];
+  updatedChildList: any[] = [];
+
   @Output() loadDocumentUpload: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(
@@ -60,6 +64,7 @@ export class EmployeeInfoComponent implements OnInit{
   sectionViewInit(employee:Employee){
     this.allCertificationList = [];
     this.allPreviousEmployment = [];
+    this.allChildList = [];
     this.employeeObj = employee;
 
     // Certifications
@@ -76,7 +81,38 @@ export class EmployeeInfoComponent implements OnInit{
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
     }
 
+    // child info
+    if(this.employeeObj.child1 == null || this.employeeObj.child2 == null || this.employeeObj.child3 == null){
+      this.addInputChildField();
+    }else{
+      let childList = [this.employeeObj.child1, this.employeeObj.child2, this.employeeObj.child3];
+      childList.forEach(child => {
+        if(child !== null){
+          this.allChildList.push(new Child(child));
+        }else{
+          this.addInputChildField();
+          return;
+        }
+      });
+    }
+
     setTimeout(this.setCalenderMaxDate, 1000);
+  }
+
+
+  addInputChildField(){
+    let child = new Child();
+    this.allChildList.push(child);
+  }
+
+  removeInputChildField(childObj){
+    this.allChildList.forEach((child, index) => {
+      if (child == childObj) {
+        this.updatedChildList.push(child);
+        this.allChildList.splice(index, 1);
+      }
+    });
+
   }
 
   reset() {
@@ -95,8 +131,10 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.allCertificationList = [];
     this.allPreviousEmployment = [];
+    this.allChildList = [];
     this.addInputCertificationField();
     this.addInputPreviousEmployerField();
+    this.addInputChildField();
   }
 
 
@@ -256,11 +294,17 @@ export class EmployeeInfoComponent implements OnInit{
         this.updatedPreviousEmployment.push(prevEmployer);
       }
     });
-
+    
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
+   
     this.employeeObj.updatedCertifications = (this.updatedCertificationList.length === 0) ? null : this.updatedCertificationList;
     this.employeeObj.updatedPreviousEmploymentList = (this.updatedPreviousEmployment.length === 0) ? null : this.updatedPreviousEmployment;
+
+    this.employeeObj.child1 = (this.allChildList[0] !== null || this.allChildList[0].childName !== "")? this.allChildList[0].childName : null;
+    this.employeeObj.child2 = (this.allChildList[1] !== null || this.allChildList[1].childName !== "")? this.allChildList[1].childName : null;
+    this.employeeObj.child3 = (this.allChildList[2] !== null || this.allChildList[2].childName !== "")? this.allChildList[2].childName : null;
+
     this.employeeObj.createdBy = this.currentUser.empId;
 
     console.log("onSave --> employeeObj : ", this.employeeObj);

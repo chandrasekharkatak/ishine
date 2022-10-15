@@ -49,6 +49,7 @@ export class ReportListComponent implements OnInit {
 
   leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  timesheetColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
 
@@ -183,6 +184,40 @@ export class ReportListComponent implements OnInit {
     });
   }
 
+  getCustomTimesheetApplicationsList(queryObjList:any , template:TemplateRef<any>) {
+    this.allTimesheetApplicationsList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    if(queryObjList == ''){
+      this.getAllTimesheetApplicationsList();
+    }else {
+      this.timesheetService.customTimesheetApplicationsList(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allTimesheetApplicationsList = response.serviceResponse;
+
+          this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter((value, index, self) =>
+            index === self.findIndex((t) => (
+              t.employeementId === value.employeementId && t.date === value.date
+            ))
+          )
+
+          if(this.allTimesheetApplicationsList.length != 0){
+            this.openAlertMod(template, "Timesheet Application Report found ");
+          }else {
+            this.openAlertMod(template, "No Timesheet Application Report found ");
+          }
+          this.allTimesheetApplicationsList.forEach(leave => {
+            leave.employeementId = "A-".concat(leave.employeementId);
+          });
+          console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
+        } else {
+          this.openAlertMod(template,response.serviceResponse)
+        }
+      });  
+    }
+  }
+
 
   // Employee Report 
   getAllEmployeeList() {
@@ -252,8 +287,8 @@ export class ReportListComponent implements OnInit {
     if(this.filterData.title == 'Filter Employee Report'){
       this.getCustomEmployeesList(queryList,template);
     }
-    if(this.filterData.title == ''){
-      
+    if(this.filterData.title == 'Filter Timesheet Report'){
+      this.getCustomTimesheetApplicationsList(queryList,template);
     }
   }
 

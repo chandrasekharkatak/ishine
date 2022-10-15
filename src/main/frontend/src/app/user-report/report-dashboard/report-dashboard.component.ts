@@ -69,7 +69,7 @@ export class ReportDashboardComponent implements OnInit {
   filterData:any = new FilterData();
   queryList:any[] = [];
   leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  timesheetSummaryColumns:any[] = [];
+  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
   constructor(
@@ -107,6 +107,7 @@ export class ReportDashboardComponent implements OnInit {
 
   get8DaysLeaveReport(){
     this.leaveSumarryList = [];
+    this.queryList=[];
     let leaveObj= new Leave();
 
      leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
@@ -340,6 +341,12 @@ export class ReportDashboardComponent implements OnInit {
 
         let totalListCount = 0;
 
+        this.timsheetSummaryList = this.timsheetSummaryList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.employeementId === value.employeementId && t.date === value.date
+          ))
+        )
+        
         this.timsheetSummaryList.forEach(timesheet => {
 
           if (timesheet.legend == "Pending") pendingCount++;
@@ -361,7 +368,6 @@ export class ReportDashboardComponent implements OnInit {
           }else{
             totalListCount++;
           }
-
         });
 
         this.zeroToFive = ((zeroToFiveCount / totalListCount) * 100).toFixed(2) + "%";
@@ -392,6 +398,26 @@ export class ReportDashboardComponent implements OnInit {
 
         console.log("timesheetData : ", timesheetData);
         this.renderPieSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
+  }
+
+  getCustomTimesheetReport(queryObjList:any , template:TemplateRef<any>) {
+    this.timsheetSummaryList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    if(queryObjList == ''){
+      this.get9DayTimesheetReport();
+    }else {
+      this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.timsheetSummaryList = response.serviceResponse;
+          console.log(this.timsheetSummaryList, " timsheetSummaryList");
+          this.extractTimesheetReportData();
+        } else {
+          this.openAlertMod(template,response.serviceResponse);
+        }
+      });  
+    }
   }
 
   getAllEmployeeList() {
@@ -1135,6 +1161,18 @@ export class ReportDashboardComponent implements OnInit {
       
       this.filterData.title  = title;
       this.filterData.columns = columns;
+
+      if(this.filterData.title == 'Filter Timesheet Summary'){
+
+        let fromDate = moment().subtract(8, 'd').format(this.dateFormat);
+        let toDate = moment().format(this.dateFormat);
+
+        this.queryList = [
+          { column: "From Date", operator: ">", value: fromDate, conjunction: "AND" },
+          { column: "To Date", operator: "<", value: toDate, conjunction: "" }
+        ];
+      }
+
       this.filterData.queryList = JSON.stringify(this.queryList);
   
       console.log("filterData : ", this.filterData);
@@ -1154,6 +1192,9 @@ export class ReportDashboardComponent implements OnInit {
       }
       if(this.filterData.title == 'Filter Leave Trend Chart'){
         this.getCustomLeaveTrendAnalysisReport(queryList,template);
+      }
+      if(this.filterData.title == 'Filter Timesheet Summary'){
+        this.getCustomTimesheetReport(queryList,template);
       }
     }
 

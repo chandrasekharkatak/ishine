@@ -82,6 +82,39 @@
                             </div>
                         </div>
                     </app-accordion-item>
+
+                    <app-accordion-item *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content" title="Family Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Spouse</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.spouse">
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                
+                                </div>
+                                <div *ngFor="let child of allChildList;let i = index" class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Child - {{i+1}}</label>
+                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="child.childName">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-center">
+                                        <div class="col-md-12">
+                                            <button *ngIf=" i < 2" type="button" class="btn btn-outline-primary mx-1" (click)="addInputChildField()"><i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
+                                            <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputChildField(child)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
             
                     <app-accordion-item class="acc-content" title="Personal Information">
                         <div class="container-fluid">
@@ -407,6 +440,12 @@
                                     <div class="info-wrapper">
                                         <p class="info-label">Work Location <small>(State)</small></p>
                                         <p class="info-text info-highlight">{{employeeObj.workLocation}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Billable</p>
+                                        <p class="info-text info-highlight">{{employeeObj.billable}}</p>
                                     </div>
                                 </div>
                             </div>
