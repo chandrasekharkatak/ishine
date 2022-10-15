@@ -124,4 +124,6 @@ public class EmployeeDTO {
 	private Long appreciationTo;
 
 	private String managerMail;
+	
+	private String updateChild;
 }

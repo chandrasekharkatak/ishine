@@ -107,6 +107,48 @@
                             </div>
                         </div>
                     </app-accordion-item>
+
+                    <app-accordion-item *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content" title="Family Information">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Spouse</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.spouse" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 mb-0" *ngIf="employeeObj.child1 != null">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Child1 Name</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.child1" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 mb-0" *ngIf="employeeObj.child2 != null">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Child2 Name</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.child2" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 mb-0" *ngIf="employeeObj.child3 != null">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Child3 Name</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.child3" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </app-accordion-item>
             
                     <app-accordion-item class="acc-content" title="Personal Information">
                         <div class="container-fluid">
@@ -494,6 +536,18 @@
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.workLocation">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Billable</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billable">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="No">No</option>
                                               </select>
                                         </div>
                                     </div>
