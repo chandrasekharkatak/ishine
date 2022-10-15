@@ -39,6 +39,7 @@ import { SurveyConfigComponent } from './configuration/survey-config/survey-conf
 import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
+import { UserSurveyComponent } from './user-survey/user-survey.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -106,6 +107,7 @@ const routes: Routes = [
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
+  {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
 
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},

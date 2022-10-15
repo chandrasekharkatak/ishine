@@ -122,7 +122,55 @@ export class SurveyConfigComponent implements OnInit {
     this.openSurveyPreviewMod(template,previewObj);
   }
 
+  vallidateSurvey(template: TemplateRef<any>, surveyObj:Survey, allSurveyQuestionList:SurveyQuestion[]){
+    if(!this.validationService.validateNullUndefinedEmptyString(surveyObj.surveyName)){
+      this.alertMessage = "Please enter Survey Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {
+      if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
+        this.alertMessage = `Please enter Question ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
+        this.alertMessage = `Please select Option Type ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      
+      if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
+        this.alertMessage = `Please select reqiured ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if(question.optionType == "radio" || question.optionType == "checkbox"){
+        if (question.optionsList.length > 2) {
+          this.alertMessage = `Please select atleast 2 options for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        
+        question.optionsList.forEach((option: SurveyOption, opIndex) => {
+          if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
+            this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            return false;
+          }
+        });
+      }
+    });
+  }
+
   onSubmit(template: TemplateRef<any>){
+
+    // let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    // if (!inputValidated) return;
+    
     const surveyTemplate:string = this.createTemplate();
 
     let surveyObj = new Survey();
@@ -213,7 +261,7 @@ export class SurveyConfigComponent implements OnInit {
     finalQuestionTemplate = questionStartTemplate + questionTemplate;
     
      if (question.optionType == "text") {
-       let textTemplate: any =`<textarea class="form-control" rows="1"></textarea>`;
+       let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}"></textarea>`;
        finalQuestionTemplate = finalQuestionTemplate + textTemplate;
      } else if (question.optionType == "checkbox") {
 
@@ -222,7 +270,7 @@ export class SurveyConfigComponent implements OnInit {
         let checkboxTemplate: any =
         `
           <div class="form-check">
-           <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}">
+           <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}" name="question-${qIndex+1}">
            <label class="form-check-label" for="q-${qIndex+1}-check-option-${opIndex+1}">${option.optionValue}</label>
            </div>
          `;
@@ -238,7 +286,7 @@ export class SurveyConfigComponent implements OnInit {
         let radioboxTemplate: any =
         `
         <div class="form-check">
-         <input class="form-check-input" type="radio" name="q-${qIndex+1}-radio-option" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}">
+         <input class="form-check-input" type="radio" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}" name="question-${qIndex+1}">
          <label class="form-check-label" for="q-${qIndex+1}-radio-option-${index+1}">${option.optionValue}</label>
          </div>
        `;

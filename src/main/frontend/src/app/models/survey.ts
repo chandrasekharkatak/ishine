@@ -11,4 +11,5 @@ export class Survey {
     surveyQuestionList:any;
 
     surveyTemplate:any;
+    isAnswered:boolean = false;
 }

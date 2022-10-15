@@ -1,1 +1,69 @@
-<p>user-survey works!</p>
+<div class="container-fluid tab-container" *ngIf="isSurveyList">
+    <!-- start :: See all Surveys Table -->
+    <div class="row d-flex">
+        <div class="col-md-12 table-header">
+            <h1 class="table-header-title">Surveys</h1>
+        </div>
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col" class="info-label">Survey Name</th>
+                    <th scope="col" class="info-label">Description</th>
+                    <th scope="col" class="info-label">Status</th>
+                    <th scope="col" class="info-label">Created by</th>
+                    <th scope="col" class="info-label">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="allSurveyList.length == 0">
+                    <th colspan="6" class="text-center info-label">No Surveys to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                    <td>{{survey.surveyName}}</td>
+                    <td>{{survey.description}}</td>
+                    <td>{{(survey.isActive == 'true')? 'Active' : 'In-Active'}}</td>
+                    <td>{{survey.createdByName}}</td>
+                    <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" type="submit"
+                            (click)="onTakeSurvey(survey)" [disabled]="survey.isAnswered"><em>Take Survey</em></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <pagination-controls class="my-pagination" [hidden]="allSurveyList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+    </div>
+    <!-- end :: see all Surveys table -->
+</div>
+
+<!-- start :: Survey Form -->
+<div class="row" *ngIf="isSurveyForm">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-uppercase px-3">
+            <strong>{{surveyObj.surveyName}}</strong>
+            <small class="d-block text-secondary">{{surveyObj.description}}</small>
+        </div>
+        <div class="card-body px-5" id="surveyContainer">
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1"
+                        (click)="onSubmit(alert_message)">Submit</button>
+                    <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
+                        (click)="showSurveys()">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: Survey Form -->
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
