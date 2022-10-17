@@ -44,9 +44,9 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1"
-                        (click)="onSubmit(alert_message)">Submit</button>
+                        (click)="onSubmit(alert_message)" [disabled]="!isSurveyLoaded">Submit</button>
                     <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
-                        (click)="showSurveys()">Back</button>
+                        (click)="showSurveys()" [disabled]="!isSurveyLoaded">Back</button>
                 </div>
             </div>
         </div>

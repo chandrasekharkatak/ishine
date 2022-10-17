@@ -4,6 +4,7 @@
     position: fixed;
     z-index: 1;
     width: 5rem;
+    min-height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
     /* box-shadow: 0.063rem 0 1.25rem 0 #8690a3; */
