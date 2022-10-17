@@ -100,7 +100,9 @@ export class Employee{
     nameAppreciate: any;
     //MAILID
     email:any;
-    emailAppreciated:any;;
+    emailAppreciated:any;
+	updateChild: any;
+;
     //employementID
 	appreciationBy:any;
 	appreciationTo:any;
@@ -112,5 +114,6 @@ export class Employee{
 	child3:any;
 	billable:any;
 
-	updateChild:any;
+	mothersName:any;
+	totalExperience:any; 
 }
