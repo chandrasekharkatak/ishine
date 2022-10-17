@@ -321,8 +321,8 @@ export class EmployeeInfoComponent implements OnInit{
     this.updateUserInfoService.setUserInfoObj(this.employeeObj);
     const response = await this.updateUserInfoService.saveEmployeeInfo();
     if (response.serviceStatus == "Success") {
-      console.log("Employee Info saved : ",response.serviceResponse);
-      this.employeeObj.draftEmpId = response.serviceResponse.draftEmpId;
+      this.employeeObj = await this.updateUserInfoService.getDraftByEmpId();
+      this.employeeObj.empId = this.currentUser.empId;
       this.updateUserInfoService.setUserInfoObj(this.employeeObj);
       this.loadDocumentUpload.emit();
     } else {
