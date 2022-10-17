@@ -1,5 +1,6 @@
 <!-- start :: Upload Document Table -->
 <div class="row d-flex">
+    <p>File Size : upto 200 kB. Dimension : upto 900 x 700 </p>
     <table class="table employee-table">
         <thead class="thead-light">
             <tr>
@@ -16,7 +17,7 @@
                 <td>{{document.uploadStatus}}</td>
                 <td>
                     <input class="uploadFile" id="doc{{i+1}}" type="file" accept="image/jpeg"
-                        (change)="onImageSelect($event, i, document, alert_message)">
+                        (change)="onImageSelect($event, i, document, alert_message)" (click)="$any($event.target).value=null">
                     <label class="btn btn-sm btn-outline-primary m-0" for="doc{{i+1}}">Upload</label>&nbsp;
                     <!-- <button *ngIf="document.uploadStatus == 'Completed'" class="btn btn-sm btn-outline-primary" type="submit" >Preview</button> -->
                 </td>

@@ -19,180 +19,189 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @RequestMapping(path = "/api")
 public class EmployeeController {
-	
-	
+
 	@Autowired
 	EmployeeService employeeService;
-	
-	@RequestMapping(value="/createEmployee" , method = RequestMethod.POST)
-	public ServiceResponse createEmployee(@RequestBody EmployeeDTO employeedto) {		
-		
-		ServiceResponse response =	employeeService.createEmployee(employeedto);		
+
+	@RequestMapping(value = "/createEmployee", method = RequestMethod.POST)
+	public ServiceResponse createEmployee(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.createEmployee(employeedto);
 		return response;
-	}	
-	
-	@RequestMapping(value="/createEmployeeByList" , method = RequestMethod.POST, consumes="application/json")
-	public ServiceResponse createEmployeeByList(@RequestBody EmployeeDTO[] employeedto) {	
-		
+	}
+
+	@RequestMapping(value = "/createEmployeeByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse createEmployeeByList(@RequestBody EmployeeDTO[] employeedto) {
+
 		ServiceResponse response = null;
-		
-		 for (EmployeeDTO employee: employeedto) {
-			 response = employeeService.createEmployeeByList(employee);
-		    }	
+
+		for (EmployeeDTO employee : employeedto) {
+			response = employeeService.createEmployeeByList(employee);
+		}
 		return response;
-	}	
-	
-	
-	@RequestMapping(value="/getEmployeeByEmpId" , method = RequestMethod.POST)
-	public ServiceResponse getEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {		
-		
+	}
+
+	@RequestMapping(value = "/getEmployeeByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.getEmployeeByEmpId(employeedto);
 		return response;
 	}
-	
-	@RequestMapping(value="/getAllEmployees" , method = RequestMethod.GET)
-	public ServiceResponse getAllEmployees() {		
-		
-		ServiceResponse response =employeeService.getAllEmployees();
-		return response;		
-	}
-	
-	@RequestMapping(value="/updateEmployeeByEmpId" , method = RequestMethod.POST)
-	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {		
-		
-		ServiceResponse response =employeeService.updateEmployeeByEmpId(employeedto);
-		return response;		
-	}
-	
-	@RequestMapping(value="/updateEmployeeByEmpIdByList" , method = RequestMethod.POST, consumes="application/json")		
-	public ServiceResponse updateEmployeeByEmpIdByList(@RequestBody EmployeeDTO[] employeedto) {			
-				
-		ServiceResponse response = null;		
-				
-		 for (EmployeeDTO employee: employeedto) {		
-			 response = employeeService.updateEmployeeByEmpIdByList(employee);		
-		    }			
-		return response;		
-	}
-	
-	@RequestMapping(value="/deleteEmployeeByEmpId" , method = RequestMethod.POST)
-	public ServiceResponse deleteEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {		
-		
-		ServiceResponse response =employeeService.deleteEmployeeByEmpId(employeedto);
+
+	@RequestMapping(value = "/getAllEmployees", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployees() {
+
+		ServiceResponse response = employeeService.getAllEmployees();
 		return response;
 	}
-	
-	@RequestMapping(value="/previewImage" , method = RequestMethod.POST)
-	public ServiceResponse previewImage(HttpServletRequest request, @RequestParam("image")MultipartFile image) {
-		
+
+	@RequestMapping(value = "/updateEmployeeByEmpId", method = RequestMethod.POST)
+	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.updateEmployeeByEmpId(employeedto);
+		return response;
+	}
+
+	@RequestMapping(value = "/updateEmployeeByEmpIdByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse updateEmployeeByEmpIdByList(@RequestBody EmployeeDTO[] employeedto) {
+
+		ServiceResponse response = null;
+
+		for (EmployeeDTO employee : employeedto) {
+			response = employeeService.updateEmployeeByEmpIdByList(employee);
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/deleteEmployeeByEmpId", method = RequestMethod.POST)
+	public ServiceResponse deleteEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.deleteEmployeeByEmpId(employeedto);
+		return response;
+	}
+
+	@RequestMapping(value = "/previewImage", method = RequestMethod.POST)
+	public ServiceResponse previewImage(HttpServletRequest request, @RequestParam("image") MultipartFile image) {
+
 		ServiceResponse serviceResponse = employeeService.previewImage(image);
 		return serviceResponse;
 	}
-	
-	@RequestMapping(value="/uploadImage" , method = RequestMethod.POST)
-	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")MultipartFile image,
-			@RequestParam("uploadedBy")Long uploadedBy) {
-		
-		ServiceResponse serviceResponse = employeeService.uploadImage(image,uploadedBy);
+
+	@RequestMapping(value = "/uploadImage", method = RequestMethod.POST)
+	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image") MultipartFile image,
+			@RequestParam("uploadedBy") Long uploadedBy) {
+
+		ServiceResponse serviceResponse = employeeService.uploadImage(image, uploadedBy);
 		return serviceResponse;
 	}
 
-	@RequestMapping(value="/updateEmployeeProfileByEmpId" , method = RequestMethod.POST)
-	public ServiceResponse updateEmployeeProfileByEmpId(@RequestBody EmployeeDTO employeedto) {		
-		
-		ServiceResponse response =employeeService.updateEmployeeProfileByEmpId(employeedto);
-		return response;		
+	@RequestMapping(value = "/updateEmployeeProfileByEmpId", method = RequestMethod.POST)
+	public ServiceResponse updateEmployeeProfileByEmpId(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.updateEmployeeProfileByEmpId(employeedto);
+		return response;
 	}
-	
+
 	@RequestMapping(value = "/getAllEmployeesByRole", method = RequestMethod.POST)
 	public ServiceResponse getAllEmployeesByRole(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.getAllEmployeesByRole(employeedto);
 		return response;
 	}
-	
-	@RequestMapping(value="/getAllEmployeesByDepartmentIds" , method = RequestMethod.POST)
-	public ServiceResponse getAllEmployeesByDepartmentIds(@RequestBody EmployeeDTO employeedto) {		
-		
-		ServiceResponse response =employeeService.getAllEmployeesByDepartmentIds(employeedto);
-		return response;		
+
+	@RequestMapping(value = "/getAllEmployeesByDepartmentIds", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByDepartmentIds(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.getAllEmployeesByDepartmentIds(employeedto);
+		return response;
 	}
-	
-	@RequestMapping(value="/updateEmployeePassword" , method = RequestMethod.POST)
-	public ServiceResponse updatePassword(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/updateEmployeePassword", method = RequestMethod.POST)
+	public ServiceResponse updatePassword(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.updateEmployeePassword(employeedto);
-		return response;		
+		return response;
 	}
-	
-	@RequestMapping(value="/checkEmployeeOldPassword" , method = RequestMethod.POST)
-	public ServiceResponse checkEmployeeOldPassword(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/checkEmployeeOldPassword", method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeOldPassword(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.checkEmployeeOldPassword(employeedto);
-		return response;		
+		return response;
 	}
-	
-	@RequestMapping(value="/checkEmployeeEmail" , method = RequestMethod.POST)
-	public ServiceResponse checkEmployeeEmail(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/checkEmployeeEmail", method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeEmail(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.checkEmployeeEmail(employeedto);
-		return response;		
+		return response;
 	}
-	
-	@RequestMapping(value="/checkEmployeementId" , method = RequestMethod.POST)
-	public ServiceResponse checkEmployeementId(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/checkEmployeementId", method = RequestMethod.POST)
+	public ServiceResponse checkEmployeementId(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.checkEmployeementId(employeedto);
-		return response;		
+		return response;
 	}
-	
-	@RequestMapping(value="/checkEmployeeMobileNo" , method = RequestMethod.POST)
-	public ServiceResponse checkEmployeeMobileNo(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/checkEmployeeMobileNo", method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeMobileNo(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.checkEmployeeMobileNo(employeedto);
-		return response;		
+		return response;
 	}
-	
-	@RequestMapping(value="/checkEmployeeAadharNumber" , method = RequestMethod.POST)
-	public ServiceResponse checkEmployeeAadharNumber(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/checkEmployeeAadharNumber", method = RequestMethod.POST)
+	public ServiceResponse checkEmployeeAadharNumber(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.checkEmployeeAadharNumber(employeedto);
-		return response;		
+		return response;
 	}
-	
-	@RequestMapping(value="/checkEmployeePanNumber" , method = RequestMethod.POST)
-	public ServiceResponse checkEmployeePanNumber(@RequestBody EmployeeDTO employeedto) {		
-		
+
+	@RequestMapping(value = "/checkEmployeePanNumber", method = RequestMethod.POST)
+	public ServiceResponse checkEmployeePanNumber(@RequestBody EmployeeDTO employeedto) {
+
 		ServiceResponse response = employeeService.checkEmployeePanNumber(employeedto);
-		return response;		
+		return response;
 	}
-	
+
 	@RequestMapping(value = "/getAllEmployeesBirthDayToday", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployeesBirthDayToday() {
 
 		ServiceResponse response = employeeService.getAllEmployeesBirthDayToday();
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/getHierarchyByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getHierarchyByEmpId(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.getHierarchyByEmpId(employeedto);
 		return response;
 	}
-	
-	@RequestMapping(value ="/revokeAccount" , method = RequestMethod.POST)
+
+	@RequestMapping(value = "/revokeAccount", method = RequestMethod.POST)
 	public ServiceResponse revokeAccount(@RequestBody EmployeeDTO employeedto) {
-		ServiceResponse response=employeeService.revokeAccount(employeedto);
+		ServiceResponse response = employeeService.revokeAccount(employeedto);
 		return response;
 	}
 
-	@RequestMapping(value = "/empdetails",method = RequestMethod.GET)
-	   public ServiceResponse getEmployees() {
-			ServiceResponse response = employeeService.getEmployees();
-			return response;
-		   
-	   }
+	@RequestMapping(value = "/empdetails", method = RequestMethod.GET)
+	public ServiceResponse getEmployees() {
+		ServiceResponse response = employeeService.getEmployees();
+		return response;
 
+	}
+
+	/*
+	 * getAllManagers gets all employees whose empId occurs in manager_id column in
+	 * employee table. Not to be confused with employee whose designation is MANAGER
+	 * persona
+	 */
+	@RequestMapping(value = "/getAllManagers", method = RequestMethod.GET)
+	public ServiceResponse getAllManagers() {
+		ServiceResponse response = employeeService.getAllManagers();
+		return response;
+
+	}
 
 }

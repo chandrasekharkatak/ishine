@@ -151,7 +151,7 @@ public class CustomFilterService {
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
 						+ "INNER JOIN employee e2 on el.manager_id = e2.emp_id "
-						+ "INNER JOIN employee e3 on el.leave_status_updated_by = e3.emp_id "
+						+ "LEFT JOIN employee e3 on el.leave_status_updated_by = e3.emp_id "
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
@@ -282,12 +282,6 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "email": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-
 				case "Employment Status": {
 					query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
@@ -295,26 +289,6 @@ public class CustomFilterService {
 				}
 				case "Date Of Joining": {
 					query = query.append(" e.date_of_joining ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "aadhar": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "aboutMe": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "address": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "permanentAddress": {
-					query = query.append("  ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
@@ -328,33 +302,8 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "dateOfBirth": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
 				case "Gender": {
 					query = query.append(" e.gender ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "fatherName": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "mobileNo": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "panNumber": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "placeOfBirth": {
-					query = query.append("  ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
@@ -373,48 +322,8 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "country": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "emergencyContactMobile": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "emergencyContactPerson": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "landline": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
 				case "Marital Status": {
 					query = query.append(" e.marital_status ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "motherTongue": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "alternateMobileNo": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "pincode": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "relation": {
-					query = query.append("  ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
@@ -423,68 +332,8 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
-				case "viewsOnOrganisation": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "passportNumber": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "bankAccountNo": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "bankIFSCCode": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
 				case "Bank Name": {
 					query = query.append(" e.bank_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "pfAccountNumber": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "previousPfAccountNumber": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "uan": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "esicNumber": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "graduationType": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "pursuing": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "passingGrade": {
-					query = query.append("  ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "yearOfPassing": {
-					query = query.append(" ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
@@ -518,6 +367,21 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Team Name": {
+					query = query.append(" t.team_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Project Name": {
+					query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Client Name": {
+					query = query.append(" p.client_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				default:
 					break;
 				}
@@ -530,22 +394,41 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {
-				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,"
-						+ " e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,"
-						+ " e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,"
-						+ " e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,"
-						+ " e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,"
-						+ " e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,"
-						+ " e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,"
-						+ " e.previous_pf_account_number, e.relation, e.state, e.uan,"
-						+ " e.views_on_organisation, e.year_of_passing,"
-						+ "  jr.dept_id, jr.name as jobrolename,"
-						+ " d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, "
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience "
-						+ "FROM employee e "
-						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,"
+//						+ " e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,"
+//						+ " e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,"
+//						+ " e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,"
+//						+ " e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,"
+//						+ " e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,"
+//						+ " e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,"
+//						+ " e.previous_pf_account_number, e.relation, e.state, e.uan,"
+//						+ " e.views_on_organisation, e.year_of_passing,"
+//						+ "  jr.dept_id, jr.name as jobrolename,"
+//						+ " d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, "
+//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience "
+//						+ "FROM employee e "
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+				
+				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+						+ "e.views_on_organisation, e.year_of_passing,\n"
+						+ "jr.dept_id, jr.name as jobrolename,\n"
+						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name \n"
+						+ "FROM employee e \n"
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -779,7 +662,7 @@ public class CustomFilterService {
 		return new ArrayList<>();
 	}
 
-	public ServiceResponse customTimesheetApplicationsList(TimesheetDTO timesheetDTO) {
+	public ServiceResponse customTimesheetApplicationReport(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
@@ -908,7 +791,7 @@ public class CustomFilterService {
 	
 	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery, List<CustomFilterDTO> queryList) {
 		ServiceResponse response = new ServiceResponse();
-		try {
+		
 			Session session = entityManager.unwrap(Session.class);
 			String fromDate = null;
 			String toDate = null;
@@ -926,7 +809,7 @@ public class CustomFilterService {
 				String q1="SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets et "
 						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
 						+ "WHERE date between '"+fromDate+"' and '"+toDate+"' "
-						+ "group by e.emp_id";
+						+ " group by e.emp_id";
 				
 				System.out.println(q1);
 				
@@ -972,6 +855,7 @@ public class CustomFilterService {
 						dto.setEmpId(employee[50] != null ? Long.parseLong(employee[50].toString()) : null);
 						dto.setPendingEodCount(pendingEOdNumber);
 						dto.setLegend("Pending By User");
+						dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
 
 						timesheetList.forEach((timesheet) -> {
 
@@ -1019,14 +903,14 @@ public class CustomFilterService {
 				
 			}catch(Exception e) {
 				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
 			}finally {
 				if(session!=null && session.isOpen()) {
 					session.close();
 				}
 			}
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
 		return response;
 	}
 
@@ -1037,8 +921,13 @@ public class CustomFilterService {
 			StringBuilder subQuery = createQueryForTimesheetSummaryChart(timesheetDTO.getQueryList());
 			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(), timesheetDTO.getQueryList());
 			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
+			if(timesheetSummaryLeaveResposne.getServiceStatus().equals("Success")) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
+			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

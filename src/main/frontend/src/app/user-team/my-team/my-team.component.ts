@@ -58,6 +58,7 @@ export class MyTeamComponent implements OnInit {
 
   fromDate:any;
   toDate:any;
+  managerList:any[];
 
 
   constructor(
@@ -102,7 +103,8 @@ export class MyTeamComponent implements OnInit {
     this.isTeamRequest = false;
     this.page=1;
 
-    this.getAllTeamView();
+    this.getAllManagers();
+   // this.getAllTeamView();    
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
   }
@@ -171,24 +173,45 @@ export class MyTeamComponent implements OnInit {
     this.data='';
   }
 
+  getAllManagers() {
+
+    this.employeeService.getAllManagers().pipe(first()).subscribe((response : any)=>{
+      if (response.serviceStatus == "Success") {
+        this.managerList = response.serviceResponse;
+        this.getAllTeamView();
+        console.log("managerList : ", this.managerList);
+      }
+      else {
+        this.getAllTeamView();
+        console.error(response.serviceResponse);
+      }
+    })
+  }
+
   getAllTeamView() {
     this.teamViewList = []
+
+  //  let managerList = [{managerId:10},{managerId:11},{managerId:16},{managerId:12}];
 
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
     this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
-        // for(let x of this.teamViewList){
-        //   x.employeementId="A-".concat(x.employeementId)
-        // }
-        console.log("teamViewList : ", this.teamViewList);
+        for(let x of this.teamViewList){
+           x.isHierarchy = false;
+          let temp = this.managerList.find(manager => manager.managerId == x.empId);
+          
+           if(temp != undefined) x.isHierarchy = true;          
+        }
+        console.log("teamViewList : ", this.teamViewList);         
+
       } else {
         console.error(response.serviceResponse);
       }
     });
 
-  }
+  }  
 
   getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
@@ -434,6 +457,12 @@ export class MyTeamComponent implements OnInit {
     this.employeeService.getHierarchyByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.teamViewList = response.serviceResponse;
+        for(let x of this.teamViewList){
+          x.isHierarchy = false;
+         let temp = this.managerList.find(manager => manager.managerId == x.empId);
+         
+          if(temp != undefined) x.isHierarchy = true;          
+       }
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }

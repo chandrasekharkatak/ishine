@@ -158,10 +158,40 @@ export class DocumentUploadComponent implements OnInit {
     });
   }
 
+
   onImageSelect(event:any, index:any, documentObj:Document, template: TemplateRef<any>){
     const extensionRE = /(?:\.([^.]+))?$/;
 
     const image = event.target.files[0];
+    let imageSize = parseInt((image.size/1000).toFixed(2));
+    let imgHeight; 
+    let imgWidth; 
+    let img = new Image();    
+    img.src = window.URL.createObjectURL(image);   
+
+    img.onload = getImageDimesions.bind(this)
+
+    function getImageDimesions() {  
+      imgHeight = img.naturalHeight;
+      imgWidth = img.naturalWidth      
+    }
+    
+    if ( imgHeight > 900 || imgWidth > 700) {
+      this.alertMessage = "File dimension exceeds 900 x 700 !!";
+      console.log("File dimension exceeds 900 x 700 !! :", this.alertMessage);
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }    
+    
+    if (imageSize > 200) {
+      this.alertMessage = "File size exceeds 200kB !!"
+      console.log("File size exceeds 200kB :", this.alertMessage);
+      
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } 
+
+    
     const imageName = documentObj.documentType.replaceAll(" ", "-")+"_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
     const inputName = event.target.id;
 
@@ -197,6 +227,9 @@ export class DocumentUploadComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+
+
+    
   }
 
 

@@ -45,6 +45,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllEmployeesByDepartmentIds`, employeeObj);
   }
 
+  getAllManagers() {
+    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllManagers`);
+  }
+
   checkEmployeementId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmployeementId`, employeeObj);
   }
