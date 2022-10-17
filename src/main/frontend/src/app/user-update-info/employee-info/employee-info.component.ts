@@ -36,7 +36,7 @@ export class EmployeeInfoComponent implements OnInit{
   yearOfPassingList:any[] = [];
 
   allChildList:any [] = [];
-  updatedChildList: any[] = [];
+
 
   @Output() loadDocumentUpload: EventEmitter<any> = new EventEmitter<any>();
 

@@ -739,6 +739,9 @@ public class DraftEmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setUpdateApplicationStatus(object[53] != null ? (object[53].toString()) : null);
+					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
+					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
 
 //					if (object[42] != null) {
 //
@@ -942,6 +945,7 @@ public class DraftEmployeeService {
 				employee.setChild1(employeedto.getChild1());
 				employee.setChild2(employeedto.getChild2());
 				employee.setChild3(employeedto.getChild3());
+				employee.setMothersName(employeedto.getMothersName());
 				employee.setBillable(employeedto.getBillable());
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);

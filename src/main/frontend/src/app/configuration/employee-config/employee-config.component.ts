@@ -624,6 +624,17 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)){
+      this.alertMessage = "Please enter Total Experience !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateNumber(employeeObj.totalExperience)){
+      this.alertMessage = "Please enter digit !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
       this.alertMessage = "Please select employee Work Location !!"
       this.openAlertMod(template, this.alertMessage);
@@ -746,6 +757,11 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
+      this.alertMessage = "Please select billable !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     return true;
   }
 
@@ -763,6 +779,7 @@ export class EmployeeConfigComponent implements OnInit {
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
+    
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     if(this.employeeObj.certifications){
@@ -852,6 +869,7 @@ export class EmployeeConfigComponent implements OnInit {
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+   
 
     this.allCertificationList.forEach(certificaiton => {
       certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);

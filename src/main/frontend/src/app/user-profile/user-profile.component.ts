@@ -494,6 +494,15 @@ export class UserProfileComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)){
+      this.alertMessage = "Please enter Total Experience !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateNumber(employeeObj.totalExperience)){
+      this.alertMessage = "Please enter digit !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     return true;
   }
