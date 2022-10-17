@@ -78,7 +78,6 @@ export class UserSurveyComponent implements OnInit {
     this.isSurveyForm = false;
 
     this.getAllSurveys();
-    this.getAllAnsweredSurveys();
   }
 
   getAllSurveys(){
@@ -87,6 +86,7 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
+       this.getAllAnsweredSurveys();
        console.log("this.allSurveyList : ", this.allSurveyList); 
       }else{
         console.error(response.serviceResponse);
@@ -149,6 +149,22 @@ export class UserSurveyComponent implements OnInit {
     });
   }
 
+  validateSurveyResponse(surveyObj:Survey,template: TemplateRef<any>){
+    let flag = true;
+
+    for (let index = 0; index < surveyObj.surveyQuestionList.length; index++) {
+      let question = surveyObj.surveyQuestionList[index];
+      if(question.required && !this.validationService.validateNullUndefinedEmptyString(question.response)){
+        this.alertMessage = `Please provide response for Question ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        break;
+      }
+      
+    }
+    return flag;
+  }
+
   onSubmit(template: TemplateRef<any>){
     const form:any = document.getElementById('surveyForm');
 
@@ -157,13 +173,26 @@ export class UserSurveyComponent implements OnInit {
     surveyObj.surveyQuestionList = [];
 
     this.allSurveyQuestionList.forEach((question, index) => {
+
       let surveyQuestion = new SurveyQuestion();
       surveyQuestion.surveyQuestionId = question.surveyQuestionId;
-      surveyQuestion.response = form.elements[`question-${index+1}`].value;
+      surveyQuestion.required = question.required;
+
+      if(question.optionType == 'checkbox'){
+        let response = [];
+        form.elements[`question-${index+1}`]?.forEach((checkboxOption) => {
+          if(checkboxOption.checked) response.push(checkboxOption.value);
+        });
+        surveyQuestion.response = response.join(", ");
+      }else{
+        surveyQuestion.response = form.elements[`question-${index+1}`].value;
+      }
       surveyObj.surveyQuestionList.push(surveyQuestion);
     });
 
     console.log("On Survey Submit : ", surveyObj);
+    let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
+    if (!inputValidated) return;
     this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -186,7 +215,7 @@ export class UserSurveyComponent implements OnInit {
      const questionEndTemplate = `</div></div>`
      const questionRequiredTemplate = `<span class="text-danger">*</span>`
      let isQuestionRequired = (question.required == true)? questionRequiredTemplate : '';
-     let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined)? question.description : ''}</small>`
+     let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null)? question.description : ''}</small>`
  
      finalQuestionTemplate = questionStartTemplate + questionTemplate;
      

@@ -109,7 +109,10 @@ export class SurveyConfigComponent implements OnInit {
   }
 
 
-  onPreiew(template: TemplateRef<any>){
+  onPreiew(previewTemplate: TemplateRef<any>, template: TemplateRef<any>){
+    let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    if (!inputValidated) return;
+
     const surveyTemplate:string = this.createTemplate();
     
     let previewObj = new Survey();
@@ -119,7 +122,7 @@ export class SurveyConfigComponent implements OnInit {
     previewObj.surveyTemplate = surveyTemplate; 
     
     console.log("previewObj : ", previewObj);
-    this.openSurveyPreviewMod(template,previewObj);
+    this.openSurveyPreviewMod(previewTemplate,previewObj);
   }
 
   vallidateSurvey(template: TemplateRef<any>, surveyObj:Survey, allSurveyQuestionList:SurveyQuestion[]){
@@ -129,47 +132,55 @@ export class SurveyConfigComponent implements OnInit {
       return false;
     }
 
+    let flag = true;
     allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {
       if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
         this.alertMessage = `Please enter Question ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
-        return false;
+        flag = false;
+        return;
       }
 
       if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
         this.alertMessage = `Please select Option Type ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
-        return false;
+        flag = false;
+        return;
       }
       
       if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
         this.alertMessage = `Please select reqiured ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
-        return false;
+        flag = false;
+        return;
       }
 
       if(question.optionType == "radio" || question.optionType == "checkbox"){
-        if (question.optionsList.length > 2) {
-          this.alertMessage = `Please select atleast 2 options for Question ${index + 1} !!`;
+        if (question.optionsList.length < 2) {
+          this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
           this.openAlertMod(template, this.alertMessage);
-          return false;
+          flag = false;
+          return;
+        }else{
+          question.optionsList.forEach((option: SurveyOption, opIndex) => {
+            if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
+              this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
+              this.openAlertMod(template, this.alertMessage);
+              flag = false;
+              return;
+            }
+          });
         }
-        
-        question.optionsList.forEach((option: SurveyOption, opIndex) => {
-          if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
-            this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
-            this.openAlertMod(template, this.alertMessage);
-            return false;
-          }
-        });
       }
     });
+    
+    return flag;
   }
 
   onSubmit(template: TemplateRef<any>){
 
-    // let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
-    // if (!inputValidated) return;
+    let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    if (!inputValidated) return;
     
     const surveyTemplate:string = this.createTemplate();
 
@@ -190,7 +201,7 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.getAllSurveys();
+        this.showSurveys();
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -256,7 +267,7 @@ export class SurveyConfigComponent implements OnInit {
     const questionEndTemplate = `</div></div>`
     const questionRequiredTemplate = `<span class="text-danger">*</span>`
     let isQuestionRequired = (question.required == true)? questionRequiredTemplate : '';
-    let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined)? question.description : ''}</small>`
+    let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null)? question.description : ''}</small>`
 
     finalQuestionTemplate = questionStartTemplate + questionTemplate;
     

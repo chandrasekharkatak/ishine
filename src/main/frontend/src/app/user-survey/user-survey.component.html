@@ -9,9 +9,6 @@
                 <tr>
                     <th scope="col" class="info-label">Survey Name</th>
                     <th scope="col" class="info-label">Description</th>
-                    <th scope="col" class="info-label">Status</th>
-                    <th scope="col" class="info-label">Created by</th>
-                    <th scope="col" class="info-label">Created on</th>
                     <th scope="col" class="info-label">Actions</th>
                 </tr>
             </thead>
@@ -23,9 +20,6 @@
                     *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                     <td>{{survey.surveyName}}</td>
                     <td>{{survey.description}}</td>
-                    <td>{{(survey.isActive == 'true')? 'Active' : 'In-Active'}}</td>
-                    <td>{{survey.createdByName}}</td>
-                    <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                     <td>
                         <button class="btn btn-sm btn-primary" type="submit"
                             (click)="onTakeSurvey(survey)" [disabled]="survey.isAnswered"><em>Take Survey</em></button>
