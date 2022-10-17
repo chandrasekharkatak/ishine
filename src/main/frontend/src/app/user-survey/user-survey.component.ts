@@ -33,7 +33,7 @@ export class UserSurveyComponent implements OnInit {
   allSurveyList:any[] = [];
   allAnsweredSurveyList:any[] = [];
 
-  
+  isSurveyLoaded:boolean = false;
 
   constructor(
     private validationService: ValidationService,
@@ -115,6 +115,7 @@ export class UserSurveyComponent implements OnInit {
   }
 
   onTakeSurvey(surveyObj:Survey){
+    this.isSurveyLoaded = false;
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
     
@@ -137,10 +138,14 @@ export class UserSurveyComponent implements OnInit {
         const formStart = `<form id="surveyForm">`
         const formEnd = `</form>`
         const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
+        
+        this.isSurveyForm = true;
+        this.isSurveyList = false;
 
         setTimeout(()=>{
           let surveyContainer = document.getElementById('surveyContainer');
           surveyContainer.insertAdjacentHTML('afterbegin', surveyTemplate);
+          this.isSurveyLoaded = true;
         }, 1000)
 
       } else {
