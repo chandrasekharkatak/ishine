@@ -130,6 +130,14 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Mother's Name</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.mothersName">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Place of Birth</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.placeOfBirth">
                                         </div>
@@ -438,6 +446,12 @@
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
+                                        <p class="info-label">Total Exprience</p>
+                                        <p class="info-text info-highlight">{{employeeObj.totalExperience}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
                                         <p class="info-label">Work Location <small>(State)</small></p>
                                         <p class="info-text info-highlight">{{employeeObj.workLocation}}</p>
                                     </div>
@@ -452,7 +466,7 @@
                         </div>
                     </app-accordion-item>
     
-                    <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                    <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -484,6 +498,14 @@
                                         <div class="form-group">
                                             <label class="info-label">Years of Experience</label>
                                             <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Total Exprience</label>
+                                            <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.totalExperience">
                                         </div>
                                     </div>
                                 </div>
@@ -533,6 +555,67 @@
                                         <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputPreviousEmployerField(previousEmployer)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </app-accordion-item> -->
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                        <div class="container-fluid">
+                            <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Employer Name</p>
+                                        <p class="info-text">{{previousEmployer.employerName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Joining</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date of Relieving</p>
+                                        <p class="info-text">{{previousEmployer.dateOfRelieving}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Years of Experience</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Designation</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.designation}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Manager Name</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.managerName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Manager Contact Number</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.managerContactNumber}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">HR Name</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.hrName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">HR Contact Number</p>
+                                        <p class="info-text info-highlight">{{previousEmployer.hrContactNumber}}</p>
+                                    </div>
+                                </div>
+                                
                             </div>
                         </div>
                     </app-accordion-item>

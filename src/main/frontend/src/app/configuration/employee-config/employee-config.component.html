@@ -164,6 +164,14 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Mother's Name</label>
+                                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="employeeObj.mothersName" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label">Place of Birth</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.placeOfBirth" disabled>
                                         </div>
@@ -529,6 +537,14 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="employeeObj.experience == 'Exprienced'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Total Experience</label>
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
@@ -563,7 +579,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Employer Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName" disabled>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName" >
                                         </div>
                                     </div>
                                 </div>
@@ -571,7 +587,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date Of Joining</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" disabled>
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" >
                                         </div>
                                     </div>
                                 </div>
@@ -579,7 +595,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date of Relieving</label>
-                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" disabled>
+                                            <input id="DOC" type="date" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" >
                                         </div>
                                     </div>
                                 </div>
@@ -587,7 +603,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Years of Experience</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" disabled>
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" >
                                         </div>
                                     </div>
                                 </div>
@@ -595,7 +611,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Designation</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation" disabled>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation" >
                                         </div>
                                     </div>
                                 </div>
@@ -603,7 +619,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Manager Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName" disabled>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName" >
                                         </div>
                                     </div>
                                 </div>
@@ -611,7 +627,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Manager Contact Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber" disabled>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber" >
                                         </div>
                                     </div>
                                 </div>
@@ -619,7 +635,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">HR Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName" disabled>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName" >
                                         </div>
                                     </div>
                                 </div>
@@ -627,7 +643,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">HR Contact Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber" disabled>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber" >
                                         </div>
                                     </div>
                                 </div>
@@ -889,6 +905,12 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Father's Name</p>
                                                 <p class="info-text">{{previewObj.fatherName}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">mother's Name</p>
+                                                <p class="info-text">{{previewObj.mothersName}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
