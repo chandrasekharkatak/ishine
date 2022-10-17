@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSurveyForm}" (click)="showSurveyForm()">Create Survey</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSurveyList}" (click)="showSurveys()">View All Surveys</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_survey" [ngClass]="{'active' : isSurveyForm}" (click)="showSurveyForm()">Create Survey</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_surveys || userMapping.update_survey_status" [ngClass]="{'active' : isSurveyList}" (click)="showSurveys()">View All Surveys</button>
     </div>
 </div>
 

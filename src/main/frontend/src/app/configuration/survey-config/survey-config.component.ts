@@ -44,11 +44,11 @@ export class SurveyConfigComponent implements OnInit {
 
   ngOnInit(): void {
     // Dynamic Subfeature Flags 
-    // let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    // featureMap.subFeatures?.forEach(sub => {
-    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    // });
-    // console.log(this.feature, this.userMapping);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
   
     // let questionObj = ;
     // questionObj.optionsList.push("");

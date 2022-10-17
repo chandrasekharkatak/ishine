@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Feature } from '../models/feature';
 import { SurveyOption } from '../models/sureyOption';
 import { Survey } from '../models/survey';
 import { SurveyQuestion } from '../models/surveyQuestion';
@@ -46,11 +47,11 @@ export class UserSurveyComponent implements OnInit {
 
   ngOnInit(): void {
     // Dynamic Subfeature Flags 
-    // let featureMap: Feature = onTakeSurvey()this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    // featureMap.subFeatures?.forEach(sub => {
-    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    // });
-    // console.log(this.feature, this.userMapping);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
   
     this.sectionViewInit();
 
