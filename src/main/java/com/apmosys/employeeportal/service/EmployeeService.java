@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
+import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
@@ -274,15 +275,15 @@ public class EmployeeService {
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
-			
-			if(employeedto.getExperience().equals("Fresher")){
+
+			if (employeedto.getExperience().equals("Fresher")) {
 				employee.setExperience(employeedto.getExperience());
 				employee.setTotalExperience(0f);
-			}else {
+			} else {
 				employee.setExperience(employeedto.getExperience());
 				employee.setTotalExperience(employeedto.getTotalExperience());
 			}
-			
+
 			employee.setNoticePeriod(employeedto.getNoticePeriod());
 			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
 			employee.setWorkLocation(employeedto.getWorkLocation());
@@ -346,7 +347,6 @@ public class EmployeeService {
 					log.setTableName(DbTable.EMPLOYEE);
 					log.setTableEntryId(newEmployee.getEmpId());
 					log.setRemarks("Employee profile created.");
-
 
 					logsRepository.save(log);
 
@@ -683,7 +683,7 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					
+
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1889,38 +1889,75 @@ public class EmployeeService {
 		return response;
 
 	}
-	public ServiceResponse getEmployees() {	
-		ServiceResponse response = new ServiceResponse();	
-			
-		try {	
-			List<Object[]> allEmployees = employeeRepository.getEmployees();	
-			List<EmployeeDTO> empDTO = new ArrayList<>();	
-			if(!allEmployees.isEmpty()) {	
-				for(Object[] obj : allEmployees ) {	
-				EmployeeDTO employeeDTO = new EmployeeDTO();	
-				employeeDTO.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);	
-				employeeDTO.setEmployeementId(obj[1] != null ? Long.parseLong(obj[1].toString()) : null);	
-				employeeDTO.setManagerName(obj[2] != null ? obj[2].toString() : null);	
-				employeeDTO.setName(obj[3] != null ? obj[3].toString() : null);	
-				employeeDTO.setEmail(obj[4] != null ? obj[4].toString() : null);	
-				employeeDTO.setManagerMail(obj[5] != null ? obj[5].toString() : null);	
-				empDTO.add(employeeDTO);	
-			}	
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-				response.setServiceResponse(empDTO);		
-			}else {	
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-				response.setServiceResponse("Employee List is empty.");	
-			}	
-		} catch (Exception e) {	
-			// TODO Auto-generated catch block	
-			e.printStackTrace();	
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
-			response.setServiceResponse("Something Went Wrong.");	
-			response.setServiceError(e.getMessage());	
-		}	
-		return response;	
-	}	
-	
+
+	public ServiceResponse getEmployees() {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			List<Object[]> allEmployees = employeeRepository.getEmployees();
+			List<EmployeeDTO> empDTO = new ArrayList<>();
+			if (!allEmployees.isEmpty()) {
+				for (Object[] obj : allEmployees) {
+					EmployeeDTO employeeDTO = new EmployeeDTO();
+					employeeDTO.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+					employeeDTO.setEmployeementId(obj[1] != null ? Long.parseLong(obj[1].toString()) : null);
+					employeeDTO.setManagerName(obj[2] != null ? obj[2].toString() : null);
+					employeeDTO.setName(obj[3] != null ? obj[3].toString() : null);
+					employeeDTO.setEmail(obj[4] != null ? obj[4].toString() : null);
+					employeeDTO.setManagerMail(obj[5] != null ? obj[5].toString() : null);
+					empDTO.add(employeeDTO);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(empDTO);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is empty.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllManagers() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> allEmployees = employeeRepository.getAllManagers();			
+
+			Optional.ofNullable(allEmployees).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No employees found. List is empty.");
+				} else {
+					List<EmployeeDTO> empDTO = new ArrayList<>();
+
+					list.forEach((object) -> {
+
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setManagerId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						empDTO.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(empDTO);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No employees found. List is null.");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 }
