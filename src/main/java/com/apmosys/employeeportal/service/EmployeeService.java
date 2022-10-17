@@ -1935,8 +1935,7 @@ public class EmployeeService {
 				} else {
 					List<EmployeeDTO> empDTO = new ArrayList<>();
 
-					list.forEach((object) -> {
-						
+					list.forEach((object) -> {						
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setManagerId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						empDTO.add(dto);
