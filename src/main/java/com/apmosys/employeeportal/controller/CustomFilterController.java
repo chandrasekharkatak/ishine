@@ -40,9 +40,9 @@ public class CustomFilterController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/customTimesheetApplicationsList", method = RequestMethod.POST)
-	public ServiceResponse customTimesheetApplicationsList(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = customFilterService.customTimesheetApplicationsList(timesheetDTO);
+	@RequestMapping(value = "/customTimesheetApplicationReport", method = RequestMethod.POST)
+	public ServiceResponse customTimesheetApplicationReport(@RequestBody TimesheetDTO timesheetDTO) {
+		ServiceResponse response = customFilterService.customTimesheetApplicationReport(timesheetDTO);
 		return response;
 	}
 	

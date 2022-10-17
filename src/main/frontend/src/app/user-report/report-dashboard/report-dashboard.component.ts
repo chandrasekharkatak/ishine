@@ -70,7 +70,7 @@ export class ReportDashboardComponent implements OnInit {
   queryList:any[] = [];
   leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
-  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
+  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
   constructor(
     private leaveService : LeaveService,
@@ -171,6 +171,7 @@ export class ReportDashboardComponent implements OnInit {
       this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.leaveSumarryList = response.serviceResponse;
+          console.log(this.leaveSumarryList, "  :  this.leaveSumarryList");
           this.extractLeaveReportData();
         } else {
           this.openAlertMod(template,response.serviceResponse);
@@ -280,17 +281,13 @@ export class ReportDashboardComponent implements OnInit {
       let tempFrom = "";
       let tempTo = "";
       queryObj.queryList.forEach((query)=> {
-        if(query.column == 'From Date')
+        if(query.column == 'From Date' )
         {
           tempFrom = query.value;
-        }else{
-          tempFrom = moment().subtract(8, 'd').format(this.dateFormat);
         }
         if(query.column == 'To Date')
         {
           tempTo = query.value;
-        }else{
-          tempTo = moment().format(this.dateFormat);
         }
       });
 
@@ -300,7 +297,12 @@ export class ReportDashboardComponent implements OnInit {
           let leaveObj = new Leave();
           leaveObj.startDate = tempFrom;
           leaveObj.endDate = tempTo;
-          console.log()
+          
+          if(leaveObj.startDate == "" && leaveObj.endDate == ""){
+            this.openAlertMod(template,"Please Select Date Range.");
+            this.getLeaveTrendAnalysisReport();
+          }
+
           this.extractLeaveTrendAnalysisData(leaveObj);
         } else {
           this.openAlertMod(template,response.serviceResponse);
@@ -343,10 +345,10 @@ export class ReportDashboardComponent implements OnInit {
 
         this.timsheetSummaryList = this.timsheetSummaryList.filter((value, index, self) =>
           index === self.findIndex((t) => (
-            t.employeementId === value.employeementId && t.date === value.date
+            t.employeementId === value.employeementId && t.date === value.date && value.employmentstatus != 'InActive'
           ))
         )
-        
+
         this.timsheetSummaryList.forEach(timesheet => {
 
           if (timesheet.legend == "Pending") pendingCount++;
@@ -408,6 +410,26 @@ export class ReportDashboardComponent implements OnInit {
     if(queryObjList == ''){
       this.get9DayTimesheetReport();
     }else {
+
+      let tempFrom = "";
+      let tempTo = "";
+      queryObj.queryList.forEach((query)=> {
+        if(query.column == 'From Date' )
+        {
+          tempFrom = query.value;
+        }
+        if(query.column == 'To Date')
+        {
+          tempTo = query.value;
+        }
+      });
+
+      if(tempFrom == "" && tempTo == ""){
+        this.openAlertMod(template,"Please Select Date Range.");
+        this.get9DayTimesheetReport();
+        return;
+      }
+
       this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.timsheetSummaryList = response.serviceResponse;
@@ -422,6 +444,7 @@ export class ReportDashboardComponent implements OnInit {
 
   getAllEmployeeList() {
     this.allEmployeeList = [];
+    this.queryList=[];
     this.employeeInProbationAfter6MonthsCount = 0;
       
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
@@ -454,6 +477,13 @@ export class ReportDashboardComponent implements OnInit {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
+
+          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.employeementId === value.employeementId
+          ))
+        )
+
           if(this.allEmployeeList.length == 0){
             this.openAlertMod(template, "No Data Found");
           }
@@ -652,7 +682,7 @@ export class ReportDashboardComponent implements OnInit {
           y: resignedCount
         },
         {
-          name: "In-Active",
+          name: "InActive",
           y: inActiveCount
         }];
 
@@ -1162,7 +1192,7 @@ export class ReportDashboardComponent implements OnInit {
       this.filterData.title  = title;
       this.filterData.columns = columns;
 
-      if(this.filterData.title == 'Filter Timesheet Summary'){
+      if(this.filterData.title == 'Filter Timesheet Summary' || this.filterData.title == 'Filter Leave Trend Chart'){
 
         let fromDate = moment().subtract(8, 'd').format(this.dateFormat);
         let toDate = moment().format(this.dateFormat);
@@ -1329,54 +1359,20 @@ export class ReportDashboardComponent implements OnInit {
   openLeaveSummaryTableModel(statusName:any) {
     let modalTableList = this.uniqueLeaveSumarryList;
     this.modalSummaryList = [];
-    if(statusName == "Pending"){
       this.page=1;
-      this.modalTitle = "Pending Leave Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.status == "Pending");
+      this.modalTitle = statusName+" Leave Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.status == statusName);
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
     }
-    if(statusName == "Rejected"){
-      this.page=1;
-      this.modalTitle = "Rejected Leave Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.status == "Rejected");
-      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
-    }
-    if(statusName == "Approved"){
-      this.page=1;
-      this.modalTitle = "Approved Leave Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.status == "Approved");
-      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
-    }
-  }
 
   openTimesheetSummaryTableModel(legendName:any){
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
-    if(legendName == "Pending"){
       this.page=1;
-      this.modalTitle = "Pending Timesheet Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending");
+      this.modalTitle = legendName + " Timesheet Summary";
+      this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
     }
-    if(legendName == "Rejected"){
-      this.page=1;
-      this.modalTitle = "Rejected Timesheet Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.legend == "Rejected");
-      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(legendName == "Approved"){
-      this.page=1;
-      this.modalTitle = "Approved Timesheet Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.legend == "Approved");
-      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(legendName == "Pending By User"){
-      this.page=1;
-      this.modalTitle = "Pending By User Timesheet Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
-      this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
-    }
-  }
 
   openTotalCountModal(title:any){
     this.modalSummaryList = [];
@@ -1395,53 +1391,19 @@ export class ReportDashboardComponent implements OnInit {
   openEmployeeStatusTableModal(status:any){
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList;
-    if(status == "Probation"){
       this.page=1;
-      this.modalTitle = "Employee In Probation";
-      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Probation");
+      this.modalTitle = "Employee In " + status;
+      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == status);
       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(status == "Confirmed"){
-      this.page=1;
-      this.modalTitle = "Confirmed Employee";
-      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Confirmed");
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(status == "Resigned"){
-      this.page=1;
-      this.modalTitle = "Resigned Employee";
-      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "Resigned");
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(status == "In-Active"){
-      this.page=1;
-      this.modalTitle = "In-Active Employee";
-      this.modalSummaryList = modalTableList.filter(x => x.employmentstatus == "InActive");
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
   }
 
   openGenderSummaryModalTable(gender:any){
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-    if(gender == "male"){
-      this.page=1;
-      this.modalTitle = "Male Employee Data";
-      this.modalSummaryList = modalTableList.filter(x => x.gender == "male");
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(gender == "female"){
-      this.page=1;
-      this.modalTitle = "Female Employee Data";
-      this.modalSummaryList = modalTableList.filter(x => x.gender == "female");
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
-    if(gender == "other"){	
-      this.page=1;	
-      this.modalTitle = "Other Employee Data";	
-      this.modalSummaryList = modalTableList.filter(x => x.gender == "other");	
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    }
+    this.page = 1;
+    this.modalTitle = gender + " Employee Data";
+    this.modalSummaryList = modalTableList.filter(x => x.gender == gender);
+    this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }    
 
   openAgeSummayModalTable(age:any){

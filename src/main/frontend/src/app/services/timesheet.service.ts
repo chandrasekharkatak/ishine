@@ -68,8 +68,8 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}` + `employeeportal/api/timesheetReport`);
   }
 
-  customTimesheetApplicationsList(queryObj: Query) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customTimesheetApplicationsList`, queryObj);
+  customTimesheetApplicationReport(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customTimesheetApplicationReport`, queryObj);
   }
 
   customQueryForTimesheetSummaryChart(queryObj: Query){

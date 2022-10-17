@@ -48,7 +48,7 @@ export class ReportListComponent implements OnInit {
   excelName:any;
 
   leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   timesheetColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
@@ -192,7 +192,7 @@ export class ReportListComponent implements OnInit {
     if(queryObjList == ''){
       this.getAllTimesheetApplicationsList();
     }else {
-      this.timesheetService.customTimesheetApplicationsList(queryObj).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allTimesheetApplicationsList = response.serviceResponse;
 
@@ -248,6 +248,13 @@ export class ReportListComponent implements OnInit {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
+
+          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.employeementId === value.employeementId
+          ))
+        )
+
           if(this.allEmployeeList.length != 0){
             this.openAlertMod(template, "Employee Report found")
           }else{
