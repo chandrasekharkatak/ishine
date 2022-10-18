@@ -205,6 +205,7 @@ export class MyTimesheetComponent implements OnInit {
 
     if (timesheetObj.dayType != 'Holiday') {
       let flag = true;
+      let totalActivityTime = 0;
 
       this.allTimesheetActivities.forEach((activity, index) => {
         if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
@@ -234,8 +235,15 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
+        
+        totalActivityTime += activity.completionTime;
       });
-
+      if(totalActivityTime <= 0 || totalActivityTime > 24)
+      {
+        this.alertMessage = 'Total time must be greater than 0 hrs and maximum upto 24 hrs!! '
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
       if (!flag) {
         this.openAlertMod(template, this.alertMessage);
         return false;
