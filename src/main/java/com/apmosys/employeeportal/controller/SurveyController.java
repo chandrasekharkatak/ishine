@@ -72,5 +72,12 @@ public class SurveyController {
 		ServiceResponse response = surveyService.getSurveyAllResponsesBySurveyId(surveyDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/deleteSurvey", method = RequestMethod.POST)
+	public ServiceResponse deleteSurvey(@RequestBody SurveyDTO surveyDTO) {
+
+		ServiceResponse response = surveyService.deleteSurvey(surveyDTO);
+		return response;
+	}
 
 }

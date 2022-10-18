@@ -377,15 +377,16 @@ public class SurveyServiceImpl implements SurveyService {
 	public ServiceResponse getSurveyAllResponsesBySurveyId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Id does not exists.");
 				return response;
 			}
-			
-			List<Object[]> objectList =	surveyEmployeeResponseRepository.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
-			
+
+			List<Object[]> objectList = surveyEmployeeResponseRepository
+					.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
 				if (list.isEmpty()) {
@@ -415,7 +416,40 @@ public class SurveyServiceImpl implements SurveyService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No responses found for survey. List is null.");
 			});
-			
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse deleteSurvey(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
+
+			if (surveyObject.isPresent()) {
+				Survey survey = surveyObject.get();
+
+				if (survey.getIsActive().equals("false")) {
+					surveyRepository.deleteById(survey.getSurveyId());
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Survey Deleted.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Active/Completed survey cannot be deleted.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey Not Found.");
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
