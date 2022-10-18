@@ -319,4 +319,109 @@ public class SurveyServiceImpl implements SurveyService {
 		return response;
 	}
 
+	@Override
+	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (!validationService.validateEmpId(surveyDTO.getEmpId())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Id does not exists.");
+				return response;
+			}
+			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey Id does not exists.");
+				return response;
+			}
+
+			List<Object[]> objectList = surveyEmployeeResponseRepository
+					.getSurveyResponseByEmpIdAndSurveyId(surveyDTO.getEmpId(), surveyDTO.getSurveyId());
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No responses found for survey. List is empty.");
+				} else {
+					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
+
+					list.forEach((object) -> {
+
+						SurveyQuestionDTO dto = new SurveyQuestionDTO();
+						dto.setQuestion(object[0] != null ? object[0].toString() : null);
+						dto.setOptions(object[1] != null ? object[1].toString() : null);
+						dto.setResponse(object[2] != null ? object[2].toString() : null);
+						dtoList.add(dto);
+
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No responses found for survey. List is null.");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse getSurveyAllResponsesBySurveyId(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey Id does not exists.");
+				return response;
+			}
+			
+			List<Object[]> objectList =	surveyEmployeeResponseRepository.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+			
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No responses found for survey. List is empty.");
+				} else {
+					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
+
+					list.forEach((object) -> {
+
+						SurveyQuestionDTO dto = new SurveyQuestionDTO();
+						dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setName(object[1] != null ? object[1].toString() : null);
+						dto.setCreatedOn(object[2] != null ? object[2].toString() : null);
+						dto.setQuestion(object[0] != null ? object[0].toString() : null);
+						dto.setOptions(object[1] != null ? object[1].toString() : null);
+						dto.setResponse(object[2] != null ? object[2].toString() : null);
+						dtoList.add(dto);
+
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No responses found for survey. List is null.");
+			});
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

@@ -17,5 +17,8 @@ public class SurveyQuestionDTO {
 	private String required;
 	private String description;
 	private String response;
+	private String createdOn;
+	private String name;
+	private Long employeementId;
 
 }

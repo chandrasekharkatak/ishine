@@ -58,5 +58,19 @@ public class SurveyController {
 		ServiceResponse response = surveyService.changeSurveyStatus(surveyDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getSurveyResponseByEmpIdAndSurveyId", method = RequestMethod.POST)
+	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(@RequestBody SurveyDTO surveyDTO) {
+
+		ServiceResponse response = surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getSurveyAllResponsesBySurveyId", method = RequestMethod.POST)
+	public ServiceResponse getSurveyAllResponsesBySurveyId(@RequestBody SurveyDTO surveyDTO) {
+
+		ServiceResponse response = surveyService.getSurveyAllResponsesBySurveyId(surveyDTO);
+		return response;
+	}
 
 }
