@@ -156,7 +156,15 @@ export class ReportDashboardComponent implements OnInit {
     }];
 
     console.log("leaveStatusData : ", leaveStatusData);
-    this.renderPieSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
+
+    let checkLeaveStatusData = leaveStatusData.filter(data => data.y != 0);
+    console.log("checkLeaveStatusData :", checkLeaveStatusData);
+
+    if(checkLeaveStatusData && checkLeaveStatusData.length != 0){
+      this.renderPieSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
+    }else{
+      this.renderPlaceholderChart('Leave Summary Chart', 'leaveSummaryChart');
+    }
         
   }
 
@@ -399,7 +407,15 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("timesheetData : ", timesheetData);
-        this.renderPieSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
+
+        let checkTimesheetData = timesheetData.filter(data => data.y != 0);
+        console.log("checkTimesheetData :", checkTimesheetData);
+
+        if(checkTimesheetData && checkTimesheetData.length != 0){
+          this.renderPieSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
+        }else{
+          this.renderPlaceholderChart('Timesheet Status Summary Chart', 'timesheetStatusSummary');
+        }
   }
 
   getCustomTimesheetReport(queryObjList:any , template:TemplateRef<any>) {
@@ -687,7 +703,15 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("leaveStatusData : ", employeeStatusData);
-        this.renderPieSummaryChart('Employee Status Summary', 'employeeStatus', employeeStatusData, 'Employee Status', this.openEmployeeStatusTableModal.bind(this));
+
+        let checkEmployeeStatusData = employeeStatusData.filter(data => data.y != 0);
+        console.log("checkEmployeeStatusData :", checkEmployeeStatusData);
+
+        if(checkEmployeeStatusData && checkEmployeeStatusData.length != 0){
+          this.renderPieSummaryChart('Employee Status Summary', 'employeeStatus', employeeStatusData, 'Employee Status', this.openEmployeeStatusTableModal.bind(this));
+        }else{
+          this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
+        }
 
 
         /*
@@ -698,6 +722,7 @@ export class ReportDashboardComponent implements OnInit {
           return [dept.departmentName, dept.employeeCount]
         })
         console.log("departmentWiseEmployeeData : ", departmentWiseEmployeeData);
+
         this.renderColumnBarSummaryChart('Department Wise Employee','departmentWiseEmployee',departmentWiseEmployeeData,'Department', this.openDepartmentWiseEmployeeModalTable.bind(this));
 
         /*
@@ -715,10 +740,18 @@ export class ReportDashboardComponent implements OnInit {
         {	
           name: "other",	
             y: otherCount	
-          }];
+        }];
 
         console.log("genderData : ", genderData);
-        this.renderPieSummaryChart('Gender Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
+
+        let checkGenderData = genderData.filter(data => data.y != 0);
+        console.log("checkGenderData :", checkGenderData);
+
+        if(checkGenderData && checkGenderData.length != 0){
+          this.renderPieSummaryChart('Gender Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
+        }else{
+          this.renderPlaceholderChart('Gender Summary', 'genderSummary');
+        }
 
          /*
         Chart Data for - Age Summary Graph.
@@ -742,7 +775,15 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("employeeAgeData : ", employeeAgeData);
-        this.renderPieSummaryChart('Age Summary', 'employeeAgeSummary', employeeAgeData, 'Employee Summary', this.openAgeSummayModalTable.bind(this));
+
+        let checkEmployeeAgeData = employeeAgeData.filter(data => data.y != 0);
+        console.log("checkGenderData :", checkGenderData);
+
+        if(checkEmployeeAgeData && checkEmployeeAgeData.length != 0){
+          this.renderPieSummaryChart('Age Summary', 'employeeAgeSummary', employeeAgeData, 'Employee Summary', this.openAgeSummayModalTable.bind(this));
+        }else{
+          this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
+        }
 
         /*
         Chart Data for - Employee Experience Graph Data.
@@ -788,7 +829,15 @@ export class ReportDashboardComponent implements OnInit {
         }];
 
         console.log("genderData : ", genderData);
-        this.renderPieSummaryChart('Fresher - Lateral Summary', 'fresherLateralChart', fresherLateralData, 'Employee Summary', this.openFresherLateralModalTable.bind(this));
+
+        let checkFresherLateralData = fresherLateralData.filter(data => data.y != 0);
+        console.log("checkFresherLateralData :", checkFresherLateralData);
+
+        if(checkFresherLateralData && checkFresherLateralData.length != 0){
+          this.renderPieSummaryChart('Fresher - Lateral Summary', 'fresherLateralChart', fresherLateralData, 'Employee Summary', this.openFresherLateralModalTable.bind(this));
+        }else{
+          this.renderPlaceholderChart('Fresher - Lateral Summary', 'fresherLateralChart');
+        }
 
         /*
         Chart Data for - Employee Join VS Resign
@@ -1183,6 +1232,58 @@ export class ReportDashboardComponent implements OnInit {
       },
       series: chartData
   });
+  }
+
+  renderPlaceholderChart(chartName:any, chartId:any){
+    HighCharts.chart(chartId, {
+      credits: {
+        enabled: false
+      },
+      chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie'
+      },
+      title: {
+        text: chartName,
+        style:{	
+          fontWeight: 'bold',	
+          color: '#000000'	
+        }
+      },
+      tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+      },
+      accessibility: {
+        point: {
+          valueSuffix: '%'
+        }
+      },
+      plotOptions: {
+        series: {
+          enableMouseTracking: false
+        },
+        pie: {
+          borderWidth: 0,
+          allowPointSelect: true,
+          cursor: 'pointer',
+          dataLabels: {
+            enabled: true,
+            format: '<h4>No data to display<h4>'
+          },
+          showInLegend: false
+        }
+      },
+      series: [{
+        name: "error",
+        colorByPoint: true,
+        type: undefined,
+        data: [{ name: 'data', y: 1 }]
+      }],
+      colors:
+        ['#b0b0b0'],
+    });
   }
 
     /* Filter */

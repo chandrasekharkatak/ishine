@@ -713,7 +713,7 @@ public class CustomFilterService {
 				
 				switch (dto.getColumn()) {
 				case "Employee Id": {
-					query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
+					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
