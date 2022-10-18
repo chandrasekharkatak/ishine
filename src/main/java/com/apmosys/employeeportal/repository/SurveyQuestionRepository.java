@@ -17,4 +17,6 @@ public interface SurveyQuestionRepository extends JpaRepository<SurveyQuestion, 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAnsweredSurveysByEmpId(Long empId);
 
+	public List<SurveyQuestion> findBySurveyId(Long surveyId);
+
 }

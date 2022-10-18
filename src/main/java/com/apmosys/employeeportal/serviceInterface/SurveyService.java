@@ -23,4 +23,6 @@ public interface SurveyService {
 
 	ServiceResponse deleteSurvey(SurveyDTO surveyDTO);
 
+	ServiceResponse updateSurvey(SurveyDTO surveyDTO);
+
 }
