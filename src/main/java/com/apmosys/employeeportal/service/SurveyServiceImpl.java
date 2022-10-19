@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
-import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyEmployeeResponse;
 import com.apmosys.employeeportal.model.SurveyQuestion;
@@ -377,15 +376,16 @@ public class SurveyServiceImpl implements SurveyService {
 	public ServiceResponse getSurveyAllResponsesBySurveyId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Id does not exists.");
 				return response;
 			}
-			
-			List<Object[]> objectList =	surveyEmployeeResponseRepository.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
-			
+
+			List<Object[]> objectList = surveyEmployeeResponseRepository
+					.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
 				if (list.isEmpty()) {
@@ -416,7 +416,119 @@ public class SurveyServiceImpl implements SurveyService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No responses found for survey. List is null.");
 			});
-			
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse deleteSurvey(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
+
+			if (surveyObject.isPresent()) {
+				Survey survey = surveyObject.get();
+
+				// Survey with Active(true) and Completed(Completed) status cannot be deleted
+				if (survey.getIsActive().equals("false")) {
+					surveyRepository.deleteById(survey.getSurveyId());
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Survey Deleted.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Active/Completed survey cannot be deleted.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey Not Found.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse updateSurvey(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
+
+			if (surveyObject.isPresent()) {
+				Survey survey = surveyObject.get();
+
+				// Survey with Active(true) and Completed(Completed) status cannot be updated.
+				if (survey.getIsActive().equals("false")) {
+
+					survey.setUpdatedBy(surveyDTO.getUpdatedBy());
+					survey.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+					survey.setSurveyName(surveyDTO.getSurveyName());
+					survey.setDescription(surveyDTO.getDescription());
+
+					Survey surveyUpdated = surveyRepository.save(survey);
+
+					if (surveyUpdated.getSurveyId() != null) {
+						
+						List<SurveyQuestion> questionList = surveyQuestionRepository.findBySurveyId(surveyUpdated.getSurveyId());
+						
+						
+						questionList.forEach((question) -> {
+							surveyQuestionRepository.deleteById(question.getSurveyQuestionId());
+						});
+						
+						List<SurveyQuestion> list = new ArrayList<>();
+						Long surveyId = surveyUpdated.getSurveyId();
+
+						surveyDTO.getSurveyQuestionList().forEach((question) -> {
+							SurveyQuestion newSurveyQuestion = new SurveyQuestion();
+
+							newSurveyQuestion.setSurveyId(surveyId);
+							newSurveyQuestion.setQuestion(question.getQuestion());
+							newSurveyQuestion.setOptionType(question.getOptionType());
+							newSurveyQuestion.setOptions(question.getOptions());
+							newSurveyQuestion.setRequired(question.getRequired());
+							newSurveyQuestion.setDescription(question.getDescription());
+
+							list.add(newSurveyQuestion);
+						});
+
+						List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
+
+						if (listSaved.size() > 0) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Survey updated successfully.");
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Survey updated but no questions were added to survey.");
+						}
+
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Failed to update survey.");
+					}
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Active/Completed survey cannot be updated.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey Not Found.");
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
