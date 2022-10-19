@@ -638,7 +638,7 @@ public class EmployeeLeaveService {
 						for(EmployeeLeavesMap e: employeeLeavesList) {			
 							System.out.println(e.getLeaveTypeMasterId() + " leave type id");			
 										
-							if(e.getLeaveTypeMasterId() == 1) {			
+							if(e.getLeaveTypeMasterId() == 4) {			
 								e.setBalance(leaveDTO.getBalance());			
 								System.out.println(leaveDTO.getBalance() + " set balance");			
     						}			
@@ -667,7 +667,10 @@ public class EmployeeLeaveService {
 									
 					}			
 							
-			}			
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
+				response.setServiceResponse("Employee not found");
+			}
 						
 		} catch (Exception e) {			
 			e.printStackTrace();			
@@ -701,9 +704,11 @@ public class EmployeeLeaveService {
 			leaveApplication.setEmpId(primaryEmpid);			
 						
 			if(leaveDTO.getLeaveType().equals("PL")) {			
-				leaveApplication.setLeaveTypeMasterId((short) 2);			
+				leaveApplication.setLeaveTypeMasterId((short) 1);			
 			}else if(leaveDTO.getLeaveType().equals("LWP")) {			
 				leaveApplication.setLeaveTypeMasterId((short) 3);			
+			}else if(leaveDTO.getLeaveType().equals("CO")) {			
+				leaveApplication.setLeaveTypeMasterId((short) 4);			
 			}			
 						
 			if(leaveDTO.getStatus().equals("Approved")) {			
