@@ -1301,8 +1301,8 @@ export class ReportDashboardComponent implements OnInit {
         let toDate = moment().format(this.dateFormat);
 
         this.queryList = [
-          { column: "From Date", operator: ">", value: fromDate, conjunction: "AND" },
-          { column: "To Date", operator: "<", value: toDate, conjunction: "" }
+          { column: "From Date", operator: ">=", value: fromDate, conjunction: "AND" },
+          { column: "To Date", operator: "<=", value: toDate, conjunction: "" }
         ];
       }
 
