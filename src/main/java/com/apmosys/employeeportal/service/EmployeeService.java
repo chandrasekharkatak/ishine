@@ -461,7 +461,7 @@ public class EmployeeService {
 			employee.setViewsOnOrganisation("Add your views.");
 
 			if (jobRoleRepository.findById(employeedto.getJobRoleId()).isEmpty()) {
-				employee.setJobRoleId(135L);
+				employee.setJobRoleId(138L);
 			} else {
 				employee.setJobRoleId(employeedto.getJobRoleId());
 			}
@@ -474,6 +474,7 @@ public class EmployeeService {
 			employee.setExperience(employeedto.getExperience());
 			employee.setRole(employeedto.getRole());
 			employee.setWorkLocation(employeedto.getWorkLocation());
+			employee.setInvalidAccessAttempt(0);
 
 			Employee newEmployee = employeeRepository.save(employee);
 

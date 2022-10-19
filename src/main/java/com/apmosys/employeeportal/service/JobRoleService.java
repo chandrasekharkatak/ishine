@@ -115,6 +115,7 @@ public class JobRoleService {
 			newJobRole.setName(jobRoleDTO.getName());
 			// department.setDept_id(jobRoleDTO.getDepartmentId());
 			newJobRole.setDeptId(jobRoleDTO.getDepartmentId());
+			newJobRole.setEmployeeRole(jobRoleDTO.getEmployeeRole());
 
 			JobRole dbResponse = jobRoleRepository.save(newJobRole);
 			if (dbResponse != null) {

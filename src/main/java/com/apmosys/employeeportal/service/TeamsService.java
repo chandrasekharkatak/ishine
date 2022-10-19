@@ -124,6 +124,7 @@ public class TeamsService {
 			Team teamCreated = teamRepository.save(newTeam);
 
 			if (teamCreated != null) {
+				
 				List<EmployeeTeamMap> teamMembersList = teamDTO.getAllTeamMemberList();
 
 				Optional.ofNullable(teamMembersList).ifPresentOrElse((list) -> {
@@ -561,6 +562,76 @@ public class TeamsService {
 				}
 			
 		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse migrateTeamList(TeamDTO team) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			String teamLeadName = null;
+			
+			Employee getTeamLeadData = employeeRepository.findByEmployeementId(team.getTeamLeadId());
+			Employee getEmpData = employeeRepository.findByEmployeementId(team.getEmployeementId());
+			Team teamAlreadyPresent = teamRepository.findByTeamName(team.getTeamName());
+
+			if (team.getTeamLeadId() != null) {
+				if(getTeamLeadData != null) {
+					teamLeadName = getTeamLeadData.getName();
+				}else {
+					teamLeadName = "NA";
+				}
+			}else {
+				teamLeadName = "NA";
+			}
+			
+			if(teamAlreadyPresent == null) {
+				
+				Team newTeam = new Team();
+
+				newTeam.setTeamName(team.getTeamName());
+				newTeam.setTeamLeadId(team.getTeamLeadId());
+				newTeam.setProjectId(team.getProjectId());
+				newTeam.setTeamLeadName(teamLeadName);
+				newTeam.getCommonProperty().setCreatedBy(team.getCreatedBy());
+
+				Team teamCreated = teamRepository.save(newTeam);
+
+				if (teamCreated != null) {
+
+					EmployeeTeamMap map = new EmployeeTeamMap();
+
+					map.setEmpId(getEmpData.getEmpId());
+					map.setTeamId(teamCreated.getTeamId());
+					// 1: Active 0: InActive
+					map.setActive((long) 1);
+
+					employeeTeamMapRepository.save(map);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Team Created Successfully");
+
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team creation failed.");
+				}
+			} else {
+				EmployeeTeamMap map = new EmployeeTeamMap();
+				map.setEmpId(getEmpData.getEmpId());
+				map.setTeamId(teamAlreadyPresent.getTeamId());
+				// 1: Active 0: InActive
+				map.setActive((long) 1);
+
+				employeeTeamMapRepository.save(map);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Team Created Successfully");
+			}
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

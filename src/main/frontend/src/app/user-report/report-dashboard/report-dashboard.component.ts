@@ -113,6 +113,8 @@ export class ReportDashboardComponent implements OnInit {
      leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
      leaveObj.endDate = moment().format(this.dateFormat);
 
+     console.log(leaveObj.startDate, " leaveObj.startDate   ", leaveObj.endDate, "    leaveObj.endDate");
+
     this.leaveService.getLast8DaysLeaveReport(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveSumarryList = response.serviceResponse;
@@ -1299,8 +1301,8 @@ export class ReportDashboardComponent implements OnInit {
         let toDate = moment().format(this.dateFormat);
 
         this.queryList = [
-          { column: "From Date", operator: ">", value: fromDate, conjunction: "AND" },
-          { column: "To Date", operator: "<", value: toDate, conjunction: "" }
+          { column: "From Date", operator: ">=", value: fromDate, conjunction: "AND" },
+          { column: "To Date", operator: "<=", value: toDate, conjunction: "" }
         ];
       }
 
@@ -1351,10 +1353,13 @@ export class ReportDashboardComponent implements OnInit {
         "Employment ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
+        "Timesheet Date":x.date,
+        "Day Type":x.dayType,
         "Email": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Pending EOD Count": x.pendingEodCount,
+        "Total Working Hour":x.totalWorkingHours,
         "Type": x.legend
       })
     )
@@ -1370,7 +1375,8 @@ export class ReportDashboardComponent implements OnInit {
         "Email": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
-        "Day Type": x.legend,
+        "Timesheet Date":x.date,
+        "Day Type": x.dayType,
         "Total Working Hours": x.totalWorkingHours
       })
     )

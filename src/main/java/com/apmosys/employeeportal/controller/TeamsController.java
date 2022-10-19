@@ -98,4 +98,19 @@ public class TeamsController {
 		ServiceResponse response = teamsService.checkTeamName(teamdto);
 		return response;
 	}
+	
+	/*
+	 Team Data Migration : 17/10/2022 - Harshit
+	  */
+	
+	@RequestMapping(value = "/migrateTeamList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateTeamList(@RequestBody TeamDTO[] teamDTO) {
+
+		ServiceResponse response = null;
+
+		for (TeamDTO team : teamDTO) {
+			response = teamsService.migrateTeamList(team);
+		}
+		return response;
+	}
 }

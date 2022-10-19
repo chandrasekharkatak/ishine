@@ -235,8 +235,8 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
-        
-        totalActivityTime += activity.completionTime;
+        totalActivityTime = totalActivityTime + activity.completionTime;
+        console.log(totalActivityTime, " totalActivityTime");
       });
       if(totalActivityTime <= 0 || totalActivityTime > 24)
       {

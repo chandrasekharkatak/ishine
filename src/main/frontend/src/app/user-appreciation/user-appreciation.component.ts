@@ -54,6 +54,7 @@ export class UserAppreciationComponent implements OnInit {
     this.appreciationService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployee = response.serviceResponse;
+        this.allEmployee = this.allEmployee.filter(x => x.employmentstatus != 'InActive');
         this.allEmployee = this.allEmployee.sort(function (a, b) {
              return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
            });
