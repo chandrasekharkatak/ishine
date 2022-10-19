@@ -30,4 +30,12 @@ export class SurveyService {
     getAnsweredSurveysByEmpId(surveyObj: Survey) {
         return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAnsweredSurveysByEmpId`, surveyObj);
     }
+
+    getSurveyResponseByEmpIdAndSurveyId(surveyObj: Survey) {
+        return this.http.post(`${this.baseUrl}` + `employeeportal/api/getSurveyResponseByEmpIdAndSurveyId`, surveyObj);
+    }
+
+    getSurveyAllResponsesBySurveyId(surveyObj: Survey) {
+        return this.http.post(`${this.baseUrl}` + `employeeportal/api/getSurveyAllResponsesBySurveyId`, surveyObj);
+    }
 }

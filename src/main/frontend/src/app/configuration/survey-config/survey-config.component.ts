@@ -7,6 +7,7 @@ import { Survey } from 'src/app/models/survey';
 import { SurveyQuestion } from 'src/app/models/surveyQuestion';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
@@ -26,18 +27,41 @@ export class SurveyConfigComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
 
   isSurveyForm:boolean = false;
+  isCreation:boolean = false;
+  isUpdation:boolean = false;
+
   isSurveyList:boolean = false;
+  isSurveyResponseList:boolean = false;
 
   surveyObj:Survey = new Survey();
   allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
 
   allSurveyList:any[] = [];
+  allSurveyResponseList:any[] = [];
+  selectedSurveyName:any = "Test Survey";
+  responseListTableHeaders:any[] = 
+  [
+    "Employee Name",
+    "Employee ID",
+    "Question 1",
+    "Answer 1",
+    "Question 2",
+    "Answer 2",
+    "Question 3",
+    "Answer 3",
+    "Question 4",
+    "Answer 4",
+    "Question 5",
+    "Answer 5",
+  ];
+
   
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private surveyService : SurveyService,
+    private exportExcelService: ExportExcelService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -65,8 +89,11 @@ export class SurveyConfigComponent implements OnInit {
 
   showSurveyForm(){
     this.isSurveyForm = true;
+    this.isCreation = true;
     
+    this.isUpdation = false;
     this.isSurveyList = false;
+    this.isSurveyResponseList = false;
 
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [new SurveyQuestion()];
@@ -76,8 +103,55 @@ export class SurveyConfigComponent implements OnInit {
     this.isSurveyList = true;
     
     this.isSurveyForm = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isSurveyResponseList = false;
 
     this.getAllSurveys();
+  }
+
+  showSurveyResponses(surveyObj:Survey){
+    this.isSurveyResponseList = true;
+    
+    this.isSurveyForm = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isSurveyList = false;
+
+    console.log("surveyObj for responses : ", surveyObj);
+    this.getAllSurveyResponsesBySurveyId(surveyObj);
+    
+  }
+
+  showSurveyUpdate(surveyObj:Survey, template: TemplateRef<any>){
+    this.isSurveyForm = true;
+    this.isUpdation = true;
+    
+    this.isCreation = false;
+    this.isSurveyResponseList = false;
+    this.isSurveyList = false;
+
+    this.surveyObj = new Survey();
+    this.allSurveyQuestionList = [];
+    
+    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allSurveyQuestionList = response.serviceResponse;
+        console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+
+        this.surveyObj = surveyObj;
+        this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
+          survey.optionsList = JSON.parse(survey.options);
+          survey.required = JSON.parse(survey.required);
+        });
+
+        console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
+        
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+    
   }
  
   // Manage Questions
@@ -254,6 +328,69 @@ export class SurveyConfigComponent implements OnInit {
     });
   }
 
+  async getAllSurveyResponsesBySurveyId(surveyObj:Survey){
+    this.allSurveyResponseList = []
+    this.responseListTableHeaders = ["Employee ID", "Employee Name"];
+    this.surveyObj = surveyObj;
+
+    let questionsList:any[] = [];
+    let responseList:any[] = [];
+
+    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj).toPromise();
+    if (questionResponse.serviceStatus == "Success") {
+      questionsList = questionResponse.serviceResponse;
+      console.log("questionsList : ", questionsList);
+      questionsList.forEach((question:SurveyQuestion, index) => {
+        this.responseListTableHeaders.push(question.question);
+        // this.responseListTableHeaders.push(`Question ${index+1}`, `Answer ${index+1}`);
+      });
+    } else {
+      console.error(questionResponse.serviceResponse);
+    }
+
+    console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
+    
+
+    const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(surveyObj).toPromise();
+    if (response.serviceStatus == "Success") {
+      responseList = response.serviceResponse;
+      console.log("responseList : ", responseList);
+      const key = "employeementId"
+      let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
+        return [response.employeementId, response.name]
+        // return { 
+        //   name: response.name,
+        //   employeementId : response.employeementId 
+        // }
+      });
+
+      console.log("employees : ", employees);
+      
+      employees.forEach(employee => {
+        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0]);
+        employeeResponse.forEach((response:SurveyQuestion, index) => {
+          employee.push(response.response);
+          // employee.push(response.question, response.response);
+
+          // employee[`question${index+1}`] = response.question;
+          // employee[`answer${index+1}`] = response.response;
+        });
+      })
+      
+      console.log("employees with responses : ", employees);
+      this.allSurveyResponseList = employees;
+    } else {
+      console.error(response.serviceResponse);
+    }
+
+
+  }
+
+  onUpdate(template: TemplateRef<any>){
+    console.log("Edit Survey : ", this.surveyObj, this.allSurveyQuestionList);
+  }
+
+
   createTemplate():string{
    console.log("this.surveyObj : ", this.surveyObj);
    console.log("this.allSurveyQuestionList : ", this.allSurveyQuestionList);
@@ -315,6 +452,74 @@ export class SurveyConfigComponent implements OnInit {
    return surveyTemplate;
   }
 
+  name = 'EmployeeSheet.xlsx';
+  async exportToExcel(): Promise<void> {
+
+    let headers:any[] = ["Employee ID", "Employee Name"];
+    let questionsList:any[] = [];
+    let responseList:any[] = [];
+    let dataForExcel:any[] = [];
+
+    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj).toPromise();
+    if (questionResponse.serviceStatus == "Success") {
+      questionsList = questionResponse.serviceResponse;
+      console.log("questionsList : ", questionsList);
+      questionsList.forEach((question:SurveyQuestion, index) => {
+        headers.push(question.question);
+        // headers.push(`Question ${index+1}`, `Answer ${index+1}`);
+      });
+    } else {
+      console.error(questionResponse.serviceResponse);
+    }
+
+    console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
+    
+
+    const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(this.surveyObj).toPromise();
+    if (response.serviceStatus == "Success") {
+      responseList = response.serviceResponse;
+      console.log("responseList : ", responseList);
+      const key = "employeementId"
+      let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
+        return [response.employeementId, response.name]
+        // return { 
+        //   name: response.name,
+        //   employeementId : response.employeementId 
+        // }
+      });
+
+      console.log("employees : ", employees);
+      
+      employees.forEach(employee => {
+        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0]);
+        employeeResponse.forEach((response:SurveyQuestion, index) => {
+          employee.push(response.response);
+          // employee.push(response.question, response.response);
+
+          // employee[`question${index+1}`] = response.question;
+          // employee[`answer${index+1}`] = response.response;
+        });
+      })
+      
+      dataForExcel = employees;
+      console.log("dataForExcel : ", employees);
+    } else {
+      console.error(response.serviceResponse);
+    }
+
+      const onlySpecificDataArr = dataForExcel.map(response => {
+        let data = {};
+        headers.forEach((header, index) => {
+          data[header] = response[index]
+        });
+        
+        return data;
+      });
+      console.log("onlySpecificDataArr : ", onlySpecificDataArr);
+      
+       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  }
+
 
 
   //modals
@@ -322,6 +527,24 @@ export class SurveyConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     let surveyContainer = document.getElementById("survey-container");
     surveyContainer.insertAdjacentHTML('beforeend', surveyObj.surveyTemplate);
+  }
+
+  openDeleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    console.log("Delete Survey : ", surveyObj);
+    
+  }
+
+  openActivateSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    console.log("Activate Survey : ", surveyObj);
+
+  }
+
+  openCompleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    console.log("Complete Survey : ", surveyObj);
+
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

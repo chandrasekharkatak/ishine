@@ -8,5 +8,8 @@ export class SurveyQuestion{
     description:any;
     response:any;
 
+    name:any;
+	employeementId:any;
+
     optionsList:any[]= [];
 }

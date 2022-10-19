@@ -400,9 +400,10 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setName(object[1] != null ? object[1].toString() : null);
 						dto.setCreatedOn(object[2] != null ? object[2].toString() : null);
-						dto.setQuestion(object[0] != null ? object[0].toString() : null);
-						dto.setOptions(object[1] != null ? object[1].toString() : null);
-						dto.setResponse(object[2] != null ? object[2].toString() : null);
+						dto.setSurveyQuestionId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+						dto.setQuestion(object[4] != null ? object[4].toString() : null);
+						dto.setOptions(object[5] != null ? object[5].toString() : null);
+						dto.setResponse(object[6] != null ? object[6].toString() : null);
 						dtoList.add(dto);
 
 					});
