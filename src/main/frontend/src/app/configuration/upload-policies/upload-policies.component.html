@@ -70,8 +70,8 @@
             <td>{{doc.createdByName}}</td>
             <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td>
-                <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>
-                <button  class="btn btn-sm btn-outline-danger"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>  
+                <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
+                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>  
                    
             </td>
           </tr>

@@ -1027,7 +1027,8 @@ export class ReportDashboardComponent implements OnInit {
           overflow: 'justify',	
           style:{	
             fontWeight: 'bold',	
-            color:'#000000',	
+            color:'#000000',
+            fontSize:'12'	
           }	
         },
       },
@@ -1046,6 +1047,7 @@ export class ReportDashboardComponent implements OnInit {
           style:{	
             fontWeight: 'bold',	
             color:'#000000',	
+            fontSize:'12'
           }
         },
       },
