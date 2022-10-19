@@ -21,8 +21,10 @@
                     <td>{{survey.surveyName}}</td>
                     <td>{{survey.description}}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" type="submit"
-                            (click)="onTakeSurvey(survey)" [disabled]="survey.isAnswered"><em>Take Survey</em></button>
+                        <button *ngIf="!survey.isAnswered" class="btn btn-sm btn-primary" type="submit"
+                            (click)="onTakeSurvey(survey)"><em>Take Survey</em></button>
+                        <button *ngIf="survey.isAnswered" class="btn btn-sm btn-outline-primary" type="submit"
+                            (click)="onViewMyResponse(survey)"><em>View Response</em></button>
                     </td>
                 </tr>
             </tbody>
@@ -59,5 +61,26 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #preview_response_template>
+    <div class="modal-header">
+        <b class="modal-title">{{surveyObj.surveyName}} <small class="d-block text-secondary">{{surveyObj.description}}</small></b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="container-fluid">
+            <div class="row" *ngFor="let response of myResponseList">
+                <div class="col-md-4 mb-2">
+                    <div class="info-wrapper">
+                        <h5 class="info-label mb-1"><i class="fa-solid fa-q question-icon"></i>.&nbsp;{{response.question}}</h5>
+                        <h5 class="info-text"><i class="fa-solid fa-a question-icon"></i>.&nbsp;{{response.response}}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </ng-template>

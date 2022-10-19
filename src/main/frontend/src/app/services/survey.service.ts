@@ -14,6 +14,18 @@ export class SurveyService {
     createSurvey(surveyObj: Survey) {
         return this.http.post(`${this.baseUrl}` + `employeeportal/api/createSurvey`, surveyObj);
     }
+    
+    updateSurvey(surveyObj: Survey) {
+        return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateSurvey`, surveyObj);
+    }
+
+    deleteSurvey(surveyObj: Survey) {
+        return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteSurvey`, surveyObj);
+    }
+
+    changeSurveyStatus(surveyObj: Survey) {
+        return this.http.post(`${this.baseUrl}` + `employeeportal/api/changeSurveyStatus`, surveyObj);
+    }
 
     getAllSurveys() {
         return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllSurveys`);

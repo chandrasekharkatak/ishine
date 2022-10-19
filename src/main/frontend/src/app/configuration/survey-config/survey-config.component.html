@@ -144,18 +144,18 @@
           <tr *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
             <td>{{survey.surveyName}}</td>
             <td>{{survey.description}}</td>
-            <td>{{(survey.isActive == 'true')? 'Active' : 'In-Active'}}</td>
+            <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
             <td>{{survey.createdByName}}</td>
             <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td>
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>&nbsp;
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
                 
-                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-primary" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>&nbsp;
+                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
                 <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
-                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>&nbsp;
+                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
                 
                 <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
-                <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Complete'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
+                <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
             </td>
           </tr>
         </tbody>
@@ -199,7 +199,7 @@
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Delete this survey?</p>
-        <button type="button" class="btn btn-success" >Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="onDelete(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -207,7 +207,7 @@
 <ng-template #activate_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Activate this survey?</p>
-        <button type="button" class="btn btn-success" >Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="onActivate(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -215,7 +215,7 @@
 <ng-template #complete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Complete this survey?</p>
-        <button type="button" class="btn btn-success" >Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="onComplete(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

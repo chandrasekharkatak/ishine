@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
@@ -24,6 +24,7 @@ export class UserSurveyComponent implements OnInit {
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  @ViewChild('preview_response_template') previewResponseTemplate: TemplateRef<any>
 
   isSurveyForm:boolean = false;
   isSurveyList:boolean = false;
@@ -33,6 +34,8 @@ export class UserSurveyComponent implements OnInit {
 
   allSurveyList:any[] = [];
   allAnsweredSurveyList:any[] = [];
+
+  myResponseList:any[] = [];
 
   isSurveyLoaded:boolean = false;
 
@@ -155,6 +158,23 @@ export class UserSurveyComponent implements OnInit {
     });
   }
 
+  onViewMyResponse(surveyObj:Survey){
+    this.myResponseList = [];
+    this.surveyObj = surveyObj;
+
+    surveyObj.empId = this.currentUser.empId;
+    console.log("For View My Response : ", surveyObj);
+    this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.myResponseList = response.serviceResponse;
+        console.log("this.myResponseList : ", this.myResponseList);
+        this.openSurveyPreviewMod(this.previewResponseTemplate);
+      }else{
+        console.error(response.serviceResponse);
+      }
+    }); 
+  }
+
   validateSurveyResponse(surveyObj:Survey,template: TemplateRef<any>){
     let flag = true;
 
@@ -274,6 +294,10 @@ export class UserSurveyComponent implements OnInit {
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  openSurveyPreviewMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   cancelRequest() {

@@ -264,7 +264,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyQuestionList = this.allSurveyQuestionList;
     surveyObj.surveyTemplate = surveyTemplate;
     surveyObj.createdBy = this.currentUser.empId;
-    surveyObj.isActive = true;
+    surveyObj.isActive = false;
 
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
       survey.options = JSON.stringify(survey.optionsList);
@@ -387,9 +387,80 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   onUpdate(template: TemplateRef<any>){
-    console.log("Edit Survey : ", this.surveyObj, this.allSurveyQuestionList);
+    let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    if (!inputValidated) return;
+
+    let surveyObj = new Survey();
+    surveyObj = this.surveyObj;
+    surveyObj.surveyQuestionList = this.allSurveyQuestionList;
+    surveyObj.updatedBy = this.currentUser.empId;
+
+    surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
+      survey.options = JSON.stringify(survey.optionsList);
+    });
+
+    console.log("updateSurvey : ", surveyObj);
+    this.surveyService.updateSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showSurveys();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    }); 
   }
 
+  onDelete(template: TemplateRef<any>){
+    this.cancelRequest();
+ 
+    console.log("Delete Survey : ", this.surveyObj);
+    this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showSurveys();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    }); 
+  }
+
+  onActivate(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    let surveyObj = new Survey();
+    surveyObj.surveyId = this.surveyObj.surveyId;
+    surveyObj.updatedBy = this.currentUser.empId;
+    surveyObj.isActive = true;
+    
+    console.log("Activate Survey : ", surveyObj);
+    this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showSurveys();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    }); 
+  }
+
+  onComplete(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    let surveyObj = new Survey();
+    surveyObj.surveyId = this.surveyObj.surveyId;
+    surveyObj.updatedBy = this.currentUser.empId;
+    surveyObj.isActive = "Completed";
+    
+    console.log("Complete Survey : ", surveyObj);
+    this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showSurveys();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    }); 
+  }
 
   createTemplate():string{
    console.log("this.surveyObj : ", this.surveyObj);
@@ -531,20 +602,17 @@ export class SurveyConfigComponent implements OnInit {
 
   openDeleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    console.log("Delete Survey : ", surveyObj);
-    
+    this.surveyObj = surveyObj;
   }
 
   openActivateSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    console.log("Activate Survey : ", surveyObj);
-
+    this.surveyObj = surveyObj;
   }
 
   openCompleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    console.log("Complete Survey : ", surveyObj);
-
+    this.surveyObj = surveyObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
