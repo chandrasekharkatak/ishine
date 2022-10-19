@@ -27,5 +27,6 @@ public class TeamDTO {
 	private Long employeeTeamMapId;
 	private Long empId;
 	private List<EmployeeTeamMap> updatedTeamMemberList;
+	private Long employeementId;
 
 }
