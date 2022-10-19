@@ -16,7 +16,7 @@
   </div>
   <div class="container">
     <div class="form-group ml-auto col-md-4">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
       <div class="row breadcrumb-div">
         <p class="hierarchy-breadcrumb" *ngFor="let breadcrumb of breadCrumbs; let a = index" (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
@@ -89,7 +89,7 @@
       </div>
   </div>
   <div class="form-group ml-auto col-md-3 search-box">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
   </div>
   <table class="table leave-history-table" id="leave-history-table" matSort (matSortChange)="sortViewLeaveHistory($event)">	
     <thead class="thead-light">	
@@ -153,7 +153,7 @@
         </div>
     </div>
     <div class="form-group ml-auto col-md-3 search-box">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
     <table class="table compOff-history-table" id="compOff-history-table" matSort (matSortChange)="sortViewCompOffLeave($event)">	
       <thead class="thead-light">	
@@ -213,7 +213,7 @@
   
   <div class="row col-md-12" *ngIf="isLeaveRequest">
     <div class="form-group ml-auto col-md-3">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
     <table class="table leave-request-table" id="leave-request-table" matSort (matSortChange)="sortLeaveRequestTable($event)">	
       <thead class="thead-light">	

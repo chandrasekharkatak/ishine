@@ -480,7 +480,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'Resigned'">
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Date Of Resign</label>
@@ -741,7 +741,7 @@
         <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
@@ -773,6 +773,7 @@
             <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
+                <button *ngIf="employee.employmentstatus == 'InActive'" title="History" (click)="openHistoryEmployee()" type="submit" class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle" aria-hidden="true"></i></button>&nbsp;
                 <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
             </td>
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">

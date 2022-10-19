@@ -467,7 +467,7 @@ export class UserProfileComponent implements OnInit {
       this.alertMessage = "Please enter Bank IFSC Code !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)){
+    }if(!this.validationService.validateCapitalAlphaNumeric(employeeObj.bankIFSCCode)){
       this.alertMessage = "Please enter Valid Bank IFSC Code !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

@@ -90,6 +90,11 @@ export class UserAppreciationComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(!this.validationService.validateAlphaWithSpace(employeeObj.reason)) {	
+      this.alertMessage = "Only support letters in Description !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }
     return true;
   }
  

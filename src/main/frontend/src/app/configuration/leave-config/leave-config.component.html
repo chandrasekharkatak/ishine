@@ -581,7 +581,7 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortPolicy($event)">	
-        <thead class="thead-light text-center">	
+        <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>	
             <th scope="col" class="info-label" mat-sort-header="leavePolicyName">Leave Policy Name</th>	
@@ -592,7 +592,7 @@
             <th scope="col" class="info-label">Actions</th>
           </tr>
         </thead>
-        <tbody class="text-center">
+        <tbody>
             <tr *ngIf="leavePolicyList.length === 0">
                 <th colspan="10" class="text-center info-label">No details to display...</th>
             </tr>

@@ -23,6 +23,22 @@ export class ValidationService {
     }
 
   }
+  validateCapitalAlphaNumeric(text: string): boolean {
+
+    const regex = /^[A-Z0-9]+$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
 
   validateAlphaNumericWithSpace(text: string): boolean {
 

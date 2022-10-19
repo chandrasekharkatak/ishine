@@ -135,7 +135,7 @@
         <h1 class="table-header-title">My Leave History</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
         <thead class="thead-light">	
@@ -187,7 +187,7 @@
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table " id="leaveApplication-table" matSort (matSortChange)="sortReporteeLog($event)">	
         <thead class="thead-light">	
@@ -238,7 +238,7 @@
         <h1 class="table-header-title">My Leave Balances</h1>
     </div>
     <div class="form-group  ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table leaveBalance-table " matSort (matSortChange)="sortLeaveBalance($event)">	
         <thead class="thead-light text-center">	
@@ -272,7 +272,7 @@
         <h1 class="table-header-title">My Leave Logs</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table " matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	

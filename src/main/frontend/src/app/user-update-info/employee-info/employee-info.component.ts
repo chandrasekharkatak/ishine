@@ -59,6 +59,8 @@ export class EmployeeInfoComponent implements OnInit{
     this.sectionViewInit(employee);
     this.setYearOfPassingList();
     console.log("employeeObj :: ", this.employeeObj);
+
+    console.log(this.allChildList, " allChildList");
   }
 
   sectionViewInit(employee:Employee){
@@ -273,10 +275,26 @@ export class EmployeeInfoComponent implements OnInit{
     }
   }
 
-  async onSave(){
+
+  validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode)){
+      this.openAlertMod(template , 'Please Enter IFSC Code !!')
+      return false;
+    }
+    if(!this.validationService.validateCapitalAlphaNumeric(employeeObj.bankIFSCCode)){
+      this.openAlertMod(template , 'Please Enter Capital letter !!')
+      return false;
+    }
+    return true;
+  }
+
+
+  async onSave(template : TemplateRef<any>){
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
     const dateFormat = 'YYYY-MM-DD';
-
+    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    if (!inputValidated) return;
+    
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);

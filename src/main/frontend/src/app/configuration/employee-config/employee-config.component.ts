@@ -415,11 +415,11 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.secondaryEmail)) {
-      this.alertMessage = "Please enter email id !!"
+      this.alertMessage = "Please enter Secondary email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateEmail(employeeObj.secondaryEmail)) {
-      this.alertMessage = "Please enter valid email id !!"
+      this.alertMessage = "Please enter valid Secondary email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -859,6 +859,7 @@ export class EmployeeConfigComponent implements OnInit {
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
    
 
     this.allCertificationList.forEach(certificaiton => {
@@ -1342,6 +1343,10 @@ export class EmployeeConfigComponent implements OnInit {
             this.openAlertMod(template, response.serviceResponse);
           }
         });
+      }
+
+      openHistoryEmployee(){
+        
       }
    
             
