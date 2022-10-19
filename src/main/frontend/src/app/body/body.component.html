@@ -30,7 +30,7 @@
       <div class="form-group">
         <label for="newPass" class="sr-only">Old Password</label>
         <div class="d-flex pt-3">
-            <input class="form-control" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
+            <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
             placeholder="Enter Old Password" (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
             <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
                 <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
@@ -40,7 +40,7 @@
       <div class="form-group">
           <label for="newPass" class="sr-only">New Password</label>
           <div class="d-flex">
-              <input class="form-control" [disabled]="!oldPasswordValid" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
+              <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
               placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off"/>
               <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
                   <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
@@ -50,7 +50,7 @@
       <div class="form-group">
           <label for="confirmPass" class="sr-only">Confirm New Password</label>
           <div class="d-flex">
-              <input class="form-control" [disabled]="!oldPasswordValid" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
+              <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
               placeholder="Confirm New Password" [(ngModel)]="newpassword" autocomplete="off"/>
               <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
                   <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
