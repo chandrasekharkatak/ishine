@@ -71,9 +71,9 @@ public class AuthenticationService {
 						
 						if (!isUserLoggedIn) {
 							String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
-							String orignalPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
+							String dtoPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
 
-							if (dbPassword.equals(orignalPassword)) {
+							if (dbPassword.equals(dtoPassword)) {
 								
 								Random random = new Random();
 								int otp = random.nextInt(9999 - 1000)
