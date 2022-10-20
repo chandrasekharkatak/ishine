@@ -1,4 +1,3 @@
-
 import { Component, OnInit,TemplateRef } from '@angular/core';
 import { UploadPolicy } from 'src/app/models/UploadPolicy';
 import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
@@ -10,6 +9,8 @@ import { NotificationService } from 'src/app/services/notification.service';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { saveAs } from "file-saver";
+import { Sort } from '@angular/material/sort';
+
 
 
 
@@ -28,6 +29,7 @@ export class UploadPoliciesComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+
   //flags 
   isDocumentForm: boolean = false;
   isTable: boolean = false;
@@ -37,7 +39,13 @@ export class UploadPoliciesComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   document:any[] = [];
 
+  //application properties value
+  maxFileSize:any;
+	maxRequestSize:any;
+  // fileObj1: any = {};
   
+  fileSize: number = 0;
+  data:any;
 
 
   constructor(private uploadPoliciesService : UploadPoliciesService,
@@ -60,6 +68,8 @@ export class UploadPoliciesComponent implements OnInit {
     
     this.sectionViewInit();
   }
+  
+
 
   sectionViewInit() {
     if(this.userMapping.upload_policy){
@@ -70,8 +80,10 @@ export class UploadPoliciesComponent implements OnInit {
   }
   showDocumentForm() {
     this.isDocumentForm = true;
-
+    this.maxFileSize = parseInt(sessionStorage.maxFileSize);
+    this.maxRequestSize = parseInt(sessionStorage.maxRequestSize);
     this.isTable = false;
+    this.reset();
    
   }
   showTable() {
@@ -83,19 +95,21 @@ export class UploadPoliciesComponent implements OnInit {
 
   onFileSelect(event:any){
     this.files = [];
-
+    let totalSize: number = 0;
+    this.fileSize = 0;
     const uploadedFiles = event.target.files;
-    console.log("uploadedFiles : ", uploadedFiles);
+     console.log("maxfilesize: "+ this.maxFileSize );
     if (uploadedFiles.length != 0) {
-      for (let i = 0; i < uploadedFiles.length; i++) {
+      for (let i = 0; i < uploadedFiles.length; i++) { 
         let document = uploadedFiles[i];
         let fileName = document.name;
-
-        let fileObj = {document : document,fileName : fileName}
-        this.files.push(fileObj);
-      };
-    }
-    console.log("Files : ", this.files);
+        this.fileSize =this.fileSize +  uploadedFiles[i].size / 1024 /1024;
+        console.log(this.fileSize);
+        let fileObj1 = {document : document,fileName : fileName}
+        this.files.push(fileObj1);
+        console.log("Files : ", this.files);
+      }
+    };
   }
   reset() {
     this.policyName = null;
@@ -118,6 +132,14 @@ export class UploadPoliciesComponent implements OnInit {
       return false;
     }
 
+    let totalSize = parseFloat(this.fileSize.toFixed(2));
+    if(totalSize>this.maxFileSize && totalSize>this.maxRequestSize){
+      this.alertMessage ="File exceeds the size limit";
+      this.openAlertMod(template, this.alertMessage);
+      //this.fileSize = 0;
+      return false;
+    }
+
     const formData = new FormData();
     this.files.forEach((file) =>{
       formData.append(`file`, file.document , file.fileName);
@@ -130,6 +152,7 @@ export class UploadPoliciesComponent implements OnInit {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
         this.reset();
+        this.showTable()
         
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -139,6 +162,7 @@ export class UploadPoliciesComponent implements OnInit {
   }
 
   getAllDocuments(){
+    this.data='';
     this.document = [];
     this.uploadPoliciesService.getAllDocument().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
@@ -185,4 +209,42 @@ export class UploadPoliciesComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
+  sortData(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.document;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.document=data;	
+      return;	
+    }	
+    else {	
+      this.document=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'fileName':	
+              return compare(a.fileName.toLowerCase() , b.fileName.toLowerCase() , isAsc)	
+              case 'policyName':	
+                return compare(a.policyName.toLowerCase() , b.policyName.toLowerCase() , isAsc)	
+                case 'createdByName':	
+                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
+                  case 'createdOn':	
+                    return compare(a.createdOn , b.createdOn , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+  }
+  function compare(a: number | string, b: number | string, isAsc: boolean) {	
+    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+  
   }

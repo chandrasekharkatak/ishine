@@ -41,6 +41,7 @@ export class UserAppreciationComponent implements OnInit {
 
   ngOnInit(): void {
     this.getAllEmployees();
+    this.employeeObj.appreciateType = 'You are my Star';	
     
   }
   reset(){
@@ -86,7 +87,7 @@ export class UserAppreciationComponent implements OnInit {
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.reason)) {
-      this.alertMessage = "Please Enter Description !!"
+      this.alertMessage = "Why you want to give Appreciation?Should not be Empty!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

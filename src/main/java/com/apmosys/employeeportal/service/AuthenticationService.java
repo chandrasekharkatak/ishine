@@ -45,6 +45,12 @@ public class AuthenticationService {
 	
 	@Autowired
 	private MailService mailService;
+	
+	@Value("${spring.servlet.multipart.max-file-size}")
+	private String maxFileSize;
+	
+	@Value("${spring.servlet.multipart.max-request-size}")
+	private String maxRequestSize;
 
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 
@@ -142,11 +148,13 @@ public class AuthenticationService {
 
 				}
 
-				Object[] object = new Object[4];
+				Object[] object = new Object[6];
 				object[0] = currentEmployeeDto;
 				object[1] = serviceResponse.getServiceResponse();
 				object[2] = sessionString;
 				object[3] = sessionTimeout;
+				object[4] = maxFileSize.replace("MB","");
+				object[5] = maxRequestSize.replace("MB","");
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(object);

@@ -5,7 +5,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_policy" [ngClass]="{'active' : isDocumentForm}" (click)="showDocumentForm()">Upload Policies</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_documents || userMapping.delete_document" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Documents</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_documents || userMapping.delete_document" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Policies</button>
     </div>
 </div>
 
@@ -31,7 +31,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label mb-0"><span class="text-danger">*</span>Select File</label>
-                            <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 20MB</small>
+                            <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto {{maxFileSize}}MB</small>
                             <input type="file" accept=".pdf,.doc" multiple class="form-control p-1" (change)="onFileSelect($event)">
                         </div>
                     </div>
@@ -50,21 +50,27 @@
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Documents</h1>
     </div>
-    <table class="table department-table">
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+        </div>
+    <table class="table department-table" matSort (matSortChange)="sortData($event)">	
+
         <thead class="thead-light">
           <tr>
-            <th scope="col" class="info-label">File Name</th>	
-            <th scope="col" class="info-label">Policy Name</th>
-            <th scope="col" class="info-label">Created By</th>
-            <th scope="col" class="info-label">Created On</th>
+            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="fileName">File Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
+            <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
             <th scope="col" class="info-label">Action</th>	  
           </tr>
         </thead>
         <tbody>
             <tr *ngIf="document.length == 0">
-                <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
+                <th colspan="6" class="text-center info-label">No Files to display...</th>
             </tr>
-          <tr *ngFor="let doc of document | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">
+            <tr *ngFor="let doc of document | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
+             <th class="info-label">{{10*(page-1)+i+1}}</th>
             <td>{{doc.fileName}}</td>
             <td>{{doc.policyName}}</td>
             <td>{{doc.createdByName}}</td>

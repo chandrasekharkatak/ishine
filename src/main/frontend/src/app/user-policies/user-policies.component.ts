@@ -5,6 +5,8 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { saveAs } from "file-saver";
+import { Sort } from '@angular/material/sort';
+
 
 
 
@@ -26,7 +28,7 @@ export class UserPoliciesComponent implements OnInit {
 
   }
   document:any[] = [];
-
+  data:string;
   ngOnInit(): void {
 
     this.getAllDocuments();
@@ -34,6 +36,7 @@ export class UserPoliciesComponent implements OnInit {
 
 
   getAllDocuments(){
+    this.data='';
     this.document = [];
     this.policiesService.getAllDocument().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
@@ -52,5 +55,43 @@ export class UserPoliciesComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
+  sortData(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.document;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.document=data;	
+      return;	
+    }	
+    else {	
+      this.document=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'fileName':	
+              return compare(a.fileName.toLowerCase() , b.fileName.toLowerCase() , isAsc)	
+              case 'policyName':	
+                return compare(a.policyName.toLowerCase() , b.policyName.toLowerCase() , isAsc)	
+                case 'createdByName':	
+                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
+                  case 'createdOn':	
+                    return compare(a.createdOn , b.createdOn , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

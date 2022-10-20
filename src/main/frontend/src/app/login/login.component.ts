@@ -211,6 +211,9 @@ export class LoginComponent implements OnInit{
       this.allMappedSubfeatures = responseObj[1];
       this.authenticationService.sessionString = responseObj[2];
       this.authenticationService.sessionTimeout= responseObj[3];
+      sessionStorage.setItem('maxFileSize',responseObj[4]);
+      sessionStorage.setItem('maxRequestSize',responseObj[5]);
+      console.log("checking"+sessionStorage.maxFileSize);
       this.timeSession();
       this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
 
