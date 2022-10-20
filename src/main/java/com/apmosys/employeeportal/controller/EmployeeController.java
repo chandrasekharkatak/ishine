@@ -203,5 +203,12 @@ public class EmployeeController {
 		return response;
 
 	}
+	
+	@RequestMapping(value ="/findEmployeeWorkingHistory" , method = RequestMethod.POST)
+	public ServiceResponse findEmployeeWorkingHistory(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response=employeeService.findEmployeeWorkingHistory(employeeDto);
+		return response;
+	}
+
 
 }

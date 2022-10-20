@@ -215,6 +215,10 @@ export class CompOffComponent implements OnInit {
       return true;
     }
 
+    resetToDate(){
+      this.compOffObj.toDate = ''
+    }
+
     onApplyCompOff(template: TemplateRef<any>){
       const dateFormat = 'YYYY-MM-DD';
       let inputValidated:boolean  = this.validateLeavetObj(this.compOffObj, template)

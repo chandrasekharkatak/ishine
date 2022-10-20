@@ -146,4 +146,8 @@ export class EmployeeService {
    revokeAccount(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}` + `employeeportal/api/revokeAccount` , employeeObj);
    }
+
+   findEmployeeWorkingHistory(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`employeeportal/api/findEmployeeWorkingHistory`,employeeObj);
+   }
 }

@@ -116,4 +116,18 @@ export class Employee{
 
 	mothersName:any;
 	totalExperience:any; 
+
+	teamId:any;
+ 	teamName:any;
+ 	teamLeadId:any;
+ 	projectId:any;
+	projectName:any;
+ 	startDate:any;
+ 	endDate:any;
+	teamLeadName:any;
+	employeeRole:any;
+	clientName:any;
+	clientLocation:any;
+
+
 }

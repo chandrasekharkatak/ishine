@@ -773,8 +773,7 @@
             <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                 <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
-                <!-- <button type="submit" (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking()" class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle" aria-hidden="true"></i></button>&nbsp; -->
-                <!-- <button *ngIf="employee.employmentstatus == 'InActive'" title="History" (click)="openHistoryEmployee()" type="submit" class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle" aria-hidden="true"></i></button>&nbsp; -->
+                <button type="submit" (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)" class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle" aria-hidden="true"></i></button>&nbsp;
                 <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
             </td>
             <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
@@ -793,6 +792,71 @@
 <!-- end :: see all table -->
 
 <!-- Modals Template -->
+
+<ng-template #history_template>
+    <div class="modal-header">
+        <h1 class="table-header-title">Employee Working History</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-group ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
+        <div class="container history-table">
+            <table class="table history-table">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" >Sr No.</th>
+                    <!-- <th scope="col" class="info-label">Employee Id</th> -->
+                    <!-- <th scope="col" class="info-label">Employee Name</th>  -->
+                    <th scope="col" class="info-label ">Team Name</th>
+                    <th scope="col" class="info-label ">Project Name</th>
+                    <th scope="col" class="info-label ">Start Date</th>
+                    <th scope="col" class="info-label ">End Date</th>
+                    <th scope="col" class="info-label ">Team Lead Name</th>
+                    <th scope="col" class="info-label ">Date Of Joining</th>
+                    <th scope="col" class="info-label " *ngIf="employeeObj.employmentstatus == 'InActive'">Date Of Resign</th>
+                    <th scope="col" class="info-label ">Role</th>
+                    <th scope="col" class="info-label ">Team Leader Designation</th>
+                    <th scope="col" class="info-label ">Client Location</th>
+                    <th scope="col" class="info-label ">Client Name</th>
+                    
+                 </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="employeeWorkingHistory.length == 0"> 
+                       <th colspan="8" class="text-center info-label">No details to display...</th>
+                   </tr> 
+                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                    <td>{{i+1}}</td>
+                    <!-- <td>{{empHistory.employeementId}}</td> -->
+                    <!-- <td>{{empHistory.name}}</td> -->
+                   
+                    <td>{{empHistory.teamName}}</td>
+                    <td>{{empHistory.projectName}}</td>
+                    <td>{{empHistory.startDate}}</td>
+                    <td>{{empHistory.endDate}}</td>
+                    <td>{{empHistory.teamLeadName}}</td>
+                    <td>{{empHistory.dateOfJoining}}</td>
+                    <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign}}</td>
+                    <td>{{empHistory.role}}</td>
+                    <td>{{empHistory.jobRoleName}}</td>
+                    <td>{{empHistory.clientLocation}}</td>
+                    <td>{{empHistory.clientName}}</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <div class="my-buttons">
+            <pagination-controls class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+    </div>
+
+</ng-template>
+
+
 
 <ng-template #delete_template>
     <div class="modal-body text-center">
