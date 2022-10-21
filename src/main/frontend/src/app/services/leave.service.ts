@@ -15,153 +15,153 @@ export class LeaveService {
 
   /* Leave */
   applyLeave(leaveObj:Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/applyLeave`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/applyLeave`, leaveObj);
   }
 
   updateLeaveStatus(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeaveStatus`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateLeaveStatus`, leaveObj);
   }
 
   getAllMyLeaveApplicationsByEmpId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyLeaveApplicationsByEmpId`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllMyLeaveApplicationsByEmpId`, leaveObj);
   }
 
   getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
   countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/countAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
   getLeaveLogsByEmpId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeaveLogsByEmpId`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getLeaveLogsByEmpId`, leaveObj);
   }
 
   getMyLeaveBalancesByEmpId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getMyLeaveBalancesByEmpId`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getMyLeaveBalancesByEmpId`, leaveObj);
   }
 
   updateLeavesByEmpId(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeavesByEmpId`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateLeavesByEmpId`, leaveObj);
   }
 
   getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAppliedLeaveApplicationsByEmpIdAndDateRange`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAppliedLeaveApplicationsByEmpIdAndDateRange`, leaveObj);
   }
 
   deletePendingLeave(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deletePendingLeave`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deletePendingLeave`, leaveObj);
   }
 
   updatePendingLeave(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updatePendingLeave`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updatePendingLeave`, leaveObj);
   }
 
   revokeApprovedLeaveApplication(leaveObj : Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/revokeApprovedLeaveApplication`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/revokeApprovedLeaveApplication`, leaveObj);
   }
 
   /* Leave Type */
   createLeaveType(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/createLeaveType`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/createLeaveType`, leaveObj);
   }
 
   updateLeaveType(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeaveType`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateLeaveType`, leaveObj);
   }
 
   getAllLeaveTypes() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllLeaveTypes`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllLeaveTypes`);
   }
 
   getAllLeaveTypesByLeavePolicies(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllLeaveTypesByLeavePolicies`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllLeaveTypesByLeavePolicies`, leaveObj);
   }
 
   deleteLeaveType(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteLeaveType`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deleteLeaveType`, leaveObj);
   }
 
   changeLeaveTypeMapping(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/changeLeaveTypeMapping`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/changeLeaveTypeMapping`, leaveObj);
   }
 
   /* Comp off */
   getAllCompOffReasons(){
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllCompOffReasons`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllCompOffReasons`);
   }
 
   applyForCompOff(compOffObj:Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/applyForCompOff`, compOffObj);
+    return this.http.post(`${this.baseUrl}` + `/api/applyForCompOff`, compOffObj);
   }
 
   updateCompOffById(compOffObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateCompOffById`, compOffObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateCompOffById`, compOffObj);
   }
 
   getAllCompOffRequestsByEmpId(compOffObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllCompOffRequestsByEmpId`, compOffObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllCompOffRequestsByEmpId`, compOffObj);
   }
 
   getPendingCompOffRequestsByManagerId(compOffObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getPendingCompOffRequestsByManagerId`, compOffObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getPendingCompOffRequestsByManagerId`, compOffObj);
   }
 
   countPendingCompOffRequestsByManagerId(compOffObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countPendingCompOffRequestsByManagerId`, compOffObj);
+    return this.http.post(`${this.baseUrl}` + `/api/countPendingCompOffRequestsByManagerId`, compOffObj);
   }
 
   /* Leave Policy */
   addLeavePolicy(leavePolicyObj:Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/addLeavePolicy`, leavePolicyObj);
+    return this.http.post(`${this.baseUrl}` + `/api/addLeavePolicy`, leavePolicyObj);
   }
 
   updateLeavePolicy(leavePolicyObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateLeavePolicy`, leavePolicyObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateLeavePolicy`, leavePolicyObj);
   }
 
   deleteLeavePolicyByLeavePolicyMasterId(leavePolicyObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteLeavePolicyByLeavePolicyMasterId`, leavePolicyObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deleteLeavePolicyByLeavePolicyMasterId`, leavePolicyObj);
   }
 
   getAllLeavePolicy(){
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllLeavePolicy`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllLeavePolicy`);
   }
 
   getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(leavePolicyObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeavePolicyByEmployentStatusAndLeaveTypeMasterId`, leavePolicyObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getLeavePolicyByEmployentStatusAndLeaveTypeMasterId`, leavePolicyObj);
   }
 
 
   /* Home - Leave Summary */
   countMyApprovedLeaveApplicationsByLeaveType(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countMyApprovedLeaveApplicationsByLeaveType`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/countMyApprovedLeaveApplicationsByLeaveType`, leaveObj);
   }
 
   countMyPendingLeaveApplicationsByLeaveType(leaveObj: Leave) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/countMyPendingLeaveApplicationsByLeaveType`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/countMyPendingLeaveApplicationsByLeaveType`, leaveObj);
   }
 
   /* Reports */
   leaveReport(){
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/leaveReport`);
+    return this.http.get(`${this.baseUrl}` + `/api/leaveReport`);
   }
 
   customQueryForLeaveReport(queryObj: Query) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForLeaveReport`, queryObj);
+    return this.http.post(`${this.baseUrl}` + `/api/customQueryForLeaveReport`, queryObj);
   }
 
   /* Report Dashboard */
   getLast8DaysLeaveReport(leaveObj: Leave){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLast8DaysLeaveReport`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getLast8DaysLeaveReport`, leaveObj);
   }
 
   getLeaveTrendAnalysisReport(leaveObj : Leave){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getLeaveTrendAnalysisReport`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getLeaveTrendAnalysisReport`, leaveObj);
   }
 
   customQueryForLeaveTrendAnalysisReport(queryObj: Query){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/customQueryForLeaveTrendAnalysisReport`, queryObj);
+    return this.http.post(`${this.baseUrl}` + `/api/customQueryForLeaveTrendAnalysisReport`, queryObj);
   }
 }

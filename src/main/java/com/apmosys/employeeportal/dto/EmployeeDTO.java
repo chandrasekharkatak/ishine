@@ -124,5 +124,17 @@ public class EmployeeDTO {
 	private Long appreciationTo;
 
 	private String managerMail;
+	
+	private Long teamId;
+	private String teamName;
+	private Long teamLeadId;
+	private Integer projectId;
+	private String projectName;
+	private String startDate;
+	private String endDate;
+	private String teamLeadName;
+	private String employeeRole;
+	private String clientName;
+	private String clientLocation;
 
 }

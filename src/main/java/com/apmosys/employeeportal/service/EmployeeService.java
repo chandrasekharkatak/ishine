@@ -859,9 +859,11 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
-				employee.setDateOfResign(employeedto.getDateOfResign() != null
-						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
-						: null);
+				if(employee.getEmploymentstatus().equals("Resigned")) {
+					employee.setDateOfResign(employeedto.getDateOfResign() != null
+							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
+							: null);
+				}
 				employee.setBillable(employeedto.getBillable());
 				employee.setChild1(employeedto.getChild1());
 				employee.setChild2(employeedto.getChild2());
@@ -1953,6 +1955,127 @@ public class EmployeeService {
 			});
 
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+//	employee working history
+
+	public ServiceResponse findEmployeeWorkingHistory(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> workingHistory = employeeRepository.findEmployeeWorkingHistory(employeeDto.getEmpId());
+			System.out.println(" employeeDto.getEmpId() : ------------" +employeeDto.getEmpId());
+			List<EmployeeDTO> historyList = new ArrayList<EmployeeDTO>();
+			if (workingHistory.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("list is empty !!");
+			} else {
+				workingHistory.forEach((object) -> {
+					EmployeeDTO emplDto = new EmployeeDTO();
+					emplDto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					emplDto.setName(object[1] != null ? object[1].toString() : null);
+					emplDto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					emplDto.setTeamName(object[3] != null ? object[3].toString() : null);
+					emplDto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+					emplDto.setProjectId(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+					emplDto.setProjectName(object[6] != null ? object[6].toString() : null);
+					emplDto.setStartDate(object[7] != null ? object[7].toString() : null);
+					emplDto.setEndDate(object[8] != null ? object[8].toString() : null);
+					emplDto.setTeamLeadName(object[9] != null ? object[9].toString() : null);
+					emplDto.setDateOfJoining(object[10] != null ? object[10].toString() : null);
+					emplDto.setDateOfResign(object[11] != null ? object[11].toString() : null);
+					emplDto.setRole(object[12] != null ? object[12].toString() : null);
+					emplDto.setJobRoleName(object[13] != null ? object[13].toString() : null);
+					emplDto.setStartDate(object[14] != null ? object[14].toString() : null);
+					emplDto.setClientLocation(object[15] != null ? object[15].toString() : null);
+					emplDto.setClientName(object[16] != null ? object[16].toString() : null); 
+					historyList.add(emplDto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(historyList);
+				System.out.println("\n "+ "history ------" +historyList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+
+	}
+
+	public ServiceResponse encryptPassword(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
+			Optional<Employee> employeeObject = Optional
+					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
+			
+			if (employeeObject.isPresent()) {
+				
+				Employee employee = employeeObject.get();
+				String encryptedPassword = EncryptDecrypt.encrypt(employeedto.getPassword());
+
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setPassword(encryptedPassword);
+				
+				Employee dbResponse = employeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Password Updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Password Updation Failed.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not found");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse sendMailByList(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
+			Optional<Employee> employeeObject = Optional
+					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
+			
+			if (employeeObject.isPresent()) {
+				
+				Employee employee = employeeObject.get();
+				
+				mailService.sendMail(employee.getEmail(), "Regarding new Employee Portal *IShine*",
+						"Your account has been created. <br>Username: " + employee.getEmail()
+								+ "<br>Password:  Your Old Employee Portal (Leave Portal) Password");
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("New Portal Credentials Mail sent successfully");
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				System.out.println(employeedto.getEmployeementId() + "  ===");
+				response.setServiceResponse("Employee Profile Not found");
+			}
+		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

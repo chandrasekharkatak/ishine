@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.TeamsService;
@@ -100,7 +102,7 @@ public class TeamsController {
 	}
 	
 	/*
-	 Team Data Migration : 17/10/2022 - Harshit
+	 Team, Project, Activity  Data Migration : 17/10/2022 - Harshit
 	  */
 	
 	@RequestMapping(value = "/migrateTeamList", method = RequestMethod.POST, consumes = "application/json")
@@ -110,6 +112,28 @@ public class TeamsController {
 
 		for (TeamDTO team : teamDTO) {
 			response = teamsService.migrateTeamList(team);
+		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/migrateTeamActivityByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateTeamActivityByList(@RequestBody ActivityDTO[] activityDTO) {
+
+		ServiceResponse response = null;
+
+		for (ActivityDTO activity : activityDTO) {
+			response = teamsService.migrateTeamActivityByList(activity);
+		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/migrateProjectByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateProjectByList(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.migrateProjectByList(project);
 		}
 		return response;
 	}

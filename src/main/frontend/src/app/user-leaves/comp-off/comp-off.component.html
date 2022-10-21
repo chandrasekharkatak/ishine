@@ -43,7 +43,7 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="setNoOfDays(alert_message)" disabled>
+                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="resetToDate()" disabled>
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #fromDatePicker disabled="false" ></mat-datepicker>

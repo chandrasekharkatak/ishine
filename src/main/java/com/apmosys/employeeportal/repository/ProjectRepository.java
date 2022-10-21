@@ -18,6 +18,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getActivitiesByProjectIdAndEmployeeId(Integer projectId, Long empId);
 
+	public Project findByProjectName(String projectName);
+
 	
 
 }

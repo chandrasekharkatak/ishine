@@ -23,16 +23,16 @@ export class UploadPoliciesService {
   constructor(private http: HttpClient) { }
 
   uploadMultipleFiles(formData:FormData){
-    return this.http.post(`${this.baseUrl}`+`employeeportal/api/uploadPolicies`,formData);
+    return this.http.post(`${this.baseUrl}`+`/api/uploadPolicies`,formData);
   }
   getAllDocument() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDocument`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllDocument`);
   }
   deleteDocument(fileObj: UploadPolicy) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deletePolicyDocument`, fileObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deletePolicyDocument`, fileObj);
   }
   downloadDocument(policyID: string) {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/downloadDocument/${policyID}`, {
+    return this.http.get(`${this.baseUrl}` + `/api/downloadDocument/${policyID}`, {
       responseType: 'blob'
     });
   }

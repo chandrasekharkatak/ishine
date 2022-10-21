@@ -56,7 +56,7 @@ export class EmployeeConfigComponent implements OnInit {
   employeeDataForExcel: any[] = [];
   portalConfigList:any[] = [];
 
-
+  employeeWorkingHistory:[]
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -635,6 +635,13 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please select billable !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }
+    if(employeeObj.employmentstatus == 'Resigned'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
+        this.alertMessage = "Please Enter Resign Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
 
     // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
@@ -1345,9 +1352,30 @@ export class EmployeeConfigComponent implements OnInit {
         });
       }
 
-      openHistoryEmployee(){
-        
-      }
+      findEmployeeWorkingHistory(template: TemplateRef<any>, employee: any){
+        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+       this.employeeObj = employee;
+     }
+
+
+ 
+   onFindHistoryWorking(employee:Employee) {
+    this.employeeWorkingHistory = [];
+    let empObj = new Employee();
+    empObj.empId = employee.empId;
+    
+     this.cancelRequest();
+     this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
+       this.employeeWorkingHistory=response.serviceResponse;
+       console.log("response :" , this.employeeWorkingHistory)
+     },
+     (error)=>{
+       console.log("data is not available !!");
+       
+     }
+     );
+   }
+
    
             
 }

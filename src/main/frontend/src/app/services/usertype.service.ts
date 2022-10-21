@@ -14,24 +14,24 @@ export class UsertypeService {
 
   /* ----- User Type ----- */
   createUserType(userTypeObj:UserType) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/createUserType`, userTypeObj);
+    return this.http.post(`${this.baseUrl}` + `/api/createUserType`, userTypeObj);
   }
 
   getAllUserTypes() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllUserTypes`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllUserTypes`);
   }
 
   
   /* ----- CRUD Mappping ----- */
   updateCrudMappingsByMapId(crudMappingObj:CrudMapping) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateCrudMappingsByMapId`, crudMappingObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateCrudMappingsByMapId`, crudMappingObj);
   }
 
   getUserTypeCrudMappingsByUserTypeId(crudMappingObj:CrudMapping) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getUserTypeCrudMappingsByUserTypeId`, crudMappingObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getUserTypeCrudMappingsByUserTypeId`, crudMappingObj);
   }
 
   getAllUserTypeCrudMappings() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllUserTypeCrudMappings`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllUserTypeCrudMappings`);
   }
 }

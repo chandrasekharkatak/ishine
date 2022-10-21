@@ -1424,25 +1424,25 @@ export class ReportDashboardComponent implements OnInit {
     if(titleName == "Employee Worked Between 5 to 8 hour"){
       this.page=1;
       this.modalTitle = titleName;
-      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 5 && x.totalWorkingHours <= 8);
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 5 && x.totalWorkingHours <= 8);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked Between 8 to 9 hour"){
       this.page=1;
       this.modalTitle = titleName;
-      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 8 && x.totalWorkingHours <= 9);
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 8 && x.totalWorkingHours <= 9);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked Between 9 to 10 hour"){
       this.page=1;
       this.modalTitle = titleName;
-      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 9 && x.totalWorkingHours <= 10);
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 9 && x.totalWorkingHours <= 10);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Employee Worked More than 10 hour"){
       this.page=1;
       this.modalTitle = titleName;
-      this.modalSummaryList = modalTableList.filter(x => x.totalWorkingHours > 10);
+      this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 10);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "No Timesheet Submitted"){

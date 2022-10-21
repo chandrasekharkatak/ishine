@@ -93,5 +93,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllManagers();
+	
+//	@Query(value = "select * from employee e where e.employmentstatus like 'inActive' and e.emp_id = :empId")
+//	public List<Object[]> getHistoryOfInActiveEmployee();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> findEmployeeWorkingHistory(Long empId);
 
 }

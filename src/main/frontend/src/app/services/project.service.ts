@@ -12,6 +12,6 @@ export class ProjectService {
   constructor(private http: HttpClient) { }
 
   getAllProjectListByProjectManagerId(projectObj: Project) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllProjectListByProjectManagerId`, projectObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllProjectListByProjectManagerId`, projectObj);
   }
 }

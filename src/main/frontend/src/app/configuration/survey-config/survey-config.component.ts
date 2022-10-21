@@ -205,6 +205,11 @@ export class SurveyConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(!this.validationService.validateAlphaWithSpace(surveyObj.surveyName)){
+      this.alertMessage = "Please enter Valid Survey Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     let flag = true;
     allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {

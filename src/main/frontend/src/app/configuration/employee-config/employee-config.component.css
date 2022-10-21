@@ -70,3 +70,7 @@
 .info-label{
     width: 300px;
 }
+
+.history-table{
+    overflow-x: auto;
+}
