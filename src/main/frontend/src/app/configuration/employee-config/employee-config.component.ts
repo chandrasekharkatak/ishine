@@ -636,6 +636,13 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(employeeObj.employmentstatus == 'Resigned'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
+        this.alertMessage = "Please Enter Resign Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
 
     // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
     //   this.alertMessage = "Please enter Valid Bank Name !!"

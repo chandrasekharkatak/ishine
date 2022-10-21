@@ -859,9 +859,11 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
-				employee.setDateOfResign(employeedto.getDateOfResign() != null
-						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
-						: null);
+				if(employee.getEmploymentstatus().equals("Resigned")) {
+					employee.setDateOfResign(employeedto.getDateOfResign() != null
+							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
+							: null);
+				}
 				employee.setBillable(employeedto.getBillable());
 				employee.setChild1(employeedto.getChild1());
 				employee.setChild2(employeedto.getChild2());
