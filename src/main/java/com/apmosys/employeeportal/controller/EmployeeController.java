@@ -210,5 +210,34 @@ public class EmployeeController {
 		return response;
 	}
 
+	/*
+	 Old Employee Portal Password Encryption - part of data migration.
+	 */
+	
+	@RequestMapping(value = "/encryptPassword", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse encryptPassword(@RequestBody EmployeeDTO[] employeedto) {
+
+		ServiceResponse response = null;
+
+		for (EmployeeDTO employee : employeedto) {
+			response = employeeService.encryptPassword(employee);
+		}
+		return response;
+	}
+	
+	/*
+	 send Mail to employee - part of data migration.
+	 */
+	
+	@RequestMapping(value = "/sendMailByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse sendMailByList(@RequestBody EmployeeDTO[] employeedto) {
+
+		ServiceResponse response = null;
+
+		for (EmployeeDTO employee : employeedto) {
+			response = employeeService.sendMailByList(employee);
+		}
+		return response;
+	}
 
 }

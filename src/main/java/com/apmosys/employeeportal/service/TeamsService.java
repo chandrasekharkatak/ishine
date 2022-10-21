@@ -15,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -25,6 +27,7 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -58,6 +61,9 @@ public class TeamsService {
 	
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
+	
+	@Autowired
+	ActivitiesRepository activitiesRepository;
 
 	@Autowired
 	ModelMapper modelMapper;
@@ -575,64 +581,152 @@ public class TeamsService {
 		try {
 
 			String teamLeadName = null;
-			
-			Employee getTeamLeadData = employeeRepository.findByEmployeementId(team.getTeamLeadId());
+			Employee getTeamLeadData = null;
+			if(team.getTeamLeadId()!=null) {
+				getTeamLeadData = employeeRepository.findByEmployeementId(team.getTeamLeadId());
+			}
 			Employee getEmpData = employeeRepository.findByEmployeementId(team.getEmployeementId());
 			Team teamAlreadyPresent = teamRepository.findByTeamName(team.getTeamName());
-
-			if (team.getTeamLeadId() != null) {
-				if(getTeamLeadData != null) {
-					teamLeadName = getTeamLeadData.getName();
+			Project projectPresent = projectRepository.findByProjectName(team.getProjectName());
+			
+				// create team & add member
+				
+				if (team.getTeamLeadId() != null) {
+					if(getTeamLeadData != null) {
+						teamLeadName = getTeamLeadData.getName();
+					}else {
+						teamLeadName = "NA";
+					}
 				}else {
 					teamLeadName = "NA";
 				}
-			}else {
-				teamLeadName = "NA";
-			}
-			
-			if(teamAlreadyPresent == null) {
 				
-				Team newTeam = new Team();
+				if(teamAlreadyPresent == null) {
+					
+					Team newTeam = new Team();
 
-				newTeam.setTeamName(team.getTeamName());
-				newTeam.setTeamLeadId(team.getTeamLeadId());
-				newTeam.setProjectId(team.getProjectId());
-				newTeam.setTeamLeadName(teamLeadName);
-				newTeam.getCommonProperty().setCreatedBy(team.getCreatedBy());
+					newTeam.setTeamName(team.getTeamName());
+					newTeam.setTeamLeadId(team.getTeamLeadId());
+					newTeam.setProjectId(projectPresent.getProjectId());
+					newTeam.setTeamLeadName(teamLeadName);
+					newTeam.getCommonProperty().setCreatedBy(team.getCreatedBy());
 
-				Team teamCreated = teamRepository.save(newTeam);
+					Team teamCreated = teamRepository.save(newTeam);
 
-				if (teamCreated != null) {
+					if (teamCreated != null) {
 
+						EmployeeTeamMap map = new EmployeeTeamMap();
+
+						map.setEmpId(getEmpData.getEmpId());
+						map.setTeamId(teamCreated.getTeamId());
+						// 1: Active 0: InActive
+						map.setActive((long) 1);
+
+						employeeTeamMapRepository.save(map);
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Team Created Successfully");
+
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Team creation failed.");
+					}
+				} else {
 					EmployeeTeamMap map = new EmployeeTeamMap();
-
 					map.setEmpId(getEmpData.getEmpId());
-					map.setTeamId(teamCreated.getTeamId());
+					map.setTeamId(teamAlreadyPresent.getTeamId());
 					// 1: Active 0: InActive
 					map.setActive((long) 1);
 
 					employeeTeamMapRepository.save(map);
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Team Created Successfully");
-
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Team creation failed.");
 				}
-			} else {
-				EmployeeTeamMap map = new EmployeeTeamMap();
-				map.setEmpId(getEmpData.getEmpId());
-				map.setTeamId(teamAlreadyPresent.getTeamId());
-				// 1: Active 0: InActive
-				map.setActive((long) 1);
-
-				employeeTeamMapRepository.save(map);
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Team Created Successfully");
-			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse migrateTeamActivityByList(ActivityDTO activityDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Team teamAlreadyPresent = teamRepository.findByTeamName(activityDTO.getTeamName());
+			
+			if(teamAlreadyPresent != null) {
+				
+				Activity newActivity = new Activity();
+
+				newActivity.setActivity(activityDTO.getActivity());
+				newActivity.setEta(activityDTO.getEta());
+				newActivity.setTeamId(teamAlreadyPresent.getTeamId());
+				newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
+
+				Activity newActivityCreated = activitiesRepository.save(newActivity);
+
+				Optional.ofNullable(newActivityCreated).ifPresentOrElse((activity) -> {
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("New activity added to team.");
+
+				}, () -> {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to add new activity to team.");
+				});
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team Not Found");
+			}
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse migrateProjectByList(ProjectDTO project) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Employee getEmpData = null;
+			if(project.getEmployeementId() != null) {
+				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
+			}
+			
+
+				Project newProject = new Project();
+
+				newProject.setClientName(project.getClientName());
+				newProject.setClientLocation(project.getClientLocation());
+				newProject.setState(project.getState());
+				newProject.setProjectName(project.getProjectName());
+				newProject.setDescription(project.getDescription());
+				
+				if(getEmpData != null) {
+					newProject.setProjectManagerId(getEmpData.getEmpId());
+				}
+				
+				Project projectCreated = projectRepository.save(newProject);
+				
+				if(projectCreated != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project created");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("project creation failed");
+				}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			System.exit(0);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());

@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import javax.persistence.Column;
+
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
 import lombok.Getter;
@@ -28,5 +30,11 @@ public class TeamDTO {
 	private Long empId;
 	private List<EmployeeTeamMap> updatedTeamMemberList;
 	private Long employeementId;
+	
+	private String projectName;
+	private String clientName;
+	private String clientLocation;
+	private String state;
+	private Long projectManagerId;
 
 }

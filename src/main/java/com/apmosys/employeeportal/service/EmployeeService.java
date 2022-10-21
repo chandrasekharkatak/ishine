@@ -2009,5 +2009,77 @@ public class EmployeeService {
 
 	}
 
+	public ServiceResponse encryptPassword(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
+			Optional<Employee> employeeObject = Optional
+					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
+			
+			if (employeeObject.isPresent()) {
+				
+				Employee employee = employeeObject.get();
+				String encryptedPassword = EncryptDecrypt.encrypt(employeedto.getPassword());
+
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setPassword(encryptedPassword);
+				
+				Employee dbResponse = employeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Password Updated.");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Password Updation Failed.");
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not found");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse sendMailByList(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
+			Optional<Employee> employeeObject = Optional
+					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
+			
+			if (employeeObject.isPresent()) {
+				
+				Employee employee = employeeObject.get();
+				
+				mailService.sendMail(employee.getEmail(), "Regarding new Employee Portal *IShine*",
+						"Your account has been created. <br>Username: " + employee.getEmail()
+								+ "<br>Password:  Your Old Employee Portal (Leave Portal) Password");
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("New Portal Credentials Mail sent successfully");
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				System.out.println(employeedto.getEmployeementId() + "  ===");
+				response.setServiceResponse("Employee Profile Not found");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 }
