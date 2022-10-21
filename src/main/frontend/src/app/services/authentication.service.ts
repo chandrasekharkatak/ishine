@@ -34,27 +34,27 @@ export class AuthenticationService {
   }
 
   authenticateUser(user: User) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/authenticateUser`, user);
+    return this.http.post(`${this.baseUrl}` + `/api/authenticateUser`, user);
   }
 
   authenticateUserWithOTP(user: User) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/authenticateUserWithOTP`, user);
+    return this.http.post(`${this.baseUrl}` + `/api/authenticateUserWithOTP`, user);
   }
 
   checkUserSession(user: User) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkUserSession`, user);
+    return this.http.post(`${this.baseUrl}` + `/api/checkUserSession`, user);
   }
 
   logoutUser(user: User) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/logoutUser`, user);
+    return this.http.post(`${this.baseUrl}` + `/api/logoutUser`, user);
   }
 
   checkEmailWhenForgotPassword(user: User) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkEmailWhenForgotPassword`, user);
+    return this.http.post(`${this.baseUrl}` + `/api/checkEmailWhenForgotPassword`, user);
   }
 
   checkOTPWhenForgotPassword(user: User) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/checkOTPWhenForgotPassword`, user);
+    return this.http.post(`${this.baseUrl}` + `/api/checkOTPWhenForgotPassword`, user);
   }
 
   /* 

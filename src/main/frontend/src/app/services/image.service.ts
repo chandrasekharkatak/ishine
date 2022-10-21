@@ -12,27 +12,27 @@ export class ImageService {
   constructor(private http: HttpClient) { }
 
   uploadMultipleImages(formData:FormData){
-    return this.http.post(`${this.baseUrl}`+`employeeportal/api/uploadMultipleImages`,formData);
+    return this.http.post(`${this.baseUrl}`+`/api/uploadMultipleImages`,formData);
   }
 
   getAllEventPhotos() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllEventPhotos`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllEventPhotos`);
   }
 
   deleteEventPhoto(imageObj: EventPhoto) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteEventPhoto`, imageObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deleteEventPhoto`, imageObj);
   }
 
   /* Document Upload */
   uploadEmployeeDocument(formData:FormData){
-    return this.http.post(`${this.baseUrl}`+`employeeportal/api/uploadEmployeeDocument`,formData);
+    return this.http.post(`${this.baseUrl}`+`/api/uploadEmployeeDocument`,formData);
   }
 
   saveEmployeeDocuments(employeeObj: Employee){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/saveEmployeeDocuments`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `/api/saveEmployeeDocuments`, employeeObj);
   }
 
   getEmployeeDocuments(employeeObj: Employee){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getEmployeeDocuments`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getEmployeeDocuments`, employeeObj);
   }
 }

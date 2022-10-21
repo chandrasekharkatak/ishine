@@ -12,19 +12,19 @@ export class TeamViewService {
   constructor(private http : HttpClient) { }
 
   getAllTeamView(employeeObj : Employee){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamView`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllTeamView`, employeeObj);
   }
 
   getAllTeamLeaveHistoryView(leaveObj : Leave){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamLeaveHistoryView`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllTeamLeaveHistoryView`, leaveObj);
   }
 
   getAllTeamCompOffHistoryView(leaveObj : Leave){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamCompOffHistoryView`, leaveObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllTeamCompOffHistoryView`, leaveObj);
   }
 
   getAllTeamMemberView(employeeObj : Employee){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/getAllTeamMemberView`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `/api/getAllTeamMemberView`, employeeObj);
   }
   
 }

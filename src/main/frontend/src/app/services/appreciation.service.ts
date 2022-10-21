@@ -13,10 +13,10 @@ export class AppreciationService {
   constructor(private http: HttpClient) { }
 
   getAllEmployees() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/empdetails`);
+    return this.http.get(`${this.baseUrl}` + `/api/empdetails`);
   }
   submitAppreciation(data:any){
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/saveAppreciation`,data);
+    return this.http.post(`${this.baseUrl}` + `/api/saveAppreciation`,data);
 
   }
 }

@@ -12,26 +12,26 @@ export class JobRoleService {
   constructor(private http: HttpClient) { }
 
   createJobRole(jobRoleObj: JobRole) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/createJobRole`, jobRoleObj);
+    return this.http.post(`${this.baseUrl}` + `/api/createJobRole`, jobRoleObj);
   }
 
   updateJobRole(jobRoleObj: JobRole) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateJobRole`, jobRoleObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateJobRole`, jobRoleObj);
   }
 
   deleteJobRole(jobRoleObj: JobRole) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteJobRole`, jobRoleObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deleteJobRole`, jobRoleObj);
   }
 
   getAllJobRole() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllJobRole`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllJobRole`);
   }
 
   changeEmployeeJobRoleMapping(jobRoleObj: JobRole) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/changeEmployeeJobRoleMapping`, jobRoleObj);
+    return this.http.post(`${this.baseUrl}` + `/api/changeEmployeeJobRoleMapping`, jobRoleObj);
   }
   
   checkJobRole(jobRoleObj : JobRole) {
-    return this.http.post(`${this.baseUrl}`+`employeeportal/api/checkJobRole`, jobRoleObj);
+    return this.http.post(`${this.baseUrl}`+`/api/checkJobRole`, jobRoleObj);
   }
 }

@@ -11,10 +11,10 @@ export class PoliciesService {
   constructor(private http: HttpClient) { }
 
   getAllDocument() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllDocument`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllDocument`);
   }
   downloadDocument(policyID: string) {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/downloadDocument/${policyID}`, {
+    return this.http.get(`${this.baseUrl}` + `/api/downloadDocument/${policyID}`, {
       responseType: 'blob'
     });
   }

@@ -13,18 +13,18 @@ export class NotificationService {
 
   /* Leave */
   addNotification(notificationObj:NotificationMessage) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/addNotification`, notificationObj);
+    return this.http.post(`${this.baseUrl}` + `/api/addNotification`, notificationObj);
   }
 
   updateNotification(notificationObj: NotificationMessage) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/updateNotification`, notificationObj);
+    return this.http.post(`${this.baseUrl}` + `/api/updateNotification`, notificationObj);
   }
 
   deleteNotification(notificationObj: NotificationMessage) {
-    return this.http.post(`${this.baseUrl}` + `employeeportal/api/deleteNotification`, notificationObj);
+    return this.http.post(`${this.baseUrl}` + `/api/deleteNotification`, notificationObj);
   }
 
   getAllNotifications() {
-    return this.http.get(`${this.baseUrl}` + `employeeportal/api/getAllNotifications`);
+    return this.http.get(`${this.baseUrl}` + `/api/getAllNotifications`);
   }
 }
