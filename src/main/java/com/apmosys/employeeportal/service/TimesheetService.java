@@ -111,8 +111,12 @@ public class TimesheetService {
 
 				for (Object[] object : projectList) {
 					timesheetDto = new TimesheetDTO();
-					timesheetDto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-					timesheetDto.setProjectName(object[1] != null ? object[1].toString() : null);
+					timesheetDto.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+					timesheetDto.setClientName(object[1] != null ? object[1].toString() : null);
+					timesheetDto.setClientLocationId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+					timesheetDto.setClientLocation(object[3] != null ? object[3].toString() : null);
+					timesheetDto.setProjectId(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
+					timesheetDto.setProjectName(object[5] != null ? object[5].toString() : null);
 					listDto.add(timesheetDto);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -210,11 +214,10 @@ public class TimesheetService {
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
-			if (!timesheetDTO.getDayType().equals("Holiday")) {
+			if (!timesheetDTO.getDayType().equals("Holiday")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
-
+					
 					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
-
 					allTimesheetActivities.forEach((activity) -> {
 
 						TimesheetActivityMap map = new TimesheetActivityMap();
@@ -222,9 +225,11 @@ public class TimesheetService {
 						map.setCompletionTime(activity.getCompletionTime());
 						map.setDescription(activity.getDescription());
 						map.setTimesheetId(newTimesheetCreated.getTimesheetId());
+						map.setClientLocationId(activity.getClientLocationId());
+						
 						mapList.add(map);
 
-						Float savedTime = newTimesheet.getTotalTime() != null ? newTimesheet.getTotalTime() : 0;
+						Float savedTime = newTimesheetCreated.getTotalTime() != null ? newTimesheetCreated.getTotalTime() : 0;
 						Float totalTime = activity.getCompletionTime() + savedTime;
 						newTimesheet.setTotalTime(totalTime);
 						timesheetsRepository.save(newTimesheet);
@@ -333,8 +338,10 @@ public class TimesheetService {
 						dto.setTeamName(object[8] != null ? object[8].toString() : null);
 						dto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setProjectId(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-						dto.setTimesheetActivityMapId(
-								object[11] != null ? Long.parseLong(object[11].toString()) : null);
+						dto.setTimesheetActivityMapId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+						dto.setClientId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+						dto.setClientLocationId(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -546,6 +553,7 @@ public class TimesheetService {
 								map.setCompletionTime(activity.getCompletionTime());
 								map.setDescription(activity.getDescription());
 								map.setTimesheetId(timesheetDTO.getTimesheetId());
+								map.setClientLocationId(activity.getClientLocationId());
 								timesheetActivityMapRepository.save(map);
 
 							});
@@ -570,6 +578,7 @@ public class TimesheetService {
 									map.setActivityId(activity.getActivityId());
 									map.setCompletionTime(activity.getCompletionTime());
 									map.setDescription(activity.getDescription());
+									map.setClientLocationId(activity.getClientLocationId());
 									timesheetActivityMapRepository.save(map);
 								}
 							});

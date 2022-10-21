@@ -13,7 +13,9 @@ import lombok.ToString;
 public class TimesheetDTO {
 
 	private Integer projectId;
+	private Integer clientId;
 	private String clientName;
+	private Integer clientLocationId;
 	private String clientLocation;
 	private String state;
 	private String projectName;

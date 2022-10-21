@@ -63,10 +63,34 @@
                             <div class="col-md-3 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.clientId" (change)="getClientLocationList(activityObj);">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let client of clientList" value="{{client.clientId}}">{{client.clientName}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Client Location</label>
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.clientLocationId" (change)="getProjectList(activityObj);">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let clientLocation of clientLocationList" value="{{clientLocation.clientLocationId}}">{{clientLocation.clientLocation}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
                                         <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllActivitiesByProjectIdandEmpId(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let project of allProjectsList" value="{{project.projectId}}">{{project.projectName}}</option>
+                                            <option *ngFor="let project of projectList" value="{{project.projectId}}">{{project.projectName}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -260,6 +284,8 @@
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Client Name</th>
+                <th scope="col" class="info-label">Client Location</th>
                 <th scope="col" class="info-label">Project Name</th>
                 <th scope="col" class="info-label">Activity</th>
                 <th scope="col" colspan="4" class="info-label">Description</th>
@@ -272,6 +298,8 @@
               </tr>
               <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{20*(page-1)+i+1}}</td>
+                <td>{{activity.clientName}}</td>
+                <td>{{activity.clientLocation}}</td>
                 <td>{{activity.projectName}}</td>
                 <td>{{activity.activity}}</td>
                 <td colspan="4">{{activity.description}}</td>

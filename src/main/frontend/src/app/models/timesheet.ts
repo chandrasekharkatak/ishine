@@ -36,4 +36,10 @@ export class Timesheet{
     employeeName:any;
     rejectReason:any;
     email:any;
+
+    // for client location & Client 
+    clientId : any;
+	clientName : any;
+    clientLocationId : any;
+	clientLocation : any;
 }

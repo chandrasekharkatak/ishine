@@ -29,5 +29,6 @@ public class ActivityDTO {
 	private Long timesheetId;
 	private Long timesheetActivityMapId;
 
-
+	private Integer clientId;
+	private Integer clientLocationId;
 }

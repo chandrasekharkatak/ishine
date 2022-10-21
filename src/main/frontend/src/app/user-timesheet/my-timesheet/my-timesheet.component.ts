@@ -34,6 +34,7 @@ export class MyTimesheetComponent implements OnInit {
   isTimesheetTable: boolean = false;
 
   isTimesheetUpdate: boolean = false;
+  isTimesheetUpdateCounter = 0;
 
   //modal 
   alertMessage: any;
@@ -57,6 +58,10 @@ export class MyTimesheetComponent implements OnInit {
 
   availableTimesheetDates: any[] = [];
   availableTimesheets: any[] = [];
+
+  projectList:any[] = [];
+  clientList:any[] = [];
+  clientLocationList:any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -166,9 +171,11 @@ export class MyTimesheetComponent implements OnInit {
     const selectedActivityObj = this.allTimesheetActivities.find(activity => activity === activityObj);
     if(!this.isTimesheetUpdate){
       selectedActivityObj.activityId = '';
+    }else{
+      this.isTimesheetUpdateCounter--;
+      if(this.isTimesheetUpdateCounter === 0) this.isTimesheetUpdate = false;
     } 
     selectedActivityObj.projectActivities = allActivityList;
-    this.isTimesheetUpdate = false;
   } 
 
   setActivity(activityObj) {
@@ -208,6 +215,18 @@ export class MyTimesheetComponent implements OnInit {
       let totalActivityTime = 0;
 
       this.allTimesheetActivities.forEach((activity, index) => {
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
+          this.alertMessage = `Please select Client - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.clientLocationId)) {
+          this.alertMessage = `Please select Client Location - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+
         if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
           this.alertMessage = `Please select Project - ${index + 1}!!`
           flag = false;
@@ -341,10 +360,39 @@ export class MyTimesheetComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         console.log("allProjectsList :", this.allProjectsList);
+        const key = "clientId";
+        this.clientList = [...new Map(this.allProjectsList.map((project:Timesheet) => [project[key], project])).values()].map((project:Timesheet) => {
+          return { clientId: project.clientId, clientName: project.clientName}
+        });
+        console.log("clientList :", this.clientList);
       } else {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  getProjectList(activityObj: Activity){
+    this.projectList = [];
+
+    const key = "projectId";
+    this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
+      if (project.clientId == activityObj.clientId) {
+        return { projectId: project.projectId, projectName: project.projectName }
+      }
+    });
+    console.log("projectList :", this.projectList);
+  }
+
+  getClientLocationList(activityObj: any){
+    this.clientLocationList = [];
+
+    const key = "clientLocationId";
+    this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
+      if (project.clientId == activityObj.clientId) {
+        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
+      }
+    });
+    console.log("clientLocationList :", this.clientLocationList);
   }
 
   getAllActivitiesByProjectIdandEmpId(activityObj: any) {
@@ -439,7 +487,12 @@ export class MyTimesheetComponent implements OnInit {
       if (this.allTimesheetActivities.length == 0) {
         this.addInputActivityField();
       } else {
-        this.allTimesheetActivities.forEach(activity => this.getAllActivitiesByProjectIdandEmpId(activity));
+        if(this.isTimesheetUpdate) this.isTimesheetUpdateCounter = this.allTimesheetActivities.length;
+        this.allTimesheetActivities.forEach(activity => {
+          this.getAllActivitiesByProjectIdandEmpId(activity)
+          this.getClientLocationList(activity);
+          this.getProjectList(activity);
+        });
       }
     });
   }

@@ -36,5 +36,6 @@ public class Project {
 	private Timestamp approvedOn;
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
+	private Integer clientId;
 
 }

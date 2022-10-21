@@ -187,6 +187,8 @@
           <thead class="thead-light">
             <tr>
               <th scope="col" class="info-label">Sr No.</th>
+              <th scope="col" class="info-label">Client Name</th>
+              <th scope="col" class="info-label">Client Location</th>
               <th scope="col" class="info-label">Project Name</th>
               <th scope="col" class="info-label">Activity</th>
               <th scope="col" colspan="4" class="info-label">Description</th>
@@ -199,6 +201,8 @@
             </tr>
             <tr *ngFor="let activity of timesheetObj.allTimesheetActivities|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
               <td>{{20*(page-1)+i+1}}</td>
+              <td>{{activity.clientName}}</td>
+              <td>{{activity.clientLocation}}</td>
               <td>{{activity.projectName}}</td>
               <td>{{activity.activity}}</td>
               <td colspan="4">{{activity.description}}</td>
