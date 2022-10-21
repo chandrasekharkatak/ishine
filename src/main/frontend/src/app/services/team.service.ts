@@ -14,45 +14,45 @@ export class TeamService {
 
   // Team Configuration 
   createTeam(teamObj: Team) {
-    return this.http.post(`${this.baseUrl}` + `/api/createTeam`, teamObj);
+    return this.http.post(`${this.baseUrl}` + `api/createTeam`, teamObj);
   }
 
   updateTeam(teamObj: Team) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateTeam`, teamObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateTeam`, teamObj);
   }
 
   deleteTeam(teamObj: Team) {
-    return this.http.post(`${this.baseUrl}` + `/api/deleteTeam`, teamObj);
+    return this.http.post(`${this.baseUrl}` + `api/deleteTeam`, teamObj);
   }
 
   getAllTeamsByProjectId(teamObj: Team) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllTeamsByProjectId`, teamObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllTeamsByProjectId`, teamObj);
   }
 
   getTeamMembersByTeamId(teamObj: Team) {
-    return this.http.post(`${this.baseUrl}` + `/api/getTeamMembersByTeamId`, teamObj);
+    return this.http.post(`${this.baseUrl}` + `api/getTeamMembersByTeamId`, teamObj);
   }
 
 
   // Activity Configuration
   createActivity(activityObj: Activity) {
-    return this.http.post(`${this.baseUrl}` + `/api/createActivity`, activityObj);
+    return this.http.post(`${this.baseUrl}` + `api/createActivity`, activityObj);
   }
 
   updateActivity(activityObj: Activity) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateActivity`, activityObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateActivity`, activityObj);
   }
 
   deleteActivity(activityObj: Activity) {
-    return this.http.post(`${this.baseUrl}` + `/api/deleteActivity`, activityObj);
+    return this.http.post(`${this.baseUrl}` + `api/deleteActivity`, activityObj);
   }
 
   getAllActivitiesByProjectIdAndTeamId(activityObj: Activity) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllActivitiesByProjectIdAndTeamId`, activityObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllActivitiesByProjectIdAndTeamId`, activityObj);
   }
 
   checkTeamName(teamObj :Team){
-    return this.http.post(`${this.baseUrl}` + `/api/checkTeamName` , teamObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkTeamName` , teamObj);
   }
 
 }

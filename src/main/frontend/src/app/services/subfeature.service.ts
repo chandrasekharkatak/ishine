@@ -14,14 +14,14 @@ export class SubfeatureService {
   constructor(private http: HttpClient) { }
 
   getSubfeaturesByJobRoleId(jobRoleObj: JobRole) {
-    return this.http.post(`${this.baseUrl}` + `/api/getSubfeaturesByJobRoleId`, jobRoleObj);
+    return this.http.post(`${this.baseUrl}` + `api/getSubfeaturesByJobRoleId`, jobRoleObj);
   }
 
   getAllSubFeatures() {
-    return this.http.get(`${this.baseUrl}` + `/api/getAllSubFeatures`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllSubFeatures`);
   }
 
   updateRoleFeatureMapping(updateFeatureObj: Feature) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateRoleFeatureMapping`, updateFeatureObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateRoleFeatureMapping`, updateFeatureObj);
   }
 }

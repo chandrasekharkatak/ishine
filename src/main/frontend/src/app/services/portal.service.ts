@@ -12,11 +12,11 @@ export class PortalService {
   constructor(private http: HttpClient) { }
 
   getPortalConfig() {
-    return this.http.get(`${this.baseUrl}` + `/api/getPortalConfig`);
+    return this.http.get(`${this.baseUrl}` + `api/getPortalConfig`);
   }
 
   updatePortalConfig(portalObj: Portal) {
-    return this.http.post(`${this.baseUrl}` + `/api/updatePortalConfig`,portalObj);
+    return this.http.post(`${this.baseUrl}` + `api/updatePortalConfig`,portalObj);
   }
 
 }

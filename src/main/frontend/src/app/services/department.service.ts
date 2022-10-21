@@ -12,26 +12,26 @@ export class DepartmentService {
   constructor(private http: HttpClient) { }
 
   createDepartment(deptObj: Department) {
-    return this.http.post(`${this.baseUrl}` + `/api/createDepartment`, deptObj);
+    return this.http.post(`${this.baseUrl}` + `api/createDepartment`, deptObj);
   }
 
   updateDepartment(deptObj: Department) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateDepartment`, deptObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateDepartment`, deptObj);
   }
 
   deleteDepartment(deptObj: Department) {
-    return this.http.post(`${this.baseUrl}` + `/api/deleteDepartment`, deptObj);
+    return this.http.post(`${this.baseUrl}` + `api/deleteDepartment`, deptObj);
   }
 
   getAllDepartments() {
-    return this.http.get(`${this.baseUrl}` + `/api/getAllDepartments`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllDepartments`);
   }
 
   updateDepartmentHolidayMappings(deptObj: Department) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateDepartmentHolidayMappings`, deptObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateDepartmentHolidayMappings`, deptObj);
   }
 
   changeDepartmentJobRoleMapping(deptObj: Department) {
-    return this.http.post(`${this.baseUrl}` + `/api/changeDepartmentJobRoleMapping`, deptObj);
+    return this.http.post(`${this.baseUrl}` + `api/changeDepartmentJobRoleMapping`, deptObj);
   }
 }

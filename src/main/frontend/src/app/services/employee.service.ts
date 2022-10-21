@@ -14,140 +14,140 @@ export class EmployeeService {
   constructor(private http: HttpClient) { }
 
   createEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/createEmployee`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/createEmployee`, employeeObj);
   }
 
   updateEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateEmployeeByEmpId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeByEmpId`, employeeObj);
   }
 
   deleteEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/deleteEmployeeByEmpId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/deleteEmployeeByEmpId`, employeeObj);
   }
 
   getAllEmployees() {
-    return this.http.get(`${this.baseUrl}` + `/api/getAllEmployees`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
   getEmployeeByEmpId(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getEmployeeByEmpId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeByEmpId`, employeeObj);
   }
 
   updateEmployeeProfile(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateEmployeeProfileByEmpId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`, employeeObj);
   }
 
   getAllEmployeesByRole(employeeObj: Employee) {	
-    return this.http.post(`${this.baseUrl}` + `/api/getAllEmployeesByRole`, employeeObj);	
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);	
   }
 
   getAllEmployeesByDepartmentIds(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllEmployeesByDepartmentIds`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByDepartmentIds`, employeeObj);
   }
 
   getAllManagers() {
-    return this.http.get(`${this.baseUrl}` + `/api/getAllManagers`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllManagers`);
   }
 
   checkEmployeementId(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/checkEmployeementId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeementId`, employeeObj);
   }
 
   checkEmployeeMobileNo(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/checkEmployeeMobileNo`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeeMobileNo`, employeeObj);
   }
 
   checkEmployeeAadharNumber(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/checkEmployeeAadharNumber`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeeAadharNumber`, employeeObj);
   }
 
   checkEmployeePanNumber(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/checkEmployeePanNumber`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeePanNumber`, employeeObj);
   }
 
   getAllEmployeesBirthDayToday() {
-    return this.http.get(`${this.baseUrl}` + `/api/getAllEmployeesBirthDayToday`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
   }
 
   getHierarchyByEmpId(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getHierarchyByEmpId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getHierarchyByEmpId`, employeeObj);
   }
 
   customQueryForEmployeeReport(queryObj: Query) {
-    return this.http.post(`${this.baseUrl}` + `/api/customQueryForEmployeeReport`, queryObj);
+    return this.http.post(`${this.baseUrl}` + `api/customQueryForEmployeeReport`, queryObj);
   }
 
   /* Profile Image Upload */
   previewImage(formData:FormData){
-    return this.http.post(`${this.baseUrl}`+`/api/previewImage`,formData);
+    return this.http.post(`${this.baseUrl}`+`api/previewImage`,formData);
   }
 
   uploadImage(formData:FormData){
-    return this.http.post(`${this.baseUrl}`+`/api/uploadImage`,formData);
+    return this.http.post(`${this.baseUrl}`+`api/uploadImage`,formData);
   }
 
   /* Employee Draft */
   createDraftEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/createDraftEmployee`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/createDraftEmployee`, employeeObj);
   }
 
   updateDraftEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateDraftEmployeeById`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateDraftEmployeeById`, employeeObj);
   }
 
   deleteDraftEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/deleteDraftEmployeeById`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/deleteDraftEmployeeById`, employeeObj);
   }
 
   getAllDraftEmployees(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllDraftEmployees`,employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllDraftEmployees`,employeeObj);
   }
 
   getDraftEmployeeByEmpId(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getDraftEmployeeById`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getDraftEmployeeById`, employeeObj);
   }
 
   checkEmployeeEmail(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/checkEmployeeEmail`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeeEmail`, employeeObj);
   }
 
   getDraftEmployeeByEmploymentId(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getDraftEmployeeByEmploymentId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getDraftEmployeeByEmploymentId`, employeeObj);
   }
 
   rejectDraftEmployeeApplication(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/rejectDraftEmployeeApplication`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/rejectDraftEmployeeApplication`, employeeObj);
   }
 
   approveDraftEmployeeApplication(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/approveDraftEmployeeApplication`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/approveDraftEmployeeApplication`, employeeObj);
   }
 
   updateDraftStatusById(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateDraftStatusById`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateDraftStatusById`, employeeObj);
   }
 
   revokeDraftEmployeeApplication(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/revokeDraftEmployeeApplication`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/revokeDraftEmployeeApplication`, employeeObj);
   }
 
    /* update Employee Password */
 
    updateEmployeePassword(user: User){
-    return this.http.post(`${this.baseUrl}` + `/api/updateEmployeePassword`, user);
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeePassword`, user);
    }
 
    /* check Employee old Password */
 
    checkEmployeeOldPassword(user: User){
-    return this.http.post(`${this.baseUrl}` + `/api/checkEmployeeOldPassword`, user);
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeeOldPassword`, user);
    }	
 
    revokeAccount(employeeObj:Employee){
-    return this.http.post(`${this.baseUrl}` + `/api/revokeAccount` , employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/revokeAccount` , employeeObj);
    }
 
    findEmployeeWorkingHistory(employeeObj:Employee){
-    return this.http.post(`${this.baseUrl}`+`/api/findEmployeeWorkingHistory`,employeeObj);
+    return this.http.post(`${this.baseUrl}`+`api/findEmployeeWorkingHistory`,employeeObj);
    }
 }

@@ -13,27 +13,27 @@ export class HolidayService {
   constructor(private http: HttpClient) { }
 
   addHoliday(holidayObj:Holiday) {
-    return this.http.post(`${this.baseUrl}` + `/api/addHoliday`, holidayObj);
+    return this.http.post(`${this.baseUrl}` + `api/addHoliday`, holidayObj);
   }
 
   updateHoliday(holidayObj: Holiday) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateHoliday`, holidayObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateHoliday`, holidayObj);
   }
 
   deleteHoliday(holidayObj: Holiday) {
-    return this.http.post(`${this.baseUrl}` + `/api/deleteHoliday`, holidayObj);
+    return this.http.post(`${this.baseUrl}` + `api/deleteHoliday`, holidayObj);
   }
 
   getAllHolidays() {
-    return this.http.get(`${this.baseUrl}` + `/api/getAllHolidays`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllHolidays`);
   }
 
   getAllHolidayByEmpWorkLocation(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllHolidayByEmpWorkLocation`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllHolidayByEmpWorkLocation`, employeeObj);
   }
 
   checkOccasionIfAlreadyExist(holidayObj: Holiday){
-    return this.http.post(`${this.baseUrl}` + `/api/checkOccasionIfAlreadyExist`, holidayObj);
+    return this.http.post(`${this.baseUrl}` + `api/checkOccasionIfAlreadyExist`, holidayObj);
   }
 
 }

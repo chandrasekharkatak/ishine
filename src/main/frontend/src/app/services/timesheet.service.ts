@@ -14,70 +14,70 @@ export class TimesheetService {
 
   /* Add & Update Timesheet */
   addTimesheet(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/addTimesheet`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheet`, timesheetObj);
   }
 
   updateTimesheet(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateTimesheet`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, timesheetObj);
   }
 
   getAllProjectsByEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllProjectsByEmpId`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectsByEmpId`, timesheetObj);
   }
 
   getAllActivitiesByProjectIdandEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllActivitiesByProjectIdandEmpId`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllActivitiesByProjectIdandEmpId`, timesheetObj);
   }
 
 
   /* View My Timesheets */
   getAllMyTimesheetsByEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllMyTimesheetsByEmpId`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTimesheetsByEmpId`, timesheetObj);
   }
   getAllMyActivitiesByTimesheetId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getAllMyActivitiesByTimesheetId`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyActivitiesByTimesheetId`, timesheetObj);
   }
   getbackdatedTimesheetsByEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getLast7DaysTimesheetsByEmpId`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getLast7DaysTimesheetsByEmpId`, timesheetObj);
   }
 
   /* View Reportee's Timesheets */
   getMyReporteesTimesheetRequests(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getMyReporteesTimesheetRequests`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesTimesheetRequests`, timesheetObj);
   }
   countMyReporteesTimesheetRequests(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/countMyReporteesTimesheetRequests`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/countMyReporteesTimesheetRequests`, timesheetObj);
   }
   getMyReporteesApprovedTimesheets(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getMyReporteesApprovedTimesheets`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesApprovedTimesheets`, timesheetObj);
   }
   updateTimesheetRequestById(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/updateTimesheetRequestById`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateTimesheetRequestById`, timesheetObj);
   }
   revokeApprovedTimesheet(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/revokeApprovedTimesheet`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/revokeApprovedTimesheet`, timesheetObj);
   }
 
   /* Timesheet for Home Page */
   getTimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `/api/getTimesheetsForHomePageByEmpId`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getTimesheetsForHomePageByEmpId`, timesheetObj);
   }
 
   /* Reports */
   timesheetReport(){
-    return this.http.get(`${this.baseUrl}` + `/api/timesheetReport`);
+    return this.http.get(`${this.baseUrl}` + `api/timesheetReport`);
   }
 
   customTimesheetApplicationReport(queryObj: Query) {
-    return this.http.post(`${this.baseUrl}` + `/api/customTimesheetApplicationReport`, queryObj);
+    return this.http.post(`${this.baseUrl}` + `api/customTimesheetApplicationReport`, queryObj);
   }
 
   customQueryForTimesheetSummaryChart(queryObj: Query){
-    return this.http.post(`${this.baseUrl}` + `/api/customQueryForTimesheetSummaryChart`, queryObj);
+    return this.http.post(`${this.baseUrl}` + `api/customQueryForTimesheetSummaryChart`, queryObj);
   }
 
   /* Reports Dashboard */
   getLast9DaysTimesheetReport(){
-    return this.http.get(`${this.baseUrl}` + `/api/getLast9DaysTimesheetReport`);
+    return this.http.get(`${this.baseUrl}` + `api/getLast9DaysTimesheetReport`);
   }
 }
