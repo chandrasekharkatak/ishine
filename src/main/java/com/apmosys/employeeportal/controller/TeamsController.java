@@ -137,4 +137,37 @@ public class TeamsController {
 		}
 		return response;
 	}
+	
+	@RequestMapping(value = "/migrateClientByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateClientByList(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.migrateClientByList(project);
+		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/migrateClientLocationByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateClientLocationByList(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.migrateClientLocationByList(project);
+		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/updateProjectByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse updateProjectByList(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.updateProjectByList(project);
+		}
+		return response;
+	}
 }

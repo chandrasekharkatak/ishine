@@ -19,6 +19,8 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
+import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -28,6 +30,8 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
+import com.apmosys.employeeportal.repository.ClientLocationRepository;
+import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -64,6 +68,12 @@ public class TeamsService {
 	
 	@Autowired
 	ActivitiesRepository activitiesRepository;
+	
+	@Autowired
+	ClientsRepository clientsRepository;
+	
+	@Autowired
+	ClientLocationRepository clientLocationRepository;
 
 	@Autowired
 	ModelMapper modelMapper;
@@ -701,7 +711,9 @@ public class TeamsService {
 				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
 			}
 			
-
+			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
+			
+			if(projectPresent == null) {
 				Project newProject = new Project();
 
 				newProject.setClientName(project.getClientName());
@@ -723,10 +735,127 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("project creation failed");
 				}
+			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
-			System.exit(0);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse migrateClientByList(ProjectDTO project) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<Client> clientPresent = clientsRepository.findByClientName(project.getClientName());
+			
+			if(clientPresent.isEmpty()) {
+				
+				Client clientObj = new Client();
+				clientObj.setClientName(project.getClientName());
+				Client clientSaved = clientsRepository.save(clientObj);
+				
+				if(clientSaved != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Client added successfully");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to add new Client");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Client already present");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse migrateClientLocationByList(ProjectDTO project) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<Client> clientPresent = clientsRepository.findByClientName(project.getClientName());
+			
+			if(!clientPresent.isEmpty()) {
+				Client clientObj = clientPresent.get();
+				
+				ClientLocation clientLocationPresent = clientLocationRepository
+						.findByClientIdAndClientLocation(clientObj.getClientId(), project.getClientLocation());
+				
+				if(clientLocationPresent != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Client Data Already present");
+				}else {
+					
+					ClientLocation clientLocationObj = new ClientLocation();
+					clientLocationObj.setClientId(clientObj.getClientId());
+					clientLocationObj.setClientLocation(project.getClientLocation());
+					
+					ClientLocation clientLocationSaved = clientLocationRepository.save(clientLocationObj);
+					if(clientLocationSaved != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Client Location added successfully");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Failed to add Client Location");
+					}
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Client not found");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse updateProjectByList(ProjectDTO project) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<Client> clientPresent = clientsRepository.findByClientName(project.getClientName());
+			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
+			
+			if(!clientPresent.isEmpty()) {
+				Client clientObj = clientPresent.get();
+				
+				if(projectPresent != null) {
+					projectPresent.setClientId(clientObj.getClientId());
+					
+					Project projSaved = projectRepository.save(projectPresent);
+					if(projSaved != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Project Updated Successfully");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Project Updation Failed");
+					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Project not found");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Client not found");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
