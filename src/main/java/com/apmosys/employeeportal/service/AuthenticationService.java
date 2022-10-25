@@ -292,4 +292,43 @@ public class AuthenticationService {
 		return response;
 	}
 
+	public ServiceResponse resendOTP(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+			
+			if(employee != null) {
+				
+				Random random = new Random();
+				int otp = random.nextInt(9999 - 1000)
+						+ 1000; /* Random number will be generated between 1000 and 9999 */
+				employee.setOtp(otp);
+				
+				mailService.sendMail(employeedto.getEmail(), "Regarding otp",
+						"please find your otp " + otp);
+
+				Employee employeeSaved = employeeRepository.save(employee);
+
+				if(employeeSaved != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("OTP sent to email.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("OTP sent to email.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }

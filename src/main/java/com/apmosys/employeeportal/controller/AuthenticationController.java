@@ -66,5 +66,12 @@ public class AuthenticationController {
 		ServiceResponse response = authenticationService.checkOTPWhenForgotPassword(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/resendOTP", method = RequestMethod.POST)
+	public ServiceResponse resendOTP(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = authenticationService.resendOTP(employeedto);
+		return response;
+	}
 
 }

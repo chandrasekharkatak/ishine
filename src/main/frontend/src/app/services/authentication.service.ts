@@ -57,6 +57,10 @@ export class AuthenticationService {
     return this.http.post(`${this.baseUrl}` + `api/checkOTPWhenForgotPassword`, user);
   }
 
+  resendOTP(user: User) {
+    return this.http.post(`${this.baseUrl}` + `api/resendOTP`, user);
+  }
+
   /* 
   *  Cron to check if user session exists.
   *  Added by suraj 12/08/2022

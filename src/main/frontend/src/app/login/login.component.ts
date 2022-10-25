@@ -424,6 +424,19 @@ export class LoginComponent implements OnInit{
     return this.featureList;
   }
 
+  resendOTP(){
+
+    this.authenticationService.resendOTP(this.user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.isError=true;
+        this.errorMsg=response.serviceResponse;
+      } else {
+        this.isError=true;
+        this.errorMsg=response.serviceResponse;
+      }
+    });
+  }
+
    //modals
   openReLoginMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
