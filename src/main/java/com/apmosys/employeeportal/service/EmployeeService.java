@@ -2064,8 +2064,14 @@ public class EmployeeService {
 				Employee employee = employeeObject.get();
 				
 				mailService.sendMail(employee.getEmail(), "Regarding new Employee Portal *IShine*",
-						"Your account has been created. <br>Username: " + employee.getEmail()
-								+ "<br>Password:  Your Old Employee Portal (Leave Portal) Password");
+						"Dear ApMoSysian,<br>"
+						+ "<br>"
+						+ "Welcome to iShine Portal, Please login using your old leave portal credentials.<br>"
+						+ "Please complete updation of your profile before end of this month and start using this portal for leave and timesheet applications.<br>"
+						+ "<br>"
+						+ "links - <br>"
+						+ "portal link : https://ishine.apmosys.com/ <br>"
+						+ "tutorial : https://apmosystech-my.sharepoint.com/:v:/g/personal/bansi_prasad_apmosys_com/EX-izLxX6I1Kn4JcJOgxTk4BfrfXuCTj2jeMUbfbN_rRqA?e=HRYtCt");
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New Portal Credentials Mail sent successfully");
