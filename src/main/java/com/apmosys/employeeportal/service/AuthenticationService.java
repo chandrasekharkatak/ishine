@@ -67,44 +67,52 @@ public class AuthenticationService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Account Blocked !!");
 						
-					}else if(!employee.getEmploymentstatus().equals("InActive")) {
-						
-						if (!isUserLoggedIn) {
-							String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
-							String dtoPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
+					} else if (!employee.getEmploymentstatus().equals("InActive")) {
+
+						String dbPassword = EncryptDecrypt.decrypt(employee.getPassword());
+						String dtoPassword = EncryptDecrypt.decrypt(employeedto.getPassword());
 
 							if (dbPassword.equals(dtoPassword)) {
-								
-								Random random = new Random();
-								int otp = random.nextInt(9999 - 1000)
-										+ 1000; /* Random number will be generated between 1000 and 9999 */
-								employee.setOtp(otp);
-								mailService.sendMail(employeedto.getEmail(), "Regarding otp","please find your otp " +otp);
-								employee.setInvalidAccessAttempt(0);
-								
+								if (!isUserLoggedIn) {
+									
+									Random random = new Random();
+									int otp = random.nextInt(9999 - 1000)
+											+ 1000; /* Random number will be generated between 1000 and 9999 */
+									employee.setOtp(otp);
+									mailService.sendMail(employeedto.getEmail(), "Regarding otp",
+											"please find your otp " + otp);
+									employee.setInvalidAccessAttempt(0);
+
+									employeeRepository.save(employee);
+
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Valid Credentials. OTP sent to email.");
+									
+								} else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
+									response.setServiceResponse(
+											"User already logged in.Do you want to logout of existing session ?");
+									
+									Random random = new Random();
+									int otp = random.nextInt(9999 - 1000)
+											+ 1000; /* Random number will be generated between 1000 and 9999 */
+									employee.setOtp(otp);
+									mailService.sendMail(employeedto.getEmail(), "Regarding otp","please find your otp " +otp);
+									employee.setInvalidAccessAttempt(0);
+									
+									employeeRepository.save(employee);
+								}
+							} else {
+
+								count = employee.getInvalidAccessAttempt() + 1;
+								System.out.println("counter :" + count);
+								employee.setInvalidAccessAttempt(count);
 								employeeRepository.save(employee);
 
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Valid Credentials. OTP sent to email.");
-								
-							}else {
-								
-								  count = employee.getInvalidAccessAttempt() + 1;
-								  System.out.println("counter :" + count);
-								  employee.setInvalidAccessAttempt(count);
-								  employeeRepository.save(employee);
-								  
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Invalid Credentials.");
-								
+
 							}
-
-						} else {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
-							response.setServiceResponse(
-									"User already logged in.Do you want to logout of existing session ?");
-						}
-
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("InActive User");
