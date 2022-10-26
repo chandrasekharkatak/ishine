@@ -955,11 +955,11 @@ export class EmployeeConfigComponent implements OnInit {
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          "Emp Id": "A-".concat(x.employeementId),		
-          "Name": x.name,		
-          "Email": x.email,		
+          "EmployeeId": "A-".concat(x.employeementId),		
+          "Full Name": x.name,		
+          "EmailId": x.email,		
           "Employment Status": x.employmentstatus,		
-          "Date Of Joining": x.dateOfJoining,
+          "Date of Joining": x.dateOfJoining,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,

@@ -201,12 +201,13 @@ export class TeamTimesheetComponent implements OnInit {
       this.excelName = 'AllTeamTimesheet.xlsx';
 
       this.allTeamTimesheets = this.allTeamTimesheetDataForExcel;
-        const onlySpecificDataArr: Partial<Timesheet>[] = this.allTeamTimesheetDataForExcel.map(
+        const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
           x => ({
-            date: x.date,
-            dayType: x.dayType,
-            description: x.description,
-            status: x.status
+            "Date": x.date,
+            "Day Type": x.dayType,
+            "Timesheet Details": x.description,
+            "Total Time": x.totalTime,
+            "Status": x.status
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
@@ -216,12 +217,15 @@ export class TeamTimesheetComponent implements OnInit {
       this.excelName = 'AllTeamTimeSheetRequest.xlsx'
 
       this.allTeamTimesheetRequests = this.allTeamTimesheetRequestDataForExcel;
-        const onlySpecificDataArr: Partial<Timesheet>[] = this.allTeamTimesheetRequestDataForExcel.map(
+        const onlySpecificDataArr = this.allTeamTimesheetRequestDataForExcel.map(
           x => ({
-            date: x.date,
-            dayType: x.dayType,
-            description: x.description,
-            status: x.status
+            "Employee Id": x.employeementId,
+            "Name": x.employeeName,
+            "Date": x.date,
+            "Day Type": x.dayType,
+            "Timesheet Details": x.description,
+            "Working Hours": x.totalTime,
+            "Status": x.status
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName);

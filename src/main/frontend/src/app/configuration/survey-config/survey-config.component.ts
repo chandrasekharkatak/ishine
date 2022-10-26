@@ -205,7 +205,7 @@ export class SurveyConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateAlphaWithSpace(surveyObj.surveyName)){
+    if(!this.validationService.validateSurveyName(surveyObj.surveyName)){
       this.alertMessage = "Please enter Valid Survey Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -215,6 +215,12 @@ export class SurveyConfigComponent implements OnInit {
     allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {
       if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
         this.alertMessage = `Please enter Question ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+      }
+      if(!this.validationService.validateQuestion(question.question)){
+        this.alertMessage = `Please enter valid Question ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
         return;

@@ -217,6 +217,7 @@ export class CompOffComponent implements OnInit {
 
     resetToDate(){
       this.compOffObj.toDate = ''
+      this.compOffObj.noOfDays = ''
     }
 
     onApplyCompOff(template: TemplateRef<any>){

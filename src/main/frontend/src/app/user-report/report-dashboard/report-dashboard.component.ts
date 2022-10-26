@@ -1338,7 +1338,7 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": x.fromDate,
@@ -1352,12 +1352,12 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelTimesheetSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":x.date,
         "Day Type":x.dayType,
-        "Email": x.email,
+        "Email Id": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Pending EOD Count": x.pendingEodCount,
@@ -1371,10 +1371,10 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelEODSegregation(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "Email": x.email,
+        "Email Id": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Timesheet Date":x.date,
@@ -1388,10 +1388,11 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelEmployeeSummary():void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "Email": x.email,
+        "Email Id": x.email,
+        "Date Of Joining" : x.dateOfJoining,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,

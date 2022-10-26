@@ -585,9 +585,9 @@ exportToExcel(): void {
       const onlySpecificDataArr = this.leaveDataForExcel.map(
         x => ({
           "Leave Type": x.leaveType,	
-          "Leave Type Code": x.leaveTypeCode,	
-          "Gender": x.gender,	
-          "No of Days": x.noOfDays,	
+          "Leave Code": x.leaveTypeCode,	
+          "Employee Gender": x.gender,	
+          "Default Leaves": x.noOfDays,	
           "Rules": x.rules,	
           "Description": x.description
         })
@@ -604,13 +604,13 @@ exportToExcel(): void {
         this.leavePolicyDataForExcel = response.serviceResponse;
       }
   
-      const onlySpecificDataArr: Partial<Leave>[] = this.leavePolicyDataForExcel.map(
+      const onlySpecificDataArr = this.leavePolicyDataForExcel.map(
         x => ({
-          leavePolicyName: x.leavePolicyName,
-          leaveType: x.leaveType,
-          description: x.description,
-          createdByName: x.createdByName,
-          createdOn: x.createdOn
+          "Leave Policy Name": x.leavePolicyName,
+          "Leave Type": x.leaveType,
+          "Description": x.description,
+          "Created By": x.createdByName,
+          "Created On": x.createdOn
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
