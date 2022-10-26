@@ -345,6 +345,25 @@ public class EmployeeLeaveService {
 				// 1 = pending , 2 = Approved , 3= Rejected
 				if (leaveDTO.getLeaveStatusId() == 2) {
 					pendingLeaveApplication.setLeaveStatusId((short) 2);
+					
+					// Increase Notice period If employee resigned
+					
+					Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
+					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+					
+					LeaveTypeMaster leaveTypeObj = leaveType.get();
+					
+					if (!employee.isEmpty()) {
+						Employee empObj = employee.get();
+						if (empObj.getEmploymentstatus().equals("Resigned") && 
+								(leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
+							
+							empObj.setNoticePeriod((short) Math
+									.ceil(empObj.getNoticePeriod() + pendingLeaveApplication.getNoOfDays()));
+							employeeRepository.save(empObj);
+						}
+					}
+					
 					response.setServiceResponse("Leave application approved.");
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
 					pendingLeaveApplication.setLeaveStatusId((short) 3);
@@ -473,6 +492,21 @@ public class EmployeeLeaveService {
 				
 				Float noOfDays = leaveToBeRevoked.getNoOfDays();
 				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+				
+				// If employee in resignation revoke leave, undo its notice period
+				Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+				Optional<Employee> emp = employeeRepository.findById(leaveToBeRevoked.getEmpId());
+				
+				LeaveTypeMaster leaveTypeObj = leaveType.get();
+				
+				if (!emp.isEmpty()) {
+					Employee empObj = emp.get();
+					if (empObj.getEmploymentstatus().equals("Resigned") && 
+							(leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
+						empObj.setNoticePeriod((short) Math.floor(empObj.getNoticePeriod() - leaveToBeRevoked.getNoOfDays()));
+						employeeRepository.save(empObj);
+					}
+				}
 				
 				// updating leave balance after leave revoked
 				
