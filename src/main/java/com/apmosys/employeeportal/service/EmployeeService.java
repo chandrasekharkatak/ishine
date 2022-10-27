@@ -1908,6 +1908,7 @@ public class EmployeeService {
 					employeeDTO.setName(obj[3] != null ? obj[3].toString() : null);
 					employeeDTO.setEmail(obj[4] != null ? obj[4].toString() : null);
 					employeeDTO.setManagerMail(obj[5] != null ? obj[5].toString() : null);
+					employeeDTO.setEmploymentstatus(obj[6] != null ? obj[6].toString() : null);
 					empDTO.add(employeeDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2089,5 +2090,7 @@ public class EmployeeService {
 		}
 		return response;
 	}
+
+	
 
 }
