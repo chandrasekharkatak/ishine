@@ -346,6 +346,56 @@ export class ValidationService {
     }
 
   }
-  
+  // ^[a-z][a-z\s]*$/i
+
+  validateSurveyName(text:string): boolean {
+    const regex = (/^[a-z][a-z\s]*$/i) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateQuestion(text:string): boolean {
+    const regex = (/^[a-z][a-z\s?]*$/i) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  // ^[A-Z]{4}0[A-Z0-9]{6}$
+
+  validateIFSCCodeRegex(text:string): boolean {
+    const regex = (/^[A-Z]{4}0[A-Z0-9]{6}$/) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
 
 }

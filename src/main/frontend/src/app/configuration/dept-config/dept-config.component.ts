@@ -297,10 +297,10 @@ export class DeptConfigComponent implements OnInit {
 
       const onlySpecificDataArr = this.departmentDataForExcel.map(
         x => ({
-          "Name": x.name,
-          "HOD Name": x.hodName,
-          "Created By Name": x.createdByName,
-          "Created On": x.createdOn
+          "Department Name": x.name,
+          "Head of Department": x.hodName,
+          "Created by": x.createdByName,
+          "Created on": x.createdOn
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)

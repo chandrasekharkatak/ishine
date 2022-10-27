@@ -319,10 +319,12 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onUpdateTimesheet(template: TemplateRef<any>) {
+    const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
     if (this.timesheetObj.dayType != 'Holiday') {
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
       if (this.timesheetObj.allTimesheetActivities) {
@@ -578,6 +580,7 @@ export class MyTimesheetComponent implements OnInit {
         x => ({
           "Date": x.date,
           "Day Type": x.dayType,
+          "Timesheet Details":x.description,
           "Total Working Hours":x.totalTime,
           "Description": x.description,
           "Status": x.status

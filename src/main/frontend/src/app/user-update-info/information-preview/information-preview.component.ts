@@ -385,9 +385,8 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Bank IFSC Code !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaNumeric(employeeObj.bankIFSCCode)){
-      this.alertMessage = "Please enter Valid Bank IFSC Code !!"
-      this.openAlertMod(template, this.alertMessage);
+    }if(!this.validationService.validateIFSCCodeRegex(employeeObj.bankIFSCCode)){
+      this.openAlertMod(template , 'Please Enter Valid IFSC Code !!');
       return false;
     }
 
@@ -432,12 +431,14 @@ export class InformationPreviewComponent implements OnInit {
     console.log("onUpdate --> Preview : ", response);
     
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template, "Profile Updated Pending For Approval");
       console.log(response.serviceResponse);
       this.previewSubmit.emit();
     } else {
       console.error(response.serviceResponse);
     }
   }
+  
 
 
   // modals
