@@ -14,6 +14,36 @@
         </div>
         <div class="card-body">
             <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="d-block info-label"><span class="text-danger">*</span>Timesheet Application For</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self" [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();getTimesheetMetadata()">
+                                <label class="form-check-label" for="forSelf">Self</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember" value="team" [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList()">
+                                <label class="form-check-label" for="forTeamMember">Team member</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="this.timesheetObj.timesheetAppliedFor == 'team'" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Member</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId" [disabled]="isUpdation" (change)="getTimesheetMetadata()">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">{{teamMember.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">

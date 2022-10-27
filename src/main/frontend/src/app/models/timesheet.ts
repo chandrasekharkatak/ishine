@@ -42,4 +42,6 @@ export class Timesheet{
 	clientName : any;
     clientLocationId : any;
 	clientLocation : any;
+
+    timesheetAppliedFor:any;
 }

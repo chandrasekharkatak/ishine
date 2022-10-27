@@ -464,6 +464,7 @@ public class TeamsService {
 					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()): null);
+					dto.setEmploymentstatus(object[6] != null ? object[6].toString(): null);
 					dtoList.add(dto);
 					
 				});

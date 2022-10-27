@@ -13,6 +13,8 @@ import { DatePipe } from '@angular/common';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 import { ClipboardService } from 'ngx-clipboard';
+import { Employee } from 'src/app/models/employee';
+import { TeamViewService } from 'src/app/services/team-view.service';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -63,6 +65,8 @@ export class MyTimesheetComponent implements OnInit {
   clientList:any[] = [];
   clientLocationList:any[] = [];
 
+  teamMemberList:any[] = [];
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -70,7 +74,8 @@ export class MyTimesheetComponent implements OnInit {
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
     private datePipe: DatePipe,
-    private clipboardService: ClipboardService
+    private clipboardService: ClipboardService,
+    private teamViewService : TeamViewService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -84,6 +89,7 @@ export class MyTimesheetComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
 
+    this.timesheetObj.timesheetAppliedFor = "self";
     this.sectionViewInit();
   }
 
@@ -107,8 +113,8 @@ export class MyTimesheetComponent implements OnInit {
     this.isUpdation = false;
 
     this.reset();
-    this.getAllProjectsByEmpId();
-    this.getAllAvailableTimesheetByEmpId();
+    this.getAllProjectsByEmpId(this.currentUser);
+    this.getAllAvailableTimesheetByEmpId(this.currentUser);
   }
 
   showViewMyTimesheets() {
@@ -136,12 +142,14 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
+    this.timesheetObj.timesheetAppliedFor = "self";
     this.getAllMyActivitiesByTimesheetId(timesheetObj);
   }
 
   reset() {
     this.timesheetObj = new Timesheet();
     this.timesheetObj.dayType = '';
+    this.timesheetObj.timesheetAppliedFor = "self";
 
     this.allTimesheetActivities = [];
     this.addInputActivityField()
@@ -350,12 +358,56 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
+  getTimesheetMetadata(){
+    console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
+    let userObj:User = new User();
+    if(this.timesheetObj.timesheetAppliedFor == 'self'){
+      this.timesheetObj.empId = this.currentUser.empId; 
+      userObj.empId = this.currentUser.empId;
+    }else{
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
+      console.log("Team Member : ", teamMember);
+      userObj.empId = teamMember.empId;
+    }
 
-  getAllProjectsByEmpId() {
+
+    this.allTimesheetActivities = [];
+    this.addInputActivityField()
+
+    this.getAllProjectsByEmpId(userObj);
+    this.getAllAvailableTimesheetByEmpId(userObj);
+  }
+
+  getAllTeamMemberList(){
+    this.teamMemberList = []
+
+    if(this.timesheetObj.timesheetAppliedFor == "team"){
+      let employeeObj = new Employee();
+      employeeObj.managerId = this.currentUser.managerId;
+      this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamMemberList = response.serviceResponse;
+          for(let x of this.teamMemberList){
+            x.employeementId="A-".concat(x.employeementId)
+          }
+          console.log("teamMemberList : ", this.teamMemberList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
+
+  }
+
+  getAllProjectsByEmpId(employeeObj:User) {
     this.allProjectsList = [];
+    this.clientList = [];
+    this.clientLocationList = [];
+    this.projectList = [];
 
+    
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.currentUser.empId;
+    timesheetObj.empId = employeeObj.empId;
     this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
@@ -398,8 +450,10 @@ export class MyTimesheetComponent implements OnInit {
   getAllActivitiesByProjectIdandEmpId(activityObj: any) {
     let allActivityList = [];
 
+    console.log("Current Timesheet : ", this.timesheetObj);
+    
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.currentUser.empId;
+    timesheetObj.empId = this.timesheetObj.empId;
     timesheetObj.projectId = activityObj.projectId;
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -412,12 +466,12 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllAvailableTimesheetByEmpId() {
+  getAllAvailableTimesheetByEmpId(employeeObj:User) {
     this.availableTimesheets = [];
     console.log(" -- logged availableTimesheets -- ");
 
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.currentUser.empId;
+    timesheetObj.empId = employeeObj.empId;
     this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
