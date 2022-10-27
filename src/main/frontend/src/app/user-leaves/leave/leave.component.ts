@@ -15,6 +15,8 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
+import { Employee } from 'src/app/models/employee';
+import { TeamViewService } from 'src/app/services/team-view.service';
 
 @Component({
   selector: 'app-leave',
@@ -64,6 +66,8 @@ export class LeaveComponent implements OnInit {
   leavePolicyRules:any[] = [];
   leavePolicyObj:Leave = new Leave();
 
+  teamMemberList:any[] = [];
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
@@ -71,7 +75,9 @@ export class LeaveComponent implements OnInit {
     private datePipe: DatePipe,
     private leaveService : LeaveService,
     private holidayService : HolidayService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private teamViewService : TeamViewService,
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -80,7 +86,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.leaveTypeMasterId = '';
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
-    this.leaveObj.leaveAppliedFor = "me"
+    this.leaveObj.leaveAppliedFor = "self"
     
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -91,7 +97,7 @@ export class LeaveComponent implements OnInit {
 
     this.sectionViewInit();
     // this.getAllLeaveTypes();
-    this.getAllLeaveTypesByLeavePolicies();
+    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
 
     this.dateToday = this.datePipe.transform(this.dateToday,'yyyy-MM-dd');
   }
@@ -126,7 +132,7 @@ export class LeaveComponent implements OnInit {
 
     this.reset();
     this.getAllHolidays();
-    this.getAllMyLeaveApplicationsByEmpId();
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
   }
 
   showLeaveHistoryTable() {
@@ -140,7 +146,7 @@ export class LeaveComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data=''
-    this.getAllMyLeaveApplicationsByEmpId();
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
   }
 
   showLeaveBalanceTable() {
@@ -190,7 +196,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.leaveTypeMasterId = '';
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
-    this.leaveObj.leaveAppliedFor = "me"
+    this.leaveObj.leaveAppliedFor = "self"
 
     this.leaveHistoryList = [];
     this.leaveApplicationList = [];
@@ -208,7 +214,8 @@ export class LeaveComponent implements OnInit {
     	
     this.leaveObj = Object.assign({}, leaveHistory);	
     console.log(this.leaveObj.leaveTypeMasterId);	
-    console.log(this.leaveObj);	
+    console.log(this.leaveObj);
+    this.leaveObj.leaveAppliedFor = "self";
   }
 
   // Modals
@@ -235,11 +242,11 @@ export class LeaveComponent implements OnInit {
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
 
-    // if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveAppliedFor)){
-    //   this.alertMessage = "Please select leave Applied for !!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveAppliedFor)){
+      this.alertMessage = "Please select Leave Application For !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveTypeMasterId)){
       this.alertMessage = "Please select Leave Type !!"
@@ -481,7 +488,7 @@ export class LeaveComponent implements OnInit {
     this.checkPolicy(this.leaveObj, this.leavePolicyObj, template).then(response => {
       if (!response) return;
 
-      this.leaveObj.empId = this.currentUser.empId;
+      // this.leaveObj.empId = this.currentUser.empId; //! this empId will set in getLeaveMetadata()
       this.leaveObj.createdBy = this.currentUser.empId;
       this.leaveObj.managerId = this.currentUser.managerId;
 
@@ -545,11 +552,50 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllMyLeaveApplicationsByEmpId(){
+  getLeaveMetadata(){
+    console.log("leave Obj For getLeaveMetadata : ", this.leaveObj);
+    let userObj:User = new User();
+    if(this.leaveObj.leaveAppliedFor == 'self'){
+      this.leaveObj.empId = this.currentUser.empId; 
+      userObj.empId = this.currentUser.empId;
+      userObj.employmentstatus = this.currentUser.employmentstatus;
+    }else{
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      console.log("Team Member : ", teamMember);
+      userObj.empId = teamMember.empId;
+      userObj.employmentstatus = teamMember.employmentstatus;
+    }
+    
+    this.getAllLeaveTypesByLeavePolicies(userObj);
+    this.getAllMyLeaveApplicationsByEmpId(userObj);
+  }
+
+  getAllTeamMemberList(){
+    this.teamMemberList = []
+
+    if(this.leaveObj.leaveAppliedFor == "team"){
+      let employeeObj = new Employee();
+      employeeObj.managerId = this.currentUser.managerId;
+      this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamMemberList = response.serviceResponse;
+          for(let x of this.teamMemberList){
+            x.employeementId="A-".concat(x.employeementId)
+          }
+          console.log("teamMemberList : ", this.teamMemberList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
+
+  }
+
+  getAllMyLeaveApplicationsByEmpId(userObj:User){
     this.leaveHistoryList = [];
 
     let leaveObj = new Leave();
-    leaveObj.empId = this.currentUser.empId;
+    leaveObj.empId = userObj.empId;
     this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
@@ -588,12 +634,12 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllLeaveTypesByLeavePolicies(){
+  getAllLeaveTypesByLeavePolicies(userObj:User){
     this.leaveTypes = [];
 
     let leaveObj = new Leave();
-    leaveObj.employmentStatus = this.currentUser.employmentstatus;
-    leaveObj.gender = this.currentUser.gender;
+    leaveObj.employmentStatus = userObj.employmentstatus;
+    leaveObj.gender = userObj.gender;
 
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
