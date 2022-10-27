@@ -1444,10 +1444,11 @@ public class EmployeeService {
 				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
 			}
 			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
-
+			
 			if (!jobRoleObj.isEmpty()) {
+				
 				for (JobRole roleObj : jobRoleObj) {
-					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getName());
+					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getJobRoleId());
 
 					Optional.ofNullable(empList).ifPresentOrElse((list) -> {
 
@@ -1458,14 +1459,21 @@ public class EmployeeService {
 							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 							employeeList.add(dto);
 						});
+						
+						// sorted alphabetically
+						
+						final List<EmployeeDTO> employeeDTOList = 
+						employeeList
+						  .stream()
+						  .sorted((object1, object2) -> object1.getName().compareTo(object2.getName())).collect(Collectors.toList());
+						  
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse(employeeList);
+						response.setServiceResponse(employeeDTOList);
 
 					}, () -> {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("No Employee Found");
 					});
-
 				}
 			}
 
