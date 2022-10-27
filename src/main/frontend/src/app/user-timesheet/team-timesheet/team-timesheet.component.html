@@ -227,8 +227,9 @@
 
 <ng-template #reject_timesheet>
   <div class="modal-body text-center">
-      <p>Are you sure you want to Reject Timesheet?</p>
-      <button type="button" class="btn btn-success" (click)="rejectTimesheetRequest(alert_message)">Yes, proceed</button>&nbsp;
-      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+      <p>Kindly provide reason(s) for rejecting application.</p>
+      <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+      <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>

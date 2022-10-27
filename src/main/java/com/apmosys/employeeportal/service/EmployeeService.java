@@ -1120,6 +1120,7 @@ public class EmployeeService {
 							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
 									: null);
 					dtoList.add(empDTO);
+					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
