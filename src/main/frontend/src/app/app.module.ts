@@ -66,6 +66,7 @@ import { SurveyConfigComponent } from './configuration/survey-config/survey-conf
 import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
+import { RecruitmentComponent } from './recruitment/recruitment.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -114,6 +115,7 @@ import { UploadPoliciesComponent } from './configuration/upload-policies/upload-
     UserAppreciationComponent,
     UserPoliciesComponent,
     UploadPoliciesComponent,
+    RecruitmentComponent,
   ],
   imports: [
     BrowserModule,

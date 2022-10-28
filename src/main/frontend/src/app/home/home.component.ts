@@ -273,6 +273,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
     timesheetObj.rejectReason = timesheet.rejectReason;
+    timesheetObj.employeementId = timesheet.employeementId;
+    timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -569,14 +569,14 @@ public class TeamsService {
 		
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Team checkTeamNameByName=teamRepository.findByTeamName(teamdto.getTeamName());
+			Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
 			if(checkTeamNameByName==null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}else if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
 				}
-			
+			 
 		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
