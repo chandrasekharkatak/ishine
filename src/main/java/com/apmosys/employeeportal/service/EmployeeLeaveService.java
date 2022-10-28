@@ -309,6 +309,7 @@ public class EmployeeLeaveService {
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					dto.setLeaveTypeMasterId(object[10] != null ? Short.parseShort(object[10].toString()) : null);
+					dto.setEmployeeName(object[11] != null ? object[11].toString() : null);
 					dtoList.add(dto);
 				});
 

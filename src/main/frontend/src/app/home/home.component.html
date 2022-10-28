@@ -260,6 +260,7 @@
             <thead class="thead-light text-center">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Name</th>
                 <th scope="col" class="info-label">Leave Type</th>
                 <th scope="col" class="info-label">From Date</th>
                 <th scope="col" class="info-label">To Date</th>
@@ -278,6 +279,7 @@
                 </tr>
                 <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{i+1}}</td>
+                    <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
                     <td>{{leaveApplication.toDate}}</td>
@@ -449,9 +451,6 @@
         </div>
       </div>
       <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
-        <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
-            </div>
         <table class="table timesheet-details-table">
             <thead class="thead-light">
               <tr>
@@ -466,7 +465,7 @@
               <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities| paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{activity.projectName}}</td>
                 <td>{{activity.activity}}</td>

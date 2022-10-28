@@ -191,7 +191,7 @@ public class TimesheetService {
 			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 			Timesheet newTimesheet = new Timesheet();
 
-			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
+			newTimesheet.setEmpId(timesheetDTO.getEmpId());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {

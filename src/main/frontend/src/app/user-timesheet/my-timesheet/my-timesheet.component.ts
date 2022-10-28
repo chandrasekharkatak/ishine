@@ -90,6 +90,7 @@ export class MyTimesheetComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.timesheetObj.timesheetAppliedFor = "self";
+    this.timesheetObj.empId = this.currentUser.empId;
     this.sectionViewInit();
   }
 
@@ -143,6 +144,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.timesheetAppliedFor = "self";
+    this.timesheetObj.empId = this.currentUser.empId;
     this.getAllMyActivitiesByTimesheetId(timesheetObj);
   }
 
@@ -150,6 +152,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj = new Timesheet();
     this.timesheetObj.dayType = '';
     this.timesheetObj.timesheetAppliedFor = "self";
+    this.timesheetObj.empId = this.currentUser.empId;
 
     this.allTimesheetActivities = [];
     this.addInputActivityField()
@@ -364,17 +367,28 @@ export class MyTimesheetComponent implements OnInit {
     console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
     let userObj:User = new User();
     if(this.timesheetObj.timesheetAppliedFor == 'self'){
-      this.timesheetObj.empId = this.currentUser.empId; 
       userObj.empId = this.currentUser.empId;
+      this.timesheetObj.empId = this.currentUser.empId; 
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
       console.log("Team Member : ", teamMember);
       userObj.empId = teamMember.empId;
+      this.timesheetObj.empId = teamMember.empId; 
     }
 
-
+    const timesheetBkp = Object.assign({},this.timesheetObj);
+    
+    // reset timesheet 
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj.dayType = '';
     this.allTimesheetActivities = [];
     this.addInputActivityField()
+
+    // set leave AppliedFor User data to fetch activities for project & for display 
+    this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
+    this.timesheetObj.empId = timesheetBkp.empId;
+    
+    console.log("preset Timesheet : ", this.timesheetObj);
 
     this.getAllProjectsByEmpId(userObj);
     this.getAllAvailableTimesheetByEmpId(userObj);
