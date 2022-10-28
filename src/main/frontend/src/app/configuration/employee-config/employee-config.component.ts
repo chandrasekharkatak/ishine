@@ -966,44 +966,44 @@ export class EmployeeConfigComponent implements OnInit {
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,
-          "address":x.address,
-          "permanentAddress":x.permanentAddress,
-          "city":x.city,
+          "Address":x.address,
+          "Permanent Address":x.permanentAddress,
+          "City":x.city,
           "Blood Group":x.bloodGroup,
-          "date Of Birth":x.dateOfBirth,
-          "gender":x.gender,
-          "fatherName":x.fatherName,
-          "mobileNo":x.mobileNo,
-          "panNumber":x.panNumber,
-          "placeOfBirth":x.placeOfBirth,
-          "workLocation":x.workLocation,
-          "probationPeriod":x.probationPeriod,
-          "noticePeriod":x.noticePeriod,
-          "country":x.country,
-          "emergencyContactMobile":x.emergencyContactMobile,
-          "emergencyContactPerson":x.emergencyContactPerson,
-          "landline":x.landline,
-          "maritalStatus":x.maritalStatus,
-          "motherTongue":x.motherTongue,
-          "alternateMobileNo":x.alternateMobileNo,
-          "pincode":x.pincode,
-          "relation":x.relation,
-          "state":x.state,
-          "viewsOnOrganisation":x.viewsOnOrganisation,
-          "passportNumber":x.passportNumber,
-          "bankAccountNo":x.bankAccountNo,
-          "bankIFSCCode":x.bankIFSCCode,
-          "bankName":x.bankName,
-          "pfAccountNumber":x.pfAccountNumber,
-          "previousPfAccountNumber":x.previousPfAccountNumber,
-          "uan":x.uan,
-          "esicNumber":x.esicNumber,
-          "graduationType":x.graduationType,
-          "pursuing":x.pursuing,
-          "passingGrade":x.passingGrade,
-          "yearOfPassing":x.yearOfPassing,
-          "createdBy":x.createdBy,
-          "createdOn":x.createdOn 
+          "Date Of Birth":x.dateOfBirth,
+          "Gender":x.gender,
+          "Father Name":x.fatherName,
+          "Mobile No":x.mobileNo,
+          "Pan Number":x.panNumber,
+          "Place Of Birth":x.placeOfBirth,
+          "Work Location":x.workLocation,
+          "Probation Period":x.probationPeriod,
+          "Notice Period":x.noticePeriod,
+          "Country":x.country,
+          "Emergency Contact Mobile":x.emergencyContactMobile,
+          "Emergency Contact Person":x.emergencyContactPerson,
+          "Landline":x.landline,
+          "Marital Status":x.maritalStatus,
+          "Mother Tongue":x.motherTongue,
+          "Alternate Mobile No":x.alternateMobileNo,
+          "Pincode":x.pincode,
+          "Relation":x.relation,
+          "State":x.state,
+          "Views On Organisation":x.viewsOnOrganisation,
+          "Passport Number":x.passportNumber,
+          "Bank Account No":x.bankAccountNo,
+          "Bank IFSC Code":x.bankIFSCCode,
+          "Bank Name":x.bankName,
+          "PF Account Number":x.pfAccountNumber,
+          "Previous PF AccountNumber":x.previousPfAccountNumber,
+          "UAN":x.uan,
+          "ESIC Number":x.esicNumber,
+          "Graduation Type":x.graduationType,
+          "Pursuing":x.pursuing,
+          "Passing Grade":x.passingGrade,
+          "Year Of Passing":x.yearOfPassing,
+          "Created By":x.createdBy,
+          "Created On":x.createdOn 
 
         })
       )
@@ -1307,6 +1307,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.page = event;
   }
 
+  pageNo = 1;
+  handlePageChanges(event) {
+    this.pageNo = event;
+  }
+
   onPage(){
     this.page=1;
   }
@@ -1380,6 +1385,7 @@ export class EmployeeConfigComponent implements OnInit {
      this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
        this.employeeWorkingHistory=response.serviceResponse;
        console.log("response :" , this.employeeWorkingHistory)
+       console.log("-------------------------------",this.employeeWorkingHistory.length);
      },
      (error)=>{
        console.log("data is not available !!");

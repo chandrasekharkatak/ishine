@@ -796,7 +796,7 @@
 <ng-template #history_template>
     <div class="modal-header">
         <h1 class="table-header-title">Employee Working History</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();getAllEmployeeList()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -829,7 +829,7 @@
                     <tr *ngIf="employeeWorkingHistory.length == 0"> 
                        <th colspan="8" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->
@@ -850,7 +850,7 @@
         </table>
         </div>
         <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+            <pagination-controls class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
         </div>
     </div>
 
@@ -910,7 +910,7 @@
 <ng-template #employee_info_preview>
     <div class="modal-header">
         <b>Employee Information</b>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelApplication()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>

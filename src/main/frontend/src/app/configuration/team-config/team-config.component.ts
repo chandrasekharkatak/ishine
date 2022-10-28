@@ -462,6 +462,11 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateTeamActivity(activityObj.activity)) {
+      this.alertMessage = "Please enter Valid Activity !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
       this.alertMessage = "Please enter Activity ETA (Hours)!!"
