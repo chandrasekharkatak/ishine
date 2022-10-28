@@ -42,7 +42,7 @@ export class TeamTimesheetComponent implements OnInit {
   endDate:any;
 
   constructor(
-    private validationService:ValidationService,
+    public validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private timesheetService : TimesheetService,
@@ -149,6 +149,8 @@ export class TeamTimesheetComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.status = status;
+    timesheetObj.email = timesheet.email;
+    timesheetObj.rejectReason = timesheet.rejectReason;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -161,8 +163,12 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   rejectTimesheetRequest(template: TemplateRef<any>){
-    this.cancelRequest();
     this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
+  }
+  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+    this.cancelRequest();
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
 
@@ -251,10 +257,10 @@ export class TeamTimesheetComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
-  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
-    this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-  }
+  // opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+  //   this.timesheetObj = timesheet;
+  //   this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  // }
 
   cancelRequest() {
     this.modalRef.hide();

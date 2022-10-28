@@ -1120,6 +1120,7 @@ public class EmployeeService {
 							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
 									: null);
 					dtoList.add(empDTO);
+					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -1443,10 +1444,11 @@ public class EmployeeService {
 				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
 			}
 			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
-
+			
 			if (!jobRoleObj.isEmpty()) {
+				
 				for (JobRole roleObj : jobRoleObj) {
-					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getName());
+					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getJobRoleId());
 
 					Optional.ofNullable(empList).ifPresentOrElse((list) -> {
 
@@ -1457,14 +1459,21 @@ public class EmployeeService {
 							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 							employeeList.add(dto);
 						});
+						
+						// sorted alphabetically
+						
+						final List<EmployeeDTO> employeeDTOList = 
+						employeeList
+						  .stream()
+						  .sorted((object1, object2) -> object1.getName().compareTo(object2.getName())).collect(Collectors.toList());
+						  
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse(employeeList);
+						response.setServiceResponse(employeeDTOList);
 
 					}, () -> {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("No Employee Found");
 					});
-
 				}
 			}
 
@@ -1908,6 +1917,7 @@ public class EmployeeService {
 					employeeDTO.setName(obj[3] != null ? obj[3].toString() : null);
 					employeeDTO.setEmail(obj[4] != null ? obj[4].toString() : null);
 					employeeDTO.setManagerMail(obj[5] != null ? obj[5].toString() : null);
+					employeeDTO.setEmploymentstatus(obj[6] != null ? obj[6].toString() : null);
 					empDTO.add(employeeDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2089,5 +2099,7 @@ public class EmployeeService {
 		}
 		return response;
 	}
+
+	
 
 }

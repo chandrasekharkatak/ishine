@@ -255,7 +255,7 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }else if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `Please enter valid Description.`
+          this.alertMessage = `Please enter valid Activity Description - ${index + 1}!!`
           flag = false;
           return;
         }
@@ -268,13 +268,12 @@ export class MyTimesheetComponent implements OnInit {
         totalActivityTime = totalActivityTime + activity.completionTime;
         console.log(totalActivityTime, " totalActivityTime");
       });
-      if(totalActivityTime <= 0 || totalActivityTime > 24)
-      {
-        this.alertMessage = 'Total time must be greater than 0 hrs and maximum upto 24 hrs!! '
+
+      if (!flag) {
         this.openAlertMod(template, this.alertMessage);
         return false;
-      }
-      if (!flag) {
+      }else if(totalActivityTime <= 0 || totalActivityTime > 24){
+        this.alertMessage = 'Total time must be greater than 0 hrs and maximum upto 24 hrs!! '
         this.openAlertMod(template, this.alertMessage);
         return false;
       }

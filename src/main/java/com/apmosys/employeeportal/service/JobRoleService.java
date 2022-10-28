@@ -420,7 +420,9 @@ public class JobRoleService {
 	
 		ServiceResponse response = new ServiceResponse();
 		try {
-			JobRole checkExistingRole = jobRoleRepository.findByName(jobRoleDto.getName());
+			JobRole checkExistingRole = jobRoleRepository.findByNameAndDeptId(jobRoleDto.getName(), jobRoleDto.getDepartmentId());
+			System.out.println("  jobRoleDto.getDeptId()  : -- " +jobRoleDto.getDepartmentId());
+			System.out.println("  jobRoleDto.getName()  : --"+jobRoleDto.getName());
 			if(checkExistingRole == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("JobRole created !");

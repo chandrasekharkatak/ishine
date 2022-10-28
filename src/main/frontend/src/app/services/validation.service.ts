@@ -397,5 +397,20 @@ export class ValidationService {
     }
 
   }
+  validateAlphaWithSpaceInbetween(text:string):boolean{
+    const regex = (/[a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  
+  }
 
 }

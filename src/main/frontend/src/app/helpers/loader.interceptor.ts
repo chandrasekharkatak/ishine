@@ -91,6 +91,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllQuestionsBySurveyId`,
     `${this.baseUrl}` + `api/setSurveyResponseByEmpId`,
     `${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`,
+    `${this.baseUrl}` + `api/empdetails`,
+
   ]
 
   constructor(private loaderService: LoaderService) { }
