@@ -27,7 +27,7 @@ public class UploadPolicy {
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 
-
+	private String readEnabled;
 	
 	
 	

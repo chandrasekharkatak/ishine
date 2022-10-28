@@ -62,6 +62,8 @@
             <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
             <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
             <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Read Enabled</th>
+
             <th scope="col" class="info-label">Action</th>	  
           </tr>
         </thead>
@@ -75,10 +77,12 @@
             <td>{{doc.policyName}}</td>
             <td>{{doc.createdByName}}</td>
             <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+            <td>{{doc.readEnabled}}</td>
             <td>
                 <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
-                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>  
-                   
+                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>&nbsp;  
+                <button  class="btn btn-sm btn-outline-primary" *ngIf="doc.readEnabled == 'false'" type="submit" (click)="openReadEnabledMod(read_enabled, doc)">Read Enable</button>  
+   
             </td>
           </tr>
         </tbody>
@@ -99,5 +103,13 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #read_enabled>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to enable this Document to user?</p>
+        <button type="button" class="btn btn-success" (click)="onReadEnabled(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

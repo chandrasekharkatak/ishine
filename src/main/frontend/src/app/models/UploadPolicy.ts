@@ -7,4 +7,5 @@ export class UploadPolicy{
 	createdBy: any;
 	createdByName: any;
 	createdOn: any;
+	readEnabled:any;
 }

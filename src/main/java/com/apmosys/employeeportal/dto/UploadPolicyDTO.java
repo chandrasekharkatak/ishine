@@ -21,6 +21,7 @@ public class UploadPolicyDTO {
 	private Long createdBy;
 	private String createdByName;
 	private String createdOn;
+	private String readEnabled;
 	
 	@Override
 	public String toString() {

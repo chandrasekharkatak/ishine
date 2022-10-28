@@ -39,7 +39,7 @@ public class UploadPolicyService {
 	private String documentFileLocation;
 	
 	
-	public ServiceResponse uploadPolicies(List<MultipartFile> files, String policyName, Long uploadedBy) {
+	public ServiceResponse uploadPolicies(List<MultipartFile> files, String policyName, Long uploadedBy, String readEnabled) {
 		
 		ServiceResponse response = new ServiceResponse();
 		List<File> savedFiles = new ArrayList<File>();
@@ -77,6 +77,7 @@ public class UploadPolicyService {
 							
 							CommonProperties commonProp = new CommonProperties();
 				            commonProp.setCreatedBy(uploadedBy);
+				            uploadPolicy.setReadEnabled(readEnabled);
 							uploadPolicy.setCommonProperty(commonProp);
 							UploadPolicyRepository.save(uploadPolicy);							
 						}
@@ -129,6 +130,7 @@ public class UploadPolicyService {
 						policyDTO.setCreatedByName(object[5] != null ? object[5].toString() : null);
 						policyDTO.setCreatedOn(object[2] != null ? object[2].toString() : null);
 						policyDTO.setCreatedBy(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						policyDTO.setReadEnabled(object[6] != null ? object[6].toString() : null);
 						dtoList.add(policyDTO);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -212,5 +214,43 @@ public class UploadPolicyService {
 		}
 		return resource;
 
+	}
+
+
+	public ServiceResponse changepolicyEnabledMode(UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		Optional<UploadPolicy> uploadPolicyObject = UploadPolicyRepository.findById(uploadPolicyDTO.getPolicyID());
+		if(uploadPolicyObject.isPresent()) {
+			UploadPolicy uploadPolicy = uploadPolicyObject.get();
+			uploadPolicy.setReadEnabled(uploadPolicyDTO.getReadEnabled());
+			CommonProperties commonProp = new CommonProperties();
+			commonProp.setCreatedBy(uploadPolicyDTO.getUpdatedBy());
+			uploadPolicy.setCommonProperty(commonProp);
+
+			//commonProp.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+			UploadPolicy updatedPolicy = UploadPolicyRepository.save(uploadPolicy);
+			
+			if(updatedPolicy.getPolicyID() != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Read Enabled status changed.");
+
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Failed to change status.");
+			}
+			
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(" Policy Not Found.");
+		}
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+	}	
+		return response;
 	}
 }

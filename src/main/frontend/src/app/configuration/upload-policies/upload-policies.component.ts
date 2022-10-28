@@ -146,6 +146,7 @@ export class UploadPoliciesComponent implements OnInit {
     });
     formData.append("policyName", this.policyName);
     formData.append("uploadedBy", this.currentUser.empId);
+    formData.append("readEnabled","false")
 
     console.log("Upload files : ", formData);
     this.uploadPoliciesService.uploadMultipleFiles(formData).pipe(first()).subscribe((response: any) => {
@@ -191,6 +192,28 @@ export class UploadPoliciesComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  onReadEnabled(template: TemplateRef<any>){
+    this.cancelRequest();
+    let fileObj = new UploadPolicy();
+    fileObj.policyID = this.fileObj.policyID;
+    fileObj.updatedBy = this.currentUser.empId;
+    fileObj.readEnabled = true;
+    console.log("Activate Survey : ", fileObj);
+    this.uploadPoliciesService.changepolicyEnabledMode(fileObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+
+  }
+  openReadEnabledMod(template: TemplateRef<any>, fileObj:UploadPolicy) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.fileObj = fileObj;
   }
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
