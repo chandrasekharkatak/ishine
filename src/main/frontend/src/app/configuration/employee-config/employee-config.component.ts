@@ -1383,19 +1383,13 @@ export class EmployeeConfigComponent implements OnInit {
     
      this.cancelRequest();
      this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
-       this.employeeWorkingHistory=response.serviceResponse;
-       console.log("response :" , this.employeeWorkingHistory)
-       console.log("-------------------------------",this.employeeWorkingHistory.length);
-     },
-     (error)=>{
-       console.log("data is not available !!");
-       
-     }
-     );
-   }
-
-   
-            
+      if (response.serviceStatus == "Success") {
+        this.employeeWorkingHistory=response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+     });
+   }        
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
