@@ -78,7 +78,7 @@ export class ValidationService {
 
   validateTimesheetCompletionTime(text: string): boolean {
 
-    const regex = /^[0-9]*$/;
+    const regex = /^(?:\d{0,1}[1-9]|0?\.[1-9]\d{0,1})$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
