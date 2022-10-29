@@ -31,7 +31,7 @@
             </div>
           </div>
           <div class="form-group d-flex flex-row ml-auto col-md-3 search-box">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
           </div>
         </div>
         <div class="row">
@@ -79,7 +79,7 @@
             <h1 class="table-header-title">All Timesheets Requests</h1>
         </div>
         <div class="form-group d-flex flex-row ml-auto col-md-3">
-          <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+          <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
           </div>
         <div class="row">
           <table class="table table-responsive scrollable-table" id="teams-request-table" matSort (matSortChange)="sortAllTimesheet($event)">	
@@ -181,7 +181,7 @@
     </div>
     <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
       <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
       <table class="table timesheet-table">
           <thead class="thead-light">

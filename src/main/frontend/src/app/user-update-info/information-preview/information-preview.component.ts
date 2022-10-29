@@ -375,7 +375,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Bank Account Number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)){
+    }if(!this.validationService.validateNumber(employeeObj.bankAccountNo)){
       this.alertMessage = "Please enter Valid Bank Account Number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

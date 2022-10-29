@@ -802,7 +802,7 @@
     </div>
     <div class="modal-body">
         <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
         <div class="container history-table">
             <table class="table history-table">

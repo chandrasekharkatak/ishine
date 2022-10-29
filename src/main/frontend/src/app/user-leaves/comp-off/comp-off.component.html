@@ -99,7 +99,7 @@
         <h1 class="table-header-title">My Compensatory off Requests</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table " id="compOffRequest-table" matSort (matSortChange)="sortCompensatory($event)">	
         <thead class="thead-light">	
@@ -139,7 +139,7 @@
         <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table " id="compOffApplication-table" matSort (matSortChange)="sortReporteeCompensatory($event)">	
         <thead class="thead-light">	

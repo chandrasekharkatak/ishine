@@ -254,6 +254,11 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
+        if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
+          this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+          flag = false;
+          return;
+        }
         totalActivityTime = totalActivityTime + activity.completionTime;
         console.log(totalActivityTime, " totalActivityTime");
       });
@@ -438,7 +443,7 @@ export class MyTimesheetComponent implements OnInit {
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
 
-    if (this.endDate) {
+    if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
         this.openAlertMod(template, this.alertMessage);
@@ -450,8 +455,11 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
+      console.log("end date is small");
+      this.endDate = ''
+      
     } else {
-      return;
+      this.allMyTimesheets = [];
     }
 
     let timesheetObj = new Timesheet();
@@ -468,11 +476,6 @@ export class MyTimesheetComponent implements OnInit {
         console.error(response.serviceResponse)
       }
     });
-  }
-
-  resetToDate(){
-    this.endDate = ''
-    this.allMyTimesheets=[]; 
   }
 
   getAllMyActivitiesByTimesheetId(timesheet: any) {

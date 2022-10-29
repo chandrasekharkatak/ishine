@@ -76,6 +76,44 @@ export class ValidationService {
 
   }
 
+  validateTimesheetCompletionTime(text: string): boolean {
+
+    const regex = /^[0-9]*$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+
+  }
+
+  //^[1-9][0-9]?$ 
+  validateExperiencedNumber(text: string): boolean {
+
+    const regex = /^[1-9][0-9]?$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+
+  }
+
+
   validateEmail(text: string): boolean {
 
     const regex = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/;
@@ -415,7 +453,7 @@ export class ValidationService {
 
   }
   validateAlphaWithSpaceInbetween(text:string):boolean{
-    const regex = (/[a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;
+    const regex = (/[^-\s][a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;     // minor changes in Regex 
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
