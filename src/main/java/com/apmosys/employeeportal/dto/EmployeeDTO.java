@@ -136,5 +136,9 @@ public class EmployeeDTO {
 	private String employeeRole;
 	private String clientName;
 	private String clientLocation;
+	private String dateOfRelieving;
+	private String reference;
+	private String backgroundVerificationStatus;
+	
 
 }
