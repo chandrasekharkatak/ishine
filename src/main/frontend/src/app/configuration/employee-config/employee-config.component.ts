@@ -154,6 +154,25 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
+  addDemographiscInfo(pincode:any){
+    let path;
+
+    fetch('https://api.postalpincode.in/pincode/'+pincode).then(r => r.json()).then(j => { 
+      path = j[0].PostOffice[0];
+      console.log(path, " : path");
+
+
+      let empObj = new Employee();
+      empObj.state = path.State;
+      empObj.city = path.Block;
+      empObj.pincode = path.Pincode;
+      empObj.country = path.Country;
+      this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
+        
+      });
+    });
+  }
+
   disableMannualDateInput() {
     return false;
   }
