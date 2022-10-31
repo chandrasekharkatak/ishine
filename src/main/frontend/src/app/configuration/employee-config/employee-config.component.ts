@@ -623,17 +623,19 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-      this.alertMessage = "Please enter total experience !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-      if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter more than 0 number !!"
+    if(employeeObj.experience =='Experience'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
+        this.alertMessage = "Please enter total experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    
+        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
+          this.alertMessage = "Please enter more than 0 number !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
       this.alertMessage = "Please select employee Work Location !!"

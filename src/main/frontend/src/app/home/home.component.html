@@ -1,9 +1,68 @@
-<div class="container-fluid p-2">
-    <!-- Leave & Request Bucket -->
-    <div class="row justify-content-between leaveStatus">
-        <app-accordion-item *ngIf="userMapping.view_my_leave_details" class="acc-content main-section leaveBucket" title="My Leave Details"
-        titleColor="var(--dark-cornflower-blue)" titleBg="#fff" contentBg="#fff">
-            <div class="container-fluid leaveBucketContainer">
+<div class="row notifications my-1">
+    <marquee><b>{{notificationObj.notificationMessage}}</b></marquee>
+</div>
+<div class="container-fluid p-0">
+    <div class="row justify-content-between">
+        <div class="main-section">
+            <div *ngIf="userMapping.view_event_photos" class="card">
+                <div class="card-body p-0">
+                    <div *ngIf="!isImagesLoaded" class="d-flex justify-content-center align-items-center spinner-container">
+                        <div class="spinner-border" role="status" style="height: 100px; width: 100px;">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''"
+                                *ngFor="let image of eventImages; let i = index">
+                                <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo"
+                                    title="{{image.eventName}}">
+                            </div>
+                        </div>
+                        <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                        <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Next</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="secondary-section">
+            <div *ngIf="userMapping.view_all_team_requests" class="card mb-2"
+                style="width: 100%;">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Team Request</p>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col text-center p-0">
+                        <p class="request-title">Leave</p>
+                        <h1 class="req-card"
+                            (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
+                                class="badge badge-secondary">{{leaveApplicationCount}}</span></h1>
+                    </div>
+                    <div class="col text-center p-0">
+                        <p class="request-title">Timesheet</p>
+                        <h1 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
+                            <span class="badge badge-secondary">{{timesheetApplicationCount}}</span></h1>
+                    </div>
+                    <div class="col text-center p-0">
+                        <p class="request-title">Comp-off</p>
+                        <h1 class="req-card"
+                            (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span
+                                class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
+                    </div>
+                </div>
+
+            </div>
+            <div *ngIf="userMapping.view_my_leave_details" class="card main-section mb-2" style="width: 100%;">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">My Leave Details</p>
+                </div>
                 <div class="row">
                     <div class="col-md-4">
                         <div id="leaveBucketChart" style="width:100%; height:15.625rem;"></div>
@@ -15,400 +74,128 @@
                         <div id="leaveRequestChart" style="width:100%; height:15.625rem;"></div>
                     </div>
                 </div>
-            </div>
-        </app-accordion-item>
-        <app-accordion-item *ngIf="userMapping.view_all_team_requests" class="acc-content secondary-section requestBucket" title="Team Requests"
-        titleColor="var(--dark-cornflower-blue)" titleBg="#fff" contentBg="#fff">
-            <div class="container-fluid requestBucketContainer d-flex flex-column justify-content-around pr-4">
-                <div class="row p-0 d-flex justify-content-between request-display">
-                    <p class="request-title">Leave Requests</p> <h1 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span class="badge badge-secondary">{{leaveApplicationCount}}</span></h1>
-                </div>
-                <div class="row p-0 d-flex justify-content-between request-display">
-                    <p class="request-title">Timesheet Requests</p> <h1 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()"><span class="badge badge-secondary">{{timesheetApplicationCount}}</span></h1>
-                </div>
-                <div class="row p-0 d-flex justify-content-between request-display">
-                    <p class="request-title">Comp-off Requests</p> <h1 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
-                </div>
-                <!-- <div class="row p-0 d-flex justify-content-between request-display">
-                    <p class="request-title">Reimbursement Requests</p> <h1 class="req-card" ><span class="badge badge-secondary">10</span></h1>
-                </div> -->
-            </div>
-        </app-accordion-item>
-    </div>
 
-    <!-- notifications -->
-    <div class="row notifications my-1">
-        <marquee>{{notificationObj.notificationMessage}}</marquee>
-    </div>
-    <!-- Event Photos & Today's Birthday Display -->
-    <div class="row justify-content-between mb-2">
-        <div *ngIf="userMapping.view_event_photos" class="main-section card">
-            <div *ngIf="!isImagesLoaded" class="container-fuid d-flex m-auto">
-                <div  class="spinner-border" role="status" style="height: 100px; width: 100px;"> 
-                    <span class="sr-only">Loading...</span>
-                  </div>
             </div>
-            <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
-                <div class="carousel-inner">
-                  <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''" *ngFor="let image of eventImages; let i = index">
-                    <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo" title="{{image.eventName}}">
-                  </div>
+            <div *ngIf="userMapping.view_birthday_list" class="secondary-section card"
+                style="overflow:scroll;width: 100%; height:200px;">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Birthdays</p>
                 </div>
-                <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
-                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                  <span class="sr-only">Previous</span>
-                </a>
-                <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
-                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                  <span class="sr-only">Next</span>
-                </a>
-              </div>
-        </div>
-        <div *ngIf="userMapping.view_birthday_list" class="secondary-section card birthdayList">
-            <div class="card-title px-1 pt-2">
-                <p class="section-heading m-0 pl-2">Today's Birthdays</p>
-            </div>
-            <div class="card-body p-0">
-                <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
-                    <img class="placeholder-img" src="assets/Images/birthday-cake-icon.svg" alt="Birthday Icon">
-                    <h1 class="placeholder-text">No Birthday's Today</h1>
-                </div>
-                <mat-list *ngIf="birthdayList.length != 0"  class="p-0">
-                    <mat-list-item *ngFor="let employee of birthdayList">
-                        <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                        <h1 matLine>{{employee.name}}</h1>
-                        <p matLine>{{employee.departmentName}}</p>
-                    </mat-list-item>
-                </mat-list>
-            </div>
-        </div>
-    </div>
-    <!-- Timesheet Display -->
-    <div *ngIf="userMapping.view_timesheet_display" class="row justify-content-between mb-2 timesheet-container">
-        <div class="main-section card">
-            <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
-                <li class="nav-item timesheet_tab-item">
-                    <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
-                    href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true" (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
-                </li>
-                <li class="nav-item timesheet__tab-item">
-                    <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
-                    href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
-                </li>
-                <li class="nav-item timesheet__tab-item">
-                    <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
-                    href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
-                </li>
-            </ul>
-        
-            <!-- tab Containers -->
-            <div class="tab-content timesheetTabContent" id="timesheetTabContent">
-                <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
-                    aria-labelledby="weekly-tabpanel">
-                    <div class="row col-md-12 p-0 m-0">
-                        <table class="table table-sm timesheet-table">
-                            <thead>
-                              <tr>
-                                <th scope="col">Sr.No</th>
-                                <th scope="col">Date</th>
-                                <th scope="col">Day</th>
-                                <th scope="col">Day Type</th>
-                                <th scope="col">Status</th>
-                                <th scope="col" colspan="3">Working Hours</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr *ngFor="let timesheet of timesheetDetails; let i = index">
-                                <th scope="row">{{i+1}}</th>
-                                <td>{{timesheet.date}}</td>
-                                <td>{{timesheet.weekDayName}}</td>
-                                <td>{{timesheet.dayType}}</td>
-                                <td>{{timesheet.status}}</td>
-                                <td colspan="3">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100">{{timesheet.totalWorkingHours}} Hrs</div>
-                                      </div>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
+                <div class="card-body p-0">
+                    <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Birthday's Today</h1>
                     </div>
-                </div>
-                <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-                    aria-labelledby="thisMonth-tabpanel">
-                    <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
-                </div>
-                <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
-                    aria-labelledby="lastMonth-tabpanel">
-                    <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
-                </div>
-            </div>
-        </div>
-        <div class="secondary-section card">
-            <div class="card-title px-1 pt-2">
-                <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
-            </div>
-            <div class="card-body p-0">
-                <div class="row col">
-                    <div id="totalEODChart" style="width:100%; height:15.625rem;"></div>
+                    <mat-list *ngIf="birthdayList.length != 0" class="p-0">
+                        <mat-list-item *ngFor="let employee of birthdayList">
+                            <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                            <h1 matLine>{{employee.name}}</h1>
+                            <p matLine>{{employee.departmentName}}</p>
+                        </mat-list-item>
+                    </mat-list>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Quick Links -->
-    <div *ngIf="userMapping.view_quick_links" class="row card d-flex align-items-center justify-content-center drop-shadow" style="height: 75px;">
-        <div class="col-md-3 text-center quick-link" (click)="showApplyLeaveForm()">
-            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-            <p class="text-uppercase m-0 ">Apply Leave</p>
-        </div>
-        <div class="col-md-3 text-center quick-link" (click)="showApplyCompOffForm()">
-            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-            <p class="text-uppercase m-0" >Apply Comp-off</p>
-        </div>
-        <div class="col-md-3 text-center quick-link" (click)="showApplyTimesheetForm()">
-            <h5><span class="badge badge-secondary"> <i class="fa-solid fa-calendar-check"></i></span></h5>
-            <p class="text-uppercase m-0" >Apply Timesheet</p>
-        </div>
-        <div class="col-md-3 text-center quick-link" (click)="showHolidayList()">
-            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-            <p class="text-uppercase m-0" >View Holidays</p>
-        </div>  
     </div>
 </div>
-
-
-
-<!-- <div class="row card mb-0 pb-0">
-    <app-accordion-item title="All Requests" titleBg="var(--dark-cornflower-blue)" titleColor="#fff" [showBody]="isReqPending">
-        <div class="container-fluid">
-         <div class="row justify-content-around">
-             <div class="col">
-                 <div class="card req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">
-                     <div class="card-body text-center">
-                         <h3>Leave</h3>
-                         <h1>{{leaveApplicationCount}}</h1>
-                     </div>
-                 </div>
-             </div>
-      
-             <div class="col">
-              <div class="card req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">
-                  <div class="card-body text-center">
-                      <h3>Comp off</h3>
-                      <h1>{{compOffApplicationCount}}</h1>
-                  </div>
-              </div>
-          </div>
-      
-          <div class="col ">
-              <div class="card req-card">
-                  <div class="card-body text-center">
-                      <h3>Timesheet</h3>
-                      <h1>23</h1>
-                  </div>
-              </div>
-          </div>
-      
-          <div class="col">
-              <div class="card req-card">
-                  <div class="card-body text-center">
-                      <h3>Attendence</h3>
-                      <h1>23</h1>
-                  </div>
-              </div>
-          </div>
-      
-          <div class="col">
-              <div class="card req-card">
-                  <div class="card-body text-center">
-                      <h3>Reimbursements</h3>
-                      <h1>23</h1>
-                  </div>
-              </div>
-          </div>
-         </div>
-        </div>
-     </app-accordion-item>
-</div> -->
-
-<!-- Update Employee info  Modal -->
-<ng-template #updateInfo>
-    <div class="modal-header">
-        <h4 class="table-header-title">Update Employee Information</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body ">
-        <app-user-update-info (docSubmit)="onDocSubmit()" (draftDelete)="cancelRequest()"></app-user-update-info>
-    </div>
-</ng-template>
-
-<!-- Leaves Req Modal -->
-<ng-template #LeaveReq>
-    <div class="modal-header">
-        <h4 class="table-header-title">My Reportee Leave Applications</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-        </div>
-    <div class="modal-body ">
-        <table class="table leaveApplication-table">
-            <thead class="thead-light text-center">
-              <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Leave Type</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied On</th>
-                <th scope="col" class="info-label">Reason</th>
-                <!-- <th scope="col" class="info-label">Comments</th> -->
-                <th scope="col" class="info-label">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="text-center">
-                <tr *ngIf="leaveApplicationCount == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
-                </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                    <td>{{i+1}}</td>
-                    <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate}}</td>
-                    <td>{{leaveApplication.toDate}}</td>
-                    <td>{{leaveApplication.noOfDays}} day(s)</td>
-                    <td>{{leaveApplication.status}}</td>
-                    <td>{{leaveApplication.createdByName}}</td>
-                    <td>{{leaveApplication.createdOn}}</td>
-                    <td>{{leaveApplication.reason}}</td>
-                    <!-- <td>{{leaveApplication.description}}</td> -->
-                    <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-                    </td>
-                </tr>
-            </tbody>
-          </table> 
-          <div class="my-buttons">
-          <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+<!-- Timesheet Display -->
+<div *ngIf="userMapping.view_timesheet_display" class="row justify-content-between mb-2 timesheet-container">
+    <div class="main-section card">
+        <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
+            <li class="nav-item timesheet_tab-item">
+                <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
+                href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true" (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
+            </li>
+            <li class="nav-item timesheet__tab-item">
+                <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
+                href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
+            </li>
+            <li class="nav-item timesheet__tab-item">
+                <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
+                href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
+            </li>
+        </ul>
+    
+        <!-- tab Containers -->
+        <div class="tab-content timesheetTabContent" id="timesheetTabContent">
+            <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
+                aria-labelledby="weekly-tabpanel">
+                <div class="row col-md-12 p-0 m-0">
+                    <table class="table table-sm timesheet-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Sr.No</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Day</th>
+                            <th scope="col">Day Type</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" colspan="3">Working Hours</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let timesheet of timesheetDetails; let i = index">
+                            <th scope="row">{{i+1}}</th>
+                            <td>{{timesheet.date}}</td>
+                            <td>{{timesheet.weekDayName}}</td>
+                            <td>{{timesheet.dayType}}</td>
+                            <td>{{timesheet.status}}</td>
+                            <td colspan="3">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100">{{timesheet.totalWorkingHours}} Hrs</div>
+                                  </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                </div>
+            </div>
+            <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
+                aria-labelledby="thisMonth-tabpanel">
+                <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
+            </div>
+            <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
+                aria-labelledby="lastMonth-tabpanel">
+                <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
+            </div>
         </div>
     </div>
-</ng-template>
+    <div class="secondary-section card">
+        <div class="card-title px-1 pt-2">
+            <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
+        </div>
+        <div class="card-body p-0">
+            <div class="row col">
+                <div id="totalEODChart" style="width:100%; height:15.625rem;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+  <!-- Quick Links -->
+  <div *ngIf="userMapping.view_quick_links" class="row card d-flex align-items-center justify-content-center drop-shadow" style="height: 75px;">
+    <div class="col-md-3 text-center quick-link" (click)="showApplyLeaveForm()">
+        <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+        <p class="text-uppercase m-0 ">Apply Leave</p>
+    </div>
+    <div class="col-md-3 text-center quick-link" (click)="showApplyCompOffForm()">
+        <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+        <p class="text-uppercase m-0" >Apply Comp-off</p>
+    </div>
+    <div class="col-md-3 text-center quick-link" (click)="showApplyTimesheetForm()">
+        <h5><span class="badge badge-secondary"> <i class="fa-solid fa-calendar-check"></i></span></h5>
+        <p class="text-uppercase m-0" >Apply Timesheet</p>
+    </div>
+    <div class="col-md-3 text-center quick-link" (click)="showHolidayList()">
+        <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+        <p class="text-uppercase m-0" >View Holidays</p>
+    </div>  
+</div>
 
-<!-- compOff Req Modal -->
-<ng-template #compOffReq>
-    <div class="modal-header">
-        <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-        </div>
-    <div class="modal-body">
-        <table class="table compOffApplication-table">
-            <thead class="thead-light">
-              <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied For</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Description</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label">Actions</th>
-             </tr>
-            </thead>
-            <tbody>
-                <tr *ngIf="compOffApplicationCount == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
-                </tr>
-                <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-                    <td>{{i+1}}</td>
-                    <td>{{compOffApp.createdByName}}</td>
-                    <td>{{compOffApp.compOffReasons}}</td>
-                    <td>{{compOffApp.fromDate}}</td>
-                    <td>{{compOffApp.toDate}}</td>
-                    <td>{{compOffApp.noOfDays}}</td>
-                    <td>{{compOffApp.description}}</td>
-                    <td>{{compOffApp.status}}</td>
-                    <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-                    </td>
-                </tr>
-            </tbody>
-          </table>  
-          <div class="my-buttons">
-          <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
-    </div>
-</ng-template>
-
-<!-- Timesheet Req Modal -->
-<ng-template #TimesheetReq>
-    <div class="modal-header">
-        <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-        </div>
-    <div class="modal-body">
-        
-        <table class="table teams-request-table" id="teams-request-table">
-            <thead class="thead-light">
-              <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Employee Id</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Date</th>
-                <th scope="col" class="info-label">Day Type</th>
-                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngIf="allTeamTimesheetRequests.length == 0">
-                <th colspan="9" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
-                <td>{{timesheet.employeementId}}</td>
-                <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date}}</td>
-                <td>{{timesheet.dayType}}</td>
-                <td colspan="4" [innerHTML]="timesheet.description"></td>
-                <td>{{timesheet.status}}</td>
-                <td>
-                  <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
-                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
-                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
-                      class="fa-solid fa-check"></em></button>&nbsp;
-                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                  (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
-                      class="fa-solid fa-xmark"></em></button>
-                </td>
-              </tr>
-            </tbody>
-          </table>   
-          <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
+<!-- Modals templates -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
 
@@ -482,24 +269,6 @@
     </div>
   </ng-template>
 
-
-
-<!-- Modals templates -->
-<ng-template #alert_message>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
-    </div>
-</ng-template>
-<!-- <ng-template #reject_timesheet>
-    <div class="modal-body">
-        <span class="text-danger">*<small>Please provide reason</small></span>
-        <textarea name="comment" id="" style="width: 100%;" [(ngModel)]="timesheetObj.rejectReason" rows="10"></textarea>
-        <button type="button" class="btn btn-success" id="btn" (click)="rejectTimesheetRequest(alert_message)" >Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" id="btn" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
-  </ng-template> -->
-
   <ng-template #reject_timesheet>
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
@@ -509,11 +278,172 @@
     </div>
 </ng-template>
 
-<!-- <ng-template #reject_timesheet>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to Reject Timesheet?</p>
-        <button type="button" class="btn btn-success" (click)="rejectTimesheetRequest(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+
+<!-- Leaves Req Modal -->
+<ng-template #LeaveReq>
+    <div class="modal-header">
+        <h4 class="table-header-title">My Reportee Leave Applications</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
-  </ng-template>
-   -->
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
+    <div class="modal-body ">
+        <table class="table leaveApplication-table">
+            <thead class="thead-light text-center">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Leave Type</th>
+                <th scope="col" class="info-label">From Date</th>
+                <th scope="col" class="info-label">To Date</th>
+                <th scope="col" class="info-label">Duration</th>
+                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label">Applied By</th>
+                <th scope="col" class="info-label">Applied On</th>
+                <th scope="col" class="info-label">Reason</th>
+                <!-- <th scope="col" class="info-label">Comments</th> -->
+                <th scope="col" class="info-label">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+                <tr *ngIf="leaveApplicationCount == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                    <td>{{i+1}}</td>
+                    <td>{{leaveApplication.leaveType}}</td>
+                    <td>{{leaveApplication.fromDate}}</td>
+                    <td>{{leaveApplication.toDate}}</td>
+                    <td>{{leaveApplication.noOfDays}} day(s)</td>
+                    <td>{{leaveApplication.status}}</td>
+                    <td>{{leaveApplication.createdByName}}</td>
+                    <td>{{leaveApplication.createdOn}}</td>
+                    <td>{{leaveApplication.reason}}</td>
+                    <!-- <td>{{leaveApplication.description}}</td> -->
+                    <td>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    </td>
+                </tr>
+            </tbody>
+          </table> 
+          <div class="my-buttons">
+          <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- compOff Req Modal -->
+<ng-template #compOffReq>
+    <div class="modal-header">
+        <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
+    <div class="modal-body">
+        <table class="table compOffApplication-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Applied By</th>
+                <th scope="col" class="info-label">Applied For</th>
+                <th scope="col" class="info-label">From Date</th>
+                <th scope="col" class="info-label">To Date</th>
+                <th scope="col" class="info-label">Duration</th>
+                <th scope="col" class="info-label">Description</th>
+                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label">Actions</th>
+             </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="compOffApplicationCount == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                    <td>{{i+1}}</td>
+                    <td>{{compOffApp.createdByName}}</td>
+                    <td>{{compOffApp.compOffReasons}}</td>
+                    <td>{{compOffApp.fromDate}}</td>
+                    <td>{{compOffApp.toDate}}</td>
+                    <td>{{compOffApp.noOfDays}}</td>
+                    <td>{{compOffApp.description}}</td>
+                    <td>{{compOffApp.status}}</td>
+                    <td>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    </td>
+                </tr>
+            </tbody>
+          </table>  
+          <div class="my-buttons">
+          <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Timesheet Req Modal -->
+<ng-template #TimesheetReq>
+    <div class="modal-header">
+        <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div>
+    <div class="modal-body">
+        
+        <table class="table teams-request-table" id="teams-request-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label">Employee Id</th>
+                <th scope="col" class="info-label">Name</th>
+                <th scope="col" class="info-label">Date</th>
+                <th scope="col" class="info-label">Day Type</th>
+                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="allTeamTimesheetRequests.length == 0">
+                <th colspan="9" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <td>{{10*(page-1)+i+1}}</td>
+                <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td colspan="4" [innerHTML]="timesheet.description"></td>
+                <td>{{timesheet.status}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
+                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                      class="fa-solid fa-check"></em></button>&nbsp;
+                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                  (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                      class="fa-solid fa-xmark"></em></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>   
+          <div class="my-buttons">
+            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+    </div>
+</ng-template>
+
