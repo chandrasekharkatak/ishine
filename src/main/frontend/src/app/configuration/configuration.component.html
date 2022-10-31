@@ -16,10 +16,10 @@
             <a class="nav-link config__tab-item__link" id="leave-tab" data-toggle="tab" role="tab"
                 aria-controls="leave" aria-selected="false" routerLink="leave">Leave</a>
         </li>
-        <li *ngIf="userMapping.team_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
+        <!-- <li *ngIf="userMapping.team_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
             <a class="nav-link config__tab-item__link" id="team-tab" data-toggle="tab" role="tab"
                 aria-controls="team" aria-selected="false" routerLink="team">Team</a>
-        </li>
+        </li> -->
         <li *ngIf="userMapping.home_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
             <a class="nav-link config__tab-item__link" id="home-config-tab" data-toggle="tab" role="tab"
                 aria-controls="home-config" aria-selected="false" routerLink="home-config">Home</a>

@@ -38,7 +38,7 @@ import { LoaderComponent } from './loader/loader.component';
 import { LoaderInterceptor } from './helpers/loader.interceptor';
 import { UserTeamComponent } from './user-team/user-team.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
-import { TeamConfigComponent } from './configuration/team-config/team-config.component';
+import { TeamConfigComponent } from './user-team/team-config/team-config.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
