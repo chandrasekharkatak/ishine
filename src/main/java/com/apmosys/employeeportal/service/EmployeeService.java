@@ -1006,18 +1006,41 @@ public class EmployeeService {
 					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
 			if (employeeObject.isPresent()) {
 
-				Employee m = employeeRepository.findByEmployeementId(employeedto.getManagerId());
+//				Employee m = employeeRepository.findByEmployeementId(employeedto.getManagerId());
 				System.out.println(employeedto.getManagerId() + " : manager id");
 
-				Long primaryEmpId = m.getEmpId();
-				System.out.println(primaryEmpId);
+//				Long primaryEmpId = m.getEmpId();
+//				System.out.println(primaryEmpId);
 
 				Employee employee = employeeObject.get();
 
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-
-				employee.setManagerId(primaryEmpId);
-
+//				employee.setManagerId(primaryEmpId);
+//				employee.setExperience(employeedto.getExperience());
+//				employee.setTotalExperience(employeedto.getTotalExperience());
+//				employee.setFatherName(employeedto.getFatherName());
+//				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+//				
+//				if(employeedto.getEmergencyContactMobile() != null) {
+//					employee.setEmergencyContactPerson(employeedto.getFatherName());
+//					employee.setRelation("Father");
+//				}
+//				
+//				employee.setSpouse(employeedto.getSpouse());
+//				employee.setSecondaryEmail(employeedto.getSecondaryEmail());
+//				employee.setPassportNumber(employeedto.getPassportNumber());
+//				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
+//				employee.setReference(employeedto.getReference());
+//				employee.setBackgroundVerificationStatus(employeedto.getBackgroundVerificationStatus());
+				
+//				employee.setBankName(employeedto.getBankName());
+//				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
+//				employee.setBankAccountNo(employeedto.getBankAccountNo());
+				
+//				employee.setPfAccountNumber(employeedto.getPfAccountNumber());
+//				employee.setUan(employeedto.getUan());
+//				employee.setEsicNumber(employeedto.getEsicNumber());
+				
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {
@@ -1457,6 +1480,7 @@ public class EmployeeService {
 							dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 							dto.setName(object[1] != null ? object[1].toString() : null);
 							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
+							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 							employeeList.add(dto);
 						});
 						

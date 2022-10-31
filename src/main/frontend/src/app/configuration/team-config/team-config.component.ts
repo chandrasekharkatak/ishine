@@ -101,7 +101,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllDepartmentList();
-    this.getAllEmployeesByRole();
+    // this.getAllEmployeesByRole();
     this.getAllProjectListByProjectManagerId();
   }
 
@@ -405,7 +405,11 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
         console.log("employeeList By Role : ", employeeList)
-        this.teamLeadsList = employeeList;
+
+        // remove teamLead if their department are not selected.
+
+        let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
+        this.teamLeadsList = employeeList.filter(x => filterDepartmentList.includes(x.departmentId));
         console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
         console.error(response.serviceResponse)

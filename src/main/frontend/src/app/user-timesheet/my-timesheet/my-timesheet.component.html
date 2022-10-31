@@ -158,7 +158,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="startDate" (change)="resetToDate()" (keydown)="disableMannualDateInput()">
+                        <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="startDate" (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
                     </div>
                 </div>
             </div>

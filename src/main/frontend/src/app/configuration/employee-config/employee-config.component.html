@@ -802,7 +802,7 @@
     </div>
     <div class="modal-body">
         <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
         <div class="container history-table">
             <table class="table history-table">
@@ -827,9 +827,9 @@
                 </thead>
                 <tbody>
                     <tr *ngIf="employeeWorkingHistory.length == 0"> 
-                       <th colspan="8" class="text-center info-label">No details to display...</th>
+                       <th colspan="11" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->
@@ -850,7 +850,7 @@
         </table>
         </div>
         <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
+            <pagination-controls id="workingHistory" class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
         </div>
     </div>
 

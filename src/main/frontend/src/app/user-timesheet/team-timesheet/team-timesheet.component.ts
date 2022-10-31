@@ -146,13 +146,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
-    let timesheetObj = new Timesheet();
-    timesheetObj.timesheetId = timesheet.timesheetId;
-    timesheetObj.status = status;
-    timesheetObj.email = timesheet.email;
-    timesheetObj.rejectReason = timesheet.rejectReason;
-    timesheetObj.employeementId = timesheet.employeementId;
-    timesheetObj.employeeName = timesheet.employeeName;
+    let timesheetObj = Object.assign({}, timesheet);
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

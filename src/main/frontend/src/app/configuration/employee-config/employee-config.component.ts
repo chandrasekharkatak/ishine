@@ -613,7 +613,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -628,11 +628,12 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.validationService.validateNumber(employeeObj.totalExperience)) {
-      this.alertMessage = "Please enter number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+      if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
+        this.alertMessage = "Please enter more than 0 number !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
       this.alertMessage = "Please select employee Work Location !!"
@@ -1383,19 +1384,13 @@ export class EmployeeConfigComponent implements OnInit {
     
      this.cancelRequest();
      this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
-       this.employeeWorkingHistory=response.serviceResponse;
-       console.log("response :" , this.employeeWorkingHistory)
-       console.log("-------------------------------",this.employeeWorkingHistory.length);
-     },
-     (error)=>{
-       console.log("data is not available !!");
-       
-     }
-     );
-   }
-
-   
-            
+      if (response.serviceStatus == "Success") {
+        this.employeeWorkingHistory=response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+     });
+   }        
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
