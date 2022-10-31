@@ -532,8 +532,7 @@ export class MyTimesheetComponent implements OnInit {
           "Date": x.date,
           "Day Type": x.dayType,
           "Timesheet Details":x.description,
-          "Total Working Hours":x.totalTime,
-          "Description": x.description,
+          "Total Time":x.totalTime,
           "Status": x.status
         })
       )

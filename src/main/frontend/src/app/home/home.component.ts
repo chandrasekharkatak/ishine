@@ -410,7 +410,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.log("checkData :", checkData);
         
         if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
+          this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
         }else{
           this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
         }
