@@ -374,7 +374,7 @@ public class CronJobService {
 				
 				LocalDate dateToday = LocalDate.now();
 				
-				List<Employee> allEmployee = employeeRepository.findAll();
+				List<Employee> allEmployee = employeeRepository.getEmployeeDetailForCron();
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
 			//	Timesheet filler for weekoff day : saturday & sunday
@@ -402,7 +402,8 @@ public class CronJobService {
 										newTimesheet.setDescription("WeekOff : Sunday");
 									}
 									newTimesheet.setEmpId(empObj.getEmpId());
-									newTimesheet.setStatus("Pending");
+									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
+									newTimesheet.setStatus("Approved");
 									
 									timesheetsRepository.save(newTimesheet);
 								}				
@@ -431,7 +432,7 @@ public class CronJobService {
 								newTimesheet.setDayType("Holiday");
 								newTimesheet.setDescription("Public Holiday");
 								newTimesheet.setEmpId(empObj.getEmpId());
-								newTimesheet.setStatus("Pending");
+								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
 								
@@ -461,7 +462,7 @@ public class CronJobService {
 							newTimesheet.setDayType("Working");
 							newTimesheet.setDescription("On leave");
 							newTimesheet.setEmpId(empId);
-							newTimesheet.setStatus("Pending");
+							newTimesheet.setStatus("Approved");
 							
 							timesheetsRepository.save(newTimesheet);
 						}
@@ -478,7 +479,7 @@ public class CronJobService {
 								newTimesheet.setDayType("Working");
 								newTimesheet.setDescription("On leave");
 								newTimesheet.setEmpId(empId);
-								newTimesheet.setStatus("Pending");
+								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
 								

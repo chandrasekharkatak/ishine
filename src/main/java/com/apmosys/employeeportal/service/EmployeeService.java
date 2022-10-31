@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -2124,6 +2125,54 @@ public class EmployeeService {
 		return response;
 	}
 
-	
-
+	public ServiceResponse addDemographicsInfo(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+//			String url = "https://api.postalpincode.in/pincode/"+employee.getPincode();
+//			RestTemplate restTemplate = new RestTemplate();
+//			
+//			Object[] demograpicsInfo = restTemplate.getForObject(url, Object[].class);
+//			System.out.println(Arrays.asList(demograpicsInfo));
+//			
+//			for(Object info : demograpicsInfo) {
+//				System.out.println();
+//			}
+			
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
+			Optional<Employee> employeeObject = Optional
+					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
+			
+			if (employeeObject.isPresent()) {
+				
+				Employee employee = employeeObject.get();
+				
+				employee.setPincode(employeedto.getPincode());
+				employee.setState(employeedto.getState());
+				employee.setCity(employeedto.getCity());
+				employee.setCountry(employeedto.getCountry());
+				
+				Employee empSaved = employeeRepository.save(employee);
+				
+				if(empSaved!=null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Demographics details added successfully");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee updation failed");
+				}
+				
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not found");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }
