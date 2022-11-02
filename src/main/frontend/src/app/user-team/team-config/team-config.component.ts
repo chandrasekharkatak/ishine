@@ -17,6 +17,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 import { Sort } from '@angular/material/sort';
+import { Timesheet } from 'src/app/models/timesheet';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 
 @Component({
   selector: 'app-team-config',
@@ -63,6 +65,7 @@ export class TeamConfigComponent implements OnInit {
   allDeptList: any[] = [];
   allProjectListByManagerId: any[] = [];
   allTeamList: any[] = [];
+  employeeSpecificProjectList: any[] = [];
 
   //excel
   teamDataForExcel: any[];
@@ -86,6 +89,7 @@ export class TeamConfigComponent implements OnInit {
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
+    private timesheetService: TimesheetService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -103,6 +107,7 @@ export class TeamConfigComponent implements OnInit {
     this.getAllDepartmentList();
     // this.getAllEmployeesByRole();
     this.getAllProjectListByProjectManagerId();
+    this.getAllProjectsByEmpId();
   }
 
   sectionViewInit() {
@@ -389,6 +394,29 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allProjectListByManagerId = response.serviceResponse;
         console.log("allProjectListByManagerId :", this.allProjectListByManagerId);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllProjectsByEmpId() {
+    this.employeeSpecificProjectList = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.empId = this.currentUser.empId;
+    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeSpecificProjectList = response.serviceResponse;
+
+        // filter list if data is duplicate
+
+        this.employeeSpecificProjectList = this.employeeSpecificProjectList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.projectName === value.projectName
+          ))
+        )
+        console.log("employeeSpecificProjectList :", this.employeeSpecificProjectList);
       } else {
         console.error(response.serviceResponse)
       }

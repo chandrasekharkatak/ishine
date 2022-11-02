@@ -335,7 +335,7 @@ export class EmployeeInfoComponent implements OnInit{
     }
   }
 
-  addDemographiscInfo(pincode:any){
+  addDemographiscInfo(template: TemplateRef<any>, pincode:any){
     let path;
 
     fetch('https://api.postalpincode.in/pincode/'+pincode).then(res => res.json()).then(data => {
@@ -349,6 +349,7 @@ export class EmployeeInfoComponent implements OnInit{
         this.employeeObj.state = "";
         this.employeeObj.city = "";
         this.employeeObj.country = "";
+        this.openAlertMod(template, 'Please enter valid pincode');
       }
     });
   }
