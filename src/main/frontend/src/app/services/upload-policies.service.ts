@@ -40,7 +40,12 @@ export class UploadPoliciesService {
       responseType: 'blob'
     });
   }
+  showPolicyReadResponse(fileObj:UploadPolicy){
+    return this.http.post(`${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`, fileObj);
 
 
+  }
+
+  
 
 }

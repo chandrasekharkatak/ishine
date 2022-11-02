@@ -46,6 +46,9 @@ export class UploadPoliciesComponent implements OnInit {
   
   fileSize: number = 0;
   data:any;
+  responseList:any[] = [];
+  isreadEnabled: boolean = false;
+  responsedata:any;
 
 
   constructor(private uploadPoliciesService : UploadPoliciesService,
@@ -63,13 +66,9 @@ export class UploadPoliciesComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-
     console.log(this.feature, this.userMapping);
-    
     this.sectionViewInit();
   }
-  
-
 
   sectionViewInit() {
     if(this.userMapping.upload_policy){
@@ -83,13 +82,14 @@ export class UploadPoliciesComponent implements OnInit {
     this.maxFileSize = parseInt(sessionStorage.maxFileSize);
     this.maxRequestSize = parseInt(sessionStorage.maxRequestSize);
     this.isTable = false;
+    this.isreadEnabled = false;
     this.reset();
    
   }
   showTable() {
     this.isTable = true;
-
     this.isDocumentForm = false;
+    this.isreadEnabled = false;
     this.getAllDocuments();
   }
 
@@ -183,7 +183,6 @@ export class UploadPoliciesComponent implements OnInit {
 
   onDeleteDocument(template: TemplateRef<any>) {
     this.cancelRequest();
-   
     this.uploadPoliciesService.deleteDocument(this.fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -211,7 +210,29 @@ export class UploadPoliciesComponent implements OnInit {
     });
 
   }
+
+  onReadDisabled(template: TemplateRef<any>){
+    this.cancelRequest();
+    let fileObj = new UploadPolicy();
+    fileObj.policyID = this.fileObj.policyID;
+    fileObj.updatedBy = this.currentUser.empId;
+    fileObj.readEnabled = false;
+    console.log("Activate Survey : ", fileObj);
+    this.uploadPoliciesService.changepolicyEnabledMode(fileObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+
+  }
   openReadEnabledMod(template: TemplateRef<any>, fileObj:UploadPolicy) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.fileObj = fileObj;
+  }
+  onReadDisabledMod(template: TemplateRef<any>, fileObj:UploadPolicy) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.fileObj = fileObj;
   }
@@ -221,6 +242,26 @@ export class UploadPoliciesComponent implements OnInit {
   }
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  policyReadResponseById(fileObj){
+    this.isreadEnabled = true;
+    this.isTable = false;
+    this.showPolicyReadResponse(fileObj);
+
+  }
+  showPolicyReadResponse(fileObj){
+    this.responsedata='';
+    this.responseList = [];
+    this.uploadPoliciesService.showPolicyReadResponse(fileObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.responseList = response.serviceResponse;
+        console.log(this.responseList);      
+      }
+      else{
+          console.error(response.serviceResponse);
+        }
+    });
   }
 
   
@@ -266,7 +307,40 @@ export class UploadPoliciesComponent implements OnInit {
     	
     	
   }	
-  }
+  
+  sortReadData(sort:Sort){	
+    console.log(sort);	
+    	
+    const responsedata=this.responseList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.document=responsedata;	
+      return;	
+    }	
+    else {	
+      this.document=responsedata.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'name':	
+              return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+              case 'empId':	
+                return compare(a.empId.toLowerCase() , b.empId.toLowerCase() , isAsc)	
+                case 'policyName':	
+                  return compare(a.policyName.toLowerCase() , b.policyName.toLowerCase() , isAsc)	
+                  case 'readEnabled':	
+                    return compare(a.readEnabled , b.readEnabled , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	 	
+  }	
+}
   function compare(a: number | string, b: number | string, isAsc: boolean) {	
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   

@@ -8,4 +8,7 @@ export class UploadPolicy{
 	createdByName: any;
 	createdOn: any;
 	readEnabled:any;
+	empId:any;
+
+	isRead:boolean = false;
 }

@@ -67,5 +67,29 @@ public class UploadPolicyController {
 		return response;
 
 	}
+	@RequestMapping(value = "/setPolicyReadResponseByEmpId", method = RequestMethod.POST)
+	public ServiceResponse setPolicyReadResponseByEmpId(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+
+		ServiceResponse response = uploadPolicyService.setPolicyReadResponseByEmpId(uploadPolicyDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/showPolicyReadResponseByPolicyID", method = RequestMethod.POST)
+	public ServiceResponse showPolicyReadResponseByPolicyID(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = uploadPolicyService.showPolicyReadResponseByPolicyID(uploadPolicyDTO);
+
+		return response;
+		
+	}
+	
+	@RequestMapping(value = "/getReadPoliciesByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getReadPoliciesByEmpId(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = uploadPolicyService.getReadPoliciesByEmpId(uploadPolicyDTO);
+
+		return response;
+		
+	}
+
+	
 
 }
