@@ -208,7 +208,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>State</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.state">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.state" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -216,7 +216,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>City / Town</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.city">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.city" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -224,14 +224,14 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Country</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.country">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.country" disabled>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <label class="info-label"><span class="text-danger">*</span>Pincode</label>
-                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode">
+                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode" (blur)="addDemographiscInfo(employeeObj.pincode)">
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">

@@ -244,14 +244,10 @@ public class EmployeeController {
 	 Save demographics info using postal code
 	 */
 	
-	@RequestMapping(value = "/addDemographicsInfo", method = RequestMethod.POST, consumes = "application/json")
-	public ServiceResponse addDemographicsInfo(@RequestBody EmployeeDTO[] employeedto) {
+	@RequestMapping(value = "/addDemographicsInfo", method = RequestMethod.POST)
+	public ServiceResponse addDemographicsInfo(@RequestBody EmployeeDTO employeedto) {
 
-		ServiceResponse response = null;
-
-		for (EmployeeDTO employee : employeedto) {
-			response = employeeService.addDemographicsInfo(employee);
-		}
+		ServiceResponse response = employeeService.addDemographicsInfo(employeedto);
 		return response;
 	}
 

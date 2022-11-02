@@ -152,24 +152,57 @@ export class EmployeeConfigComponent implements OnInit {
       //for employee draft table data 
       this.showDraftTable();
     }
+    // this.addDemographiscInfo();
   }
 
-  addDemographiscInfo(pincode:any){
+  addDemographiscInfo(){
     let path;
 
-    fetch('https://api.postalpincode.in/pincode/'+pincode).then(r => r.json()).then(j => { 
-      path = j[0].PostOffice[0];
-      console.log(path, " : path");
+    let data = []
+    
+    // const pincodeData = data.map(empObj => {
+    //     let pincode;
+    //     const matches:any = empObj.address.match(/[1-9]{1}\d{2}\s?\d{3}/gm);
+    //     if(matches){
+    //       pincode = matches[0];
+    //     }
+    //     return {
+    //       employeeId : empObj.employeementId,
+    //       pincode : pincode,
+    //       employeeName : empObj.name
+    //     }
+    // });
+
+    // console.log("pincode data : ", pincodeData);
+
+    data.forEach(empData => {
+      let pincode = empData.pincode;
+      let empId = empData.employeeId;
+
+      if(pincode != null){
+        fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
+        path = j[0].PostOffice[0];
+        console.log(path, " : path");
 
 
-      let empObj = new Employee();
-      empObj.state = path.State;
-      empObj.city = path.Block;
-      empObj.pincode = path.Pincode;
-      empObj.country = path.Country;
-      this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
-        
+        let empObj = new Employee();
+        empObj.state = path.State;
+        empObj.city = path.Block;
+        empObj.pincode = path.Pincode;
+        empObj.country = path.Country;
+        empObj.employeementId = empId;
+
+        console.log(empObj, " empObj");
+
+        this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            console.log("Employee demographics updated");
+          } else {
+            console.log("Employee demographics updation failed");
+          }
+        });
       });
+      }
     });
   }
 

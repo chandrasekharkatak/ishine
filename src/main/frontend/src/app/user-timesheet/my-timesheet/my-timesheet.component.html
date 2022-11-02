@@ -20,11 +20,11 @@
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
                             <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="timesheetDate" [matDatepicker]="timesheetDate" [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
+                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput id="timesheetDate" [matDatepicker]="timesheetDate" [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
                                 autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #timesheetDate ></mat-datepicker>
+                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
                             <div class="col-md-4 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
-                                        <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                                        <label for="leaveDesc">Description</label>
                                         <textarea class="form-control" id="dayTypeDesc" rows="1" [(ngModel)]="activityObj.description"></textarea>
                                     </div>
                                 </div>

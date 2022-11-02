@@ -239,11 +239,7 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
 
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.description)) {
-          this.alertMessage = `Please enter Activity Description - ${index + 1}!!`
-          flag = false;
-          return;
-        }else if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
+        if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
           this.alertMessage = `Please enter valid Activity Description - ${index + 1}!!`
           flag = false;
           return;
