@@ -26,6 +26,9 @@ export class PortalConfigComponent implements OnInit {
 
   portalConfigList:any[] = [];
 
+  isPortalConfiguration: boolean = true;
+  isAppreciationConfiguration: boolean = false;
+
   constructor(
     private portalService:PortalService,
     private validationService:ValidationService,
@@ -44,6 +47,16 @@ export class PortalConfigComponent implements OnInit {
     console.log(this.feature, " : ", this.userMapping);
 
     this.getAllPortalConfigData();
+  }
+
+  showPortalConfiguration(){
+    this.isPortalConfiguration = true;
+    this.isAppreciationConfiguration = false;
+  }
+
+  showAppreciationConfiguration(){
+    this.isPortalConfiguration = false;
+    this.isAppreciationConfiguration = true;
   }
 
   getAllPortalConfigData() {
