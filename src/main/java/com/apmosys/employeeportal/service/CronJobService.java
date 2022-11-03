@@ -162,35 +162,37 @@ public class CronJobService {
 	}
 	
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
-	
 	@Scheduled(cron = "0 0 12 1 * ?")
 	public void monthlyLeaveIncrement() {
-		
-		short leaveTypeMasterId = 0;
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		     List<Employee> employeeList = employeeRepository.findAll();
 		     
 		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
-			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-			      
-			          for(LeavePolicyMaster lpm : leavePolicy) {
-				         if((lpm.getCarryForward().equals("Yes") && lpm.getExpirationPeriod().equals("NA") && lpm.getIncrement().equals("Yes") && lpm.getLeaveApplication().equals("Yes")) || (lpm.getCarryForward().equals("No") && lpm.getExpirationPeriod().equals("NA") && lpm.getIncrement().equals("Yes") && lpm.getLeaveApplication().equals("Yes"))) {
-				     	     float incrementValue = lpm.getIncrementValue();
-					
-					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					       
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						              float dbBalance = elm.getBalance();
-						              float newBalance = dbBalance + incrementValue;
-						
-						              elm.setBalance(newBalance);
-						              employeeLeavesMapRepository.save(elm);
-						              break;
-					              }
-				          }
-			           }
+		        	  for(Employee employeeObj : employeeList) {
+		        		  
+		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
+		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
+		        		  
+		        		  if(!leavePolicy.isEmpty()) {
+		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  
+		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
+		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
+		        				  
+		        				          if(employeeLeaveMap != null) {
+		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+		        				        	  employeeLeaveMap.setBalance(newBalance);
+		      								  employeeLeavesMapRepository.save(employeeLeaveMap);
+		        				          }else {
+		        				        	  System.out.println("Employee Leave Mapping not found");
+		        				          }
+		        			  }
+		        		  }else {
+		        			  System.out.println("Leave Policy not found");
+		        		  }
+		        	  }	
 		            }
 		   }catch(Exception e) {
 			e.printStackTrace();
