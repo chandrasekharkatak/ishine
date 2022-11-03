@@ -376,7 +376,7 @@ public class CronJobService {
 				
 				LocalDate dateToday = LocalDate.now();
 				
-				List<Employee> allEmployee = employeeRepository.getEmployeeDetailForCron();
+				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
 			//	Timesheet filler for weekoff day : saturday & sunday
@@ -388,14 +388,15 @@ public class CronJobService {
 						String dayOfWeek = holiday.getDayOfTheWeek();
 						
 						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
-							for(Employee empObj: allEmployee) {
+							for(Object[] employeeList: allEmployee) {
+								Long empId = (Long) employeeList[0];
 								
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empObj.getEmpId(),dateToday);
+								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
 								
 								if(empTimesheet == null) {
 									Timesheet newTimesheet = new Timesheet();
 									
-									newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
 									newTimesheet.setDayType("Holiday");
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
@@ -403,7 +404,7 @@ public class CronJobService {
 									}else{
 										newTimesheet.setDescription("WeekOff : Sunday");
 									}
-									newTimesheet.setEmpId(empObj.getEmpId());
+									newTimesheet.setEmpId(empId);
 									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
 									newTimesheet.setStatus("Approved");
 									
@@ -421,19 +422,20 @@ public class CronJobService {
 					for(Holiday holidays: publicHoliday) {
 						String holidayState = holidays.getState();
 						
-						for(Employee empObj: allEmployee) {
-							String workLocation = empObj.getWorkLocation();
+						for(Object[] employeeList: allEmployee) {
+							Long empId = (Long) employeeList[0];
+							String workLocation = (String) employeeList[1];
 
 							if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
 									|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
 								
 								Timesheet newTimesheet = new Timesheet();
 								
-								newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+								newTimesheet.getCommonProperty().setCreatedBy(empId);
 								newTimesheet.setDate(dateToday);
 								newTimesheet.setDayType("Holiday");
 								newTimesheet.setDescription("Public Holiday");
-								newTimesheet.setEmpId(empObj.getEmpId());
+								newTimesheet.setEmpId(empId);
 								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
@@ -560,4 +562,28 @@ public class CronJobService {
 			}
 		}
 		
+		//0 0 4 2 * ? - At 04:00:00am, on the 2nd day, every month
+		
+		@Scheduled(cron="0 0 4 2 * ?")
+		public void monthlyTimesheetExcelGenerator() {
+			
+			Calendar calendar = Calendar.getInstance();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			calendar.add(Calendar.MONTH, -1);
+			calendar.set(Calendar.DATE, 1);
+
+			String firstDateOfPreviousMonth = dateFormat.format(calendar.getTime());
+			
+			calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+			String lastDateOfPreviousMonth = dateFormat.format(calendar.getTime());
+			
+			List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+			for(Object[] empObj : employeeList) {
+				Long empId = (Long) empObj[0];
+				
+				
+				
+			}
+			
+		}
 }	

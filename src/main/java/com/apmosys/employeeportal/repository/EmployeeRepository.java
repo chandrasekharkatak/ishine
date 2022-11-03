@@ -101,6 +101,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> findEmployeeWorkingHistory(Long empId);
 
 	@Query(nativeQuery = true)
-	public List<Employee> getEmployeeDetailForCron();
+	public List<Object[]> getEmployeeDetailForCron();
 
 }
