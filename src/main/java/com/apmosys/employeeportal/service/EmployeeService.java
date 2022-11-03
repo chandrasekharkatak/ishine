@@ -2102,7 +2102,7 @@ public class EmployeeService {
 						"Dear ApMoSysian,<br>"
 						+ "<br>"
 						+ "Welcome to iShine Portal, Please login using your old leave portal credentials.<br>"
-						+ "Please complete updation of your profile before end of this month and start using this portal for leave and timesheet applications.<br>"
+						+ "Please complete updation of your profile before end of this week and start using this portal for leave and timesheet applications.<br>"
 						+ "<br>"
 						+ "links - <br>"
 						+ "portal link : https://ishine.apmosys.com/ <br>"

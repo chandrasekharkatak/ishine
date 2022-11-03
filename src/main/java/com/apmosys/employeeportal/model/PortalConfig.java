@@ -32,4 +32,6 @@ public class PortalConfig {
 	
 	private Long updatedBy;
 	
+	private String configValue;
+	
 }

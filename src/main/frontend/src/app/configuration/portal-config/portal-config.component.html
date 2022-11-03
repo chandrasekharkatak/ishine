@@ -49,6 +49,26 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>OTRS <small>(Recruitment Link)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.otrsLink">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>SNIPIT <small>(Asset Management Link)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.snipitLink">
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">Update Portal Global Configuration</button>

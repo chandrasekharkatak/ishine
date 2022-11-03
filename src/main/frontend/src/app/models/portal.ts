@@ -9,4 +9,8 @@ export class Portal {
     probationMailTrigger:any;
     noticeMailTrigger:any;
     allPortalConfigData:any
+    configValue:any
+
+    otrsLink:any
+    snipitLink:any
 }

@@ -450,8 +450,8 @@ export class ValidationService {
     else {
       return false;
     }
-
   }
+
   validateAlphaWithSpaceInbetween(text:string):boolean{
     const regex = (/[^-\s][a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;     // minor changes in Regex 
     if (text !== "" || text !== undefined || text !== null) {
@@ -465,7 +465,14 @@ export class ValidationService {
     else {
       return false;
     }
-  
   }
 
+  validateUrl(url:any){
+    try { 
+      return Boolean(new URL(url)); 
+    }
+    catch(e){ 
+      return false; 
+    }
+  }
 }
