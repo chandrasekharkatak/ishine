@@ -42,4 +42,9 @@ export class Timesheet{
 	clientName : any;
     clientLocationId : any;
 	clientLocation : any;
+
+    isSelected:boolean = false;
+    bulkApprovedList:any;
+    bulkRejectList:any;
+  
 }

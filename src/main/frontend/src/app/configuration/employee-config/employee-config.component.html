@@ -740,9 +740,23 @@
         <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
         <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
     </div>
+    
+        <div class="form-inline">
+            <small>View</small>
+            <select class="form-select-sm align-items-center mx-1"  aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
+                <option class="option-bg" selected value="10">10</option>
+                <option class="option-bg" value="20">20</option> 
+                <option class="option-bg" value="50">50</option> 
+                <option class="option-bg" value="100">100</option> 
+              </select>
+            <small>entries</small>
+          </div>
+      
+
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
+        
     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
           <tr>	
@@ -761,7 +775,7 @@
             <tr *ngIf="allEmployeeList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: items, currentPage: page }, let i = index">
             <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
             <td>{{employee.employeementId}}</td>
@@ -787,7 +801,8 @@
         </tbody>
       </table>
       <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+      
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down py-1"></em>&nbsp;Export</button> 
 </div>
 <!-- end :: see all table -->
 

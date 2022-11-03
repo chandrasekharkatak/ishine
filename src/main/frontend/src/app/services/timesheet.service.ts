@@ -80,4 +80,14 @@ export class TimesheetService {
   getLast9DaysTimesheetReport(){
     return this.http.get(`${this.baseUrl}` + `api/getLast9DaysTimesheetReport`);
   }
+
+  bulkApproveTimesheetRequest(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}` + `api/bulkApproveTimesheetRequest`, timesheetObj);
+  }
+
+  bulkRejectTimesheetRequest(timesheetObj:Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/bulkRejectTimesheetRequest`, timesheetObj);
+  }
+
+
 }

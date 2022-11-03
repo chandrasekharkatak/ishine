@@ -29,6 +29,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   feature = 'Employee Config';
   data:string;
+  items = 10;
 
   //flags 
   isCreation: boolean = false;
@@ -1364,6 +1365,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   pageNo = 1;
   handlePageChanges(event) {
+    this.pageNo = event;
+  }
+  handleItemChanges(event) {
     this.pageNo = event;
   }
 

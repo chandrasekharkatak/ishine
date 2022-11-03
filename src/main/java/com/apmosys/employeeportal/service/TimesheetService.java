@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
+import org.hibernate.cache.spi.support.AbstractReadWriteAccess.Item;
 import org.hibernate.internal.build.AllowSysOut;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -223,12 +225,7 @@ public class TimesheetService {
 						TimesheetActivityMap map = new TimesheetActivityMap();
 						map.setActivityId(activity.getActivityId());
 						map.setCompletionTime(activity.getCompletionTime());
-						if(activity.getDescription() == null) {
-							Activity activityObj = activitiesRepository.getById(activity.getActivityId());
-							map.setDescription(activityObj.getActivity());
-						}else {
-							map.setDescription(activity.getDescription());
-						}
+						map.setDescription(activity.getDescription());
 						map.setTimesheetId(newTimesheetCreated.getTimesheetId());
 						map.setClientLocationId(activity.getClientLocationId());
 						
@@ -834,5 +831,52 @@ public class TimesheetService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse bulkApproveTimesheetRequest(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+	
+		try {
+			
+			for (TimesheetDTO timesheet : timesheetDTO.getBulkApprovedList()) {
+				
+				timesheet.setStatus(timesheetDTO.getStatus());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				response = updateTimesheetRequestById(timesheet);
+			    
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
+	}
+	
+	public ServiceResponse bulkRejectTimesheetRequest(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+	
+		try {
+			
+			for (TimesheetDTO timesheet : timesheetDTO.getBulkRejectList()) {
+				
+				timesheet.setStatus(timesheetDTO.getStatus());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				response = updateTimesheetRequestById(timesheet);
+			    
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
+	}
+	
 
 }
