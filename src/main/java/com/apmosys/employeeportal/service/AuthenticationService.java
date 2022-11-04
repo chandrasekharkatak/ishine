@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -46,6 +49,12 @@ public class AuthenticationService {
 	@Autowired
 	private MailService mailService;
 	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
 	@Value("${spring.servlet.multipart.max-file-size}")
 	private String maxFileSize;
 	
@@ -53,19 +62,31 @@ public class AuthenticationService {
 	private String maxRequestSize;
 
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
+	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Login");
+		apiLogInfo.setSubFeatureName("Sign In");
+		apiLogInfo.setApiUrl("/api/authenticateUser");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Email : "+employeedto.getEmail());
 
 		try {	
 				Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 				if (employee != null) {
 					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 					
+					logBuilder.append(", InvalidAccessAttempt : "+employee.getInvalidAccessAttempt()+ ", isUserLoggedIn : "+isUserLoggedIn);
 					if(employee.getInvalidAccessAttempt()>failedAttempt) {
 						
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Account Blocked !!");
+						
+						apiLogInfo.setApiResponse("Account Blocked !!.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						
 					} else if (!employee.getEmploymentstatus().equals("InActive")) {
 
@@ -88,10 +109,16 @@ public class AuthenticationService {
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 									response.setServiceResponse("Valid Credentials. OTP sent to email.");
 									
+									apiLogInfo.setApiResponse("Valid Credentials. OTP sent to email.");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+									
 								} else {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
 									response.setServiceResponse(
 											"User already logged in.Do you want to logout of existing session ?");
+									
+									apiLogInfo.setApiResponse("User already logged in.Do you want to logout of existing session ?");			
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 									
 									Random random = new Random();
 									int otp = random.nextInt(9999 - 1000)
@@ -111,16 +138,25 @@ public class AuthenticationService {
 
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Invalid Credentials.");
+								
+								apiLogInfo.setApiResponse("Invalid Credentials.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 							}
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("InActive User");
+						
+						apiLogInfo.setApiResponse("InActive User");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Credentials.");
+					
+					apiLogInfo.setApiResponse("Invalid Credentials.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} catch (Exception e) {
@@ -128,14 +164,34 @@ public class AuthenticationService {
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 				response.setServiceResponse("Something Went Wrong.");
 				response.setServiceError(e.getMessage());
+				
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
 			}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		/* FOR SESSION LOG INFO */
+		LogDTO logInfo = new LogDTO();
+		logInfo.setEmpId(employeedto.getEmpId());
+		logInfo.setFeatureName("Login");
+		/*FOR API LOG */
+		LogDTO apiLogInfo = new LogDTO();
+		logInfo.setFeatureName("Login");
+		apiLogInfo.setSubFeatureName("Confirm OTP");
+		apiLogInfo.setApiUrl("/api/authenticateUserWithOTP");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+employeedto.getEmpId()+", Email : "+ employeedto.getEmail()+", Otp : "+ employeedto.getOtp());
 		
 		try {
+			
 			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
@@ -144,57 +200,98 @@ public class AuthenticationService {
 				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
 				EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 
+				logInfo.setLoginTime(df.format(new Date()));
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 
 				if (!isUserLoggedIn) {
-
 					userSessionList.put(employee.getEmpId(), sessionString);
-
+					userLogInfoList.put(employee.getEmpId(), logInfo);
 				} else {
-
 					userSessionList.put(employee.getEmpId(), sessionString);
-
+					userLogInfoList.put(employee.getEmpId(), logInfo);
 				}
 
-				Object[] object = new Object[6];
+				Object[] object = new Object[7];
 				object[0] = currentEmployeeDto;
 				object[1] = serviceResponse.getServiceResponse();
 				object[2] = sessionString;
 				object[3] = sessionTimeout;
 				object[4] = maxFileSize.replace("MB","");
 				object[5] = maxRequestSize.replace("MB","");
-
+				object[6] = logInfo;
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(object);
 				response.setServiceMessage("OTP validated successfully. User Log in success.");
+				
+				apiLogInfo.setApiResponse("OTP validated successfully. User Log in success.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("OTP validation failed. Please try again.");
+				
+				apiLogInfo.setApiResponse("OTP validation failed. Please try again.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse logoutUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/logoutUserlogoutUser");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+employeedto.getEmpId());
+		
 		try {
 
 			boolean isUserLoggedIn = userSessionList.containsKey(employeedto.getEmpId());
-
+			boolean isUserLogInfoAvailable = userLogInfoList.containsKey(employeedto.getEmpId());
+			
+			
 			if (isUserLoggedIn) {
-
+				
+				if(isUserLogInfoAvailable) {
+					LogDTO sessionLogInfo = userLogInfoList.get(employeedto.getEmpId());
+					sessionLogInfo.setLogoutTime(df.format(new Date()));
+					
+					apiLogInfo.setApiResponse("Session destroyed. User Logout successfull.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					
+					userLogInfoList.remove(employeedto.getEmpId());
+				}
+				
 				userSessionList.remove(employeedto.getEmpId());
-
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Session destroyed. User Logout successfull");
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Session already destroyed");
+				
+				apiLogInfo.setApiResponse("Session already destroyed.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
 			}
 
 		} catch (Exception e) {
@@ -202,6 +299,12 @@ public class AuthenticationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
 		return response;
 	}
@@ -235,15 +338,26 @@ public class AuthenticationService {
 
 	public ServiceResponse checkEmailWhenForgotPassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setFeatureName("Login");
+		apiLogInfo.setSubFeatureName("Send OTP");
+		apiLogInfo.setApiUrl("/api/checkEmailWhenForgotPassword");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Email : "+employeedto.getEmail());
+		
 		try {
 
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
 			if (employee != null) {
+				logBuilder.append(", Employee IsNew : "+employee.getIsNew());
 				if(employee.getIsNew().equals("true")) {	
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-				    response.setServiceResponse("Forgot Password feature is not for New User.");	
+				    response.setServiceResponse("Forgot Password feature is not for New User.");
+				    
+				    apiLogInfo.setApiResponse("Forgot Password feature is not for New User.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {	
 					Random random = new Random();	
 					int otp = random.nextInt(9999 - 1000) + 1000;	
@@ -252,11 +366,17 @@ public class AuthenticationService {
 						
 					mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-					response.setServiceResponse("OTP sent to emailId.");	
+					response.setServiceResponse("OTP sent to emailId.");
+					
+					apiLogInfo.setApiResponse("OTP sent to emailId.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}	
 			} else {	
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-				response.setServiceResponse("Enter valid credentials.");	
+				response.setServiceResponse("Enter valid credentials.");
+				
+				apiLogInfo.setApiResponse("Enter valid credentials.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -264,13 +384,26 @@ public class AuthenticationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse checkOTPWhenForgotPassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setFeatureName("Login");
+		apiLogInfo.setSubFeatureName("Confirm OTP");
+		apiLogInfo.setApiUrl("/api/checkOTPWhenForgotPassword");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Email : "+employeedto.getEmail()+ ", Otp : "+employeedto.getOtp());
+		
 		try {
 
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
@@ -278,9 +411,15 @@ public class AuthenticationService {
 			if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("OTP verified successfully.");
+				
+				apiLogInfo.setApiResponse("OTP verified successfully.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Invalid OTP. Please try again");
+				
+				apiLogInfo.setApiResponse("Invalid OTP. Please try again.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -288,12 +427,26 @@ public class AuthenticationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse resendOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setFeatureName("Login");
+		apiLogInfo.setSubFeatureName("Resend OTP");
+		apiLogInfo.setApiUrl("/api/resendOTP");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Email : "+employeedto.getEmail());
+		
 		try {
 			
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
@@ -313,13 +466,22 @@ public class AuthenticationService {
 				if(employeeSaved != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("OTP sent to email.");
+					
+					apiLogInfo.setApiResponse("OTP sent to email.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("OTP sent to email.");
+					response.setServiceResponse("Failed to update OTP.");
+					
+					apiLogInfo.setApiResponse("Failed to update OTP.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee not found.");
+				
+				apiLogInfo.setApiResponse("Employee not found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -327,7 +489,13 @@ public class AuthenticationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

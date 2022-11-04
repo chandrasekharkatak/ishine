@@ -20,6 +20,8 @@ import { CalendarComponent } from '../helpers/calendar/calendar.component';
 import { BodyComponent } from '../body/body.component';
 import { Feature } from '../models/feature';
 import { ValidationService } from '../services/validation.service';
+import { LogService } from '../services/log.service';
+import { Log } from '../models/log';
 
 @Component({
   selector: 'app-home',
@@ -37,6 +39,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   feature="Home";
   currentUser:User;
   userMapping:any = {};
+  log:Log;
 
   isReqPending:boolean = true;
   leaveApplicationCount:any = 0;
@@ -83,13 +86,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
     private bodyComponent: BodyComponent,
-    public validationService: ValidationService
+    public validationService: ValidationService,
+    private logService:LogService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.logService.log.subscribe(x => {
+      this.log = x;
+      this.log.tabName = this.feature;
+      this.log.featureName = this.feature;
+    });
    }
 
   ngOnInit(): void {
-
+    this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {

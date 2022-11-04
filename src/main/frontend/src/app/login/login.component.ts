@@ -14,6 +14,9 @@ import * as CryptoJS from 'crypto-js';
 import { EmployeeService } from '../services/employee.service';
 import { BnNgIdleService } from 'bn-ng-idle';
 import { BodyComponent } from '../body/body.component';
+import { LogService } from '../services/log.service';
+import { Log } from '../models/log';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-login',
@@ -65,6 +68,7 @@ export class LoginComponent implements OnInit{
     private employeeService: EmployeeService,
     private bnIdle:BnNgIdleService,
     private bodyComponent:BodyComponent,
+    private logService:LogService
   ) { }
 
 
@@ -213,7 +217,9 @@ export class LoginComponent implements OnInit{
       this.authenticationService.sessionTimeout= responseObj[3];
       sessionStorage.setItem('maxFileSize',responseObj[4]);
       sessionStorage.setItem('maxRequestSize',responseObj[5]);
-      console.log("checking"+sessionStorage.maxFileSize);
+      /* Saving INFO for Logs */
+      let log:Log = responseObj[6];
+      log.empId = user.empId;
       this.timeSession();
       this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
 
@@ -239,6 +245,9 @@ export class LoginComponent implements OnInit{
       this.user.tabList = this.getTabList();      
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
+      sessionStorage.setItem('logInfo', JSON.stringify(log));
+      this.logService.updateLogInfo(log);
+
       this.router.navigate(['/home']);
       this.authenticationService.startUserSessionCheck();
       }
