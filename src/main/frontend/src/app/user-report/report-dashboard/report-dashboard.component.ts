@@ -606,7 +606,8 @@ export class ReportDashboardComponent implements OnInit {
        else if (age>45) countAbove45++;
       }
 
-      if(employee.dateOfJoining != null && employee.totalExperience != null && employee.employmentstatus != 'InActive'){
+      if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
+        if(employee.totalExperience == null)employee.totalExperience = 0;
         let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
         employee.totalExperience = empTotalExperience.toFixed(1);
         console.log(empTotalExperience);
