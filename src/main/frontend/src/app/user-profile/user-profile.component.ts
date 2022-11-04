@@ -391,7 +391,7 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if(employeeObj.experience == 'Exprienced'){
+    if(employeeObj.experience == 'Experienced'){
       this.allPreviousEmployment.forEach((previousEmployer, index) =>{
         if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
           this.alertMessage = `Please Enter Employer Name - ${index}!!`;

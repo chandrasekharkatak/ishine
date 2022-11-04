@@ -424,8 +424,8 @@
                             </div>
                         </app-accordion-item>
 
-                        <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
-                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                        <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
                                 <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
@@ -957,7 +957,7 @@
                                         <select class="form-control" aria-hidden="true" [(ngModel)]="UpdateEmployeeInfo.experience">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option value="Fresher">Fresher</option>
-                                            <option value="Exprienced">Exprienced</option>
+                                            <option value="Experienced">Experienced</option>
                                           </select>
                                     </div>
                                 </div>
@@ -972,7 +972,7 @@
                     </div>
                 </app-accordion-item>
 
-                <app-accordion-item *ngIf="UpdateEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                <app-accordion-item *ngIf="UpdateEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                     <div class="container-fluid">
                         <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                             <div class="col-md-4 mb-0">

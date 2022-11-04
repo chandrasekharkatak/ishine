@@ -301,8 +301,8 @@
                         </div>
                     </app-accordion-item>
                 
-                    <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
-                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information" [showBody]="true">
+                    <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information" [showBody]="true">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">

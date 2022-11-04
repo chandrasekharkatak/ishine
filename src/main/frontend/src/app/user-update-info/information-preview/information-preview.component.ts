@@ -303,7 +303,7 @@ export class InformationPreviewComponent implements OnInit {
       });
     }
 
-    if(employeeObj.experience == 'Exprienced'){
+    if(employeeObj.experience == 'Experienced'){
       if(employeeObj.previousEmploymentList.length === 0){
         this.alertMessage = `Please Enter Previous Employment Details !!`;
         this.openAlertMod(template, this.alertMessage);
