@@ -10,6 +10,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
 
+
 @Component({
   selector: 'app-team-timesheet',
   templateUrl: './team-timesheet.component.html',
@@ -35,11 +36,16 @@ export class TeamTimesheetComponent implements OnInit {
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
   allTeamTimesheets:any[] = [];
-  allTeamTimesheetRequests:any[] = [];
+  allTeamTimesheetRequests:Timesheet[] = [];
 
   timesheetObj:Timesheet = new Timesheet();
   startDate:any;
   endDate:any;
+
+  isSelectAll:boolean = false;
+  isSelect:boolean = false;
+  bulkApprove:any =[];
+  bulkReject:any = [];
 
   constructor(
     public validationService:ValidationService,
@@ -61,6 +67,13 @@ export class TeamTimesheetComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+  }
+
+  reset(){
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj.isSelected = false
+    this.isSelectAll = false;
+    
   }
 
   sectionViewInit(){
@@ -146,11 +159,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
-    let timesheetObj = new Timesheet();
-    timesheetObj.timesheetId = timesheet.timesheetId;
-    timesheetObj.status = status;
-    timesheetObj.email = timesheet.email;
-    timesheetObj.rejectReason = timesheet.rejectReason;
+    let timesheetObj = Object.assign({}, timesheet);
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -165,6 +174,7 @@ export class TeamTimesheetComponent implements OnInit {
   rejectTimesheetRequest(template: TemplateRef<any>){
     this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
   }
+
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
     this.cancelRequest();
     this.timesheetObj = timesheet;
@@ -271,7 +281,22 @@ export class TeamTimesheetComponent implements OnInit {
   page = 1;
     handlePageChange(event) {
     this.page = event;
+    this.isSelectAll = false;
+    this.bulkApprove = []
+    this.bulkReject = []
+    this.allTeamTimesheetRequests.forEach(x => {
+      x.isSelected = false;
+    });
+    
   }
+
+  items = 10;
+  handleItemsChange(event){
+    this.items = event;
+   
+  }
+
+ 
   //sorting timesheet	
   sortTimeSheet(sort:Sort){	
     console.log(sort);	
@@ -328,13 +353,98 @@ export class TeamTimesheetComponent implements OnInit {
           }	
         }	
       )	
-    }	
-    	
-    	
-    	
+    }	 	  	
   }
+
+  selectAll(event){
+    this.bulkApprove = [];
+    this.bulkReject = [];
+    
+    const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+    checkboxes.forEach((checkbox:any) =>{
+      console.log("checkbox : ", checkbox);
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => index == checkboxIndex);
+
+      if (event.target.checked) {
+        checkbox.checked = true;
+        this.bulkApprove.push(checkedTimesheet);
+        this.bulkReject.push(checkedTimesheet);
+      } else {
+        checkbox.checked = false;
+        this.bulkApprove.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+        });
+        this.bulkReject.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+        });
+      }
+    });
+  }
+
+  select(timesheetObj, event) {
+    
+    console.log("clicked on : ", timesheetObj);
+
+    if (event.target.checked) {
+      this.bulkApprove.push(timesheetObj);
+      this.bulkReject.push(timesheetObj);
+    } else {
+      this.bulkApprove.forEach((timesheet, index) => {
+        if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
+      });
+      this.bulkReject.forEach((timesheet, index) => {
+        if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
+      });
+    }
+
+    console.log("Updated Bulk List : ",  this.bulkApprove);
+  }
+  
+onBulkApproval(){
+  console.log("Updated Bulk List : ",  this.bulkApprove);
+  let timesheetObj = new Timesheet();
+  timesheetObj.bulkApprovedList =  this.bulkApprove;
+  timesheetObj.updatedBy = this.currentUser.empId;
+  timesheetObj.status = "Approved"
+  console.log("For Bulk Update : ", timesheetObj);
+  this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.showAllTimesheetRequestsTable();
+      this.bulkApprove = [];
+      this.bulkReject = [];
+    } else {
+    console.error(response.serviceResponse)
+    }
+  });
+  
 }
+
+OnBulkReject(){
+  console.log("Updated Bulk List : ",  this.bulkReject);
+  let timesheetObj = new Timesheet();
+  timesheetObj.bulkRejectList =  this.bulkReject;
+  timesheetObj.updatedBy = this.currentUser.empId;
+  timesheetObj.status = "Rejected"
+  console.log("For Bulk Update : ", timesheetObj);
+  this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.showAllTimesheetRequestsTable();
+      this.bulkApprove = [];
+      this.bulkReject = [];
+    } else {
+    console.error(response.serviceResponse)
+    }
+  });
+  
+}
+
+
+
+}
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }	
+
 

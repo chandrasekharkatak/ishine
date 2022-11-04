@@ -62,7 +62,10 @@
             <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
             <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
             <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-            <th scope="col" class="info-label">Action</th>	  
+            <!-- <th scope="col" class="info-label" mat-sort-header="createdOn">Read Enabled</th> -->
+            <th scope="col" class="info-label">Action</th>	
+            <th scope="col" class="info-label">Read Confirmation</th>	  
+  
           </tr>
         </thead>
         <tbody>
@@ -77,8 +80,13 @@
             <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
             <td>
                 <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
-                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>  
-                   
+                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>&nbsp;  
+            </td>
+            <td>
+                <button  *ngIf="doc.readEnabled == 'false'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="openReadEnabledMod(read_enabled,doc)">Enable</button>
+                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="onReadDisabledMod(read_disabled,doc)">Disable</button>&nbsp; 
+                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="policyReadResponseById(doc)">View Response</button>  
+
             </td>
           </tr>
         </tbody>
@@ -86,6 +94,45 @@
        <pagination-controls class="my-pagination" [hidden]="document.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
 </div>
 <!-- end :: see all Documents table -->
+
+<!-- start :: See all Document Read Responses Table -->
+<div class="row col-md-12" *ngIf="isreadEnabled">
+    <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Document Read Responses</h1>
+    </div>
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="responsedata" (keyup)="page=1">	
+        </div>
+    <table class="table department-table" matSort (matSortChange)="sortReadData($event)">	
+        
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label" mat-sort-header="name">Emp Name</th>	
+            <th scope="col" class="info-label" mat-sort-header="empId" >Emp id</th>
+            <th scope="col" class="info-label" mat-sort-header="policyName">policy name</th>
+            <th scope="col" class="info-label" mat-sort-header="readEnabled">Read on</th>
+
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="responseList.length == 0">
+                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
+            </tr>
+            <tr *ngFor="let doc of responseList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
+            <th class="info-label">{{10*(page-1)+i+1}}</th> 
+            <td>{{doc.name}}</td>
+            <td>{{doc.empId}}</td>
+            <td>{{doc.policyName}}</td>
+            <td>{{doc.readEnabled | date:'dd-MM-yyyy HH:mm:ss'}}</td>           
+          </tr>
+        </tbody>
+      </table> 
+      <pagination-controls class="my-pagination" [hidden]="responseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+ 
+</div>
+
+<!-- end :: see all Survey Responses table -->
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete this Document?</p>
@@ -99,5 +146,21 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #read_enabled>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to enable this Document to user?</p>
+        <button type="button" class="btn btn-success" (click)="onReadEnabled(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #read_disabled>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to disable this Document from user?</p>
+        <button type="button" class="btn btn-success" (click)="onReadDisabled(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

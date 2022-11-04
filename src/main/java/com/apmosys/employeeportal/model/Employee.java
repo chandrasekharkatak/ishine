@@ -139,4 +139,9 @@ public class Employee {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
 	private String billable;
 	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private String dateOfRelieving;
+	private String reference;
+	private String backgroundVerificationStatus;
+	
 }

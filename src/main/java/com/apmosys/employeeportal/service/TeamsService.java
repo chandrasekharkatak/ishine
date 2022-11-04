@@ -216,6 +216,7 @@ public class TeamsService {
 							dto.setTeamName(object[3] != null ? object[3].toString() : null);
 							dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
 							dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+							dto.setTeamLeadId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 							dtoList.add(dto);
 						});
 						

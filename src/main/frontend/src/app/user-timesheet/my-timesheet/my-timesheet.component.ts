@@ -281,11 +281,7 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
 
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.description)) {
-          this.alertMessage = `Please enter Activity Description - ${index + 1}!!`
-          flag = false;
-          return;
-        }else if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
+        if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
           this.alertMessage = `Please enter valid Activity Description - ${index + 1}!!`
           flag = false;
           return;
@@ -293,6 +289,11 @@ export class MyTimesheetComponent implements OnInit {
 
         if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+        if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
+          this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
           flag = false;
           return;
         }
@@ -547,7 +548,7 @@ export class MyTimesheetComponent implements OnInit {
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
 
-    if (this.endDate) {
+    if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
         this.openAlertMod(template, this.alertMessage);
@@ -559,8 +560,11 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
+      console.log("end date is small");
+      this.endDate = ''
+      
     } else {
-      return;
+      this.allMyTimesheets = [];
     }
 
     let timesheetObj = new Timesheet();
@@ -674,8 +678,7 @@ export class MyTimesheetComponent implements OnInit {
           "Date": x.date,
           "Day Type": x.dayType,
           "Timesheet Details":x.description,
-          "Total Working Hours":x.totalTime,
-          "Description": x.description,
+          "Total Time":x.totalTime,
           "Status": x.status
         })
       )

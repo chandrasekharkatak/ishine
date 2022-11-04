@@ -303,7 +303,7 @@ export class InformationPreviewComponent implements OnInit {
       });
     }
 
-    if(employeeObj.experience == 'Exprienced'){
+    if(employeeObj.experience == 'Experienced'){
       if(employeeObj.previousEmploymentList.length === 0){
         this.alertMessage = `Please Enter Previous Employment Details !!`;
         this.openAlertMod(template, this.alertMessage);
@@ -375,7 +375,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Bank Account Number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaNumeric(employeeObj.bankAccountNo)){
+    }if(!this.validationService.validateNumber(employeeObj.bankAccountNo)){
       this.alertMessage = "Please enter Valid Bank Account Number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

@@ -62,5 +62,7 @@ public class TimesheetDTO {
 	private String rejectReason;
 	private List<CustomFilterDTO> queryList;
 	private String employmentstatus;
+	private List<TimesheetDTO> bulkApprovedList;
+	private List<TimesheetDTO> bulkRejectList;
 	
 }

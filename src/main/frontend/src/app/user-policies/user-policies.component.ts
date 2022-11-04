@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,TemplateRef } from '@angular/core';
 import { User } from 'src/app/models/user';
 import { PoliciesService } from '../services/policies.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -6,6 +6,10 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { saveAs } from "file-saver";
 import { Sort } from '@angular/material/sort';
+import { UploadPolicy } from 'src/app/models/UploadPolicy';
+
+import { Feature } from 'src/app/models/feature';
+
 
 
 
@@ -29,6 +33,12 @@ export class UserPoliciesComponent implements OnInit {
   }
   document:any[] = [];
   data:string;
+  modalRef: BsModalRef = new BsModalRef();
+  fileObj:UploadPolicy = new UploadPolicy();  
+  alertMessage: any;
+  allReadPoliciesList:any[] = [];
+
+
   ngOnInit(): void {
 
     this.getAllDocuments();
@@ -41,16 +51,63 @@ export class UserPoliciesComponent implements OnInit {
     this.policiesService.getAllDocument().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.document =  response.serviceResponse;
-        console.log("DocumentList : ", this.document);
+        this.getAllReadPolicies();
+        console.log("DocumentList xyz: ", this.document);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
+  getAllReadPolicies(){
+    this.allReadPoliciesList = [];
+    let fileObj = new UploadPolicy();
+    fileObj.empId = this.currentUser.empId;
+
+    this.policiesService.getReadPoliciesByEmpId(fileObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allReadPoliciesList = response.serviceResponse;
+       console.log("this.alll : ", response.serviceResponse);
+       this.allReadPoliciesList.forEach((readPolicies:UploadPolicy) => {
+          let fileObj = this.document.find((policy:UploadPolicy) => readPolicies.policyID == policy.policyID);
+          if(fileObj) fileObj.isRead = true;
+        }); 
+      }else{
+        console.error(response.serviceResponse);
+      }
+    });
+
+  }
   
   downloadFile(doc: any) {
     this.policiesService.downloadDocument( doc.policyID).subscribe(blob => saveAs(blob,doc.fileName));
   }
+  cancelRequest() {
+    this.modalRef.hide();
+  }
+  openReadEnabledMod(template: TemplateRef<any>, fileObj:UploadPolicy) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.fileObj = fileObj;
+  }
+  onReadPolicy(template: TemplateRef<any>){
+    this.cancelRequest();
+    let fileObj = new UploadPolicy();
+    fileObj.policyID = this.fileObj.policyID;
+    fileObj.empId = this.currentUser.empId;
+    console.log("Activate Survey : ", fileObj);
+    this.policiesService.onReadPolicy(fileObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getAllDocuments();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
   page = 1;
   handlePageChange(event) {
     this.page = event;

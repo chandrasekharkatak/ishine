@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -1006,18 +1007,41 @@ public class EmployeeService {
 					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
 			if (employeeObject.isPresent()) {
 
-				Employee m = employeeRepository.findByEmployeementId(employeedto.getManagerId());
+//				Employee m = employeeRepository.findByEmployeementId(employeedto.getManagerId());
 				System.out.println(employeedto.getManagerId() + " : manager id");
 
-				Long primaryEmpId = m.getEmpId();
-				System.out.println(primaryEmpId);
+//				Long primaryEmpId = m.getEmpId();
+//				System.out.println(primaryEmpId);
 
 				Employee employee = employeeObject.get();
 
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-
-				employee.setManagerId(primaryEmpId);
-
+//				employee.setManagerId(primaryEmpId);
+//				employee.setExperience(employeedto.getExperience());
+//				employee.setTotalExperience(employeedto.getTotalExperience());
+//				employee.setFatherName(employeedto.getFatherName());
+//				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+//				
+//				if(employeedto.getEmergencyContactMobile() != null) {
+//					employee.setEmergencyContactPerson(employeedto.getFatherName());
+//					employee.setRelation("Father");
+//				}
+//				
+//				employee.setSpouse(employeedto.getSpouse());
+//				employee.setSecondaryEmail(employeedto.getSecondaryEmail());
+//				employee.setPassportNumber(employeedto.getPassportNumber());
+//				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
+//				employee.setReference(employeedto.getReference());
+//				employee.setBackgroundVerificationStatus(employeedto.getBackgroundVerificationStatus());
+				
+//				employee.setBankName(employeedto.getBankName());
+//				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
+//				employee.setBankAccountNo(employeedto.getBankAccountNo());
+				
+//				employee.setPfAccountNumber(employeedto.getPfAccountNumber());
+//				employee.setUan(employeedto.getUan());
+//				employee.setEsicNumber(employeedto.getEsicNumber());
+				
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {
@@ -1457,6 +1481,7 @@ public class EmployeeService {
 							dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 							dto.setName(object[1] != null ? object[1].toString() : null);
 							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
+							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 							employeeList.add(dto);
 						});
 						
@@ -2077,7 +2102,7 @@ public class EmployeeService {
 						"Dear ApMoSysian,<br>"
 						+ "<br>"
 						+ "Welcome to iShine Portal, Please login using your old leave portal credentials.<br>"
-						+ "Please complete updation of your profile before end of this month and start using this portal for leave and timesheet applications.<br>"
+						+ "Please complete updation of your profile before end of this week and start using this portal for leave and timesheet applications.<br>"
 						+ "<br>"
 						+ "links - <br>"
 						+ "portal link : https://ishine.apmosys.com/ <br>"
@@ -2100,6 +2125,54 @@ public class EmployeeService {
 		return response;
 	}
 
-	
-
+	public ServiceResponse addDemographicsInfo(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+//			String url = "https://api.postalpincode.in/pincode/"+employee.getPincode();
+//			RestTemplate restTemplate = new RestTemplate();
+//			
+//			Object[] demograpicsInfo = restTemplate.getForObject(url, Object[].class);
+//			System.out.println(Arrays.asList(demograpicsInfo));
+//			
+//			for(Object info : demograpicsInfo) {
+//				System.out.println();
+//			}
+			
+			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
+			Optional<Employee> employeeObject = Optional
+					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
+			
+			if (employeeObject.isPresent()) {
+				
+				Employee employee = employeeObject.get();
+				
+				employee.setPincode(employeedto.getPincode());
+				employee.setState(employeedto.getState());
+				employee.setCity(employeedto.getCity());
+				employee.setCountry(employeedto.getCountry());
+				
+				Employee empSaved = employeeRepository.save(employee);
+				
+				if(empSaved!=null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Demographics details added successfully");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee updation failed");
+				}
+				
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Profile Not found");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

@@ -261,7 +261,7 @@
 
 <div class="row col-md-12" *ngIf="isCompOffRequest">
   <div class="form-group ml-auto col-md-3">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
   <table class="table compOffApplication-table" id="compOffApplication-table" matSort (matSortChange)="sortCompOffRequestTable($event)">	
     <thead class="thead-light">	

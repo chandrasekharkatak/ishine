@@ -335,7 +335,24 @@ export class EmployeeInfoComponent implements OnInit{
     }
   }
 
+  addDemographiscInfo(template: TemplateRef<any>, pincode:any){
+    let path;
 
+    fetch('https://api.postalpincode.in/pincode/'+pincode).then(res => res.json()).then(data => {
+      if(data[0].Status == "Success"){
+        path = data[0].PostOffice[0];
+
+        this.employeeObj.state = path.State;
+        this.employeeObj.city = path.Block;
+        this.employeeObj.country = path.Country;
+      }else{
+        this.employeeObj.state = "";
+        this.employeeObj.city = "";
+        this.employeeObj.country = "";
+        this.openAlertMod(template, 'Please enter valid pincode');
+      }
+    });
+  }
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {

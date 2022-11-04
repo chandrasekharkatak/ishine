@@ -84,7 +84,7 @@ export class DocumentUploadComponent implements OnInit {
     if (!this.documentList.find(doc => doc.documentType == 'Aadhar Card')) this.addAdharCard();
     if (!this.documentList.find(doc => doc.documentType == 'Pan Card')) this.addPanCard();
     if (this.currentEmployeeInfo.pursuing == 'No' && !this.documentList.find(doc => doc.documentType == 'Recent Passing Certificate')) this.addPassingCertificate();
-    if (this.currentEmployeeInfo.experience == 'Exprienced' && !this.documentList.find(doc => doc.documentType == 'Experience Letter')) this.addExperienceLetter();
+    if (this.currentEmployeeInfo.experience == 'Experienced' && !this.documentList.find(doc => doc.documentType == 'Experience Letter')) this.addExperienceLetter();
 
 
     if (this.currentEmployeeInfo.certifications) {

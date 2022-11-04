@@ -1,5 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { UploadPolicy } from '../models/UploadPolicy';
+
 
 @Injectable({
   providedIn: 'root'
@@ -18,5 +20,12 @@ export class PoliciesService {
       responseType: 'blob'
     });
   }
+  onReadPolicy(fileObj: UploadPolicy){
+    return this.http.post(`${this.baseUrl}` + `api/setPolicyReadResponseByEmpId`, fileObj);
+
+  }
+  getReadPoliciesByEmpId(fileObj:UploadPolicy){
+    return this.http.post(`${this.baseUrl}` + `api/getReadPoliciesByEmpId`, fileObj);
+}
 }
 

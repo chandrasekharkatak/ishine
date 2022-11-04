@@ -29,6 +29,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   feature = 'Employee Config';
   data:string;
+  items = 10;
 
   //flags 
   isCreation: boolean = false;
@@ -152,6 +153,58 @@ export class EmployeeConfigComponent implements OnInit {
       //for employee draft table data 
       this.showDraftTable();
     }
+    // this.addDemographiscInfo();
+  }
+
+  addDemographiscInfo(){
+    let path;
+
+    let data = []
+    
+    // const pincodeData = data.map(empObj => {
+    //     let pincode;
+    //     const matches:any = empObj.address.match(/[1-9]{1}\d{2}\s?\d{3}/gm);
+    //     if(matches){
+    //       pincode = matches[0];
+    //     }
+    //     return {
+    //       employeeId : empObj.employeementId,
+    //       pincode : pincode,
+    //       employeeName : empObj.name
+    //     }
+    // });
+
+    // console.log("pincode data : ", pincodeData);
+
+    data.forEach(empData => {
+      let pincode = empData.pincode;
+      let empId = empData.employeeId;
+
+      if(pincode != null){
+        fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
+        path = j[0].PostOffice[0];
+        console.log(path, " : path");
+
+
+        let empObj = new Employee();
+        empObj.state = path.State;
+        empObj.city = path.Block;
+        empObj.pincode = path.Pincode;
+        empObj.country = path.Country;
+        empObj.employeementId = empId;
+
+        console.log(empObj, " empObj");
+
+        this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            console.log("Employee demographics updated");
+          } else {
+            console.log("Employee demographics updation failed");
+          }
+        });
+      });
+      }
+    });
   }
 
   disableMannualDateInput() {
@@ -613,7 +666,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
-      this.alertMessage = "Please select Job Role !!"
+      this.alertMessage = "Please select Designation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -623,15 +676,18 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-      this.alertMessage = "Please enter total experience !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateNumber(employeeObj.totalExperience)) {
-      this.alertMessage = "Please enter number !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(employeeObj.experience =='Experience'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
+        this.alertMessage = "Please enter total experience !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
+          this.alertMessage = "Please enter more than 0 number !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
@@ -966,44 +1022,44 @@ export class EmployeeConfigComponent implements OnInit {
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,
-          "address":x.address,
-          "permanentAddress":x.permanentAddress,
-          "city":x.city,
+          "Address":x.address,
+          "Permanent Address":x.permanentAddress,
+          "City":x.city,
           "Blood Group":x.bloodGroup,
-          "date Of Birth":x.dateOfBirth,
-          "gender":x.gender,
-          "fatherName":x.fatherName,
-          "mobileNo":x.mobileNo,
-          "panNumber":x.panNumber,
-          "placeOfBirth":x.placeOfBirth,
-          "workLocation":x.workLocation,
-          "probationPeriod":x.probationPeriod,
-          "noticePeriod":x.noticePeriod,
-          "country":x.country,
-          "emergencyContactMobile":x.emergencyContactMobile,
-          "emergencyContactPerson":x.emergencyContactPerson,
-          "landline":x.landline,
-          "maritalStatus":x.maritalStatus,
-          "motherTongue":x.motherTongue,
-          "alternateMobileNo":x.alternateMobileNo,
-          "pincode":x.pincode,
-          "relation":x.relation,
-          "state":x.state,
-          "viewsOnOrganisation":x.viewsOnOrganisation,
-          "passportNumber":x.passportNumber,
-          "bankAccountNo":x.bankAccountNo,
-          "bankIFSCCode":x.bankIFSCCode,
-          "bankName":x.bankName,
-          "pfAccountNumber":x.pfAccountNumber,
-          "previousPfAccountNumber":x.previousPfAccountNumber,
-          "uan":x.uan,
-          "esicNumber":x.esicNumber,
-          "graduationType":x.graduationType,
-          "pursuing":x.pursuing,
-          "passingGrade":x.passingGrade,
-          "yearOfPassing":x.yearOfPassing,
-          "createdBy":x.createdBy,
-          "createdOn":x.createdOn 
+          "Date Of Birth":x.dateOfBirth,
+          "Gender":x.gender,
+          "Father Name":x.fatherName,
+          "Mobile No":x.mobileNo,
+          "Pan Number":x.panNumber,
+          "Place Of Birth":x.placeOfBirth,
+          "Work Location":x.workLocation,
+          "Probation Period":x.probationPeriod,
+          "Notice Period":x.noticePeriod,
+          "Country":x.country,
+          "Emergency Contact Mobile":x.emergencyContactMobile,
+          "Emergency Contact Person":x.emergencyContactPerson,
+          "Landline":x.landline,
+          "Marital Status":x.maritalStatus,
+          "Mother Tongue":x.motherTongue,
+          "Alternate Mobile No":x.alternateMobileNo,
+          "Pincode":x.pincode,
+          "Relation":x.relation,
+          "State":x.state,
+          "Views On Organisation":x.viewsOnOrganisation,
+          "Passport Number":x.passportNumber,
+          "Bank Account No":x.bankAccountNo,
+          "Bank IFSC Code":x.bankIFSCCode,
+          "Bank Name":x.bankName,
+          "PF Account Number":x.pfAccountNumber,
+          "Previous PF AccountNumber":x.previousPfAccountNumber,
+          "UAN":x.uan,
+          "ESIC Number":x.esicNumber,
+          "Graduation Type":x.graduationType,
+          "Pursuing":x.pursuing,
+          "Passing Grade":x.passingGrade,
+          "Year Of Passing":x.yearOfPassing,
+          "Created By":x.createdBy,
+          "Created On":x.createdOn 
 
         })
       )
@@ -1307,6 +1363,14 @@ export class EmployeeConfigComponent implements OnInit {
     this.page = event;
   }
 
+  pageNo = 1;
+  handlePageChanges(event) {
+    this.pageNo = event;
+  }
+  handleItemChanges(event) {
+    this.pageNo = event;
+  }
+
   onPage(){
     this.page=1;
   }
@@ -1378,18 +1442,13 @@ export class EmployeeConfigComponent implements OnInit {
     
      this.cancelRequest();
      this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
-       this.employeeWorkingHistory=response.serviceResponse;
-       console.log("response :" , this.employeeWorkingHistory)
-     },
-     (error)=>{
-       console.log("data is not available !!");
-       
-     }
-     );
-   }
-
-   
-            
+      if (response.serviceStatus == "Success") {
+        this.employeeWorkingHistory=response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+     });
+   }        
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

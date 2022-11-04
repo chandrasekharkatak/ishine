@@ -282,6 +282,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
     timesheetObj.rejectReason = timesheet.rejectReason;
+    timesheetObj.employeementId = timesheet.employeementId;
+    timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -417,7 +419,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.log("checkData :", checkData);
         
         if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Pending Leave Request', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
+          this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
         }else{
           this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
         }

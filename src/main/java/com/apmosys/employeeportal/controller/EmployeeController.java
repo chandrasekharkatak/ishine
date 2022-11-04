@@ -239,5 +239,16 @@ public class EmployeeController {
 		}
 		return response;
 	}
+	
+	/*
+	 Save demographics info using postal code
+	 */
+	
+	@RequestMapping(value = "/addDemographicsInfo", method = RequestMethod.POST)
+	public ServiceResponse addDemographicsInfo(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.addDemographicsInfo(employeedto);
+		return response;
+	}
 
 }

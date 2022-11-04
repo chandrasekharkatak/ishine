@@ -4,7 +4,7 @@
       <h1 class="table-header-title">Holidays</h1>
     </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
       </div>
     <table class="table table-responsive scrollable-table " matSort (matSortChange)="sortHoliday($event)">	
       <thead class="thead-light">	

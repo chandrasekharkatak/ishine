@@ -17,6 +17,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 import { Sort } from '@angular/material/sort';
+import { Timesheet } from 'src/app/models/timesheet';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 
 @Component({
   selector: 'app-team-config',
@@ -63,6 +65,7 @@ export class TeamConfigComponent implements OnInit {
   allDeptList: any[] = [];
   allProjectListByManagerId: any[] = [];
   allTeamList: any[] = [];
+  employeeSpecificProjectList: any[] = [];
 
   //excel
   teamDataForExcel: any[];
@@ -86,6 +89,7 @@ export class TeamConfigComponent implements OnInit {
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
+    private timesheetService: TimesheetService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -101,8 +105,9 @@ export class TeamConfigComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllDepartmentList();
-    this.getAllEmployeesByRole();
+    // this.getAllEmployeesByRole();
     this.getAllProjectListByProjectManagerId();
+    this.getAllProjectsByEmpId();
   }
 
   sectionViewInit() {
@@ -395,6 +400,29 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
+  getAllProjectsByEmpId() {
+    this.employeeSpecificProjectList = [];
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.empId = this.currentUser.empId;
+    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeSpecificProjectList = response.serviceResponse;
+
+        // filter list if data is duplicate
+
+        this.employeeSpecificProjectList = this.employeeSpecificProjectList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.projectName === value.projectName
+          ))
+        )
+        console.log("employeeSpecificProjectList :", this.employeeSpecificProjectList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
   // For Team Lead
   getAllEmployeesByRole() {
     this.teamLeadsList = [];
@@ -405,7 +433,11 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
         console.log("employeeList By Role : ", employeeList)
-        this.teamLeadsList = employeeList;
+
+        // remove teamLead if their department are not selected.
+
+        let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
+        this.teamLeadsList = employeeList.filter(x => filterDepartmentList.includes(x.departmentId));
         console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
         console.error(response.serviceResponse)
@@ -459,6 +491,11 @@ export class TeamConfigComponent implements OnInit {
 
     if (!this.validationService.validateNullUndefinedEmptyString(activityObj.activity)) {
       this.alertMessage = "Please enter Activity !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateTeamActivity(activityObj.activity)) {
+      this.alertMessage = "Please enter Valid Activity !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

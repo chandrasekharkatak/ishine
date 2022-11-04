@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.service.UploadPolicyService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -32,8 +33,8 @@ public class UploadPolicyController {
 
 	@RequestMapping(value = "/uploadPolicies", method = RequestMethod.POST)
 	public ServiceResponse uploadPolicies(HttpServletRequest request, @RequestParam("file") List<MultipartFile> files,
-			@RequestParam("policyName") String policyName, @RequestParam("uploadedBy") Long uploadedBy) {
-		ServiceResponse serviceResponse = uploadPolicyService.uploadPolicies(files, policyName, uploadedBy);
+			@RequestParam("policyName") String policyName, @RequestParam("uploadedBy") Long uploadedBy, @RequestParam("readEnabled") String readEnabled) {
+		ServiceResponse serviceResponse = uploadPolicyService.uploadPolicies(files, policyName, uploadedBy, readEnabled);
 		return serviceResponse;
 	}
 
@@ -59,4 +60,36 @@ public class UploadPolicyController {
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
 				.body(file);
 	}
+	
+	@RequestMapping(value = "/changepolicyEnabledMode", method = RequestMethod.POST)
+	public ServiceResponse changepolicyEnabledMode(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = uploadPolicyService.changepolicyEnabledMode(uploadPolicyDTO);
+		return response;
+
+	}
+	@RequestMapping(value = "/setPolicyReadResponseByEmpId", method = RequestMethod.POST)
+	public ServiceResponse setPolicyReadResponseByEmpId(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+
+		ServiceResponse response = uploadPolicyService.setPolicyReadResponseByEmpId(uploadPolicyDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/showPolicyReadResponseByPolicyID", method = RequestMethod.POST)
+	public ServiceResponse showPolicyReadResponseByPolicyID(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = uploadPolicyService.showPolicyReadResponseByPolicyID(uploadPolicyDTO);
+
+		return response;
+		
+	}
+	
+	@RequestMapping(value = "/getReadPoliciesByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getReadPoliciesByEmpId(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = uploadPolicyService.getReadPoliciesByEmpId(uploadPolicyDTO);
+
+		return response;
+		
+	}
+
+	
+
 }

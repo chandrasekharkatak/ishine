@@ -162,35 +162,37 @@ public class CronJobService {
 	}
 	
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
-	
 	@Scheduled(cron = "0 0 12 1 * ?")
 	public void monthlyLeaveIncrement() {
-		
-		short leaveTypeMasterId = 0;
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		     List<Employee> employeeList = employeeRepository.findAll();
 		     
 		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
-			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-			      
-			          for(LeavePolicyMaster lpm : leavePolicy) {
-				         if((lpm.getCarryForward().equals("Yes") && lpm.getExpirationPeriod().equals("NA") && lpm.getIncrement().equals("Yes") && lpm.getLeaveApplication().equals("Yes")) || (lpm.getCarryForward().equals("No") && lpm.getExpirationPeriod().equals("NA") && lpm.getIncrement().equals("Yes") && lpm.getLeaveApplication().equals("Yes"))) {
-				     	     float incrementValue = lpm.getIncrementValue();
-					
-					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					       
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						              float dbBalance = elm.getBalance();
-						              float newBalance = dbBalance + incrementValue;
-						
-						              elm.setBalance(newBalance);
-						              employeeLeavesMapRepository.save(elm);
-						              break;
-					              }
-				          }
-			           }
+		        	  for(Employee employeeObj : employeeList) {
+		        		  
+		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
+		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
+		        		  
+		        		  if(!leavePolicy.isEmpty()) {
+		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  
+		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
+		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
+		        				  
+		        				          if(employeeLeaveMap != null) {
+		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+		        				        	  employeeLeaveMap.setBalance(newBalance);
+		      								  employeeLeavesMapRepository.save(employeeLeaveMap);
+		        				          }else {
+		        				        	  System.out.println("Employee Leave Mapping not found");
+		        				          }
+		        			  }
+		        		  }else {
+		        			  System.out.println("Leave Policy not found");
+		        		  }
+		        	  }	
 		            }
 		   }catch(Exception e) {
 			e.printStackTrace();
@@ -374,7 +376,7 @@ public class CronJobService {
 				
 				LocalDate dateToday = LocalDate.now();
 				
-				List<Employee> allEmployee = employeeRepository.findAll();
+				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
 			//	Timesheet filler for weekoff day : saturday & sunday
@@ -386,14 +388,15 @@ public class CronJobService {
 						String dayOfWeek = holiday.getDayOfTheWeek();
 						
 						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
-							for(Employee empObj: allEmployee) {
+							for(Object[] employeeList: allEmployee) {
+								Long empId = (Long) employeeList[0];
 								
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empObj.getEmpId(),dateToday);
+								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
 								
 								if(empTimesheet == null) {
 									Timesheet newTimesheet = new Timesheet();
 									
-									newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
 									newTimesheet.setDayType("Holiday");
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
@@ -401,8 +404,9 @@ public class CronJobService {
 									}else{
 										newTimesheet.setDescription("WeekOff : Sunday");
 									}
-									newTimesheet.setEmpId(empObj.getEmpId());
-									newTimesheet.setStatus("Pending");
+									newTimesheet.setEmpId(empId);
+									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
+									newTimesheet.setStatus("Approved");
 									
 									timesheetsRepository.save(newTimesheet);
 								}				
@@ -418,20 +422,21 @@ public class CronJobService {
 					for(Holiday holidays: publicHoliday) {
 						String holidayState = holidays.getState();
 						
-						for(Employee empObj: allEmployee) {
-							String workLocation = empObj.getWorkLocation();
+						for(Object[] employeeList: allEmployee) {
+							Long empId = (Long) employeeList[0];
+							String workLocation = (String) employeeList[1];
 
 							if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
 									|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
 								
 								Timesheet newTimesheet = new Timesheet();
 								
-								newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+								newTimesheet.getCommonProperty().setCreatedBy(empId);
 								newTimesheet.setDate(dateToday);
 								newTimesheet.setDayType("Holiday");
 								newTimesheet.setDescription("Public Holiday");
-								newTimesheet.setEmpId(empObj.getEmpId());
-								newTimesheet.setStatus("Pending");
+								newTimesheet.setEmpId(empId);
+								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
 								
@@ -461,7 +466,7 @@ public class CronJobService {
 							newTimesheet.setDayType("Working");
 							newTimesheet.setDescription("On leave");
 							newTimesheet.setEmpId(empId);
-							newTimesheet.setStatus("Pending");
+							newTimesheet.setStatus("Approved");
 							
 							timesheetsRepository.save(newTimesheet);
 						}
@@ -478,7 +483,7 @@ public class CronJobService {
 								newTimesheet.setDayType("Working");
 								newTimesheet.setDescription("On leave");
 								newTimesheet.setEmpId(empId);
-								newTimesheet.setStatus("Pending");
+								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
 								
@@ -557,4 +562,28 @@ public class CronJobService {
 			}
 		}
 		
+		//0 0 4 2 * ? - At 04:00:00am, on the 2nd day, every month
+		
+		@Scheduled(cron="0 0 4 2 * ?")
+		public void monthlyTimesheetExcelGenerator() {
+			
+			Calendar calendar = Calendar.getInstance();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			calendar.add(Calendar.MONTH, -1);
+			calendar.set(Calendar.DATE, 1);
+
+			String firstDateOfPreviousMonth = dateFormat.format(calendar.getTime());
+			
+			calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+			String lastDateOfPreviousMonth = dateFormat.format(calendar.getTime());
+			
+			List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+			for(Object[] empObj : employeeList) {
+				Long empId = (Long) empObj[0];
+				
+				
+				
+			}
+			
+		}
 }	

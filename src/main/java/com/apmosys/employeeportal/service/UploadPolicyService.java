@@ -20,8 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -35,11 +37,18 @@ public class UploadPolicyService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
+	@Autowired
+	ValidationService validationService;
+	
+	@Autowired
+	private PolicyReadResponseRepository PolicyReadResponseRepository;
+	
 	@Value("${file.location.document}")
 	private String documentFileLocation;
 	
 	
-	public ServiceResponse uploadPolicies(List<MultipartFile> files, String policyName, Long uploadedBy) {
+	
+	public ServiceResponse uploadPolicies(List<MultipartFile> files, String policyName, Long uploadedBy, String readEnabled) {
 		
 		ServiceResponse response = new ServiceResponse();
 		List<File> savedFiles = new ArrayList<File>();
@@ -77,6 +86,7 @@ public class UploadPolicyService {
 							
 							CommonProperties commonProp = new CommonProperties();
 				            commonProp.setCreatedBy(uploadedBy);
+				            uploadPolicy.setReadEnabled(readEnabled);
 							uploadPolicy.setCommonProperty(commonProp);
 							UploadPolicyRepository.save(uploadPolicy);							
 						}
@@ -129,6 +139,7 @@ public class UploadPolicyService {
 						policyDTO.setCreatedByName(object[5] != null ? object[5].toString() : null);
 						policyDTO.setCreatedOn(object[2] != null ? object[2].toString() : null);
 						policyDTO.setCreatedBy(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						policyDTO.setReadEnabled(object[6] != null ? object[6].toString() : null);
 						dtoList.add(policyDTO);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -213,4 +224,157 @@ public class UploadPolicyService {
 		return resource;
 
 	}
+
+
+	public ServiceResponse changepolicyEnabledMode(UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		Optional<UploadPolicy> uploadPolicyObject = UploadPolicyRepository.findById(uploadPolicyDTO.getPolicyID());
+		if(uploadPolicyObject.isPresent()) {
+			UploadPolicy uploadPolicy = uploadPolicyObject.get();
+			uploadPolicy.setReadEnabled(uploadPolicyDTO.getReadEnabled());
+			CommonProperties commonProp = new CommonProperties();
+			commonProp.setCreatedBy(uploadPolicyDTO.getUpdatedBy());
+			uploadPolicy.setCommonProperty(commonProp);
+
+			//commonProp.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+			UploadPolicy updatedPolicy = UploadPolicyRepository.save(uploadPolicy);
+			
+			if(updatedPolicy.getPolicyID() != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Read Enabled status changed.");
+
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Failed to change status.");
+			}
+			
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(" Policy Not Found.");
+		}
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+	}	
+		return response;
+	}
+
+
+	public ServiceResponse setPolicyReadResponseByEmpId(UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		if (!validationService.validateEmpId(uploadPolicyDTO.getEmpId())) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Employee Id does not exists.");
+			return response;
+		}
+		PolicyReadResponse policyreadresponse = new PolicyReadResponse();
+		policyreadresponse.setEmpId(uploadPolicyDTO.getEmpId());
+		policyreadresponse.setPolicyID(uploadPolicyDTO.getPolicyID());
+		PolicyReadResponse dbResponse = PolicyReadResponseRepository.save(policyreadresponse);
+		if(dbResponse!=null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Your response has been submitted");
+			//return response;	
+		}else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Appreciation not submitted.");
+		}
+		}catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+		}
+		
+		return response;
+	}
+
+
+	public ServiceResponse showPolicyReadResponseByPolicyID(UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		List<Object[]> objectList = PolicyReadResponseRepository
+				.getPolicyAllResponsesByPolicyId(uploadPolicyDTO.getPolicyID());
+		Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+			
+			if(list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No responses found for policy. List is empty.");
+			} else {
+				List<UploadPolicyDTO> dtoList = new ArrayList<UploadPolicyDTO>();
+				
+				list.forEach((object) -> {
+					
+					UploadPolicyDTO dto = new UploadPolicyDTO();
+					dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					dto.setPolicyName(object[3] != null ? object[3].toString() : null);
+					dto.setPolicyID(object[4] != null ? Long.parseLong(object[1].toString()) : null);
+					dto.setName(object[0] != null ? object[0].toString() : null);
+					dto.setReadEnabled(object[2] != null ? object[2].toString() : null);
+					dtoList.add(dto);
+									
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+		},()-> {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No responses found for Policy. List is null.");
+		});
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+	}	
+		return response;
+	}
+
+
+	public ServiceResponse getReadPoliciesByEmpId(UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		List<Object[]> objectList = PolicyReadResponseRepository
+				.getReadPoliciesByEmpId(uploadPolicyDTO.getEmpId());
+Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+			
+			if(list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No responses found for policy. List is empty.");
+			} else {
+				List<UploadPolicyDTO> dtoList = new ArrayList<UploadPolicyDTO>();
+				
+				list.forEach((object) -> {
+					
+					UploadPolicyDTO dto = new UploadPolicyDTO();
+					
+					dto.setPolicyID(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					
+					dtoList.add(dto);
+									
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+		},()-> {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No responses found for Policy. List is null.");
+		});
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+	}	
+		return response;
+	}
+	
+	
 }

@@ -94,7 +94,7 @@ export class UserAppreciationComponent implements OnInit {
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.reason)) {
-      this.alertMessage = "Why you want to give Appreciation?Should not be Empty!!"
+      this.alertMessage = "Why you want to give Appreciation? Should not be Empty!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -104,7 +104,7 @@ export class UserAppreciationComponent implements OnInit {
       return false;	
     }
     if(!this.validationService.validateAlphaWithSpaceInbetween(employeeObj.reason)){
-      this.alertMessage = "Why you want to give Appreciation?Should not contain only space "
+      this.alertMessage = "Why you want to give Appreciation? Should not contain space at Beginning and End of the string "
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }

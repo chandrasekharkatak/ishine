@@ -76,6 +76,44 @@ export class ValidationService {
 
   }
 
+  validateTimesheetCompletionTime(text: string): boolean {
+
+    const regex = /^(?:\d{0,1}[1-9]|0?\.[1-9]\d{0,1})$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+
+  }
+
+  //^[1-9][0-9]?$ 
+  validateExperiencedNumber(text: string): boolean {
+
+    const regex = /^[1-9][0-9]?$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+
+  }
+
+
   validateEmail(text: string): boolean {
 
     const regex = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/;
@@ -332,7 +370,7 @@ export class ValidationService {
   }
 
   validateActivityTimesheetDiscription(text:string): boolean {
-    const regex = (/^[A-Za-z ]*$/) ;
+    const regex = (/^[A-Za-z][A-Za-z\s,/'&"-]*$/) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -346,6 +384,23 @@ export class ValidationService {
     }
 
   }
+
+  validateTeamActivity(text:string): boolean {
+    const regex = (/^[A-Za-z][A-Za-z\s]*$/) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
   // ^[a-z][a-z\s]*$/i
 
   validateSurveyName(text:string): boolean {
@@ -395,10 +450,10 @@ export class ValidationService {
     else {
       return false;
     }
-
   }
+
   validateAlphaWithSpaceInbetween(text:string):boolean{
-    const regex = (/[a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;
+    const regex = (/[^-\s][a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;     // minor changes in Regex 
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -410,7 +465,14 @@ export class ValidationService {
     else {
       return false;
     }
-  
   }
 
+  validateUrl(url:any){
+    try { 
+      return Boolean(new URL(url)); 
+    }
+    catch(e){ 
+      return false; 
+    }
+  }
 }

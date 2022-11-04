@@ -23,5 +23,6 @@ public class ProtalConfigDTO {
 	private String updatedOn;	
 	private Long updatedBy;
 	private List<PortalConfig> allPortalConfigData;
+	private String configValue;
 
 }

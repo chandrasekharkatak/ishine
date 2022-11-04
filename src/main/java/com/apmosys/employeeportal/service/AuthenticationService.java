@@ -116,18 +116,6 @@ public class AuthenticationService {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
 									response.setServiceResponse(
 											"User already logged in.Do you want to logout of existing session ?");
-									
-									apiLogInfo.setApiResponse("User already logged in.Do you want to logout of existing session ?");			
-									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-									
-									Random random = new Random();
-									int otp = random.nextInt(9999 - 1000)
-											+ 1000; /* Random number will be generated between 1000 and 9999 */
-									employee.setOtp(otp);
-									mailService.sendMail(employeedto.getEmail(), "Regarding otp","please find your otp " +otp);
-									employee.setInvalidAccessAttempt(0);
-									
-									employeeRepository.save(employee);
 								}
 							} else {
 

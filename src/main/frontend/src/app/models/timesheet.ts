@@ -44,4 +44,7 @@ export class Timesheet{
 	clientLocation : any;
 
     timesheetAppliedFor:any;
+    isSelected:boolean = false;
+    bulkApprovedList:any;
+    bulkRejectList:any;
 }

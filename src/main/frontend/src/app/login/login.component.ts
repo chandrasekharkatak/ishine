@@ -193,6 +193,7 @@ export class LoginComponent implements OnInit{
     this.isLoginOTP=true;
     this.user.password = null;
     this.showOtpForm();
+    this.resendOTP(); // used to send otp
   }
 
   async onConfirmLoginOTP(){
