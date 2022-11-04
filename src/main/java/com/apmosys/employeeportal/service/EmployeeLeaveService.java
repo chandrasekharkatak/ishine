@@ -1335,5 +1335,45 @@ public class EmployeeLeaveService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse bulkApproveLeaveRequest(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			for (LeaveDTO leave : leaveDTO.getBulkLeaveApprovedList()) {
+				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				response = updateLeaveStatus(leave);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+
+		return response;
+	}
+
+	public ServiceResponse bulkRejectLeaveRequest(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
+				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				response = updateLeaveStatus(leave);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+
+		return response;
+	}
 
 }

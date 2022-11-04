@@ -95,4 +95,7 @@ public class LeaveDTO {
 	
 	private String startDate;
 	private String endDate;
+	
+	private List<LeaveDTO> bulkLeaveApprovedList;
+	private List<LeaveDTO> bulkLeaveRejectList;
 }

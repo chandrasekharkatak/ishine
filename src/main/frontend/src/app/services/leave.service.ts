@@ -167,4 +167,12 @@ export class LeaveService {
   customQueryForLeaveTrendAnalysisReport(queryObj: Query){
     return this.http.post(`${this.baseUrl}` + `api/customQueryForLeaveTrendAnalysisReport`, queryObj);
   }
+
+  bulkApproveLeaveRequest(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}` + `api/bulkApproveLeaveRequest`, leaveObj);
+  }
+
+  bulkRejectLeaveRequest(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequest`, leaveObj);
+  }
 }

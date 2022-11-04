@@ -79,4 +79,8 @@ export class Leave{
 	// for graph
 	startDate:any;
 	endDate:any
+
+	isSelected:boolean = false;
+    bulkLeaveApprovedList:any;
+    bulkLeaveRejectList:any;
 }

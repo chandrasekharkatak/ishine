@@ -158,4 +158,19 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.getAllMyTeamApplicationsByEmpId(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/bulkApproveLeaveRequest", method = RequestMethod.POST)
+	public ServiceResponse bulkApproveLeaveRequest(@RequestBody LeaveDTO leaveDTO) {
+
+		ServiceResponse response = employeeLeaveService.bulkApproveLeaveRequest(leaveDTO);
+		return response;
+	}
+
+	@RequestMapping(value = "/bulkRejectLeaveRequest", method = RequestMethod.POST)
+	public ServiceResponse bulkRejectLeaveRequest(@RequestBody LeaveDTO leaveDTO) {
+
+		ServiceResponse response = employeeLeaveService.bulkRejectLeaveRequest(leaveDTO);
+		return response;
+	}
+
 }

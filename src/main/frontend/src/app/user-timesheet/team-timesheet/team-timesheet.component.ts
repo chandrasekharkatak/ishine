@@ -143,6 +143,9 @@ export class TeamTimesheetComponent implements OnInit {
 
   getMyReporteesTimesheetRequests(){
     this.allTeamTimesheetRequests = [];
+    this.isSelectAll = false
+    this.bulkApprove = []
+    this.bulkReject = []
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
@@ -160,6 +163,7 @@ export class TeamTimesheetComponent implements OnInit {
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
     let timesheetObj = Object.assign({}, timesheet);
+    timesheetObj.status = status
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -387,9 +391,13 @@ export class TeamTimesheetComponent implements OnInit {
     console.log("clicked on : ", timesheetObj);
 
     if (event.target.checked) {
+      event.target.classList.add('checked');
       this.bulkApprove.push(timesheetObj);
       this.bulkReject.push(timesheetObj);
     } else {
+      event.target.classList.remove('checked');
+      const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+      if(checkboxes.length !== this.items) this.isSelectAll = false
       this.bulkApprove.forEach((timesheet, index) => {
         if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
       });

@@ -65,6 +65,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
+
+  items = 10;
+  bulkApprove:any =[];
+  bulkReject:any = [];
+  isSelectAll:boolean = false;
+  bulkLeaveApprove:any =[];
+  bulkLeaveReject:any = [];
   
   @ViewChild("thisMonthCal") 
   private thisMonthCalendar:CalendarComponent;
@@ -135,9 +142,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   }
 
+  reset(){
+    let leaveObj = new Leave();
+    leaveObj.isSelected = false
+    this.isSelectAll = false;
+    
+  }
+
   // Leave Applications
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
     this.leaveApplicationList = []
+    this.isSelectAll = false
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
@@ -260,7 +275,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   getMyReporteesTimesheetRequests(){
-    this.allTeamTimesheetRequests = [];
+    this.bulkApprove = []	
+    this.bulkReject = []	
+    this.allTeamTimesheetRequests = [];	
+   this.isSelectAll = false
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
@@ -911,4 +929,188 @@ export class HomeComponent implements OnInit, AfterViewInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  selectAll(event){
+    this.bulkApprove = [];
+    this.bulkReject = [];
+    
+    const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+    const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
+    checkboxes.forEach((checkbox:any) =>{
+      console.log("checkbox : ", checkbox);
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => index == checkboxIndex);
+
+      if (event.target.checked) {
+        checkbox.checked = true;
+        checkbox.classList.add('checked');
+        this.bulkApprove.push(checkedTimesheet);
+        this.bulkReject.push(checkedTimesheet);
+      } else {
+        checkbox.checked = false;
+        checkbox.classList.remove('checked');
+        this.bulkApprove.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+        });
+        this.bulkReject.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+        });
+      }
+    });
+
+    leaveCheckboxes.forEach((leaveCheck :any)=>{
+      console.log("Check in leave home ",leaveCheck);
+      let leaveCheckboxIndex = leaveCheck.getAttribute('id');
+      let checkedLeaveApplication = this.leaveApplicationList.find((_leave , index)=> index == leaveCheckboxIndex);
+
+      if(event.target.checked){
+        leaveCheck.checked = true;
+        leaveCheck.classList.add('checked');
+        this.bulkLeaveApprove.push(checkedLeaveApplication);
+        this.bulkLeaveReject.push(checkedLeaveApplication);
+      }else {
+        leaveCheck.checked = false;
+        leaveCheck.classList.remove('checked');
+        this.bulkLeaveApprove.forEach((leave , index)=>{
+          if(leave == checkedLeaveApplication) this.bulkLeaveApprove.splice(index,1);
+        });
+        this.bulkLeaveReject.forEach((leave , index)=>{
+          if(leave == checkedLeaveApplication) this.bulkLeaveReject.splice(index,1);
+        });
+      }
+      
+    })
+  }
+
+  select(timesheetObj, event) {
+    
+    console.log("clicked on : ", timesheetObj);
+
+    if (event.target.checked) {
+      event.target.classList.add('checked');
+      this.bulkApprove.push(timesheetObj);
+      this.bulkReject.push(timesheetObj);
+    } else {
+      event.target.classList.remove('checked');
+      const checkboxes = document.querySelectorAll('.timesheet-req-checkbox.checked');
+      if(checkboxes.length !== this.items) this.isSelectAll = false; 
+      
+      this.bulkApprove.forEach((timesheet, index) => {
+        if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
+      });
+      this.bulkReject.forEach((timesheet, index) => {
+        if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
+      });
+    }
+    console.log("Updated Bulk List : ",  this.bulkApprove);
+  }
+
+
+
+
+  onSelect(leaveObj, event) {
+    
+    console.log("clicked on : ", leaveObj);
+
+    if (event.target.checked) {
+      event.target.classList.add('checked');
+      this.bulkLeaveApprove.push(leaveObj);
+      this.bulkLeaveReject.push(leaveObj);
+    } else {
+      event.target.classList.remove('checked');
+      const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
+      if(leaveCheckboxes.length !== this.items) this.isSelectAll = false; 
+      this.bulkLeaveApprove.forEach((timesheet, index) => {
+        if (timesheet == leaveObj) this.bulkLeaveApprove.splice(index, 1);
+      });
+      this.bulkLeaveReject.forEach((timesheet, index) => {
+        if (timesheet == leaveObj) this.bulkLeaveReject.splice(index, 1);
+      });
+    }
+    console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
+  }
+  
+onBulkApproval(){
+  console.log("Updated Bulk List : ",  this.bulkApprove);
+  let timesheetObj = new Timesheet();
+  timesheetObj.bulkApprovedList =  this.bulkApprove;
+  timesheetObj.updatedBy = this.currentUser.empId;
+  timesheetObj.status = "Approved"
+  console.log("For Bulk Update : ", timesheetObj);
+  this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.getMyReporteesTimesheetRequests();
+      this.bulkApprove = [];
+      this.bulkReject = [];
+    } else {
+    console.error(response.serviceResponse)
+    }
+  });
+  
+}
+
+OnBulkReject(){
+  console.log("Updated Bulk List : ",  this.bulkReject);
+  let timesheetObj = new Timesheet();
+  timesheetObj.bulkRejectList =  this.bulkReject;
+  timesheetObj.updatedBy = this.currentUser.empId;
+  timesheetObj.status = "Rejected"
+  console.log("For Bulk Update : ", timesheetObj);
+  this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.getMyReporteesTimesheetRequests();
+      this.bulkApprove = [];
+      this.bulkReject = [];
+    } else {
+    console.error(response.serviceResponse)
+    }
+  });
+  
+}
+
+
+// homeLeave-req-checkbox
+
+
+
+
+onBulkLeaveApproval(){
+  console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
+  let leaveObj = new Leave();
+  leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
+  leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveObj.leaveStatusId = 2;
+ 
+  this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+     
+      this.bulkLeaveApprove = [];
+      this.bulkLeaveReject = [];
+    } else {
+    console.error(response.serviceResponse)
+    }
+  });
+  
+}
+
+OnBulkLeaveReject(){
+      
+  let leaveObj = new Leave();
+  leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
+  leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveObj.leaveStatusId = 3
+  
+  this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+      this.bulkLeaveApprove = [];
+      this.bulkLeaveReject = [];
+    } else {
+    console.error(response.serviceResponse)
+    }
+  });
+  
+}
+
 }

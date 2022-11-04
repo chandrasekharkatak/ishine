@@ -75,6 +75,12 @@ export class LeaveComponent implements OnInit {
 
   teamMemberList:any[] = [];
 
+  items = 10;	
+  isSelectAll:boolean = false;	
+  isSelect:boolean = false;	
+  bulkLeaveApprove:any =[];	
+  bulkLeaveReject:any = [];
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
@@ -698,7 +704,8 @@ export class LeaveComponent implements OnInit {
 
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
     this.leaveApplicationList = []
-
+    this.bulkLeaveApprove = []	
+    this.bulkLeaveReject = []
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -997,6 +1004,91 @@ export class LeaveComponent implements OnInit {
       	
     }	
 
+    selectAll(event){
+      this.bulkLeaveApprove = [];
+      this.bulkLeaveReject = [];
+      
+      const checkboxes = document.querySelectorAll('.leave-req-checkbox');
+      checkboxes.forEach((checkbox:any) =>{
+       
+        let checkboxIndex = checkbox.getAttribute('id');
+        let checkedLeave = this.leaveApplicationList.find((_leave, index) => index == checkboxIndex);
+  
+        if (event.target.checked) {
+          checkbox.checked = true;
+          this.bulkLeaveApprove.push(checkedLeave);
+          this.bulkLeaveReject.push(checkedLeave);
+        } else {
+          checkbox.checked = false;
+          this.bulkLeaveApprove.forEach((leave, index) => {
+            if (leave == checkedLeave) this.bulkLeaveApprove.splice(index, 1);
+          });
+          this.bulkLeaveReject.forEach((leave, index) => {
+            if (leave == checkedLeave) this.bulkLeaveReject.splice(index, 1);
+          });
+        }
+      });
+    }
+
+    select(leaveObj, event) {
+   
+      if(event.target.checked){
+        event.target.classList.add('checked');
+        this.bulkLeaveApprove.push(leaveObj)
+        this.bulkLeaveReject.push(leaveObj)
+      }else {
+        event.target.classList.remove('checked');
+        const checkboxes = document.querySelectorAll('.leave-req-checkbox');
+        if(checkboxes.length !== this.items) this.isSelectAll = false
+        this.bulkLeaveApprove.forEach((leave, index) => {
+          if (leave == leaveObj) this.bulkLeaveApprove.splice(index, 1);
+        });
+        this.bulkLeaveReject.forEach((leave , index)=> {
+          if(leave == leaveObj) this.bulkLeaveReject.splice(index , 1);
+        })
+      }
+      
+    }
+
+    onBulkLeaveApproval(){
+      console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
+      let leaveObj = new Leave();
+      leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
+      leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+      leaveObj.leaveStatusId = 2;
+     
+      this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+         
+          this.bulkLeaveApprove = [];
+          this.bulkLeaveReject = [];
+        } else {
+        console.error(response.serviceResponse)
+        }
+      });
+      
+    }
+
+    OnBulkLeaveReject(){
+      
+      let leaveObj = new Leave();
+      leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
+      leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+      leaveObj.leaveStatusId = 3
+      
+      this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+          this.bulkLeaveApprove = [];
+          this.bulkLeaveReject = [];
+        } else {
+        console.error(response.serviceResponse)
+        }
+      });
+      
+    }
+    
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

@@ -278,6 +278,18 @@
     </div>
 </ng-template>
 
+<!-- Update Employee info  Modal -->
+<ng-template #updateInfo>
+    <div class="modal-header">
+        <h4 class="table-header-title">Update Employee Information</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body ">
+        <app-user-update-info (docSubmit)="onDocSubmit()" (draftDelete)="cancelRequest()"></app-user-update-info>
+    </div>
+</ng-template>
 
 <!-- Leaves Req Modal -->
 <ng-template #LeaveReq>
@@ -287,13 +299,36 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
+
+    <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval()">Bulk
+            Approve</button>&nbsp;
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkLeaveReject()">Bulk Reject</button>
+    </div>
+   
+   
+    <div class="form-group d-flex flex-row justify-content-between">
+        <div class="form-inline ml-2">
+            <small>View</small> 
+            <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+                (change)="page=1">
+                <option class="option-bg" selected value="10">10</option>
+                <option class="option-bg" value="20">20</option>
+                <option class="option-bg" value="50">50</option>
+                <option class="option-bg" value="100">100</option>
+            </select>
+            <small>entries</small>
+        </div>
+       
     <div class="form-group ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
+    </div>
     <div class="modal-body ">
         <table class="table leaveApplication-table">
             <thead class="thead-light text-center">
               <tr>
+                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Name</th>
                 <th scope="col" class="info-label">Leave Type</th>
@@ -312,8 +347,9 @@
                 <tr *ngIf="leaveApplicationCount == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                    <td>{{i+1}}</td>
+                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                    <td><input class="homeLeave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
+                    <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
@@ -337,6 +373,7 @@
         </div>
     </div>
 </ng-template>
+
 
 <!-- compOff Req Modal -->
 <ng-template #compOffReq>
@@ -399,14 +436,32 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkApproval()">Bulk Approve</button>&nbsp;
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkReject()">Bulk Reject</button>
+      </div>
+      <div class="form-group d-flex justify-content-between">
+        <div class="form-inline col-md-3">
+          <small>View</small>
+          <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
+            <option class="option-bg" selected value="10">10</option>
+            <option class="option-bg" value="20">20</option>
+            <option class="option-bg" value="50">50</option>
+            <option class="option-bg" value="100">100</option>
+          </select>
+          <small>entries</small>
         </div>
+        <div class="col-md-3">
+          <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+        </div>
+      </div>
+   
     <div class="modal-body">
         
         <table class="table teams-request-table" id="teams-request-table">
             <thead class="thead-light">
               <tr>
+                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Employee Id</th>
                 <th scope="col" class="info-label">Name</th>
@@ -421,8 +476,9 @@
               <tr *ngIf="allTeamTimesheetRequests.length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
+                <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
