@@ -39,6 +39,13 @@ public class TimesheetController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllMyTeamTimesheets", method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllMyTeamTimesheets(timesheetDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/getAllMyTimesheetsByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllMyTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
 

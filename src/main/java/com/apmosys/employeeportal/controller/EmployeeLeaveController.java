@@ -151,4 +151,11 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	// To Get All Applications Applied by Me for Team Members
+	@RequestMapping(value = "/getAllMyTeamApplicationsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getAllMyTeamApplicationsByEmpId(leaveDTO);
+		return response;
+	}
 }

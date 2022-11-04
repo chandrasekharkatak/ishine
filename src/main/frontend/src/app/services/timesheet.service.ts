@@ -34,6 +34,10 @@ export class TimesheetService {
   getAllMyTimesheetsByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTimesheetsByEmpId`, timesheetObj);
   }
+  getAllMyTeamTimesheets(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamTimesheets`, timesheetObj);
+  }
+
   getAllMyActivitiesByTimesheetId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyActivitiesByTimesheetId`, timesheetObj);
   }

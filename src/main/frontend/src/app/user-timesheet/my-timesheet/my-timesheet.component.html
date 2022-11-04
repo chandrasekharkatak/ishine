@@ -183,6 +183,12 @@
         <div class="row table-header">
             <h1 class="table-header-title">My Timesheets</h1>
         </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
@@ -192,11 +198,21 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-0">
+            <!-- For Self -->
+            <div *ngIf="isSelfTimesheets" class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>End Date</label>
                         <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="endDate" (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
+                    </div>
+                </div>
+            </div>
+            <!-- For Team -->
+            <div *ngIf="isTeamTimesheets" class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="endDate" (change)="getMyTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
                     </div>
                 </div>
             </div>
@@ -208,7 +224,8 @@
             <table class="table table-responsive scrollable-table" id="teams-table" matSort (matSortChange)="sortMyTimesheet($event)">	
                 <thead class="thead-light">	
                   <tr>	
-                    <th scope="col" class="info-label">Sr No.</th>	
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th *ngIf="isTeamTimesheets" scope="col" class="info-label">Name</th>
                     <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
                     <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
                     <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
@@ -223,6 +240,7 @@
                   </tr>
                   <tr *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                       <td>{{20*(page-1)+i+1}}</td>
+                      <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
                       <td>{{timesheet.date}}</td>
                       <td>{{timesheet.dayType}}</td>
                       <td colspan="4" [innerHTML]="timesheet.description"></td>

@@ -147,19 +147,26 @@
     <div class="table-header">
         <h1 class="table-header-title">My Leave History</h1>
     </div>
+    <div class="row mb-3">
+        <div class="col-md-12">
+          <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSelfLeaveHistory}" (click)="showSelfLeaveHistoryTable()">Self</button>
+          <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="showTeamLeaveHistoryTable()">For Team</button>
+        </div>
+    </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
         <thead class="thead-light">	
           <tr>	
-            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label">Sr No.</th>
+            <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label">Name</th>
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
             <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
             <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
             <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
             <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+            <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
             <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
             <th scope="col" class="info-label">Action</th>
@@ -172,12 +179,13 @@
             </tr>
             <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
+                <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                 <td>{{leaveHistory.leaveType}}</td>
                 <td>{{leaveHistory.fromDate}}</td>
                 <td>{{leaveHistory.toDate}}</td>
                 <td>{{leaveHistory.noOfDays}} day(s)</td>
                 <td>{{leaveHistory.status}}</td>
-                <td>{{leaveHistory.createdByName}}</td>
+                <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
                 <td>{{leaveHistory.createdOn}}</td>
                 <td>{{leaveHistory.reason}}</td>
                 <!-- <td>{{leaveHistory.description}}</td> -->

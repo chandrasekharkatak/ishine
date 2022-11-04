@@ -133,6 +133,9 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/getLeavePolicyByEmployentStatusAndLeaveTypeMasterId`, leavePolicyObj);
   }
 
+  getAllMyTeamApplicationsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamApplicationsByEmpId`, leaveObj);
+  }
 
   /* Home - Leave Summary */
   countMyApprovedLeaveApplicationsByLeaveType(leaveObj: Leave) {

@@ -17,6 +17,8 @@ import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 import { Employee } from 'src/app/models/employee';
 import { TeamViewService } from 'src/app/services/team-view.service';
+import { LogService } from 'src/app/services/log.service';
+import { Log } from 'src/app/models/log';
 
 @Component({
   selector: 'app-leave',
@@ -36,6 +38,9 @@ export class LeaveComponent implements OnInit {
   isLeaveApplicationsTable: boolean = false;
   isLeaveLogTable: boolean = false;
 
+  isSelfLeaveHistory:boolean = false;
+  isTeamLeaveHistory:boolean = false;
+
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
@@ -44,6 +49,8 @@ export class LeaveComponent implements OnInit {
   feature="Leave";
   currentUser:User;
   userMapping:any = {};
+  log:Log;
+
   leaveObj:Leave = new Leave();
 
   // for revoke approved leave
@@ -77,12 +84,21 @@ export class LeaveComponent implements OnInit {
     private holidayService : HolidayService,
     private exportExcelService: ExportExcelService,
     private teamViewService : TeamViewService,
+    private logService:LogService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+
+    this.logService.log.subscribe(x => {
+      this.log = x;
+      this.log.featureName = this.feature;
+    });
   }
 
   ngOnInit(): void {
+    this.logService.updateLogInfo(this.log);
     console.log("this.currentUser : ", this.currentUser);
+    console.log("logInfo : ", this.log);
+
     this.leaveObj.leaveTypeMasterId = '';
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
@@ -130,6 +146,9 @@ export class LeaveComponent implements OnInit {
     this.isLeaveBalanceTable = false;
     this.isLeaveLogTable = false;
 
+    this.isSelfLeaveHistory = false;
+    this.isTeamLeaveHistory = false;
+
     this.reset();
     this.getAllHolidays();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
@@ -146,7 +165,45 @@ export class LeaveComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data=''
+
+    this.isSelfLeaveHistory = true;
+    this.isTeamLeaveHistory = false;
+    this.showSelfLeaveHistoryTable();
+  }
+
+  showSelfLeaveHistoryTable() {
+    this.isLeaveHistoryTable = true;
+    this.isSelfLeaveHistory = true;
+
+    this.isLeaveBalanceTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveLogTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data=''
+
+    this.isTeamLeaveHistory = false;
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
+  }
+
+  showTeamLeaveHistoryTable() {
+    this.isLeaveHistoryTable = true;
+    this.isTeamLeaveHistory = true;
+
+    this.isLeaveBalanceTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveLogTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data=''
+
+    this.isSelfLeaveHistory = false;
+    this.getAllTeamMemberList()
+    this.getAllMyTeamApplicationsByEmpId(this.currentUser);
   }
 
   showLeaveBalanceTable() {
@@ -197,6 +254,8 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
     this.leaveObj.leaveAppliedFor = "self"
+    // to set empId of current User in leaveObj for initial Leave Application
+    this.getLeaveMetadata(); 
 
     this.leaveHistoryList = [];
     this.leaveApplicationList = [];
@@ -213,9 +272,16 @@ export class LeaveComponent implements OnInit {
     this.isLeaveBalanceTable = false;	
     	
     this.leaveObj = Object.assign({}, leaveHistory);	
-    console.log(this.leaveObj.leaveTypeMasterId);	
-    console.log(this.leaveObj);
-    this.leaveObj.leaveAppliedFor = "self";
+
+    if(this.isSelfLeaveHistory){
+      this.leaveObj.leaveAppliedFor = "self";
+      this.leaveObj.empId = this.currentUser.empId;
+    }else if(this.isTeamLeaveHistory){
+      this.leaveObj.leaveAppliedFor = "team";
+    }
+
+    console.log("this.leaveObj : ", this.leaveObj);
+    this.getLeaveMetadata();
   }
 
   // Modals
@@ -499,7 +565,11 @@ export class LeaveComponent implements OnInit {
       this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
-          this.showLeaveHistoryTable();
+          if(this.leaveObj.leaveAppliedFor == 'self'){
+            this.showSelfLeaveHistoryTable();  
+          }else{
+            this.showTeamLeaveHistoryTable();
+          }
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
@@ -515,7 +585,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
-        this.showLeaveHistoryTable();	
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.showSelfLeaveHistoryTable();  
+        }else{
+          this.showTeamLeaveHistoryTable();
+        }
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
       }	
@@ -529,7 +603,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
-        this.showLeaveHistoryTable();	
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.showSelfLeaveHistoryTable();  
+        }else{
+          this.showTeamLeaveHistoryTable();
+        }
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
       }	
@@ -573,8 +651,7 @@ export class LeaveComponent implements OnInit {
   getAllTeamMemberList(){
     this.teamMemberList = []
 
-    if(this.leaveObj.leaveAppliedFor == "team"){
-      let employeeObj = new Employee();
+    let employeeObj = new Employee();
       employeeObj.managerId = this.currentUser.managerId;
       this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
         if (response.serviceStatus == "Success") {
@@ -587,8 +664,6 @@ export class LeaveComponent implements OnInit {
           console.error(response.serviceResponse);
         }
       });
-    }
-
   }
 
   getAllMyLeaveApplicationsByEmpId(userObj:User){
@@ -597,6 +672,21 @@ export class LeaveComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.empId = userObj.empId;
     this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveHistoryList = response.serviceResponse;
+        console.log("leaveHistoryList : ", this.leaveHistoryList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllMyTeamApplicationsByEmpId(userObj:User){
+    this.leaveHistoryList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = userObj.empId;
+    this.leaveService.getAllMyTeamApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         console.log("leaveHistoryList : ", this.leaveHistoryList);
@@ -709,7 +799,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showLeaveHistoryTable();
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.showSelfLeaveHistoryTable();  
+        }else{
+          this.showTeamLeaveHistoryTable();
+        }
       } else {
         this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
