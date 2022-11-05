@@ -107,7 +107,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Client Location</label>
                                         <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.clientLocationId" (change)="getProjectList(activityObj);">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let clientLocation of clientLocationList" value="{{clientLocation.clientLocationId}}">{{clientLocation.clientLocation}}</option>
+                                            <option *ngFor="let clientLocation of activityObj.clientLocationList" value="{{clientLocation.clientLocationId}}">{{clientLocation.clientLocation}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
                                         <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllActivitiesByProjectIdandEmpId(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let project of projectList" value="{{project.projectId}}">{{project.projectName}}</option>
+                                            <option *ngFor="let project of activityObj.projectList" value="{{project.projectId}}">{{project.projectName}}</option>
                                         </select>
                                     </div>
                                 </div>
