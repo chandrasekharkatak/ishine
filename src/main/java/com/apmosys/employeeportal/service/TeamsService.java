@@ -450,7 +450,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getManagerId());
+			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);

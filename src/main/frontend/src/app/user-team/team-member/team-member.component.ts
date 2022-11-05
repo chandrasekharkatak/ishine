@@ -49,7 +49,7 @@ export class TeamMemberComponent implements OnInit {
     this.viewTeamMemberList = []
 
     let employeeObj = new Employee();
-    employeeObj.managerId = this.currentUser.managerId;
+    employeeObj.empId = this.currentUser.empId;
     this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
