@@ -210,7 +210,7 @@
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
     <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group">
-        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval()">Bulk
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval(alert_message)">Bulk
             Approve</button>&nbsp;
         <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openRejectModal(bulkLeave_reject)">Bulk Reject</button>
     </div>

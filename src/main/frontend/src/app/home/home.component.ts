@@ -1063,7 +1063,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
   }
   
-onBulkApproval(){
+onBulkApproval(template:TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkApprove);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkApprovedList =  this.bulkApprove;
@@ -1072,6 +1072,7 @@ onBulkApproval(){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Timesheet Approve Successfully ");
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1093,6 +1094,7 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully "); 
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1109,7 +1111,7 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
 
 
 
-onBulkLeaveApproval(){
+onBulkLeaveApproval(template:TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
   let leaveObj = new Leave();
   leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
@@ -1118,6 +1120,7 @@ onBulkLeaveApproval(){
  
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Application Approve Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];
@@ -1143,6 +1146,7 @@ bulkRejectLeave(template: TemplateRef<any>){
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Application Rejected Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
       this.bulkLeaveApprove = [];
       this.bulkLeaveReject = [];

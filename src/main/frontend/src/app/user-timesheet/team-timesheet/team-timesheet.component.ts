@@ -411,7 +411,7 @@ export class TeamTimesheetComponent implements OnInit {
     console.log("Updated Bulk List : ",  this.bulkApprove);
   }
   
-onBulkApproval(){
+onBulkApproval(template:TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkApprove);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkApprovedList =  this.bulkApprove;
@@ -420,6 +420,7 @@ onBulkApproval(){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Timesheet Approve Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -440,6 +441,7 @@ OnBulkReject(template: TemplateRef<any>){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];
