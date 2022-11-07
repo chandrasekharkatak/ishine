@@ -675,13 +675,10 @@ export class LeaveComponent implements OnInit {
     this.teamMemberList = []
 
     let employeeObj = new Employee();
-      employeeObj.managerId = this.currentUser.managerId;
+      employeeObj.empId = this.currentUser.empId;
       this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
         if (response.serviceStatus == "Success") {
           this.teamMemberList = response.serviceResponse;
-          for(let x of this.teamMemberList){
-            x.employeementId="A-".concat(x.employeementId)
-          }
           console.log("teamMemberList : ", this.teamMemberList);
         } else {
           console.error(response.serviceResponse);

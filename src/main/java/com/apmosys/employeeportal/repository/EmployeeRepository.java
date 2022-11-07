@@ -32,7 +32,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getAllTeamView(Long empId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllTeamMemberView(Long managerId);
+	public List<Object[]> getAllTeamMemberView(Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllHolidayByEmpWorkLocation(Long empId);
