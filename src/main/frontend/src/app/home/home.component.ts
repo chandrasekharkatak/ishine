@@ -877,33 +877,34 @@ export class HomeComponent implements OnInit, AfterViewInit {
   exportToExcelForLeave() {
     this.excelName = 'leaveApplication.xlsx';
     	
-        const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationList.map(	
+        const onlySpecificDataArr:any = this.leaveApplicationList.map(	
           x => ({	
-              leaveType: x.leaveType,
-              fromDate: x.fromDate,
-              toDate: x.toDate,
-              noOfDays: x.noOfDays,
-              status: x.status,
-              createdByName: x.createdByName,
-              createdOn: x.createdOn,
-              reason: x.reason	
+              "Name": x.employeeName,
+              "Leave Type": x.leaveType,
+              "From Date": x.fromDate,
+              "To Date": x.toDate,
+              "Duration": x.noOfDays,
+              "Status": x.status,
+              "Applied By": x.createdByName,
+              "Applied On": x.createdOn,
+              "Reason": x.reason	
           })	
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
       }
 
   exportToExcelForCompOff() {
-    this.excelName = 'leaveApplication.xlsx';
+    this.excelName = 'compOffApplication.xlsx';
     	
-        const onlySpecificDataArr: Partial<Leave>[] = this.allCompOffApplications.map(	
+        const onlySpecificDataArr: any = this.allCompOffApplications.map(	
           x => ({	
-            createdByName: x.createdByName,
-            compOffReasons: x.compOffReasons,
-            fromDate: x.fromDate,
-            toDate: x.toDate,
-            noOfDays: x.noOfDays,
-            description: x.description,
-            status: x.status
+            "Applied By": x.createdByName,
+            "Applied For": x.compOffReasons,
+            "From Date": x.fromDate,
+            "To Date": x.toDate,
+            "Duration": x.noOfDays,
+            "Description": x.description,
+            "Status": x.status
           })	
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
@@ -912,12 +913,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   exportToExcelForTimesheet() {
     this.excelName = 'AllTeamTimeSheetRequest.xlsx';
 
-    const onlySpecificDataArr: Partial<Timesheet>[] = this.allTeamTimesheetRequests.map(
+    const onlySpecificDataArr:any = this.allTeamTimesheetRequests.map(
       x => ({
-        date: x.date,
-        dayType: x.dayType,
-        description: x.description,
-        status: x.status
+        "Employee Id": x.employeementId,
+        "Name": x.employeeName,
+        "Date": x.date,
+        "Day Type": x.dayType,
+        "Timesheet Details": x.description,
+        "Status": x.status
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)

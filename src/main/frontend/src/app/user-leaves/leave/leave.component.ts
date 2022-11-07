@@ -835,10 +835,17 @@ export class LeaveComponent implements OnInit {
 
 
   exportToExcel(): void {	
+    
     if(this.isLeaveHistoryTable == true){	
       this.elementName = 'history-table';	
       this.excelName = 'MyLeaveHistory.xlsx';	
-    }	
+    }
+
+    // if(this.isLeaveLogTable == true){	
+    //   this.elementName = 'log-table';	
+    //   this.excelName = 'MyLeaveLogs.xlsx';	
+    // }	
+
     if(this.isLeaveApplicationsTable == true){	
       this.excelName = 'MyReporteeLeaveApplication.xlsx';
 
@@ -865,10 +872,6 @@ export class LeaveComponent implements OnInit {
       });
 
     }
-    if(this.isLeaveLogTable == true){	
-      this.elementName = 'log-table';	
-      this.excelName = 'MyLeaveLogs.xlsx';	
-    }	
   	
     let element = document.getElementById(this.elementName);	
     const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);	
