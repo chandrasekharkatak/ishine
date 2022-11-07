@@ -272,7 +272,7 @@
     <div class="modal-body d-flex">
         <div class="row col-md-12">
             <div class="form-group ml-auto col-md-3">	
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">		
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
         </div>
             <table class="table table-responsive scrollable-table">
                 <thead class="thead-light">

@@ -518,7 +518,10 @@ public class TimesheetService {
 						response.setServiceResponse("Timesheet status Rejected.");
 
 						try {
-							mailService.sendMail(timesheetDTO.getEmail(), "Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+" <br> "+timesheetDTO.getRejectReason());
+							mailService.sendMail(timesheetDTO.getEmail(),
+									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
+									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+" <br> "+timesheetDTO.getRejectReason());
+							
 						} catch (Exception e) {
 							e.printStackTrace();
 							response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -917,8 +920,9 @@ public class TimesheetService {
 				
 				timesheet.setStatus(timesheetDTO.getStatus());
 				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
-				response = updateTimesheetRequestById(timesheet);
-			    
+				timesheet.setRejectReason(timesheetDTO.getRejectReason());
+				response = updateTimesheetRequestById(timesheet);   
+				System.out.println("   timesheet Reject reason __" +timesheetDTO.getRejectReason());
 			}
 			
 		} catch (Exception e) {

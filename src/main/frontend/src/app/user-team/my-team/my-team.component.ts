@@ -59,7 +59,11 @@ export class MyTeamComponent implements OnInit {
   fromDate:any;
   toDate:any;
   managerList:any[];
-
+  items = 10;
+  bulkTeamLeaveReject : any = [];
+  bulkTeamLeaveApprove: any = [];
+  isSelectAll:boolean = false;
+  isSelect:boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -68,7 +72,7 @@ export class MyTeamComponent implements OnInit {
     private leaveService: LeaveService,
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
-    private validationService:ValidationService,
+    public validationService:ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -289,6 +293,9 @@ export class MyTeamComponent implements OnInit {
 
   getAllMyTeamsPendingLeaveApplicationsByManagerId() {
     this.leaveApplicationList = []
+    this.bulkTeamLeaveApprove = []
+    this.bulkTeamLeaveReject = []
+    this.isSelectAll = false
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
@@ -318,6 +325,19 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+   // single leave reject modal
+   onSingleReject(template: TemplateRef<any> , ){
+    this.onUpdateLeaveStatus(template, this.leaveObj,3);
+  }
+
+  // openLeaveRejectModal
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  
   //comOff Applications
   getPendingCompOffRequestsByManagerId() {
     this.allCompOffApplications = []
@@ -489,6 +509,12 @@ export class MyTeamComponent implements OnInit {
   page = 1;
   handlePageChange(event) {
     this.page = event;
+    this.isSelectAll = false
+    this.bulkTeamLeaveApprove = []
+    this.bulkTeamLeaveReject = []
+    this.leaveApplicationList.forEach(x=>{
+      x.isSelected = false;
+    })
   }
     
   //Sorting team view table 	
@@ -689,8 +715,101 @@ export class MyTeamComponent implements OnInit {
     	
   }	
 
+  
+  selectAll(event){
+    this.bulkTeamLeaveApprove = [];
+    this.bulkTeamLeaveReject = [];
+    
+    const checkboxes = document.querySelectorAll('.leaveApplication-req-checkbox');
+    checkboxes.forEach((checkbox:any) =>{
+     
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedLeave = this.leaveApplicationList.find((_leave, index) => index == checkboxIndex);
 
+      if (event.target.checked) {
+        checkbox.checked = true;
+        this.bulkTeamLeaveApprove.push(checkedLeave);
+        this.bulkTeamLeaveReject.push(checkedLeave);
+      } else {
+        checkbox.checked = false;
+        this.bulkTeamLeaveApprove.forEach((leave, index) => {
+          if (leave == checkedLeave) this.bulkTeamLeaveApprove.splice(index, 1);
+        });
+        this.bulkTeamLeaveReject.forEach((leave, index) => {
+          if (leave == checkedLeave) this.bulkTeamLeaveReject.splice(index, 1);
+        });
+      }
+    });
+  }
 
+   select(leaveObj, event) {
+    console.log("clicked on : ", leaveObj);
+      if(event.target.checked){
+        event.target.classList.add('checked');
+        this.bulkTeamLeaveApprove.push(leaveObj)
+        this.bulkTeamLeaveReject.push(leaveObj)
+      }else {
+        event.target.classList.remove('checked');
+        const checkboxes = document.querySelectorAll('.leaveApplication-req-checkbox.checked');
+        if(checkboxes.length !== this.items) this.isSelectAll = false
+        console.log("length ",checkboxes.length);
+        console.log("items ",this.items);
+        this.bulkTeamLeaveApprove.forEach((leave, index) => {
+          if (leave == leaveObj) this.bulkTeamLeaveApprove.splice(index, 1);
+        });
+        this.bulkTeamLeaveReject.forEach((leave , index)=> {
+          if(leave == leaveObj) this.bulkTeamLeaveReject.splice(index , 1);
+        })
+      }
+      console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
+      
+    }
+
+  onBulkTeamLeaveApproval(){
+    console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
+    let leaveObj = new Leave();
+    leaveObj.bulkLeaveApprovedList =  this.bulkTeamLeaveApprove;
+    leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.leaveStatusId = 2;
+   
+    this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+       
+        this.bulkTeamLeaveApprove = [];
+        this.bulkTeamLeaveReject = [];
+      } else {
+      console.error(response.serviceResponse)
+      }
+    });
+    
+  }
+
+  // openBulklLeaveReject
+
+  openBulklLeaveReject(template: TemplateRef<any>){
+    this.cancelRequest();
+   
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  OnBulkTeamLeaveReject(template: TemplateRef<any>){
+    let leaveObj = new Leave();
+    leaveObj.bulkLeaveRejectList =  this.bulkTeamLeaveReject;
+    leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.leaveStatusId = 3
+    leaveObj.rejectReason = this.leaveObj.rejectReason
+    console.log(" .. ",leaveObj)
+    this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+        this.bulkTeamLeaveApprove = [];
+        this.bulkTeamLeaveReject = [];
+      } else {
+      console.error(response.serviceResponse)
+      }
+    });
+  }
   
 }
 

@@ -80,7 +80,7 @@
         </div>
         <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group d-flex flex-row ml-auto">
           <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkApproval()">Bulk Approve</button>&nbsp;
-          <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkReject()">Bulk Reject</button>
+          <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openBulkRejectTimesheet(bulkReject_timesheet)">Bulk Reject</button>
         </div>
         <div class="form-group d-flex justify-content-between">
           <div class="form-inline col-md-3">
@@ -248,6 +248,15 @@
       <p>Kindly provide reason(s) for rejecting application.</p>
       <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
       <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+<!-- bulkReject_timesheet -->
+<ng-template #bulkReject_timesheet>
+  <div class="modal-body text-center">
+      <p>Kindly provide reason(s) for rejecting application.</p>
+      <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+      <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();OnBulkReject(alert_message)">Reject</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>

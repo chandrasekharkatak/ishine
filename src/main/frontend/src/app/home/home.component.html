@@ -303,7 +303,7 @@
     <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
         <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval()">Bulk
             Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkLeaveReject()">Bulk Reject</button>
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
     </div>
    
    
@@ -362,7 +362,7 @@
                     <!-- <td>{{leaveApplication.description}}</td> -->
                     <td>
                         <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
             </tbody>
@@ -438,7 +438,7 @@
     </div>
     <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
         <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkApproval()">Bulk Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkReject()">Bulk Reject</button>
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkReject(timesheet_reject)">Bulk Reject</button>
       </div>
       <div class="form-group d-flex justify-content-between">
         <div class="form-inline col-md-3">
@@ -504,3 +504,31 @@
         </div>
     </div>
 </ng-template>
+
+<ng-template #bulk_reject_leave>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="this.leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.rejectReason)" (click)="cancelRequest();bulkRejectLeave(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #timesheet_reject>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();onBulkRejectTimesheet(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+ <!-- for single rection modal -->
+ <ng-template #reject_leave_modal>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>

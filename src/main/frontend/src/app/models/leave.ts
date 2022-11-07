@@ -83,4 +83,6 @@ export class Leave{
 	isSelected:boolean = false;
     bulkLeaveApprovedList:any;
     bulkLeaveRejectList:any;
+	email:any;
+	rejectReason:any;
 }

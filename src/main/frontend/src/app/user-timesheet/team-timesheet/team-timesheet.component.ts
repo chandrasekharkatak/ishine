@@ -69,13 +69,6 @@ export class TeamTimesheetComponent implements OnInit {
     this.sectionViewInit();
   }
 
-  reset(){
-    this.timesheetObj = new Timesheet();
-    this.timesheetObj.isSelected = false
-    this.isSelectAll = false;
-    
-  }
-
   sectionViewInit(){
     if(this.userMapping.view_my_teams_timesheets){
       this.showAllTimesheetsTable();
@@ -182,6 +175,15 @@ export class TeamTimesheetComponent implements OnInit {
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
     this.cancelRequest();
     this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  // openBulkRejectTimesheet
+
+  openBulkRejectTimesheet(template: TemplateRef<any>){
+    
+    this.cancelRequest();
+    
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
@@ -428,12 +430,13 @@ onBulkApproval(){
   
 }
 
-OnBulkReject(){
+OnBulkReject(template: TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkReject);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Rejected"
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {

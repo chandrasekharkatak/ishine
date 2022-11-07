@@ -80,9 +80,10 @@ export class LeaveComponent implements OnInit {
   isSelect:boolean = false;	
   bulkLeaveApprove:any =[];	
   bulkLeaveReject:any = [];
+  LeaveObj = new Leave();
 
   constructor(
-    private validationService:ValidationService,
+    public validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
@@ -624,6 +625,9 @@ export class LeaveComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.rejectReason = this.leaveObj.rejectReason
+    leaveApplication.email = this.leaveObj.email;
+    leaveApplication.employeementId = this.leaveObj.employeementId
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -635,6 +639,19 @@ export class LeaveComponent implements OnInit {
       this.showLeaveApplicationsTable();
     });
   }
+
+   // single leave reject modal
+   onSingleReject(template: TemplateRef<any> , ){
+    this.onUpdateLeaveStatus(template, this.leaveObj,3);
+  }
+
+  // openLeaveRejectModal
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
 
   getLeaveMetadata(){
     console.log("leave Obj For getLeaveMetadata : ", this.leaveObj);
@@ -706,6 +723,7 @@ export class LeaveComponent implements OnInit {
     this.leaveApplicationList = []
     this.bulkLeaveApprove = []	
     this.bulkLeaveReject = []
+    this.isSelectAll = false
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -1038,7 +1056,7 @@ export class LeaveComponent implements OnInit {
         this.bulkLeaveReject.push(leaveObj)
       }else {
         event.target.classList.remove('checked');
-        const checkboxes = document.querySelectorAll('.leave-req-checkbox');
+        const checkboxes = document.querySelectorAll('.leave-req-checkbox.checked');
         if(checkboxes.length !== this.items) this.isSelectAll = false
         this.bulkLeaveApprove.forEach((leave, index) => {
           if (leave == leaveObj) this.bulkLeaveApprove.splice(index, 1);
@@ -1070,13 +1088,22 @@ export class LeaveComponent implements OnInit {
       
     }
 
-    OnBulkLeaveReject(){
+    // openRejectModal
+    openRejectModal(template: TemplateRef<any>){
+      this.cancelRequest();
+     
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+  
+
+    OnBulkLeaveReject(template: TemplateRef<any>){
       
       let leaveObj = new Leave();
+     
       leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
       leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
       leaveObj.leaveStatusId = 3
-      
+      leaveObj.rejectReason = this.leaveObj.rejectReason 
       this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.getAllMyTeamsPendingLeaveApplicationsByManagerId()

@@ -282,7 +282,7 @@ export class MyTimesheetComponent implements OnInit {
         }
 
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `Please enter valid Activity Description - ${index + 1}!!`
+          this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description - ${index + 1}!!`
           flag = false;
           return;
         }
@@ -315,7 +315,7 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = "Please enter valid Timesheet Description  !!"
+        this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description  !!`
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
