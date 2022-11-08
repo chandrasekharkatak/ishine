@@ -215,8 +215,8 @@
 
 <!-- start :: View Timesheets -->
 <div class="row d-flex" *ngIf="isTimesheetTable">
-    <div class="col-md-12">
-        <div class="row table-header">
+    <div class="col-md-12 px-0">
+        <div class="row col-md-12 px-0 mx-0 table-header">
             <h1 class="table-header-title">My Timesheets</h1>
         </div>
         <div class="row mb-3">
@@ -260,12 +260,11 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group d-flex flex-row ml-auto col-md-3 search-box">
+            <div class="form-group d-flex flex-row ml-auto col-md-3 mr-3 search-box">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div>
         </div>
-        <div class="row">
-            <table class="table table-responsive scrollable-table" id="teams-table" matSort
+        <table class="table table-responsive scrollable-table" id="teams-table" matSort
                 (matSortChange)="sortMyTimesheet($event)">
                 <thead class="thead-light">
                     <tr>
@@ -314,7 +313,6 @@
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                 [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em
                     class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
     </div>
 </div>
 <!-- end :: View Timesheets -->

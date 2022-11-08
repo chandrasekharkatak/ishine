@@ -372,12 +372,14 @@ export class UserProfileComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
-      this.alertMessage = "Please Enter Year of Passing !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(employeeObj.pursuing == 'No'){
+      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
+        this.alertMessage = "Please Enter Year of Passing !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
+   
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
       this.alertMessage = "Please Enter Passing Grade !!"

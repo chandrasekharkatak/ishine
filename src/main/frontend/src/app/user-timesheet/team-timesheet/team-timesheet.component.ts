@@ -222,7 +222,7 @@ export class TeamTimesheetComponent implements OnInit {
     if(this.isAllTimesheetTable == true){
       this.excelName = 'AllTeamTimesheet.xlsx';
 
-      this.allTeamTimesheets = this.allTeamTimesheetDataForExcel;
+      this.allTeamTimesheetDataForExcel = this.allTeamTimesheets;
         const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
           x => ({
             "Date": x.date,
@@ -238,7 +238,7 @@ export class TeamTimesheetComponent implements OnInit {
     if(this.isAllTimesheetRequestTable == true){
       this.excelName = 'AllTeamTimeSheetRequest.xlsx'
 
-      this.allTeamTimesheetRequests = this.allTeamTimesheetRequestDataForExcel;
+      this.allTeamTimesheetRequestDataForExcel = this.allTeamTimesheetRequests;
         const onlySpecificDataArr = this.allTeamTimesheetRequestDataForExcel.map(
           x => ({
             "Employee Id": x.employeementId,

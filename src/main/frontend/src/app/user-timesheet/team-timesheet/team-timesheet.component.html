@@ -7,8 +7,8 @@
 
 <!-- start :: View Teams All Timesheets -->
 <div class="row d-flex" *ngIf="isAllTimesheetTable">
-    <div class="col-md-12">
-        <div class="row table-header">
+    <div class="col-md-12 px-0">
+        <div class="row col-md-12 px-0 mx-0 table-header">
             <h1 class="table-header-title">All Timesheets</h1>
         </div>
         <div class="row">
@@ -30,52 +30,51 @@
               </div>
             </div>
           </div>
-          <div class="form-group d-flex flex-row ml-auto col-md-3 search-box">
+          <div class="form-group d-flex flex-row ml-auto col-md-3 search-box mr-3">
             <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
           </div>
         </div>
-        <div class="row">
-          <table class="table table-responsive scrollable-table" id="teams-table" matSort (matSortChange)="sortTimeSheet($event)">	
-            <thead class="thead-light">	
-              <tr>	
-                <th scope="col" class="info-label">Sr No.</th>	
-                <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
-                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
-                <th scope="col" colspan="4" class="info-label wide-col">Timesheet Details</th>
-                <th scope="col" class="info-label">Working Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                    <th scope="col" class="info-label">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngIf="allTeamTimesheets.length == 0">
-                    <th colspan="9" class="text-center info-label">No details to display...</th>
-                  </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheets |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                    <td>{{20*(page-1)+i+1}}</td>
-                    <td>{{timesheet.date}}</td>
-                    <td>{{timesheet.dayType}}</td>
-                    <td colspan="4" [innerHTML]="timesheet.description"></td>
-                    <td>{{timesheet.totalTime}}</td>
-                    <td>{{timesheet.status}}</td>
-                    <td>
-                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                      <button *ngIf="userMapping.revoke_reportee_timesheet"  class="btn btn-sm btn-outline-danger" type="submit" title="Revoke" (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
-                    </td>
+         
+        <table class="table table-responsive scrollable-table" id="teams-table" matSort (matSortChange)="sortTimeSheet($event)">	
+          <thead class="thead-light">	
+            <tr>	
+              <th scope="col" class="info-label">Sr No.</th>	
+              <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
+              <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
+              <th scope="col" colspan="4" class="info-label wide-col">Timesheet Details</th>
+              <th scope="col" class="info-label">Working Hours</th>
+              <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                  <th scope="col" class="info-label">Actions</th>
                 </tr>
-                </tbody>
-              </table> 
-              <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>  
+              </thead>
+              <tbody>
+                <tr *ngIf="allTeamTimesheets.length == 0">
+                  <th colspan="9" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr *ngFor="let timesheet of allTeamTimesheets |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                  <td>{{20*(page-1)+i+1}}</td>
+                  <td>{{timesheet.date}}</td>
+                  <td>{{timesheet.dayType}}</td>
+                  <td colspan="4" [innerHTML]="timesheet.description"></td>
+                  <td>{{timesheet.totalTime}}</td>
+                  <td>{{timesheet.status}}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                    <button *ngIf="userMapping.revoke_reportee_timesheet"  class="btn btn-sm btn-outline-danger" type="submit" title="Revoke" (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
+                  </td>
+              </tr>
+              </tbody>
+            </table> 
+            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
 </div>
 <!-- end :: View Teams All Timesheets -->
 
 <!-- start :: View Teams All Timesheets Requests -->
 <div class="row d-flex" *ngIf="isAllTimesheetRequestTable">
-    <div class="col-md-12">
-        <div class="row table-header">
+    <div class="col-md-12 px-0">
+        <div class="row col-md-12 px-0 mx-0 table-header">
             <h1 class="table-header-title">All Timesheets Requests</h1>
         </div>
         <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group d-flex flex-row ml-auto">
@@ -97,52 +96,50 @@
             <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
           </div>
         </div>
-        <div class="row">
-          <table class="table table-responsive scrollable-table" id="teams-request-table" matSort (matSortChange)="sortAllTimesheet($event)">	
-            <thead class="thead-light">	
-              <tr>
-                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
-                <th scope="col" class="info-label">Sr No.</th>	
-                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
-                <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>	
-                <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
-                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
-                <th scope="col" colspan="4" class="info-label wide-col">Timesheet Details</th>	
-                <th scope="col" class="info-label">Working Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                    <th scope="col" class="info-label">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngIf="allTeamTimesheetRequests.length == 0">
-                    <th colspan="12" class="text-center info-label">No details to display...</th>
-                  </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                    <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
-                    <td>{{items*(page-1)+i+1}}</td>
-                    <td>A-{{timesheet.employeementId}}</td>
-                    <td>{{timesheet.employeeName}}</td>
-                    <td>{{timesheet.date}}</td>
-                    <td>{{timesheet.dayType}}</td>
-                    <td colspan="4" [innerHTML]="timesheet.description"></td>
-                    <td>{{timesheet.totalTime}}</td>
-                    <td>{{timesheet.status}}</td>
-                    <td>
-                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
-                        (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                      <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
-                        (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
-                          class="fa-solid fa-check"></em></button>&nbsp;
-                          <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
-                          (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
-                            class="fa-solid fa-xmark"></em></button>  
-                    </td>
-                  </tr>
-                </tbody>
-              </table> 
-              <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>  
+        <table class="table table-responsive scrollable-table" id="teams-request-table" matSort (matSortChange)="sortAllTimesheet($event)">	
+          <thead class="thead-light">	
+            <tr>
+              <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
+              <th scope="col" class="info-label">Sr No.</th>	
+              <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+              <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>	
+              <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
+              <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
+              <th scope="col" colspan="4" class="info-label wide-col">Timesheet Details</th>	
+              <th scope="col" class="info-label">Working Hours</th>
+              <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                  <th scope="col" class="info-label">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="allTeamTimesheetRequests.length == 0">
+                  <th colspan="12" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                  <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
+                  <td>{{items*(page-1)+i+1}}</td>
+                  <td>A-{{timesheet.employeementId}}</td>
+                  <td>{{timesheet.employeeName}}</td>
+                  <td>{{timesheet.date}}</td>
+                  <td>{{timesheet.dayType}}</td>
+                  <td colspan="4" [innerHTML]="timesheet.description"></td>
+                  <td>{{timesheet.totalTime}}</td>
+                  <td>{{timesheet.status}}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                      (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                    <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success" type="submit" title="Approve"
+                      (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                        class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger" type="submit" title="Reject"
+                        (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                          class="fa-solid fa-xmark"></em></button>  
+                  </td>
+                </tr>
+              </tbody>
+            </table> 
+            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
 </div>
 <!-- end :: View Teams All Timesheets Requests -->
@@ -198,9 +195,9 @@
       </div>
     </div>
     <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
-      <div class="form-group d-flex flex-row ml-auto col-md-3">
+      <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-        </div>
+        </div> -->
       <table class="table timesheet-table">
           <thead class="thead-light">
             <tr>

@@ -142,7 +142,7 @@
                             <td>{{timesheet.status}}</td>
                             <td colspan="3">
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100">{{timesheet.totalWorkingHours}} Hrs</div>
+                                    <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100">{{timesheet.totalWorkingHours}} hrs</div>
                                   </div>
                             </td>
                           </tr>
@@ -519,7 +519,7 @@
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
         <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();onBulkRejectTimesheet(alert_message)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 
