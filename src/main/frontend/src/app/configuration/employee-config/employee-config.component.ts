@@ -319,7 +319,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
 
-    this.getManagerList();
+    this.getManagerList(employee);
     this.getAllDepartmentList();
     this.allCertificationList = [];
     this.allPreviousEmployment = [];
@@ -1067,7 +1067,7 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  getManagerList() {
+  getManagerList(employee?:Employee) {
     this.managerList = [];	
     let employeeList = [];	
 
@@ -1075,8 +1075,12 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         employeeList = response.serviceResponse;	
-        console.log("employeeList By Role : ", employeeList)	
-        this.managerList = employeeList;	
+        console.log("employeeList By Role : ", employeeList)
+        if(this.isUpdation){
+          this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
+        }else{
+          this.managerList = employeeList;
+        }	
         console.log("managerList : ", this.managerList)	
       } else {	
         console.error(response.serviceResponse)	

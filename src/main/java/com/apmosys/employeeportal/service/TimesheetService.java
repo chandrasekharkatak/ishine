@@ -278,8 +278,8 @@ public class TimesheetService {
 
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
-			List<Timesheet> timesheetList = timesheetsRepository
-					.findAllByEmpIdAndDateBetweenOrderByDateDesc(timesheetDTO.getEmpId(), start, end);
+			List<Object[]> timesheetList = timesheetsRepository
+					.getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
 
 			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
 
@@ -288,12 +288,26 @@ public class TimesheetService {
 					response.setServiceResponse("Timesheet list is empty");
 				} else {
 
-					Type typeList = new TypeToken<List<TimesheetDTO>>() {
-					}.getType();
-					List<TimesheetDTO> timesheetDTOList = modelMapper.map(list, typeList);
+					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+					list.forEach((object) -> {
+
+						TimesheetDTO dto = new TimesheetDTO();
+						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setDate(object[1] != null ? object[1].toString() : null);
+						dto.setDayType(object[2] != null ? object[2].toString() : null);
+						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+						dto.setDescription(object[4] != null ? object[4].toString() : null);
+						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
+						dto.setStatus(object[6] != null ? object[6].toString() : null);
+						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dtoList.add(dto);
+					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(timesheetDTOList);
+					response.setServiceResponse(dtoList);
 
 				}
 			}, () -> {
