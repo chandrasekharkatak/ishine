@@ -7,8 +7,8 @@
 </div>
 
 <!-- start :: Create & Update Form -->
-<div class="row">
-    <div class="card" *ngIf="isForm || isDraft">
+<div class="row" *ngIf="isForm || isDraft">
+    <div class="card">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Employee</strong>
             <strong *ngIf="isUpdation">Update Employee</strong>
@@ -802,7 +802,7 @@
       </table>
       <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
       
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down py-1"></em>&nbsp;Export</button> 
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> 
 </div>
 <!-- end :: see all table -->
 

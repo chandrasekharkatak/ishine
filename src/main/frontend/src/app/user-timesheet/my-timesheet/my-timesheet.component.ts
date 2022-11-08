@@ -181,7 +181,9 @@ export class MyTimesheetComponent implements OnInit {
     }
     
     this.getAllProjectsByEmpId(userObj);
-    this.getAllMyActivitiesByTimesheetId(timesheetObj);
+    setTimeout(()=>{
+      this.getAllMyActivitiesByTimesheetId(timesheetObj);
+    },500)
   }
 
   reset() {

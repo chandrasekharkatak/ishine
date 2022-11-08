@@ -179,8 +179,8 @@
 
 <!-- start :: View Timesheets -->
 <div class="row d-flex" *ngIf="isTimesheetTable">
-    <div class="col-md-12">
-        <div class="row table-header">
+    <div class="col-md-12 px-0">
+        <div class="row col-md-12 px-0 mx-0 table-header">
             <h1 class="table-header-title">My Timesheets</h1>
         </div>
         <div class="row mb-3">
@@ -216,49 +216,47 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group d-flex flex-row ml-auto col-md-3 search-box">
+            <div class="form-group d-flex flex-row ml-auto col-md-3 search-box mr-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
         </div>
-        <div class="row">
-            <table class="table table-responsive scrollable-table" id="teams-table" matSort (matSortChange)="sortMyTimesheet($event)">	
-                <thead class="thead-light">	
-                  <tr>	
-                    <th scope="col" class="info-label">Sr No.</th>
-                    <th *ngIf="isTeamTimesheets" scope="col" class="info-label">Name</th>
-                    <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
-                    <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
-                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" colspan="info-label" class="info-label">Total Time</th>
-                    <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                    <th scope="col" class="info-label">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngIf="allMyTimesheets.length == 0">
-                    <th colspan="9" class="text-center info-label">No details to display...</th>
-                  </tr>
-                  <tr *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                      <td>{{20*(page-1)+i+1}}</td>
-                      <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
-                      <td>{{timesheet.date}}</td>
-                      <td>{{timesheet.dayType}}</td>
-                      <td colspan="4" [innerHTML]="timesheet.description"></td>
-                      <td>{{timesheet.totalTime}}</td>
-                      <td>{{timesheet.status}}</td>
-                      <td>
-                        <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
-                        (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-primary" type="submit" title="copy timesheet"
-                        (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
-                        <button *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table> 
-              <pagination-controls class="my-pagination" [hidden]="allMyTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>  
+        <table class="table table-responsive scrollable-table" id="teams-table" matSort (matSortChange)="sortMyTimesheet($event)">	
+            <thead class="thead-light">	
+              <tr>	
+                <th scope="col" class="info-label">Sr No.</th>
+                <th *ngIf="isTeamTimesheets" scope="col" class="info-label">Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
+                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                <th scope="col" colspan="info-label" class="info-label">Total Time</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                <th scope="col" class="info-label">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="allMyTimesheets.length == 0">
+                <th colspan="9" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                  <td>{{20*(page-1)+i+1}}</td>
+                  <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
+                  <td>{{timesheet.date}}</td>
+                  <td>{{timesheet.dayType}}</td>
+                  <td colspan="4" [innerHTML]="timesheet.description"></td>
+                  <td>{{timesheet.totalTime}}</td>
+                  <td>{{timesheet.status}}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="copy timesheet"
+                    (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
+                    <button *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
+                </td>
+              </tr>
+            </tbody>
+          </table> 
+          <pagination-controls class="my-pagination" [hidden]="allMyTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
 </div>
 <!-- end :: View Timesheets -->

@@ -249,11 +249,14 @@ export class InformationPreviewComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
-      this.alertMessage = "Please Enter Year of Passing !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(employeeObj.pursuing == 'No'){
+      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
+        this.alertMessage = "Please Enter Year of Passing !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
+   
 
     if(employeeObj.pursuing == "No"){
       if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){

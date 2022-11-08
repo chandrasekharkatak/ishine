@@ -31,6 +31,22 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Your views on our Organisation</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.viewsOnOrganisation">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>About me</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aboutMe">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Gender</label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.gender">
                                                 <option selected="selected" value="" disabled>Select</option>
@@ -444,7 +460,7 @@
                                         <p class="info-text info-highlight">{{employeeObj.experience}}</p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Total Exprience</p>
                                         <p class="info-text info-highlight">{{employeeObj.totalExperience}}</p>
