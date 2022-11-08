@@ -98,4 +98,6 @@ public class LeaveDTO {
 	
 	private List<LeaveDTO> bulkLeaveApprovedList;
 	private List<LeaveDTO> bulkLeaveRejectList;
+	private String email;
+	private String rejectReason;
 }

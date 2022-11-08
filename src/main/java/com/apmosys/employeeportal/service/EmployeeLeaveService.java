@@ -398,6 +398,8 @@ public class EmployeeLeaveService {
 					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					dto.setLeaveTypeMasterId(object[10] != null ? Short.parseShort(object[10].toString()) : null);
 					dto.setEmployeeName(object[11] != null ? object[11].toString() : null);
+					dto.setEmail(object[12] != null ? object[12].toString() : null);
+					dto.setEmployeementId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					dtoList.add(dto);
 				});
 
@@ -490,6 +492,16 @@ public class EmployeeLeaveService {
 				}
 				EmployeeLeave updatedLeaveApplication = employeeLeaveRepository.save(pendingLeaveApplication);
 				EmployeeLeavesMap updatedEmployeeLeavesMap = employeeLeavesMapRepository.save(employeeLeavesMap);
+				
+				
+				
+				mailService.sendMail(leaveDTO.getEmail(),
+						"Regarding leave Rejection ", "Employee Id"+" A-"+leaveDTO.getEmployeementId()+
+						" "+ " <br> "+" Employee Name -"+" "+leaveDTO.getEmployeeName()+" <br> "+" Reason -: "+leaveDTO.getRejectReason());
+			
+				System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
+				System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
+				System.out.println("  leaveDTO.getRejectReason()   :  "+leaveDTO.getRejectReason());
 
 				if (updatedLeaveApplication != null && updatedEmployeeLeavesMap != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1359,11 +1371,15 @@ public class EmployeeLeaveService {
 	public ServiceResponse bulkRejectLeaveRequest(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			
 
 			for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
 				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				leave.setRejectReason(leaveDTO.getRejectReason());
+			
 				response = updateLeaveStatus(leave);
+				System.out.println(" leaveDTO.getReason() : "+leaveDTO.getRejectReason());
 			}
 
 		} catch (Exception e) {

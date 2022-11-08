@@ -72,6 +72,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isSelectAll:boolean = false;
   bulkLeaveApprove:any =[];
   bulkLeaveReject:any = [];
+
+  leaveObj = new Leave();
   
   @ViewChild("thisMonthCal") 
   private thisMonthCalendar:CalendarComponent;
@@ -152,6 +154,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   // Leave Applications
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
     this.leaveApplicationList = []
+    this.bulkLeaveApprove = []
+    this.bulkLeaveReject = []
     this.isSelectAll = false
 
     let leaveObj = new Leave();
@@ -187,9 +191,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
     this.cancelRequest();
+    let leaveObj = new Leave();
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    leaveObj.email = leaveApplication.email
+    leaveObj.rejectReason = leaveApplication.rejectReason
+    console.log("   leaveObj.email   ",leaveObj.email);
+    
+    
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -202,6 +212,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+   // single leave reject modal
+   onSingleReject(template: TemplateRef<any> , ){
+    this.onUpdateLeaveStatus(template, this.leaveObj,3);
+  }
+
+  // openLeaveRejectModal
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
 
 
   //comOff Applications
@@ -854,33 +877,34 @@ export class HomeComponent implements OnInit, AfterViewInit {
   exportToExcelForLeave() {
     this.excelName = 'leaveApplication.xlsx';
     	
-        const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationList.map(	
+        const onlySpecificDataArr:any = this.leaveApplicationList.map(	
           x => ({	
-              leaveType: x.leaveType,
-              fromDate: x.fromDate,
-              toDate: x.toDate,
-              noOfDays: x.noOfDays,
-              status: x.status,
-              createdByName: x.createdByName,
-              createdOn: x.createdOn,
-              reason: x.reason	
+              "Name": x.employeeName,
+              "Leave Type": x.leaveType,
+              "From Date": x.fromDate,
+              "To Date": x.toDate,
+              "Duration": x.noOfDays,
+              "Status": x.status,
+              "Applied By": x.createdByName,
+              "Applied On": x.createdOn,
+              "Reason": x.reason	
           })	
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
       }
 
   exportToExcelForCompOff() {
-    this.excelName = 'leaveApplication.xlsx';
+    this.excelName = 'compOffApplication.xlsx';
     	
-        const onlySpecificDataArr: Partial<Leave>[] = this.allCompOffApplications.map(	
+        const onlySpecificDataArr: any = this.allCompOffApplications.map(	
           x => ({	
-            createdByName: x.createdByName,
-            compOffReasons: x.compOffReasons,
-            fromDate: x.fromDate,
-            toDate: x.toDate,
-            noOfDays: x.noOfDays,
-            description: x.description,
-            status: x.status
+            "Applied By": x.createdByName,
+            "Applied For": x.compOffReasons,
+            "From Date": x.fromDate,
+            "To Date": x.toDate,
+            "Duration": x.noOfDays,
+            "Description": x.description,
+            "Status": x.status
           })	
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
@@ -889,12 +913,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   exportToExcelForTimesheet() {
     this.excelName = 'AllTeamTimeSheetRequest.xlsx';
 
-    const onlySpecificDataArr: Partial<Timesheet>[] = this.allTeamTimesheetRequests.map(
+    const onlySpecificDataArr:any = this.allTeamTimesheetRequests.map(
       x => ({
-        date: x.date,
-        dayType: x.dayType,
-        description: x.description,
-        status: x.status
+        "Employee Id": x.employeementId,
+        "Name": x.employeeName,
+        "Date": x.date,
+        "Day Type": x.dayType,
+        "Timesheet Details": x.description,
+        "Status": x.status
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -905,6 +931,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
   page = 1;
   handlePageChange(event) {
     this.page = event;
+    this.bulkApprove = []
+    this.bulkReject = []
+    this.isSelectAll = false
+    this.bulkLeaveApprove = []
+    this.bulkLeaveReject = []
   }
 
   // modals
@@ -935,7 +966,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.bulkReject = [];
     
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
-    const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
+   
     checkboxes.forEach((checkbox:any) =>{
       console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
@@ -957,7 +988,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         });
       }
     });
-
+    const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
     leaveCheckboxes.forEach((leaveCheck :any)=>{
       console.log("Check in leave home ",leaveCheck);
       let leaveCheckboxIndex = leaveCheck.getAttribute('id');
@@ -994,7 +1025,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       event.target.classList.remove('checked');
       const checkboxes = document.querySelectorAll('.timesheet-req-checkbox.checked');
       if(checkboxes.length !== this.items) this.isSelectAll = false; 
-      
+      console.log("Checkboxes.length ",checkboxes.length)
+      console.log(" items ",this.items)
       this.bulkApprove.forEach((timesheet, index) => {
         if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
       });
@@ -1018,8 +1050,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.bulkLeaveReject.push(leaveObj);
     } else {
       event.target.classList.remove('checked');
-      const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
+      const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox.checked');
       if(leaveCheckboxes.length !== this.items) this.isSelectAll = false; 
+      console.log("checkbox.length ",leaveCheckboxes.length)
       this.bulkLeaveApprove.forEach((timesheet, index) => {
         if (timesheet == leaveObj) this.bulkLeaveApprove.splice(index, 1);
       });
@@ -1030,7 +1063,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
   }
   
-onBulkApproval(){
+onBulkApproval(template:TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkApprove);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkApprovedList =  this.bulkApprove;
@@ -1039,6 +1072,7 @@ onBulkApproval(){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Timesheet Approve Successfully ");
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1049,15 +1083,18 @@ onBulkApproval(){
   
 }
 
-OnBulkReject(){
+onBulkRejectTimesheet(template: TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkReject);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason;
+  console.log(" timesheet reason :  ", timesheetObj.rejectReason);
   timesheetObj.status = "Rejected"
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully "); 
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1074,7 +1111,7 @@ OnBulkReject(){
 
 
 
-onBulkLeaveApproval(){
+onBulkLeaveApproval(template:TemplateRef<any>){
   console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
   let leaveObj = new Leave();
   leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
@@ -1083,6 +1120,7 @@ onBulkLeaveApproval(){
  
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Application Approve Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];
@@ -1094,15 +1132,21 @@ onBulkLeaveApproval(){
   
 }
 
-OnBulkLeaveReject(){
+bulkRejectLeave(template: TemplateRef<any>){
       
   let leaveObj = new Leave();
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
+  leaveObj.rejectReason = this.leaveObj.rejectReason
+  
+  console.log(leaveObj,"  leaveobj");
+  console.log("  leaveObj.rejectReason   :  ",leaveObj.rejectReason);
+  console.log("  this.leaveObj.rejectReason   :  ",this.leaveObj.rejectReason)
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
+      this.openAlertMod(template , "All Selected Application Rejected Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
       this.bulkLeaveApprove = [];
       this.bulkLeaveReject = [];
@@ -1112,5 +1156,25 @@ OnBulkLeaveReject(){
   });
   
 }
+
+
+OnBulkReject(template: TemplateRef<any>){
+  let timesheet = new Timesheet();
+  this.cancelRequest();
+  this.timesheetObj = timesheet;
+  this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+
+OnBulkLeaveReject(template: TemplateRef<any>, leave){
+  
+  this.cancelRequest();
+ this.leaveObj = leave
+  this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+
+
+
 
 }

@@ -168,14 +168,19 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
 
+    let userObj:User = new User();
     if (this.isSelfTimesheets) {
       this.timesheetObj.timesheetAppliedFor = "self";
       this.timesheetObj.empId = this.currentUser.empId;
+
+      userObj.empId = this.currentUser.empId;
     } else if (this.isTeamTimesheets) {
       this.timesheetObj.timesheetAppliedFor = "team";
-      // this.timesheetObj.empId = this.currentUser.empId;
+
+      userObj.empId = timesheetObj.empId;
     }
     
+    this.getAllProjectsByEmpId(userObj);
     this.getAllMyActivitiesByTimesheetId(timesheetObj);
   }
 
@@ -186,7 +191,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.empId = this.currentUser.empId;
 
     this.allTimesheetActivities = [];
-    this.addInputActivityField()
+    this.addInputActivityField();;
   }
 
 
@@ -282,7 +287,7 @@ export class MyTimesheetComponent implements OnInit {
         }
 
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `Please enter valid Activity Description - ${index + 1}!!`
+          this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description - ${index + 1}!!`
           flag = false;
           return;
         }
@@ -315,7 +320,7 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = "Please enter valid Timesheet Description  !!"
+        this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description  !!`
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -443,13 +448,10 @@ export class MyTimesheetComponent implements OnInit {
 
     if(this.timesheetObj.timesheetAppliedFor == "team"){
       let employeeObj = new Employee();
-      employeeObj.managerId = this.currentUser.managerId;
+      employeeObj.empId = this.currentUser.empId;
       this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
         if (response.serviceStatus == "Success") {
           this.teamMemberList = response.serviceResponse;
-          for(let x of this.teamMemberList){
-            x.employeementId="A-".concat(x.employeementId)
-          }
           console.log("teamMemberList : ", this.teamMemberList);
         } else {
           console.error(response.serviceResponse);
@@ -493,7 +495,16 @@ export class MyTimesheetComponent implements OnInit {
       }
     });
     console.log("projectList :", this.projectList);
+    this.setAllProjects(activityObj, this.projectList);
   }
+
+  setAllProjects(activityObj, projectList: any) {
+    const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
+    if(!this.isTimesheetUpdate){
+      selectedActivityObj.projectId = '';
+    }
+    selectedActivityObj.projectList = projectList;
+  } 
 
   getClientLocationList(activityObj: any){
     this.clientLocationList = [];
@@ -505,7 +516,17 @@ export class MyTimesheetComponent implements OnInit {
       }
     });
     console.log("clientLocationList :", this.clientLocationList);
+    this.setAllClientLocations(activityObj, this.clientLocationList)
   }
+
+  setAllClientLocations(activityObj, clientLocationList: any) {
+    const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
+    if(!this.isTimesheetUpdate){
+      selectedActivityObj.clientLocationId = '';
+    }
+    selectedActivityObj.clientLocationList = clientLocationList;
+  } 
+
 
   getAllActivitiesByProjectIdandEmpId(activityObj: any) {
     let allActivityList = [];

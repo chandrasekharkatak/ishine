@@ -9,6 +9,8 @@ export class Activity{
     description:any;
     completionTime:any;
     projectActivities:any;
+    clientLocationList:any;
+    projectList;
 
     clientId:any;
     clientLocationId:any;

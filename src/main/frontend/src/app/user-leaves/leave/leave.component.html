@@ -210,9 +210,9 @@
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
     <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group">
-        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval()">Bulk
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval(alert_message)">Bulk
             Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkLeaveReject()">Bulk Reject</button>
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openRejectModal(bulkLeave_reject)">Bulk Reject</button>
     </div>
    
    
@@ -270,7 +270,7 @@
                 <!-- <td>{{leaveApplication.description}}</td> -->
                 <td>
                     <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-danger" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                 </td>
             </tr>
         </tbody>
@@ -324,7 +324,7 @@
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
-    <table class="table table-responsive scrollable-table " matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+    <table class="table table-responsive scrollable-table " id="log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" >Sr. No</th>	
@@ -350,6 +350,7 @@
         </tbody>
       </table>   
       <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
 </div>
 <!-- end :: Leave log table -->
 
@@ -386,4 +387,25 @@
         <button type="button" class="btn btn-success" (click)="onRevokeApprovedLeaveApplication(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
      </div>
+  </ng-template>
+
+  <!-- bulkLeave_reject -->
+
+  <ng-template #bulkLeave_reject>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();OnBulkLeaveReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>
+
+  <!-- for single rection modal -->
+  <ng-template #reject_leave_modal>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
   </ng-template>

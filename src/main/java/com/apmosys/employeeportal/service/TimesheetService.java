@@ -338,10 +338,11 @@ public class TimesheetService {
 						dto.setDayType(object[2] != null ? object[2].toString() : null);
 						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
 						dto.setDescription(object[4] != null ? object[4].toString() : null);
-						dto.setStatus(object[5] != null ? object[5].toString() : null);
-						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
-						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
-						dto.setEmpId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
+						dto.setStatus(object[6] != null ? object[6].toString() : null);
+						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dtoList.add(dto);
 					});
 
@@ -518,7 +519,10 @@ public class TimesheetService {
 						response.setServiceResponse("Timesheet status Rejected.");
 
 						try {
-							mailService.sendMail(timesheetDTO.getEmail(), "Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+" <br> "+timesheetDTO.getRejectReason());
+							mailService.sendMail(timesheetDTO.getEmail(),
+									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
+									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+" <br> "+timesheetDTO.getRejectReason());
+							
 						} catch (Exception e) {
 							e.printStackTrace();
 							response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -917,8 +921,9 @@ public class TimesheetService {
 				
 				timesheet.setStatus(timesheetDTO.getStatus());
 				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
-				response = updateTimesheetRequestById(timesheet);
-			    
+				timesheet.setRejectReason(timesheetDTO.getRejectReason());
+				response = updateTimesheetRequestById(timesheet);   
+				System.out.println("   timesheet Reject reason __" +timesheetDTO.getRejectReason());
 			}
 			
 		} catch (Exception e) {
