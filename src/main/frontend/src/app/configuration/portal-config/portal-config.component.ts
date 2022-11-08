@@ -82,6 +82,12 @@ export class PortalConfigComponent implements OnInit {
           if(portal.configName == 'SNIPIT Link'){
             this.portalObj.snipitLink = portal.configValue;
           }
+          if(portal.configName == 'DSR Download Path'){
+            this.portalObj.dsrDownloadPath = portal.configValue;
+          }
+          if(portal.configName == 'DSR Day'){
+            this.portalObj.dsrGenerateDay = portal.configValue;
+          }
         }
       } else {
         console.error(response.serviceResponse);
@@ -120,13 +126,22 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.snipitLink)) {
       this.alertMessage = "Please enter SNIPIT Link !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }else if(this.validationService.validateUrl(portalObj.snipitLink) == false){
       this.alertMessage = "Please valid SNIPIT Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.dsrDownloadPath)) {
+      this.alertMessage = "Please enter DSR folder path !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.dsrGenerateDay)) {
+      this.alertMessage = "Please enter Generate DSR Day !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
@@ -150,6 +165,12 @@ export class PortalConfigComponent implements OnInit {
       }else if(index == 3)
       {
         this.portalConfigList[3].configValue = this.portalObj.snipitLink;
+      }else if(index == 4)
+      {
+        this.portalConfigList[4].configValue = this.portalObj.dsrDownloadPath;
+      }else if(index == 5)
+      {
+        this.portalConfigList[5].configValue = this.portalObj.dsrGenerateDay;
       }
       
     })

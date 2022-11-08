@@ -8,9 +8,11 @@ export class Portal {
     mailTrigger:any;
     probationMailTrigger:any;
     noticeMailTrigger:any;
-    allPortalConfigData:any
-    configValue:any
+    allPortalConfigData:any;
+    configValue:any;
 
-    otrsLink:any
-    snipitLink:any
+    otrsLink:any;
+    snipitLink:any;
+    dsrDownloadPath:any;
+    dsrGenerateDay:any;
 }
