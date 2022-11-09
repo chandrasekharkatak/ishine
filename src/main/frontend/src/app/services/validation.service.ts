@@ -76,6 +76,25 @@ export class ValidationService {
 
   }
 
+  // /^(?:[0-9]{11}|[0-9]{2}-[0-9]{3}-[0-9]{6})$/
+  validateAccountNumber(text: string): boolean {
+
+    const regex = /^(?:[0-9]{9,17}|[0-9]{2}-[0-9]{1}-[0-9]{6,14})$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+
+  }
+
   validateTimesheetCompletionTime(text: string): boolean {
 
     const regex = /^(?:\d{0,2}[0-9]|0?\.[0-9]|[0-9]?\.[0-9]\d{0,2})*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
@@ -475,4 +494,6 @@ export class ValidationService {
       return false; 
     }
   }
+
+  
 }

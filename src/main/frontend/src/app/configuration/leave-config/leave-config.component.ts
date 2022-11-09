@@ -818,6 +818,7 @@ exportToExcel(): void {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showLeaveBalanceForm();
+        this.employeeData = []
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

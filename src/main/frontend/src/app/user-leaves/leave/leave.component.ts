@@ -344,6 +344,11 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    else  if(leaveObj.reason.length <= 1){
+      this.alertMessage = "Single character is not valid in Leave reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     return true;
   }

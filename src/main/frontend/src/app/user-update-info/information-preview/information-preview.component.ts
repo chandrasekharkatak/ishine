@@ -92,6 +92,15 @@ export class InformationPreviewComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.mothersName)){
+      this.alertMessage = "Please enter mother name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.mothersName)){
+      this.alertMessage = "Please enter Valid mother Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.placeOfBirth)){
       this.alertMessage = "Please enter place of birth !!"
@@ -103,11 +112,21 @@ export class InformationPreviewComponent implements OnInit {
       return false;
     }
 
-    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)){
-      this.alertMessage = "Please enter Valid Mother tongue number !!"
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue)){
+      this.alertMessage = "Please enter Mother tongue !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if(!this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)){
+      this.alertMessage = "Please enter Valid  Mother tongue !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    // if(this.validationService.validateNullUndefinedEmptyString(employeeObj.motherTongue) && !this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)){
+    //   this.alertMessage = "Please enter Valid Mother tongue number !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     // if(this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber) && !this.validationService.validatePassportNumber(employeeObj.passportNumber)){
     //   this.alertMessage = "Please enter Valid Passport number !!"
@@ -378,8 +397,8 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Bank Account Number !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateNumber(employeeObj.bankAccountNo)){
-      this.alertMessage = "Please enter Valid Bank Account Number !!"
+    }if(!this.validationService.validateAccountNumber(employeeObj.bankAccountNo)){
+      this.alertMessage = " Bank Account Number is valid in between 9 to 17 digit !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
