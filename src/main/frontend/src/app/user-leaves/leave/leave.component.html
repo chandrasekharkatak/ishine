@@ -16,23 +16,36 @@
             <strong *ngIf="isUpdation">Update Leave</strong>
         </div>
         <div class="card-body">
-            <!-- <div class="row">
+            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="d-block info-label"><span class="text-danger">*</span>For User</label>
+                            <label class="d-block info-label"><span class="text-danger">*</span>Leave Application For</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forMe" value="me" [(ngModel)]="leaveObj.leaveAppliedFor" >
-                                <label class="form-check-label" for="forMe">Me</label>
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();getLeaveMetadata()">
+                                <label class="form-check-label" for="forSelf">Self</label>
                             </div>
-                            <!-- <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forOther" value="other" [(ngModel)]="leaveObj.leaveAppliedFor">
-                                <label class="form-check-label" for="forOther">Other User</label>
-                            </div> ->
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember" value="team" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList()">
+                                <label class="form-check-label" for="forTeamMember">Team member</label>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div> -->
+            </div>
+            <div *ngIf="this.leaveObj.leaveAppliedFor == 'team'" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Member</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata()">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">{{teamMember.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -134,19 +147,26 @@
     <div class="table-header">
         <h1 class="table-header-title">My Leave History</h1>
     </div>
+    <div class="row mb-3">
+        <div class="col-md-12">
+          <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSelfLeaveHistory}" (click)="showSelfLeaveHistoryTable()">Self</button>
+          <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="showTeamLeaveHistoryTable()">For Team</button>
+        </div>
+    </div>
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
     <table class="table table-responsive scrollable-table" id="history-table" matSort (matSortChange)="sortLeaveHistory($event)">	
         <thead class="thead-light">	
           <tr>	
-            <th scope="col" class="info-label">Sr No.</th>	
+            <th scope="col" class="info-label">Sr No.</th>
+            <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label">Name</th>
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
             <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
             <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
             <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
             <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+            <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
             <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
             <th scope="col" class="info-label">Action</th>
@@ -159,12 +179,13 @@
             </tr>
             <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
+                <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                 <td>{{leaveHistory.leaveType}}</td>
                 <td>{{leaveHistory.fromDate}}</td>
                 <td>{{leaveHistory.toDate}}</td>
                 <td>{{leaveHistory.noOfDays}} day(s)</td>
                 <td>{{leaveHistory.status}}</td>
-                <td>{{leaveHistory.createdByName}}</td>
+                <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
                 <td>{{leaveHistory.createdOn}}</td>
                 <td>{{leaveHistory.reason}}</td>
                 <!-- <td>{{leaveHistory.description}}</td> -->
@@ -183,15 +204,41 @@
 
 <!-- start :: Leave Applications Table -->
 <div class="row d-flex" *ngIf="isLeaveApplicationsTable">
+    <div class="col-md-12">
+        
     <div class="table-header">
         <h1 class="table-header-title">My Reportee Leave Applications</h1>
     </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+    <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group">
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkLeaveApproval(alert_message)">Bulk
+            Approve</button>&nbsp;
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openRejectModal(bulkLeave_reject)">Bulk Reject</button>
+    </div>
+   
+   
+    <div class="form-group d-flex flex-row justify-content-between">
+        <div class="form-inline ">
+            <small>View</small> 
+            <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+                (change)="page=1">
+                <option class="option-bg" selected value="10">10</option>
+                <option class="option-bg" value="20">20</option>
+                <option class="option-bg" value="50">50</option>
+                <option class="option-bg" value="100">100</option>
+            </select>
+            <small>entries</small>
         </div>
+        <div class="col-md-2">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+        </div>
+    </div>
+
+
+    
     <table class="table table-responsive scrollable-table " id="leaveApplication-table" matSort (matSortChange)="sortReporteeLog($event)">	
         <thead class="thead-light">	
           <tr>	
+            <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
             <th scope="col" class="info-label" >Sr No.</th>	
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
             <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
@@ -209,8 +256,9 @@
             <tr *ngIf="leaveApplicationList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
+            <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <td><input class="leave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
+                <td>{{items*(page-1)+i+1}}</td>
                 <td>{{leaveApplication.leaveType}}</td>
                 <td>{{leaveApplication.fromDate}}</td>
                 <td>{{leaveApplication.toDate}}</td>
@@ -222,14 +270,16 @@
                 <!-- <td>{{leaveApplication.description}}</td> -->
                 <td>
                     <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                    <button *ngIf="userMapping.update_leave_applications_status"  class="btn btn-sm btn-outline-danger" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                 </td>
             </tr>
         </tbody>
       </table>   
       <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
       <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
+ </div>
 </div>
+
 <!-- end :: Leave Applications table -->
 
 <!-- start :: Leave Balance Table -->
@@ -274,7 +324,7 @@
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
-    <table class="table table-responsive scrollable-table " matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+    <table class="table table-responsive scrollable-table " id="log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label" >Sr. No</th>	
@@ -300,6 +350,7 @@
         </tbody>
       </table>   
       <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
 </div>
 <!-- end :: Leave log table -->
 
@@ -336,4 +387,25 @@
         <button type="button" class="btn btn-success" (click)="onRevokeApprovedLeaveApplication(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
      </div>
+  </ng-template>
+
+  <!-- bulkLeave_reject -->
+
+  <ng-template #bulkLeave_reject>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();OnBulkLeaveReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>
+
+  <!-- for single rection modal -->
+  <ng-template #reject_leave_modal>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
   </ng-template>

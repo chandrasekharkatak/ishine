@@ -30,8 +30,10 @@
               <td>{{doc.policyName}}</td>
               <td>{{doc.createdByName}}</td>
               <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-              <td><button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> 
-              <!-- </td> -->
+              <td><button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> &nbsp;
+              <button  class="btn btn-sm btn-outline-primary" *ngIf="doc.readEnabled == 'true'&& !doc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, doc)" >Mark As Read</button> 
+              
+              </td> 
           </tbody>
         </table>
         <pagination-controls class="my-pagination" [hidden]="document.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
@@ -39,3 +41,18 @@
        
   </div>
   </div>
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+   <ng-template #read_enabled>
+    <div class="modal-body text-center">
+        <p>By my consent, I acknowledge that I have read, understood, and agree to
+          the policies and conditions mention in the document </p>
+        <button type="button" class="btn btn-success" (click)="onReadPolicy(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template> 

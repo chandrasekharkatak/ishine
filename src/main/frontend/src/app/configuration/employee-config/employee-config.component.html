@@ -7,8 +7,8 @@
 </div>
 
 <!-- start :: Create & Update Form -->
-<div class="row">
-    <div class="card" *ngIf="isForm || isDraft">
+<div class="row" *ngIf="isForm || isDraft">
+    <div class="card">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Employee</strong>
             <strong *ngIf="isUpdation">Update Employee</strong>
@@ -532,12 +532,12 @@
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.experience">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option value="Fresher">Fresher</option>
-                                                <option value="Exprienced">Exprienced</option>
+                                                <option value="Experienced">Experienced</option>
                                               </select>
                                         </div>
                                     </div>
                                 </div>
-                                <div *ngIf="employeeObj.experience == 'Exprienced'" class="col-md-4 mb-0">
+                                <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Total Experience</label>
@@ -572,7 +572,7 @@
                         </div>
                     </app-accordion-item>
 
-                    <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -740,9 +740,23 @@
         <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
         <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
     </div>
+    
+        <div class="form-inline">
+            <small>View</small>
+            <select class="form-select-sm align-items-center mx-1"  aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
+                <option class="option-bg" selected value="10">10</option>
+                <option class="option-bg" value="20">20</option> 
+                <option class="option-bg" value="50">50</option> 
+                <option class="option-bg" value="100">100</option> 
+              </select>
+            <small>entries</small>
+          </div>
+      
+
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
+        
     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
         <thead class="thead-light">	
           <tr>	
@@ -761,7 +775,7 @@
             <tr *ngIf="allEmployeeList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: items, currentPage: page }, let i = index">
             <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
             <td>{{employee.employeementId}}</td>
@@ -787,7 +801,8 @@
         </tbody>
       </table>
       <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+      
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> 
 </div>
 <!-- end :: see all table -->
 
@@ -802,7 +817,7 @@
     </div>
     <div class="modal-body">
         <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
         <div class="container history-table">
             <table class="table history-table">
@@ -827,9 +842,9 @@
                 </thead>
                 <tbody>
                     <tr *ngIf="employeeWorkingHistory.length == 0"> 
-                       <th colspan="8" class="text-center info-label">No details to display...</th>
+                       <th colspan="11" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->
@@ -850,7 +865,7 @@
         </table>
         </div>
         <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+            <pagination-controls id="workingHistory" class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
         </div>
     </div>
 
@@ -910,7 +925,7 @@
 <ng-template #employee_info_preview>
     <div class="modal-header">
         <b>Employee Information</b>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelApplication()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -1233,8 +1248,8 @@
                                 </div>
                             </app-accordion-item>
 
-                            <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
-                            <app-accordion-item *ngIf="previewObj.experience == 'Exprienced'"
+                            <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                            <app-accordion-item *ngIf="previewObj.experience == 'Experienced'"
                                 class="acc-content" title="Previous Employment Information" [showBody]="true">
                                 <div class="container-fluid">
                                     <div *ngFor="let previousEmployer of previewObj.previousEmploymentList;let i = index"

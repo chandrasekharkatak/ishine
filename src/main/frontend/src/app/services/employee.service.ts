@@ -150,4 +150,10 @@ export class EmployeeService {
    findEmployeeWorkingHistory(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}`+`api/findEmployeeWorkingHistory`,employeeObj);
    }
+
+   /* Demographics Details API */
+
+   addDemographicsInfo(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
+   }
 }

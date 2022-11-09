@@ -212,54 +212,95 @@
   <!-- Leave Request Table -->
   
   <div class="row col-md-12" *ngIf="isLeaveRequest">
-    <div class="form-group ml-auto col-md-3">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+    <div *ngIf="bulkTeamLeaveApprove.length > 1 && bulkTeamLeaveReject.length > 1"
+      class="form-group ">
+      <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkTeamLeaveApproval()">Bulk
+        Approve</button>&nbsp;
+      <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openBulklLeaveReject(teamLeave_reject)">Bulk
+        Reject</button>
     </div>
-    <table class="table leave-request-table" id="leave-request-table" matSort (matSortChange)="sortLeaveRequestTable($event)">	
-      <thead class="thead-light">	
-        <tr>	
-          <th scope="col" class="info-label">Sr No.</th>	
-          <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-          <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-          <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-          <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-          <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-          <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
+    
+    <div class="row col-md-12">
+      <div class="form-inline col-md-3">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+      <div class="row d-flex ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+      </div>
+    </div>
+      
+    
+    <!-- <div class="form-group ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+      </div> -->
+    <table class="table leave-request-table" id="leave-request-table" matSort
+      (matSortChange)="sortLeaveRequestTable($event)">
+      <thead class="thead-light">
+        <tr>
+          <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+              [(ngModel)]="isSelectAll"></th>
+          <th scope="col" class="info-label">Sr No.</th>
+          <th scope="col" class="info-label">Name</th>
+          <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
+          <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+          <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+          <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+          <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+          <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
           <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
-        <th scope="col" class="info-label">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngIf="leaveApplicationList.length == 0">
-        <th colspan="9" class="text-center info-label">No details to display...</th>
-      </tr>
-        <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-            <td>{{10*(page-1)+i+1}}</td>
-            <td>{{leaveApplication.leaveType}}</td>
-            <td>{{leaveApplication.fromDate}}</td>
-            <td>{{leaveApplication.toDate}}</td>
-            <td>{{leaveApplication.noOfDays}} day(s)</td>
-            <td>{{leaveApplication.status}}</td>
-            <td>{{leaveApplication.createdByName}}</td>
-            <td>{{leaveApplication.createdOn}}</td>
-            <td>{{leaveApplication.reason}}</td>
-            <td>
-                <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-            </td>
+          <th scope="col" class="info-label">Actions</th>
         </tr>
-    </tbody>
-  </table>
-  <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
- </div>
+      </thead>
+      <tbody>
+        <tr *ngIf="leaveApplicationList.length == 0">
+          <th colspan="9" class="text-center info-label">No details to display...</th>
+        </tr>
+        <tr
+          *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+          <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
+              [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
+          <td>{{items*(page-1)+i+1}}</td>
+          <td>{{leaveApplication.employeeName}}</td>
+          <td>{{leaveApplication.leaveType}}</td>
+          <td>{{leaveApplication.fromDate}}</td>
+          <td>{{leaveApplication.toDate}}</td>
+          <td>{{leaveApplication.noOfDays}} day(s)</td>
+          <td>{{leaveApplication.status}}</td>
+          <td>{{leaveApplication.createdByName}}</td>
+          <td>{{leaveApplication.createdOn}}</td>
+          <td>{{leaveApplication.reason}}</td>
+          <td>
+            <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit"
+              (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
+                class="fa-solid fa-check"></em></button>&nbsp;
+            <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+              (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
+                class="fa-solid fa-xmark"></em></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0"
+      (pageChange)="handlePageChange($event)"></pagination-controls>
+    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+      [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
+        class="fa fa-file-arrow-down fa-2x"></em></button>
+  </div>
 
 <!-- CompOff Request table -->
 
 <div class="row col-md-12" *ngIf="isCompOffRequest">
   <div class="form-group ml-auto col-md-3">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
     </div>
   <table class="table compOffApplication-table" id="compOffApplication-table" matSort (matSortChange)="sortCompOffRequestTable($event)">	
     <thead class="thead-light">	
@@ -305,5 +346,25 @@
   <div class="modal-body text-center">
       <p>{{alertMessage}}</p>
       <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+<!-- teamLeave_reject -->
+<ng-template #teamLeave_reject>
+  <div class="modal-body text-center">
+      <p>Kindly provide reason(s) for rejecting application.</p>
+      <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+      <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();OnBulkTeamLeaveReject(alert_message)">Reject</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+<!-- for single rection modal -->
+<ng-template #reject_leave_modal>
+  <div class="modal-body text-center">
+      <p>Kindly provide reason(s) for rejecting application.</p>
+      <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+      <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>

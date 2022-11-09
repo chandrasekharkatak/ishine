@@ -1,5 +1,14 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showPortalConfiguration()" [ngClass]="{'active' : isPortalConfiguration}">Portal Configuration</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showAppreciationConfiguration()" [ngClass]="{'active' : isAppreciationConfiguration}">Appreciation Configuration</button>
+    </div>
+</div>
+
+<!-- Portal Configuration : start -->
+
 <div class="row">
-    <div class="card col-md-12 px-0">
+    <div class="card col-md-12 px-0" *ngIf="isPortalConfiguration">
         <div class="card-header text-center text-uppercase">
             <strong>Portal Global Configuration</strong>
         </div>
@@ -40,6 +49,47 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>OTRS <small>(Recruitment Link)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.otrsLink">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>SNIPIT <small>(Asset Management Link)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.snipitLink">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>DSR <small>(Folder path)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.dsrDownloadPath">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Generate DSR On Day <small>(Every month)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.dsrGenerateDay">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button">Generate Pervious Month DSR</button>
+                </div>
+            </div>
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">Update Portal Global Configuration</button>
@@ -48,6 +98,15 @@
         </div>
     </div>
 </div>
+
+
+<!-- Appreciation Configuration : start -->
+
+<div class="row">
+    <div class="col-md-12 px-0" *ngIf="isAppreciationConfiguration">
+        <h6>Appreciation Configuration</h6>
+    </div>
+</div>       
 
 <ng-template #alert_message>
     <div class="modal-body text-center">

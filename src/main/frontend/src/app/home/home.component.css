@@ -37,20 +37,33 @@
     height: 25rem; 
 } */
 
+
 img{
     display: block;
     width: 100%;
 }
 
 .carousel-item .carousel-img{
-    object-fit: cover !important;
-    object-position: right !important;
+    object-fit: cover;
+    object-position: center;
+    height: 72vh;
+    min-height: fit-content;
+}
+
+.spinner-container{
+    height: 72vh;
 }
 
 .notifications{
     color: var(--dark-red);
     text-transform: uppercase;
     letter-spacing: 1px;
+    animation: blinker 1.5s linear infinite;
+}
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
 }
 
 .leaveBucketContainer,.requestBucketContainer{
@@ -149,3 +162,4 @@ img{
     letter-spacing: 1px;
     text-align: center;
 }
+

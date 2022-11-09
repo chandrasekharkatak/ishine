@@ -143,14 +143,15 @@ export class CompOffComponent implements OnInit {
       });
     }
 
+    // Allow Only Past 1 month Days for Comp-off Application
     fromDateFilter = (d: Date)=>{
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
       const BACKDATED_LEAVE_PERIOD = 31;
-      const FUTUREDATED_LEAVE_PERIOD = 180;
+      // const FUTUREDATED_LEAVE_PERIOD = 180;
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
-      let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+      let maxDate = new Date(currentDate.getTime());
       
       return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.allCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
@@ -158,9 +159,7 @@ export class CompOffComponent implements OnInit {
     toDateFilter = (d: Date)=>{
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
-      const FUTUREDATED_LEAVE_PERIOD = 180;
-      const DAY_IN_MS = 24 * 60 * 60 * 1000;
-      let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+      let maxDate = new Date(currentDate.getTime());
       
       if(!this.compOffObj.fromDate){
         return false;
@@ -217,6 +216,7 @@ export class CompOffComponent implements OnInit {
 
     resetToDate(){
       this.compOffObj.toDate = ''
+      this.compOffObj.noOfDays = ''
     }
 
     onApplyCompOff(template: TemplateRef<any>){

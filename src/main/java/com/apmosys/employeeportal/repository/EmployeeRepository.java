@@ -23,7 +23,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 //	public List<Object[]> getEmployeesByRole();	
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getEmployeesByRole(String role);
+	public List<Object[]> getEmployeesByRole(Long jobRoleId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployeesByDepartmentIds(List<Long> deptIds);
@@ -32,7 +32,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getAllTeamView(Long empId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllTeamMemberView(Long managerId);
+	public List<Object[]> getAllTeamMemberView(Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllHolidayByEmpWorkLocation(Long empId);
@@ -99,5 +99,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> findEmployeeWorkingHistory(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDetailForCron();
 
 }

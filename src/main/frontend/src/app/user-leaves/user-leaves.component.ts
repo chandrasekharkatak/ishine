@@ -1,8 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from '../models/feature';
+import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { LogService } from '../services/log.service';
 import { CompOffComponent } from './comp-off/comp-off.component';
 import { HolidaysComponent } from './holidays/holidays.component';
 import { LeaveComponent } from './leave/leave.component';
@@ -17,17 +19,23 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
   tabName:any = 'My Leave';
   currentUser:User;
   userMapping:any = {};
-
+  log:Log;
 
   constructor(
     private authenticationService: AuthenticationService,
     private router: Router,
     private route: ActivatedRoute,
+    private logService:LogService
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.logService.log.subscribe(x => {
+      this.log = x;
+      this.log.tabName = this.tabName;
+    });
   }
 
   ngOnInit(): void {
+    this.logService.updateLogInfo(this.log);
     console.log("this.currentUser : ", this.currentUser);
     console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
     

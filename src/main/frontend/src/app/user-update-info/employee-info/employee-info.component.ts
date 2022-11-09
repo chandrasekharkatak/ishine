@@ -276,24 +276,11 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
 
-  validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.bankIFSCCode)){
-      this.openAlertMod(template , 'Please Enter IFSC Code !!')
-      return false;
-    }
-    if(!this.validationService.validateCapitalAlphaNumeric(employeeObj.bankIFSCCode)){
-      this.openAlertMod(template , 'Please Enter Capital letter !!')
-      return false;
-    }
-    return true;
-  }
-
+  
 
   async onSave(template : TemplateRef<any>){
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
     const dateFormat = 'YYYY-MM-DD';
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
-    if (!inputValidated) return;
     
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
@@ -348,7 +335,24 @@ export class EmployeeInfoComponent implements OnInit{
     }
   }
 
+  addDemographiscInfo(template: TemplateRef<any>, pincode:any){
+    let path;
 
+    fetch('https://api.postalpincode.in/pincode/'+pincode).then(res => res.json()).then(data => {
+      if(data[0].Status == "Success"){
+        path = data[0].PostOffice[0];
+
+        this.employeeObj.state = path.State;
+        this.employeeObj.city = path.Block;
+        this.employeeObj.country = path.Country;
+      }else{
+        this.employeeObj.state = "";
+        this.employeeObj.city = "";
+        this.employeeObj.country = "";
+        this.openAlertMod(template, 'Please enter valid pincode');
+      }
+    });
+  }
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {

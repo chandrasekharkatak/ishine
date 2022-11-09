@@ -49,7 +49,7 @@ export class TeamMemberComponent implements OnInit {
     this.viewTeamMemberList = []
 
     let employeeObj = new Employee();
-    employeeObj.managerId = this.currentUser.managerId;
+    employeeObj.empId = this.currentUser.empId;
     this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
@@ -70,13 +70,13 @@ export class TeamMemberComponent implements OnInit {
 
     this.excelName = "TeamMemberSheet.xlsx";
 
-      const onlySpecificDataArr: Partial<Employee>[] = this.viewTeamMemberList.map(
+      const onlySpecificDataArr = this.viewTeamMemberList.map(
         x => ({
-          empId: x.empId,
-          name: x.name,
-          email: x.email,
-          jobRoleName: x.jobRoleName,
-          mobileNo: x.mobileNo
+          "Employee Id": x.employeementId,
+          "Name": x.name,
+          "Email": x.email,
+          "Designation": x.jobRoleName,
+          "Mobile No": x.mobileNo
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)

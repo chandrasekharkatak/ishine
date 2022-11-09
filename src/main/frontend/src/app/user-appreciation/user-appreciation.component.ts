@@ -29,6 +29,7 @@ export class UserAppreciationComponent implements OnInit {
   managername:any
   employeementid:any
   currentUser: User;
+  empid:any;
   
  
   constructor(private appreciationService : AppreciationService,
@@ -40,6 +41,7 @@ export class UserAppreciationComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.employeeObj.empId=this.currentUser.empId;
     this.getAllEmployees();
     this.employeeObj.appreciateType = 'You are my Star';	
     
@@ -51,14 +53,19 @@ export class UserAppreciationComponent implements OnInit {
    this.employeeObj.appreciateType=null;
    this.employeeObj.reason=null;
   }
+  
   getAllEmployees() {
+    
     this.appreciationService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployee = response.serviceResponse;
-        this.allEmployee = this.allEmployee.filter(x => x.employmentstatus != 'InActive');
-        this.allEmployee = this.allEmployee.sort(function (a, b) {
-             return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-           });
+        this.allEmployee = this.allEmployee.filter(x => x.employmentstatus != 'InActive' && x.empId != this.currentUser.empId);
+        this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
+
+        // this.allEmployee = this.allEmployee.sort(function (a, b) {
+        //      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+
+        //    });
         console.log("appreciation : ", this.allEmployee)
         // this.allEmployee=response;
         //    console.warn(this.allEmployee)
@@ -87,12 +94,17 @@ export class UserAppreciationComponent implements OnInit {
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.reason)) {
-      this.alertMessage = "Why you want to give Appreciation?Should not be Empty!!"
+      this.alertMessage = "Why you want to give Appreciation? Should not be Empty!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
     if(!this.validationService.validateAlphaWithSpace(employeeObj.reason)) {	
       this.alertMessage = "Only support letters in Description !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }
+    if(!this.validationService.validateAlphaWithSpaceInbetween(employeeObj.reason)){
+      this.alertMessage = "Why you want to give Appreciation? Should not contain space at Beginning and End of the string "
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }

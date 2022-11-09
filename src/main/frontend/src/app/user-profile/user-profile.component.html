@@ -59,7 +59,7 @@
                     <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab"
                         href="#details" role="tab" aria-controls="home" aria-selected="true">Employee Details</a>
                 </li>
-                <li class="nav-item user-info__tab-item">
+                <!-- <li class="nav-item user-info__tab-item">
                     <a class="nav-link user-info__tab-item__link" id="timeline-tab" data-toggle="tab" href="#timeline"
                         role="tab" aria-controls="profile" aria-selected="false">Timeline</a>
                 </li>
@@ -74,7 +74,7 @@
                 <li class="nav-item user-info__tab-item">
                     <a class="nav-link user-info__tab-item__link" id="activities-tab" data-toggle="tab"
                         href="#activities" role="tab" aria-controls="profile" aria-selected="false">Activities</a>
-                </li>
+                </li> -->
             </ul>
 
 
@@ -408,7 +408,7 @@
                                             <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.experience == 'Experience'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Total Experience</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
@@ -424,8 +424,8 @@
                             </div>
                         </app-accordion-item>
 
-                        <!-- Previous Employer details will be diplayed only if exprience is "Exprienced" -->
-                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                        <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
                                 <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
@@ -548,12 +548,12 @@
                     </app-accordion>
 
                 </div>
-                <div class="tab-pane fade user-info__tab-container" id="timeline" role="tabpanel"
+                <!-- <div class="tab-pane fade user-info__tab-container" id="timeline" role="tabpanel"
                     aria-labelledby="timeline-tab">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laboriosam
                     eaque, incidunt sapiente quia nulla beatae animi rerum quae sequi ab aliquam. Omnis debitis
                     dignissimos nihil reprehenderit, voluptatum quia tempora at ratione dolor, sapiente laborum ab
                     obcaecati error? Labore id repellendus est velit doloremque deserunt natus veritatis dolores,
-                    mollitia culpa ipsum?</div>
+                    mollitia culpa ipsum?</div> -->
             </div>
         </div>
 
@@ -957,7 +957,7 @@
                                         <select class="form-control" aria-hidden="true" [(ngModel)]="UpdateEmployeeInfo.experience">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option value="Fresher">Fresher</option>
-                                            <option value="Exprienced">Exprienced</option>
+                                            <option value="Experienced">Experienced</option>
                                           </select>
                                     </div>
                                 </div>
@@ -972,7 +972,7 @@
                     </div>
                 </app-accordion-item>
 
-                <app-accordion-item *ngIf="UpdateEmployeeInfo.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                <app-accordion-item *ngIf="UpdateEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                     <div class="container-fluid">
                         <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                             <div class="col-md-4 mb-0">

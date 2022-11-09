@@ -12,6 +12,10 @@
     color: var(--raisin-black);
 }
 
+.text-highlight{
+    color: var(--dark-cornflower-blue);
+}
+
 .my-pagination::ng-deep .ngx-pagination .current {
     background: #193d8a  !important;
 }

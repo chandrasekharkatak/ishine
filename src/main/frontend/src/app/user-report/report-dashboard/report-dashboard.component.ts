@@ -606,7 +606,8 @@ export class ReportDashboardComponent implements OnInit {
        else if (age>45) countAbove45++;
       }
 
-      if(employee.dateOfJoining != null && employee.totalExperience != null && employee.employmentstatus != 'InActive'){
+      if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
+        if(employee.totalExperience == null)employee.totalExperience = 0;
         let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
         employee.totalExperience = empTotalExperience.toFixed(1);
         console.log(empTotalExperience);
@@ -1338,7 +1339,7 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": x.fromDate,
@@ -1352,12 +1353,12 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelTimesheetSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":x.date,
         "Day Type":x.dayType,
-        "Email": x.email,
+        "Email Id": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Pending EOD Count": x.pendingEodCount,
@@ -1371,10 +1372,10 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelEODSegregation(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "Email": x.email,
+        "Email Id": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Timesheet Date":x.date,
@@ -1388,10 +1389,11 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelEmployeeSummary():void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Employment ID": x.employeementId,
+        "Emp ID": x.employeementId,
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "Email": x.email,
+        "Email Id": x.email,
+        "Date Of Joining" : x.dateOfJoining,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
@@ -1468,6 +1470,7 @@ export class ReportDashboardComponent implements OnInit {
   openLeaveSummaryTableModel(statusName:any) {
     let modalTableList = this.uniqueLeaveSumarryList;
     this.modalSummaryList = [];
+    this.data = ''
       this.page=1;
       this.modalTitle = statusName+" Leave Summary";
       this.modalSummaryList = modalTableList.filter(x => x.status == statusName);
@@ -1477,6 +1480,7 @@ export class ReportDashboardComponent implements OnInit {
   openTimesheetSummaryTableModel(legendName:any){
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
+    this.data = ''
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
@@ -1484,6 +1488,7 @@ export class ReportDashboardComponent implements OnInit {
     }
 
   openTotalCountModal(title:any){
+    this.data = ''
     this.modalSummaryList = [];
     let dateToday = moment().format(this.dateFormat);
     let modalTableList = this.allEmployeeList;
@@ -1499,6 +1504,7 @@ export class ReportDashboardComponent implements OnInit {
 
   openEmployeeStatusTableModal(status:any){
     this.modalSummaryList = [];
+    this.data = ''
     let modalTableList = this.allEmployeeList;
       this.page=1;
       this.modalTitle = "Employee In " + status;
@@ -1507,6 +1513,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openGenderSummaryModalTable(gender:any){
+    this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     this.page = 1;
@@ -1516,6 +1523,7 @@ export class ReportDashboardComponent implements OnInit {
   }    
 
   openAgeSummayModalTable(age:any){
+    this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(age == "18 to 25"){
@@ -1545,6 +1553,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openDepartmentWiseEmployeeModalTable(pointName:any){
+    this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
@@ -1554,6 +1563,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openEmployeeExperienceModalTable(pointName:any){
+    this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(pointName == "0 to 1"){
@@ -1589,6 +1599,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openFresherLateralModalTable(pointName:any){
+    this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
@@ -1602,6 +1613,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openEmployeeJoinResignModalTable(category:any, name:any){
+    this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList;
     let dateToday = moment().year();
@@ -1621,6 +1633,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openLeaveAnalysisTableModel(pointName:any, category:any){
+    this.data =''
     this.modalSummaryList = [];
     let modalTableList = this.leaveTrendAnalysisList;
       this.page=1;

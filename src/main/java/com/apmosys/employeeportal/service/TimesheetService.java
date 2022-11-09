@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
+import org.hibernate.cache.spi.support.AbstractReadWriteAccess.Item;
 import org.hibernate.internal.build.AllowSysOut;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -191,7 +193,7 @@ public class TimesheetService {
 			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 			Timesheet newTimesheet = new Timesheet();
 
-			newTimesheet.setEmpId(timesheetDTO.getCreatedBy());
+			newTimesheet.setEmpId(timesheetDTO.getEmpId());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
@@ -223,7 +225,12 @@ public class TimesheetService {
 						TimesheetActivityMap map = new TimesheetActivityMap();
 						map.setActivityId(activity.getActivityId());
 						map.setCompletionTime(activity.getCompletionTime());
-						map.setDescription(activity.getDescription());
+						if(activity.getDescription() == null) {
+							Activity activityObj = activitiesRepository.getById(activity.getActivityId());
+							map.setDescription(activityObj.getActivity());
+						}else {
+							map.setDescription(activity.getDescription());
+						}
 						map.setTimesheetId(newTimesheetCreated.getTimesheetId());
 						map.setClientLocationId(activity.getClientLocationId());
 						
@@ -276,8 +283,8 @@ public class TimesheetService {
 
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
-			List<Timesheet> timesheetList = timesheetsRepository
-					.findAllByEmpIdAndDateBetweenOrderByDateDesc(timesheetDTO.getEmpId(), start, end);
+			List<Object[]> timesheetList = timesheetsRepository
+					.getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
 
 			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
 
@@ -286,12 +293,80 @@ public class TimesheetService {
 					response.setServiceResponse("Timesheet list is empty");
 				} else {
 
-					Type typeList = new TypeToken<List<TimesheetDTO>>() {
-					}.getType();
-					List<TimesheetDTO> timesheetDTOList = modelMapper.map(list, typeList);
+					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+					list.forEach((object) -> {
+
+						TimesheetDTO dto = new TimesheetDTO();
+						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setDate(object[1] != null ? object[1].toString() : null);
+						dto.setDayType(object[2] != null ? object[2].toString() : null);
+						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+						dto.setDescription(object[4] != null ? object[4].toString() : null);
+						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
+						dto.setStatus(object[6] != null ? object[6].toString() : null);
+						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dtoList.add(dto);
+					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(timesheetDTOList);
+					response.setServiceResponse(dtoList);
+
+				}
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	
+	public ServiceResponse getAllMyTeamTimesheets(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+
+			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+
+			List<Object[]> timesheetList = timesheetsRepository
+					.getAllMyTeamTimesheets(timesheetDTO.getCreatedBy(), start, end);
+
+			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Timesheet list is empty");
+				} else {
+					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+					list.forEach((object) -> {
+
+						TimesheetDTO dto = new TimesheetDTO();
+						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setDate(object[1] != null ? object[1].toString() : null);
+						dto.setDayType(object[2] != null ? object[2].toString() : null);
+						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+						dto.setDescription(object[4] != null ? object[4].toString() : null);
+						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
+						dto.setStatus(object[6] != null ? object[6].toString() : null);
+						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
 
 				}
 			}, () -> {
@@ -463,9 +538,10 @@ public class TimesheetService {
 						response.setServiceResponse("Timesheet status Rejected.");
 
 						try {
-							mailService.sendMail(timesheetDTO.getEmail(), "Regarding Timesheet Rejection ", timesheetDTO.getRejectReason());
-							System.out.println(" timesheetDTO.getEmail() : " +timesheetDTO.getEmail());
-							System.out.println(" timesheetDTO.getRejectReason() : " +timesheetDTO.getRejectReason());
+							mailService.sendMail(timesheetDTO.getEmail(),
+									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
+									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+" <br> "+timesheetDTO.getRejectReason());
+							
 						} catch (Exception e) {
 							e.printStackTrace();
 							response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -831,5 +907,53 @@ public class TimesheetService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse bulkApproveTimesheetRequest(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+	
+		try {
+			
+			for (TimesheetDTO timesheet : timesheetDTO.getBulkApprovedList()) {
+				
+				timesheet.setStatus(timesheetDTO.getStatus());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				response = updateTimesheetRequestById(timesheet);
+			    
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
+	}
+	
+	public ServiceResponse bulkRejectTimesheetRequest(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+	
+		try {
+			
+			for (TimesheetDTO timesheet : timesheetDTO.getBulkRejectList()) {
+				
+				timesheet.setStatus(timesheetDTO.getStatus());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				timesheet.setRejectReason(timesheetDTO.getRejectReason());
+				response = updateTimesheetRequestById(timesheet);   
+				System.out.println("   timesheet Reject reason __" +timesheetDTO.getRejectReason());
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
+	}
+	
 
 }

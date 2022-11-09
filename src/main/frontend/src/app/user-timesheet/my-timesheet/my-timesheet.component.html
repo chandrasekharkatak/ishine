@@ -1,18 +1,59 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet" [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New Timesheet</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet" [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Timesheets</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
+            [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New
+            Timesheet</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+            *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
+            [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Timesheets</button>
     </div>
 </div>
 
 <!-- start :: Create & Update Team -->
 <div class="row" *ngIf="isTimesheetForm">
-    <div class="card col-md-12 px-0" >
+    <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Timesheet</strong>
             <strong *ngIf="isUpdation">Update Timesheet</strong>
         </div>
         <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="d-block info-label"><span class="text-danger">*</span>Timesheet Application
+                                For</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self"
+                                    [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
+                                    (change)="getAllTeamMemberList();getTimesheetMetadata()">
+                                <label class="form-check-label" for="forSelf">Self</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
+                                    value="team" [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
+                                    (change)="getAllTeamMemberList()">
+                                <label class="form-check-label" for="forTeamMember">Team member</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="this.timesheetObj.timesheetAppliedFor == 'team'" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Member</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
+                                [disabled]="isUpdation" (change)="getTimesheetMetadata()">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
+                                    {{teamMember.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
@@ -20,11 +61,14 @@
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
                             <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="timesheetDate" [matDatepicker]="timesheetDate" [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
-                                autocomplete="off">
+                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput
+                                    id="timesheetDate" [matDatepicker]="timesheetDate"
+                                    [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
+                                    [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
+                                    autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #timesheetDate ></mat-datepicker>
+                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -47,8 +91,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"></textarea>
-                          </div>
+                            <textarea class="form-control" id="dayTypeDesc" rows="3"
+                                [(ngModel)]="timesheetObj.description"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -64,9 +109,12 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.clientId" (change)="getClientLocationList(activityObj);">
+                                        <select class="form-control" aria-hidden="true"
+                                            [(ngModel)]="activityObj.clientId"
+                                            (change)="getClientLocationList(activityObj);">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let client of clientList" value="{{client.clientId}}">{{client.clientName}}</option>
+                                            <option *ngFor="let client of clientList" value="{{client.clientId}}">
+                                                {{client.clientName}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -74,10 +122,15 @@
                             <div class="col-md-3 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
-                                        <label class="info-label"><span class="text-danger">*</span>Client Location</label>
-                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.clientLocationId" (change)="getProjectList(activityObj);">
+                                        <label class="info-label"><span class="text-danger">*</span>Client
+                                            Location</label>
+                                        <select class="form-control" aria-hidden="true"
+                                            [(ngModel)]="activityObj.clientLocationId"
+                                            (change)="getProjectList(activityObj);">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let clientLocation of clientLocationList" value="{{clientLocation.clientLocationId}}">{{clientLocation.clientLocation}}</option>
+                                            <option *ngFor="let clientLocation of activityObj.clientLocationList"
+                                                value="{{clientLocation.clientLocationId}}">
+                                                {{clientLocation.clientLocation}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -88,9 +141,12 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId" (change)="getAllActivitiesByProjectIdandEmpId(activityObj)">
+                                        <select class="form-control" aria-hidden="true"
+                                            [(ngModel)]="activityObj.projectId"
+                                            (change)="getAllActivitiesByProjectIdandEmpId(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let project of projectList" value="{{project.projectId}}">{{project.projectName}}</option>
+                                            <option *ngFor="let project of activityObj.projectList"
+                                                value="{{project.projectId}}">{{project.projectName}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -99,9 +155,11 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
-                                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.activityId" (change)="setActivity(activityObj)">
+                                        <select class="form-control" aria-hidden="true"
+                                            [(ngModel)]="activityObj.activityId" (change)="setActivity(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let activity of activityObj.projectActivities" value="{{activity.activityId}}">{{activity.activity}}</option>
+                                            <option *ngFor="let activity of activityObj.projectActivities"
+                                                value="{{activity.activityId}}">{{activity.activity}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -109,23 +167,27 @@
                             <div class="col-md-4 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
-                                        <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                                        <textarea class="form-control" id="dayTypeDesc" rows="1" [(ngModel)]="activityObj.description"></textarea>
+                                        <label for="leaveDesc">Description</label>
+                                        <textarea class="form-control" id="dayTypeDesc" rows="1"
+                                            [(ngModel)]="activityObj.description"></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-1 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
-                                        <label class="info-label"><span class="text-danger">*</span>Time <small>(Hrs)</small></label>
-                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="activityObj.completionTime">
+                                        <label class="info-label"><span class="text-danger">*</span>Time
+                                            <small>(Hrs)</small></label>
+                                        <input type="number" class="form-control" autocomplete="none"
+                                            [(ngModel)]="activityObj.completionTime">
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-1 d-flex">
                                 <div class="m-0 mt-4 pt-2">
                                     <button type="button" class="btn btn-sm btn-outline-primary mx-1"
-                                        (click)="addInputActivityField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        (click)="addInputActivityField()"><i class="fa fa-plus"
+                                            aria-hidden="true"></i></button>
                                     <button *ngIf="i != 0" type="button" class="btn btn-sm btn-outline-primary mx-1"
                                         (click)="removeInputActivityField(activityObj)"><i class="fa fa-trash"
                                             aria-hidden="true"></i></button>
@@ -138,8 +200,12 @@
             <!-- end :: Add & Update Activities -->
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation && userMapping.add_timesheet" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTimesheet(alert_message)">Create Timesheet</button>
-                    <button *ngIf="isUpdation && userMapping.update_timesheet" type="submit" class="btn btn-primary btn-sm mx-1" (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
+                    <button *ngIf="isCreation && userMapping.add_timesheet" type="submit"
+                        class="btn btn-primary btn-sm mx-1" (click)="onCreateTimesheet(alert_message)">Create
+                        Timesheet</button>
+                    <button *ngIf="isUpdation && userMapping.update_timesheet" type="submit"
+                        class="btn btn-primary btn-sm mx-1"
+                        (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
                 </div>
             </div>
         </div>
@@ -149,68 +215,104 @@
 
 <!-- start :: View Timesheets -->
 <div class="row d-flex" *ngIf="isTimesheetTable">
-    <div class="col-md-12">
-        <div class="row table-header">
+    <div class="col-md-12 px-0">
+        <div class="row col-md-12 px-0 mx-0 table-header">
             <h1 class="table-header-title">My Timesheets</h1>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                    [ngClass]="{'active' : isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                    [ngClass]="{'active' : isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+            </div>
         </div>
         <div class="row">
             <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="startDate" (change)="resetToDate()" (keydown)="disableMannualDateInput()">
+                        <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none"
+                            [(ngModel)]="startDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
+                            (keydown)="disableMannualDateInput()">
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-0">
+            <!-- For Self -->
+            <div *ngIf="isSelfTimesheets" class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="endDate" (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
+                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none"
+                            [(ngModel)]="endDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
+                            (keydown)="disableMannualDateInput()">
                     </div>
                 </div>
             </div>
-            <div class="form-group d-flex flex-row ml-auto col-md-3 search-box">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            <!-- For Team -->
+            <div *ngIf="isTeamTimesheets" class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none"
+                            [(ngModel)]="endDate" (change)="getMyTeamTimesheets(alert_message)"
+                            (keydown)="disableMannualDateInput()">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group d-flex flex-row ml-auto col-md-3 mr-3 search-box">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div>
         </div>
-        <div class="row">
-            <table class="table table-responsive scrollable-table" id="teams-table" matSort (matSortChange)="sortMyTimesheet($event)">	
-                <thead class="thead-light">	
-                  <tr>	
-                    <th scope="col" class="info-label">Sr No.</th>	
-                    <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
-                    <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
-                    <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                    <th scope="col" colspan="info-label" class="info-label">Total Time</th>
-                    <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                    <th scope="col" class="info-label">Actions</th>
-                  </tr>
+        <table class="table table-responsive scrollable-table" id="teams-table" matSort
+                (matSortChange)="sortMyTimesheet($event)">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th *ngIf="isTeamTimesheets" scope="col" class="info-label">Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="date">Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
+                        <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                        <th scope="col" colspan="info-label" class="info-label">Total Time</th>
+                        <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                        <th *ngIf="isSelfTimesheets" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
+                        <th scope="col" class="info-label">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="allMyTimesheets.length == 0">
-                    <th colspan="9" class="text-center info-label">No details to display...</th>
-                  </tr>
-                  <tr *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                      <td>{{20*(page-1)+i+1}}</td>
-                      <td>{{timesheet.date}}</td>
-                      <td>{{timesheet.dayType}}</td>
-                      <td colspan="4" [innerHTML]="timesheet.description"></td>
-                      <td>{{timesheet.totalTime}}</td>
-                      <td>{{timesheet.status}}</td>
-                      <td>
-                        <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
-                        (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-primary" type="submit" title="copy timesheet"
-                        (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
-                        <button *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
-                    </td>
-                  </tr>
+                    <tr *ngIf="allMyTimesheets.length == 0">
+                        <th colspan="9" class="text-center info-label">No details to display...</th>
+                    </tr>
+                    <tr
+                        *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                        <td>{{20*(page-1)+i+1}}</td>
+                        <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
+                        <td>{{timesheet.date}}</td>
+                        <td>{{timesheet.dayType}}</td>
+                        <td colspan="4" [innerHTML]="timesheet.description"></td>
+                        <td>{{timesheet.totalTime}}</td>
+                        <td>{{timesheet.status}}</td>
+                        <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
+                        <td>{{timesheet.createdOn}}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                                (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-primary" type="submit" title="copy timesheet"
+                                (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
+                            <button
+                                *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected')"
+                                class="btn btn-sm btn-outline-primary" type="submit"
+                                (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
+                        </td>
+                    </tr>
                 </tbody>
-              </table> 
-              <pagination-controls class="my-pagination" [hidden]="allMyTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>  
+            </table>
+            <pagination-controls class="my-pagination" [hidden]="allMyTimesheets.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
 </div>
 <!-- end :: View Timesheets -->
@@ -233,7 +335,8 @@
 <ng-template #update_timesheet_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the Timesheet?</p>
-        <button type="button" class="btn btn-success" (click)="cancelRequest();onUpdateTimesheet(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onUpdateTimesheet(alert_message)">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -248,68 +351,72 @@
 <!-- View Timesheet Details -->
 <ng-template #timesheet_details>
     <div class="modal-header">
-      <h5 class="modal-title">Timesheet Details</h5>
+        <h5 class="modal-title">Timesheet Details</h5>
     </div>
     <div class="modal-body">
-      <div class="row">
-        <div class="col-md-2 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">Date</label>
-              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
+        <div class="row">
+            <div class="col-md-2 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Date</label>
+                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date"
+                            disabled>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="col-md-3 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">Day Type</label>
-              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
-        <div class="col-md-4 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                    <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" disabled></textarea>
-                  </div>
+            <div class="col-md-3 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Day Type</label>
+                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType"
+                            disabled>
+                    </div>
+                </div>
             </div>
         </div>
+        <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                        <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"
+                            disabled></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+            <table class="table timesheet-table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label">Client Name</th>
+                        <th scope="col" class="info-label">Client Location</th>
+                        <th scope="col" class="info-label">Project Name</th>
+                        <th scope="col" class="info-label">Activity</th>
+                        <th scope="col" colspan="4" class="info-label">Description</th>
+                        <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
+                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    </tr>
+                    <tr
+                        *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                        <td>{{20*(page-1)+i+1}}</td>
+                        <td>{{activity.clientName}}</td>
+                        <td>{{activity.clientLocation}}</td>
+                        <td>{{activity.projectName}}</td>
+                        <td>{{activity.activity}}</td>
+                        <td colspan="4">{{activity.description}}</td>
+                        <td>{{activity.completionTime}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-      <div *ngIf="timesheetObj.dayType != 'Holiday'"  class="row px-3">
-        <table class="table timesheet-table">
-            <thead class="thead-light">
-              <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Client Name</th>
-                <th scope="col" class="info-label">Client Location</th>
-                <th scope="col" class="info-label">Project Name</th>
-                <th scope="col" class="info-label">Activity</th>
-                <th scope="col" colspan="4" class="info-label">Description</th>
-                <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                <td>{{20*(page-1)+i+1}}</td>
-                <td>{{activity.clientName}}</td>
-                <td>{{activity.clientLocation}}</td>
-                <td>{{activity.projectName}}</td>
-                <td>{{activity.activity}}</td>
-                <td colspan="4">{{activity.description}}</td>
-                <td>{{activity.completionTime}}</td>
-              </tr>
-            </tbody>
-        </table> 
-      </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>
     </div>
-    <div class="modal-footer">	
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>	
-    </div>
-  </ng-template>
+</ng-template>

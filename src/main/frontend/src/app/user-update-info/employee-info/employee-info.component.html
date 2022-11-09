@@ -31,6 +31,22 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Your views on our Organisation</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.viewsOnOrganisation">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>About me</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aboutMe">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Gender</label>
                                             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.gender">
                                                 <option selected="selected" value="" disabled>Select</option>
@@ -108,7 +124,7 @@
                                     </div>
                                     <div class="col-md-2 d-flex align-items-center">
                                         <div class="col-md-12">
-                                            <button [disabled]="allChildList.length >= 3" type="button" class="btn btn-outline-primary mx-1" (click)="addInputChildField()"><i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
+                                            <button [disabled]="allChildList.length >= 3" type="button" class="btn btn-outline-primary mx-1" (click)="addInputChildField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
                                             <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputChildField(child)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                         </div>
                                     </div>
@@ -208,7 +224,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>State</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.state">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.state" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -216,7 +232,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>City / Town</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.city">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.city" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -224,14 +240,14 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Country</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.country">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.country" disabled>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <label class="info-label"><span class="text-danger">*</span>Pincode</label>
-                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode">
+                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode" (blur)="addDemographiscInfo(alert_message,employeeObj.pincode)">
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -444,7 +460,7 @@
                                         <p class="info-text info-highlight">{{employeeObj.experience}}</p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Total Exprience</p>
                                         <p class="info-text info-highlight">{{employeeObj.totalExperience}}</p>
@@ -466,7 +482,7 @@
                         </div>
                     </app-accordion-item>
     
-                    <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                    <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -558,7 +574,7 @@
                             </div>
                         </div>
                     </app-accordion-item> -->
-                    <app-accordion-item *ngIf="employeeObj.experience == 'Exprienced'" class="acc-content" title="Previous Employment Information">
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">

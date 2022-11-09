@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -59,11 +62,23 @@ public class EmployeeLeaveService {
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
+	
+	@Autowired
+	private LogService logService;
 
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Apply Leave");
+		apiLogInfo.setApiUrl("/api/applyLeave");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : "+leaveDTO.getEmpId()+ ", leaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", leaveTypeCode : "+ leaveDTO.getLeaveTypeCode() +", noOfDays : "+ leaveDTO.getNoOfDays());
+		
 		try {
 			//LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
@@ -138,24 +153,42 @@ public class EmployeeLeaveService {
 					"Employee Id : A-"+empDto.getEmployeementId()+"<br>"+
 					"Employee Name :-  "+ empDto.getName()+"  has applied for leave ");
 			
+				apiLogInfo.setApiResponse("Leave application submitted.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
 			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Creation Failed.");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				
+				apiLogInfo.setApiResponse("Leave Creation Failed.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiError(e.getMessage());			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse deletePendingLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Delete Leave");
+		apiLogInfo.setApiUrl("/api/deletePendingLeave");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveId : "+leaveDTO.getLeaveId()+", NoOfDays : "+ leaveDTO.getNoOfDays());
+		
 		try {
 
 			Optional<EmployeeLeave> leaveObject = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
@@ -196,10 +229,16 @@ public class EmployeeLeaveService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Leave Application Deleted.");
+				
+				apiLogInfo.setApiResponse("Leave Application Deleted.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Application Not Found.");
+				
+				apiLogInfo.setApiResponse("Leave Application Not Found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -207,14 +246,26 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse updatePendingLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Leave");
+		apiLogInfo.setApiUrl("/api/updatePendingLeave");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveId : "+leaveDTO.getLeaveId()+", Reason : "+ leaveDTO.getReason());
+		
 		try {
 
 			Optional<EmployeeLeave> leaveObject = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
@@ -230,9 +281,15 @@ public class EmployeeLeaveService {
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave Application Updated.");
+					
+					apiLogInfo.setApiResponse("Leave Application Updated.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave Application Updation Failed.");
+					
+					apiLogInfo.setApiResponse("Leave Application Updation Failed.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			}
@@ -242,12 +299,24 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllMyLeaveApplicationsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllMyLeaveApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
 		try {
 			List<Object[]> list = employeeLeaveRepository.getAllMyLeaveApplicationsByEmpId(leaveDTO.getEmpId());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
@@ -255,6 +324,8 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Application found");
 
+				apiLogInfo.setApiResponse("No Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -274,18 +345,33 @@ public class EmployeeLeaveService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveApplicationsByManagerId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ManagerId : "+leaveDTO.getManagerId());
+		
 		try {
 			List<Object[]> list = employeeLeaveRepository
 					.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
@@ -294,6 +380,8 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Application found");
 
+				apiLogInfo.setApiResponse("No Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -309,24 +397,43 @@ public class EmployeeLeaveService {
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					dto.setLeaveTypeMasterId(object[10] != null ? Short.parseShort(object[10].toString()) : null);
+					dto.setEmployeeName(object[11] != null ? object[11].toString() : null);
+					dto.setEmail(object[12] != null ? object[12].toString() : null);
+					dto.setEmployeementId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					dtoList.add(dto);
 				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse updateLeaveStatus(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Leave Status");
+		apiLogInfo.setApiUrl("/api/updateLeaveStatus");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveId : "+leaveDTO.getLeaveId()+", EmpId : "+ leaveDTO.getEmpId()+", LeaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", LeaveStatusId : "+ leaveDTO.getLeaveStatusId()+", LeaveStatusUpdatedBy : "+ leaveDTO.getLeaveStatusUpdatedBy());
+		
 		try {
 			Optional<EmployeeLeave> leaveApplication = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
@@ -345,7 +452,28 @@ public class EmployeeLeaveService {
 				// 1 = pending , 2 = Approved , 3= Rejected
 				if (leaveDTO.getLeaveStatusId() == 2) {
 					pendingLeaveApplication.setLeaveStatusId((short) 2);
+					
+					// Increase Notice period If employee resigned
+					
+					Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
+					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+					
+					LeaveTypeMaster leaveTypeObj = leaveType.get();
+					
+					if (!employee.isEmpty()) {
+						Employee empObj = employee.get();
+						if (empObj.getEmploymentstatus().equals("Resigned") && 
+								(leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
+							
+							empObj.setNoticePeriod((short) Math
+									.ceil(empObj.getNoticePeriod() + pendingLeaveApplication.getNoOfDays()));
+							employeeRepository.save(empObj);
+						}
+					}
+					
 					response.setServiceResponse("Leave application approved.");
+					apiLogInfo.setApiResponse("Leave application approved.");
+					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
 					pendingLeaveApplication.setLeaveStatusId((short) 3);
 					employeeLeavesMap
@@ -360,21 +488,38 @@ public class EmployeeLeaveService {
 					log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 					leaveBalanceLogRepository.save(log);
 					response.setServiceResponse("Leave application rejected.");
-
+					apiLogInfo.setApiResponse("Leave application rejected.");
 				}
 				EmployeeLeave updatedLeaveApplication = employeeLeaveRepository.save(pendingLeaveApplication);
 				EmployeeLeavesMap updatedEmployeeLeavesMap = employeeLeavesMapRepository.save(employeeLeavesMap);
+				
+				
+				
+				mailService.sendMail(leaveDTO.getEmail(),
+						"Regarding leave Rejection ", "Employee Id"+" A-"+leaveDTO.getEmployeementId()+
+						" "+ " <br> "+" Employee Name -"+" "+leaveDTO.getEmployeeName()+" <br> "+" Reason -: "+leaveDTO.getRejectReason());
+			
+				System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
+				System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
+				System.out.println("  leaveDTO.getRejectReason()   :  "+leaveDTO.getRejectReason());
 
 				if (updatedLeaveApplication != null && updatedEmployeeLeavesMap != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Leave Updation Failed.");
+					
+					apiLogInfo.setApiResponse("Leave Updation Failed.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Application found.");
+				
+				apiLogInfo.setApiResponse("No Leave Application found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -382,7 +527,13 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -390,6 +541,11 @@ public class EmployeeLeaveService {
 		ServiceResponse response = new ServiceResponse();
 		Float totalbalance = 0.0f;
 		Float totalPendingForApproval = 0.0f;
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getMyLeaveBalancesByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmployeementId : "+leaveDTO.getEmployeementId());
 
 		try {
 
@@ -446,11 +602,17 @@ public class EmployeeLeaveService {
 					response.setServiceResponse(dtoList);
 					response.setServiceResponse1(employee.getEmpId());
 					response.setServiceResponse2(employeeDataList);
+					
+					apiLogInfo.setApiResponse("Leave Balance Found.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee not found. Kindly check Employee ID.");
+				
+				apiLogInfo.setApiResponse("Employee not found. Kindly check Employee ID.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -458,12 +620,25 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Revoke Leave");
+		apiLogInfo.setApiUrl("/api/revokeApprovedLeaveApplication");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveId : "+leaveDTO.getLeaveId()+", LeaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId());
+		
 		try {
 			
 			Optional<EmployeeLeave> leaveObj = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
@@ -473,6 +648,21 @@ public class EmployeeLeaveService {
 				
 				Float noOfDays = leaveToBeRevoked.getNoOfDays();
 				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+				
+				// If employee in resignation revoke leave, undo its notice period
+				Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+				Optional<Employee> emp = employeeRepository.findById(leaveToBeRevoked.getEmpId());
+				
+				LeaveTypeMaster leaveTypeObj = leaveType.get();
+				
+				if (!emp.isEmpty()) {
+					Employee empObj = emp.get();
+					if (empObj.getEmploymentstatus().equals("Resigned") && 
+							(leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
+						empObj.setNoticePeriod((short) Math.floor(empObj.getNoticePeriod() - leaveToBeRevoked.getNoOfDays()));
+						employeeRepository.save(empObj);
+					}
+				}
 				
 				// updating leave balance after leave revoked
 				
@@ -511,11 +701,17 @@ public class EmployeeLeaveService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave Application revoked.");
+					
+					apiLogInfo.setApiResponse("Leave Application revoked.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Application not found");
+				
+				apiLogInfo.setApiResponse("Leave Application Not Found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		} catch (Exception e) {
@@ -523,13 +719,25 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse updateLeavesByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/updateLeavesByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
 		try {
 
 			List<EmployeeLeavesMap> employeeLeavesList = employeeLeavesMapRepository
@@ -538,6 +746,9 @@ public class EmployeeLeaveService {
 			if (employeeLeavesList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leaves found.");
+				
+				apiLogInfo.setApiResponse("No Leaves found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				employeeLeavesList.forEach((leave) -> {
 
@@ -600,9 +811,15 @@ public class EmployeeLeaveService {
 			if (updatedEmployeeLeavesList.isEmpty() || updatedEmployeeLeavesList == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee leaves updation failed.");
+				
+				apiLogInfo.setApiResponse("Employee leaves updation failed.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Employee leaves updated.");
+				
+				apiLogInfo.setApiResponse("Employee leaves updated.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -610,12 +827,24 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse updateLeaveBalanceByEmployeementId(LeaveDTO leaveDTO) {			
-		ServiceResponse response = new ServiceResponse();			
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/updateLeaveBalanceByEmployeementId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmployeementId : "+leaveDTO.getEmployeementId()+ ", Balance : "+leaveDTO.getBalance());
+		
 		try {			
 								
 			System.out.println(leaveDTO.getEmployeementId() + " employeement id");			
@@ -632,7 +861,11 @@ public class EmployeeLeaveService {
 					if (employeeLeavesList.isEmpty()) {			
 						System.out.println("in if block");			
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);			
-						response.setServiceResponse("No Leaves found.");			
+						response.setServiceResponse("No Leaves found.");
+						
+						apiLogInfo.setApiResponse("No Leaves found.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					} else {			
 									
 						for(EmployeeLeavesMap e: employeeLeavesList) {			
@@ -657,10 +890,16 @@ public class EmployeeLeaveService {
 										
 							if(dbResponse != null) {			
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);					
-								response.setServiceResponse("leave balance Updated.");			
+								response.setServiceResponse("leave balance Updated.");	
+								
+								apiLogInfo.setApiResponse("leave balance Updated.");
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 							}else {			
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
-								response.setServiceResponse("leave balance Updation Failed.");			
+								response.setServiceResponse("leave balance Updation Failed.");
+								
+								apiLogInfo.setApiResponse("leave balance Updation Failed.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 							}			
 						}			
 									
@@ -670,14 +909,23 @@ public class EmployeeLeaveService {
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
 				response.setServiceResponse("Employee not found");
+				
+				apiLogInfo.setApiResponse("Employee not found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 						
 		} catch (Exception e) {			
 			e.printStackTrace();			
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);			
 			response.setServiceResponse("Something Went Wrong.");			
-			response.setServiceError(e.getMessage());			
-		}			
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;			
 	}	
 		
@@ -771,6 +1019,12 @@ public class EmployeeLeaveService {
 	
 	public ServiceResponse getLeaveLogsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getLeaveLogsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
 		try {
 			List<Object[]> objectList = leaveBalanceLogRepository.getLeaveLogsByEmpId(leaveDTO.getEmpId());
 
@@ -779,6 +1033,8 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No leave logs found for employee.");
 
+				apiLogInfo.setApiResponse("No leave logs found for employee.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				int i = 0;
 				LeaveDTO dto;
@@ -796,6 +1052,9 @@ public class EmployeeLeaveService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() +" Leave Logs Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -803,12 +1062,24 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAppliedLeaveApplicationsByEmpIdAndDateRange(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAppliedLeaveApplicationsByEmpIdAndDateRange");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId()+", FromDate : "+ leaveDTO.getFromDate()+", ToDate : "+ leaveDTO.getToDate());
+		
 		try {
 			// HERE : We are fetching All Past Leave Applications with Pending & Approved
 			// Status
@@ -819,6 +1090,8 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Application found");
 
+				apiLogInfo.setApiResponse("No Leave Application found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -837,43 +1110,77 @@ public class EmployeeLeaveService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Leaves Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse countAllMyTeamsPendingLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/countAllMyTeamsPendingLeaveApplicationsByManagerId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ManagerId : "+leaveDTO.getManagerId());
+		
 		try {
 			Long applicationCount = employeeLeaveRepository
 					.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
 			if (applicationCount == 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No leave applications found.");
+				
+				apiLogInfo.setApiResponse("No leave applications found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			} else {
 				leaveDTO = new LeaveDTO();
 				leaveDTO.setApplicationCount(applicationCount);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(leaveDTO);
+				
+				apiLogInfo.setApiResponse(applicationCount + " Leave Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 
 	}
 
 	public ServiceResponse countMyPendingLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/countMyPendingLeaveApplicationsByLeaveType");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
 		try {
 
 			List<Object[]> list = employeeLeaveRepository
@@ -885,6 +1192,9 @@ public class EmployeeLeaveService {
 				if (employeeLeavesList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Application list is empty.Count is zero.");
+					
+					apiLogInfo.setApiResponse("Application list is empty.Count is zero.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					employeeLeavesList.forEach((object) -> {
 						LeaveDTO dto = new LeaveDTO();
@@ -895,11 +1205,17 @@ public class EmployeeLeaveService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					
+					apiLogInfo.setApiResponse(dtoList.size() +" Leave Applications found.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Application list is null");
+				
+				apiLogInfo.setApiResponse("Application list is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -907,12 +1223,23 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse countMyApprovedLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/countMyApprovedLeaveApplicationsByLeaveType");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
 		try {
 
 			List<Object[]> list = employeeLeaveRepository
@@ -924,6 +1251,9 @@ public class EmployeeLeaveService {
 				if (employeeLeavesList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Application list is empty.Count is zero");
+					
+					apiLogInfo.setApiResponse("Application list is empty.Count is zero");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					employeeLeavesList.forEach((object) -> {
 						LeaveDTO dto = new LeaveDTO();
@@ -934,11 +1264,17 @@ public class EmployeeLeaveService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					
+					apiLogInfo.setApiResponse(dtoList.size()+ " Leave Applications Found.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Application list is null");
+				
+				apiLogInfo.setApiResponse("Application list is null.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -946,7 +1282,113 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse getAllMyTeamApplicationsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllMyTeamApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
+		try {
+			List<Object[]> list = employeeLeaveRepository.getAllMyTeamApplicationsByEmpId(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Application found");
+
+				apiLogInfo.setApiResponse("No Leave Application found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setEmployeeName(object[6] != null ? object[6].toString() : null);
+					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+					dto.setReason(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
+					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size()+ " Leave Applications Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse bulkApproveLeaveRequest(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			for (LeaveDTO leave : leaveDTO.getBulkLeaveApprovedList()) {
+				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				response = updateLeaveStatus(leave);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+
+		return response;
+	}
+
+	public ServiceResponse bulkRejectLeaveRequest(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+
+			for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
+				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				leave.setRejectReason(leaveDTO.getRejectReason());
+			
+				response = updateLeaveStatus(leave);
+				System.out.println(" leaveDTO.getReason() : "+leaveDTO.getRejectReason());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+
 		return response;
 	}
 

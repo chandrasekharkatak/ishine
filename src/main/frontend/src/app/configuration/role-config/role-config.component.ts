@@ -430,11 +430,13 @@ export class RoleConfigComponent implements OnInit {
 
       const onlySpecificDataArr = this.roleDataForExcel.map(
         x => ({
-          "Name": x.name,
+          "Designation Name": x.name,
           "Employee Role":x.employeeRole,
-          "Department Name": x.departmentName,
-          "Created By": x.createdBy,
-          "created On": x.createdOn
+          "Department": x.departmentName,
+          "Created by": x.createdBy,
+          "Created on": x.createdOn,
+          "Updated by": x.updatedBy,
+          "Updated on": x.updatedOn
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)

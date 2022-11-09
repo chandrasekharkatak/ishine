@@ -15,6 +15,10 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
+import { Employee } from 'src/app/models/employee';
+import { TeamViewService } from 'src/app/services/team-view.service';
+import { LogService } from 'src/app/services/log.service';
+import { Log } from 'src/app/models/log';
 
 @Component({
   selector: 'app-leave',
@@ -34,6 +38,9 @@ export class LeaveComponent implements OnInit {
   isLeaveApplicationsTable: boolean = false;
   isLeaveLogTable: boolean = false;
 
+  isSelfLeaveHistory:boolean = false;
+  isTeamLeaveHistory:boolean = false;
+
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
@@ -42,6 +49,8 @@ export class LeaveComponent implements OnInit {
   feature="Leave";
   currentUser:User;
   userMapping:any = {};
+  log:Log;
+
   leaveObj:Leave = new Leave();
 
   // for revoke approved leave
@@ -64,23 +73,43 @@ export class LeaveComponent implements OnInit {
   leavePolicyRules:any[] = [];
   leavePolicyObj:Leave = new Leave();
 
+  teamMemberList:any[] = [];
+
+  items = 10;	
+  isSelectAll:boolean = false;	
+  isSelect:boolean = false;	
+  bulkLeaveApprove:any =[];	
+  bulkLeaveReject:any = [];
+  LeaveObj = new Leave();
+
   constructor(
-    private validationService:ValidationService,
+    public validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
     private leaveService : LeaveService,
     private holidayService : HolidayService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private teamViewService : TeamViewService,
+    private logService:LogService
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+
+    this.logService.log.subscribe(x => {
+      this.log = x;
+      this.log.featureName = this.feature;
+    });
   }
 
   ngOnInit(): void {
+    this.logService.updateLogInfo(this.log);
     console.log("this.currentUser : ", this.currentUser);
+    console.log("logInfo : ", this.log);
+
     this.leaveObj.leaveTypeMasterId = '';
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
-    this.leaveObj.leaveAppliedFor = "me"
+    this.leaveObj.leaveAppliedFor = "self"
     
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -91,7 +120,7 @@ export class LeaveComponent implements OnInit {
 
     this.sectionViewInit();
     // this.getAllLeaveTypes();
-    this.getAllLeaveTypesByLeavePolicies();
+    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
 
     this.dateToday = this.datePipe.transform(this.dateToday,'yyyy-MM-dd');
   }
@@ -124,9 +153,12 @@ export class LeaveComponent implements OnInit {
     this.isLeaveBalanceTable = false;
     this.isLeaveLogTable = false;
 
+    this.isSelfLeaveHistory = false;
+    this.isTeamLeaveHistory = false;
+
     this.reset();
     this.getAllHolidays();
-    this.getAllMyLeaveApplicationsByEmpId();
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
   }
 
   showLeaveHistoryTable() {
@@ -140,7 +172,45 @@ export class LeaveComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data=''
-    this.getAllMyLeaveApplicationsByEmpId();
+
+    this.isSelfLeaveHistory = true;
+    this.isTeamLeaveHistory = false;
+    this.showSelfLeaveHistoryTable();
+  }
+
+  showSelfLeaveHistoryTable() {
+    this.isLeaveHistoryTable = true;
+    this.isSelfLeaveHistory = true;
+
+    this.isLeaveBalanceTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveLogTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data=''
+
+    this.isTeamLeaveHistory = false;
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
+  }
+
+  showTeamLeaveHistoryTable() {
+    this.isLeaveHistoryTable = true;
+    this.isTeamLeaveHistory = true;
+
+    this.isLeaveBalanceTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveLogTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data=''
+
+    this.isSelfLeaveHistory = false;
+    this.getAllTeamMemberList()
+    this.getAllMyTeamApplicationsByEmpId(this.currentUser);
   }
 
   showLeaveBalanceTable() {
@@ -190,7 +260,9 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.leaveTypeMasterId = '';
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
-    this.leaveObj.leaveAppliedFor = "me"
+    this.leaveObj.leaveAppliedFor = "self"
+    // to set empId of current User in leaveObj for initial Leave Application
+    this.getLeaveMetadata(); 
 
     this.leaveHistoryList = [];
     this.leaveApplicationList = [];
@@ -207,8 +279,16 @@ export class LeaveComponent implements OnInit {
     this.isLeaveBalanceTable = false;	
     	
     this.leaveObj = Object.assign({}, leaveHistory);	
-    console.log(this.leaveObj.leaveTypeMasterId);	
-    console.log(this.leaveObj);	
+
+    if(this.isSelfLeaveHistory){
+      this.leaveObj.leaveAppliedFor = "self";
+      this.leaveObj.empId = this.currentUser.empId;
+    }else if(this.isTeamLeaveHistory){
+      this.leaveObj.leaveAppliedFor = "team";
+    }
+
+    console.log("this.leaveObj : ", this.leaveObj);
+    this.getLeaveMetadata();
   }
 
   // Modals
@@ -235,11 +315,11 @@ export class LeaveComponent implements OnInit {
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
 
-    // if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveAppliedFor)){
-    //   this.alertMessage = "Please select leave Applied for !!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveAppliedFor)){
+      this.alertMessage = "Please select Leave Application For !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.leaveTypeMasterId)){
       this.alertMessage = "Please select Leave Type !!"
@@ -481,7 +561,7 @@ export class LeaveComponent implements OnInit {
     this.checkPolicy(this.leaveObj, this.leavePolicyObj, template).then(response => {
       if (!response) return;
 
-      this.leaveObj.empId = this.currentUser.empId;
+      // this.leaveObj.empId = this.currentUser.empId; //! this empId will set in getLeaveMetadata()
       this.leaveObj.createdBy = this.currentUser.empId;
       this.leaveObj.managerId = this.currentUser.managerId;
 
@@ -492,7 +572,11 @@ export class LeaveComponent implements OnInit {
       this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
-          this.showLeaveHistoryTable();
+          if(this.leaveObj.leaveAppliedFor == 'self'){
+            this.showSelfLeaveHistoryTable();  
+          }else{
+            this.showTeamLeaveHistoryTable();
+          }
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
@@ -508,7 +592,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
-        this.showLeaveHistoryTable();	
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.showSelfLeaveHistoryTable();  
+        }else{
+          this.showTeamLeaveHistoryTable();
+        }
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
       }	
@@ -522,7 +610,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
-        this.showLeaveHistoryTable();	
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.showSelfLeaveHistoryTable();  
+        }else{
+          this.showTeamLeaveHistoryTable();
+        }
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
       }	
@@ -533,6 +625,9 @@ export class LeaveComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.rejectReason = this.leaveObj.rejectReason
+    leaveApplication.email = this.leaveObj.email;
+    leaveApplication.employeementId = this.leaveObj.employeementId
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -545,12 +640,73 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllMyLeaveApplicationsByEmpId(){
+   // single leave reject modal
+   onSingleReject(template: TemplateRef<any> , ){
+    this.onUpdateLeaveStatus(template, this.leaveObj,3);
+  }
+
+  // openLeaveRejectModal
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+
+  getLeaveMetadata(){
+    console.log("leave Obj For getLeaveMetadata : ", this.leaveObj);
+    let userObj:User = new User();
+    if(this.leaveObj.leaveAppliedFor == 'self'){
+      this.leaveObj.empId = this.currentUser.empId; 
+      userObj.empId = this.currentUser.empId;
+      userObj.employmentstatus = this.currentUser.employmentstatus;
+    }else{
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      console.log("Team Member : ", teamMember);
+      userObj.empId = teamMember.empId;
+      userObj.employmentstatus = teamMember.employmentstatus;
+    }
+    
+    this.getAllLeaveTypesByLeavePolicies(userObj);
+    this.getAllMyLeaveApplicationsByEmpId(userObj);
+  }
+
+  getAllTeamMemberList(){
+    this.teamMemberList = []
+
+    let employeeObj = new Employee();
+      employeeObj.empId = this.currentUser.empId;
+      this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamMemberList = response.serviceResponse;
+          console.log("teamMemberList : ", this.teamMemberList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+  }
+
+  getAllMyLeaveApplicationsByEmpId(userObj:User){
     this.leaveHistoryList = [];
 
     let leaveObj = new Leave();
-    leaveObj.empId = this.currentUser.empId;
+    leaveObj.empId = userObj.empId;
     this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveHistoryList = response.serviceResponse;
+        console.log("leaveHistoryList : ", this.leaveHistoryList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllMyTeamApplicationsByEmpId(userObj:User){
+    this.leaveHistoryList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = userObj.empId;
+    this.leaveService.getAllMyTeamApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         console.log("leaveHistoryList : ", this.leaveHistoryList);
@@ -562,7 +718,9 @@ export class LeaveComponent implements OnInit {
 
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
     this.leaveApplicationList = []
-
+    this.bulkLeaveApprove = []	
+    this.bulkLeaveReject = []
+    this.isSelectAll = false
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -588,12 +746,12 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllLeaveTypesByLeavePolicies(){
+  getAllLeaveTypesByLeavePolicies(userObj:User){
     this.leaveTypes = [];
 
     let leaveObj = new Leave();
-    leaveObj.employmentStatus = this.currentUser.employmentstatus;
-    leaveObj.gender = this.currentUser.gender;
+    leaveObj.employmentStatus = userObj.employmentstatus;
+    leaveObj.gender = userObj.gender;
 
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -663,7 +821,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showLeaveHistoryTable();
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.showSelfLeaveHistoryTable();  
+        }else{
+          this.showTeamLeaveHistoryTable();
+        }
       } else {
         this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
@@ -673,10 +835,17 @@ export class LeaveComponent implements OnInit {
 
 
   exportToExcel(): void {	
+    
     if(this.isLeaveHistoryTable == true){	
       this.elementName = 'history-table';	
       this.excelName = 'MyLeaveHistory.xlsx';	
-    }	
+    }
+
+    // if(this.isLeaveLogTable == true){	
+    //   this.elementName = 'log-table';	
+    //   this.excelName = 'MyLeaveLogs.xlsx';	
+    // }	
+
     if(this.isLeaveApplicationsTable == true){	
       this.excelName = 'MyReporteeLeaveApplication.xlsx';
 
@@ -703,10 +872,6 @@ export class LeaveComponent implements OnInit {
       });
 
     }
-    if(this.isLeaveLogTable == true){	
-      this.elementName = 'log-table';	
-      this.excelName = 'MyLeaveLogs.xlsx';	
-    }	
   	
     let element = document.getElementById(this.elementName);	
     const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);	
@@ -857,6 +1022,102 @@ export class LeaveComponent implements OnInit {
       	
     }	
 
+    selectAll(event){
+      this.bulkLeaveApprove = [];
+      this.bulkLeaveReject = [];
+      
+      const checkboxes = document.querySelectorAll('.leave-req-checkbox');
+      checkboxes.forEach((checkbox:any) =>{
+       
+        let checkboxIndex = checkbox.getAttribute('id');
+        let checkedLeave = this.leaveApplicationList.find((_leave, index) => index == checkboxIndex);
+  
+        if (event.target.checked) {
+          checkbox.checked = true;
+          this.bulkLeaveApprove.push(checkedLeave);
+          this.bulkLeaveReject.push(checkedLeave);
+        } else {
+          checkbox.checked = false;
+          this.bulkLeaveApprove.forEach((leave, index) => {
+            if (leave == checkedLeave) this.bulkLeaveApprove.splice(index, 1);
+          });
+          this.bulkLeaveReject.forEach((leave, index) => {
+            if (leave == checkedLeave) this.bulkLeaveReject.splice(index, 1);
+          });
+        }
+      });
+    }
+
+    select(leaveObj, event) {
+   
+      if(event.target.checked){
+        event.target.classList.add('checked');
+        this.bulkLeaveApprove.push(leaveObj)
+        this.bulkLeaveReject.push(leaveObj)
+      }else {
+        event.target.classList.remove('checked');
+        const checkboxes = document.querySelectorAll('.leave-req-checkbox.checked');
+        if(checkboxes.length !== this.items) this.isSelectAll = false
+        this.bulkLeaveApprove.forEach((leave, index) => {
+          if (leave == leaveObj) this.bulkLeaveApprove.splice(index, 1);
+        });
+        this.bulkLeaveReject.forEach((leave , index)=> {
+          if(leave == leaveObj) this.bulkLeaveReject.splice(index , 1);
+        })
+      }
+      
+    }
+
+    onBulkLeaveApproval(template:TemplateRef<any>){
+      console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
+      let leaveObj = new Leave();
+      leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
+      leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+      leaveObj.leaveStatusId = 2;
+     
+      this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template , "All Selected Application Approve Successfully ");
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+         
+          this.bulkLeaveApprove = [];
+          this.bulkLeaveReject = [];
+        } else {
+        console.error(response.serviceResponse)
+        }
+      });
+      
+    }
+
+    // openRejectModal
+    openRejectModal(template: TemplateRef<any>){
+      this.cancelRequest();
+     
+      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    }
+  
+
+    OnBulkLeaveReject(template: TemplateRef<any>){
+      
+      let leaveObj = new Leave();
+     
+      leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
+      leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+      leaveObj.leaveStatusId = 3
+      leaveObj.rejectReason = this.leaveObj.rejectReason 
+      this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template , "All Selected Application Rejected Successfully ");
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+          this.bulkLeaveApprove = [];
+          this.bulkLeaveReject = [];
+        } else {
+        console.error(response.serviceResponse)
+        }
+      });
+      
+    }
+    
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

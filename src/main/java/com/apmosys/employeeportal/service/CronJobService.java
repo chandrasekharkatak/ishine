@@ -1,5 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -20,14 +25,18 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import org.hibernate.internal.build.AllowSysOut;
+import org.dhatim.fastexcel.Workbook;
+import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -45,7 +54,9 @@ import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
@@ -80,6 +91,12 @@ public class CronJobService {
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	TimesheetService timesheetService;
+	
+	@Autowired
+	TimesheetActivityMapRepository timesheetActivityMapRepository;
 	
 	@Autowired
 	MailService mailService;
@@ -162,35 +179,37 @@ public class CronJobService {
 	}
 	
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
-	
 	@Scheduled(cron = "0 0 12 1 * ?")
 	public void monthlyLeaveIncrement() {
-		
-		short leaveTypeMasterId = 0;
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		     List<Employee> employeeList = employeeRepository.findAll();
 		     
 		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
-			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-			      
-			          for(LeavePolicyMaster lpm : leavePolicy) {
-				         if((lpm.getCarryForward().equals("Yes") && lpm.getExpirationPeriod().equals("NA") && lpm.getIncrement().equals("Yes") && lpm.getLeaveApplication().equals("Yes")) || (lpm.getCarryForward().equals("No") && lpm.getExpirationPeriod().equals("NA") && lpm.getIncrement().equals("Yes") && lpm.getLeaveApplication().equals("Yes"))) {
-				     	     float incrementValue = lpm.getIncrementValue();
-					
-					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					       
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						              float dbBalance = elm.getBalance();
-						              float newBalance = dbBalance + incrementValue;
-						
-						              elm.setBalance(newBalance);
-						              employeeLeavesMapRepository.save(elm);
-						              break;
-					              }
-				          }
-			           }
+		        	  for(Employee employeeObj : employeeList) {
+		        		  
+		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
+		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
+		        		  
+		        		  if(!leavePolicy.isEmpty()) {
+		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  
+		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
+		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
+		        				  
+		        				          if(employeeLeaveMap != null) {
+		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+		        				        	  employeeLeaveMap.setBalance(newBalance);
+		      								  employeeLeavesMapRepository.save(employeeLeaveMap);
+		        				          }else {
+		        				        	  System.out.println("Employee Leave Mapping not found");
+		        				          }
+		        			  }
+		        		  }else {
+		        			  System.out.println("Leave Policy not found");
+		        		  }
+		        	  }	
 		            }
 		   }catch(Exception e) {
 			e.printStackTrace();
@@ -374,7 +393,7 @@ public class CronJobService {
 				
 				LocalDate dateToday = LocalDate.now();
 				
-				List<Employee> allEmployee = employeeRepository.findAll();
+				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
 			//	Timesheet filler for weekoff day : saturday & sunday
@@ -386,14 +405,15 @@ public class CronJobService {
 						String dayOfWeek = holiday.getDayOfTheWeek();
 						
 						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
-							for(Employee empObj: allEmployee) {
+							for(Object[] employeeList: allEmployee) {
+								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 								
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empObj.getEmpId(),dateToday);
+								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
 								
 								if(empTimesheet == null) {
 									Timesheet newTimesheet = new Timesheet();
 									
-									newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
 									newTimesheet.setDayType("Holiday");
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
@@ -401,8 +421,9 @@ public class CronJobService {
 									}else{
 										newTimesheet.setDescription("WeekOff : Sunday");
 									}
-									newTimesheet.setEmpId(empObj.getEmpId());
-									newTimesheet.setStatus("Pending");
+									newTimesheet.setEmpId(empId);
+									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
+									newTimesheet.setStatus("Approved");
 									
 									timesheetsRepository.save(newTimesheet);
 								}				
@@ -418,20 +439,21 @@ public class CronJobService {
 					for(Holiday holidays: publicHoliday) {
 						String holidayState = holidays.getState();
 						
-						for(Employee empObj: allEmployee) {
-							String workLocation = empObj.getWorkLocation();
+						for(Object[] employeeList: allEmployee) {
+							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
 
 							if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
 									|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
 								
 								Timesheet newTimesheet = new Timesheet();
 								
-								newTimesheet.getCommonProperty().setCreatedBy(empObj.getEmpId());
+								newTimesheet.getCommonProperty().setCreatedBy(empId);
 								newTimesheet.setDate(dateToday);
 								newTimesheet.setDayType("Holiday");
 								newTimesheet.setDescription("Public Holiday");
-								newTimesheet.setEmpId(empObj.getEmpId());
-								newTimesheet.setStatus("Pending");
+								newTimesheet.setEmpId(empId);
+								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
 								
@@ -458,10 +480,10 @@ public class CronJobService {
 							
 							newTimesheet.getCommonProperty().setCreatedBy(empId);
 							newTimesheet.setDate(dateToday);
-							newTimesheet.setDayType("Working");
+							newTimesheet.setDayType("Holiday");
 							newTimesheet.setDescription("On leave");
 							newTimesheet.setEmpId(empId);
-							newTimesheet.setStatus("Pending");
+							newTimesheet.setStatus("Approved");
 							
 							timesheetsRepository.save(newTimesheet);
 						}
@@ -475,10 +497,10 @@ public class CronJobService {
 								
 								newTimesheet.getCommonProperty().setCreatedBy(empId);
 								newTimesheet.setDate(tempDateToday);
-								newTimesheet.setDayType("Working");
+								newTimesheet.setDayType("Holiday");
 								newTimesheet.setDescription("On leave");
 								newTimesheet.setEmpId(empId);
-								newTimesheet.setStatus("Pending");
+								newTimesheet.setStatus("Approved");
 								
 								timesheetsRepository.save(newTimesheet);
 								
@@ -557,4 +579,141 @@ public class CronJobService {
 			}
 		}
 		
+		//0 0 4 2 * ? - At 04:00:00am, on the 2nd day, every month
+ 		//0 0/2 * ? * * - Run at every 2 min
+		
+		@Scheduled(cron="0 0 4 2 * ?")
+		public void monthlyTimesheetExcelGenerator() {
+			try {
+				
+				Calendar calendar = Calendar.getInstance();
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				calendar.add(Calendar.MONTH, -1);
+				calendar.set(Calendar.DATE, 1);
+
+				LocalDate firstDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
+				
+				calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+				LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
+				
+				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+				for(Object[] empObj : employeeList) {
+					
+					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+					String empName = empObj[2] != null ? empObj[2].toString() : null;
+					Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
+					
+					System.out.println("Emp ID :" + empId);
+					System.out.println("Employment ID :" + employeementId);
+					
+					List<Timesheet> monthlyTimesheet = timesheetsRepository.
+							findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+					
+					if(!monthlyTimesheet.isEmpty()) {
+						var f = new File("/home/apmosys/Downloads/testMontlyEOD/"+employeementId+"-"+empName+"-"+firstDateOfPreviousMonth.getMonth()+".xlsx");
+				        try (var fos = new FileOutputStream(f)) {
+
+				            var wb = new Workbook(fos, "Application", "1.0");
+				            Worksheet ws = wb.newWorksheet(firstDateOfPreviousMonth.getMonth() + " DSR");
+				            
+				            ws.value(0, 0, "Date");
+				            ws.value(0, 1, "Day Type");
+				            ws.value(0, 2, "Client");
+				            ws.value(0, 3, "Client Location");
+				            ws.value(0, 4, "Project");
+				            ws.value(0, 5, "Activity");
+				            ws.value(0, 6, "Total Working Hour");
+				            ws.value(0, 7, "Holiday Type");
+				            ws.value(0, 8, "Status");
+
+				            int rowNum = 1;
+							for(Timesheet timesheetObj: monthlyTimesheet) {								
+								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+								
+								String perviousProject = "";
+								String perviousDate = "";
+								String perviousClientName = "";
+								String perviousClientLocation = "";
+								
+								if(!objectList.isEmpty()) {
+									for(Object[] object : objectList) {
+										
+										String activity = object[1] != null ? object[1].toString() : null;
+										String project = object[5] != null ? object[5].toString() : null;
+										String clientName = object[6] != null ? object[6].toString() : null;
+										String clientLocation = object[7] != null ? object[7].toString() : null;
+										
+										ws.style(rowNum, 0).format("yyyy-MM-dd").set();
+										
+										if(timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 0, rowNum, 0).merge();
+											ws.range(rowNum - 1, 1, rowNum, 1).merge();
+											ws.range(rowNum - 1, 6, rowNum, 6).merge();
+											ws.range(rowNum - 1, 8, rowNum, 8).merge();
+										}else {
+											ws.value(rowNum, 0, timesheetObj.getDate());
+											ws.value(rowNum, 1, timesheetObj.getDayType());
+											ws.value(rowNum, 6, timesheetObj.getTotalTime());
+											ws.value(rowNum, 8, timesheetObj.getStatus());
+										}
+										if(clientName.equals(perviousClientName) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 2, rowNum, 2).merge();
+										}else {
+											ws.value(rowNum, 2, clientName);
+										}
+										if(clientLocation.equals(perviousClientLocation) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 3, rowNum, 3).merge();
+										}else {
+											ws.value(rowNum, 3, clientLocation);
+										}
+										if(project.equals(perviousProject) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 4, rowNum, 4).merge();
+										}else {
+											ws.value(rowNum, 4, project);
+										}
+										if(!objectList.isEmpty()) {
+											ws.value(rowNum, 5, activity);
+										}else {
+											ws.value(rowNum, 5, timesheetObj.getDescription());
+										}
+										
+										
+										rowNum++;
+										perviousProject = project;
+										perviousDate = timesheetObj.getDate().toString();
+										perviousClientName = clientName;
+										perviousClientLocation = clientLocation;
+									}
+								}else {
+									
+									// Fill data of weekoff & leave
+									ws.style(rowNum, 0).format("yyyy-MM-dd").set();
+									
+									ws.value(rowNum, 0, timesheetObj.getDate());
+									ws.value(rowNum, 1, timesheetObj.getDayType());
+									ws.value(rowNum, 6, timesheetObj.getTotalTime());
+									ws.value(rowNum, 7, timesheetObj.getDescription());
+									ws.value(rowNum, 8, timesheetObj.getStatus());
+									
+									rowNum++;
+									
+									System.out.println("Activity List is empty");
+								}
+				        }
+				            System.out.println("DSR Excel generated successfully");
+				            wb.finish();
+				            
+				        }catch(Exception e) {
+				        	e.printStackTrace();
+				        	System.out.println("DSR Excel creation failed");
+				        }
+					}else {
+						System.out.println("Timesheet not found");
+					}
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 }	

@@ -6,7 +6,7 @@ import { EmployeeConfigComponent } from './configuration/employee-config/employe
 import { HomeConfigComponent } from './configuration/home-config/home-config.component';
 import { LeaveConfigComponent } from './configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
-import { TeamConfigComponent } from './configuration/team-config/team-config.component';
+import { TeamConfigComponent } from './user-team/team-config/team-config.component';
 import { AuthGuard } from './guards/auth.guard';
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
 import { HomeComponent } from './home/home.component';
@@ -40,6 +40,7 @@ import { UserAppreciationComponent } from './user-appreciation/user-appreciation
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
+import { RecruitmentComponent } from './recruitment/recruitment.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -59,7 +60,7 @@ const routes: Routes = [
       { path: 'department', component: DeptConfigComponent, },
       { path: 'role', component: RoleConfigComponent, },
       { path: 'leave', component: LeaveConfigComponent, },
-      { path: 'team', component: TeamConfigComponent, },
+     // { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
       { path: 'portal-config', component: PortalConfigComponent, },
       { path: 'survey-config', component: SurveyConfigComponent, },
@@ -96,7 +97,9 @@ const routes: Routes = [
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-team', component: MyTeamComponent, },
-      { path: 'team-member', component: TeamMemberComponent, }
+      { path: 'team-member', component: TeamMemberComponent, },
+      { path: 'team-config', component: TeamConfigComponent, },
+
     ]
   },
   {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
@@ -108,6 +111,7 @@ const routes: Routes = [
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
+  {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
 
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},

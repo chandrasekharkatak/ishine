@@ -202,7 +202,7 @@ public class CompOffLeaveService {
 		try {
 
 			Optional<CompOffLeave> leaveObject = compOffLeaveRepository.findById(leaveDTO.getCompOffLeaveId());
-			LeaveTypeMaster leavetypeObj = leaveTypeMasterRepository.findByLeaveTypeCode("CF");
+			LeaveTypeMaster leavetypeObj = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
 			System.out.println("  leave type" + " leavetypeObj " +leavetypeObj);
 			
 			if (leaveObject.isEmpty()) {

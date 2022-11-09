@@ -31,12 +31,21 @@ export class UploadPoliciesService {
   deleteDocument(fileObj: UploadPolicy) {
     return this.http.post(`${this.baseUrl}` + `api/deletePolicyDocument`, fileObj);
   }
+
+  changepolicyEnabledMode(fileObj: UploadPolicy) {
+    return this.http.post(`${this.baseUrl}` + `api/changepolicyEnabledMode`, fileObj);
+}
   downloadDocument(policyID: string) {
     return this.http.get(`${this.baseUrl}` + `api/downloadDocument/${policyID}`, {
       responseType: 'blob'
     });
   }
+  showPolicyReadResponse(fileObj:UploadPolicy){
+    return this.http.post(`${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`, fileObj);
 
 
+  }
+
+  
 
 }

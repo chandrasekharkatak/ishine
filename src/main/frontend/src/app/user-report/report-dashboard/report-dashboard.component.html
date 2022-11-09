@@ -24,23 +24,23 @@
                     <small class="chart-title"><b>Hour Based Segregation</b></small>
                     <div class="progress mouse mt-4" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="zeroToFive" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 0 to 5 hour')">EOD 0 - 5 hr {{zeroToFive}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 0 to 5 hour')">EOD 0 - 5 hr(s) {{zeroToFive}}</h6>
                     </div>
                     <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="fiveToEight" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 5 to 8 hour')">EOD 5 - 8 hr {{fiveToEight}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 5 to 8 hour')">EOD 5 - 8 hr(s) {{fiveToEight}}</h6>
                     </div>
                     <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="eightToNine" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 8 to 9 hour')">EOD 8 - 9 hr {{eightToNine}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 8 to 9 hour')">EOD 8 - 9 hr(s) {{eightToNine}}</h6>
                     </div>
                     <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="nineToTen" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 9 to 10 hour')">EOD 9 - 10 hr {{nineToTen}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked Between 9 to 10 hour')">EOD 9 - 10 hr(s) {{nineToTen}}</h6>
                     </div>
                     <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="tenAndAbove" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked More than 10 hour')">EOD avove 10 hr {{tenAndAbove}}</h6>
+                        <h6 class="justify-content-center d-flex position-absolute w-100 mt-1" (click)="openEodSegregation(EOD_Segregation_template,'Employee Worked More than 10 hour')">EOD avove 10 hr(s) {{tenAndAbove}}</h6>
                     </div>
                     <div class="progress mouse mt-2" style="height: 25px;">
                         <div class="progress-bar" role="progressbar" [style.width]="noEODSubmitted" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
@@ -272,7 +272,7 @@
     <div class="modal-body d-flex">
         <div class="row col-md-12">
             <div class="form-group ml-auto col-md-3">	
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">		
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
         </div>
             <table class="table table-responsive scrollable-table">
                 <thead class="thead-light">

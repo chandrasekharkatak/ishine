@@ -74,3 +74,17 @@
 .history-table{
     overflow-x: auto;
 }
+.form-select{
+    
+    color: rgb(5, 5, 5);
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+  
+}
+
+.option-bg{
+   
+    color: black;
+}

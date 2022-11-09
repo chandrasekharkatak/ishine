@@ -39,6 +39,7 @@ public class PortalConfigService {
 					portaldto.setConfigName(portal.getConfigName());
 					portaldto.setConfigPeriod(portal.getConfigPeriod());
 					portaldto.setMailTrigger(portal.getMailTrigger());
+					portaldto.setConfigValue(portal.getConfigValue());
 					dtoList.add(portaldto);
 					
 				});
@@ -62,7 +63,7 @@ public class PortalConfigService {
 			protalConfigDTO.getAllPortalConfigData().forEach((dto) -> {
 				
 				Optional<PortalConfig> portalCongifObj = portalConfigRepository.findById(dto.getPortalConfigId());
-				
+			
 				if(!portalCongifObj.isEmpty()) {
 					PortalConfig portalConfigToBeUpdate = portalCongifObj.get();
 					
@@ -70,6 +71,7 @@ public class PortalConfigService {
 					portalConfigToBeUpdate.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 					portalConfigToBeUpdate.setConfigPeriod(dto.getConfigPeriod());
 					portalConfigToBeUpdate.setMailTrigger(dto.getMailTrigger());
+					portalConfigToBeUpdate.setConfigValue(dto.getConfigValue());
 					PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
 					
 					if(dbResponse!=null) {

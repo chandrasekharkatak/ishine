@@ -372,12 +372,14 @@ export class UserProfileComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
-      this.alertMessage = "Please Enter Year of Passing !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(employeeObj.pursuing == 'No'){
+      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.yearOfPassing)){
+        this.alertMessage = "Please Enter Year of Passing !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
+   
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
       this.alertMessage = "Please Enter Passing Grade !!"
@@ -391,7 +393,7 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
 
-    if(employeeObj.experience == 'Exprienced'){
+    if(employeeObj.experience == 'Experienced'){
       this.allPreviousEmployment.forEach((previousEmployer, index) =>{
         if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
           this.alertMessage = `Please Enter Employer Name - ${index}!!`;

@@ -26,6 +26,9 @@ export class PortalConfigComponent implements OnInit {
 
   portalConfigList:any[] = [];
 
+  isPortalConfiguration: boolean = true;
+  isAppreciationConfiguration: boolean = false;
+
   constructor(
     private portalService:PortalService,
     private validationService:ValidationService,
@@ -46,11 +49,24 @@ export class PortalConfigComponent implements OnInit {
     this.getAllPortalConfigData();
   }
 
+  showPortalConfiguration(){
+    this.isPortalConfiguration = true;
+    this.isAppreciationConfiguration = false;
+  }
+
+  showAppreciationConfiguration(){
+    this.isPortalConfiguration = false;
+    this.isAppreciationConfiguration = true;
+  }
+
   getAllPortalConfigData() {
     this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.portalObj = Object.assign({}, response.serviceResponse);
         this.portalConfigList = response.serviceResponse;
+
+        console.log(this.portalConfigList,  "   :  portalConfigList");
+
         for(let portal of this.portalConfigList){
           if(portal.configName == 'Probation Period'){
             this.portalObj.probationPeriod = portal.configPeriod;
@@ -59,6 +75,18 @@ export class PortalConfigComponent implements OnInit {
           if(portal.configName == 'Notice Period'){
             this.portalObj.noticePeriod = portal.configPeriod;
             this.portalObj.noticeMailTrigger = portal.mailTrigger;
+          }
+          if(portal.configName == 'OTRS Link'){
+            this.portalObj.otrsLink = portal.configValue;
+          }
+          if(portal.configName == 'SNIPIT Link'){
+            this.portalObj.snipitLink = portal.configValue;
+          }
+          if(portal.configName == 'DSR Download Path'){
+            this.portalObj.dsrDownloadPath = portal.configValue;
+          }
+          if(portal.configName == 'DSR Day'){
+            this.portalObj.dsrGenerateDay = portal.configValue;
           }
         }
       } else {
@@ -89,6 +117,34 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.otrsLink)) {
+      this.alertMessage = "Please enter OTRS Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }else if(this.validationService.validateUrl(portalObj.otrsLink) == false){
+      this.alertMessage = "Please valid OTRS Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.snipitLink)) {
+      this.alertMessage = "Please enter SNIPIT Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }else if(this.validationService.validateUrl(portalObj.snipitLink) == false){
+      this.alertMessage = "Please valid SNIPIT Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.dsrDownloadPath)) {
+      this.alertMessage = "Please enter DSR folder path !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.dsrGenerateDay)) {
+      this.alertMessage = "Please enter Generate DSR Day !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
 
     let tempArray = this.portalConfigList;    
 
@@ -103,11 +159,23 @@ export class PortalConfigComponent implements OnInit {
       {
         this.portalConfigList[1].configPeriod = this.portalObj.noticePeriod;
         this.portalConfigList[1].mailTrigger = this.portalObj.noticeMailTrigger;
+      }else if(index == 2)
+      {
+        this.portalConfigList[2].configValue = this.portalObj.otrsLink;
+      }else if(index == 3)
+      {
+        this.portalConfigList[3].configValue = this.portalObj.snipitLink;
+      }else if(index == 4)
+      {
+        this.portalConfigList[4].configValue = this.portalObj.dsrDownloadPath;
+      }else if(index == 5)
+      {
+        this.portalConfigList[5].configValue = this.portalObj.dsrGenerateDay;
       }
       
     })
         this.portalObj.allPortalConfigData = this.portalConfigList;
-       
+
          this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
            if (response.serviceStatus == "Success") {
              this.openAlertMod(template, response.serviceResponse);
@@ -115,7 +183,6 @@ export class PortalConfigComponent implements OnInit {
              this.openAlertMod(template, response.serviceResponse);
            }
          });
-  
   }
 
   //modal

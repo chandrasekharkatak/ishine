@@ -216,6 +216,7 @@ public class TeamsService {
 							dto.setTeamName(object[3] != null ? object[3].toString() : null);
 							dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
 							dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+							dto.setTeamLeadId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 							dtoList.add(dto);
 						});
 						
@@ -449,7 +450,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
-			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getManagerId());
+			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -464,6 +465,7 @@ public class TeamsService {
 					dto.setJobRoleName(object[3] != null ? object[3].toString(): null);
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()): null);
+					dto.setEmploymentstatus(object[6] != null ? object[6].toString(): null);
 					dtoList.add(dto);
 					
 				});
@@ -569,14 +571,14 @@ public class TeamsService {
 		
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Team checkTeamNameByName=teamRepository.findByTeamName(teamdto.getTeamName());
+			Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
 			if(checkTeamNameByName==null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}else if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
 				}
-			
+			 
 		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

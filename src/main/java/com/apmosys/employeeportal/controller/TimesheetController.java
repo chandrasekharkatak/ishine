@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +38,13 @@ public class TimesheetController {
 	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
 
 		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllMyTeamTimesheets", method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllMyTeamTimesheets(timesheetDTO);
 		return response;
 	}
 	
@@ -123,5 +132,20 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.revokeApprovedTimesheet(timesheetDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/bulkApproveTimesheetRequest", method = RequestMethod.POST)
+	public ServiceResponse bulkApproveTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
+		
+		ServiceResponse response = timesheetService.bulkApproveTimesheetRequest(timesheetDTO);
+		    return response;
+	}
+	
+	@RequestMapping(value = "/bulkRejectTimesheetRequest", method = RequestMethod.POST)
+	public ServiceResponse bulkRejectTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
+		
+		ServiceResponse response = timesheetService.bulkRejectTimesheetRequest(timesheetDTO);
+		    return response;
+	}
+	
 	
 }
