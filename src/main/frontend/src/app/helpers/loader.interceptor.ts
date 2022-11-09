@@ -107,6 +107,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`,
     `${this.baseUrl}` + `api/empdetails`,
 
+    `${this.baseUrl}` + `api/generatePerviousMonthDSR`,
+
   ]
 
   constructor(private loaderService: LoaderService) { }

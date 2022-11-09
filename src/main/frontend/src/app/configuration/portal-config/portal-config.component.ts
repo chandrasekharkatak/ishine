@@ -185,6 +185,16 @@ export class PortalConfigComponent implements OnInit {
          });
   }
 
+  generatePerviousMonthDSR(template: TemplateRef<any>){
+    this.portalService.generatePerviousMonthDSR().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   //modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {

@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.MyConfig;
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
@@ -20,7 +21,13 @@ public class PortalConfigService {
 	PortalConfigRepository portalConfigRepository;
 	
 	@Autowired
+	CronJobService cronJobService;
+	
+	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	MyConfig myConfig;
 	
 	public ServiceResponse getPortalConfig() {
 		ServiceResponse response = new ServiceResponse();
@@ -88,6 +95,29 @@ public class PortalConfigService {
 				}
 				
 			});
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse generatePerviousMonthDSR() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			ServiceResponse monthlyTimesheetExcelGeneratorResponse = cronJobService.monthlyTimesheetExcelGenerator();
+			
+			if(monthlyTimesheetExcelGeneratorResponse.getServiceStatus().equals("Success")) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(monthlyTimesheetExcelGeneratorResponse.getServiceResponse());
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(monthlyTimesheetExcelGeneratorResponse.getServiceResponse());
+			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

@@ -14,9 +14,10 @@ export class PortalService {
   getPortalConfig() {
     return this.http.get(`${this.baseUrl}` + `api/getPortalConfig`);
   }
-
   updatePortalConfig(portalObj: Portal) {
     return this.http.post(`${this.baseUrl}` + `api/updatePortalConfig`,portalObj);
   }
-
+  generatePerviousMonthDSR() {
+    return this.http.get(`${this.baseUrl}` + `api/generatePerviousMonthDSR`);
+  }
 }
