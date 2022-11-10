@@ -72,6 +72,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getHierarchyByEmpId(Long empId);
 
 	public Long countByEmpId(Long empId);
+	
+	public Long countByManagerId(Long managerId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeData(Long empId);
@@ -102,5 +104,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeDetailForCron();
+
+	public List<Employee> findByManagerId(Long empId);
 
 }

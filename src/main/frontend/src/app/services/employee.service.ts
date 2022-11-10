@@ -21,6 +21,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeByEmpId`, employeeObj);
   }
 
+  changeManagerMapping(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/changeManagerMapping`, employeeObj);
+  }
+
   deleteEmployee(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/deleteEmployeeByEmpId`, employeeObj);
   }

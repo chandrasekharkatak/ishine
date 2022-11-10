@@ -876,7 +876,26 @@
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Employee?</p>
-        <button type="button" class="btn btn-success" (click)="onDeleteEmployee(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="onDeleteEmployee(update_manager_template,alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #update_manager_template>
+    <div class="modal-body text-center">
+        <p>Employee cannot be deleted as reportee(s) are mapped to him/her.<br>To delete Employee change Reporting Manager mapping.</p>
+        <div class="col-md-12 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group d-flex">
+                    <label><span class="text-danger">*</span>Select Reporting Manager</label>
+                    <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="employeeObj.newManagerId">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" (click)="onChangeManagerMapping(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
