@@ -680,18 +680,23 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(employeeObj.experience =='Experience'){
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
-          this.alertMessage = "Please enter more than 0 number !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
-      
+    if(employeeObj.experience =='Experienced'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {	
+        this.alertMessage = "Please enter total experience !!"	
+        this.openAlertMod(template, this.alertMessage);	
+        return false;	
+      }	
+      if(employeeObj.totalExperience === 0){	
+        this.alertMessage = "Please enter more than 0 number !!"	
+        this.openAlertMod(template, this.alertMessage);	
+        return false;	
+      }	
+        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {	
+          this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"	
+          this.openAlertMod(template, this.alertMessage);	
+          return false;	
+        }	
+      	
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
@@ -1279,6 +1284,15 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>){
+    if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)){
+      this.alertMessage = "Please enter Reason for rejecting !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
+      this.alertMessage = "reason shouldn't contain single character in Reason  !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     this.cancelRequest();
     this.cancelApplication();
