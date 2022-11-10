@@ -287,9 +287,9 @@ export class EmployeeInfoComponent implements OnInit{
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.allCertificationList?.forEach(certificaiton => {
-      certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
       console.log("All certificaiton : ", this.allCertificationList);
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
+        certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
         console.log("New certificaiton : ", certificaiton);
         this.updatedCertificationList.push(certificaiton);
       }

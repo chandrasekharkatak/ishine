@@ -407,7 +407,7 @@
                                 <div class="col-md-2 d-flex align-items-center">
                                     <div class="form-group m-0 mt-3 mb-1">
                                         <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputCertificationField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputCertificationField(certification)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                        <button *ngIf="allCertificationList.length > 1" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputCertificationField(certification)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                     </div>
                                 </div>
                             </div>
