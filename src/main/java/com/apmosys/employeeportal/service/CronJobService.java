@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -610,7 +613,19 @@ public class CronJobService {
 					List<Timesheet> monthlyTimesheet = timesheetsRepository.
 							findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
 					
-						var f = new File("/home/apmosys/Downloads/testMontlyEOD/"+employeementId+"-"+empName+"-"+firstDateOfPreviousMonth.getMonth()+".xlsx");
+					List<PortalConfig> portalConfig = portalConfigRepository.findAll();
+					String folderPath = null;
+					if(!portalConfig.isEmpty()) {
+						for(PortalConfig portalConfigObj : portalConfig) {
+							if(portalConfigObj.getConfigName().equals("DSR Download Path")) {
+								folderPath = portalConfigObj.getConfigValue();
+							}
+						}
+					}
+					System.out.println("Folder Path : " + folderPath);
+					
+					    Path path = Files.createDirectories(Paths.get(folderPath +"DSR" + File.separator + firstDateOfPreviousMonth.getYear() + File.separator + firstDateOfPreviousMonth.getMonth()));
+						var f = new File(path + File.separator + employeementId + "-" + empName + "-" + firstDateOfPreviousMonth.getMonth() + ".xlsx");
 						
 						if(f.exists()) {
 							f.delete();

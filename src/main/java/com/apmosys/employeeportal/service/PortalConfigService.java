@@ -83,8 +83,6 @@ public class PortalConfigService {
 					PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
 					
 					if(dbResponse!=null) {
-						Properties p = System.getProperties();
-						p.setProperty("monthlyTimesheetExcelGenerator.expression", "0 0/7 * ? * *");
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Portal Global Configuration Updated Successfully.");
 					}else {
@@ -127,30 +125,4 @@ public class PortalConfigService {
 		}
 		return response;
 	}
-	
-	public void dynamicCronExpressionForDSRGenerator() {
-		try {
-			
-//			List<PortalConfig> portalConfig = portalConfigRepository.findAll();
-//			
-//			String cronExpression = null;
-//			
-//			for(PortalConfig portalConfigObj : portalConfig) {
-//				if(portalConfigObj.getConfigName().equals("DSR Day")) {
-//					String generateDay = portalConfigObj.getConfigValue();
-////					cronExpression = "0 0 4 "+ generateDay +" * ?";
-//					cronExpression = "0 0/" + generateDay + " * ? * *";
-//				}
-//			}
-//			
-//			System.out.println(cronExpression + " : cronExpression");
-			
-			Properties p = System.getProperties();
-			p.setProperty("monthlyTimesheetExcelGenerator.expression", "0 0/5 * ? * *");
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 }
