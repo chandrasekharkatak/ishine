@@ -3,11 +3,12 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.apmosys.employeeportal.MyConfig;
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
@@ -26,8 +27,8 @@ public class PortalConfigService {
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
 	
-	@Autowired
-	MyConfig myConfig;
+	@Value("${monthlyTimesheetExcelGenerator.expression}")
+	private String excelGenerator;
 	
 	public ServiceResponse getPortalConfig() {
 		ServiceResponse response = new ServiceResponse();
@@ -82,20 +83,19 @@ public class PortalConfigService {
 					PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
 					
 					if(dbResponse!=null) {
+						Properties p = System.getProperties();
+						p.setProperty("monthlyTimesheetExcelGenerator.expression", "0 0/7 * ? * *");
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Portal Global Configuration Updated Successfully.");
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Portal Global Configuration Updation Failed.");
 					}
-					
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Portal Global Configuration not Found.");
 				}
-				
 			});
-			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -126,6 +126,31 @@ public class PortalConfigService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	public void dynamicCronExpressionForDSRGenerator() {
+		try {
+			
+//			List<PortalConfig> portalConfig = portalConfigRepository.findAll();
+//			
+//			String cronExpression = null;
+//			
+//			for(PortalConfig portalConfigObj : portalConfig) {
+//				if(portalConfigObj.getConfigName().equals("DSR Day")) {
+//					String generateDay = portalConfigObj.getConfigValue();
+////					cronExpression = "0 0 4 "+ generateDay +" * ?";
+//					cronExpression = "0 0/" + generateDay + " * ? * *";
+//				}
+//			}
+//			
+//			System.out.println(cronExpression + " : cronExpression");
+			
+			Properties p = System.getProperties();
+			p.setProperty("monthlyTimesheetExcelGenerator.expression", "0 0/5 * ? * *");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
