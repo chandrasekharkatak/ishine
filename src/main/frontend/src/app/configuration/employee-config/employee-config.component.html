@@ -909,7 +909,7 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.remarks"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)" (click)="rejectDraftEmployeeApplication(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();rejectDraftEmployeeApplication(alert_message)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
