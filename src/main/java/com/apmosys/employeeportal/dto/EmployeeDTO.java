@@ -140,5 +140,7 @@ public class EmployeeDTO {
 	private String reference;
 	private String backgroundVerificationStatus;
 	
+	private Long newManagerId;
+	private Long oldManagerId;
 
 }

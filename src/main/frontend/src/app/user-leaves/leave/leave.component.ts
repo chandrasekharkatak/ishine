@@ -344,7 +344,7 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    else  if(leaveObj.reason.length <= 1){
+    else  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(leaveObj.reason.trim())){
       this.alertMessage = "Single character is not valid in Leave reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

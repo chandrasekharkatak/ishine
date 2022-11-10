@@ -34,6 +34,7 @@ export class EmployeeConfigComponent implements OnInit {
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
+  isDeletion: boolean = false
   isForm: boolean = false;
   isTable: boolean = false;
 
@@ -267,6 +268,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.isDraftTable = false;
+    this.isDeletion = false;
     this.page=1;
     this.data='';
 
@@ -282,6 +284,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.isDraft = false;
+    this.isDeletion = false;
     this.page=1;
     this.data='';
 
@@ -318,6 +321,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.isDraftTable = false;
+    this.isDeletion = false;
 
     this.getManagerList(employee);
     this.getAllDepartmentList();
@@ -676,18 +680,23 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(employeeObj.experience =='Experience'){
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
-          this.alertMessage = "Please enter more than 0 number !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
-      
+    if(employeeObj.experience =='Experienced'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {	
+        this.alertMessage = "Please enter total experience !!"	
+        this.openAlertMod(template, this.alertMessage);	
+        return false;	
+      }	
+      if(employeeObj.totalExperience === 0){	
+        this.alertMessage = "Please enter more than 0 number !!"	
+        this.openAlertMod(template, this.alertMessage);	
+        return false;	
+      }	
+        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {	
+          this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"	
+          this.openAlertMod(template, this.alertMessage);	
+          return false;	
+        }	
+      	
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
@@ -971,13 +980,53 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  onDeleteEmployee(template: TemplateRef<any>) {
+  onDeleteEmployee(updatetemplate: TemplateRef<any>, template: TemplateRef<any>) {
     this.cancelRequest();
-
+    
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
+      } else {
+        this.isDeletion = true;
+        this.employeeObj.oldManagerId = this.employeeObj.empId;
+        this.employeeObj.newManagerId = '';
+        this.getManagerList(this.employeeObj);
+        this.modalRef = this.modalService.show(updatetemplate);
+      }
+    });
+  }
+
+  onChangeManagerMapping(template: TemplateRef<any>) {
+    this.cancelRequest();
+    this.isDeletion = false;
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.newManagerId)) {
+      this.alertMessage = "Please select a Manager !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    let employee: Employee = new Employee();
+    employee.managerId = this.employeeObj.newManagerId;
+    employee.oldManagerId = this.employeeObj.oldManagerId;
+
+    console.log("changeManagerMapping : ", employee);
+    
+    this.employeeService.changeManagerMapping(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        employee.empId = this.employeeObj.oldManagerId;
+        console.log("deleteEmployee : ", employee);
+        this.employeeService.deleteEmployee(employee).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+            this.page=1;
+          } else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1071,12 +1120,13 @@ export class EmployeeConfigComponent implements OnInit {
     this.managerList = [];	
     let employeeList = [];	
 
+    console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";	
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         employeeList = response.serviceResponse;	
         console.log("employeeList By Role : ", employeeList)
-        if(this.isUpdation){
+        if(this.isUpdation || this.isDeletion){
           this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
         }else{
           this.managerList = employeeList;
@@ -1234,6 +1284,15 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>){
+    if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)){
+      this.alertMessage = "Please enter Reason for rejecting !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
+      this.alertMessage = "reason shouldn't contain single character in Reason  !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     this.cancelRequest();
     this.cancelApplication();

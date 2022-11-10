@@ -129,5 +129,8 @@ export class Employee{
 	clientName:any;
 	clientLocation:any;
 
+	newManagerId:any;
+	oldManagerId:any;
 
+	isSelected:boolean = false;
 }

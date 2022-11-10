@@ -191,7 +191,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.dayType = '';
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
-
+    
     this.allTimesheetActivities = [];
     this.addInputActivityField();;
   }
@@ -756,11 +756,11 @@ export class MyTimesheetComponent implements OnInit {
       activityList.forEach((eodActivity, index) => {
         index = index + 1;
         totalActivity += index + ")" + "Project Name: " + eodActivity.projectName + " Activity: " + eodActivity.activity
-          + " comments: " + eodActivity.description + " Time taken: " + eodActivity.completionTime + "hrs. ";
+          + " description: " + eodActivity.description + " Time taken: " + eodActivity.completionTime + "hrs. ";
       })
       this.clipboardService.copy(content + " " + totalActivity);
     } else if (response.serviceResponse = "No activities found.Activity list is empty") {
-      this.clipboardService.copy(content + " " + " comments: " + timesheetObj.description)
+      this.clipboardService.copy(content + " " + " description: " + timesheetObj.description)
     }
   }
 

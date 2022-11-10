@@ -116,7 +116,7 @@ export class ValidationService {
   //^[1-9][0-9]?$ 
   validateExperiencedNumber(text: string): boolean {
 
-    const regex = /^[1-9][0-9]?$/;
+    const regex = /^[0-9]{0,2}(\.([1-9]|1[0-1]))?$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -389,7 +389,7 @@ export class ValidationService {
   }
 
   validateActivityTimesheetDiscription(text:string): boolean {
-    const regex = (/^[A-Za-z][A-Za-z\s,/'&"-]*$/) ;
+    const regex = (/^[A-Za-z0-9]{2}[A-Za-z0-9\s,/'&"#()@-]*$/) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -422,8 +422,8 @@ export class ValidationService {
 
   // ^[a-z][a-z\s]*$/i
 
-  validateSurveyName(text:string): boolean {
-    const regex = (/^[a-z][a-z\s]*$/i) ;
+  validateStringWithNoSpaceAtBeginAndNoSingleCharacter(text:string): boolean {
+    const regex = (/^[a-z]{2}[a-z\s?]*$/i) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -438,21 +438,6 @@ export class ValidationService {
 
   }
 
-  validateQuestion(text:string): boolean {
-    const regex = (/^[a-z][a-z\s?]*$/i) ;
-    if (text !== "" || text !== undefined || text !== null) {
-      if (regex.test(text)) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      return false;
-    }
-
-  }
 
   // ^[A-Z]{4}0[A-Z0-9]{6}$
 

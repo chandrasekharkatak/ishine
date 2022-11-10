@@ -79,6 +79,13 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.deleteEmployeeByEmpId(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/changeManagerMapping", method = RequestMethod.POST)
+	public ServiceResponse changeManagerMapping(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.changeManagerMapping(employeedto);
+		return response;
+	}
 
 	@RequestMapping(value = "/previewImage", method = RequestMethod.POST)
 	public ServiceResponse previewImage(HttpServletRequest request, @RequestParam("image") MultipartFile image) {
