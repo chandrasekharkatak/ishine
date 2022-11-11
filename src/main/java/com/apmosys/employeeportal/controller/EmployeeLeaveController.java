@@ -190,5 +190,19 @@ public class EmployeeLeaveController {
 		ServiceResponse response =	employeeLeaveService.getAllMyTeamLeaveRevokeApplicationsByEmpId(leaveDTO);		
 		return response;
 	}
+	
+	@RequestMapping(value="/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId" , method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/updateRevokeLeaveStatus" , method = RequestMethod.POST)
+	public ServiceResponse updateRevokeLeaveStatus(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.updateRevokeLeaveStatus(leaveDTO);		
+		return response;
+	}
 
 }

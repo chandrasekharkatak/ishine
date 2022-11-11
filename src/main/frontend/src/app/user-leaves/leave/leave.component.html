@@ -6,6 +6,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_reportee_leave_applications || userMapping.update_leave_applications_status" [ngClass]="{'active' : isLeaveApplicationsTable}" (click)="showLeaveApplicationsTable()">View My Reportee Leave Applications</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isReporteeLeaveRevokeApplicationsTable}" (click)="showReporteeLeaveRevokeApplicationTable()">View My Reportee Leave Revoke Applications</button>
     </div>
 </div>
 
@@ -372,6 +373,7 @@
     <table class="table table-responsive scrollable-table " id="log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	
           <tr>
+            <th scope="col" class="info-label" >Sr. No</th>
             <th *ngIf="isTeamLeaveRevokeApplication" scope="col" class="info-label">Name</th>
             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
             <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
@@ -387,7 +389,8 @@
             <tr *ngIf="revokeLeaveApplicationList.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
             </tr>
-            <tr *ngFor="let leave of revokeLeaveApplicationList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+            <tr *ngFor="let leave of revokeLeaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <td>{{items*(page-1)+i+1}}</td>
                 <td *ngIf="isTeamLeaveRevokeApplication">{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>
@@ -403,7 +406,56 @@
       <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
       <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
 </div>
-<!-- end :: Leave log table -->
+<!-- end :: Leave Revoke Application Table -->
+
+<!-- start ::Reportee Leave Revoke Application Table -->
+<div class="row d-flex" *ngIf="isReporteeLeaveRevokeApplicationsTable">
+    <div class="table-header">
+        <h1 class="table-header-title">My Reportee Leave Revoke Applications</h1>
+    </div>
+    <div class="form-group d-flex flex-row ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+        </div>
+    <table class="table table-responsive scrollable-table " id="log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+        <thead class="thead-light">	
+          <tr>
+            <th scope="col" class="info-label" >Sr. No</th>
+            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+            <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
+            <th scope="col" class="info-label" mat-sort-header="reason">Revoke Reason</th>
+            <th scope="col" class="info-label" mat-sort-header="action">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="reporteeLeaveRevokeApplicationList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <td>{{items*(page-1)+i+1}}</td>
+                <td>{{leave.leaveType}}</td>
+                <td>{{leave.fromDate}}</td>
+                <td>{{leave.toDate}}</td>
+                <td>{{leave.noOfDays}}</td>
+                <td>{{leave.status}}</td>
+                <td>{{leave.createdByName}}</td>
+                <td>{{leave.createdOn}}</td>
+                <td>{{leave.revokeReason}}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateRevokeLeaveStatus(alert_message, leave, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeLeaveRejectModal(reject_revoke_leave, leave)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                </td>
+            </tr>
+        </tbody>
+      </table>   
+      <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
+</div>
+<!-- end ::Reportee Leave Revoke Application Table -->
 
 <!-- Modals Template -->
 
@@ -458,5 +510,15 @@
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
         <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>
+
+  <!-- RevokeLeave Reject modal   -->
+  <ng-template #reject_revoke_leave>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateRevokeLeaveStatus(alert_message,leaveObj,3)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
   </ng-template>
