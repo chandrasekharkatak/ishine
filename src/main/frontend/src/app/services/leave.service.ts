@@ -62,6 +62,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/revokeApprovedLeaveApplication`, leaveObj);
   }
 
+  getRevokeLeaveApplicationByEmpId(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`, leaveObj);
+  }
+
+  getAllMyTeamLeaveRevokeApplicationsByEmpId(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamLeaveRevokeApplicationsByEmpId`, leaveObj);
+  }
+
   /* Leave Type */
   createLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/createLeaveType`, leaveObj);

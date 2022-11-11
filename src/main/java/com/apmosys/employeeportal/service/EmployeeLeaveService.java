@@ -22,12 +22,14 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -56,6 +58,9 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	LeaveRevokeApplicationRepository leaveRevokeApplicationRepository;
 	
 	@Autowired
 	private MailService mailService;
@@ -615,105 +620,6 @@ public class EmployeeLeaveService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-	
-	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Revoke Leave");
-		apiLogInfo.setApiUrl("/api/revokeApprovedLeaveApplication");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("LeaveId : "+leaveDTO.getLeaveId()+", LeaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId());
-		
-		try {
-			
-			Optional<EmployeeLeave> leaveObj = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-			
-			if(leaveObj.isPresent()) {
-				EmployeeLeave leaveToBeRevoked = leaveObj.get();
-				
-				Float noOfDays = leaveToBeRevoked.getNoOfDays();
-				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
-				
-				// If employee in resignation revoke leave, undo its notice period
-				Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
-				Optional<Employee> emp = employeeRepository.findById(leaveToBeRevoked.getEmpId());
-				
-				LeaveTypeMaster leaveTypeObj = leaveType.get();
-				
-				if (!emp.isEmpty()) {
-					Employee empObj = emp.get();
-					if (empObj.getEmploymentstatus().equals("Resigned") && 
-							(leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
-						empObj.setNoticePeriod((short) Math.floor(empObj.getNoticePeriod() - leaveToBeRevoked.getNoOfDays()));
-						employeeRepository.save(empObj);
-					}
-				}
-				
-				// updating leave balance after leave revoked
-				
-				EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
-						.findByEmpIdAndLeaveTypeMasterId(leaveToBeRevoked.getEmpId(), leaveToBeRevoked.getLeaveTypeMasterId());
-				
-				Float newBalance = employeeLeaveMapObj.getBalance() + noOfDays;
-				employeeLeaveMapObj.setBalance(newBalance);
-				
-				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
-				
-				if(dbResponse != null) {
-					
-					LeaveBalanceLog log = new LeaveBalanceLog();
-
-					log.setBalance(newBalance);
-					log.setEmpId(leaveToBeRevoked.getEmpId());
-					log.setLeaveTypeMasterId(leaveToBeRevoked.getLeaveTypeMasterId());
-					log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", noOfDays.toString()));
-					log.setUpdateBalanceBy("+" + noOfDays);
-
-					leaveBalanceLogRepository.save(log);
-					
-					//send mail to hr & manager
-					Optional<Employee> employee = employeeRepository.findById(leaveToBeRevoked.getEmpId());
-					if(!employee.isEmpty()) {
-						
-						Employee empObj = employee.get();
-						Optional<Employee> empManager = employeeRepository.findById(empObj.getManagerId());
-						
-						if(!empManager.isEmpty()) {
-							Employee empManagerObj = empManager.get();
-							mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress, "Leave revoked", "Employee have revoked its approved leave <br> EmpId : A-" + leaveToBeRevoked.getEmpId() + "<br> Reason : " + leaveDTO.getRevokeReason());
-						}
-					}
-					
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Leave Application revoked.");
-					
-					apiLogInfo.setApiResponse("Leave Application revoked.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-				
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Leave Application not found");
-				
-				apiLogInfo.setApiResponse("Leave Application Not Found.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1391,5 +1297,227 @@ public class EmployeeLeaveService {
 
 		return response;
 	}
+	
+	/*
+	  revoke leave Application methods start --
+	  */
 
+	
+	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Revoke Leave");
+		apiLogInfo.setApiUrl("/api/revokeApprovedLeaveApplication");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveId : "+leaveDTO.getLeaveId()+", LeaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId());
+		
+		try {
+			
+			Optional<EmployeeLeave> leaveObj = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
+			
+			if(leaveObj.isPresent()) {
+				EmployeeLeave leaveToBeRevoked = leaveObj.get();
+				
+				LeaveRevokeApplication leaveRevokeObj = new LeaveRevokeApplication();
+				
+				leaveRevokeObj.setLeaveId(leaveToBeRevoked.getLeaveId());
+				leaveRevokeObj.setLeaveRevokeStatusId((short) 1);
+				leaveRevokeObj.setReason(leaveDTO.getRevokeReason());
+				leaveRevokeObj.setEmpId(leaveToBeRevoked.getEmpId());
+				leaveRevokeObj.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy().longValue());
+				
+				LeaveRevokeApplication leaveRevokeApplicationResponse = leaveRevokeApplicationRepository.save(leaveRevokeObj);
+				
+				if(leaveRevokeApplicationResponse != null) {
+					
+					leaveToBeRevoked.setLeaveStatusId((short) 4);
+					employeeLeaveRepository.save(leaveToBeRevoked);
+					
+					// send mail on Leave Revoke
+					
+					Optional<Employee> employee = employeeRepository.findById(leaveToBeRevoked.getEmpId());
+					
+					if(!employee.isEmpty()) {
+						Employee empObj = employee.get();
+						Optional<Employee> empManager = employeeRepository.findById(empObj.getManagerId());
+						if(!empManager.isEmpty()) {
+							Employee empManagerObj = empManager.get();
+							
+							if(leaveToBeRevoked.getEmpId().equals(leaveDTO.getCreatedBy())) {
+								// Revoked leave for self
+										mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress +","+ empObj.getEmail(),
+												"Revoke Request for Leave Application",
+												"Dear "+ empManagerObj.getName() + ","
+												+"<br>"+empObj.getName()+" has revoked its approved leave"
+												+"<br><br> Leave Details :"
+												+"<br>EmpId : A-" + empObj.getEmployeementId()
+												+"<br> Name : " + empObj.getName()
+												+"<br> From Date : " + leaveToBeRevoked.getFromDate() + "   To Date : " + leaveToBeRevoked.getToDate()
+												+"<br> No. Of Days : " + leaveToBeRevoked.getNoOfDays()
+												+"<br> Leave Type : " + leaveDTO.getLeaveType()
+												+"<br> Revoke reason : " + leaveDTO.getRevokeReason());
+							}else {
+								// Revoked leave for Team
+								Optional<Employee> createdByEmp = employeeRepository.findById(leaveDTO.getCreatedBy());
+								if(!createdByEmp.isEmpty()) {
+									Employee createdByObj = createdByEmp.get();
+									
+									mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress +","+ empObj.getEmail() +","+ createdByObj.getEmail(),
+											"Revoke Request for Leave Application",
+											"Dear "+ empManagerObj.getName() + ","
+											+"<br> Leave has been revoked for "+ empObj.getName() +" by "+createdByObj.getName()
+											+"<br><br> Leave Details :"
+											+"<br> EmpId : A-" + empObj.getEmployeementId()
+											+"<br> Name : " + empObj.getName()
+											+"<br> From Date : " + leaveToBeRevoked.getFromDate() + "   To Date : " + leaveToBeRevoked.getToDate()
+											+"<br> No. Of Days : " + leaveToBeRevoked.getNoOfDays()
+											+"<br> Leave Type : " + leaveDTO.getLeaveType()
+											+"<br> Revoke reason : " + leaveDTO.getRevokeReason());
+								}
+							}
+						}
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Leave Revoke Application Sumitted Successfully.");
+					
+					apiLogInfo.setApiResponse("Leave Revoke Application Sumitted Successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Leave Revoke Application Failed.");
+					
+					apiLogInfo.setApiResponse("Leave Revoke Application Failed.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse getRevokeLeaveApplicationByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getRevokeLeaveApplicationByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
+		try {
+			List<Object[]> list = leaveRevokeApplicationRepository.getRevokeLeaveApplicationByEmpId(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Revoke Leave Application found");
+
+				apiLogInfo.setApiResponse("No Revoke Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setLeaveRevokeId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setCreatedOn(object[2] != null ? object[2].toString() : null);
+					dto.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+					dto.setEmployeeName(object[4] != null ? object[4].toString() : null);
+					dto.setRevokeReason(object[5] != null ? object[5].toString() : null);
+					dto.setFromDate(object[6] != null ? object[6].toString() : null);
+					dto.setToDate(object[7] != null ? object[7].toString() : null);
+					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					dto.setStatus(object[9] != null ? object[9].toString() : null);
+					dto.setLeaveType(object[10] != null ? object[10].toString() : null);
+					
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse getAllMyTeamLeaveRevokeApplicationsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllMyTeamLeaveRevokeApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		
+		try {
+			List<Object[]> list = leaveRevokeApplicationRepository.getAllMyTeamLeaveRevokeApplicationsByEmpId(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Team Revoke Leave Application found");
+
+				apiLogInfo.setApiResponse("No Team Revoke Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setLeaveRevokeId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setCreatedOn(object[2] != null ? object[2].toString() : null);
+					dto.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+					dto.setEmployeeName(object[4] != null ? object[4].toString() : null);
+					dto.setRevokeReason(object[5] != null ? object[5].toString() : null);
+					dto.setFromDate(object[6] != null ? object[6].toString() : null);
+					dto.setToDate(object[7] != null ? object[7].toString() : null);
+					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					dto.setStatus(object[9] != null ? object[9].toString() : null);
+					dto.setLeaveType(object[10] != null ? object[10].toString() : null);
+					
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + "Team Revoke Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 }
