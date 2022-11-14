@@ -3,6 +3,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { certification } from 'src/app/models/certification';
 import { Document } from 'src/app/models/document';
 import { Employee } from 'src/app/models/employee';
+import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
@@ -291,95 +292,114 @@ export class InformationPreviewComponent implements OnInit {
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
     // }
-    if(employeeObj.certifications.length !== 0){
+    let certFlag = true;
+    if(employeeObj.certifications && employeeObj.certifications.length !== 0){
       employeeObj.certifications.forEach((certification:certification, index) =>{
         if(!this.validationService.validateNullUndefinedEmptyString(certification.certificationName)){
           this.alertMessage = `Please Enter Certification Name - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
-          return false;
+          certFlag = false;
+          return;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.duration)){
           this.alertMessage = `Please Select Duration - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
-          return false;
+          certFlag = false;
+          return;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.modeOfCourse)){
           this.alertMessage = `Please Select Mode Of Course - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
-          return false;
+          certFlag = false;
+          return;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.dateOfCompletion)){
           this.alertMessage = `Please Select Date of Completion - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
-          return false;
+          certFlag = false;
+          return;
         }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.certificationNumber)){
           this.alertMessage = `Please Enter Certification Number - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
-          return false;
+          certFlag = false;
+          return;
         }
       });
     }
 
+    if(!certFlag) return false;
+
+    let prevFlag = true;
     if(employeeObj.experience == 'Experienced'){
-      if(employeeObj.previousEmploymentList.length === 0){
+      if(employeeObj.previousEmploymentList && employeeObj.previousEmploymentList.length === 0){
         this.alertMessage = `Please Enter Previous Employment Details !!`;
         this.openAlertMod(template, this.alertMessage);
         return false;
       }else{
-        employeeObj.previousEmploymentList.forEach((previousEmployer, index) =>{
+        employeeObj.previousEmploymentList.forEach((previousEmployer:PreviousEmployer, index) =>{
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
             this.alertMessage = `Please Enter Employer Name - ${index+1}!!`;
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
       
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
             this.alertMessage = `Please Enter Date of Joining - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
       
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfRelieving)){
             this.alertMessage = `Please Enter Date of Relieving - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.yearsOfExperience)){
             this.alertMessage = `Please Enter Years of Experience - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
             this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerContactNumber)){
             this.alertMessage = `Please Enter Manager Contact Number - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
             this.alertMessage = `Please Enter HR Name - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
             this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
             this.openAlertMod(template, this.alertMessage);
-            return false;
+            prevFlag = false;
+            return;
           }
         });
+
+        if(!prevFlag) return false;
       }
     }
 
@@ -435,20 +455,26 @@ export class InformationPreviewComponent implements OnInit {
     // }
 
     // Documents
+    let docFlag = true;
     employeeObj.documentList.forEach((doc:Document) => {
       if(doc.documentName == null){
         this.alertMessage = `Please Upload ${doc.documentType} !!`
         this.openAlertMod(template, this.alertMessage);
-        return false;
+        docFlag = false;
+        return;
       }
     });
+
+    if(!docFlag) return false;
+
     return true;
   }
 
   async onSubmit(template: TemplateRef<any>) {
+
+    console.log(" this.currentEmployeeInfo : ",this.currentEmployeeInfo)
     let inputValidated: boolean = this.validateEmployeeObj(this.currentEmployeeInfo, template)
     if (!inputValidated) return;
-
     const response:any = await this.updateUserInfoService.updateEmployeeInfo();
     console.log("onUpdate --> Preview : ", response);
     

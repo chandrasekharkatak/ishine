@@ -219,6 +219,8 @@ export class RoleConfigComponent implements OnInit {
         if(response.serviceStatus =='Fail'){
           this.openAlertMod(template, response.serviceResponse);
           this.jobRoleObj.name = '';
+          this.jobRoleObj.employeeRole = ''
+          this.jobRoleObj.departmentId = ''
         }
       })
     } else {

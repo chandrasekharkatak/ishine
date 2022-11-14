@@ -389,7 +389,7 @@ export class ValidationService {
   }
 
   validateActivityTimesheetDiscription(text:string): boolean {
-    const regex = (/^[A-Za-z0-9]{2}[A-Za-z0-9\s,/'&"#()@-]*$/) ;
+    const regex = (/^[A-Za-z0-9]{2}[A-Za-z0-9\s,/.'&"#()@-]*$/) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

@@ -124,6 +124,7 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.status = "Approved";
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
+    console.log("timesheet obj  : ",timesheetObj)
     this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
