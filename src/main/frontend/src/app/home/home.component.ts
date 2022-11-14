@@ -1083,7 +1083,7 @@ onBulkApproval(template:TemplateRef<any>){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approve Successfully ");
+      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1131,7 +1131,7 @@ onBulkLeaveApproval(template:TemplateRef<any>){
  
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Application Approve Successfully ");
+      this.openAlertMod(template , "All Selected Application Approved Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];

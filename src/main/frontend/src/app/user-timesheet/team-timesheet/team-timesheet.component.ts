@@ -421,7 +421,7 @@ onBulkApproval(template:TemplateRef<any>){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approve Successfully ");
+      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];
