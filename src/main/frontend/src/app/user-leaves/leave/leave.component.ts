@@ -1283,7 +1283,7 @@ export class LeaveComponent implements OnInit {
      
       this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.openAlertMod(template , "All Selected Application Approve Successfully ");
+          this.openAlertMod(template , "All Selected Application Approved Successfully ");
           this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
          
           this.bulkLeaveApprove = [];

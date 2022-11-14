@@ -287,13 +287,14 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
-
+        if(timesheetObj.description != ''){
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description - ${index + 1}!!`
+          this.alertMessage = `Only (/'&"-.) special character and digits are allowed in Activity Description  - ${index + 1}!!`
           flag = false;
           return;
         }
 
+        }
         if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;
@@ -322,7 +323,7 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description  !!`
+        this.alertMessage = `Only (/'&"-.) special character and digits are allowed in Activity Description  !!`
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -345,6 +346,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
     this.timesheetObj.createdBy = this.currentUser.empId;
+    this.timesheetObj.createdByName = this.currentUser.name
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -412,6 +414,19 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  __tempDescription = '';
+  onTimesheetDescriptionChange(){
+    if(this.isUpdation){
+      if(this.timesheetObj.dayType == 'Holiday'){
+        this.timesheetObj.description = this.__tempDescription;
+        this.__tempDescription = '';
+      }else{
+        this.__tempDescription = (this.timesheetObj.description != null) ? this.timesheetObj.description : ''; 
+        this.timesheetObj.description = '';
+      }
+    }
   }
 
   getTimesheetMetadata(){
@@ -565,11 +580,7 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-
-
-  /* View Timesheets */
-  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
-    this.allMyTimesheets = [];
+  getTimesheetData(template:TemplateRef<any>){
 
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
@@ -589,6 +600,12 @@ export class MyTimesheetComponent implements OnInit {
     } else {
       this.allMyTimesheets = [];
     }
+  }
+
+  /* View Timesheets */
+  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
+    this.allMyTimesheets = [];
+
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
