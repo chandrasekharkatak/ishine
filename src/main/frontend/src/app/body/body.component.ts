@@ -100,6 +100,7 @@ export class BodyComponent implements OnInit {
         sessionStorage.removeItem('currentUser');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
+        this.authenticationService.setcurrentUserSubject(null);
         this.router.navigate(['/login']);
         location.reload();
       } else {

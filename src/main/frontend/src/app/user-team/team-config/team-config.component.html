@@ -84,17 +84,39 @@
                     </div>
                 </div>
             </div>
+            <!-- New Team Members -->
+            <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="container-fluid px-0">
+                <div class="row ml-1 mt-5">
+                    <h3>New Team Members</h3>
+                </div>
+                <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <input type="text" class="form-control" autocomplete="none" disabled
+                                    [(ngModel)]="teamMember.name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex">
+                        <div class="m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i
+                                    class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Add New Team Members -->
             <div class="row ml-1 mt-5">
                 <h3>Add Team Members</h3>
             </div>
-            <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
+            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamMember.empId">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="newteamMember.empId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}">{{employee.name}}</option>
+                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}" [disabled]="employee.isSelected">{{employee.name}}</option>
                             </select>
                         </div>
                     </div>
@@ -102,13 +124,33 @@
                 <div class="col-md-2 d-flex">
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1"
-                            (click)="addInputTeamMemberField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                            (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+        <!-- 
+            <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamMember.empId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}" [disabled]="employee.isSelected">{{employee.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex">
+                    <div class="m-0">
+                        <button type="button" class="btn btn-outline-primary mx-1"
+                            (click)="addInputTeamMemberField();updateEmployeeListAccordingToTeamMembers()"><i class="fa fa-plus" aria-hidden="true"></i></button>
                         <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1"
-                            (click)="removeInputTeamMemberField(teamMember)"><i class="fa fa-trash"
+                            (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i class="fa fa-trash"
                                 aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>
+        -->
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation && userMapping.add_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onCreateTeam(alert_message)">Create Team</button>
