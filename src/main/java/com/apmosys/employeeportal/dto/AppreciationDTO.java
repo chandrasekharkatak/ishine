@@ -14,7 +14,7 @@ public class AppreciationDTO {
 	
 	private String appreciateType;	
 	private String reason;	
-	private LocalDateTime appreciationDate;
+	private String appreciationDate;
 	
 	//name
     private String name;
@@ -25,8 +25,11 @@ public class AppreciationDTO {
     //employementID
 	private Long appreciationBy;
 	private Long appreciationTo;
+	private String appreciationToName;
+	private String appreciationByName;
 	//manager mail
 	private String managerName;	
 	private String managerMail;
+	private Long appreciationEventId;
 	
 }

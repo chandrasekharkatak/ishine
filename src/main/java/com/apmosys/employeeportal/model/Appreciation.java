@@ -40,4 +40,7 @@ public class Appreciation {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private LocalDateTime appreciationDate;
 	
+	@Column(name = "appreciation_EventId")
+	private Long appreciationEventId;
+	
 }

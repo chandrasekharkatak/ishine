@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.util.List;
+import java.time.LocalDate;	
 
 import lombok.Getter;
 import lombok.Setter;
@@ -142,5 +143,14 @@ public class EmployeeDTO {
 	
 	private Long newManagerId;
 	private Long oldManagerId;
+	private String isAppreciationEnable; 	
+	
+    private String fromDate;	
+		
+	private String toDate;	
+		
+	private Long appreciationEventId;	
+		
+//	private String eventCreatedOn;
 
 }

@@ -241,8 +241,15 @@ public class UploadPolicyService {
 			UploadPolicy updatedPolicy = UploadPolicyRepository.save(uploadPolicy);
 			
 			if(updatedPolicy.getPolicyID() != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Read Enabled status changed.");
+				if(updatedPolicy.getReadEnabled().equalsIgnoreCase("false")) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Read Disable status changed.");
+				}
+				else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Read Enable status changed.");
+					
+				}
 
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);

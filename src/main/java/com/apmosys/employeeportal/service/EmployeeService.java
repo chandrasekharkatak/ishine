@@ -1865,6 +1865,7 @@ public class EmployeeService {
 					employee.setEmployeementId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					employee.setIsNew(object[8] != null ? object[8].toString() : null);
 					employee.setIsUserInfoUpdated(object[9] != null ? object[9].toString() : null);
+					employee.setIsAppreciationEnable(object[10] != null ? object[10].toString() : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 
 				});

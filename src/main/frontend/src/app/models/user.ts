@@ -1,3 +1,5 @@
+import { enableAppreciation } from "./enableAppreciation";
+
 export class User{
     empId:any;
     name:any;
@@ -24,4 +26,6 @@ export class User{
 
     isUserInfoUpdated:boolean = true;
     updateFormCounter:number = 0;
+    isAppreciationEnable: boolean =false;
+    appreciationEventInfo:enableAppreciation;
 }

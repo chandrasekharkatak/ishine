@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.text.SimpleDateFormat;
+import com.apmosys.employeeportal.dto.AppreciationEventDTO;	
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -33,6 +34,9 @@ public class AuthenticationService {
 
 	@Autowired
 	TabMasterService tabMasterService;
+	
+	@Autowired	
+	AppreciationService appreciationService;
 
 	@Autowired
 	EmployeeService employeeService;
@@ -187,6 +191,7 @@ public class AuthenticationService {
 					|| employeedto.getOtp().toString().equals(portalStaticOtp)) {
 				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
 				EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
+				AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
 
 				logInfo.setLoginTime(df.format(new Date()));
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
@@ -199,7 +204,7 @@ public class AuthenticationService {
 					userLogInfoList.put(employee.getEmpId(), logInfo);
 				}
 
-				Object[] object = new Object[7];
+				Object[] object = new Object[8];
 				object[0] = currentEmployeeDto;
 				object[1] = serviceResponse.getServiceResponse();
 				object[2] = sessionString;
@@ -207,6 +212,7 @@ public class AuthenticationService {
 				object[4] = maxFileSize.replace("MB","");
 				object[5] = maxRequestSize.replace("MB","");
 				object[6] = logInfo;
+				object[7] = currentEventDto;
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(object);
