@@ -524,6 +524,7 @@ public class TimesheetService {
 
 				timesheet.setStatus(timesheetDTO.getStatus());
 				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				timesheet.setRemarks(timesheetDTO.getRejectReason());
 
 				Timesheet updatedTimesheet = timesheetsRepository.save(timesheet);
 

@@ -26,7 +26,7 @@ public class LeaveRevokeApplication {
 	private Short leaveRevokeStatusId;
 	private Long leaveRevokeStatusUpdatedBy;
 	private String reason;
-	private String rejectReason;
+	private String remark;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

@@ -482,6 +482,7 @@ public class EmployeeLeaveService {
 					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
 					pendingLeaveApplication.setLeaveStatusId((short) 3);
+					pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 					employeeLeavesMap
 							.setBalance(employeeLeavesMap.getBalance() + pendingLeaveApplication.getNoOfDays());
 
@@ -1677,7 +1678,7 @@ public class EmployeeLeaveService {
 					// change revoke leave application status
 						leaveRevokeObj.setLeaveRevokeStatusId(leaveDTO.getLeaveRevokeStatusId());
 						leaveRevokeObj.setLeaveRevokeStatusUpdatedBy(leaveDTO.getLeaveRevokeStatusUpdatedBy());
-						leaveRevokeObj.setRejectReason(leaveDTO.getRejectReason());
+						leaveRevokeObj.setRemark(leaveDTO.getRejectReason());
 						leaveRevokeApplicationRepository.save(leaveRevokeObj);
 						
 					// change leave application status
