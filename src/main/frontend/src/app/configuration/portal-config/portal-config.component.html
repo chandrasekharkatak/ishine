@@ -1,14 +1,15 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showPortalConfiguration()" [ngClass]="{'active' : isPortalConfiguration}">Portal Configuration</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showAppreciationConfiguration()" [ngClass]="{'active' : isAppreciationConfiguration}">Appreciation Configuration</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_portal_global_configuration" [ngClass]="{'active' : portalConfig}" (click)="getAllPortalConfig()">Portal Global Configuration</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.appreciation_configuration" [ngClass]="{'active' : appreciationConfig  || isTable }"  (click)="enableAppreciationOnclick()">Enable Appreciation</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_employees_appreciation" [ngClass]="{'active' : viewAppreciationForm || isAppreciationTable}"  (click)="viewAllAppreciation()">View Appreciation</button>
+
     </div>
 </div>
 
-<!-- Portal Configuration : start -->
-
+<!-- Portal Global Configuration start -->
 <div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isPortalConfiguration">
+    <div class="card col-md-12 px-0" *ngIf="portalConfig">
         <div class="card-header text-center text-uppercase">
             <strong>Portal Global Configuration</strong>
         </div>
@@ -101,14 +102,184 @@
     </div>
 </div>
 
+<!-- Portal Global Configuration End -->
 
-<!-- Appreciation Configuration : start -->
+<!-- Appreciation Configuration start -->
 
 <div class="row">
-    <div class="col-md-12 px-0" *ngIf="isAppreciationConfiguration">
-        <h6>Appreciation Configuration</h6>
+    <div class="card col-md-12 px-0" *ngIf="appreciationConfig ">
+        <div class="card-header text-center text-uppercase" >
+            <strong>Enable Appreciation For Employees</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                  <input id="historyFromDate" type="date" [(ngModel)]="appreciationObj.toDate" class="form-control"  >
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Event Name</label>
+                            <input type="text" class="form-control" maxlength="255" [(ngModel)]="appreciationObj.appreciationEventName" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Select Employees</label>
+                                <select  [(ngModel)]="appreciationObj.enableAppreciationFor" (change)="changeEvent(filter, appreciationColumns, 'Filter Appreciation',appreciationObj.enableAppreciationFor)" class="form-control" aria-hidden="true">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option value="all">All</option>
+                                    <option value="custom">Custom</option>
+                               </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="enableAppreciation(alert_message)" >Create Appreciation Event</button>
+                </div>
+            </div>
+        </div>
     </div>
-</div>       
+
+
+    
+<div class="row" style="width:100%" *ngIf="isTable"   >   
+    <div class="form-group d-flex flex-row ml-auto col-md-3" >
+    <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+    <button type="button"  id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, appreciationColumns, 'Filter Appreciation')"><i class="fa-solid fa-filter"></i></button>
+    </div>
+    <table class="table appreciation-config-table"  id="table appreciation-config-table" matSort (matSortChange)="sortData($event) ">	
+    <thead class="thead-light">	
+      <tr>	
+        <th scope="col" class="info-label" mat-sort-header="empId" >Employee Id</th>	
+        <th scope="col" class="info-label" mat-sort-header="name" >Full Name</th>	
+        <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
+        <th scope="col" class="info-label" mat-sort-header="employmentstatus">Employment Status</th>	
+        <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>	
+        
+        </tr>
+      </thead>
+      <tbody>
+          <tr *ngIf="allEmployeeList.length == 0 ">
+          <th colspan="9" class="text-center info-label">No details to display...</th>
+        </tr>
+         <tr *ngFor="let employee of allEmployeeList | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index " > 
+            <td>{{employee.empId}}</td>
+            <td>{{employee.name}}</td>
+            <td>{{employee.email}}</td>
+            <td>{{employee.employmentstatus}}</td>
+            <td>{{employee.dateOfJoining}}</td>
+        </tr>   
+       </tbody>
+    </table>  
+    <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+  </div>
+</div>
+<!-- Appreciation Configuration end -->
+
+<!-- view Appreciation form start -->
+<div class="row" *ngIf="viewAppreciationForm">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase" >
+            <strong>View Appreciation</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Select Appreciation Event</label>
+                        <select class="form-control" [(ngModel)]="appreciationObj.appreciationEventId" name="Appreciation" aria-hidden="true" >
+                         <option selected="selected" value="" disabled>Select</option>
+
+                          <option *ngFor="let event of allAppreciationEvent" value="{{event.appreciationEventId}}">{{event.appreciationEventName}}</option>  
+                          </select> 
+                    </div>
+                </div>
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Select Appreciation Categories</label>
+                        <select class="form-control"  name="Appreciation" [(ngModel)]="appreciationObj.appreciateType" aria-hidden="true" >
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="You are my Star">You are my Star</option>
+                            <option value="You are Gem of a Person">You are Gem of a Person</option>
+                            <option value="You are a Problem Solver">You are a Problem Solver</option>
+                            <option value="You are Supportive">You are Supportive</option>
+                            <option value="You are Reliable">You are Reliable</option>
+                            <option value="You are a Motivator">You are a Motivator</option>
+                        </select> 
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div class="row">
+                <div class="col-md-12">                  
+                        <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="viewAppreciationsOnSubmit()" >Submit</button>
+                </div>
+            </div>
+        
+        </div>
+    </div>
+</div>
+<!-- view Appreciation form end -->
+
+<!-- view appreciatio table start -->
+<div class="row" style="width:100%" *ngIf="isAppreciationTable">   
+    <div class="form-group d-flex flex-row ml-auto col-md-3" >
+    <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+    </div>
+    <table class="table view-appreciation-table"  id="view-appreciation-table" matSort (matSortChange)="sortViewAppreciationData($event) ">	
+    <thead class="thead-light">	
+      <tr>	
+        <th scope="col" class="info-label" mat-sort-header="appreciateType" >Appreciation Type</th>	
+        <th scope="col" class="info-label"  mat-sort-header="appreciationToName">Appreciation To</th>	
+        <th scope="col" class="info-label"  mat-sort-header="appreciationByName">Appreciation By</th>	
+        <th scope="col" class="info-label"  mat-sort-header="appreciationDate">Appreciation Date</th>	
+        <th scope="col" class="info-label"  mat-sort-header="managerName">Reporting To</th>	
+        <th scope="col" class="info-label"  mat-sort-header="reason">Reason</th>	
+        </tr>
+      </thead>
+      <tbody>
+          <tr *ngIf="appByCategory.length == 0 ">
+          <th colspan="9" class="text-center info-label">No details to display...</th>
+        </tr>
+         <tr *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index " > 
+            <td>{{appreciation.appreciateType}}</td>
+            <td>{{appreciation.appreciationToName}}</td>
+            <td>{{appreciation.appreciationByName}}</td>
+            <td>{{appreciation.appreciationDate}}</td>
+            <td>{{appreciation.managerName}}</td>
+            <td>{{appreciation.reason}}</td>
+
+        </tr>   
+       </tbody>
+    </table>  
+    <pagination-controls class="my-pagination" [hidden]="appByCategory.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+  </div>
+<!-- view appreciatio table end -->
 
 <ng-template #alert_message>
     <div class="modal-body text-center">
@@ -116,3 +287,16 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<!-- Filter Modal -->
+<ng-template #filter>
+    <div class="modal-header">
+        <b>{{filterData.title}}</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body ">
+      <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
+    </div>
+  </ng-template>

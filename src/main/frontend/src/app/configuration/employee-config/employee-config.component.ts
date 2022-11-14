@@ -45,11 +45,12 @@ export class EmployeeConfigComponent implements OnInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   previewModalRef: BsModalRef = new BsModalRef();
-
+  all:any;
   //Obj 
   currentUser: User;
   employeeObj: Employee = new Employee();
   allEmployeeList: any;
+  _allEmployeeList: any;	
   managerList: any = [];
   userMapping: any = {};
   allJobRoleList: any[] = [];
@@ -1038,7 +1039,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        
+        this._allEmployeeList = this.allEmployeeList;
+
         console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
       } else {
@@ -1046,7 +1048,14 @@ export class EmployeeConfigComponent implements OnInit {
       }
     });
   }
-
+  changeEvent(value:string){	
+ 	
+    if(value=="Active"){	
+        this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
+    }else if(value=="InActive"){	
+      this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');  	
+    }	
+  }
   createEmployeeList(allEmployeeList: any) {
     this.managerList = allEmployeeList.map(employee => {
       let emp = { name: employee.name, empId: employee.empId.toString() };

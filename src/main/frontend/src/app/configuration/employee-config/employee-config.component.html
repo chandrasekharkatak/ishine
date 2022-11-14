@@ -753,8 +753,26 @@
           </div>
       
 
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
+    <div class="form-group d-flex flex-row ml-auto col-md-3" *ngIf="isDraftTable">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+        </div>
+        
+        <div class="row col-md-12"> 	
+            <div *ngIf="!isDraftTable" class="col-md-2 ml-auto mb-2">	
+                <div class="form-inline input-group">	
+                    <label class="d-inline-block mr-2 mt-2"><strong>Status</strong></label>	
+                    <select class="custom-select w-70" aria-hidden="true" #changedata (change)="changeEvent(changedata.value)">	
+                        <option selected="selected" value="" disabled>Select</option>	
+                        <option value="Active">Active</option>	
+                        <option value="InActive">InActive</option>	
+                    </select>	
+                </div>	
+            </div>	
+            <div class="col-md-3">	
+                <div class="form-group" *ngIf="!isDraftTable">	
+                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
+                </div>             	
+            </div>	
         </div>
         
     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
