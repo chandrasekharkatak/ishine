@@ -171,6 +171,7 @@
             <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
             <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+            <th scope="col" class="info-label">Remarks</th>
             <th scope="col" class="info-label">Action</th>
             <!-- <th scope="col" class="info-label">Comments</th> -->
           </tr>
@@ -190,6 +191,7 @@
                 <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
                 <td>{{leaveHistory.createdOn}}</td>
                 <td>{{leaveHistory.reason}}</td>
+                <td>{{leaveHistory.remark}}</td>
                 <!-- <td>{{leaveHistory.description}}</td> -->
                 <td>	
                     <button *ngIf="leaveHistory.status == 'Pending' && userMapping.update_leave" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;	
@@ -383,6 +385,7 @@
             <th *ngIf="isSelfLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
             <th scope="col" class="info-label" mat-sort-header="reason">Revoke Reason</th>
+            <th scope="col" class="info-label">Remarks</th>
           </tr>
         </thead>
         <tbody>
@@ -400,6 +403,7 @@
                 <td *ngIf="isSelfLeaveRevokeApplication">{{leave.createdByName}}</td>
                 <td>{{leave.createdOn}}</td>
                 <td>{{leave.revokeReason}}</td>
+                <td>{{leave.remark}}</td>
             </tr>
         </tbody>
       </table>   

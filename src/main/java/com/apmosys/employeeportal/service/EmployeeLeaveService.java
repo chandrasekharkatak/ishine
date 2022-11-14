@@ -346,6 +346,7 @@ public class EmployeeLeaveService {
 					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
+					dto.setRemark(object[10] != null ? object[10].toString() : null);
 					dtoList.add(dto);
 				});
 
@@ -1232,6 +1233,7 @@ public class EmployeeLeaveService {
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
 					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					dtoList.add(dto);
 				});
 
@@ -1440,6 +1442,7 @@ public class EmployeeLeaveService {
 					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 					dto.setStatus(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveType(object[10] != null ? object[10].toString() : null);
+					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					
 					dtoList.add(dto);
 				});
@@ -1497,6 +1500,7 @@ public class EmployeeLeaveService {
 					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 					dto.setStatus(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveType(object[10] != null ? object[10].toString() : null);
+					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					
 					dtoList.add(dto);
 				});

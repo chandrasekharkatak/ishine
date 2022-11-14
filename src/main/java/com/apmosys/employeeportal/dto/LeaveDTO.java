@@ -104,4 +104,6 @@ public class LeaveDTO {
 	private Long leaveRevokeId;
 	private Short leaveRevokeStatusId;
 	private Long leaveRevokeStatusUpdatedBy;
+	
+	private String remark;
 }

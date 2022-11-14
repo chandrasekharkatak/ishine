@@ -21,7 +21,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	public Long countMyReporteesTimesheetRequests(Long managerId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesApprovedTimesheets(Long managerId,String status,LocalDate start, LocalDate end);
+	public List<Object[]> getMyReporteesApprovedTimesheets(Long managerId,LocalDate start, LocalDate end);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getLast7DaysTimesheetsByEmpId(Long empId,LocalDate date);

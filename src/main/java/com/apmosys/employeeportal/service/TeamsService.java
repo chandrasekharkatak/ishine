@@ -509,6 +509,7 @@ public class TeamsService {
 					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					dto.setRemark(object[10] != null ? object[10].toString() : null);
 					dtoList.add(dto);					
 					});
 
