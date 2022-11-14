@@ -41,6 +41,12 @@ export class LeaveComponent implements OnInit {
   isSelfLeaveHistory:boolean = false;
   isTeamLeaveHistory:boolean = false;
 
+  isLeaveRevokeApplicationTable:boolean = false;
+  isSelfLeaveRevokeApplication:boolean = false;
+  isTeamLeaveRevokeApplication:boolean = false;
+
+  isReporteeLeaveRevokeApplicationsTable:boolean = false;
+
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
@@ -61,6 +67,8 @@ export class LeaveComponent implements OnInit {
   leaveApplicationList:any[] = [];
   leaveLogList:any[] = [];
   leaveBalanceList:any[] = [];
+  revokeLeaveApplicationList:any[] = [];
+  reporteeLeaveRevokeApplicationList:any[] = [];
 
   //excel	
   excelName = '';		
@@ -75,7 +83,7 @@ export class LeaveComponent implements OnInit {
 
   teamMemberList:any[] = [];
 
-  items = 10;	
+  items = 20;	
   isSelectAll:boolean = false;	
   isSelect:boolean = false;	
   bulkLeaveApprove:any =[];	
@@ -152,9 +160,14 @@ export class LeaveComponent implements OnInit {
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
     this.isLeaveLogTable = false;
+    this.isLeaveRevokeApplicationTable = false;
 
     this.isSelfLeaveHistory = false;
     this.isTeamLeaveHistory = false;
+
+    this.isSelfLeaveRevokeApplication = false;
+    this.isTeamLeaveRevokeApplication = false;
+    this.isReporteeLeaveRevokeApplicationsTable = false;
 
     this.reset();
     this.getAllHolidays();
@@ -170,11 +183,16 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
     this.page=1;
     this.data=''
 
     this.isSelfLeaveHistory = true;
     this.isTeamLeaveHistory = false;
+
+    this.isSelfLeaveRevokeApplication = false;
+    this.isTeamLeaveRevokeApplication = false;
+    this.isReporteeLeaveRevokeApplicationsTable = false;
     this.showSelfLeaveHistoryTable();
   }
 
@@ -188,8 +206,12 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
     this.page=1;
     this.data=''
+
+    this.isSelfLeaveRevokeApplication = false;
+    this.isTeamLeaveRevokeApplication = false;
 
     this.isTeamLeaveHistory = false;
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
@@ -205,8 +227,9 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
     this.page=1;
-    this.data=''
+    this.data='';
 
     this.isSelfLeaveHistory = false;
     this.getAllTeamMemberList()
@@ -222,6 +245,8 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
+    this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
     this.data=''
     this.getMyLeaveBalancesByEmpId();
@@ -236,6 +261,8 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
+    this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
     this.data=''
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
@@ -250,9 +277,85 @@ export class LeaveComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
+    this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
     this.data=''
     this.getLeaveLogsByEmpId();
+  }
+
+  showLeaveRevokeApplicationTable(){
+    this.isLeaveRevokeApplicationTable = true;
+    this.isSelfLeaveRevokeApplication = true;
+
+    this.isLeaveLogTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveHistoryTable = false;
+    this.isLeaveBalanceTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isReporteeLeaveRevokeApplicationsTable = false;
+    this.page=1;
+    this.data='';
+
+    this.isTeamLeaveRevokeApplication = false;
+    this.getRevokeLeaveApplicationByEmpId();
+  }
+
+  showSelfLeaveRevokeApplication(){
+    this.isLeaveRevokeApplicationTable = true;
+    this.isSelfLeaveRevokeApplication = true;
+
+    this.isLeaveLogTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveHistoryTable = false;
+    this.isLeaveBalanceTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data='';
+
+    this.isTeamLeaveRevokeApplication = false;
+    this.getRevokeLeaveApplicationByEmpId();
+  }
+
+  showTeamLeaveRevokeApplication(){
+    this.isLeaveRevokeApplicationTable = true;
+    this.isTeamLeaveRevokeApplication = true;
+
+    this.isLeaveLogTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveHistoryTable = false;
+    this.isLeaveBalanceTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data='';
+
+    this.isSelfLeaveRevokeApplication = false;
+    this.getAllMyTeamLeaveRevokeApplicationsByEmpId(this.currentUser);
+  }
+
+  showReporteeLeaveRevokeApplicationTable(){
+    this.isReporteeLeaveRevokeApplicationsTable = true;
+
+    this.isLeaveRevokeApplicationTable = false;
+    this.isTeamLeaveRevokeApplication = false;
+    this.isLeaveLogTable = false;
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveHistoryTable = false;
+    this.isLeaveBalanceTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data='';
+    this.isSelfLeaveRevokeApplication = false;
+
+    this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
   }
 
   reset() {
@@ -310,7 +413,18 @@ export class LeaveComponent implements OnInit {
   openRevokeApprovedLeaveApplication(template: TemplateRef<any>, leaveHistory: any) {
     this.modalRef = this.modalService.show(template);
     this.leaveObj = leaveHistory;
+    if(this.isSelfLeaveHistory){
+      this.leaveObj.leaveAppliedFor = 'self';
+    }else{
+      this.leaveObj.leaveAppliedFor = 'team';
+    }
     console.log(this.leaveObj);
+  }
+
+  openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+      this.cancelRequest();
+      this.leaveObj = leave;
+      this.modalRef = this.modalService.show(template);
   }
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){
@@ -823,6 +937,8 @@ export class LeaveComponent implements OnInit {
     if(!inputValidated) return;
 
     this.cancelRequest();
+
+    this.leaveObj.createdBy = this.currentUser.empId;
     this.leaveService.revokeApprovedLeaveApplication(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -838,6 +954,64 @@ export class LeaveComponent implements OnInit {
     });
   }
 
+  getRevokeLeaveApplicationByEmpId(){
+    this.revokeLeaveApplicationList = [];
+
+    this.leaveObj.empId = this.currentUser.empId;
+    this.leaveService.getRevokeLeaveApplicationByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.revokeLeaveApplicationList = response.serviceResponse;
+        console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllMyTeamLeaveRevokeApplicationsByEmpId(user: User){
+    this.revokeLeaveApplicationList = [];
+    
+    this.leaveObj.empId = user.empId;
+    this.leaveService.getAllMyTeamLeaveRevokeApplicationsByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.revokeLeaveApplicationList = response.serviceResponse;
+        console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
+    this.reporteeLeaveRevokeApplicationList = [];
+
+    this.leaveObj.empId = this.currentUser.empId;
+    this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+        console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateRevokeLeaveStatus(template: TemplateRef<any>, leave, updatedLeaveStatusId){
+    this.cancelRequest();
+
+    leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
+    leave.leaveRevokeStatusId = updatedLeaveStatusId;
+    console.log(leave, " : RevokeLeaveObj");
+
+    this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+      this.showReporteeLeaveRevokeApplicationTable();
+    });
+  }
 
   exportToExcel(): void {	
     
