@@ -389,7 +389,7 @@ export class ValidationService {
   }
 
   validateActivityTimesheetDiscription(text:string): boolean {
-    const regex = (/^[A-Za-z0-9]{2}[A-Za-z0-9\s,/'&"#()@-]*$/) ;
+    const regex = (/^[A-Za-z0-9]{2}[A-Za-z0-9\s,/.'&"#()@-]*$/) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -480,5 +480,19 @@ export class ValidationService {
     }
   }
 
+  validateMonthDays(text:string):boolean{
+    const regex = (/^[1-9]$|^[1-2][0-9]$|^3[0-1]$/gm);
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
   
 }

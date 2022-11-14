@@ -729,6 +729,7 @@ public class TimesheetService {
 						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 						dto.setTotalTime(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 						dto.setRemarks(object[9] != null ? object[9].toString() : null);
+						dto.setEmployeementId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 						dtoList.add(dto);
 					});
 

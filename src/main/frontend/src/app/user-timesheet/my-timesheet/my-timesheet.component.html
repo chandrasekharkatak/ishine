@@ -76,7 +76,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange()">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Working">Working</option>
                                 <option value="Holiday">Holiday</option>
@@ -233,7 +233,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
                         <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none"
-                            [(ngModel)]="startDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
+                            [(ngModel)]="startDate" (change)="getTimesheetData(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
                 </div>

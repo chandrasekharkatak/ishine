@@ -234,9 +234,9 @@ public class CompOffLeaveService {
 							LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
 					log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
 					leaveBalanceLogRepository.save(log);
-					response.setServiceResponse("CompOff leave application approved.");
+					response.setServiceResponse("Compoff request application approved.");
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
-					response.setServiceResponse("CompOff leave application rejected.");
+					response.setServiceResponse("CompOff request application rejected.");
 				}
 
 				CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);

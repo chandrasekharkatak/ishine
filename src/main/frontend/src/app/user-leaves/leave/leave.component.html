@@ -372,7 +372,7 @@
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
-    <table class="table table-responsive scrollable-table " id="log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+    <table class="table table-responsive scrollable-table" id="revoke-history-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	
           <tr>
             <th scope="col" class="info-label" >Sr. No</th>
@@ -407,8 +407,8 @@
             </tr>
         </tbody>
       </table>   
-      <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
+      <pagination-controls class="my-pagination" [hidden]="revokeLeaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="revokeLeaveApplicationList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
 </div>
 <!-- end :: Leave Revoke Application Table -->
 
@@ -420,7 +420,7 @@
     <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
         </div>
-    <table class="table table-responsive scrollable-table " id="log-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
         <thead class="thead-light">	
           <tr>
             <th scope="col" class="info-label" >Sr. No</th>
@@ -456,8 +456,8 @@
             </tr>
         </tbody>
       </table>   
-      <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
+      <pagination-controls class="my-pagination" [hidden]="reporteeLeaveRevokeApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="reporteeLeaveRevokeApplicationList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  
 </div>
 <!-- end ::Reportee Leave Revoke Application Table -->
 

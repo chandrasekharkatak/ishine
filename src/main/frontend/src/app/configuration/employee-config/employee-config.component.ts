@@ -899,6 +899,23 @@ export class EmployeeConfigComponent implements OnInit {
     
   }
 
+  checkSecondaryEmail(template: TemplateRef<any>) {
+
+    const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
+      if (regex.test(this.employeeObj.secondaryEmail)) {
+       
+        this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
+        this.employeeObj.secondaryEmail = '';
+      }
+    } else{
+      this.openAlertMod(template, "Please enter email !!");
+      this.employeeObj.secondaryEmail = '';
+    }
+    
+  }
+
   checkEmployeementId(template: TemplateRef<any>) {
     this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
@@ -1298,7 +1315,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
-      this.alertMessage = "reason shouldn't contain single character in Reason  !!"
+      this.alertMessage = "Reason shouldn't contain single character !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

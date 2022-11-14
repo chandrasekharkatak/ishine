@@ -1049,9 +1049,36 @@ export class LeaveComponent implements OnInit {
         )	
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
       });
-
     }
-  	
+
+    if(this.isSelfLeaveRevokeApplication == true){
+      this.elementName = 'revoke-history-table';	
+      this.excelName = 'MyRevokeLeaveHistory.xlsx';	
+    }
+
+    if(this.isTeamLeaveRevokeApplication == true){
+      this.elementName = 'revoke-history-table';	
+      this.excelName = 'TeamRevokeLeaveHistory.xlsx';
+    }
+
+    if(this.isReporteeLeaveRevokeApplicationsTable == true){
+      this.excelName = 'ReporteeLeaveApplication.xlsx';
+
+      const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
+        x => ({	
+          "leave Type": x.leaveType,	
+          "From Date": x.fromDate,	
+          "To Date": x.toDate,	
+          "No Of Days": x.noOfDays,	
+          "status": x.status,	
+          "Created By Name": x.createdByName,	
+          "Created On": x.createdOn,	
+          "Reason": x.reason	
+        })	
+      )	
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+    }
+    
     let element = document.getElementById(this.elementName);	
     const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);	
   	
@@ -1256,7 +1283,7 @@ export class LeaveComponent implements OnInit {
      
       this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.openAlertMod(template , "All Selected Application Approve Successfully ");
+          this.openAlertMod(template , "All Selected Application Approved Successfully ");
           this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
          
           this.bulkLeaveApprove = [];

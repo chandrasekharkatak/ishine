@@ -100,7 +100,7 @@ export class UserAppreciationComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }
-    if(!this.validationService.validateAlphaWithSpaceInbetween(employeeObj.reason)){
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.reason)){
       this.alertMessage = "Why you want to give Appreciation? Should not contain space at Beginning and End of the string "
       this.openAlertMod(template, this.alertMessage);	
       return false;	

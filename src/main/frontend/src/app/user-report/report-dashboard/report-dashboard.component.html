@@ -175,7 +175,7 @@
                         <th scope="col" class="info-label wide-col">Email Id</th>
                         <th scope="col" class="info-label wide-col">Manager Name</th>
                         <th scope="col" class="info-label wide-col">Mobile No</th>
-                        <th scope="col" class="info-label wide-col">Pending EOD Count</th>
+                        <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col">Pending EOD Count</th>
                         <th scope="col" class="info-label wide-col">Total Working Hour</th>
                         <th scope="col" class="info-label wide-col">Type</th>
                     </tr>
@@ -195,7 +195,7 @@
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
-                        <td>{{leave.pendingEodCount}}</td>
+                        <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
                         <td>{{leave.totalWorkingHours}}</td>
                         <td>{{leave.legend}}</td>
                     </tr>

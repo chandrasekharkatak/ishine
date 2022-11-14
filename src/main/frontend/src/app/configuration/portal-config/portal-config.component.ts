@@ -253,6 +253,10 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter DSR Generation Day !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }else if(!this.validationService.validateMonthDays(portalObj.dsrGenerateDay)){
+      this.alertMessage = "Please enter valid day !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
     }
 
     let tempArray = this.portalConfigList;    

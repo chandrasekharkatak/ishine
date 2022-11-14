@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -27,6 +28,9 @@ public class ActivitiesService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	TimesheetActivityMapRepository timesheetActivityMapRepository;
 
 	public ServiceResponse createActivity(ActivityDTO activityDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -158,18 +162,23 @@ public class ActivitiesService {
 		try {
 			if (activityDTO.getActivityId() != null) {
 				Optional<Activity> activityObject = activitiesRepository.findById(activityDTO.getActivityId());
-				activityObject.ifPresentOrElse((activity) -> {
-
-					activitiesRepository.deleteById(activity.getActivityId());
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Activity deleted.");
-
-				}, () -> {
-
+				if(!activityObject.isEmpty()) {
+					
+					Long count = timesheetActivityMapRepository.countByActivityId(activityDTO.getActivityId());
+					
+					if(count == 0) {
+						activitiesRepository.deleteById(activityDTO.getActivityId());
+						
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Activity deleted.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Activity cannot be deleted as it is mapped with timesheet.");
+					}
+				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No activity found for given id.");
-				});
+					response.setServiceResponse("Activity id cannot be null.");
+				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Activity id cannot be null.");

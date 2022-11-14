@@ -38,6 +38,7 @@ export class ReportDashboardComponent implements OnInit {
 
   isleaveTimesheetDashboard:boolean = false;
   isEmployeeDashboard:boolean = false;
+  isPendingByUser:boolean = false;
 
   data:any;
   leaveSumarryList:any[] = [];
@@ -374,7 +375,7 @@ export class ReportDashboardComponent implements OnInit {
           else if(timesheet.dayType == 'Holiday') holidayCount++;
           else if(timesheet.dayType == 'Non-working') workingOnHolidayCount++;
 
-          if(timesheet.legend == "Pending By User"){
+          if(timesheet.legend == "Pending By User" && timesheet.pendingEodCount > 0){
             totalListCount = totalListCount + timesheet.pendingEodCount;
             pendingByUserCount = pendingByUserCount + timesheet.pendingEodCount;
           }else{
@@ -1450,7 +1451,7 @@ export class ReportDashboardComponent implements OnInit {
     if(titleName == "No Timesheet Submitted"){
       this.page=1;
       this.modalTitle = titleName;
-      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User");
+      this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User" && x.pendingEodCount > 0);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
     if(titleName == "Holiday"){
@@ -1485,6 +1486,11 @@ export class ReportDashboardComponent implements OnInit {
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+      if(legendName == 'Pending By User'){
+        this.isPendingByUser = true;
+      }else{
+        this.isPendingByUser = false;
+      }
     }
 
   openTotalCountModal(title:any){

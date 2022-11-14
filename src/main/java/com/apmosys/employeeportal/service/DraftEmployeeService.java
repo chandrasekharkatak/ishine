@@ -116,8 +116,8 @@ public class DraftEmployeeService {
 			employee.setPursuing(employeedto.getPursuing());
 			employee.setYearOfPassing(employeedto.getYearOfPassing());
 			employee.setPassingGrade(employeedto.getPassingGrade());
-			employee.setAboutMe("Add about yourself.");
-			employee.setViewsOnOrganisation("Add your views.");
+			employee.setAboutMe(employeedto.getAboutMe());
+			employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 			employee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setExperience(employeedto.getExperience());

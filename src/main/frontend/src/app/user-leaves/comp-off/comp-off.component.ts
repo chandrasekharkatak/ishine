@@ -205,8 +205,8 @@ export class CompOffComponent implements OnInit {
         return false;
       }
 
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.description)){
-        this.alertMessage = "Please enter comp off description !!"
+      if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(compOffObj.description)){
+        this.alertMessage = "Space and single character should not contain in comp off description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -247,6 +247,7 @@ export class CompOffComponent implements OnInit {
     onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
       // 1 = pending , 2 = Approved , 3= Rejected
       compOffObj.leaveStatusId = updatedCompOffStatusId;
+      compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
       console.log("Update Comp off : ", compOffObj);
       this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {

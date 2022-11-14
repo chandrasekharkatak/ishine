@@ -381,7 +381,7 @@ export class MyTeamComponent implements OnInit {
 
       const onlySpecificDataArr = this.teamViewList.map(
         x => ({
-          "Employee Id": x.empId,
+          "Employee Id": x.employeementId,
           "Name": x.name,
           "Email": x.email,
           "Designation": x.jobRoleName,

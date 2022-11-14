@@ -39,6 +39,8 @@
           <thead class="thead-light">	
             <tr>	
               <th scope="col" class="info-label">Sr No.</th>	
+              <th scope="col" class="info-label">Employee Id</th>	
+              <th scope="col" class="info-label">Employee Name</th>
               <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
               <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
               <th scope="col" colspan="4" class="info-label wide-col">Timesheet Details</th>
@@ -54,6 +56,8 @@
                 </tr>
                 <tr *ngFor="let timesheet of allTeamTimesheets |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                   <td>{{20*(page-1)+i+1}}</td>
+                  <td>{{timesheet.employeementId}}</td>
+                  <td>{{timesheet.employeeName}}</td>
                   <td>{{timesheet.date}}</td>
                   <td>{{timesheet.dayType}}</td>
                   <td colspan="4" [innerHTML]="timesheet.description"></td>
@@ -108,6 +112,7 @@
               <th scope="col" class="info-label" mat-sort-header="date">Date</th>	
               <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>	
               <th scope="col" colspan="4" class="info-label wide-col">Timesheet Details</th>	
+              <th scope="col" class="info-label">Applied By</th>
               <th scope="col" class="info-label">Working Hours</th>
               <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                   <th scope="col" class="info-label">Actions</th>
@@ -125,6 +130,7 @@
                   <td>{{timesheet.date}}</td>
                   <td>{{timesheet.dayType}}</td>
                   <td colspan="4" [innerHTML]="timesheet.description"></td>
+                  <td>{{timesheet.createdByName}}</td>
                   <td>{{timesheet.totalTime}}</td>
                   <td>{{timesheet.status}}</td>
                   <td>
