@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -1589,41 +1590,138 @@ public class EmployeeLeaveService {
 			
 			Optional<LeaveRevokeApplication> leaveRevoke = leaveRevokeApplicationRepository.findById(leaveDTO.getLeaveRevokeId());
 			Optional<EmployeeLeave> employeeLeave = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-			
+
 			if(!employeeLeave.isEmpty()) {
 				EmployeeLeave leaveObj = employeeLeave.get();
 				if(!leaveRevoke.isEmpty()) {
 					LeaveRevokeApplication leaveRevokeObj = leaveRevoke.get();
+					Optional<Employee> emp = employeeRepository.findById(leaveObj.getEmpId());
 					
+					// 1 : pending, 2 : approved, 3 : reject
 					if(leaveDTO.getLeaveRevokeStatusId() == 2) {
-						// change revoke leave application status
+					// change revoke leave application status
 						leaveRevokeObj.setLeaveRevokeStatusId(leaveDTO.getLeaveRevokeStatusId());
 						leaveRevokeObj.setLeaveRevokeStatusUpdatedBy(leaveDTO.getLeaveRevokeStatusUpdatedBy());
 						leaveRevokeApplicationRepository.save(leaveRevokeObj);
 						
-						// change leave application status
+					// change leave application status
 						leaveObj.setLeaveStatusId((short) 5);
 						leaveObj.setLeaveStatusUpdatedBy(leaveDTO.getLeaveRevokeStatusUpdatedBy());
 						employeeLeaveRepository.save(leaveObj);
 						
+					// If employee in resignation and revoke its leave application, undo its notice period count
+						Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveObj.getLeaveTypeMasterId());
+						
+						LeaveTypeMaster leaveTypeObj = leaveType.get();
+						
+						LocalDate createdOnDate = leaveObj.getCommonProperty().getCreatedOn().toLocalDateTime().toLocalDate();
+						
+						if (!emp.isEmpty()) {
+							Employee empObj = emp.get();
+							if (empObj.getEmploymentstatus().equals("Resigned") && createdOnDate.isAfter(empObj.getDateOfResign()) &&
+									(leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
+								empObj.setNoticePeriod((short) Math.floor(empObj.getNoticePeriod() - leaveObj.getNoOfDays()));
+								employeeRepository.save(empObj);
+							}
+						}	
+						
+					//update leave balance bucket
+						EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(leaveObj.getEmpId(), leaveObj.getLeaveTypeMasterId());
+						
+						if(employeeLeaveMapObj != null) {
+							Float newBalance = employeeLeaveMapObj.getBalance() + leaveObj.getNoOfDays();
+							employeeLeaveMapObj.setBalance(newBalance);
+							
+							EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
+							
+							if(dbResponse != null) {
+								LeaveBalanceLog log = new LeaveBalanceLog();
+
+								log.setBalance(newBalance);
+								log.setEmpId(leaveObj.getEmpId());
+								log.setLeaveTypeMasterId(leaveObj.getLeaveTypeMasterId());
+								log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", leaveObj.getNoOfDays().toString()));
+								log.setUpdateBalanceBy("+" + leaveObj.getNoOfDays());
+
+								leaveBalanceLogRepository.save(log);
+							}
+						}
+						
+					//send Approval Mail
+						if (!emp.isEmpty()) {
+							Employee empObj = emp.get();
+							Optional<Employee> manager = employeeRepository.findById(empObj.getManagerId());
+							
+							if(!manager.isEmpty()) {
+								Employee managerObj = manager.get();
+								mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+										"Revoke Request for Leave Application Approved",
+										"Dear "+ empObj.getName() + ","
+										+"<br>Your Revoke Leave Application has been Approved by " + managerObj.getName()
+										+"<br><br> Revoke Leave Application Details :"
+										+"<br> From Date : " + leaveObj.getFromDate() + "   To Date : " + leaveObj.getToDate()
+										+"<br> No. Of Days : " + leaveObj.getNoOfDays()
+										+"<br> Leave Type : " + leaveDTO.getLeaveType()
+										+"<br> Revoke reason : " + leaveRevokeObj.getReason());
+							}
+						}
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Revoke Leave Application Approved");
+						
+						apiLogInfo.setApiResponse("Revoke Leave Application Approved.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
 					}else if(leaveDTO.getLeaveRevokeStatusId() == 3){
-						// change revoke leave application status
+						
+					// change revoke leave application status
 						leaveRevokeObj.setLeaveRevokeStatusId(leaveDTO.getLeaveRevokeStatusId());
 						leaveRevokeObj.setLeaveRevokeStatusUpdatedBy(leaveDTO.getLeaveRevokeStatusUpdatedBy());
 						leaveRevokeObj.setRejectReason(leaveDTO.getRejectReason());
 						leaveRevokeApplicationRepository.save(leaveRevokeObj);
 						
-						// change leave application status
-						leaveObj.setLeaveStatusId((short) 3);
+					// change leave application status
+						leaveObj.setLeaveStatusId((short) 2);
 						leaveObj.setLeaveStatusUpdatedBy(leaveDTO.getLeaveRevokeStatusUpdatedBy());
 						employeeLeaveRepository.save(leaveObj);
 						
+					//send Reject Mail
+						if (!emp.isEmpty()) {
+							Employee empObj = emp.get();
+							Optional<Employee> manager = employeeRepository.findById(empObj.getManagerId());
+							
+							if(!manager.isEmpty()) {
+								Employee managerObj = manager.get();
+								mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+										"Revoke Request for Leave Application Rejected",
+										"Dear "+ empObj.getName() + ","
+										+"<br>Your Revoke Leave Application has been Rejected by " + managerObj.getName()
+										+"<br><br> Revoke Leave Application Details :"
+										+"<br> From Date : " + leaveObj.getFromDate() + "   To Date : " + leaveObj.getToDate()
+										+"<br> No. Of Days : " + leaveObj.getNoOfDays()
+										+"<br> Leave Type : " + leaveDTO.getLeaveType()
+										+"<br> Revoke reason : " + leaveRevokeObj.getReason());
+							}
+						}
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Revoke Leave Application Rejected");
+						response.setServiceResponse("Revoke Leave Application Rejected.");
+						
+						apiLogInfo.setApiResponse("Revoke Leave Application Rejected.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Leave Revoke Application not found.");
+					
+					apiLogInfo.setApiResponse("Leave Revoke Application not found.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application not found.");
+				
+				apiLogInfo.setApiResponse("Leave Application not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();

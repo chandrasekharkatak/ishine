@@ -85,6 +85,9 @@ export class PortalConfigComponent implements OnInit {
           if(portal.configName == 'DSR Download Path'){
             this.portalObj.dsrDownloadPath = portal.configValue;
           }
+          if(portal.configName == 'DSR Day'){
+            this.portalObj.dsrGenerateDay = portal.configValue;
+          }
         }
       } else {
         console.error(response.serviceResponse);
@@ -137,6 +140,11 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.dsrGenerateDay)) {
+      this.alertMessage = "Please enter DSR Generation Day !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
 
     let tempArray = this.portalConfigList;    
 
@@ -160,6 +168,9 @@ export class PortalConfigComponent implements OnInit {
       }else if(index == 4)
       {
         this.portalConfigList[4].configValue = this.portalObj.dsrDownloadPath;
+      }else if(index == 5)
+      {
+        this.portalConfigList[5].configValue = this.portalObj.dsrGenerateDay;
       }
       
     })
