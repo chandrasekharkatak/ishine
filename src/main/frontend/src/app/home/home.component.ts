@@ -215,14 +215,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
    // single leave reject modal
    onSingleReject(template: TemplateRef<any> , ){
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.leaveAppliedFor)){
-      this.alertMessage = "Please select Leave Application For !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.leaveTypeMasterId)){
-      this.alertMessage = "Please select Leave Type !!"
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
+      this.alertMessage = "Reason cannot contain single character !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -274,6 +268,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
+    this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
     compOffObj.leaveStatusId = updatedCompOffStatusId;
     compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
@@ -1150,10 +1145,6 @@ bulkRejectLeave(template: TemplateRef<any>){
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
   leaveObj.rejectReason = this.leaveObj.rejectReason
-  
-  console.log(leaveObj,"  leaveobj");
-  console.log("  leaveObj.rejectReason   :  ",leaveObj.rejectReason);
-  console.log("  this.leaveObj.rejectReason   :  ",this.leaveObj.rejectReason)
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {

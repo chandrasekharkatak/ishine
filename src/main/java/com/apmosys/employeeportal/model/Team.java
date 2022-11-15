@@ -26,6 +26,7 @@ public class Team {
 	private Long teamLeadId;
 	private Integer projectId;
 	private String teamLeadName;
+	private String isActive;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
