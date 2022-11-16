@@ -55,3 +55,9 @@
     width: 300px;
 }
 
+.table-header{
+    width: 90%;
+    height: 50px;
+    background: var(--ghost-white);
+    margin-bottom: 1em;
+}
