@@ -1178,6 +1178,10 @@ public class EmployeeService {
 					empDTO.setDateOfResign(
 							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
 									: null);
+					empDTO.setDateOfRelieving(
+							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
+									: null);
+					
 					dtoList.add(empDTO);
 					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
 				});
@@ -1928,6 +1932,8 @@ public class EmployeeService {
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 					dto.setManagerName(object[5] != null ? object[5].toString() : null);
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+
 					dtoList.add(dto);
 				});
 
