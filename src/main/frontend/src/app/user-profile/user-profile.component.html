@@ -404,7 +404,7 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Exprience</p>
+                                            <p class="info-label">Experience</p>
                                             <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                         </div>
                                     </div>
@@ -425,7 +425,7 @@
                         </app-accordion-item>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
+                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && isExperience" class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
                                 <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
@@ -535,7 +535,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                        <app-accordion-item class="acc-content" title="Employee Documents">
+                        <app-accordion-item class="acc-content" *ngIf="isDocument" title="Employee Documents">
                                 <div class="container-fluid">
                                     <div class="row flex-column px-4" *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
                                         <div class="info-wrapper">

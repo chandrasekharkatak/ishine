@@ -899,22 +899,22 @@ export class EmployeeConfigComponent implements OnInit {
     
   }
 
-  checkSecondaryEmail(template: TemplateRef<any>) {
+  // checkSecondaryEmail(template: TemplateRef<any>) {
 
-    const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
-    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
-      if (regex.test(this.employeeObj.secondaryEmail)) {
+  //   const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+  //  // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+  //   if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
+  //     if (regex.test(this.employeeObj.secondaryEmail)) {
        
-        this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
-        this.employeeObj.secondaryEmail = '';
-      }
-    } else{
-      this.openAlertMod(template, "Please enter email !!");
-      this.employeeObj.secondaryEmail = '';
-    }
+  //       this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
+  //       this.employeeObj.secondaryEmail = '';
+  //     }
+  //   } else{
+  //     this.openAlertMod(template, "Please enter email !!");
+  //     this.employeeObj.secondaryEmail = '';
+  //   }
     
-  }
+  // }
 
   checkEmployeementId(template: TemplateRef<any>) {
     this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {

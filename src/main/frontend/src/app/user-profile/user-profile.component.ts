@@ -44,6 +44,9 @@ export class UserProfileComponent implements OnInit {
   updatedPreviousEmployment:any[] = [];
   yearOfPassingList:any[] = [];
 
+  isExperience:boolean = false;
+  isDocument:boolean = false;
+
   @ViewChild('updateInfo')
   private updateInfoTempRef:TemplateRef<any>;
 
@@ -518,6 +521,7 @@ export class UserProfileComponent implements OnInit {
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
+      this.isExperience = true
       console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
 
@@ -528,6 +532,7 @@ export class UserProfileComponent implements OnInit {
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.currentEmployeeInfo.documentList = docResponse.serviceResponse;
+      this.isDocument = true
       console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
     } else {
       console.log(docResponse.serviceResponse);

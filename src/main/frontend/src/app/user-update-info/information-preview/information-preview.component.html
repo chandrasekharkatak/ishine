@@ -105,7 +105,7 @@
                         </div>
                     </app-accordion-item>
 
-                    <app-accordion-item class="acc-content"  title="Family Information" [showBody]="true">
+                    <app-accordion-item class="acc-content"  title="Family Information" [showBody]="true" *ngIf="currentEmployeeInfo.maritalStatus == 'married'">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">

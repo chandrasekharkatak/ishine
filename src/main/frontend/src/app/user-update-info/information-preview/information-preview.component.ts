@@ -278,13 +278,13 @@ export class InformationPreviewComponent implements OnInit {
     }
    
 
-    if(employeeObj.pursuing == "No"){
+   
       if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
         this.alertMessage = "Please Enter Passing Grade !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    }
+    
 
 
     // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)){

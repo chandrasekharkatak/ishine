@@ -388,8 +388,25 @@ export class ValidationService {
 
   }
 
+  // validateActivityTimesheetDiscription(text:string): boolean {
+  //   const regex = (/^[A-Za-z0-9]{2}[\s]*$/) ;
+  //   if (text !== "" || text !== undefined || text !== null) {
+  //     if (regex.test(text)) {
+  //       return true;
+  //     }
+  //     else {
+  //       return false;
+  //     }
+  //   }
+  //   else {
+  //     return false;
+  //   }
+
+  // }
+
   validateActivityTimesheetDiscription(text:string): boolean {
-    const regex = (/^[A-Za-z0-9]{2}[A-Za-z0-9\s,/.'&"#()@-]*$/) ;
+    const regex = /^(?=.*\S).{2,}$/gm;
+    //  /^[#-@{}!()\/_'",.a-z?]|[A-Za-z0-9]{2}[#-@{}!()\/_'",.a-z\s?]*$/ ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -403,6 +420,8 @@ export class ValidationService {
     }
 
   }
+
+
 
   validateTeamActivity(text:string): boolean {
     const regex = (/^[A-Za-z][A-Za-z\s]*$/) ;
