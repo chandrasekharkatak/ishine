@@ -97,11 +97,11 @@ public class CompOffLeaveService {
 
 			if (leaveApplied != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Compoff leave applied.");
+				response.setServiceResponse("Compoff Request applied.");
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Compoff leave creation failed.");
+				response.setServiceResponse("Compoff Request creation failed.");
 			}
 
 		} catch (Exception e) {

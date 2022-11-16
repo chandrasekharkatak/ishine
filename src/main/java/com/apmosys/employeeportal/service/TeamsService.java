@@ -136,6 +136,7 @@ public class TeamsService {
 			newTeam.setProjectId(teamDTO.getProjectId());
 			newTeam.setTeamLeadName(teamLeadName);
 			newTeam.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+			newTeam.setIsActive("Y");
 
 			Team teamCreated = teamRepository.save(newTeam);
 
@@ -241,22 +242,22 @@ public class TeamsService {
 	public ServiceResponse deleteTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-
+			
 			Optional<Team> team = teamRepository.findById(teamDTO.getTeamId());
-
-			team.ifPresentOrElse((teamFound) -> {
-
-				employeeTeamMapRepository.deleteAllByTeamId(teamDTO.getTeamId());
-				teamRepository.deleteById(teamFound.getTeamId());
-
+			Long teamCount = employeeTeamMapRepository.countByTeamId(teamDTO.getTeamId());
+			if(teamCount == 0) {
+				
+				teamRepository.deleteById(teamDTO.getTeamId());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Team deleted successfully.");
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Team not found.");
-			});
-
+			}else {
+				team.ifPresent((teamFound) -> {
+					teamFound.setIsActive("N");
+					teamRepository.save(teamFound);
+					});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Team Status changed to InActive");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
