@@ -170,6 +170,8 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     this.employeeService.deleteDraftEmployee(this.draftObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        // To reset Employee Info to Previous INFO from DB
+        this.updateUserInfoService.getEmployeeInfo(); 
         this.draftDelete.emit();
       } else {
         this.openAlertMod(template, response.serviceResponse);

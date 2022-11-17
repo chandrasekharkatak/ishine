@@ -1066,12 +1066,12 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
   changeEvent(value:string){	
- 	
     if(value=="Active"){	
         this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
     }else if(value=="InActive"){	
       this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');  	
     }	
+    this.page=1;
   }
   createEmployeeList(allEmployeeList: any) {
     this.managerList = allEmployeeList.map(employee => {
