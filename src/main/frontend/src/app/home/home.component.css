@@ -62,12 +62,12 @@
 }
 
 .birthdayList{
-    min-height: 25rem;
-    max-height: 25rem;
+    height: 150px;
+    max-height: 150px;
 }
 
 .birthdayList .card-body{
-    overflow-y: auto;
+    overflow-y: hidden;
 }
 
 .timesheet-container{
@@ -141,7 +141,7 @@
     color: #fff;
 }
 
-.nav-link{
+.top-nav .nav-item .nav-link{
     color: #fff;
 }
 
@@ -197,7 +197,7 @@
         grid-row: 4;
         grid-column: 2;
 
-        overflow-y: auto;
+        overflow-y: hidden;
     }
 
     .event-photos{

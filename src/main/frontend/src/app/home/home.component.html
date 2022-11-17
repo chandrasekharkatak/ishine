@@ -1,11 +1,11 @@
 <div class="home-container">
     <div class="top-nav navbar navbar-nav sticky-top mb-2 mt-0" *ngIf="currentUser">
-        <div class="nav-item">
+        <div class="nav-item mr-2">
             <a class="nav-link" (click)="openNotificationMod(notification_template)">
                 <i class="fa-solid fa-bullhorn"></i>
             </a>
         </div>
-        <div class="dropdown">
+        <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" id="user-dropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                 <i class="fa-solid fa-user"></i>&nbsp;{{currentUser.name}}
             </a>
