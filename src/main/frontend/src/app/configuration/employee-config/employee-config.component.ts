@@ -107,6 +107,7 @@ export class EmployeeConfigComponent implements OnInit {
   revoke_template: any;
 
   previewObj:Employee = new Employee();
+  previewEmployeeObj:Employee = new Employee();
 
   constructor(
     private employeeService: EmployeeService,
@@ -1395,6 +1396,46 @@ export class EmployeeConfigComponent implements OnInit {
       });
     }, 500)
   }
+
+  // Employee Info preview View all tab
+  async openViewEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
+
+    console.log("employeeObj : ", employeeObj);
+    
+    let currentEmp = new Employee();
+    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.empId = employeeObj.empId;
+    currentEmp.isDraft = false;
+
+    const infoResponse: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (infoResponse.serviceStatus == "Success") {
+      this.previewEmployeeObj = infoResponse.serviceResponse;
+      
+      console.log("this.previewObj : ", this.previewEmployeeObj);
+    } else {
+      console.error(infoResponse.serviceResponse)
+    }
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.previewEmployeeObj.documentList = docResponse.serviceResponse;
+      console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
+    } else {
+      console.log(docResponse.serviceResponse);
+    }
+    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
+    setTimeout(()=>{
+      this.previewEmployeeObj.documentList && this.previewEmployeeObj.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500)
+  }
+
 
   getAllPortalConfigData() {
     this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
