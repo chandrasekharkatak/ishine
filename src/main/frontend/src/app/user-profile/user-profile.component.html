@@ -404,11 +404,11 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Exprience</p>
+                                            <p class="info-label">Experience</p>
                                             <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.experience == 'Experience'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Total Experience</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
@@ -420,12 +420,18 @@
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
                                         </div>
                                     </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Billable</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </app-accordion-item>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
+                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0" class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
                                 <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
@@ -535,7 +541,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                        <app-accordion-item class="acc-content" title="Employee Documents">
+                        <app-accordion-item class="acc-content" *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0" title="Employee Documents">
                                 <div class="container-fluid">
                                     <div class="row flex-column px-4" *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
                                         <div class="info-wrapper">

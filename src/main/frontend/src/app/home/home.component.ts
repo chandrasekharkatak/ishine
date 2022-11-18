@@ -22,7 +22,7 @@ import { Feature } from '../models/feature';
 import { ValidationService } from '../services/validation.service';
 import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
-
+import * as CryptoJS from 'crypto-js';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -83,6 +83,33 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild('updateInfo')
   private updateInfoTempRef:TemplateRef<any>;
 
+  // TOP BAR
+  @ViewChild("change_password")
+  changePasswordTemplate: TemplateRef<any>;
+
+  fieldTextType: boolean = false;
+  fieldTextTypePassword: boolean = false;
+  fieldTextTypeOldPass: boolean = false;
+  isError:boolean=false;
+  oldPasswordValid:boolean = false;
+
+  password:any;
+  userNewPass:any;
+  newpassword:any;
+  errorMsg:any;
+  empId:any;
+  user:User = new User();
+  
+  leaveTypes:Leave[] = [];
+  leaveBucketDetails : any[] = [];
+
+  // stop modal to close
+  config = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard  : false
+  };
+  
   constructor(
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
@@ -116,6 +143,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log(this.feature, " : ", this.userMapping);
     
     this.getAllNotifications();
+    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
     if(this.userMapping.view_event_photos) this.getAllEventPhotos();
     if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
     if(this.userMapping.view_all_team_requests){
@@ -153,6 +181,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   // Leave Applications
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
+    this.data = ''
     this.leaveApplicationList = []
     this.bulkLeaveApprove = []
     this.bulkLeaveReject = []
@@ -234,6 +263,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   //comOff Applications
   getPendingCompOffRequestsByManagerId(){
+    this.data = ''
     this.allCompOffApplications = []
 
     let compOff = new Leave();
@@ -304,6 +334,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   getMyReporteesTimesheetRequests(){
+    this.data = ''
     this.bulkApprove = []	
     this.bulkReject = []	
     this.allTeamTimesheetRequests = [];	
@@ -345,6 +376,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   
   rejectTimesheetRequest(template: TemplateRef<any> , ){
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
+      this.alertMessage = "Reason cannot contain single character !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
   }
 
@@ -372,6 +408,33 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* My Leave Details */
+  getAllLeaveTypesByLeavePolicies(userObj:User){
+    this.leaveTypes = [];
+
+    let leaveObj = new Leave();
+    leaveObj.employmentStatus = userObj.employmentstatus;
+    leaveObj.gender = userObj.gender;
+
+    this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveTypes = response.serviceResponse;
+        console.log("leaveTypes : ", this.leaveTypes);
+        this.leaveBucketDetails = this.leaveTypes.map((leave:Leave) => {
+          let leaveObj = new Leave();
+          leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
+          leaveObj.leaveType = leave.leaveType;
+          leaveObj.leaveTypeCode = leave.leaveTypeCode;
+
+          return leaveObj;
+        });
+
+        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   getMyLeaveBalancesByEmpId(){
     this.leaveBalanceList = [];
 
@@ -398,13 +461,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.log("checkData :", checkData);
         
         if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
-        }else{
-          this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
+          checkData.forEach(data => {
+            let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
+             if(leaveDetail){
+               leaveDetail.balance = data.y
+             }
+         }); 
         }
+        
+        // if(checkData && checkData.length != 0){
+        //   this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
+        // }else{
+        //   this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
+        // }
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'No Data to Display');
+        // this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'No Data to Display');
       }
     });
   }
@@ -432,13 +504,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.log("checkData :", checkData);
         
         if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
-        }else{
-          this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
+          checkData.forEach(data => {
+            let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
+             if(leaveDetail){
+               leaveDetail.approvedApplicationsCount = data.y
+             }
+         }); 
         }
+
+        // if(checkData && checkData.length != 0){
+        //   this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
+        // }else{
+        //   this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
+        // }
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'No Data to Display');
+        // this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'No Data to Display');
       }
     });
   }
@@ -466,14 +547,23 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.log("checkData :", checkData);
         
         if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
-        }else{
-          this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
+          checkData.forEach(data => {
+            let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
+             if(leaveDetail){
+               leaveDetail.pendingApplicationsCount = data.y
+             }
+         }); 
         }
+
+        // if(checkData && checkData.length != 0){
+        //   this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
+        // }else{
+        //   this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
+        // }
 
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
+        // this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
       }
     });
   }
@@ -954,6 +1044,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
  }
 
+  openNotificationMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+  }
+
   openReqMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
@@ -1090,6 +1184,12 @@ onBulkApproval(template:TemplateRef<any>){
 }
 
 onBulkRejectTimesheet(template: TemplateRef<any>){
+
+  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
+    this.alertMessage = "Reason cannot contain single character !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
   console.log("Updated Bulk List : ",  this.bulkReject);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
@@ -1139,6 +1239,12 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 }
 
 bulkRejectLeave(template: TemplateRef<any>){
+
+  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
+    this.alertMessage = "Reason cannot contain single character !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
       
   let leaveObj = new Leave();
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
@@ -1169,14 +1275,167 @@ OnBulkReject(template: TemplateRef<any>){
 
 
 OnBulkLeaveReject(template: TemplateRef<any>, leave){
-  
+  this.leaveObj.rejectReason = ''
   this.cancelRequest();
  this.leaveObj = leave
   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
 }
 
 
+// TOP BAR
+  userLogout() {
 
+    let user = new User();
+    user.empId = this.currentUser.empId;
+    this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.authenticationService.stopUserSessionCheck();
+        console.log(response.serviceResponse);
+        sessionStorage.removeItem('currentUser');
+        // delete method call for cookies
+        this.authenticationService.deleteCookies();
+        this.authenticationService.setcurrentUserSubject(null);
+        this.router.navigate(['/login']);
+        location.reload();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+
+  }
+
+  toggleFieldTextType() {
+    this.fieldTextType = !this.fieldTextType;
+  }
+
+  toggleFieldChangePassword() {
+    this.fieldTextTypePassword = !this.fieldTextTypePassword;
+  }
+
+  toggleFieldTextTypeOldPass() {
+    this.fieldTextTypeOldPass = !this.fieldTextTypeOldPass;
+  }
+
+  setEncryption(keys, value) {
+
+    var key = CryptoJS.enc.Utf8.parse(keys);
+    var iv = CryptoJS.enc.Utf8.parse(keys);
+
+    var encrypted = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(value.toString()), key,
+      {
+        keySize: 128 / 8,
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+      });
+
+    return encrypted.toString();
+  }
+
+  passreset() {
+
+    this.password = '';
+    this.userNewPass = '';
+    this.newpassword = '';
+    this.errorMsg = '';
+  }
+
+
+  checkEmployeeOldPassword() {
+
+    this.isError = false;
+    this.errorMsg = '';
+
+    this.user.empId = this.currentUser.empId;
+    this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+
+    this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.oldPasswordValid = true;
+      } else {
+        this.isError = true;
+        this.errorMsg = response.serviceResponse;
+        this.oldPasswordValid = false;
+      }
+    });
+  }
+
+  openChangePassword(changePasswordTemplate) {
+    console.log(this.currentUser.isNew)
+    if (this.currentUser.isNew == 'true') {
+      this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
+    } else {
+      this.modalRef = this.modalService.show(changePasswordTemplate);
+    }
+  }
+
+  openChangePasswordOnFirstTimeLoggin() {
+    this.openChangePassword(this.changePasswordTemplate);
+  }
+
+
+  updateEmployeePassword(template: TemplateRef<any>) {
+    this.isError = false;
+    this.errorMsg = '';
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter old Password!!';
+      return;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter new Password!!';
+      return;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter Confirm password !!';
+      return;
+    }
+
+    if (this.userNewPass != this.newpassword) {
+      this.isError = true;
+      this.errorMsg = 'Password did not match. Please try again... !!';
+      this.userNewPass = '';
+      this.newpassword = '';
+      return;
+    }
+
+    if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
+      !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      return;
+    }
+
+    if (this.userNewPass == this.newpassword) {
+      this.user.email = this.currentUser.email;
+      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+      this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
+
+      this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.cancelRequest();
+          this.openAlertMod(template, response.serviceResponse);
+          if (this.currentUser.isNew == "true") {
+            this.userLogout();
+          }
+          this.passreset();
+        } else {
+          this.isError = true;
+          this.errorMsg = response.serviceResponse;
+        }
+      });
+    } else {
+      this.isError = true;
+      this.errorMsg = 'Password and Confirm Password do not match !!';
+      return;
+    }
+  }
 
 
 }

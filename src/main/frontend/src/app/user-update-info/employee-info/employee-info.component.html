@@ -83,21 +83,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Marital Status</label>
-                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.maritalStatus"  >
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option value="single">Single</option>
-                                                <option value="married">Married</option>
-                                                <option value="other">Other</option>
-                                              </select>
-                                              <!-- <small class="errorMsg text-danger">{{errorMsg1}}</small> -->
-
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </app-accordion-item>
@@ -116,7 +101,7 @@
                                 <hr>
                                 
                                 </div>
-                                <div *ngFor="let child of allChildList;let i = index" class="row">
+                                <div *ngFor="let child of allChildList;let i = index" class="row" >
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -175,6 +160,19 @@
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.motherTongue" (blur)="validateMotherTongue($event,employeeObj.motherTongue)">
                                             <small class="errorMsg text-danger"></small>
 
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Marital Status</label>
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.maritalStatus">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="single">Single</option>
+                                                <option value="married">Married</option>
+                                                <option value="other">Other</option>
+                                              </select>
                                         </div>
                                     </div>
                                 </div>
@@ -551,7 +549,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <!-- <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Total Exprience</label>
@@ -560,7 +558,7 @@
 
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
