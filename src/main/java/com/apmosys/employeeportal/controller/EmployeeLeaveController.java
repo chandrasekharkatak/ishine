@@ -75,13 +75,6 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	@RequestMapping(value="/revokeApprovedLeaveApplication" , method = RequestMethod.POST)
-	public ServiceResponse revokeApprovedLeaveApplication(@RequestBody LeaveDTO leaveDTO) {		
-		
-		ServiceResponse response =	employeeLeaveService.revokeApprovedLeaveApplication(leaveDTO);		
-		return response;
-	}
-	
 	/*		
 	 *	Data migration - updateleavebalance, oldleaveApplication 		
 	 */		
@@ -170,6 +163,45 @@ public class EmployeeLeaveController {
 	public ServiceResponse bulkRejectLeaveRequest(@RequestBody LeaveDTO leaveDTO) {
 
 		ServiceResponse response = employeeLeaveService.bulkRejectLeaveRequest(leaveDTO);
+		return response;
+	}
+	
+	/*
+	  revoke leave Application methods start --
+	  */
+	
+	@RequestMapping(value="/revokeApprovedLeaveApplication" , method = RequestMethod.POST)
+	public ServiceResponse revokeApprovedLeaveApplication(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.revokeApprovedLeaveApplication(leaveDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getRevokeLeaveApplicationByEmpId" , method = RequestMethod.POST)
+	public ServiceResponse getRevokeLeaveApplicationByEmpId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.getRevokeLeaveApplicationByEmpId(leaveDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getAllMyTeamLeaveRevokeApplicationsByEmpId" , method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamLeaveRevokeApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.getAllMyTeamLeaveRevokeApplicationsByEmpId(leaveDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId" , method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/updateRevokeLeaveStatus" , method = RequestMethod.POST)
+	public ServiceResponse updateRevokeLeaveStatus(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.updateRevokeLeaveStatus(leaveDTO);		
 		return response;
 	}
 

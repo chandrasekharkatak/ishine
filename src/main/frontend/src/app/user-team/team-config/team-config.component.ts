@@ -58,9 +58,9 @@ export class TeamConfigComponent implements OnInit {
 
   clientList: any[] = [];
   projectList: any[] = [];
-  employeeListByDept: any[] = [];
+  employeeListByDept: Employee[] = [];
   teamLeadsList: any[] = [];
-
+  newteamMember:TeamMember = new TeamMember();
 
   allDeptList: any[] = [];
   allProjectListByManagerId: any[] = [];
@@ -145,7 +145,7 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
     this.page = 1;
-    this.data=''
+    this.data = ''
 
     this.allTeamList = [];
   }
@@ -165,7 +165,8 @@ export class TeamConfigComponent implements OnInit {
 
     /* To Add New Members */
     this.allTeamMembers = [];
-    this.addInputTeamMemberField();
+    this.newteamMember = new TeamMember();
+    // this.addInputTeamMemberField();
   }
 
   showCreateActivityForm() {
@@ -191,7 +192,7 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
     this.page = 1;
-    this.data=''
+    this.data = ''
     this.allActivityList = [];
   }
 
@@ -216,7 +217,8 @@ export class TeamConfigComponent implements OnInit {
     this.activityObj = new Activity();
 
     this.allTeamMembers = [];
-    this.addInputTeamMemberField();
+    this.newteamMember = new TeamMember();
+    // this.addInputTeamMemberField();
   }
 
   // Manage team members
@@ -228,8 +230,15 @@ export class TeamConfigComponent implements OnInit {
 
   removeInputTeamMemberField(teamMember) {
     this.allTeamMembers.forEach((value, index) => {
-      if (value == teamMember) this.allTeamMembers.splice(index, 1);
+      if (value == teamMember){
+        this.allTeamMembers.splice(index, 1);
+        let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
+        if (existingEmployee) existingEmployee.isSelected = false;
+      }
     });
+
+    console.log("Updated Members : ", this.allTeamMembers);
+    
   }
 
 
@@ -247,13 +256,14 @@ export class TeamConfigComponent implements OnInit {
       this.alertMessage = "Please enter Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } 
-
-    if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
-      this.alertMessage = "Please select Department !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
     }
+
+
+    // if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
+    //   this.alertMessage = "Please select Department !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     return true;
   }
@@ -263,10 +273,17 @@ export class TeamConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
 
-    console.log("allTeamMembers :", this.allTeamMembers, this.allTeamMembers[0]);
-    this.teamObj.allTeamMemberList = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
+    console.log("allTeamMembers :", this.allTeamMembers);
+    this.teamObj.allTeamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
     this.teamObj.createdBy = this.currentUser.empId;
     console.log("create teamObj : ", this.teamObj);
+
+    if(this.teamObj.allTeamMemberList == undefined || this.teamObj.allTeamMemberList.length === 0){
+      this.alertMessage = "Please select atleast one Team member !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     this.teamService.createTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -280,10 +297,14 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  removeTeamMember(teamMember) {
-    console.log("this.teamObj : ", this.teamObj);
-    console.log();
+  addTeamMember(){
+    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId); 
+    if(newTeamMember) this.allTeamMembers.push(newTeamMember);
 
+    this.newteamMember = new TeamMember();
+  }
+
+  removeTeamMember(teamMember) {
 
     this.teamObj.allTeamMemberList?.forEach((value, index) => {
       if (value == teamMember) {
@@ -294,9 +315,10 @@ export class TeamConfigComponent implements OnInit {
           this.teamObj.updatedTeamMemberList.push(value);
         }
         this.teamObj.allTeamMemberList.splice(index, 1);
+        let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
+        if (existingEmployee) existingEmployee.isSelected = false;
       }
     });
-    console.log("Updated Team Members : ", this.teamObj.updatedTeamMemberList);
 
   }
 
@@ -304,7 +326,13 @@ export class TeamConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
 
-    this.allTeamMembers = (Object.keys(this.allTeamMembers[0]).length === 0) ? null : this.allTeamMembers;
+    if((this.teamObj.allTeamMemberList == undefined || this.teamObj.allTeamMemberList.length === 0) && (this.allTeamMembers == undefined || this.allTeamMembers.length === 0)){
+      this.alertMessage = "Please select atleast one Team member !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.allTeamMembers = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
 
     if (this.teamObj.updatedTeamMemberList[0]) {
       if (this.allTeamMembers) {
@@ -445,6 +473,22 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
+  updateEmployeeListAccordingToTeamMembers() {
+    console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
+    console.log("Selected Team Member : ", this.allTeamMembers);
+    this.employeeListByDept.forEach((employee, index) => {
+      const existingEmployee = this.teamObj.allTeamMemberList?.find(member => member.empId == employee.empId);
+      if (existingEmployee) {
+        employee.isSelected = true;
+      }else{
+        const existingEmployee = this.allTeamMembers.find(member => member.empId == employee.empId);
+        if (existingEmployee) {
+          employee.isSelected = true;
+        }
+      }
+    });
+  }
+
   getAllEmployeesByDepartmentIds() {
     this.employeeListByDept = [];
 
@@ -454,6 +498,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
         console.log("employeeList By Department : ", this.employeeListByDept);
+        this.updateEmployeeListAccordingToTeamMembers();
       } else {
         console.error(response.serviceResponse);
       }
@@ -624,14 +669,14 @@ export class TeamConfigComponent implements OnInit {
     }
   }
 
-  checkTeamName(template :TemplateRef<any>){
+  checkTeamName(template: TemplateRef<any>) {
     this.teamService.checkTeamName(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.teamObj.teamName = '';
       }
     });
-  } 
+  }
 
 
   //modals

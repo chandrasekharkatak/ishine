@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -582,8 +585,9 @@ public class CronJobService {
 		//0 0 4 2 * ? - At 04:00:00am, on the 2nd day, every month
  		//0 0/2 * ? * * - Run at every 2 min
 		
-		@Scheduled(cron="0 0 4 2 * ?")
-		public void monthlyTimesheetExcelGenerator() {
+//		@Scheduled(cron="${monthlyTimesheetExcelGenerator.expression}")
+		public ServiceResponse monthlyTimesheetExcelGenerator() {
+			ServiceResponse response = new ServiceResponse();
 			try {
 				
 				Calendar calendar = Calendar.getInstance();
@@ -609,8 +613,24 @@ public class CronJobService {
 					List<Timesheet> monthlyTimesheet = timesheetsRepository.
 							findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
 					
-					if(!monthlyTimesheet.isEmpty()) {
-						var f = new File("/home/apmosys/Downloads/testMontlyEOD/"+employeementId+"-"+empName+"-"+firstDateOfPreviousMonth.getMonth()+".xlsx");
+					List<PortalConfig> portalConfig = portalConfigRepository.findAll();
+					String folderPath = null;
+					if(!portalConfig.isEmpty()) {
+						for(PortalConfig portalConfigObj : portalConfig) {
+							if(portalConfigObj.getConfigName().equals("DSR Download Path")) {
+								folderPath = portalConfigObj.getConfigValue();
+							}
+						}
+					}
+					System.out.println("Folder Path : " + folderPath);
+					
+					    Path path = Files.createDirectories(Paths.get(folderPath +"DSR" + File.separator + firstDateOfPreviousMonth.getYear() + File.separator + firstDateOfPreviousMonth.getMonth()));
+						var f = new File(path + File.separator + employeementId + "-" + empName + "-" + firstDateOfPreviousMonth.getMonth() + ".xlsx");
+						
+						if(f.exists()) {
+							f.delete();
+						}
+						
 				        try (var fos = new FileOutputStream(f)) {
 
 				            var wb = new Workbook(fos, "Application", "1.0");
@@ -700,20 +720,23 @@ public class CronJobService {
 									System.out.println("Activity List is empty");
 								}
 				        }
-				            System.out.println("DSR Excel generated successfully");
 				            wb.finish();
+				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("DSR Generated Successfully.");
 				            
 				        }catch(Exception e) {
 				        	e.printStackTrace();
-				        	System.out.println("DSR Excel creation failed");
+				        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("DSR creation failed");
 				        }
-					}else {
-						System.out.println("Timesheet not found");
-					}
 				}
 				
 			}catch(Exception e) {
 				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
 			}
+			return response;
 		}
 }	

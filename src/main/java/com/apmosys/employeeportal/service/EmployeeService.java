@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
+import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -760,15 +761,9 @@ public class EmployeeService {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
 				Employee employeeToBeDeleted = employeeObject.get();
-				Long count = employeeRepository.countByEmpId(employeeToBeDeleted.getEmpId());
+				Long count = employeeRepository.countByManagerId(employeeToBeDeleted.getEmpId());
 
 				if (count == 0) {
-
-					employeeRepository.deleteById(employeeToBeDeleted.getEmpId());
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Employee Profile Deleted");
-
-				} else {
 
 					List<EmployeeTeamMap> deleteEmpFromTeam = employeeTeamMapRepository
 							.findByEmpId(employeeToBeDeleted.getEmpId());
@@ -782,6 +777,10 @@ public class EmployeeService {
 					employeeRepository.save(employeeToBeDeleted);
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employment Status changed to InActive");
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee cannot be deleted as reportee(s) are mapped to him/her.");
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -789,6 +788,42 @@ public class EmployeeService {
 			}
 
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse changeManagerMapping(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Employee> mappedEmployees = employeeRepository.findByManagerId(employeedto.getOldManagerId());
+			
+			if(!mappedEmployees.isEmpty()) {
+				
+				for(Employee employee: mappedEmployees) {
+					employee.setManagerId(employeedto.getManagerId());
+					
+					Employee dbResponse = employeeRepository.save(employee);
+
+					if (dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Department Deleted");
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Job Role Updation Failed.");
+					}
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Reportee(s) Found");
+			}
+			
+		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -1143,6 +1178,10 @@ public class EmployeeService {
 					empDTO.setDateOfResign(
 							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
 									: null);
+					empDTO.setDateOfRelieving(
+							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
+									: null);
+					
 					dtoList.add(empDTO);
 					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
 				});
@@ -1830,6 +1869,7 @@ public class EmployeeService {
 					employee.setEmployeementId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					employee.setIsNew(object[8] != null ? object[8].toString() : null);
 					employee.setIsUserInfoUpdated(object[9] != null ? object[9].toString() : null);
+					employee.setIsAppreciationEnable(object[10] != null ? object[10].toString() : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 
 				});
@@ -1892,6 +1932,8 @@ public class EmployeeService {
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 					dto.setManagerName(object[5] != null ? object[5].toString() : null);
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+
 					dtoList.add(dto);
 				});
 

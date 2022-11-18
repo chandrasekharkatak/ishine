@@ -129,5 +129,10 @@ export class Employee{
 	clientName:any;
 	clientLocation:any;
 
+	isAppreciationEnable: boolean =false;	
+	appreciationEventId: any;
+	newManagerId:any;
+	oldManagerId:any;
 
+	isSelected:boolean = false;
 }

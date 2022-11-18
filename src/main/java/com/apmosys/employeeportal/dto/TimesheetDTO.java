@@ -65,4 +65,6 @@ public class TimesheetDTO {
 	private List<TimesheetDTO> bulkApprovedList;
 	private List<TimesheetDTO> bulkRejectList;
 	
+	private String remarks;
+	
 }

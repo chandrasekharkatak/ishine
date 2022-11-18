@@ -23,4 +23,6 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Query(nativeQuery = true)
 	public List<Object[]> findProjectsByTeamId(Long empId);
 
+	Long countByTeamId(Long teamId);
+
 }

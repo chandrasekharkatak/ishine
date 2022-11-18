@@ -191,7 +191,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.dayType = '';
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
-
+    
     this.allTimesheetActivities = [];
     this.addInputActivityField();;
   }
@@ -264,6 +264,9 @@ export class MyTimesheetComponent implements OnInit {
       let totalActivityTime = 0;
 
       this.allTimesheetActivities.forEach((activity, index) => {
+
+        if(activity.description) activity.description = activity.description.trim();
+
         if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
           this.alertMessage = `Please select Client - ${index + 1}!!`
           flag = false;
@@ -287,13 +290,14 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
-
+        if(activity.description != ''){
+  
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description - ${index + 1}!!`
+          this.alertMessage = `single character or single digit is not allowed in Activity Description  - ${index + 1}!!`
           flag = false;
           return;
         }
-
+      }
         if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;
@@ -322,7 +326,7 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = `Only (/'&"-) special character are allowed in Activity Description  !!`
+        this.alertMessage = `Only (/'&"-.) special character and digits are allowed in Activity Description  !!`
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -345,6 +349,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
     this.timesheetObj.createdBy = this.currentUser.empId;
+    this.timesheetObj.createdByName = this.currentUser.name
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -412,6 +417,19 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  __tempDescription = '';
+  onTimesheetDescriptionChange(){
+    if(this.isUpdation){
+      if(this.timesheetObj.dayType == 'Holiday'){
+        this.timesheetObj.description = this.__tempDescription;
+        this.__tempDescription = '';
+      }else{
+        this.__tempDescription = (this.timesheetObj.description != null) ? this.timesheetObj.description : ''; 
+        this.timesheetObj.description = '';
+      }
+    }
   }
 
   getTimesheetMetadata(){
@@ -565,11 +583,7 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-
-
-  /* View Timesheets */
-  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
-    this.allMyTimesheets = [];
+  getTimesheetData(template:TemplateRef<any>){
 
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
@@ -589,6 +603,12 @@ export class MyTimesheetComponent implements OnInit {
     } else {
       this.allMyTimesheets = [];
     }
+  }
+
+  /* View Timesheets */
+  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
+    this.allMyTimesheets = [];
+
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
@@ -756,11 +776,11 @@ export class MyTimesheetComponent implements OnInit {
       activityList.forEach((eodActivity, index) => {
         index = index + 1;
         totalActivity += index + ")" + "Project Name: " + eodActivity.projectName + " Activity: " + eodActivity.activity
-          + " comments: " + eodActivity.description + " Time taken: " + eodActivity.completionTime + "hrs. ";
+          + " description: " + eodActivity.description + " Time taken: " + eodActivity.completionTime + "hrs. ";
       })
       this.clipboardService.copy(content + " " + totalActivity);
     } else if (response.serviceResponse = "No activities found.Activity list is empty") {
-      this.clipboardService.copy(content + " " + " comments: " + timesheetObj.description)
+      this.clipboardService.copy(content + " " + " description: " + timesheetObj.description)
     }
   }
 

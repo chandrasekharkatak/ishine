@@ -308,6 +308,7 @@ public class TimesheetService {
 						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
 						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
 						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dto.setRemarks(object[10] != null ? object[10].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -362,6 +363,7 @@ public class TimesheetService {
 						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
 						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
 						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dto.setRemarks(object[10] != null ? object[10].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -524,6 +526,7 @@ public class TimesheetService {
 
 				timesheet.setStatus(timesheetDTO.getStatus());
 				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				timesheet.setRemarks(timesheetDTO.getRejectReason());
 
 				Timesheet updatedTimesheet = timesheetsRepository.save(timesheet);
 
@@ -702,7 +705,7 @@ public class TimesheetService {
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
 			List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheets(
-					timesheetDTO.getManagerId(), timesheetDTO.getStatus(), start, end);
+					timesheetDTO.getManagerId(), start, end);
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -725,6 +728,8 @@ public class TimesheetService {
 						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 						dto.setTotalTime(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+						dto.setRemarks(object[9] != null ? object[9].toString() : null);
+						dto.setEmployeementId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 						dtoList.add(dto);
 					});
 

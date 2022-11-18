@@ -44,7 +44,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label" ><span class="text-danger">*</span>Department</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId" (blur)="checkJobRole(alert_message)">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId" (change)="checkJobRole(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                               </select> 

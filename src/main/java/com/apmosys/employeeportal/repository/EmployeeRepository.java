@@ -1,11 +1,12 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
+import com.apmosys.employeeportal.dto.EmployeeDTO;	
 import com.apmosys.employeeportal.model.Employee;
 
 @Repository
@@ -72,6 +73,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getHierarchyByEmpId(Long empId);
 
 	public Long countByEmpId(Long empId);
+	
+	public Long countByManagerId(Long managerId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeData(Long empId);
@@ -102,5 +105,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeDetailForCron();
+
+	public List<Employee> findByManagerId(Long empId);
+	
+	public Employee findByEmpId(Long empid);	
+	
+	@Query(nativeQuery = true)	
+	public List<Employee> getAllActiveEmployees();	
+		
+	@Query(nativeQuery = true)	
+	public List<Object[]> checkMultipleAppreciation(Long appreciationEventId, Long appreciationTo, Long appreciationBy);
 
 }

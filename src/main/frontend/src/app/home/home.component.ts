@@ -153,6 +153,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   // Leave Applications
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
+    this.data = ''
     this.leaveApplicationList = []
     this.bulkLeaveApprove = []
     this.bulkLeaveReject = []
@@ -215,6 +216,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
    // single leave reject modal
    onSingleReject(template: TemplateRef<any> , ){
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
+      this.alertMessage = "Reason cannot contain single character !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     this.onUpdateLeaveStatus(template, this.leaveObj,3);
   }
 
@@ -229,6 +235,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   //comOff Applications
   getPendingCompOffRequestsByManagerId(){
+    this.data = ''
     this.allCompOffApplications = []
 
     let compOff = new Leave();
@@ -263,6 +270,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
+    this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
     compOffObj.leaveStatusId = updatedCompOffStatusId;
     compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
@@ -298,6 +306,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   getMyReporteesTimesheetRequests(){
+    this.data = ''
     this.bulkApprove = []	
     this.bulkReject = []	
     this.allTeamTimesheetRequests = [];	
@@ -339,6 +348,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   
   rejectTimesheetRequest(template: TemplateRef<any> , ){
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
+      this.alertMessage = "Reason cannot contain single character !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
   }
 
@@ -1072,7 +1086,7 @@ onBulkApproval(template:TemplateRef<any>){
   console.log("For Bulk Update : ", timesheetObj);
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approve Successfully ");
+      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1084,6 +1098,12 @@ onBulkApproval(template:TemplateRef<any>){
 }
 
 onBulkRejectTimesheet(template: TemplateRef<any>){
+
+  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
+    this.alertMessage = "Reason cannot contain single character !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
   console.log("Updated Bulk List : ",  this.bulkReject);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
@@ -1120,7 +1140,7 @@ onBulkLeaveApproval(template:TemplateRef<any>){
  
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Application Approve Successfully ");
+      this.openAlertMod(template , "All Selected Application Approved Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];
@@ -1133,16 +1153,18 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 }
 
 bulkRejectLeave(template: TemplateRef<any>){
+
+  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
+    this.alertMessage = "Reason cannot contain single character !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
       
   let leaveObj = new Leave();
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
   leaveObj.rejectReason = this.leaveObj.rejectReason
-  
-  console.log(leaveObj,"  leaveobj");
-  console.log("  leaveObj.rejectReason   :  ",leaveObj.rejectReason);
-  console.log("  this.leaveObj.rejectReason   :  ",this.leaveObj.rejectReason)
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
@@ -1167,7 +1189,7 @@ OnBulkReject(template: TemplateRef<any>){
 
 
 OnBulkLeaveReject(template: TemplateRef<any>, leave){
-  
+  this.leaveObj.rejectReason = ''
   this.cancelRequest();
  this.leaveObj = leave
   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });

@@ -97,11 +97,11 @@ public class CompOffLeaveService {
 
 			if (leaveApplied != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Compoff leave applied.");
+				response.setServiceResponse("Compoff Request applied.");
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Compoff leave creation failed.");
+				response.setServiceResponse("Compoff Request creation failed.");
 			}
 
 		} catch (Exception e) {
@@ -234,9 +234,9 @@ public class CompOffLeaveService {
 							LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
 					log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
 					leaveBalanceLogRepository.save(log);
-					response.setServiceResponse("CompOff leave application approved.");
+					response.setServiceResponse("Compoff request application approved.");
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
-					response.setServiceResponse("CompOff leave application rejected.");
+					response.setServiceResponse("CompOff request application rejected.");
 				}
 
 				CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);

@@ -116,8 +116,8 @@ public class DraftEmployeeService {
 			employee.setPursuing(employeedto.getPursuing());
 			employee.setYearOfPassing(employeedto.getYearOfPassing());
 			employee.setPassingGrade(employeedto.getPassingGrade());
-			employee.setAboutMe("Add about yourself.");
-			employee.setViewsOnOrganisation("Add your views.");
+			employee.setAboutMe(employeedto.getAboutMe());
+			employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 			employee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setExperience(employeedto.getExperience());
@@ -483,6 +483,8 @@ public class DraftEmployeeService {
 				employee.setMothersName(employeedto.getMothersName());
 				employee.setSpouse(employeedto.getSpouse());
 				employee.setTotalExperience(employeedto.getTotalExperience());
+				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
+				employee.setAboutMe(employeedto.getAboutMe());
 
 				// Certification
 				// Case 1 : Updating Existing certification
@@ -949,6 +951,8 @@ public class DraftEmployeeService {
 				employee.setChild3(employeedto.getChild3());
 				employee.setMothersName(employeedto.getMothersName());
 				employee.setBillable(employeedto.getBillable());
+				employee.setAboutMe(employeedto.getAboutMe());
+				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);
 

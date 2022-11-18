@@ -34,6 +34,7 @@ export class EmployeeConfigComponent implements OnInit {
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
+  isDeletion: boolean = false
   isForm: boolean = false;
   isTable: boolean = false;
 
@@ -44,11 +45,12 @@ export class EmployeeConfigComponent implements OnInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   previewModalRef: BsModalRef = new BsModalRef();
-
+  all:any;
   //Obj 
   currentUser: User;
   employeeObj: Employee = new Employee();
   allEmployeeList: any;
+  _allEmployeeList: any;	
   managerList: any = [];
   userMapping: any = {};
   allJobRoleList: any[] = [];
@@ -105,6 +107,7 @@ export class EmployeeConfigComponent implements OnInit {
   revoke_template: any;
 
   previewObj:Employee = new Employee();
+  previewEmployeeObj:Employee = new Employee();
 
   constructor(
     private employeeService: EmployeeService,
@@ -267,6 +270,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.isDraftTable = false;
+    this.isDeletion = false;
     this.page=1;
     this.data='';
 
@@ -282,6 +286,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.isDraft = false;
+    this.isDeletion = false;
     this.page=1;
     this.data='';
 
@@ -318,6 +323,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.isDraftTable = false;
+    this.isDeletion = false;
 
     this.getManagerList(employee);
     this.getAllDepartmentList();
@@ -676,18 +682,23 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(employeeObj.experience =='Experience'){
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
-          this.alertMessage = "Please enter more than 0 number !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
-      
+    if(employeeObj.experience =='Experienced'){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {	
+        this.alertMessage = "Please enter total experience !!"	
+        this.openAlertMod(template, this.alertMessage);	
+        return false;	
+      }	
+      if(employeeObj.totalExperience === 0){	
+        this.alertMessage = "Please enter more than 0 number !!"	
+        this.openAlertMod(template, this.alertMessage);	
+        return false;	
+      }	
+        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {	
+          this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"	
+          this.openAlertMod(template, this.alertMessage);	
+          return false;	
+        }	
+      	
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.workLocation)) {
@@ -889,6 +900,23 @@ export class EmployeeConfigComponent implements OnInit {
     
   }
 
+  // checkSecondaryEmail(template: TemplateRef<any>) {
+
+  //   const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+  //  // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+  //   if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
+  //     if (regex.test(this.employeeObj.secondaryEmail)) {
+       
+  //       this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
+  //       this.employeeObj.secondaryEmail = '';
+  //     }
+  //   } else{
+  //     this.openAlertMod(template, "Please enter email !!");
+  //     this.employeeObj.secondaryEmail = '';
+  //   }
+    
+  // }
+
   checkEmployeementId(template: TemplateRef<any>) {
     this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
@@ -971,13 +999,53 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  onDeleteEmployee(template: TemplateRef<any>) {
+  onDeleteEmployee(updatetemplate: TemplateRef<any>, template: TemplateRef<any>) {
     this.cancelRequest();
-
+    
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
+      } else {
+        this.isDeletion = true;
+        this.employeeObj.oldManagerId = this.employeeObj.empId;
+        this.employeeObj.newManagerId = '';
+        this.getManagerList(this.employeeObj);
+        this.modalRef = this.modalService.show(updatetemplate);
+      }
+    });
+  }
+
+  onChangeManagerMapping(template: TemplateRef<any>) {
+    this.cancelRequest();
+    this.isDeletion = false;
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.newManagerId)) {
+      this.alertMessage = "Please select a Manager !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    let employee: Employee = new Employee();
+    employee.managerId = this.employeeObj.newManagerId;
+    employee.oldManagerId = this.employeeObj.oldManagerId;
+
+    console.log("changeManagerMapping : ", employee);
+    
+    this.employeeService.changeManagerMapping(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        employee.empId = this.employeeObj.oldManagerId;
+        console.log("deleteEmployee : ", employee);
+        this.employeeService.deleteEmployee(employee).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+            this.page=1;
+          } else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -989,7 +1057,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        
+        this._allEmployeeList = this.allEmployeeList;
+
         console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
       } else {
@@ -997,7 +1066,14 @@ export class EmployeeConfigComponent implements OnInit {
       }
     });
   }
-
+  changeEvent(value:string){	
+    if(value=="Active"){	
+        this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
+    }else if(value=="InActive"){	
+      this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');  	
+    }	
+    this.page=1;
+  }
   createEmployeeList(allEmployeeList: any) {
     this.managerList = allEmployeeList.map(employee => {
       let emp = { name: employee.name, empId: employee.empId.toString() };
@@ -1071,12 +1147,13 @@ export class EmployeeConfigComponent implements OnInit {
     this.managerList = [];	
     let employeeList = [];	
 
+    console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";	
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         employeeList = response.serviceResponse;	
         console.log("employeeList By Role : ", employeeList)
-        if(this.isUpdation){
+        if(this.isUpdation || this.isDeletion){
           this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
         }else{
           this.managerList = employeeList;
@@ -1197,41 +1274,52 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   validateBirthDate(template: TemplateRef<any>){   
-
     let birthdate = new Date(this.employeeObj.dateOfBirth);
     let dtCurrent = new Date();
+    let flag = true;
+    let dobInput:any = document.getElementById('DOB');
 
-    if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
-      this.employeeObj.dateOfBirth = undefined;
+    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
+      this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
+      flag = false;
+    }
+    else if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
       this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-      return false;
-     }
-    if (dtCurrent.getFullYear() - birthdate.getFullYear() == 18) {
+      flag = false;
+    }
+    else if (dtCurrent.getFullYear() - birthdate.getFullYear() == 18) {
 
       //CD: 11/06/2018 and DB: 15/07/2000. Will turned 18 on 15/07/2018.
       if (dtCurrent.getMonth() < birthdate.getMonth()) {
-        this.employeeObj.dateOfBirth = undefined;
-        this.openAlertMod(template, 'Employee age cannot be less than 18 years.');      
-        return false;
+        this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
+        flag = false;
       }
+      
       if (dtCurrent.getMonth() == birthdate.getMonth()) {
           //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
           if (dtCurrent.getDate() < birthdate.getDate()) {
-            this.employeeObj.dateOfBirth = undefined;
-            this.openAlertMod(template, 'Employee age cannot be less than 18 years.');  
-            return false;
+            this.openAlertMod(template, 'Employee age cannot be less than 18 years.'); 
+            flag = false;
           }
       }
-   }
-    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
-      this.employeeObj.dateOfBirth = undefined;
-      this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      this.employeeObj.dateOfBirth = this.reset;
-      return false;
+    }
+
+    if(!flag) {
+      this.employeeObj.dateOfBirth = '';
+      dobInput.value = '';
     }
   }
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>){
+    if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)){
+      this.alertMessage = "Please enter Reason for rejecting !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
+      this.alertMessage = "Reason shouldn't contain single character !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     this.cancelRequest();
     this.cancelApplication();
@@ -1308,6 +1396,46 @@ export class EmployeeConfigComponent implements OnInit {
       });
     }, 500)
   }
+
+  // Employee Info preview View all tab
+  async openViewEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
+
+    console.log("employeeObj : ", employeeObj);
+    
+    let currentEmp = new Employee();
+    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.empId = employeeObj.empId;
+    currentEmp.isDraft = false;
+
+    const infoResponse: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (infoResponse.serviceStatus == "Success") {
+      this.previewEmployeeObj = infoResponse.serviceResponse;
+      
+      console.log("this.previewObj : ", this.previewEmployeeObj);
+    } else {
+      console.error(infoResponse.serviceResponse)
+    }
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.previewEmployeeObj.documentList = docResponse.serviceResponse;
+      console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
+    } else {
+      console.log(docResponse.serviceResponse);
+    }
+    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
+    setTimeout(()=>{
+      this.previewEmployeeObj.documentList && this.previewEmployeeObj.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500)
+  }
+
 
   getAllPortalConfigData() {
     this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {

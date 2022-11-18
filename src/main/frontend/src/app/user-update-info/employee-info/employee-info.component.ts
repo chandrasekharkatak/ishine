@@ -88,12 +88,12 @@ export class EmployeeInfoComponent implements OnInit{
     console.log("   this.employeeObj.child2 ", this.employeeObj.child2);
     console.log("   this.employeeObj.child3 ", this.employeeObj.child3);
     
-    if(this.employeeObj.child1 == null || this.employeeObj.child2 == null || this.employeeObj.child3 == null){
+    if(this.employeeObj.child1 == null && this.employeeObj.child2 == null && this.employeeObj.child3 ){
       this.addInputChildField();
     }else{
-      let childList = [this.employeeObj.child1, this.employeeObj.child2, this.employeeObj.child3];
+      let childList = [this.employeeObj.child1, this.employeeObj.child2 , this.employeeObj.child3];
       childList.forEach(child => {
-        if(child !== null){
+        if(child != null){
           this.allChildList.push(new Child(child));
         }else{
           this.addInputChildField();
@@ -287,9 +287,9 @@ export class EmployeeInfoComponent implements OnInit{
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.allCertificationList?.forEach(certificaiton => {
-      certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
       console.log("All certificaiton : ", this.allCertificationList);
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
+        certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
         console.log("New certificaiton : ", certificaiton);
         this.updatedCertificationList.push(certificaiton);
       }

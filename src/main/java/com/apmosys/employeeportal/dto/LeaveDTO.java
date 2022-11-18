@@ -100,4 +100,10 @@ public class LeaveDTO {
 	private List<LeaveDTO> bulkLeaveRejectList;
 	private String email;
 	private String rejectReason;
+	
+	private Long leaveRevokeId;
+	private Short leaveRevokeStatusId;
+	private Long leaveRevokeStatusUpdatedBy;
+	
+	private String remark;
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.AppreciationDTO;
+import com.apmosys.employeeportal.dto.AppreciationEventDTO;
 import com.apmosys.employeeportal.model.Appreciation;
 import com.apmosys.employeeportal.service.AppreciationService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -21,6 +22,23 @@ public class AppreciationController {
 	public ServiceResponse saveAppreciation(@RequestBody AppreciationDTO appreciationDTO){
 		ServiceResponse response=appreciationService.saveAppreciation(appreciationDTO);
 		return response;
-	}   
+	} 
     
+    @RequestMapping(value = "enableAppreciation", method = RequestMethod.POST )
+    public ServiceResponse enableAppreciation(@RequestBody AppreciationEventDTO AppreciationEventDTO){
+		ServiceResponse response=appreciationService.enableAppreciation(AppreciationEventDTO);
+		return response;
+	}
+    
+    @RequestMapping(value = "getAllAppreciationEvent", method = RequestMethod.GET )
+    public ServiceResponse getAllAppreciationEvent(){
+		ServiceResponse response=appreciationService.getAllAppreciationEvent();
+		return response;
+	}
+   
+    @RequestMapping(value = "viewAppreciation", method = RequestMethod.POST )
+    public ServiceResponse viewAppreciation(@RequestBody AppreciationEventDTO AppreciationEventDTO){
+		ServiceResponse response=appreciationService.viewAppreciation(AppreciationEventDTO);
+		return response;
+	}
 }

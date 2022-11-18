@@ -6,6 +6,7 @@ import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { enableAppreciation } from '../models/enableAppreciation';
 
 //import { Appreciation } from 'src/app/models/Appreciation';
 
@@ -30,6 +31,7 @@ export class UserAppreciationComponent implements OnInit {
   employeementid:any
   currentUser: User;
   empid:any;
+  appreciationEventInfo:enableAppreciation;
   
  
   constructor(private appreciationService : AppreciationService,
@@ -45,6 +47,7 @@ export class UserAppreciationComponent implements OnInit {
     this.getAllEmployees();
     this.employeeObj.appreciateType = 'You are my Star';	
     
+    this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
   }
   reset(){
    this.employeeObj = new Employee();
@@ -61,14 +64,8 @@ export class UserAppreciationComponent implements OnInit {
         this.allEmployee = response.serviceResponse;
         this.allEmployee = this.allEmployee.filter(x => x.employmentstatus != 'InActive' && x.empId != this.currentUser.empId);
         this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
-
-        // this.allEmployee = this.allEmployee.sort(function (a, b) {
-        //      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-
-        //    });
         console.log("appreciation : ", this.allEmployee)
-        // this.allEmployee=response;
-        //    console.warn(this.allEmployee)
+
       } else {
         console.error(response.serviceResponse)
       }
@@ -103,7 +100,7 @@ export class UserAppreciationComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }
-    if(!this.validationService.validateAlphaWithSpaceInbetween(employeeObj.reason)){
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.reason)){
       this.alertMessage = "Why you want to give Appreciation? Should not contain space at Beginning and End of the string "
       this.openAlertMod(template, this.alertMessage);	
       return false;	
@@ -137,7 +134,10 @@ export class UserAppreciationComponent implements OnInit {
     console.log("appreciation name" + this.employeeObj.nameAppreciate)
 
     //manager mail
-
+    console.log("this.appreciationEventInfo",this.appreciationEventInfo);
+    console.log("this.enableAppreciation.appreciationEventID",this.appreciationEventInfo.appreciationEventId);
+    this.employeeObj.appreciationEventId= this.appreciationEventInfo.appreciationEventId;
+    console.log("this.employeeObj.appreciationEventID",this.employeeObj.appreciationEventId);
 
 
     this.employeeObj.appreciateType=this.employeeObj.appreciateType;

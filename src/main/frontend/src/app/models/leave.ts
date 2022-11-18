@@ -85,4 +85,6 @@ export class Leave{
     bulkLeaveRejectList:any;
 	email:any;
 	rejectReason:any;
+
+	remark:any;
 }

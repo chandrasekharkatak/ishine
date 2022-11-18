@@ -17,6 +17,7 @@ import { BodyComponent } from '../body/body.component';
 import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
 import * as moment from 'moment';
+import { enableAppreciation } from '../models/enableAppreciation';	
 
 @Component({
   selector: 'app-login',
@@ -55,6 +56,7 @@ export class LoginComponent implements OnInit{
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
+  enableAppreciation: enableAppreciation  = new enableAppreciation();	
 
   @ViewChild('reLogin_template') reLoginTemplate: TemplateRef<any>;
 
@@ -221,6 +223,9 @@ export class LoginComponent implements OnInit{
       /* Saving INFO for Logs */
       let log:Log = responseObj[6];
       log.empId = user.empId;
+      this.enableAppreciation = responseObj[7];	
+      console.log("enableAppreciation",enableAppreciation);	
+      console.log("checking"+sessionStorage.maxFileSize);
       this.timeSession();
       this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
 
@@ -243,7 +248,8 @@ export class LoginComponent implements OnInit{
       this.user.isNew = user.isNew;
       this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
       this.user.userMapping = this.getActiveSubFeatures();
-      this.user.tabList = this.getTabList();      
+      this.user.tabList = this.getTabList();	
+      this.user.appreciationEventInfo =  this.enableAppreciation;       
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

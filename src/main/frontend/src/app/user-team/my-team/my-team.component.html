@@ -106,6 +106,7 @@
         <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
         <th scope="col" class="info-label" mat-sort-header="reason">Leave Reason</th>	
         <th scope="col" class="info-label" mat-sort-header="leaveType">Type</th>
+        <th scope="col" class="info-label" >Remarks</th>
         </tr>
       </thead>
       <tbody>
@@ -125,6 +126,7 @@
           <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
           <td class="info-label">{{leaveHistory.reason}}</td>
           <td class="info-label">{{leaveHistory.leaveType}}</td>
+          <td class="info-label">{{leaveHistory.remark}}</td>
         </tr>
       </tbody>
     </table>
@@ -180,7 +182,7 @@
         <td class="info-label">{{compOffHistory.createdByName}}</td>
         <td class="info-label">{{compOffHistory.fromDate}}</td>
         <td class="info-label">{{compOffHistory.toDate}}</td>
-        <td class="info-label">{{compOffHistory.createdOn | date:'dd-MM-yyyy'}}</td>
+        <td class="info-label">{{compOffHistory.createdOn | date:'yyyy-MM-dd'}}</td>
         <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
         <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
         <td class="info-label">{{compOffHistory.noOfDays}}</td>

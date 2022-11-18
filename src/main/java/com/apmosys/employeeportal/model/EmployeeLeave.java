@@ -37,6 +37,7 @@ public class EmployeeLeave {
 	private LocalDate toDate;
 	@Column(length = 1000)
 	private String description;
+	private String remark;
 
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

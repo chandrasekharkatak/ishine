@@ -144,4 +144,7 @@ public class Employee {
 	private String reference;
 	private String backgroundVerificationStatus;
 	
+	@Column(columnDefinition = "varchar(10) DEFAULT 'False'")
+	private String isAppreciationEnable; //added for appreciation by suchi
+	
 }

@@ -1,12 +1,28 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Portal } from 'src/app/models/portal';
-import { first } from 'rxjs/operators';
+// import { first } from 'rxjs/operators';
 import { PortalService } from 'src/app/services/portal.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
+import { Employee } from 'src/app/models/employee';
+import { Sort } from '@angular/material/sort';
+import { first } from 'rxjs/operators';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { Query } from 'src/app/models/query';
+import { enableAppreciation } from 'src/app/models/enableAppreciation';
+
+
+
+class FilterData{
+  title:any;
+  columns:any;
+  queryList:any;
+}
+
+
 
 @Component({
   selector: 'app-portal-config',
@@ -18,6 +34,19 @@ export class PortalConfigComponent implements OnInit {
   feature="Portal Config";
   currentUser:User;
   userMapping:any = {};
+  allEmployeeList: any;
+  allAppreciationEvent:any;
+  data:any;
+  appByCategory:any;
+
+  //flag
+  portalConfig: boolean = false;
+  appreciationConfig: boolean = false;
+  isTable : boolean = false;
+  viewAppreciationForm : boolean = false;
+  isAppreciationTable : boolean = false;
+  fromDate:any;
+  toDate:any;
 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
@@ -25,14 +54,19 @@ export class PortalConfigComponent implements OnInit {
   portalObj:Portal = new Portal();
 
   portalConfigList:any[] = [];
-
-  isPortalConfiguration: boolean = true;
-  isAppreciationConfiguration: boolean = false;
+  appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining'];
+  queryList:any[] = [];
+  filterData:any = new FilterData(); 
+  display=null;
+  appreciationObj: enableAppreciation = new enableAppreciation();
+  all:any;
+  enableAppreciationList:any[] = [];
 
   constructor(
     private portalService:PortalService,
     private validationService:ValidationService,
     private modalService: BsModalService,
+    private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -45,21 +79,55 @@ export class PortalConfigComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, " : ", this.userMapping);
+    this.getAllEvent();
+    this.sectionViewInit();
+  }
+
+  reset(){
+    this.appreciationObj = new enableAppreciation();
+    this.appreciationObj.fromDate=null;
+    this.appreciationObj.toDate=null;
+    this.appreciationObj.appreciationEventName=null;
+    this.appreciationObj.enableAppreciationFor = "";
+
+   
+   }
+
+  sectionViewInit() {
+    if(this.userMapping.update_portal_global_configuration){
+      this.getAllPortalConfig();
+    }
+    else if(this.userMapping.appreciation_configuration){
+       this.enableAppreciationOnclick();
+    }
+    else if(this.userMapping.view_employees_appreciation) {   
+       this.viewAllAppreciation();
+    }
+  }
+  getAllEvent(){
+   this.allAppreciationEvent=[];
+    this.portalService.getAllEvent().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allAppreciationEvent = response.serviceResponse; 
+        // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+        console.log("allEventList : ", this.allAppreciationEvent)
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+
+  }
+  getAllPortalConfig(){
+    this.portalConfig = true;
+    this.appreciationConfig =false;
+     this.isTable = false;
+     this.viewAppreciationForm = false;
+     this.isAppreciationTable = false;
 
     this.getAllPortalConfigData();
   }
-
-  showPortalConfiguration(){
-    this.isPortalConfiguration = true;
-    this.isAppreciationConfiguration = false;
-  }
-
-  showAppreciationConfiguration(){
-    this.isPortalConfiguration = false;
-    this.isAppreciationConfiguration = true;
-  }
-
   getAllPortalConfigData() {
+
     this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.portalObj = Object.assign({}, response.serviceResponse);
@@ -93,6 +161,47 @@ export class PortalConfigComponent implements OnInit {
         console.error(response.serviceResponse);
       }
     });
+  }
+  enableAppreciationOnclick(){
+    this.portalConfig = false;
+    this.appreciationConfig=true;
+    this.viewAppreciationForm = false;
+    this.isTable = false;
+    this.fromDate = null;
+    this.toDate = null;
+    this.isAppreciationTable = false;
+
+  }
+  getAllEmployees(){
+    this.portalService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse; 
+        this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+        console.log("allEmployeeList : ", this.allEmployeeList)
+      } else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+  viewAllAppreciation(){
+    this.portalConfig = false;
+    this.appreciationConfig=false;
+    this.viewAppreciationForm = true;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+
+  }
+  
+  changeEvent(template: TemplateRef<any>, columns:any[], title:any,value:string){
+    if (value == "all") {
+      this.isTable = true;
+      this.allEmployeeList = [];
+    }
+    else if (value == "custom") {
+      this.isTable = true;
+      this.openFilterModal(template, columns, title);
+    }
+   this.getAllEmployees();
   }
 
   updatePortalGlobalConfiguration(portalObj,template: TemplateRef<any>){
@@ -141,7 +250,11 @@ export class PortalConfigComponent implements OnInit {
       return;
     }
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.dsrGenerateDay)) {
-      this.alertMessage = "Please enter Generate DSR Day !!"
+      this.alertMessage = "Please enter DSR Generation Day !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }else if(!this.validationService.validateMonthDays(portalObj.dsrGenerateDay)){
+      this.alertMessage = "Please enter valid day !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
@@ -185,6 +298,155 @@ export class PortalConfigComponent implements OnInit {
          });
   }
 
+
+  generatePerviousMonthDSR(template: TemplateRef<any>){
+    this.portalService.generatePerviousMonthDSR().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  /* Filter */
+  openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
+    console.log("columns : ", columns);
+    
+    this.filterData.title  = title;
+    this.filterData.columns = columns;
+    this.filterData.queryList = JSON.stringify(this.queryList);
+
+    console.log("filterData : ", this.filterData);
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  onFilterSubmit(queryList:any , template:TemplateRef<any>){
+    console.log("queryList : ", queryList);
+    this.queryList = queryList;
+    this.cancelRequest();
+    
+    if(this.filterData.title == 'Filter Appreciation'){
+      this.getCustomEmployeeList(queryList,template);
+    }
+  }
+
+  
+  getCustomEmployeeList(queryObjList:any , template : TemplateRef<any>) {
+    this.allEmployeeList = [];
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    if(queryObjList == ''){
+      this.getAllEmployees();
+
+    }else {
+      this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployeeList = response.serviceResponse;
+          console.log("response" +response);
+
+          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.employeementId === value.employeementId
+          ))
+        )
+
+          if(this.allEmployeeList.length != 0){
+            this.openAlertMod(template, "Employee Record found")
+          }else{
+            this.openAlertMod(template, "No Data found")
+          }
+          this.allEmployeeList.forEach(employee => {
+            employee.employeementId = "A-".concat(employee.employeementId);
+          });
+          console.log("allEmployeeList : ", this.allEmployeeList)
+        } else {
+          this.openAlertMod(template,response.serviceResponse)
+        }
+      });
+    }
+  }
+  validateAppreciation(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.fromDate)) {
+      this.alertMessage = "Please Select From Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.toDate)) {
+      this.alertMessage = "Please select To Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventName)) {
+      this.alertMessage = "Event Name field should not be empty!!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
+  enableAppreciation(template: TemplateRef<any>){
+    const dateFormat = 'YYYY-MM-DD';
+    let inputValidated: boolean = this.validateAppreciation(this.appreciationObj, template)
+    if (!inputValidated) return;
+    this.enableAppreciationList = [];
+
+    this.enableAppreciationList = this.allEmployeeList.map(employee => {
+      return {
+        // employeementId : employee.employeementId,
+        empId : employee.empId,
+        isAppreciationEnable : true
+      }
+    });
+
+    console.log("enableAppreciationList : ", this.enableAppreciationList);
+    this.appreciationObj.fromDate = this.appreciationObj.fromDate ;
+    this.appreciationObj.toDate = this.appreciationObj.toDate;
+    this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
+    this.appreciationObj.enableAppreciationList = this.enableAppreciationList;
+    console.log("enableAppreciation : ", this.appreciationObj)
+    
+    this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.all = response.serviceResponse;
+        console.log("appreciation : ", this.all)
+        this.openAlertMod(template, response.serviceResponse); 
+        this.reset();       
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+
+  }
+  viewAppreciationsOnSubmit(){
+    this.portalConfig = false;
+    this.appreciationConfig=false;
+    this.viewAppreciationForm = false;
+    // this.isAppreciationTable = true;
+    this.isTable = false;
+   this.viewAppreciations();
+
+  }
+
+  viewAppreciations(){
+
+    this.portalService.viewAppreciations(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.appByCategory = response.serviceResponse;
+        console.log("appreciation : ", this.appByCategory)
+        this.isAppreciationTable = true;
+
+        // this.openAlertMod(template, response.serviceResponse); 
+        this.reset();       
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+
+  }
   //modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -195,5 +457,90 @@ export class PortalConfigComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+  sortData(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.allEmployeeList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.allEmployeeList=data;	
+      return;	
+    }	
+    else {	
+      this.allEmployeeList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'empId':	
+              return compare(a.empId.toLowerCase() , b.empId.toLowerCase() , isAsc)	
+              case 'name':	
+                return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+                case 'email':	
+                  return compare(a.email.toLowerCase() , b.email.toLowerCase() , isAsc)	
+                  case 'employmentstatus':	
+                  return compare(a.employmentstatus.toLowerCase() , b.employmentstatus.toLowerCase() , isAsc)
+                  case 'dateOfJoining':	
+                  return compare(a.dateOfJoining.toLowerCase() , b.dateOfJoining.toLowerCase() , isAsc)
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+
+  sortViewAppreciationData(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.appByCategory;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.appByCategory=data;	
+      return;	
+    }	
+    else {	
+      this.appByCategory=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'appreciateType':	
+              return compare(a.appreciateType.toLowerCase() , b.appreciateType.toLowerCase() , isAsc)	
+              case 'appreciationToName':	
+                return compare(a.appreciationToName.toLowerCase() , b.appreciationToName.toLowerCase() , isAsc)	
+                case 'appreciationByName':	
+                  return compare(a.appreciationByName.toLowerCase() , b.appreciationByName.toLowerCase() , isAsc)	
+                  case 'appreciationDate':	
+                  return compare(a.appreciationDate.toLowerCase() , b.appreciationDate.toLowerCase() , isAsc)
+                  case 'managerName':	
+                  return compare(a.managerName.toLowerCase() , b.managerName.toLowerCase() , isAsc)
+                  case 'reason':	
+                  return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

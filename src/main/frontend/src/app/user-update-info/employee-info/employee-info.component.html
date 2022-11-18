@@ -113,7 +113,7 @@
                                 <hr>
                                 
                                 </div>
-                                <div *ngFor="let child of allChildList;let i = index" class="row">
+                                <div *ngFor="let child of allChildList;let i = index" class="row" >
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -407,7 +407,7 @@
                                 <div class="col-md-2 d-flex align-items-center">
                                     <div class="form-group m-0 mt-3 mb-1">
                                         <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputCertificationField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputCertificationField(certification)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                        <button *ngIf="allCertificationList.length > 1" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputCertificationField(certification)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -482,7 +482,7 @@
                         </div>
                     </app-accordion-item>
     
-                    <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -517,14 +517,14 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <!-- <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Total Exprience</label>
                                             <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.totalExperience">
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
@@ -573,8 +573,8 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item> -->
-                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
+                    </app-accordion-item>
+                    <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -634,7 +634,7 @@
                                 
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </app-accordion-item> -->
     
                     <app-accordion-item class="acc-content" title="Bank/PF Account Information">
                         <div class="container-fluid">

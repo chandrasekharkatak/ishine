@@ -29,4 +29,10 @@ public class PortalConfigController {
 		return response;
 	}
 	
+	@RequestMapping(value="/generatePerviousMonthDSR", method = RequestMethod.GET)
+	public ServiceResponse generatePerviousMonthDSR() {
+		ServiceResponse response = portalConfigService.generatePerviousMonthDSR();
+		return response;
+	}
+	
 }

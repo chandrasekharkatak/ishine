@@ -3,8 +3,10 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
@@ -20,7 +22,13 @@ public class PortalConfigService {
 	PortalConfigRepository portalConfigRepository;
 	
 	@Autowired
+	CronJobService cronJobService;
+	
+	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Value("${monthlyTimesheetExcelGenerator.expression}")
+	private String excelGenerator;
 	
 	public ServiceResponse getPortalConfig() {
 		ServiceResponse response = new ServiceResponse();
@@ -81,14 +89,11 @@ public class PortalConfigService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Portal Global Configuration Updation Failed.");
 					}
-					
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Portal Global Configuration not Found.");
 				}
-				
 			});
-			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -98,4 +103,26 @@ public class PortalConfigService {
 		return response;
 	}
 
+	public ServiceResponse generatePerviousMonthDSR() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			ServiceResponse monthlyTimesheetExcelGeneratorResponse = cronJobService.monthlyTimesheetExcelGenerator();
+			
+			if(monthlyTimesheetExcelGeneratorResponse.getServiceStatus().equals("Success")) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(monthlyTimesheetExcelGeneratorResponse.getServiceResponse());
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(monthlyTimesheetExcelGeneratorResponse.getServiceResponse());
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }
