@@ -87,4 +87,8 @@ export class Leave{
 	rejectReason:any;
 
 	remark:any;
+
+	leaveBalance:any = 0;
+	approvedApplicationsCount:any = 0;
+	pendingApplicationsCount:any = 0;
 }
