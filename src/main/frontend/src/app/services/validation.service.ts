@@ -373,7 +373,7 @@ export class ValidationService {
   }
 
   validateDiscriptionUserProfile(text:string): boolean {
-    const regex = (/^[A-Za-z ]*$/) ;
+    const regex = (/^[A-Za-z\s]*$/) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

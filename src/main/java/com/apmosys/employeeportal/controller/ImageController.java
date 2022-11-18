@@ -73,4 +73,19 @@ public class ImageController {
 		ServiceResponse response =	imageService.getEmployeeDocuments(employeeDTO);		
 		return response;
 	}
+	
+	/*
+	 upload employee document - part of data migration.
+	 */
+	
+	@RequestMapping(value = "/uploadDocumentByList", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse uploadDocumentByList(@RequestBody EmployeeDTO[] employeedto) {
+
+		ServiceResponse response = null;
+
+		for (EmployeeDTO employee : employeedto) {
+			response = imageService.uploadDocumentByList(employee);
+		}
+		return response;
+	}
 }

@@ -181,6 +181,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   // Leave Applications
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
+    this.data = ''
     this.leaveApplicationList = []
     this.bulkLeaveApprove = []
     this.bulkLeaveReject = []
@@ -262,6 +263,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   //comOff Applications
   getPendingCompOffRequestsByManagerId(){
+    this.data = ''
     this.allCompOffApplications = []
 
     let compOff = new Leave();
@@ -332,6 +334,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   getMyReporteesTimesheetRequests(){
+    this.data = ''
     this.bulkApprove = []	
     this.bulkReject = []	
     this.allTeamTimesheetRequests = [];	
