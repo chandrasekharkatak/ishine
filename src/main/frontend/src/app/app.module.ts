@@ -67,6 +67,7 @@ import { UserAppreciationComponent } from './user-appreciation/user-appreciation
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
+import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
 @NgModule({
   declarations: [
     AppComponent,
@@ -136,6 +137,7 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
+    NgHorizontalScrollModule
   ],
   providers: [
     BsModalService,

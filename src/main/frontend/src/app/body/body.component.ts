@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { User } from '../models/user';
 import { first } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
@@ -34,6 +34,7 @@ export class BodyComponent implements OnInit {
   errorMsg:any;
   empId:any;
   user:User = new User();
+  isHome:boolean = false;
 
   //modal
   alertMessage: any;
@@ -52,9 +53,17 @@ export class BodyComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
-    
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.router.events.subscribe((e) => {
+      if (e instanceof NavigationEnd) {
+        if(e.url == "/home"){
+          this.isHome = true;
+        }else{
+          this.isHome = false;
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
