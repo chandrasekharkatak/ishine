@@ -1,19 +1,23 @@
 <div class="home-container">
-    <div class="top-nav navbar navbar-nav sticky-top mb-2 mt-0" *ngIf="currentUser">
-        <div class="nav-item mr-2">
-            <a class="nav-link" (click)="openNotificationMod(notification_template)">
-                <i class="fa-solid fa-bullhorn"></i>
-            </a>
-        </div>
-        <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" id="user-dropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                <i class="fa-solid fa-user"></i>&nbsp;{{currentUser.name}}
-            </a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
-              <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
-              <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
-            </div>
-        </div>
+    <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link nav-text" (click)="openNotificationMod(notification_template)">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <div class="dropdown">
+                    <a class="nav-link nav-text dropdown-toggle" id="user-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <i class="fa-solid fa-user"></i>&nbsp;{{currentUser.name}}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
+                      <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+                      <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
+                    </div>
+                </div>
+            </li>
+          </ul>        
     </div>
     <div class="leave-details-container mb-2">
         <div *ngIf="userMapping.view_all_team_requests" class="team-requests card mb-2" style="width: 100%;">
@@ -342,48 +346,51 @@
         </div>
     </div>
     <div class="modal-body ">
-        <table class="table leaveApplication-table">
-            <thead class="thead-light text-center">
-              <tr>
-                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Leave Type</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied On</th>
-                <th scope="col" class="info-label">Reason</th>
-                <!-- <th scope="col" class="info-label">Comments</th> -->
-                <th scope="col" class="info-label">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="text-center">
-                <tr *ngIf="leaveApplicationCount == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
-                </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                    <td><input class="homeLeave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
-                    <td>{{items*(page-1)+i+1}}</td>
-                    <td>{{leaveApplication.employeeName}}</td>
-                    <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate}}</td>
-                    <td>{{leaveApplication.toDate}}</td>
-                    <td>{{leaveApplication.noOfDays}} day(s)</td>
-                    <td>{{leaveApplication.status}}</td>
-                    <td>{{leaveApplication.createdByName}}</td>
-                    <td>{{leaveApplication.createdOn}}</td>
-                    <td>{{leaveApplication.reason}}</td>
-                    <!-- <td>{{leaveApplication.description}}</td> -->
-                    <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-                    </td>
-                </tr>
-            </tbody>
-          </table> 
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
+            [tableTHeadTrId]="'leaveApplicationTHeadTr'">
+            <table class="table leaveApplication-table" id="leaveApplication">
+                <thead class="thead-light text-center" id="leaveApplicationTHead">
+                  <tr id="leaveApplicationTHeadTr">
+                    <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Name</th>
+                    <th scope="col" class="info-label">Leave Type</th>
+                    <th scope="col" class="info-label">From Date</th>
+                    <th scope="col" class="info-label">To Date</th>
+                    <th scope="col" class="info-label">Duration</th>
+                    <th scope="col" class="info-label">Status</th>
+                    <th scope="col" class="info-label">Applied By</th>
+                    <th scope="col" class="info-label">Applied On</th>
+                    <th scope="col" class="info-label">Reason</th>
+                    <!-- <th scope="col" class="info-label">Comments</th> -->
+                    <th scope="col" class="info-label heightAndwidth thStyles">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="text-center">
+                    <tr *ngIf="leaveApplicationCount == 0">
+                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    </tr>
+                    <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                        <td><input class="homeLeave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
+                        <td>{{items*(page-1)+i+1}}</td>
+                        <td>{{leaveApplication.employeeName}}</td>
+                        <td>{{leaveApplication.leaveType}}</td>
+                        <td>{{leaveApplication.fromDate}}</td>
+                        <td>{{leaveApplication.toDate}}</td>
+                        <td>{{leaveApplication.noOfDays}} day(s)</td>
+                        <td>{{leaveApplication.status}}</td>
+                        <td>{{leaveApplication.createdByName}}</td>
+                        <td>{{leaveApplication.createdOn}}</td>
+                        <td>{{leaveApplication.reason}}</td>
+                        <!-- <td>{{leaveApplication.description}}</td> -->
+                        <td>
+                            <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                            <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                        </td>
+                    </tr>
+                </tbody>
+              </table> 
+        </div>
           <div class="my-buttons">
           <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
@@ -404,9 +411,11 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
     <div class="modal-body">
-        <table class="table compOffApplication-table">
-            <thead class="thead-light">
-              <tr>
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'" [tableTHeadId]="'compOffApplicationTHead'"
+        [tableTHeadTrId]="'compOffApplicationTHeadTr'">
+        <table class="table compOffApplication-table" id="compOffApplication">
+            <thead class="thead-light" id="compOffApplicationTHead">
+              <tr id="compOffApplicationTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Applied By</th>
                 <th scope="col" class="info-label">Applied For</th>
@@ -438,6 +447,7 @@
                 </tr>
             </tbody>
           </table>  
+        </div>
           <div class="my-buttons">
           <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
@@ -474,10 +484,11 @@
       </div>
    
     <div class="modal-body">
-        
-        <table class="table teams-request-table" id="teams-request-table">
-            <thead class="thead-light">
-              <tr>
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'" [tableTHeadId]="'timesheetRequestTHead'"
+        [tableTHeadTrId]="'timesheetRequestTHeadTr'">
+        <table class="table teams-request-table" id="timesheetRequest">
+            <thead class="thead-light" id="timesheetRequestTHead">
+              <tr id="timesheetRequestTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Employee Id</th>
@@ -514,7 +525,8 @@
                 </td>
               </tr>
             </tbody>
-          </table>   
+          </table> 
+        </div>  
           <div class="my-buttons">
             <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
