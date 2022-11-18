@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Portal } from 'src/app/models/portal';
 // import { first } from 'rxjs/operators';
 import { PortalService } from 'src/app/services/portal.service';
@@ -49,6 +49,7 @@ export class PortalConfigComponent implements OnInit {
   toDate:any;
 
   alertMessage:any;
+  @ViewChild('alert_message') alertTemplate:TemplateRef<any>;
   modalRef: BsModalRef = new BsModalRef();
 
   portalObj:Portal = new Portal();
@@ -112,7 +113,7 @@ export class PortalConfigComponent implements OnInit {
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEventList : ", this.allAppreciationEvent)
       } else {
-        alert(response.serviceResponse)
+        this.openAlertMod(this.alertTemplate, response.serviceResponse)
       }
     });
 
