@@ -1,0 +1,85 @@
+<!-- start :: Find employee -->
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Employee On-Boarding</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Employee ID</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="assetObj.employeementId" placeholder="Please Enter Employee ID without prefix A">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0 mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="getEmployeeOnBoardingDetailByEmployeementId(alert_message)">Get Employee On-Boarding Details</button>
+                </div>
+            </div>
+            <hr>
+            <div class="card" *ngFor="let employee of employeeDetailList">
+                <div class="card-body">
+                  <h2 class="card-title mt-4">{{employee.name}}</h2>
+                  <div class="d-flex">
+                    <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">A-{{employee.employeementId}}</span></h6>
+                    <h6 class="mr-5 mt-2 info-label">Email : <span style=" color: #193d8a;">{{employee.email}}</span></h6>
+                    <h6 class="mr-5 mt-2 info-label">Employment Status : <span style=" color: #193d8a;">{{employee.employmentstatus}}</span></h6>
+                    <h6 class="mr-5 mt-2 info-label">Joining Date : <span style=" color: #193d8a;">{{employee.dateOfJoining}}</span></h6>
+                  </div>
+                  <div class="d-flex">
+                    <h6 class="mr-5 mt-2 info-label">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
+                    <h6 class="mr-5 mt-2 info-label">Job Role : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
+                    <h6 class="mr-5 mt-2 info-label">Reports To : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                  </div>
+                </div>
+
+                <!-- User On-Boarding List : start -->
+
+                <div class="row ml-3 mr-1 mt-5 mb-4">
+                    <h5>On-Boarding Check List</h5>
+                </div>
+                <div>
+                    <div *ngFor="let dept of departmentList" class="row">
+                        <div class="col-md-12">
+                            <div class="row px-4 ml-3 mr-3 list-heading">
+                                <h5 class="mb-0">{{dept.departmentName}}</h5>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="list-container">
+                                        <ul class="list-group list-group-flush">
+                                            <li *ngFor="let checkList of dept.assetList" class="list-group-item">
+                                                {{checkList.assestName}}
+                                                <label class="onBoarding-checkbox">
+                                                    <input class="checkboxs" type="checkbox" [(ngModel)]="checkList.isAssigned" (change)="selectAssetCheckbox(checkList)"/>
+                                                    <span class="primary"></span>
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3 mb-3 ml-1">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updateOnBoardingCheckList(alert_message)">Update Employee On-Boarding Check List</button>
+                    </div>
+                </div>
+                 <!-- User On-Boarding List : end -->
+              </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal template-->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

@@ -417,52 +417,17 @@ public class ImageService {
 		return response;
 	}
 	
-	
-//	public List<File> imageUploader(List<MultipartFile> images, String locationOfImage, List<File> savedFiles) {
-//		String errorMsg = "";
-//		try {
-//			for(MultipartFile image: images){
-//				
-//                byte[] bytes = image.getBytes();
-//                Path path = Paths.get(locationOfImage +  File.separator + image.getOriginalFilename());
-//                
-//                File checkExistingFile = new File(path.toString());
-//                if(!checkExistingFile.exists()) {
-//					Files.write(path, bytes);
-//
-//					File savedFile = new File(path.toString());
-//
-//					if (savedFile.exists()) {
-//						savedFiles.add(savedFile);
-//					}
-//                }else {
-//                	errorMsg = image.getOriginalFilename() + " already exist,";
-//					break;
-//                }
-//            }
-//			
-//		}catch(Exception e){
-//			e.printStackTrace();
-//		}
-//		return savedFiles;
-//	}
-	
-	
-//	public ServiceResponse fileUploader(List<MultipartFile> files,Long uploadedBy) {
-//		ServiceResponse response = new ServiceResponse();
-//		try {
-//			
-//			for(MultipartFile file: files){
-//				
-//				Path path = Paths
-//		                .get(imageFileLocation + File.separator + ((MultipartFile) file).getOriginalFilename());
-//		        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-//				
-//			}	
-//		}catch(Exception e) {
-//			e.printStackTrace();
-//		}
-//		return response;
-//	}
+	public ServiceResponse uploadDocumentByList(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		      
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 	
 }

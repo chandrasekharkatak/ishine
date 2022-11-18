@@ -35,7 +35,11 @@
         <li *ngIf="userMapping.survey_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
             <a class="nav-link config__tab-item__link" id="survey-config-tab" data-toggle="tab" role="tab"
                 aria-controls="survey-config" aria-selected="false" routerLink="survey-config">Survey</a>
-        </li>        
+        </li>
+        <li class="nav-item config__tab-item" (click)="removeActiveTab()">
+            <a class="nav-link config__tab-item__link" id="on-boarding-tab" data-toggle="tab" role="tab"
+                aria-controls="on-boarding" aria-selected="false" routerLink="on-boarding">On-Boarding</a>
+        </li>    
     </ul>
 
     <!-- tab Containers -->

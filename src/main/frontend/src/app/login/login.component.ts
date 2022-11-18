@@ -246,6 +246,7 @@ export class LoginComponent implements OnInit{
       this.user.timesheetLockDays = user.timesheetLockDays;
       this.user.employeementId = user.employeementId;
       this.user.isNew = user.isNew;
+      this.user.departmentName = user.departmentName;
       this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
       this.user.userMapping = this.getActiveSubFeatures();
       this.user.tabList = this.getTabList();	
