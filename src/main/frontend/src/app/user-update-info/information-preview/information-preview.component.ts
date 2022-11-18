@@ -36,15 +36,25 @@ export class InformationPreviewComponent implements OnInit {
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>){
 
     
-    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.viewsOnOrganisation)){
-    //   this.alertMessage = "Please enter your view on organisation !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // } else if (!this.validationService.validateDiscriptionUserProfile(employeeObj.viewsOnOrganisation)){
-    //   this.alertMessage = "Only string character will be valid in  your view on organisation !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.viewsOnOrganisation)){
+      this.alertMessage = "Please enter your view on organisation !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateDiscriptionUserProfile(employeeObj.viewsOnOrganisation)){
+      this.alertMessage = "Only string character will be valid in  your view on organisation !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aboutMe)){
+      this.alertMessage = "Please enter About me !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateDiscriptionUserProfile(employeeObj.aboutMe)){
+      this.alertMessage = "Only string character will be valid in  About me !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)){
       this.alertMessage = "Please select gender !!"
@@ -278,13 +288,13 @@ export class InformationPreviewComponent implements OnInit {
     }
    
 
-    if(employeeObj.pursuing == "No"){
+   
       if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
         this.alertMessage = "Please Enter Passing Grade !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    }
+    
 
 
     // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)){
@@ -333,6 +343,7 @@ export class InformationPreviewComponent implements OnInit {
     }
 
     if(!certFlag) return false;
+    console.log("cert flag ",certFlag);
 
     let prevFlag = true;
     if(employeeObj.experience == 'Experienced'){
@@ -400,6 +411,7 @@ export class InformationPreviewComponent implements OnInit {
         });
 
         if(!prevFlag) return false;
+        console.log("prevEX flag ",prevFlag);
       }
     }
 
@@ -457,11 +469,12 @@ export class InformationPreviewComponent implements OnInit {
     // Documents
     let docFlag = true;
     employeeObj.documentList.forEach((doc:Document) => {
+      if(!docFlag) return;  
       if(doc.documentName == null){
         this.alertMessage = `Please Upload ${doc.documentType} !!`
         this.openAlertMod(template, this.alertMessage);
         docFlag = false;
-        return;
+        console.log("doc flag ",docFlag);
       }
     });
 

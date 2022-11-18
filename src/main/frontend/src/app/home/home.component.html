@@ -273,7 +273,7 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -361,8 +361,8 @@
                     <td>{{leaveApplication.reason}}</td>
                     <!-- <td>{{leaveApplication.description}}</td> -->
                     <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger " type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
             </tbody>
@@ -508,8 +508,8 @@
 <ng-template #bulk_reject_leave>
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="this.leaveObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.rejectReason)" (click)="cancelRequest();bulkRejectLeave(alert_message)">Reject</button>&nbsp;
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();bulkRejectLeave(alert_message)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

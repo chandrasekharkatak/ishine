@@ -264,6 +264,9 @@ export class MyTimesheetComponent implements OnInit {
       let totalActivityTime = 0;
 
       this.allTimesheetActivities.forEach((activity, index) => {
+
+        if(activity.description) activity.description = activity.description.trim();
+
         if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
           this.alertMessage = `Please select Client - ${index + 1}!!`
           flag = false;
@@ -287,14 +290,14 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
-        if(timesheetObj.description != ''){
+        if(activity.description != ''){
+  
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `Only (/'&"-.) special character and digits are allowed in Activity Description  - ${index + 1}!!`
+          this.alertMessage = `single character or single digit is not allowed in Activity Description  - ${index + 1}!!`
           flag = false;
           return;
         }
-
-        }
+      }
         if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;

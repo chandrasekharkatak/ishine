@@ -2,9 +2,48 @@
     <div class="col-md-12 px-0">
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isleaveTimesheetDashboard}" (click)="leaveTimesheetDashboard()">Leave/Timesheet Dashboard</button>
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isEmployeeDashboard}" (click)="employeeDashboard()">Employee Dashboard</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isEmployeeResigned}" (click)="employeeResigned()">Employee Resigned</button>
       <button type="button" class="btn btn-sm btn-outline-primary mx-1 float-right" *ngIf="isEmployeeDashboard" (click)="openFilterModal(filter, employeeColumns, 'Filter Employee Report')"><i class="fa-solid fa-filter"></i></button>
     </div>
 </div>
+
+<div class="row d-flex" *ngIf="isEmployeeResigned">
+    <div class="row col-md-12">     
+        <div class="col-md-12 table-header">
+            <h1 class="table-header-title">Resigned Employee History</h1>
+        </div>
+          <div class="form-group d-flex flex-row ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light">	
+              <tr>
+                <th scope="col" class="info-label" >Sr No.</th>	
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee ID</th>	
+                <th scope="col" class="info-label" mat-sort-header="name" >Employee Name</th>
+                <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>
+                <th scope="col" class="info-label" mat-sort-header="dateOfResign">Date Of Resign</th>
+                <th scope="col" class="info-label" mat-sort-header="dateOfRelieving">Date Of Relieving</th>	
+                <th scope="col" class="info-label" mat-sort-header="managerName">Reporting To</th>	
+              </tr>
+            </thead>
+            <tbody> 
+              <tr *ngIf="allResignEmployee.length == 0">
+                <th colspan="6" class="text-center info-label">No Document to display...</th>
+              </tr>
+              <tr *ngFor="let emp of allResignEmployee |  filter:data |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                <th class="info-label">{{10*(page-1)+i+1}}</th>
+                <td>{{emp.employeementId}}</td>
+                <td>{{emp.name}}</td>
+                <td>{{emp.departmentName}}</td>
+                <td>{{emp.dateOfResign}}</td>
+                <td>{{emp.dateOfRelieving}}</td>
+                <td>{{emp.managerName}}</td>   
+            </tbody>
+          </table>
+          <pagination-controls class="my-pagination" [hidden]="allResignEmployee.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>    
+    </div>
+    </div>
 
 <!-- Leave/Timesheet Summary -->
 

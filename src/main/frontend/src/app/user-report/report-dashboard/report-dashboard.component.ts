@@ -10,6 +10,8 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Query } from 'src/app/models/query';
 import * as moment from 'moment';
 import { Leave } from 'src/app/models/leave';
+import { Sort } from '@angular/material/sort';
+
 HC_exportData(HighCharts);
 
 class FilterData{
@@ -39,6 +41,7 @@ export class ReportDashboardComponent implements OnInit {
   isleaveTimesheetDashboard:boolean = false;
   isEmployeeDashboard:boolean = false;
   isPendingByUser:boolean = false;
+  isEmployeeResigned:boolean = false;
 
   data:any;
   leaveSumarryList:any[] = [];
@@ -66,6 +69,7 @@ export class ReportDashboardComponent implements OnInit {
 
   countOfAllEmployees:any;
   employeeInProbationAfter6MonthsCount = 0;
+  allResignEmployee:any;
 
   filterData:any = new FilterData();
   queryList:any[] = [];
@@ -93,6 +97,8 @@ export class ReportDashboardComponent implements OnInit {
   leaveTimesheetDashboard(){
     this.isleaveTimesheetDashboard = true;
     this.isEmployeeDashboard = false;
+    this.isEmployeeResigned = false;
+
 
     this.get8DaysLeaveReport();
     this.get9DayTimesheetReport();
@@ -101,9 +107,32 @@ export class ReportDashboardComponent implements OnInit {
   employeeDashboard(){
     this.isEmployeeDashboard = true;
     this.isleaveTimesheetDashboard = false;
+    this.isEmployeeResigned = false;
 
     this.getAllEmployeeList();
     this.getLeaveTrendAnalysisReport();
+  }
+
+  employeeResigned(){
+    this.isEmployeeDashboard = false;
+    this.isleaveTimesheetDashboard = false;
+    this.isEmployeeResigned = true;
+    this.getAllResignedEmployees();
+  }
+
+  getAllResignedEmployees() {
+    
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allResignEmployee = response.serviceResponse;
+        this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
+        // this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
+        console.log("allResignEmployee : ", this.allResignEmployee)
+
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
 
   get8DaysLeaveReport(){
@@ -1656,5 +1685,48 @@ export class ReportDashboardComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  sortData(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.allResignEmployee;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.allResignEmployee=data;	
+      return;	
+    }	
+    else {	
+      this.allResignEmployee=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId.toLowerCase() , b.employeementId.toLowerCase() , isAsc)	
+              case 'name':	
+                return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'dateOfResign':	
+                    return compare(a.dateOfResign , b.dateOfResign , isAsc)	
+                    case 'dateOfRelieving':	
+                    return compare(a.dateOfRelieving , b.dateOfRelieving , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+    	
+    	
+  }	
+
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {	
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

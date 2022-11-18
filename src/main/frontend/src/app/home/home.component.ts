@@ -153,6 +153,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   // Leave Applications
   getAllMyTeamsPendingLeaveApplicationsByManagerId(){
+    this.data = ''
     this.leaveApplicationList = []
     this.bulkLeaveApprove = []
     this.bulkLeaveReject = []
@@ -234,6 +235,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   //comOff Applications
   getPendingCompOffRequestsByManagerId(){
+    this.data = ''
     this.allCompOffApplications = []
 
     let compOff = new Leave();
@@ -304,6 +306,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   getMyReporteesTimesheetRequests(){
+    this.data = ''
     this.bulkApprove = []	
     this.bulkReject = []	
     this.allTeamTimesheetRequests = [];	
@@ -345,6 +348,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   
   rejectTimesheetRequest(template: TemplateRef<any> , ){
+    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
+      this.alertMessage = "Reason cannot contain single character !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
   }
 
@@ -1090,6 +1098,12 @@ onBulkApproval(template:TemplateRef<any>){
 }
 
 onBulkRejectTimesheet(template: TemplateRef<any>){
+
+  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
+    this.alertMessage = "Reason cannot contain single character !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
   console.log("Updated Bulk List : ",  this.bulkReject);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
@@ -1139,6 +1153,12 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 }
 
 bulkRejectLeave(template: TemplateRef<any>){
+
+  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
+    this.alertMessage = "Reason cannot contain single character !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
       
   let leaveObj = new Leave();
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
@@ -1169,7 +1189,7 @@ OnBulkReject(template: TemplateRef<any>){
 
 
 OnBulkLeaveReject(template: TemplateRef<any>, leave){
-  
+  this.leaveObj.rejectReason = ''
   this.cancelRequest();
  this.leaveObj = leave
   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });

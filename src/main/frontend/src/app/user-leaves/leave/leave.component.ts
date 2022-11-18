@@ -727,9 +727,10 @@ export class LeaveComponent implements OnInit {
     this.cancelRequest();	
 
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
+      if (response.serviceStatus == "Success") {
+        console.log("After Delete this.leaveObj : ", this.leaveObj);	
         this.openAlertMod(template, response.serviceResponse);	
-        if(this.leaveObj.leaveAppliedFor == 'self'){
+        if(this.isSelfLeaveHistory){
           this.showSelfLeaveHistoryTable();  
         }else{
           this.showTeamLeaveHistoryTable();
