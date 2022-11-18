@@ -67,7 +67,7 @@ export class OnBoardingComponent implements OnInit {
         // department name check is static
         if(this.currentUser.departmentName != 'HR' && this.currentUser.departmentName != 'Director'){
           this.departmentList = this.departmentList.filter(x => x.deptId == this.currentUser.departmentId);
-        }
+        } 
 
         console.log("Assets according to departments : ", this.departmentList);
         
