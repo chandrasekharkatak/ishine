@@ -126,7 +126,13 @@ export class ReportDashboardComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allResignEmployee = response.serviceResponse;
         this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
-        // this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
+        this.allResignEmployee.forEach(employee => {
+          employee.employeementId = "A-".concat(employee.employeementId);
+          // employee.dateOfResign = moment((employee.dateOfResign).format(this.dateFormat));
+          employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
+        
+        });
+
         console.log("allResignEmployee : ", this.allResignEmployee)
 
       } else {
