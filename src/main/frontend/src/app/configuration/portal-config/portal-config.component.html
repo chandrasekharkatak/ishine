@@ -247,38 +247,56 @@
 <!-- view Appreciation form end -->
 
 <!-- view appreciatio table start -->
-<div class="row" style="width:100%" *ngIf="isAppreciationTable">   
-    <div class="form-group d-flex flex-row ml-auto col-md-3" >
-    <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-    </div>
-    <table class="table view-appreciation-table"  id="view-appreciation-table" matSort (matSortChange)="sortViewAppreciationData($event) ">	
-    <thead class="thead-light">	
-      <tr>	
-        <th scope="col" class="info-label" mat-sort-header="appreciateType" >Appreciation Type</th>	
-        <th scope="col" class="info-label"  mat-sort-header="appreciationToName">Appreciation To</th>	
-        <th scope="col" class="info-label"  mat-sort-header="appreciationByName">Appreciation By</th>	
-        <th scope="col" class="info-label"  mat-sort-header="appreciationDate">Appreciation Date</th>	
-        <th scope="col" class="info-label"  mat-sort-header="managerName">Reporting To</th>	
-        <th scope="col" class="info-label"  mat-sort-header="reason">Reason</th>	
-        </tr>
-      </thead>
-      <tbody>
-          <tr *ngIf="appByCategory.length == 0 ">
-          <th colspan="9" class="text-center info-label">No details to display...</th>
-        </tr>
-         <tr *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index " > 
-            <td>{{appreciation.appreciateType}}</td>
-            <td>{{appreciation.appreciationToName}}</td>
-            <td>{{appreciation.appreciationByName}}</td>
-            <td>{{appreciation.appreciationDate}}</td>
-            <td>{{appreciation.managerName}}</td>
-            <td>{{appreciation.reason}}</td>
+<div class="row" *ngIf="isAppreciationTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="form-group d-flex flex-row ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
+                    [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
+                    <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
+                        (matSortChange)="sortViewAppreciationData($event) ">
+                        <thead class="thead-light" id="appreciationInfoTHeadTr">
+                            <tr id="appreciationInfoTHeadTr">
+                                <th scope="col" class="info-label" mat-sort-header="appreciateType">Appreciation Type
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="appreciationToName">Appreciation To
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="appreciationByName">Appreciation By
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="appreciationDate">Appreciation Date
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName">Reporting To</th>
+                                <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="appByCategory.length == 0 ">
+                                <th colspan="9" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index ">
+                                <td>{{appreciation.appreciateType}}</td>
+                                <td>{{appreciation.appreciationToName}}</td>
+                                <td>{{appreciation.appreciationByName}}</td>
+                                <td>{{appreciation.appreciationDate}}</td>
+                                <td>{{appreciation.managerName}}</td>
+                                <td>{{appreciation.reason}}</td>
 
-        </tr>   
-       </tbody>
-    </table>  
-    <pagination-controls class="my-pagination" [hidden]="appByCategory.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-  </div>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="appByCategory.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- view appreciatio table end -->
 
 <ng-template #alert_message>

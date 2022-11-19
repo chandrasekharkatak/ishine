@@ -19,6 +19,34 @@
             </li>
           </ul>        
     </div>
+    <div class="event-photos mb-2">
+        <div *ngIf="userMapping.view_event_photos" class="event-photos-card card">
+            <div class="card-body p-0">
+                <div *ngIf="!isImagesLoaded" class="d-flex justify-content-center align-items-center spinner-container">
+                    <div class="spinner-border" role="status" style="height: 100px; width: 100px;">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''"
+                            *ngFor="let image of eventImages; let i = index">
+                            <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo"
+                                title="{{image.eventName}}">
+                        </div>
+                    </div>
+                    <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="leave-details-container mb-2">
         <div *ngIf="userMapping.view_all_team_requests" class="team-requests card mb-2" style="width: 100%;">
             <div class="card-title px-1 pt-2">
@@ -28,19 +56,19 @@
             <div class="team-requests-body">
                 <div class="text-center p-0">
                     <p class="request-title">Leave</p>
-                    <h1 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
-                            class="badge badge-secondary">{{leaveApplicationCount}}</span></h1>
+                    <h4 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
+                            class="badge badge-secondary">{{leaveApplicationCount}}</span></h4>
                 </div>
                 <div class="text-center p-0">
                     <p class="request-title">Timesheet</p>
-                    <h1 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
+                    <h4 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
                         <span class="badge badge-secondary">{{timesheetApplicationCount}}</span>
-                    </h1>
+                    </h4>
                 </div>
                 <div class="text-center p-0">
                     <p class="request-title">Comp-off</p>
-                    <h1 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span
-                            class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
+                    <h4 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span
+                            class="badge badge-secondary">{{compOffApplicationCount}}</span></h4>
                 </div>
             </div>
         
@@ -91,34 +119,6 @@
                     </mat-list-item>
                 </mat-list>
             </marquee>
-        </div>
-    </div>
-    <div class="event-photos mb-2">
-        <div *ngIf="userMapping.view_event_photos" class="event-photos-card card">
-            <div class="card-body p-0">
-                <div *ngIf="!isImagesLoaded" class="d-flex justify-content-center align-items-center spinner-container">
-                    <div class="spinner-border" role="status" style="height: 100px; width: 100px;">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
-                <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
-                    <div class="carousel-inner">
-                        <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''"
-                            *ngFor="let image of eventImages; let i = index">
-                            <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo"
-                                title="{{image.eventName}}">
-                        </div>
-                    </div>
-                    <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="sr-only">Previous</span>
-                    </a>
-                    <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="sr-only">Next</span>
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
     <!-- Quick Links -->

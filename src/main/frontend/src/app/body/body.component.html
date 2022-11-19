@@ -11,7 +11,9 @@
     </li>
   </ul>
 </nav>
-
+<div class="body" [ngClass]="getBodyClass()">
+  <router-outlet></router-outlet>
+</div>
 
 <ng-template #change_password>
   <div class="modal-body text-center">
@@ -62,8 +64,4 @@
       <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
-
-<div class="body" [ngClass]="getBodyClass()">
-    <router-outlet></router-outlet>
-</div>
 
