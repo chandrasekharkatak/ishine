@@ -459,7 +459,7 @@ export class LeaveComponent implements OnInit {
       return false;
     }
     else  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(leaveObj.reason.trim())){
-      this.alertMessage = "Single character is not valid in Leave reason !!"
+      this.alertMessage = "Please enter valid Leave reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

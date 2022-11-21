@@ -105,7 +105,7 @@ public class AuthenticationService {
 											+ 1000; /* Random number will be generated between 1000 and 9999 */
 									employee.setOtp(otp);
 									mailService.sendMail(employeedto.getEmail(), "Regarding otp",
-											"please find your otp " + otp);
+											"Please find your otp " + otp);
 									employee.setInvalidAccessAttempt(0);
 
 									employeeRepository.save(employee);
@@ -353,17 +353,24 @@ public class AuthenticationService {
 				    apiLogInfo.setApiResponse("Forgot Password feature is not for New User.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {	
-					Random random = new Random();	
-					int otp = random.nextInt(9999 - 1000) + 1000;	
-					employee.setOtp(otp);	
-					employeeRepository.save(employee);	
+					if(employee.getEmploymentstatus().equals("InActive")) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+						response.setServiceResponse("This user is not authorized for this activity ");
+					}
+					else {
+						Random random = new Random();	
+						int otp = random.nextInt(9999 - 1000) + 1000;	
+						employee.setOtp(otp);	
+						employeeRepository.save(employee);	
+							
+						mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+						response.setServiceResponse("OTP sent to emailId.");
 						
-					mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-					response.setServiceResponse("OTP sent to emailId.");
+						apiLogInfo.setApiResponse("OTP sent to emailId.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
 					
-					apiLogInfo.setApiResponse("OTP sent to emailId.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}	
 			} else {	
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
@@ -453,7 +460,7 @@ public class AuthenticationService {
 				employee.setOtp(otp);
 				
 				mailService.sendMail(employeedto.getEmail(), "Regarding otp",
-						"please find your otp " + otp);
+						"Please find your otp " + otp);
 
 				Employee employeeSaved = employeeRepository.save(employee);
 

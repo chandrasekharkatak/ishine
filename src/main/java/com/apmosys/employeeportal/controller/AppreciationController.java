@@ -41,4 +41,11 @@ public class AppreciationController {
 		ServiceResponse response=appreciationService.viewAppreciation(AppreciationEventDTO);
 		return response;
 	}
+//     OnCheckEventName
+    @RequestMapping(value = "OnCheckEventName", method = RequestMethod.POST )
+    public ServiceResponse OnCheckEventName(@RequestBody AppreciationEventDTO AppreciationEventDTO){
+		ServiceResponse response=appreciationService.OnCheckEventName(AppreciationEventDTO);
+		return response;
+	}
+    
 }

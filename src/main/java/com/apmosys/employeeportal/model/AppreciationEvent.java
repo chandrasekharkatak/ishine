@@ -24,7 +24,7 @@ public class AppreciationEvent {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long appreciationEventid;
 	
-	private String appreciationEventEventName;
+	private String appreciationEventName;
 	
 	private String fromDate;
 	

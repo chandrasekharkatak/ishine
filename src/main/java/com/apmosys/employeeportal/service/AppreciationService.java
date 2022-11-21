@@ -108,7 +108,7 @@ public class AppreciationService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		AppreciationEvent appEvent = new AppreciationEvent();
-		appEvent.setAppreciationEventEventName(appreciationEventDTO.getAppreciationEventName());
+		appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
 		appEvent.setFromDate(appreciationEventDTO.getFromDate());
 		appEvent.setToDate(appreciationEventDTO.getToDate());
 		
@@ -203,7 +203,7 @@ public class AppreciationService {
 	for(AppreciationEvent allevents :allEvent) {
 		AppreciationEventDTO eventDTO = new AppreciationEventDTO();
 		eventDTO.setAppreciationEventId(allevents.getAppreciationEventid());
-		eventDTO.setAppreciationEventName(allevents.getAppreciationEventEventName());
+		eventDTO.setAppreciationEventName(allevents.getAppreciationEventName());
 		appreciationEventDTO.add(eventDTO);
 		
 	}
@@ -260,7 +260,31 @@ public class AppreciationService {
 		return response;
 	}
 	
-
+//OnCheckEventName
+	public ServiceResponse OnCheckEventName(AppreciationEventDTO appreciationEventDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			AppreciationEvent dbEventName = enableAppreciationRepository.findByAppreciationEventName(appreciationEventDTO.getAppreciationEventName()); 
+			System.out.println("Db EventName "+dbEventName);
+			System.out.println("appreciationEventDTO.getAppreciationEventName() "+appreciationEventDTO.getAppreciationEventName());
+			if(dbEventName != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Event Name already exist !!");
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
+	}
 
 
 }
