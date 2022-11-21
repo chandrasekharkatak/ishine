@@ -55,7 +55,7 @@ export class PortalConfigComponent implements OnInit {
   portalObj:Portal = new Portal();
 
   portalConfigList:any[] = [];
-  appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining'];
+  appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
   display=null;
@@ -118,7 +118,69 @@ export class PortalConfigComponent implements OnInit {
     });
 
   }
+
+  onDateChange(template:TemplateRef<any>){
+    if (this.appreciationObj.toDate < this.appreciationObj.fromDate) {
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.fromDate)) {
+        this.alertMessage = "Please enter from Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        this.appreciationObj.toDate = ''
+        return false;
+      }
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.toDate)) {
+        this.alertMessage = "Please enter To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      console.log("end date is small");
+      // this.appreciationObj.toDate = ''
+      this.alertMessage = "From Date should be less Than To Date !!"
+      this.openAlertMod(template, this.alertMessage);
+    this.appreciationObj.fromDate = ''
+      
+    } else {
+          this.allEmployeeList = [];
+    }
+  }
+
+  onToDateChange(template:TemplateRef<any>){
+    if(this.appreciationObj.toDate > this.appreciationObj.fromDate){
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.fromDate)) {
+        this.alertMessage = "Please enter From Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        // this.appreciationObj.fromDate = ''
+        return false;
+      }
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.toDate)) {
+        this.alertMessage = "Please enter To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+     
+    }else {
+      this.alertMessage = "To Date should be Greater Than From Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      this.appreciationObj.toDate = ''
+      this.allEmployeeList = []
+    }
+  }
+
+  OnCheckEventName(template:TemplateRef<any>){
+    console.log("here in checkPoint event name")
+
+    this.portalService.OnCheckEventName(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.appreciationObj.appreciationEventName = '';
+      }
+    });
+
+  }
+  
   getAllPortalConfig(){
+    this.appreciationObj.fromDate =''
+    this.appreciationObj.toDate =''
     this.portalConfig = true;
     this.appreciationConfig =false;
      this.isTable = false;
@@ -164,6 +226,10 @@ export class PortalConfigComponent implements OnInit {
     });
   }
   enableAppreciationOnclick(){
+    this.appreciationObj.fromDate =''
+    this.appreciationObj.toDate =''
+    this.appreciationObj.appreciationEventName = ''
+    this.appreciationObj.enableAppreciationFor = ''
     this.portalConfig = false;
     this.appreciationConfig=true;
     this.viewAppreciationForm = false;
@@ -185,6 +251,9 @@ export class PortalConfigComponent implements OnInit {
     });
   }
   viewAllAppreciation(){
+    this.appreciationObj.fromDate =''
+    this.appreciationObj.toDate =''
+    this.data = ''
     this.portalConfig = false;
     this.appreciationConfig=false;
     this.viewAppreciationForm = true;
@@ -383,6 +452,10 @@ export class PortalConfigComponent implements OnInit {
 
     if(!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventName)) {
       this.alertMessage = "Event Name field should not be empty!!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else  if(!this.validationService.validateAlphaWithSpaceInbetween(appreciationObj.appreciationEventName)) {
+      this.alertMessage = "Please Enter Valid Event Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

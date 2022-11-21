@@ -393,7 +393,7 @@ export class EmployeeInfoComponent implements OnInit{
   if(data === null){
     this.errorMsg = ""
   }
- else if (!this.validationService.validateAlphaWithSpace(data)) {
+ else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid father name !!"   
 }
   else{
@@ -410,7 +410,7 @@ if(this.errorMsg == ""){
   if(data === null){
     this.errorMsg = ""
   }
- else if (!this.validationService.validateAlphaWithSpace(data)) {
+ else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid mother name !!"   
 }
 else{
@@ -427,7 +427,7 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   if(data === null){
     this.errorMsg = ""
   }
-  else if (!this.validationService.validateAlphaWithSpace(data)) {
+  else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid Place of birth !!"   
 }
   else{
@@ -445,7 +445,7 @@ if(this.errorMsg == ""){
     if(data === null){
       this.errorMsg = ""
     }
-   else if (!this.validationService.validateAlphaWithSpace(data)) {
+   else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid mother tongue !!"   
 }
   else{
@@ -547,7 +547,7 @@ if(this.errorMsg == ""){
     if(data === null){
       this.errorMsg = ""
     }
-   else if (!this.validationService.validateAlphaWithSpace(data)) {
+   else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid Emergency Contact person !!"   
 }
   else{
@@ -563,7 +563,7 @@ if(this.errorMsg == ""){
     if(data === null){
       this.errorMsg = ""
     }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid relation !!"   
 }
   else{
@@ -595,7 +595,7 @@ if(this.errorMsg == ""){
     if(data === null || data === ""){
       this.errorMsg = ""
     }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid bank name !!"   
 }
   else{
@@ -708,7 +708,7 @@ if(this.errorMsg == ""){
     if(data === null || data === ""){
       this.errorMsg = ""
     }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid Employer name !!"   
 }
   else{
@@ -757,7 +757,7 @@ if(this.errorMsg == ""){
     if(data === null || data === ""){
     this.errorMsg = ""
   }
-else  if (!this.validationService.validateAlphaWithSpace(data)) {
+else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid Designation !!"   
 }
 else{
@@ -773,7 +773,7 @@ event.target.nextElementSibling.textContent =  this.errorMsg
     if(data === null || data === ""){
     this.errorMsg = ""
   }
-else  if (!this.validationService.validateAlphaWithSpace(data)) {
+else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid manager name !!"   
 }
 else{
@@ -807,7 +807,7 @@ event.target.nextElementSibling.textContent =  this.errorMsg
     if(data === null || data === ""){
     this.errorMsg = ""
   }
-else  if (!this.validationService.validateAlphaWithSpace(data)) {
+else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid HR name !!"   
 }
 else{

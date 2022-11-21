@@ -117,7 +117,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >
+                            <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none" (change)="onDateChange(alert_message)" >
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                  <input id="historyFromDate" type="date" [(ngModel)]="appreciationObj.toDate" class="form-control"  >
+                  <input id="historyFromDate" type="date" [(ngModel)]="appreciationObj.toDate" class="form-control" (change)="onToDateChange(alert_message)">
                         </div>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Event Name</label>
-                            <input type="text" class="form-control" maxlength="255" [(ngModel)]="appreciationObj.appreciationEventName" autocomplete="none">
+                            <input type="text" class="form-control" maxlength="255" [(ngModel)]="appreciationObj.appreciationEventName" autocomplete="none" (blur)="OnCheckEventName(alert_message)">
                         </div>
                     </div>
                 </div>
@@ -172,7 +172,8 @@
       <tr>	
         <th scope="col" class="info-label" mat-sort-header="empId" >Employee Id</th>	
         <th scope="col" class="info-label" mat-sort-header="name" >Full Name</th>	
-        <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
+        <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
+        <th scope="col" class="info-label" mat-sort-header="email">Department</th>	
         <th scope="col" class="info-label" mat-sort-header="employmentstatus">Employment Status</th>	
         <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>	
         
@@ -186,6 +187,7 @@
             <td>{{employee.empId}}</td>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>
+            <td>{{employee.departmentName}}</td>
             <td>{{employee.employmentstatus}}</td>
             <td>{{employee.dateOfJoining}}</td>
         </tr>   

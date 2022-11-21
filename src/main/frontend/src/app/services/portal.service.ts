@@ -40,4 +40,10 @@ export class PortalService {
     return this.http.post(`${this.baseUrl}` + `api/viewAppreciation`,appreciationObj);
 
   }
+
+OnCheckEventName(appreciationObj : enableAppreciation){
+  return this.http.post(`${this.baseUrl}` + `api/OnCheckEventName`,appreciationObj);
+
+  
+  }
 }
