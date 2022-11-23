@@ -33,7 +33,7 @@ public class AppreciationEvent {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private LocalDateTime createdOn;
 	
-	
+	private Long updatedBy;
 	
 	
 

@@ -168,7 +168,7 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label for="leaveDesc">Description</label>
-                                        <textarea class="form-control" id="dayTypeDesc" rows="1"
+                                        <textarea class="form-control" id="dayTypeDesc" rows="1"  (blur)="validateNullUndefinedEmptyDescription($event,activityObj.description)"
                                             [(ngModel)]="activityObj.description"></textarea>
                                     </div>
                                 </div>
@@ -178,7 +178,7 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Time
                                             <small>(Hrs)</small></label>
-                                        <input type="number" class="form-control" autocomplete="none"
+                                        <input type="number" class="form-control" autocomplete="none"  (blur)="validateTime($event,activityObj.completionTime)"
                                             [(ngModel)]="activityObj.completionTime">
                                     </div>
                                 </div>
@@ -186,7 +186,7 @@
                             <div class="col-md-1 d-flex">
                                 <div class="m-0 mt-4 pt-2">
                                     <button type="button" class="btn btn-sm btn-outline-primary mx-1"
-                                        (click)="addInputActivityField()"><i class="fa fa-plus"
+                                        (click)="addInputActivityField(activityObj)"><i class="fa fa-plus"
                                             aria-hidden="true"></i></button>
                                     <button *ngIf="i != 0" type="button" class="btn btn-sm btn-outline-primary mx-1"
                                         (click)="removeInputActivityField(activityObj)"><i class="fa fa-trash"
@@ -303,7 +303,7 @@
                             <button class="btn btn-sm btn-outline-primary" type="submit" title="copy timesheet"
                                 (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
                             <button
-                                *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected')"
+                                *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday'))"
                                 class="btn btn-sm btn-outline-primary" type="submit"
                                 (click)="showUpdateTimesheetForm(timesheet)"><em class="fa fa-edit"></em></button>
                         </td>

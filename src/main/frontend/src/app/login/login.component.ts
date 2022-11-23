@@ -250,7 +250,9 @@ export class LoginComponent implements OnInit{
       this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
       this.user.userMapping = this.getActiveSubFeatures();
       this.user.tabList = this.getTabList();	
-      this.user.appreciationEventInfo =  this.enableAppreciation;       
+      this.user.appreciationEventInfo =  this.enableAppreciation;
+      this.user.isAppreciationEnable = user.isAppreciationEnable;
+      console.log();
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

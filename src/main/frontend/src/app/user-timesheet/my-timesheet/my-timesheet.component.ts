@@ -69,6 +69,7 @@ export class MyTimesheetComponent implements OnInit {
   clientLocationList:any[] = [];
 
   teamMemberList:any[] = [];
+  errorMsg:any;
 
   constructor(
     private validationService: ValidationService,
@@ -803,6 +804,53 @@ export class MyTimesheetComponent implements OnInit {
     } else if (response.serviceResponse = "No activities found.Activity list is empty") {
       this.clipboardService.copy(content + " " + " description: " + timesheetObj.description)
     }
+  }
+
+  validateNullUndefinedEmptyDescription(event,data:any){
+ 
+  if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Description !!"   
+  }
+  else if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+    this.errorMsg = "Please enter valid Description !!"   
+  }
+  else{
+    this.errorMsg = ""
+  }
+  if(this.errorMsg == ""){
+    event.target.nextElementSibling.textContent = ""
+  }else{
+    event.target.nextElementSibling.textContent =  this.errorMsg
+  }
+  }
+  validateTime(event,data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Time !!"
+    }  
+    else if(data <= 0 || data > 24){
+      this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
+  } 
+  else{
+    this.errorMsg = ""
+  }
+  if(this.errorMsg == ""){
+    event.target.nextElementSibling.textContent = ""
+  }else{
+    event.target.nextElementSibling.textContent =  this.errorMsg
+  }
+
+  }
+  validateNullUndefinedEmptyclientId(event,data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Timessssssss !!"
+    } 
+
+  }
+  validateNullUndefinedEmptyActivity(event,data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Time !!"
+    } 
+
   }
 
   //pagination 

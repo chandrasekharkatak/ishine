@@ -46,4 +46,13 @@ OnCheckEventName(appreciationObj : enableAppreciation){
 
   
   }
+  updateAppreciationEvent(appreciationObj : enableAppreciation){
+    return this.http.post(`${this.baseUrl}` + `api/updateAppreciationEvent`,appreciationObj);
+
+
+  }
+
+  deleteAppreciationEvent(appreciationObj: enableAppreciation) {
+    return this.http.post(`${this.baseUrl}` + `api/deleteAppreciationEvent`, appreciationObj);
+  }
 }
