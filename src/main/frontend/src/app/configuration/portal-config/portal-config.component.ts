@@ -121,8 +121,8 @@ export class PortalConfigComponent implements OnInit {
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEventList : ", this.allAppreciationEvent)
       } else {
-        // this.openAlertMod(this.alertTemplate, response.serviceResponse)
-        console.log("allEventList : ", this.allAppreciationEvent);
+       this.openAlertMod(this.alertTemplate, response.serviceResponse)
+        // console.log("allEventList : ", this.allAppreciationEvent);
 
       }
     });
@@ -256,14 +256,14 @@ export class PortalConfigComponent implements OnInit {
     this.reset();
 
   }
-  getAllEmployees(){
+  getAllEmployees(template:TemplateRef<any>){
     this.portalService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse; 
         this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
-        alert(response.serviceResponse)
+        this.openAlertMod(template ,response.serviceResponse)
       }
     });
   }
@@ -291,7 +291,7 @@ export class PortalConfigComponent implements OnInit {
       this.isTable = true;
       this.openFilterModal(template, columns, title);
     }
-   this.getAllEmployees();
+   this.getAllEmployees(template);
   }
 
   updatePortalGlobalConfiguration(portalObj,template: TemplateRef<any>){
@@ -427,7 +427,7 @@ export class PortalConfigComponent implements OnInit {
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
     if(queryObjList == ''){
-      this.getAllEmployees();
+      this.getAllEmployees(template);
 
     }else {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {

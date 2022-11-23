@@ -878,7 +878,7 @@
     </div>
     <div class="modal-body">
         <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">	
         </div>
         <div class="container history-table">
             <table class="table history-table">
@@ -905,7 +905,7 @@
                     <tr *ngIf="employeeWorkingHistory.length == 0"> 
                        <th colspan="11" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:datas | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->

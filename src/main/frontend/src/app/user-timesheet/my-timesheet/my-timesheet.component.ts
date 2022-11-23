@@ -823,35 +823,35 @@ export class MyTimesheetComponent implements OnInit {
     event.target.nextElementSibling.textContent =  this.errorMsg
   }
   }
-  validateTime(event,data:any){
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Time !!"
-    }  
-    else if(data <= 0 || data > 24){
-      this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
-  } 
-  else{
-    this.errorMsg = ""
-  }
-  if(this.errorMsg == ""){
-    event.target.nextElementSibling.textContent = ""
-  }else{
-    event.target.nextElementSibling.textContent =  this.errorMsg
-  }
+  // validateTime(event,data:any){
+  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+  //     this.errorMsg = "Please enter Time !!"
+  //   }  
+  //   else if(data <= 0 || data > 24){
+  //     this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
+  // } 
+  // else{
+  //   this.errorMsg = ""
+  // }
+  // if(this.errorMsg == ""){
+  //   event.target.nextElementSibling.textContent = ""
+  // }else{
+  //   event.target.nextElementSibling.textContent =  this.errorMsg
+  // }
 
-  }
-  validateNullUndefinedEmptyclientId(event,data:any){
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Timessssssss !!"
-    } 
+  // }
+  // validateNullUndefinedEmptyclientId(event,data:any){
+  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+  //     this.errorMsg = "Please enter Timessssssss !!"
+  //   } 
 
-  }
-  validateNullUndefinedEmptyActivity(event,data:any){
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Time !!"
-    } 
+  // }
+  // validateNullUndefinedEmptyActivity(event,data:any){
+  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+  //     this.errorMsg = "Please enter Time !!"
+  //   } 
 
-  }
+  // }
 
   //pagination 
 

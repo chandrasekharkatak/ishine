@@ -121,7 +121,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <div class="d-flex">	
-                                <input id="historyFromDate"  matInput id="fromDate" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >	
+                                <input id="historyFromDate" (change)="onDateChange(alert_message)" matInput id="fromDate" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >	
                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>	
                                <mat-datepicker  #fromDatePicker disabled="false"></mat-datepicker>	
                             </div>
@@ -133,7 +133,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <div class="d-flex">	
-                                <input id="historyToDate" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" class="form-control" [(ngModel)]="appreciationObj.toDate" autocomplete="none"  >	
+                                <input id="historyToDate" (change)="onToDateChange(alert_message)" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" class="form-control" [(ngModel)]="appreciationObj.toDate" autocomplete="none"  >	
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>	
                                 <mat-datepicker  #toDatePicker disabled="false"></mat-datepicker>	
                        </div>
@@ -382,7 +382,7 @@
 
   <ng-template #delete_template>	
     <div class="modal-body text-center">	
-        <p>Are you sure you want to delete the Department?</p>	
+        <p>Are you sure you want to delete Appreciation Event ?</p>	
         <button type="button" class="btn btn-success" (click)="onDeleteAppreciationEvent(alert_message)">Yes, proceed</button>&nbsp;	
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
     </div>	
