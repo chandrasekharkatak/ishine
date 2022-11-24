@@ -128,7 +128,7 @@ public class ReportService {
 					
 					dtoList.add(empDTO);
 				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
 				response.setServiceResponse(dtoList);
 				
 			}else {
