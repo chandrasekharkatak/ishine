@@ -8,4 +8,6 @@ export class Asset {
     departmentWiseAssetList:any[] = [];
     deptId:any;
     updatedBy:any;
+    deptConsent:any;
+    employeeName:any;
 }

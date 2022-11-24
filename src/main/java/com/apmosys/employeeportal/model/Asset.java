@@ -19,8 +19,9 @@ public class Asset {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long assetId;
-	private String assestName;
+	private String assetName;
 	private Long deptId;
+	private String assetType;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

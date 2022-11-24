@@ -68,6 +68,7 @@ import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
+import { UserExitComponent } from './user-exit/user-exit.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -118,6 +119,7 @@ import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.com
     UploadPoliciesComponent,
     RecruitmentComponent,
     OnBoardingComponent,
+    UserExitComponent,
   ],
   imports: [
     BrowserModule,

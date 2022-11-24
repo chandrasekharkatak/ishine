@@ -12,4 +12,6 @@ public interface EmployeeOnBoardingRepository extends JpaRepository<Asset, Long>
 	@Query(nativeQuery = true)
 	List<Object[]> getAssetListByEmpId(Long empId);
 
+	Asset findByAssetName(String category);
+
 }

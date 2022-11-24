@@ -40,5 +40,12 @@ public class ReportDashboardController {
 		ServiceResponse response = reportDashboardService.getLeaveTrendAnalysisReport(leaveDto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getEmployeeWorkLocationForSummary" ,method = RequestMethod.GET)
+	public ServiceResponse getEmployeeWorkLocationForSummary() {
+		
+		ServiceResponse response = reportDashboardService.getEmployeeWorkLocationForSummary();
+		return response;
+	}
 
 }

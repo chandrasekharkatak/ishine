@@ -66,5 +66,6 @@ public class TimesheetDTO {
 	private List<TimesheetDTO> bulkRejectList;
 	
 	private String remarks;
+	private String teamName;
 	
 }

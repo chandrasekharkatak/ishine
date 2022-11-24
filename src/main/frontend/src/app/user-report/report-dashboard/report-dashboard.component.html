@@ -141,6 +141,11 @@
                 <div id="employeeJoinAndResign" style="height: 300px; width: 400px"></div>
             </div>
         </div>
+        <div class="row text-center">
+            <div class="col-sm-6 col-md-5 graph">
+                <div id="employeeWorkLocationSummary" style="height: 300px; width: 500px"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -358,6 +363,54 @@
                     class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>
+</ng-template>
+
+<ng-template #workLocation_summary_template>
+    <div class="modal-header">
+        <b>{{modalTitle}}</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body d-flex">
+    <div class="row col-md-12">
+        <table class="table table-responsive scrollable-table">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col" class="info-label wide-col">Sr No.</th>
+                    <th scope="col" class="info-label wide-col">Emp Id</th>
+                    <th scope="col" class="info-label wide-col">Employee Name</th>
+                    <th scope="col" class="info-label wide-col">Project Name</th>
+                    <th scope="col" class="info-label wide-col">Client Name</th>
+                    <th scope="col" class="info-label wide-col">Team Name</th>
+                    <th scope="col" class="info-label wide-col">Client Location</th>
+                    <th scope="col" class="info-label wide-col">Working Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="modalSummaryList.length == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let emp of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    <th class="info-label">{{10*(page-1)+i+1}}</th>
+                    <td>{{emp.employeementId}}</td>
+                    <td>{{emp.employeeName}}</td>
+                    <td>{{emp.projectName}}</td>
+                    <td>{{emp.clientName}}</td>
+                    <td>{{emp.teamName}}</td>
+                    <td>{{emp.managerName}}</td>
+                    <td>{{emp.date}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
+    </div>
+</div>
 </ng-template>
 
 <!-- Filter Modal -->

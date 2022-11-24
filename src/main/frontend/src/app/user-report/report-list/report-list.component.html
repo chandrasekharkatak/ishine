@@ -3,6 +3,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report" [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report" [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet Report</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report" [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" (click)="showAccessControlListTable()">ACL(Access Control List)</button>
     </div>
 </div>
 
@@ -241,6 +242,81 @@
 </div>
 <!-- end :: Employee Report table -->
 
+<!-- start :: ACL (access control list) -->
+
+<div class="row d-flex" *ngIf="isAccessControlListTable">
+
+  <div class="col-md-12 table-header">
+    <h1 class="table-header-title">Access Control List</h1>
+  </div>
+
+  <div class="col-md-3">
+    <ul class="list-group">
+      <li class="list-group-item text-center list-header">
+        <label class="form-check-label" for="jobRole">Designation</label>
+      </li>
+      <li class="list-group-item text-center">
+        <input type="text" class="form-control" placeholder="Search Designation" [(ngModel)]="designationData" (keyup)="page=1">
+      </li>
+      <li *ngFor="let role of allJobRoleList | filter:designationData" class="list-group-item text-center">
+        <input class="form-check-input me-1 jobrole-radio" type="radio" name="listGroupRadio" value="{{role.name+role.departmentId}}" (click)="selectedJobRole($event)" id="jobRole">
+        <label class="form-check-label" for="jobRole">{{role.name}}</label>
+      </li>
+    </ul>
+  </div>
+
+  <div class="col-md-9 ml-auto">
+    <input class="ml-5 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
+    <label for="Employee">Employee</label>
+    <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
+    <label for="TeamLead">Team Lead</label>
+    <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
+    <label for="Manager">Manager</label>
+    <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
+    <label for="HR">HR</label>
+    <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
+    <label for="HOD">HOD</label>
+    <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin" (click)="selectPersona($event)">
+    <label for="SuperAdmin">Super Admin</label>
+
+
+    <div class="row d-flex">
+      <div class="form-group d-flex flex-row ml-auto col-md-3">
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+      </div>
+      <table class="table table-responsive scrollable-table">	
+          <thead class="thead-light table-scroll">	
+            <tr>
+              <th scope="col" class="info-label" >Sr No.</th>	
+              <th scope="col" class="info-label">Department Name</th>
+              <th scope="col" class="info-label">Designation</th>	
+              <th scope="col" class="info-label">Employee Role</th>	
+              <th scope="col" class="info-label">Tab Name</th>	
+              <th scope="col" class="info-label">Feature Name</th>	
+              <th scope="col" class="info-label">Sub-Feature Name</th>	
+            </tr>
+          </thead>
+          <tbody>
+              <tr *ngIf="accessControlList.length == 0" >
+                  <th colspan="13" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let acl of accessControlList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                  <th class="info-label">{{i+1}}</th>
+                  <td>{{acl.departmentName}}</td>
+                  <td>{{acl.jobRoleName}}</td>
+                  <td>{{acl.employeeRole}}</td>
+                  <td>{{acl.tabName}}</td>
+                  <td>{{acl.featureName}}</td>
+                  <td>{{acl.subFeatureName}}</td>
+              </tr>
+          </tbody>
+        </table>
+        <pagination-controls class="my-pagination" [hidden]="accessControlList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="accessControlList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+  </div>
+  </div>
+</div>
+<!-- end :: ACL (access control list) -->
 
 <!-- Filter Modal -->
 <ng-template #filter>

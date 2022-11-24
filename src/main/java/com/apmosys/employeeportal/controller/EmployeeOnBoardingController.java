@@ -18,14 +18,30 @@ public class EmployeeOnBoardingController {
 	EmployeeOnBoardingService employeeOnBoardingService;
 
 	@RequestMapping(value = "/getEmployeeOnBoardingDetailByEmployeementId", method = RequestMethod.POST)
-	private ServiceResponse getEmployeeOnBoardingDetailByEmployeementId(@RequestBody AssetDTO assetDTO) {
+	public ServiceResponse getEmployeeOnBoardingDetailByEmployeementId(@RequestBody AssetDTO assetDTO) {
 		ServiceResponse response = employeeOnBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetDTO);
 		return response;
 	}
 	
 	@RequestMapping(value = "/updateOnBoardingCheckList", method = RequestMethod.POST)
-	private ServiceResponse updateOnBoardingCheckList(@RequestBody AssetDTO assetDTO) {
+	public ServiceResponse updateOnBoardingCheckList(@RequestBody AssetDTO assetDTO) {
 		ServiceResponse response = employeeOnBoardingService.updateOnBoardingCheckList(assetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAssetDataFromSnipitPortal", method = RequestMethod.POST)
+	public ServiceResponse getAssetDataFromSnipitPortal(@RequestBody AssetDTO assetDTO) {
+		ServiceResponse response = employeeOnBoardingService.getAssetDataFromSnipitPortal(assetDTO);
+		return response;
+	}
+
+	/*
+	  create Asset Mapping for all old employee : later mapping will generate on create Employee
+	  */
+	
+	@RequestMapping(value = "/createEmployeeAssetMapping", method = RequestMethod.GET)
+	public ServiceResponse createEmployeeAssetMapping() {
+		ServiceResponse response = employeeOnBoardingService.createEmployeeAssetMapping();
 		return response;
 	}
 	

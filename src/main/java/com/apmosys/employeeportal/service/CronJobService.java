@@ -188,8 +188,11 @@ public class CronJobService {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
 		     List<Employee> employeeList = employeeRepository.findAll();
 		     
-		          for(LeaveTypeMaster ltm :leaveType) {
+		     if(!leaveType.isEmpty()) {
+		    	 for(LeaveTypeMaster ltm :leaveType) {
 		        	  for(Employee employeeObj : employeeList) {
+		        		  
+		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
 		        		  
 		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
 		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
@@ -201,19 +204,21 @@ public class CronJobService {
 		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
 		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
 		        				  
+		        				  System.out.println(employeeLeaveMap.getBalance() +"  "+ leavePolicyObj.getIncrementValue());
+		        				  
 		        				          if(employeeLeaveMap != null) {
 		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+		        				        	  System.out.println(newBalance);
 		        				        	  employeeLeaveMap.setBalance(newBalance);
 		      								  employeeLeavesMapRepository.save(employeeLeaveMap);
-		        				          }else {
-		        				        	  System.out.println("Employee Leave Mapping not found");
 		        				          }
 		        			  }
 		        		  }else {
 		        			  System.out.println("Leave Policy not found");
 		        		  }
-		        	  }	
+		        	  }
 		            }
+		     }
 		   }catch(Exception e) {
 			e.printStackTrace();
 		   }

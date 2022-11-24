@@ -36,6 +36,9 @@ export class ReportDashboardComponent implements OnInit {
   @ViewChild("employee_summary_template")
   employeeSummaryTemplate: TemplateRef<any>;
 
+  @ViewChild("workLocation_summary_template")
+  workLocationSummaryTemplate: TemplateRef<any>;
+
   modalRef: BsModalRef = new BsModalRef();
 
   isleaveTimesheetDashboard:boolean = false;
@@ -50,6 +53,7 @@ export class ReportDashboardComponent implements OnInit {
   allEmployeeList: any[] = [];
   leaveTrendAnalysisList:any[] = [];
   allLeaveTypes:any[] = [];
+  employeeWorkLocationList:any[] = [];
 
   modalTitle:any;
   modalSummaryList:any[] = [];
@@ -111,6 +115,7 @@ export class ReportDashboardComponent implements OnInit {
 
     this.getAllEmployeeList();
     this.getLeaveTrendAnalysisReport();
+    this.getEmployeeWorkLocation();
   }
 
   employeeResigned(){
@@ -490,6 +495,33 @@ export class ReportDashboardComponent implements OnInit {
     }
   }
 
+  getEmployeeWorkLocation(){
+    this.employeeService.getEmployeeWorkLocationForSummary().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeWorkLocationList = response.serviceResponse;
+
+        let workLocationCount = this.employeeWorkLocationList.reduce((acc, child) => {
+          if (!acc[child.clientLocation]) {
+            acc[child.clientLocation] = 0;
+          }
+          acc[child.clientLocation]++;
+          return acc;
+        }, {});
+
+        let employeeWorkLocationChartData = Object.entries(workLocationCount).map(([location, count]) => ([location, count]));
+
+        let employeeWorkLocationCategories = employeeWorkLocationChartData.map(([location]) => ([location]));
+
+        console.log(employeeWorkLocationChartData, " employeeWorkLocationChartData")
+        console.log(this.employeeWorkLocationList , " : employeeWorkLocation");
+
+        this.renderColumnBarSummaryChart('Employee WorkLocation Summary','employeeWorkLocationSummary',employeeWorkLocationChartData,employeeWorkLocationCategories,'employee', this.openWorkLocationSummaryTableModal.bind(this));
+      } else{
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   getAllEmployeeList() {
     this.allEmployeeList = [];
     this.queryList=[];
@@ -756,7 +788,11 @@ export class ReportDashboardComponent implements OnInit {
         })
         console.log("departmentWiseEmployeeData : ", departmentWiseEmployeeData);
 
-        this.renderColumnBarSummaryChart('Department Wise Employee','departmentWiseEmployee',departmentWiseEmployeeData,'Department', this.openDepartmentWiseEmployeeModalTable.bind(this));
+        let departmentWiseEmployeeCategories = employeeByDepartment.map(dept => {
+          return [dept.departmentName]
+        })
+
+        this.renderColumnBarSummaryChart('Department Wise Employee','departmentWiseEmployee',departmentWiseEmployeeData,departmentWiseEmployeeCategories,'Department', this.openDepartmentWiseEmployeeModalTable.bind(this));
 
         /*
         Chart Data for - Male / Female - Gender Summary Graph.
@@ -845,8 +881,12 @@ export class ReportDashboardComponent implements OnInit {
         let totalExperienceData = experienceData.map(exp => {
           return [exp.name, exp.y]
         })
+
+        let totalExperienceCategories = experienceData.map(exp => {
+          return [exp.name]
+        })
         console.log(" totalExperienceData :", totalExperienceData);
-        this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,'Experience', this.openEmployeeExperienceModalTable.bind(this));
+        this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,totalExperienceCategories,'Experience', this.openEmployeeExperienceModalTable.bind(this));
 
         /*
         Chart Data for - Employee Fresher - Lateral Graph Data.
@@ -1039,7 +1079,7 @@ export class ReportDashboardComponent implements OnInit {
 
   // Employee Summary Dashboard
 
-  renderColumnBarSummaryChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
+  renderColumnBarSummaryChart(chartName:any, chartId:any, chartData:any, categories:any, labelName:any, openMod:any){
 
     HighCharts.chart(chartId, {
       chart: {
@@ -1053,7 +1093,7 @@ export class ReportDashboardComponent implements OnInit {
         }
       },
       xAxis: {
-        categories: chartData,
+        categories: categories,
         labels: {	
           overflow: 'justify',	
           style:{	
@@ -1095,6 +1135,9 @@ export class ReportDashboardComponent implements OnInit {
                   openMod(event.point.name);
                 }
                 if(chartId == 'departmentWiseEmployee'){
+                  openMod(event.point.name);
+                }
+                if(chartId == 'employeeWorkLocationSummary'){
                   openMod(event.point.name);
                 }
               }
@@ -1435,6 +1478,21 @@ export class ReportDashboardComponent implements OnInit {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
   }
 
+  exportToExcelWorkLocationSummary():void {
+    const onlySpecificDataArr = this.modalSummaryList.map(
+      x => ({
+        "Emp ID": x.employeementId,
+        "Employee Name":x.employeeName,
+        "Project Name":x.projectName,
+        "Client Name":x.clientName,
+        "Team Name":x.teamName,
+        "Client Location":x.managerName,
+        "Working Date":x.date
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  }
+
   //Pagination
 
   page = 1;
@@ -1675,6 +1733,16 @@ export class ReportDashboardComponent implements OnInit {
       this.modalTitle = pointName + " taken on " + category;
       this.modalSummaryList = modalTableList.filter(x => x.leaveType == pointName && x.fromDate == category);
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
+  }
+
+  openWorkLocationSummaryTableModal(category:any){
+    this.data =''
+    this.modalSummaryList = [];
+    let modalTableList = this.employeeWorkLocationList;
+      this.page=1;
+      this.modalTitle = "Work Location : " + category;
+      this.modalSummaryList = modalTableList.filter(x => x.clientLocation == category);
+      this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

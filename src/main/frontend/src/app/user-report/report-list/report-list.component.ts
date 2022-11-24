@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
@@ -10,6 +10,9 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { Feature } from 'src/app/models/feature';
 import { Query } from 'src/app/models/query';
+import { JobRoleService } from 'src/app/services/job-role.service';
+import { ValidationService } from 'src/app/services/validation.service';
+import { Employee } from 'src/app/models/employee';
 
 class FilterData{
   title:any;
@@ -23,19 +26,26 @@ class FilterData{
 })
 export class ReportListComponent implements OnInit {
 
+  @ViewChild("alert_message")
+  alertModal: TemplateRef<any>;
+
   feature = 'Reports';
   currentUser: User;
   userMapping: any = {};
 
-  data:string; //Search Data 
+  data:string; //Search Data
+  designationData:string;   //Search Designation
 
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
+  employeeObj:Employee = new Employee();
+
   isLeaveReportTable:boolean = false;
   isTimesheetReportTable:boolean = false;
   isEmployeeReportTable:boolean = false;
+  isAccessControlListTable:boolean = false;
 
   allEmployeeList:any[] = [];
 
@@ -45,7 +55,13 @@ export class ReportListComponent implements OnInit {
   allTimesheetApplicationsList:any[] = [];
   timesheetApplicationsDataForExcel: any[] = [];
 
+  allJobRoleList:any[] = [];
+  accessControlList:any[] = [];
+
   excelName:any;
+  jobRoleName:any;
+  departmentId:any;
+  employeeRole:any;
 
   leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
@@ -60,6 +76,8 @@ export class ReportListComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
     private leaveService : LeaveService,
+    private jobRoleService : JobRoleService,
+    private validationService : ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -71,6 +89,8 @@ export class ReportListComponent implements OnInit {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
      console.log(this.feature, this.userMapping);
+
+     this.getAllJobRoleList();
 
     this.sectionViewInit();
   }
@@ -90,6 +110,7 @@ export class ReportListComponent implements OnInit {
 
     this.isTimesheetReportTable = false;
     this.isEmployeeReportTable = false;
+    this.isAccessControlListTable = false;
 
     this.getAllLeaveApplicationsList();
     this.data = ''
@@ -100,6 +121,7 @@ export class ReportListComponent implements OnInit {
     
     this.isLeaveReportTable = false;
     this.isEmployeeReportTable = false;
+    this.isAccessControlListTable = false;
 
     this.getAllTimesheetApplicationsList();
     this.data = ''
@@ -108,6 +130,18 @@ export class ReportListComponent implements OnInit {
   showEmployeeReportTable(){
     this.isEmployeeReportTable = true;
     
+    this.isLeaveReportTable = false;
+    this.isTimesheetReportTable = false;
+    this.isAccessControlListTable = false;
+
+    this.getAllEmployeeList();
+    this.data =''
+  }
+
+  showAccessControlListTable(){
+    this.isAccessControlListTable = true;
+
+    this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
 
@@ -218,7 +252,6 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-
   // Employee Report 
   getAllEmployeeList() {
     this.queryList=[];
@@ -269,6 +302,61 @@ export class ReportListComponent implements OnInit {
         }
       });
     }
+  }
+
+  getAllJobRoleList() {
+    this.allJobRoleList = [];
+
+    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allJobRoleList = response.serviceResponse;
+        console.log("allJobRoleList : ", this.allJobRoleList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  selectedJobRole(event){
+    let value = event.target.value;
+    let string = value.split(/(\d+)/);
+
+    this.jobRoleName = string[0];
+    this.departmentId = string[1];
+
+    this.getAccessControlListData(this.alertModal);
+  }
+
+  selectPersona(event) {
+    this.employeeRole = event.target.value;
+    this.getAccessControlListData(this.alertModal);
+  }
+
+  getAccessControlListData(template: TemplateRef<any>) {
+    if(!this.validationService.validateNullUndefinedEmptyString(this.jobRoleName)){
+      this.alertMessage = "Please select Designation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(!this.validationService.validateNullUndefinedEmptyString(this.employeeRole)){
+      this.alertMessage = "Please select Persona (Employee Role) !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.employeeObj.jobRoleName = this.jobRoleName;
+    this.employeeObj.employeeRole = this.employeeRole;
+    this.employeeObj.departmentId = this.departmentId;
+    
+    this.jobRoleService.getAccessControlListData(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.accessControlList = response.serviceResponse;
+        console.log("accessControlList : ", this.accessControlList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+
   }
 
   /* Filter */
@@ -404,6 +492,22 @@ export class ReportListComponent implements OnInit {
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+    }
+
+    if(this.isAccessControlListTable == true){
+      this.excelName = 'ACLReport.xlsx';
+
+        const onlySpecificDataArr = this.accessControlList.map(
+          x => ({
+            "Department Name": x.departmentName,
+            "Designation": x.jobRoleName,
+            "Employee Role": x.employeeRole,
+            "Tab Name": x.tabName,
+            "Feature Name": x.featureName,
+            "Sub-Feature Name": x.subFeatureName,
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
     }
   }
 

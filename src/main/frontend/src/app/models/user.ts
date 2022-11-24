@@ -15,6 +15,7 @@ export class User{
     isNew:any;
 
     departmentName:any;
+    dateOfResign:any;
 
     /* For Leave Policy */
     gender:any;

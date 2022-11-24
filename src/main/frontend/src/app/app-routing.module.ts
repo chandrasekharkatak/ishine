@@ -42,6 +42,7 @@ import { UploadPoliciesComponent } from './configuration/upload-policies/upload-
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
+import { UserExitComponent } from './user-exit/user-exit.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -113,6 +114,7 @@ const routes: Routes = [
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
+  {path:'user-exit', component: UserExitComponent, canActivate: [AuthGuard]},
 
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},

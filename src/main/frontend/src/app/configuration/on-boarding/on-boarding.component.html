@@ -15,7 +15,7 @@
                     </div>
                 </div>
                 <div class="col-md-4 mb-0 mt-4 pt-2">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="getEmployeeOnBoardingDetailByEmployeementId(alert_message)">Get Employee On-Boarding Details</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="getAssetDataFromSnipitPortal(alert_message)">Get Employee On-Boarding Details</button>
                 </div>
             </div>
             <hr>
@@ -44,6 +44,7 @@
                     <div *ngFor="let dept of departmentList" class="row">
                         <div class="col-md-12">
                             <div class="row px-4 ml-3 mr-3 list-heading">
+                                <h5 class="mb-0" *ngIf="dept.departmentName == null">Manager</h5>
                                 <h5 class="mb-0">{{dept.departmentName}}</h5>
                             </div>
                             <div class="row">

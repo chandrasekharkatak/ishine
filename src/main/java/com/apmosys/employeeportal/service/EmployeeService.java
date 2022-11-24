@@ -27,8 +27,10 @@ import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
+import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -40,6 +42,8 @@ import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -94,6 +98,12 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeCertificateRepository employeeCertificateRepository;
+	
+	@Autowired
+	EmployeeOnBoardingRepository employeeOnboardingRepository;
+	
+	@Autowired
+	EmployeeOnBoardingMapRepository employeeOnboardingMapRepository;
 
 	@Autowired
 	private ModelMapper mapper;
@@ -351,6 +361,23 @@ public class EmployeeService {
 					log.setRemarks("Employee profile created.");
 
 					logsRepository.save(log);
+					
+					List<Asset> assetList = employeeOnboardingRepository.findAll();
+					List<EmployeeAssetMap> assetMappingObj = new ArrayList<>();
+					
+					if(assetList != null) {
+						for(Asset assetObj : assetList) {
+							EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
+							
+							employeeAssetMap.setAssetId(assetObj.getAssetId());
+							employeeAssetMap.setEmpId(newEmployee.getEmpId());
+							employeeAssetMap.setIsAssigned("false");
+							
+							assetMappingObj.add(employeeAssetMap);
+						}
+						
+					employeeOnboardingMapRepository.saveAll(assetMappingObj);
+					}
 
 					List<Object[]> objectList = jobRoleRepository.getHoDByJobRoleId(newEmployee.getJobRoleId());
 					EmployeeDTO hod = new EmployeeDTO();
@@ -1872,6 +1899,7 @@ public class EmployeeService {
 					employee.setIsAppreciationEnable(object[10] != null ? object[10].toString() : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 					employee.setDepartmentName(object[11] != null ? object[11].toString() : null);
+					employee.setDateOfResign(object[12] != null ? object[12].toString() : null);
 
 				});
 				return employee;

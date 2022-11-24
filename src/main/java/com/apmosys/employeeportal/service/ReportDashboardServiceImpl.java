@@ -1,17 +1,30 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
+import org.dhatim.fastexcel.Workbook;
+import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.PortalConfig;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -31,6 +44,9 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	
 	@Autowired	
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	TimesheetActivityMapRepository timesheetActivityMapRepository;
 
 	@Override
 	public ServiceResponse getLast8DaysLeaveReport(LeaveDTO leaveDto) {
@@ -198,5 +214,68 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			response.setServiceError(e.getMessage());	
 		}	
 		return response;	
+	}
+
+	@Override
+	public ServiceResponse getEmployeeWorkLocationForSummary() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<TimesheetDTO> dtoList = new ArrayList<>();
+			
+			Calendar calendar = Calendar.getInstance();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			calendar.add(Calendar.MONTH, -1);
+			calendar.set(Calendar.DATE, 1);
+
+			LocalDate firstDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
+			
+			calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+			LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
+			
+			List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+			for(Object[] empObj : employeeList) {
+				
+				Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+				Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
+				
+				System.out.println("Emp ID :" + empId);
+				
+				List<Timesheet> monthlyTimesheet = timesheetsRepository.
+						findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+					
+						for(Timesheet timesheetObj: monthlyTimesheet) {								
+							List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+							
+							if(!objectList.isEmpty()) {
+								for(Object[] object : objectList) {
+									TimesheetDTO dto = new TimesheetDTO();
+									
+									dto.setEmployeeName(object[9] != null ? object[9].toString() : null);
+									dto.setProjectName(object[5] != null ? object[5].toString() : null);
+									dto.setClientName(object[6] != null ? object[6].toString() : null);
+									dto.setClientLocation(object[7] != null ? object[7].toString() : null);
+									dto.setTeamName(object[8] != null ? object[8].toString() : null);
+									dto.setManagerName(object[10] != null ? object[10].toString() : null);
+									dto.setDate(timesheetObj.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+									dto.setEmployeementId(employeementId);
+									
+									dtoList.add(dto);
+								}
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Timesheet Activities not found.");
+							}
+						}
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+			response.setServiceResponse(dtoList);
+		}catch(Exception e) {
+			e.printStackTrace();	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
+			response.setServiceResponse("Something Went Wrong.");	
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}	
 }

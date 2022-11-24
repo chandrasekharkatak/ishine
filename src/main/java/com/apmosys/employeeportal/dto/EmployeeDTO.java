@@ -149,7 +149,10 @@ public class EmployeeDTO {
 		
 	private String toDate;	
 		
-	private Long appreciationEventId;	
+	private Long appreciationEventId;
+	private String tabName;
+	private String subFeatureName;
+	private String featureName;
 		
 //	private String eventCreatedOn;
 
