@@ -506,6 +506,12 @@ export class ReportDashboardComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeWorkLocationList = response.serviceResponse;
 
+        this.employeeWorkLocationList = this.employeeWorkLocationList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.clientLocation === value.clientLocation && t.date === value.date
+          ))
+        )
+
         let workLocationCount = this.employeeWorkLocationList.reduce((acc, child) => {
           if (!acc[child.clientLocation]) {
             acc[child.clientLocation] = 0;
