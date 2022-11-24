@@ -101,7 +101,7 @@ export class UserAppreciationComponent implements OnInit {
       return false;	
     }
     if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.reason)){
-      this.alertMessage = "Why you want to give Appreciation? Should not contain space at Beginning and End of the string "
+      this.alertMessage = "Please enter a valid comment for why you want to give appreciation?"
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }

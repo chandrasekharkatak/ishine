@@ -89,6 +89,7 @@ export class LeaveComponent implements OnInit {
   bulkLeaveApprove:any =[];	
   bulkLeaveReject:any = [];
   LeaveObj = new Leave();
+  filterLeaveHistoryList:any;
 
   constructor(
     public validationService:ValidationService,
@@ -131,6 +132,8 @@ export class LeaveComponent implements OnInit {
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
 
     this.dateToday = this.datePipe.transform(this.dateToday,'yyyy-MM-dd');
+
+    
   }
 
   sectionViewInit(){
@@ -604,7 +607,7 @@ export class LeaveComponent implements OnInit {
     let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
     
-    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.leaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.filterLeaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
   }
 
   holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
@@ -630,7 +633,7 @@ export class LeaveComponent implements OnInit {
       return false;
     }
     let checkDate = this.leaveObj.fromDate;
-    return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.leaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+    return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.filterLeaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
   }
 
   setMinToDate(template: TemplateRef<any>){
@@ -815,10 +818,16 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         console.log("leaveHistoryList : ", this.leaveHistoryList);
+        this.filteredMyLeaveApplication();
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  filteredMyLeaveApplication(){
+    this.filterLeaveHistoryList = this.leaveHistoryList.filter(x => x.status != 'Rejected');
+    console.log("allEmployeeList : ", this.filterLeaveHistoryList)
   }
 
   getAllMyTeamApplicationsByEmpId(userObj:User){

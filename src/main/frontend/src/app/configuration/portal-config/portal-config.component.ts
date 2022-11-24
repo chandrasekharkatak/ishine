@@ -59,7 +59,8 @@ export class PortalConfigComponent implements OnInit {
   portalObj:Portal = new Portal();
 
   portalConfigList:any[] = [];
-  appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
+ // appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
+ appreciationColumns:any[] = ['Department'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
   display=null;

@@ -270,7 +270,7 @@ public class EmployeeService {
 			employee.setName(employeedto.getName());
 			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
 			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
-			employee.setEmail(employeedto.getSecondaryEmail());
+			employee.setEmail(employeedto.getEmail());
 			employee.setSecondaryEmail(employeedto.getSecondaryEmail());
 			employee.setMobileNo(employeedto.getMobileNo());
 			employee.setManagerId(employeedto.getManagerId());
@@ -1181,7 +1181,7 @@ public class EmployeeService {
 					empDTO.setDateOfRelieving(
 							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
 									: null);
-					
+				
 					dtoList.add(empDTO);
 					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
 				});
