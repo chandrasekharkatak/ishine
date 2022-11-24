@@ -1,107 +1,147 @@
-<div class="row notifications my-1">
-    <marquee><b>{{notificationObj.notificationMessage}}</b></marquee>
-</div>
-<div class="container-fluid p-0">
-    <div class="row justify-content-between">
-        <div class="main-section">
-            <div *ngIf="userMapping.view_event_photos" class="card">
-                <div class="card-body p-0">
-                    <div *ngIf="!isImagesLoaded" class="d-flex justify-content-center align-items-center spinner-container">
-                        <div class="spinner-border" role="status" style="height: 100px; width: 100px;">
-                            <span class="sr-only">Loading...</span>
+<div class="home-container">
+    <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link nav-text" (click)="openNotificationMod(notification_template)">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <div class="dropdown">
+                    <a class="nav-link nav-text dropdown-toggle" id="user-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <i class="fa-solid fa-user"></i>&nbsp;{{currentUser.name}}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
+                      <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+                      <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
+                    </div>
+                </div>
+            </li>
+          </ul>        
+    </div>
+    <div class="event-photos mb-2">
+        <div *ngIf="userMapping.view_event_photos" class="event-photos-card card">
+            <div class="card-body p-0">
+                <div *ngIf="!isImagesLoaded" class="d-flex justify-content-center align-items-center spinner-container">
+                    <div class="spinner-border" role="status" style="height: 100px; width: 100px;">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''"
+                            *ngFor="let image of eventImages; let i = index">
+                            <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo"
+                                title="{{image.eventName}}">
                         </div>
                     </div>
-                    <div id="eventPhotosCarousel" class="carousel slide eventPhotosCarousel" data-ride="carousel">
-                        <div class="carousel-inner">
-                            <div class="carousel-item" [ngClass]="i == 0 ? 'active' : ''"
-                                *ngFor="let image of eventImages; let i = index">
-                                <img class="carousel-img" id="carouselImg{{i}}" alt="Event Photo"
-                                    title="{{image.eventName}}">
-                            </div>
-                        </div>
-                        <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="sr-only">Previous</span>
-                        </a>
-                        <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="sr-only">Next</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="secondary-section">
-            <div *ngIf="userMapping.view_all_team_requests" class="card mb-2"
-                style="width: 100%;">
-                <div class="card-title px-1 pt-2">
-                    <p class="section-heading m-0 pl-2">Team Request</p>
-                </div>
-
-                <div class="row mb-2">
-                    <div class="col text-center p-0">
-                        <p class="request-title">Leave</p>
-                        <h1 class="req-card"
-                            (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
-                                class="badge badge-secondary">{{leaveApplicationCount}}</span></h1>
-                    </div>
-                    <div class="col text-center p-0">
-                        <p class="request-title">Timesheet</p>
-                        <h1 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
-                            <span class="badge badge-secondary">{{timesheetApplicationCount}}</span></h1>
-                    </div>
-                    <div class="col text-center p-0">
-                        <p class="request-title">Comp-off</p>
-                        <h1 class="req-card"
-                            (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span
-                                class="badge badge-secondary">{{compOffApplicationCount}}</span></h1>
-                    </div>
-                </div>
-
-            </div>
-            <div *ngIf="userMapping.view_my_leave_details" class="card main-section mb-2" style="width: 100%;">
-                <div class="card-title px-1 pt-2">
-                    <p class="section-heading m-0 pl-2">My Leave Details</p>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div id="leaveBucketChart" style="width:100%; height:15.625rem;"></div>
-                    </div>
-                    <div class="col-md-4">
-                        <div id="leaveApprovedChart" style="width:100%; height:15.625rem;"></div>
-                    </div>
-                    <div class="col-md-4">
-                        <div id="leaveRequestChart" style="width:100%; height:15.625rem;"></div>
-                    </div>
-                </div>
-
-            </div>
-            <div *ngIf="userMapping.view_birthday_list" class="secondary-section card"
-                style="overflow:scroll;width: 100%; height:200px;">
-                <div class="card-title px-1 pt-2">
-                    <p class="section-heading m-0 pl-2">Today's Birthdays</p>
-                </div>
-                <div class="card-body p-0">
-                    <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
-                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
-                            alt="Birthday Icon">
-                        <h1 class="placeholder-text">No Birthday's Today</h1>
-                    </div>
-                    <mat-list *ngIf="birthdayList.length != 0" class="p-0">
-                        <mat-list-item *ngFor="let employee of birthdayList">
-                            <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                            <h1 matLine>{{employee.name}}</h1>
-                            <p matLine>{{employee.departmentName}}</p>
-                        </mat-list-item>
-                    </mat-list>
+                    <a class="carousel-control-prev" href="#eventPhotosCarousel" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#eventPhotosCarousel" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Timesheet Display -->
-<div *ngIf="userMapping.view_timesheet_display" class="row justify-content-between mb-2 timesheet-container">
-    <div class="main-section card">
+    <div class="leave-details-container mb-2">
+        <div *ngIf="userMapping.view_all_team_requests" class="team-requests card mb-2" style="width: 100%;">
+            <div class="card-title px-1 pt-2">
+                <p class="section-heading m-0 pl-2">Team Request</p>
+            </div>
+        
+            <div class="team-requests-body">
+                <div class="text-center p-0">
+                    <p class="request-title">Leave</p>
+                    <h4 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
+                            class="badge badge-secondary">{{leaveApplicationCount}}</span></h4>
+                </div>
+                <div class="text-center p-0">
+                    <p class="request-title">Timesheet</p>
+                    <h4 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
+                        <span class="badge badge-secondary">{{timesheetApplicationCount}}</span>
+                    </h4>
+                </div>
+                <div class="text-center p-0">
+                    <p class="request-title">Comp-off</p>
+                    <h4 class="req-card" (click)="openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()"><span
+                            class="badge badge-secondary">{{compOffApplicationCount}}</span></h4>
+                </div>
+            </div>
+        
+        </div>
+        <div *ngIf="userMapping.view_my_leave_details" class="leave-details card" style="width: 100%;">
+            <div class="card-title px-1 pt-2">
+                <p class="section-heading m-0 pl-2">My Leave Details</p>
+            </div>
+            <div class="leave-details-body">
+                <table class="table table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">Type</th>
+                        <th scope="col">Balance</th>
+                        <th scope="col">Approved</th>
+                        <th scope="col">Pending</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let leave of leaveBucketDetails">
+                        <td scope="row">{{leave.leaveTypeCode}}</td>
+                        <td><h3><span class="badge badge-primary">{{leave.balance}}</span></h3></td>
+                        <td><h3><span class="badge badge-success">{{leave.approvedApplicationsCount}}</span></h3></td>
+                        <td><h3><span class="badge badge-warning">{{leave.pendingApplicationsCount}}</span></h3></td>
+                      </tr>
+                    </tbody>
+                  </table>
+            </div>
+    
+        </div>
+    </div>
+    <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
+        <div class="card-title px-1 pt-2">
+            <p class="section-heading m-0 pl-2">Today's Birthdays</p>
+        </div>
+        <div class="card-body p-0">
+            <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
+                <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                    alt="Birthday Icon">
+                <h1 class="placeholder-text">No Birthday's Today</h1>
+            </div>
+            <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250 " onmouseover="this.stop();" onmouseout="this.start();">
+                <mat-list class="p-0">
+                    <mat-list-item *ngFor="let employee of birthdayList">
+                        <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                        <h1 matLine>{{employee.name}}</h1>
+                        <p matLine>{{employee.departmentName}}</p>
+                    </mat-list-item>
+                </mat-list>
+            </marquee>
+        </div>
+    </div>
+    <!-- Quick Links -->
+    <div *ngIf="userMapping.view_quick_links" class="quick-links card d-flex flex-row align-items-center justify-content-around mb-2">
+        <div class="text-center quick-link" (click)="showApplyLeaveForm()">
+            <h5><span class="badge badge-secondary"> <i class="fa fa-envelope-open-text fa-solid"></i></span></h5>
+            <p class="text-uppercase m-0 quick-link-text">Apply Leave</p>
+        </div>
+        <div class="text-center quick-link" (click)="showApplyCompOffForm()">
+            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+            <p class="text-uppercase m-0 quick-link-text" >Apply Comp-off</p>
+        </div>
+        <div class="text-center quick-link" (click)="showApplyTimesheetForm()">
+            <h5><span class="badge badge-secondary"> <i class="fa-solid fa-calendar-check"></i></span></h5>
+            <p class="text-uppercase m-0 quick-link-text" >Apply Timesheet</p>
+        </div>
+        <div class="text-center quick-link" (click)="showHolidayList()">
+            <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
+            <p class="text-uppercase m-0 quick-link-text" >View Holidays</p>
+        </div>  
+    </div>
+    <!-- Timesheet Display -->
+    <div *ngIf="userMapping.view_timesheet_display" class="timesheet-display card mb-2">
         <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
             <li class="nav-item timesheet_tab-item">
                 <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
@@ -160,7 +200,7 @@
             </div>
         </div>
     </div>
-    <div class="secondary-section card">
+    <div *ngIf="userMapping.view_timesheet_display" class="timesheet-graph card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
         </div>
@@ -170,25 +210,6 @@
             </div>
         </div>
     </div>
-</div>
-  <!-- Quick Links -->
-  <div *ngIf="userMapping.view_quick_links" class="row card d-flex align-items-center justify-content-center drop-shadow" style="height: 75px;">
-    <div class="col-md-3 text-center quick-link" (click)="showApplyLeaveForm()">
-        <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-        <p class="text-uppercase m-0 ">Apply Leave</p>
-    </div>
-    <div class="col-md-3 text-center quick-link" (click)="showApplyCompOffForm()">
-        <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-        <p class="text-uppercase m-0" >Apply Comp-off</p>
-    </div>
-    <div class="col-md-3 text-center quick-link" (click)="showApplyTimesheetForm()">
-        <h5><span class="badge badge-secondary"> <i class="fa-solid fa-calendar-check"></i></span></h5>
-        <p class="text-uppercase m-0" >Apply Timesheet</p>
-    </div>
-    <div class="col-md-3 text-center quick-link" (click)="showHolidayList()">
-        <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-        <p class="text-uppercase m-0" >View Holidays</p>
-    </div>  
 </div>
 
 <!-- Modals templates -->
@@ -325,9 +346,11 @@
         </div>
     </div>
     <div class="modal-body ">
-        <table class="table leaveApplication-table">
-            <thead class="thead-light text-center">
-              <tr>
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
+            [tableTHeadTrId]="'leaveApplicationTHeadTr'">
+            <table class="table leaveApplication-table" id="leaveApplication">
+            <thead class="thead-light text-center" id="leaveApplicationTHead">
+              <tr id="leaveApplicationTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Name</th>
@@ -367,9 +390,10 @@
                 </tr>
             </tbody>
           </table> 
+        </div>
           <div class="my-buttons">
-          <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+            <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>
 </ng-template>
@@ -387,9 +411,11 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
     <div class="modal-body">
-        <table class="table compOffApplication-table">
-            <thead class="thead-light">
-              <tr>
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'" [tableTHeadId]="'compOffApplicationTHead'"
+        [tableTHeadTrId]="'compOffApplicationTHeadTr'">
+        <table class="table compOffApplication-table" id="compOffApplication">
+            <thead class="thead-light" id="compOffApplicationTHead">
+              <tr id="compOffApplicationTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Applied By</th>
                 <th scope="col" class="info-label">Applied For</th>
@@ -421,6 +447,7 @@
                 </tr>
             </tbody>
           </table>  
+        </div>
           <div class="my-buttons">
           <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
@@ -457,10 +484,11 @@
       </div>
    
     <div class="modal-body">
-        
-        <table class="table teams-request-table" id="teams-request-table">
-            <thead class="thead-light">
-              <tr>
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'" [tableTHeadId]="'timesheetRequestTHead'"
+        [tableTHeadTrId]="'timesheetRequestTHeadTr'">
+        <table class="table teams-request-table" id="timesheetRequest">
+            <thead class="thead-light" id="timesheetRequestTHead">
+              <tr id="timesheetRequestTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Employee Id</th>
@@ -497,7 +525,8 @@
                 </td>
               </tr>
             </tbody>
-          </table>   
+          </table> 
+        </div>  
           <div class="my-buttons">
             <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
@@ -533,4 +562,59 @@
     </div>
   </ng-template>
 
+  <ng-template #change_password>
+    <div class="modal-body text-center">
+        <h4>Change Password</h4>
+        <div *ngIf="isError">
+          <p class="form-text text-danger">{{errorMsg}}</p>
+        </div>
+  
+        <div class="form-group">
+          <label for="newPass" class="sr-only">Old Password</label>
+          <div class="d-flex pt-3">
+              <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
+              placeholder="Enter Old Password" (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
+              <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
+                  <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
+              </span>
+          </div>
+      </div>
+        <div class="form-group">
+            <label for="newPass" class="sr-only">New Password</label>
+            <div class="d-flex">
+                <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
+                placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off"/>
+                <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="confirmPass" class="sr-only">Confirm New Password</label>
+            <div class="d-flex">
+                <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
+                placeholder="Confirm New Password" [(ngModel)]="newpassword" autocomplete="off"/>
+                <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
+                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
+                </span>
+            </div>
+        </div>
+  
+        <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm" (click)="cancelRequest()">Close</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
+    </div>
+  </ng-template>
+
+  <!-- Notiication Modal -->
+  <ng-template #notification_template>
+    <div class="modal-header">
+        <b>Notification</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>{{notificationObj.notificationMessage}}</p>
+    </div>
+</ng-template>
   

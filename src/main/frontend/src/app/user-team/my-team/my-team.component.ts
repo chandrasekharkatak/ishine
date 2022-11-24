@@ -30,7 +30,8 @@ export class MyTeamComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-
+  @ViewChild("revoke_template") revokeTemplate: TemplateRef<any>;
+  revoke_template: TemplateRef<any>;
   // flags
   isViewTeam: boolean = true;
   isTeamLeaveHistory: boolean = false;
@@ -84,6 +85,7 @@ export class MyTeamComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
+    
 
     this.sectionViewInit();    
   }
@@ -807,6 +809,34 @@ export class MyTeamComponent implements OnInit {
         this.bulkTeamLeaveReject = [];
       } else {
       console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  //  Enable Account  
+
+  forEnableAccount(template: TemplateRef<any>, employee: any) {
+    console.log("template", template);
+    console.log("alertMessage", this.alertMessage);
+   if(confirm("Are you sure you want to Enable Account?")){
+    //this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.employeeObj = employee;
+    this.onRevokeAccount();
+   }
+    
+   
+  }
+
+   onRevokeAccount() {
+    //this.cancelRequest();
+    this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+     //   this.openAlertMod(template, response.serviceResponse);
+      alert(response.serviceResponse);
+        this.viewTeam();
+      } else {
+      //  this.openAlertMod(template, response.serviceResponse);
+      console.log("error")
       }
     });
   }

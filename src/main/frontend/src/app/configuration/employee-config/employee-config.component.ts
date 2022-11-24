@@ -30,6 +30,7 @@ export class EmployeeConfigComponent implements OnInit {
   feature = 'Employee Config';
   data:string;
   items = 10;
+  datas:string;
 
   //flags 
   isCreation: boolean = false;
@@ -149,7 +150,9 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    if(this.userMapping.create_employee){
+      this.showCreateForm()
+    }else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {

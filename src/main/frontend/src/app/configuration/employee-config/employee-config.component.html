@@ -743,93 +743,127 @@
 <!-- end :: create & update form -->
 
 <!-- start :: See all Table -->
-<div class="row d-flex" *ngIf="isTable || isDraftTable">
-    <div class="col-md-12 table-header">
-        <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
-        <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
-    </div>
-    
-        <div class="form-inline">
-            <small>View</small>
-            <select class="form-select-sm align-items-center mx-1"  aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
-                <option class="option-bg" selected value="10">10</option>
-                <option class="option-bg" value="20">20</option> 
-                <option class="option-bg" value="50">50</option> 
-                <option class="option-bg" value="100">100</option> 
-              </select>
-            <small>entries</small>
-          </div>
-      
+<div class="row" *ngIf="isTable || isDraftTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
+                <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <div class="form-inline">
+                    <small>View</small>
+                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example"
+                        [(ngModel)]="items" (change)="page=1">
+                        <option class="option-bg" selected value="10">10</option>
+                        <option class="option-bg" value="20">20</option>
+                        <option class="option-bg" value="50">50</option>
+                        <option class="option-bg" value="100">100</option>
+                    </select>
+                    <small>entries</small>
+                </div>
+            </div>
 
-    <div class="form-group d-flex flex-row ml-auto col-md-3" *ngIf="isDraftTable">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            <!-- For Employee Profile Update Table -->
+            <div class="form-group d-flex flex-row ml-auto col-md-3" *ngIf="isDraftTable">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div>
+
+            <!-- For Employee Table -->
+            <div *ngIf="!isDraftTable" class="col-md-2 ml-auto mb-2">
+                <div class="form-inline input-group">
+                    <label class="d-inline-block mr-2 mt-2"><strong>Status</strong></label>
+                    <select class="form-control" aria-hidden="true" #changedata
+                        (change)="changeEvent(changedata.value)">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Active">Active</option>
+                        <option value="InActive">InActive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group" *ngIf="!isDraftTable">
+                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+                </div>
+            </div>
         </div>
-        
-        <div class="row col-md-12"> 	
-            <div *ngIf="!isDraftTable" class="col-md-2 ml-auto mb-2">	
-                <div class="form-inline input-group">	
-                    <label class="d-inline-block mr-2 mt-2"><strong>Status</strong></label>	
-                    <select class="custom-select w-70" aria-hidden="true" #changedata (change)="changeEvent(changedata.value)">	
-                        <option selected="selected" value="" disabled>Select</option>	
-                        <option value="Active">Active</option>	
-                        <option value="InActive">InActive</option>	
-                    </select>	
-                </div>	
-            </div>	
-            <div class="col-md-3">	
-                <div class="form-group" *ngIf="!isDraftTable">	
-                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
-                </div>             	
-            </div>	
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
+                    [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                    <table class="table table-responsive" id="employeeInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="employeeInfoTHead">
+                            <tr id="employeeInfoTHeadTr">
+                                <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+                            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
+                                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                                <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
+                                <th scope="col" class="info-label">Employment Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>
+                                <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
+                                <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
+                                    scope="col" class="info-label">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allEmployeeList.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+                                <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
+                            <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
+                                <td>{{employee.employeementId}}</td>
+                                <td>{{employee.name}}</td>
+                                <td>{{employee.email}}</td>
+                                <td>{{employee.employmentstatus}}</td>
+                                <td>{{employee.dateOfJoining}}</td>
+                                <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
+                                <td
+                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
+                                    <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+                                        class="btn btn-sm btn-outline-danger" type="submit"
+                                        (click)="openDeleteEmployee(delete_template,employee)"><em
+                                            class="fa fa-trash"></em></button>&nbsp;
+                                    <button type="submit"
+                                        (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
+                                        class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle"
+                                            aria-hidden="true"></i></button>&nbsp;
+                                    <button
+                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)"
+                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
+                                        (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
+                                </td>
+                                <td
+                                    *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
+                                    <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+                                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
+                                        (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
+                                    <!-- <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve" (click)="openApplicationApprovalMod(approve_application, employee)"><em class="fa-solid fa-check"></em></button>&nbsp;
+                                <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button> -->
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                    [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+            </div>
         </div>
-        
-    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)" >	
-        <thead class="thead-light">	
-          <tr>	
-            <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
-            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
-            <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-            <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>	
-            <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
-            <th scope="col" class="info-label">Employment Status</th>	
-            <th scope="col" class="info-label" mat-sort-header="dateOfJoining" >Date of Joining</th>
-            <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
-            <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft" scope="col" class="info-label">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="allEmployeeList.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-            </tr>
-          <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: items, currentPage: page }, let i = index">
-            <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
-            <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
-            <td>{{employee.employeementId}}</td>
-            <td>{{employee.name}}</td>
-            <td>{{employee.email}}</td>
-            <td>{{employee.employmentstatus}}</td>
-            <td>{{employee.dateOfJoining}}</td>
-            <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
-            <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
-                <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
-                <button type="submit" (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)" class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle" aria-hidden="true"></i></button>&nbsp;
-                <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,employee)"><em >Enable</em></button> 
-                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View" (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
-            </td>
-            <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
-                <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
-                <button  class="btn btn-sm btn-outline-primary" type="submit" title="View" (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
-                <!-- <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve" (click)="openApplicationApprovalMod(approve_application, employee)"><em class="fa-solid fa-check"></em></button>&nbsp;
-                <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button> -->
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> 
+    </div>
 </div>
 <!-- end :: see all table -->
 
@@ -844,7 +878,7 @@
     </div>
     <div class="modal-body">
         <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">	
         </div>
         <div class="container history-table">
             <table class="table history-table">
@@ -871,7 +905,7 @@
                     <tr *ngIf="employeeWorkingHistory.length == 0"> 
                        <th colspan="11" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:data | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:datas | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->

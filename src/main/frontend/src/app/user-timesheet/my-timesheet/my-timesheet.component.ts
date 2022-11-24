@@ -69,6 +69,7 @@ export class MyTimesheetComponent implements OnInit {
   clientLocationList:any[] = [];
 
   teamMemberList:any[] = [];
+  errorMsg:any;
 
   constructor(
     private validationService: ValidationService,
@@ -197,13 +198,34 @@ export class MyTimesheetComponent implements OnInit {
   }
 
 
-  // Manage Activity
-  addInputActivityField() {
-    let newActivityObj = new Activity();
-    // newActivityObj.projectId = '';
-    // newActivityObj.activityId = '';
-    this.allTimesheetActivities.push(newActivityObj);
+  addInputActivityField(activityObj?:Activity) {
+        console.log("before allTimesheetActivities : " , this.allTimesheetActivities)
+        let newActivityObj = new Activity();
+        if(activityObj != undefined){
+          newActivityObj.clientId = activityObj.clientId;
+          newActivityObj.clientLocationId = activityObj.clientLocationId;
+          newActivityObj.projectId = activityObj.projectId;
+          console.log("newActivityObj : ",newActivityObj);
+
+          this.allTimesheetActivities.push(newActivityObj);
+          this.getClientLocationList(newActivityObj);
+          this.getProjectList(newActivityObj);
+          this.getAllActivitiesByProjectIdandEmpId(newActivityObj);
+        }else{
+          this.allTimesheetActivities.push(newActivityObj);
+        }
+        console.log("After allTimesheetActivities : ",this.allTimesheetActivities)
   }
+
+  // Manage Activity
+
+  // --> pREV
+  // addInputActivityField() {
+  //   let newActivityObj = new Activity();
+  //   // newActivityObj.projectId = '';
+  //   // newActivityObj.activityId = '';
+  //   this.allTimesheetActivities.push(newActivityObj);
+  // }
 
   removeInputActivityField(activityObj: any) {
     this.allTimesheetActivities.forEach((value, index) => {
@@ -520,7 +542,7 @@ export class MyTimesheetComponent implements OnInit {
 
   setAllProjects(activityObj, projectList: any) {
     const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if(!this.isTimesheetUpdate){
+    if(!this.isTimesheetUpdate && activityObj.projectId == ""){
       selectedActivityObj.projectId = '';
     }
     selectedActivityObj.projectList = projectList;
@@ -541,7 +563,7 @@ export class MyTimesheetComponent implements OnInit {
 
   setAllClientLocations(activityObj, clientLocationList: any) {
     const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if(!this.isTimesheetUpdate){
+    if(!this.isTimesheetUpdate && activityObj.clientLocationId == ""){
       selectedActivityObj.clientLocationId = '';
     }
     selectedActivityObj.clientLocationList = clientLocationList;
@@ -783,6 +805,53 @@ export class MyTimesheetComponent implements OnInit {
       this.clipboardService.copy(content + " " + " description: " + timesheetObj.description)
     }
   }
+
+  validateNullUndefinedEmptyDescription(event,data:any){
+ 
+  if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Description !!"   
+  }
+  else if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+    this.errorMsg = "Please enter valid Description !!"   
+  }
+  else{
+    this.errorMsg = ""
+  }
+  if(this.errorMsg == ""){
+    event.target.nextElementSibling.textContent = ""
+  }else{
+    event.target.nextElementSibling.textContent =  this.errorMsg
+  }
+  }
+  // validateTime(event,data:any){
+  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+  //     this.errorMsg = "Please enter Time !!"
+  //   }  
+  //   else if(data <= 0 || data > 24){
+  //     this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
+  // } 
+  // else{
+  //   this.errorMsg = ""
+  // }
+  // if(this.errorMsg == ""){
+  //   event.target.nextElementSibling.textContent = ""
+  // }else{
+  //   event.target.nextElementSibling.textContent =  this.errorMsg
+  // }
+
+  // }
+  // validateNullUndefinedEmptyclientId(event,data:any){
+  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+  //     this.errorMsg = "Please enter Timessssssss !!"
+  //   } 
+
+  // }
+  // validateNullUndefinedEmptyActivity(event,data:any){
+  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+  //     this.errorMsg = "Please enter Time !!"
+  //   } 
+
+  // }
 
   //pagination 
 

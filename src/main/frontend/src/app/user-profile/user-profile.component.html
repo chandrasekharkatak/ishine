@@ -312,7 +312,7 @@
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.pursuing}}</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.pursuing == 'No'">
                                         <div class="info-wrapper">
                                             <p class="info-label">Year of Passing</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}</p>
@@ -326,7 +326,7 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <h4 class="info-label" >Certifications</h4>
+                                <h4 class="info-label" *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null" >Certifications</h4>
                                 <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
@@ -408,7 +408,7 @@
                                             <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.experience == 'Experience'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Total Experience</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
@@ -418,6 +418,12 @@
                                         <div class="info-wrapper">
                                             <p class="info-label">Work Location <small>(State)</small></p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Billable</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
                                         </div>
                                     </div>
                                 </div>

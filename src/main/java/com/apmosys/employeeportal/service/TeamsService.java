@@ -431,6 +431,7 @@ public class TeamsService {
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setManagerName(object[5] != null ? object[5].toString(): null);
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
+					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()): null);
 					dtoList.add(dto);
 				});
 

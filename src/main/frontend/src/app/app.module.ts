@@ -67,6 +67,7 @@ import { UserAppreciationComponent } from './user-appreciation/user-appreciation
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
+import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
 import { UserExitComponent } from './user-exit/user-exit.component';
 @NgModule({
@@ -140,6 +141,7 @@ import { UserExitComponent } from './user-exit/user-exit.component';
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
+    NgHorizontalScrollModule
   ],
   providers: [
     BsModalService,

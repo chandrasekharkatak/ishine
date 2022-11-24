@@ -108,7 +108,7 @@ public class AppreciationService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		AppreciationEvent appEvent = new AppreciationEvent();
-		appEvent.setAppreciationEventEventName(appreciationEventDTO.getAppreciationEventName());
+		appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
 		appEvent.setFromDate(appreciationEventDTO.getFromDate());
 		appEvent.setToDate(appreciationEventDTO.getToDate());
 		
@@ -179,7 +179,7 @@ public class AppreciationService {
 //				appreciationEventInfo.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 //				appreciationEventInfo.setName(object[1] != null ? object[1].toString() : null);
 				appreciationEventInfo.setAppreciationEventId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-				appreciationEventInfo.setCreatedOn(object[1] != null ? object[1].toString() : null);
+				//appreciationEventInfo.setCreatedOn(object[1] != null ? object[1].toString() : null);
 			    appreciationEventInfo.setFromDate(object[2] != null ? object[2].toString() : null);
 			    appreciationEventInfo.setToDate(object[3] != null ? object[3].toString() : null);
 			});
@@ -203,7 +203,10 @@ public class AppreciationService {
 	for(AppreciationEvent allevents :allEvent) {
 		AppreciationEventDTO eventDTO = new AppreciationEventDTO();
 		eventDTO.setAppreciationEventId(allevents.getAppreciationEventid());
-		eventDTO.setAppreciationEventName(allevents.getAppreciationEventEventName());
+		eventDTO.setAppreciationEventName(allevents.getAppreciationEventName());
+		eventDTO.setFromDate(allevents.getFromDate());	
+		eventDTO.setToDate(allevents.getToDate());;	
+		eventDTO.setCreatedOn(allevents.getCreatedOn());
 		appreciationEventDTO.add(eventDTO);
 		
 	}
@@ -260,7 +263,127 @@ public class AppreciationService {
 		return response;
 	}
 	
+//OnCheckEventName
+	public ServiceResponse OnCheckEventName(AppreciationEventDTO appreciationEventDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			AppreciationEvent dbEventName = enableAppreciationRepository.findByAppreciationEventName(appreciationEventDTO.getAppreciationEventName()); 
+			System.out.println("Db EventName "+dbEventName);
+			System.out.println("appreciationEventDTO.getAppreciationEventName() "+appreciationEventDTO.getAppreciationEventName());
+			if(dbEventName != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Event Name already exist !!");
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
+	}
+	public ServiceResponse updateAppreciationEvent(AppreciationEventDTO appreciationEventDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Optional<AppreciationEvent> appreciationEvent = enableAppreciationRepository.findById(appreciationEventDTO.getAppreciationEventId());
 
+			if(appreciationEvent.isPresent()) {
+				
+			AppreciationEvent appEvent = appreciationEvent.get();
+			appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
+			appEvent.setFromDate(appreciationEventDTO.getFromDate());
+			appEvent.setToDate(appreciationEventDTO.getToDate());
+			
+			AppreciationEvent dbResponse = enableAppreciationRepository.save(appEvent);
+			
 
+			List<Employee> allEmployees1 = new ArrayList<Employee>();
+			
+			List<Employee> allEmployees = employeeRepository.getAllActiveEmployees();
+			
+			if (!allEmployees.isEmpty()) {
+				for (Employee e : allEmployees) {			
+					e.setIsAppreciationEnable("false");
+					allEmployees1.add(e);
+				}
+			}
+			employeeRepository.saveAll(allEmployees1);
+			
+			
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			dtoList = appreciationEventDTO.getEnableAppreciationList();
+			System.out.println(dtoList);
+			
+			for(EmployeeDTO emp : dtoList) {
+				Long empid= emp.getEmpId();
+				System.out.println(empid);
+				 Employee emp1 = new Employee(); 
+				 emp1=employeeRepository.findByEmpId(emp.getEmpId());
+				 if(emp1.getIsAppreciationEnable().equalsIgnoreCase("false")) {
+					 emp1.setIsAppreciationEnable(emp.getIsAppreciationEnable());
+					 emp1 = employeeRepository.save(emp1);
+					 System.out.println(emp1.getIsAppreciationEnable());
+				 }
+			}	
+			
+			if (dbResponse != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Appreciation Event Updated.");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Appreciation Event Updation Failed.");
+			}
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Appreciation Event Not Found");
+		}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		}
+	public ServiceResponse deleteAppreciationEvent(AppreciationEventDTO appreciationEventDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			Optional<AppreciationEvent> appreciationEventObj = enableAppreciationRepository
+					.findById(appreciationEventDTO.getAppreciationEventId());
+			if (appreciationEventObj.isPresent()) {
 
+				AppreciationEvent appEvent = appreciationEventObj.get();
+				enableAppreciationRepository.deleteById(appreciationEventDTO.getAppreciationEventId());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Appreciation Event Deleted Successfully.");
+			}
+			 else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Appreciation Event Not Found");
+				}
+					
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		
+
+		return response;
+	}
+	
+	
+	
+	
 }

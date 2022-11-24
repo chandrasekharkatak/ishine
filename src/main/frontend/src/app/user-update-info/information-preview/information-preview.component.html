@@ -329,7 +329,7 @@
                                         <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.experience == 'Experienced'">
                                     <div class="info-wrapper">
                                         <p class="info-label">Total Experience</p>
                                         <p class="info-text">{{currentEmployeeInfo.totalExperience}}</p>
@@ -341,12 +341,18 @@
                                         <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
                                     </div>
                                 </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Billable </p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </app-accordion-item>
                 
                     <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information" [showBody]="true">
+                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList.length != 0 " class="acc-content" title="Previous Employment Information" [showBody]="true">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">

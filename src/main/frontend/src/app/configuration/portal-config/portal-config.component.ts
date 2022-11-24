@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Portal } from 'src/app/models/portal';
 // import { first } from 'rxjs/operators';
 import { PortalService } from 'src/app/services/portal.service';
@@ -13,6 +13,7 @@ import { first } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Query } from 'src/app/models/query';
 import { enableAppreciation } from 'src/app/models/enableAppreciation';
+import * as moment from 'moment';	
 
 
 
@@ -39,22 +40,27 @@ export class PortalConfigComponent implements OnInit {
   data:any;
   appByCategory:any;
 
-  //flag
-  portalConfig: boolean = false;
-  appreciationConfig: boolean = false;
-  isTable : boolean = false;
-  viewAppreciationForm : boolean = false;
-  isAppreciationTable : boolean = false;
-  fromDate:any;
+  //flag	
+  portalConfig: boolean = false;	
+  appreciationConfig: boolean = false;	
+  viewEventConfig: boolean = false;	
+  isTable : boolean = false;	
+  isCreation : boolean = false;	
+  viewAppreciationForm : boolean = false;	
+  isAppreciationTable : boolean = false;	
+  isUpdation : boolean = false;	
+  fromDate:any;	
   toDate:any;
 
   alertMessage:any;
+  @ViewChild('alert_message') alertTemplate:TemplateRef<any>;
   modalRef: BsModalRef = new BsModalRef();
 
   portalObj:Portal = new Portal();
 
   portalConfigList:any[] = [];
-  appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining'];
+ // appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
+ appreciationColumns:any[] = ['Department'];
   queryList:any[] = [];
   filterData:any = new FilterData(); 
   display=null;
@@ -89,7 +95,8 @@ export class PortalConfigComponent implements OnInit {
     this.appreciationObj.toDate=null;
     this.appreciationObj.appreciationEventName=null;
     this.appreciationObj.enableAppreciationFor = "";
-
+    this.appreciationObj.appreciationEventName="";	
+    this.appreciationObj.appreciateType="";
    
    }
 
@@ -99,6 +106,9 @@ export class PortalConfigComponent implements OnInit {
     }
     else if(this.userMapping.appreciation_configuration){
        this.enableAppreciationOnclick();
+    }
+    else if(this.userMapping.appreciation_configuration){	
+      this.viewAppreciationEventOnClick();	
     }
     else if(this.userMapping.view_employees_appreciation) {   
        this.viewAllAppreciation();
@@ -112,17 +122,84 @@ export class PortalConfigComponent implements OnInit {
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEventList : ", this.allAppreciationEvent)
       } else {
-        alert(response.serviceResponse)
+       this.openAlertMod(this.alertTemplate, response.serviceResponse)
+        // console.log("allEventList : ", this.allAppreciationEvent);
+
       }
     });
 
   }
+
+  onDateChange(template:TemplateRef<any>){
+    if (this.appreciationObj.toDate < this.appreciationObj.fromDate) {
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.fromDate)) {
+        this.alertMessage = "Please enter from Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        this.appreciationObj.toDate = ''
+        return false;
+      }
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.toDate)) {
+        this.alertMessage = "Please enter To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      console.log("end date is small");
+      // this.appreciationObj.toDate = ''
+      this.alertMessage = "From Date should be less Than To Date !!"
+      this.openAlertMod(template, this.alertMessage);
+    this.appreciationObj.fromDate = ''
+      
+    } else {
+          this.allEmployeeList = [];
+    }
+  }
+
+  onToDateChange(template:TemplateRef<any>){
+    if(this.appreciationObj.toDate > this.appreciationObj.fromDate){
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.fromDate)) {
+        this.alertMessage = "Please enter From Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        // this.appreciationObj.fromDate = ''
+        return false;
+      }
+      if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.toDate)) {
+        this.alertMessage = "Please enter To Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+     
+    }else {
+      this.alertMessage = "To Date should be Greater Than From Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      this.appreciationObj.toDate = ''
+      this.allEmployeeList = []
+    }
+  }
+
+  OnCheckEventName(template:TemplateRef<any>){
+    console.log("here in checkPoint event name")
+
+    this.portalService.OnCheckEventName(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.appreciationObj.appreciationEventName = '';
+      }
+    });
+
+  }
+  
   getAllPortalConfig(){
+    this.appreciationObj.fromDate =''
+    this.appreciationObj.toDate =''
     this.portalConfig = true;
     this.appreciationConfig =false;
      this.isTable = false;
      this.viewAppreciationForm = false;
      this.isAppreciationTable = false;
+     this.viewEventConfig= false;	
+     this.isTable = false;	
+     this.isUpdation = false;
 
     this.getAllPortalConfigData();
   }
@@ -163,6 +240,10 @@ export class PortalConfigComponent implements OnInit {
     });
   }
   enableAppreciationOnclick(){
+    this.appreciationObj.fromDate =''
+    this.appreciationObj.toDate =''
+    this.appreciationObj.appreciationEventName = ''
+    this.appreciationObj.enableAppreciationFor = ''
     this.portalConfig = false;
     this.appreciationConfig=true;
     this.viewAppreciationForm = false;
@@ -170,25 +251,35 @@ export class PortalConfigComponent implements OnInit {
     this.fromDate = null;
     this.toDate = null;
     this.isAppreciationTable = false;
+    this.isCreation = true;	
+    this.viewEventConfig= false;	
+    this.isUpdation = false;	
+    this.reset();
 
   }
-  getAllEmployees(){
+  getAllEmployees(template:TemplateRef<any>){
     this.portalService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse; 
         this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
-        alert(response.serviceResponse)
+        this.openAlertMod(template ,response.serviceResponse)
       }
     });
   }
   viewAllAppreciation(){
+    this.appreciationObj.fromDate =''
+    this.appreciationObj.toDate =''
+    this.data = ''
     this.portalConfig = false;
     this.appreciationConfig=false;
     this.viewAppreciationForm = true;
     this.isAppreciationTable = false;
     this.isTable = false;
+    this.viewEventConfig= false;	
+    this.isCreation = false;	
+    this.isUpdation = false;
 
   }
   
@@ -201,7 +292,7 @@ export class PortalConfigComponent implements OnInit {
       this.isTable = true;
       this.openFilterModal(template, columns, title);
     }
-   this.getAllEmployees();
+   this.getAllEmployees(template);
   }
 
   updatePortalGlobalConfiguration(portalObj,template: TemplateRef<any>){
@@ -337,7 +428,7 @@ export class PortalConfigComponent implements OnInit {
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
     if(queryObjList == ''){
-      this.getAllEmployees();
+      this.getAllEmployees(template);
 
     }else {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
@@ -384,9 +475,41 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Event Name field should not be empty!!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }else  if(!this.validationService.validateAlphaWithSpaceInbetween(appreciationObj.appreciationEventName)) {
+      this.alertMessage = "Please Enter Valid Event Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     return true;
   }
+
+  	
+  fromDateFilter = (d: Date)=>{	
+    const dateFormat = 'YYYY-MM-DD';	
+    const currentDate = new Date();	
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;	
+    const BACKDATED_LEAVE_PERIOD = 0;	
+    const FUTUREDATED_LEAVE_PERIOD = 365;	
+    const time=d?.getTime();	
+    let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));	
+    let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));	
+      
+    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)));	
+    
+}	
+toDateFilter = (d: Date)=>{	
+  const dateFormat = 'YYYY-MM-DD';	
+  const currentDate = new Date();	
+  const DAY_IN_MS = 24 * 60 * 60 * 1000;	
+  const BACKDATED_LEAVE_PERIOD = 0;	
+  const FUTUREDATED_LEAVE_PERIOD = 365;	
+  const time=d?.getTime();	
+  let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));	
+  let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));	
+    
+  return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)));	
+  
+}
 
   enableAppreciation(template: TemplateRef<any>){
     const dateFormat = 'YYYY-MM-DD';
@@ -403,8 +526,9 @@ export class PortalConfigComponent implements OnInit {
     });
 
     console.log("enableAppreciationList : ", this.enableAppreciationList);
-    this.appreciationObj.fromDate = this.appreciationObj.fromDate ;
-    this.appreciationObj.toDate = this.appreciationObj.toDate;
+    this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
+    this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
+
     this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
     this.appreciationObj.enableAppreciationList = this.enableAppreciationList;
     console.log("enableAppreciation : ", this.appreciationObj)
@@ -428,11 +552,16 @@ export class PortalConfigComponent implements OnInit {
     // this.isAppreciationTable = true;
     this.isTable = false;
    this.viewAppreciations();
+   this.isAppreciationTable = true;	
+    this.viewEventConfig= false;	
+    this.isCreation = false;	
+    this.isUpdation = false;	
+
 
   }
 
   viewAppreciations(){
-
+    this.appByCategory = [];	
     this.portalService.viewAppreciations(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.appByCategory = response.serviceResponse;
@@ -447,6 +576,105 @@ export class PortalConfigComponent implements OnInit {
     });
 
   }
+  viewAppreciationEventOnClick(){	
+    this.portalConfig = false;	
+    this.appreciationConfig=false;	
+    this.viewAppreciationForm = false;	
+    this.isAppreciationTable = false;	
+    this.isTable = false;	
+    this.viewEventConfig= true;	
+    this.isCreation = false;	
+    this.isUpdation = false;	
+    this.getAllEvent();
+
+  }	
+  validateEnableAppreciationObj(appreciationObj: enableAppreciation, template: TemplateRef<any>) {	
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.fromDate)) {	
+      this.alertMessage = "Please enter From Date !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }	
+    if (!this.validationService.validateAlphaWithSpace(appreciationObj.appreciationEventName)) {	
+      this.alertMessage = "Please enter Valid Event Name!!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }	
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.toDate)) {	
+      this.alertMessage = "Please select To Date !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }	
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.enableAppreciationFor)) {	
+      this.alertMessage = "Please select Employees  !!"	
+      this.openAlertMod(template, this.alertMessage);	
+      return false;	
+    }	
+    return true;	
+  }	
+  onUpdateAppreciationEvent(template: TemplateRef<any>){	
+    const dateFormat = 'YYYY-MM-DD';
+    let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)	
+    if (!inputValidated) return;	
+
+    this.enableAppreciationList = this.allEmployeeList.map(employee => {	
+      return {	
+        empId : employee.empId,	
+        isAppreciationEnable : true	
+      }	
+    });	
+
+
+    this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
+    this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
+    this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
+    this.appreciationObj.enableAppreciationList = this.enableAppreciationList;    console.log("updateAppreciation : ", this.appreciationObj)
+
+  
+    this.appreciationObj.updatedBy = this.currentUser.empId;;	
+    console.log("Update dept : ", this.appreciationObj);	
+    this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.openAlertMod(template, response.serviceResponse);	
+        this.reset();	
+        //this.showTable();	
+      } else {	
+        this.openAlertMod(template, response.serviceResponse);	
+        this.reset();	
+      }	
+    });	
+  }
+  showUpdateForm(appreciationEvent: enableAppreciation) {	
+    this.portalConfig = false;	
+    this.appreciationConfig=true;	
+    this.viewAppreciationForm = false;	
+    this.isAppreciationTable = false;	
+    this.isTable = false;	
+    this.viewEventConfig= false;	
+    this.isCreation = false;	
+    this.isUpdation = true;	
+    this.appreciationObj = Object.assign({}, appreciationEvent)	
+  }
+  openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {	
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+    this.appreciationObj = appreciationEvent;	
+    console.log(this.appreciationObj);	
+  }	
+  onDeleteAppreciationEvent(template: TemplateRef<any>) {	
+    this.cancelRequest();	
+    this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.openAlertMod(template, response.serviceResponse);	
+        // this.showTable();	
+        this.getAllEvent();	
+        // this.viewAppreciationEventOnClick();	
+      } else {	
+        this.openAlertMod(template, response.serviceResponse);	
+        this.getAllEvent();	
+        // this.viewAppreciationEventOnClick();	
+      }	
+    });	
+  }	
+
   //modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {

@@ -53,6 +53,10 @@ img{
     color: var(--cultured);
 }
 
+.badge-primary{
+    background-color: var(--dark-cornflower-blue);
+    color: var(--cultured);
+}
 
 /* overriding html default css */
 

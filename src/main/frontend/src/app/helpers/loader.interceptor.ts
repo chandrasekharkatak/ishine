@@ -113,6 +113,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/viewAppreciation`,
     `${this.baseUrl}` + `api/getAllAppreciationEvent`,
     `${this.baseUrl}` + `api/enableAppreciation`,
+    `${this.baseUrl}` + `api/OnCheckEventName`,
+    `${this.baseUrl}` + `api/deleteAppreciationEvent`,
+    `${this.baseUrl}` + `api/updateAppreciationEvent`,
+
+
+
   ]
 
   constructor(private loaderService: LoaderService) { }

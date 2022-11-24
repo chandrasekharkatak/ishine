@@ -41,4 +41,23 @@ public class AppreciationController {
 		ServiceResponse response=appreciationService.viewAppreciation(AppreciationEventDTO);
 		return response;
 	}
+//     OnCheckEventName
+    @RequestMapping(value = "OnCheckEventName", method = RequestMethod.POST )
+    public ServiceResponse OnCheckEventName(@RequestBody AppreciationEventDTO AppreciationEventDTO){
+		ServiceResponse response=appreciationService.OnCheckEventName(AppreciationEventDTO);
+		return response;
+	}
+    
+    @RequestMapping(value = "updateAppreciationEvent", method = RequestMethod.POST )	
+    public ServiceResponse updateAppreciationEvent(@RequestBody AppreciationEventDTO AppreciationEventDTO){	
+		ServiceResponse response=appreciationService.updateAppreciationEvent(AppreciationEventDTO);	
+		return response;	
+	}	
+    	
+    @RequestMapping(value = "deleteAppreciationEvent", method = RequestMethod.POST )	
+    public ServiceResponse deleteAppreciationEvent(@RequestBody AppreciationEventDTO AppreciationEventDTO){	
+		ServiceResponse response=appreciationService.deleteAppreciationEvent(AppreciationEventDTO);	
+		return response;	
+	}
+    
 }

@@ -46,6 +46,7 @@ export class RoleConfigComponent implements OnInit {
   selectedFeature: any;
   subFeatureList: any;
   isSubFeatureList: boolean = false;
+  // sameRoleFound:boolean = false;
 
   roleDataForExcel: any[];
 
@@ -91,7 +92,7 @@ export class RoleConfigComponent implements OnInit {
     if(this.userMapping.create_role){
       this.showCreateForm();
     }
-    if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
+   else if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
       //for role table data 
       this.showTable();
     }
@@ -124,6 +125,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   showTable() {
+    this.page = 1
     this.isTable = true;
 
     this.isForm = false;
@@ -199,6 +201,9 @@ export class RoleConfigComponent implements OnInit {
   onCreateJobRole(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;
+    // console.log("  :::::  ",this.sameRoleFound)
+    // this.checkJobRole(template);
+    //  if(this.sameRoleFound == true) return;
 
     this.jobRoleObj.createdById = this.currentUser.empId;;
     this.jobRoleService.createJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
@@ -213,6 +218,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   checkJobRole(template : TemplateRef<any>){
+    // this.sameRoleFound = false
     const regex = /^[a-zA-Z ]+$/;
     if(regex.test(this.jobRoleObj.name)){
       this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
@@ -221,6 +227,8 @@ export class RoleConfigComponent implements OnInit {
           this.jobRoleObj.name = '';
           this.jobRoleObj.employeeRole = ''
           this.jobRoleObj.departmentId = ''
+          // this.sameRoleFound = true;
+
         }
       })
     } else {

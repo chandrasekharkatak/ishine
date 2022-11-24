@@ -1,7 +1,9 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_portal_global_configuration" [ngClass]="{'active' : portalConfig}" (click)="getAllPortalConfig()">Portal Global Configuration</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.appreciation_configuration" [ngClass]="{'active' : appreciationConfig  || isTable }"  (click)="enableAppreciationOnclick()">Enable Appreciation</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.appreciation_configuration" [ngClass]="{'active' : appreciationConfig  || isTable }"  (click)="enableAppreciationOnclick()">Enable Appreciation Event</button>	
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_appreciation_event" [ngClass]="{'active' : viewEventConfig}" (click)="viewAppreciationEventOnClick()">View Appreciation Event</button>	
+
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_employees_appreciation" [ngClass]="{'active' : viewAppreciationForm || isAppreciationTable}"  (click)="viewAllAppreciation()">View Appreciation</button>
 
     </div>
@@ -109,7 +111,8 @@
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="appreciationConfig ">
         <div class="card-header text-center text-uppercase" >
-            <strong>Enable Appreciation For Employees</strong>
+            <strong *ngIf="isCreation">Enable Appreciation Event</strong>	
+            <strong *ngIf="isUpdation">Update Appreciation Event</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -117,7 +120,11 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >
+                            <div class="d-flex">	
+                                <input  #input (focus)="fromDatePicker.open()" (change)="onDateChange(alert_message)" matInput id="fromDatePicker" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >	
+                               <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>	
+                               <mat-datepicker  #fromDatePicker disabled="false"></mat-datepicker>	
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -125,8 +132,12 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                  <input id="historyFromDate" type="date" [(ngModel)]="appreciationObj.toDate" class="form-control"  >
-                        </div>
+                            <div class="d-flex">	
+                                <input #input (focus)="toDatePicker.open()" (change)="onToDateChange(alert_message)" matInput id="toDatePicker" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" class="form-control" [(ngModel)]="appreciationObj.toDate" autocomplete="none"  >	
+                                <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>	
+                                <mat-datepicker  #toDatePicker disabled="false"></mat-datepicker>	
+                       </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -135,7 +146,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Event Name</label>
-                            <input type="text" class="form-control" maxlength="255" [(ngModel)]="appreciationObj.appreciationEventName" autocomplete="none">
+                            <input type="text" class="form-control" maxlength="255" [(ngModel)]="appreciationObj.appreciationEventName" autocomplete="none" (blur)="OnCheckEventName(alert_message)">
                         </div>
                     </div>
                 </div>
@@ -154,7 +165,10 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="enableAppreciation(alert_message)" >Create Appreciation Event</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" *ngIf="isCreation && userMapping.update_portal_global_configuration"	
+                    (click)="enableAppreciation(alert_message)" >Create Appreciation Event</button>	
+                    <button *ngIf="isUpdation && userMapping.update_appreciation_event"	
+                     type="submit" class="btn btn-primary btn-sm mx-1" (click)= "onUpdateAppreciationEvent(alert_message)">Update Appreciation Event</button>
                 </div>
             </div>
         </div>
@@ -172,7 +186,8 @@
       <tr>	
         <th scope="col" class="info-label" mat-sort-header="empId" >Employee Id</th>	
         <th scope="col" class="info-label" mat-sort-header="name" >Full Name</th>	
-        <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>	
+        <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
+        <th scope="col" class="info-label" mat-sort-header="email">Department</th>	
         <th scope="col" class="info-label" mat-sort-header="employmentstatus">Employment Status</th>	
         <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>	
         
@@ -186,6 +201,7 @@
             <td>{{employee.empId}}</td>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>
+            <td>{{employee.departmentName}}</td>
             <td>{{employee.employmentstatus}}</td>
             <td>{{employee.dateOfJoining}}</td>
         </tr>   
@@ -247,39 +263,102 @@
 <!-- view Appreciation form end -->
 
 <!-- view appreciatio table start -->
-<div class="row" style="width:100%" *ngIf="isAppreciationTable">   
-    <div class="form-group d-flex flex-row ml-auto col-md-3" >
-    <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-    </div>
-    <table class="table view-appreciation-table"  id="view-appreciation-table" matSort (matSortChange)="sortViewAppreciationData($event) ">	
-    <thead class="thead-light">	
-      <tr>	
-        <th scope="col" class="info-label" mat-sort-header="appreciateType" >Appreciation Type</th>	
-        <th scope="col" class="info-label"  mat-sort-header="appreciationToName">Appreciation To</th>	
-        <th scope="col" class="info-label"  mat-sort-header="appreciationByName">Appreciation By</th>	
-        <th scope="col" class="info-label"  mat-sort-header="appreciationDate">Appreciation Date</th>	
-        <th scope="col" class="info-label"  mat-sort-header="managerName">Reporting To</th>	
-        <th scope="col" class="info-label"  mat-sort-header="reason">Reason</th>	
-        </tr>
-      </thead>
-      <tbody>
-          <tr *ngIf="appByCategory.length == 0 ">
-          <th colspan="9" class="text-center info-label">No details to display...</th>
-        </tr>
-         <tr *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index " > 
-            <td>{{appreciation.appreciateType}}</td>
-            <td>{{appreciation.appreciationToName}}</td>
-            <td>{{appreciation.appreciationByName}}</td>
-            <td>{{appreciation.appreciationDate}}</td>
-            <td>{{appreciation.managerName}}</td>
-            <td>{{appreciation.reason}}</td>
+<div class="row" *ngIf="isAppreciationTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="form-group d-flex flex-row ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
+                    [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
+                    <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
+                        (matSortChange)="sortViewAppreciationData($event) ">
+                        <thead class="thead-light" id="appreciationInfoTHeadTr">
+                            <tr id="appreciationInfoTHeadTr">
+                                <th scope="col" class="info-label" mat-sort-header="appreciateType">Appreciation Type
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="appreciationToName">Appreciation To
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="appreciationByName">Appreciation By
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="appreciationDate">Appreciation Date
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName">Reporting To</th>
+                                <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="appByCategory.length == 0 ">
+                                <th colspan="9" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index ">
+                                <td>{{appreciation.appreciateType}}</td>
+                                <td>{{appreciation.appreciationToName}}</td>
+                                <td>{{appreciation.appreciationByName}}</td>
+                                <td>{{appreciation.appreciationDate}}</td>
+                                <td>{{appreciation.managerName}}</td>
+                                <td>{{appreciation.reason}}</td>
 
-        </tr>   
-       </tbody>
-    </table>  
-    <pagination-controls class="my-pagination" [hidden]="appByCategory.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-  </div>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="appByCategory.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- view appreciatio table end -->
+
+<!-- View Appreciation event table -->	
+
+<div class="row col-md-12" *ngIf="viewEventConfig">	
+    <div class="col-md-12 table-header">	
+        <h1 class="table-header-title">Appreciation Event History</h1>	
+    </div>	
+    <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
+        </div> -->	
+    <table class="table department-table" matSort (matSortChange)="sortData($event)">		
+        <thead class="thead-light">	
+          <tr>	
+            <th scope="col" class="info-label">Sr No.</th>		
+            <th scope="col" class="info-label" mat-sort-header="fileName">Event Name</th>		
+            <th scope="col" class="info-label" mat-sort-header="policyName">Start Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdByName">End Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>	
+            <th scope="col" class="info-label">Action</th>		  	
+  	
+          </tr>	
+        </thead>	
+        <tbody>	
+            <tr *ngIf="allAppreciationEvent.length == 0">	
+                <th colspan="6" class="text-center info-label">No Files to display...</th>	
+            </tr>	
+            <tr *ngFor="let event of allAppreciationEvent | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">		
+             <th class="info-label">{{10*(page-1)+i+1}}</th>	
+            <td>{{event.appreciationEventName}}</td>	
+            <td>{{event.fromDate}}</td>	
+            <td>{{event.toDate}}</td>	
+            <td>{{event.createdOn | date:'yyyy-MM-dd HH:mm:ss'}}</td>	
+           <td *ngIf="userMapping.update_appreciation_event || userMapping.delete_appreciation_event">	
+            <button *ngIf="userMapping.update_appreciation_event" class="btn btn-sm btn-outline-primary"	
+            (click)="showUpdateForm(event)" type="submit" ><em class="fa fa-edit"></em></button>&nbsp;	
+            <button *ngIf="userMapping.delete_appreciation_event" class="btn btn-sm btn-outline-danger"	
+                                        type="submit" (click)="openDeleteAppreciationEvent(delete_template,event)"><em	
+                                            class="fa fa-trash"></em></button>	
+           </td>	
+          </tr>	
+        </tbody>	
+      </table>  	
+       <pagination-controls class="my-pagination" [hidden]="allAppreciationEvent.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 	
+</div>	
+<!-- View Appreciation event table end -->
 
 <ng-template #alert_message>
     <div class="modal-body text-center">
@@ -300,3 +379,11 @@
       <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
     </div>
   </ng-template>
+
+  <ng-template #delete_template>	
+    <div class="modal-body text-center">	
+        <p>Are you sure you want to delete Appreciation Event ?</p>	
+        <button type="button" class="btn btn-success" (click)="onDeleteAppreciationEvent(alert_message)">Yes, proceed</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
+</ng-template>

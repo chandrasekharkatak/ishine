@@ -23,6 +23,9 @@ export class EmployeeInfoComponent implements OnInit{
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  errorMsg:any;
+  errorMsg1:any;
+
 
   //Obj 
   currentUser: User;
@@ -364,4 +367,473 @@ export class EmployeeInfoComponent implements OnInit{
     this.modalRef.hide();
   }
 
+  // Validations 
+
+  validateBloodGroup(event, data:any){
+    console.log("Element :", event.target);
+    console.log("Sibling : ", event.target.nextElementSibling);
+    if(data === null){
+      this.errorMsg = ""
+    }
+     else if (!this.validationService.validateBloodGroup(data)) {
+        this.errorMsg = "Please enter valid Blood Group !!"   
+    }
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    
+    
+  }
+  validateFathersName(event, data:any){
+  if(data === null){
+    this.errorMsg = ""
+  }
+ else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid father name !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateMothersName(event, data:any){
+  if(data === null){
+    this.errorMsg = ""
+  }
+ else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+  this.errorMsg = "Please enter valid mother name !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validatePlaceOfBirth(event, data:any){
+  if(data === null){
+    this.errorMsg = ""
+  }
+  else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid Place of birth !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+
+  validateMotherTongue(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+   else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid mother tongue !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validatePassportNumber(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+   else if (!this.validationService.validatePassportNumber(data)) {
+    this.errorMsg = "Please enter valid passport number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateAadhar(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+   else if (data.toString().length != 12) {
+      this.errorMsg = "Please enter Valid aadhar card number !!";
+  }
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+  validatePan(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+   else if (!this.validationService.validatePancardNumber(data)) {
+    this.errorMsg = "Please enter valid pan number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+
+  validatePincode(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+   else if (!this.validationService.validatePincodeNumber(data)) {
+    this.errorMsg = "Please enter valid pincode !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateValidEmptyNullUndefinedalternateMobileNo(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+  else  if (!this.validationService.validateMobileNumber(data)) {
+    this.errorMsg = "Please enter valid  Mobile Number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+
+  }
+  validateContactPerson(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+   else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid Emergency Contact person !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+  validateRelation(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid relation !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+  validateValidEmptyNullUndefinedemergencyContactMobile(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateMobileNumber(data)) {
+    this.errorMsg = "Please enter valid emergency contact number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatebankName(event, data:any){
+    if(data === null || data === ""){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid bank name !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validatebankAccountNo(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAccountNumber(data)) {
+    this.errorMsg = "Please enter valid  bank account number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatebankIFSCCode(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateIFSCCodeRegex(data)) {
+    this.errorMsg = "Please enter valid  bank IFSC code !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatepfAccountNumber(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid  PF account number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatePreviouspfAccountNumber(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid  PF account number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validateUan(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid  UAN !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validateEsicNumber(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid  Esic number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validateemployerName(event, data:any){
+    if(data === null || data === ""){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+    this.errorMsg = "Please enter valid Employer name !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatYearsOfExperience(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid year of experience !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeTotalExperience(event, data:any){
+    if(data === null){
+      this.errorMsg = ""
+    }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid Total  year of experience !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validaeDesignation(event, data:any){ 
+    if(data === null || data === ""){
+    this.errorMsg = ""
+  }
+else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+  this.errorMsg = "Please enter valid Designation !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validaeManagerName(event, data:any){ 
+    if(data === null || data === ""){
+    this.errorMsg = ""
+  }
+else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+  this.errorMsg = "Please enter valid manager name !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeManagerContactNumber(event, data:any){ 
+    if(data === null || data === "" || data === undefined){
+    this.errorMsg = ""
+  }
+else  if (!this.validationService.validateMobileNumber(data)) {
+  this.errorMsg = "Please enter valid manager contact number !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeHrName(event, data:any){ 
+    if(data === null || data === ""){
+    this.errorMsg = ""
+  }
+else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
+  this.errorMsg = "Please enter valid HR name !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeHrContactNumber(event, data:any){ 
+    if(data === null || data === "" || data === undefined ){
+    this.errorMsg = ""
+  }
+else  if (!this.validationService.validateMobileNumber(data)) {
+  this.errorMsg = "Please enter valid contact number !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
 }
