@@ -380,6 +380,12 @@ export class InformationPreviewComponent implements OnInit {
             prevFlag = false;
             return;
           }
+          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.designation)){
+            this.alertMessage = `Please Enter Designation - ${index+1}!!`
+            this.openAlertMod(template, this.alertMessage);
+            prevFlag = false;
+            return;
+          }
     
           if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
             this.alertMessage = `Please Enter Manager Name - ${index+1}!!`

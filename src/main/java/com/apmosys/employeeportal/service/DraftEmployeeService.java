@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -144,11 +145,19 @@ public class DraftEmployeeService {
 				}
 
 			});
-
+			
+			
 			Optional.ofNullable(employeedto.getCertifications()).ifPresent((certificationList) -> {
-
+				
 				if (!certificationList.isEmpty()) {
+					
 					certificationList.forEach((certification) -> {
+						String dateOfCompletion;
+						if(certification.getDateOfCompletion() != null) {
+							dateOfCompletion = certification.getDateOfCompletion().toString();
+						}else {
+							dateOfCompletion = null;
+						}
 						certification.setEmpId(dbResponse.getDraftEmpId());
 
 					});
@@ -492,14 +501,21 @@ public class DraftEmployeeService {
 					employeedto.getCertifications().stream()
 							.filter((certification) -> certification.getEmployeeCertificateId() != null)
 							.forEach((certificate) -> {
+								
+								LocalDate dateOfCompletion;
+								if(certificate.getDateOfCompletion() != null) {
+									dateOfCompletion = stringToDateTimeParser
+											.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd");
+								}else {
+									dateOfCompletion = null;
+								}
 
 								EmployeeCertificate employeeCertificate = employeeCertificateRepository
 										.findById(certificate.getEmployeeCertificateId()).get();
 
 								employeeCertificate.setCertificationName(certificate.getCertificationName());
 								employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
-								employeeCertificate.setDateOfCompletion(stringToDateTimeParser
-										.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
+								employeeCertificate.setDateOfCompletion(dateOfCompletion);
 								employeeCertificate.setDuration(certificate.getDuration());
 								employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
 								employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
@@ -548,14 +564,28 @@ public class DraftEmployeeService {
 						employeedto.getPreviousEmploymentList().stream()
 								.filter((prevEmployer) -> prevEmployer.getPreviousEmploymentId() != null)
 								.forEach((previousEmployeeDTO) -> {
+								
+									LocalDate dateOfJoining;
+									LocalDate dateOfReleiving;
+									if(previousEmployeeDTO.getDateOfJoining() != null) {
+										dateOfJoining = stringToDateTimeParser
+												.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd");
+									}else {
+										dateOfJoining = null;
+									}
+									if(previousEmployeeDTO.getDateOfRelieving() != null) {
+										dateOfReleiving = stringToDateTimeParser
+												.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd");
+									}else {
+										dateOfReleiving = null;
+									}
+									
 
 									PreviousEmployment previousEmployment = previousEmploymentRepository
 											.findById(previousEmployeeDTO.getPreviousEmploymentId()).get();
 
-									previousEmployment.setDateOfJoining(stringToDateTimeParser
-											.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd"));
-									previousEmployment.setDateOfRelieving(stringToDateTimeParser
-											.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd"));
+									previousEmployment.setDateOfJoining(dateOfJoining);
+									previousEmployment.setDateOfRelieving(dateOfReleiving);
 									previousEmployment.setDesignation(previousEmployeeDTO.getDesignation());
 									previousEmployment.setHrContactNumber(previousEmployeeDTO.getHrContactNumber());
 									previousEmployment.setHrName(previousEmployeeDTO.getHrName());
@@ -770,12 +800,19 @@ public class DraftEmployeeService {
 
 					for (EmployeeCertificate empCert : certificationsList) {
 						EmployeeCertificateDTO dto = new EmployeeCertificateDTO();
+						
+						String dateOfCompletion;
+						if(empCert.getDateOfCompletion() != null) {
+							dateOfCompletion = empCert.getDateOfCompletion().toString();
+						}else {
+							dateOfCompletion = null;
+						}
 
 						dto.setEmployeeCertificateId(empCert.getEmployeeCertificateId());
 						dto.setCertificationName(empCert.getCertificationName());
 						dto.setDuration(empCert.getDuration());
 						dto.setModeOfCourse(empCert.getModeOfCourse());
-						dto.setDateOfCompletion(empCert.getDateOfCompletion().toString());
+						dto.setDateOfCompletion(dateOfCompletion);
 						dto.setCertificationNumber(empCert.getCertificationNumber());
 
 						certificationDTOlist.add(dto);
@@ -786,11 +823,24 @@ public class DraftEmployeeService {
 				if (!previousEmploymentList.isEmpty()) {
 					for (PreviousEmployment pervEmploy : previousEmploymentList) {
 						PreviousEmploymentDTO dto = new PreviousEmploymentDTO();
+						
+						String dateOfJoining;
+						String dateOfReleiving;
+						if(pervEmploy.getDateOfJoining() != null) {
+							dateOfJoining = pervEmploy.getDateOfJoining().toString();
+						}else {
+							dateOfJoining = null;
+						}
+						if(pervEmploy.getDateOfRelieving() != null) {
+							dateOfReleiving = pervEmploy.getDateOfRelieving().toString();
+						}else {
+							dateOfReleiving = null;
+						}
 
 						dto.setPreviousEmploymentId(pervEmploy.getPreviousEmploymentId());
 						dto.setEmployerName(pervEmploy.getEmployerName());
-						dto.setDateOfJoining(pervEmploy.getDateOfJoining().toString());
-						dto.setDateOfRelieving(pervEmploy.getDateOfRelieving().toString());
+						dto.setDateOfJoining(dateOfJoining);
+						dto.setDateOfRelieving(dateOfReleiving);
 						dto.setYearsOfExperience(pervEmploy.getYearsOfExperience());
 						dto.setManagerName(pervEmploy.getManagerName());
 						dto.setManagerContactNumber(pervEmploy.getManagerContactNumber());
@@ -802,7 +852,6 @@ public class DraftEmployeeService {
 					}
 					empDTO.setPreviousEmploymentList(previousEmploymentDTOList);
 				}
-
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
 			} else {

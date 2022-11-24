@@ -1186,7 +1186,7 @@ onBulkApproval(template:TemplateRef<any>){
 onBulkRejectTimesheet(template: TemplateRef<any>){
 
   if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
-    this.alertMessage = "Reason cannot contain single character !!"
+    this.alertMessage = "Please enter Valid Reason !!"
     this.openAlertMod(template, this.alertMessage);
     return false;
   }

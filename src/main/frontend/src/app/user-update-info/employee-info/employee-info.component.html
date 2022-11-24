@@ -180,7 +180,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Passport Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.passportNumber" (blur)="validatePassportNumber($event,employeeObj.passportNumber)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.passportNumber" >
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -231,7 +231,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Current Address</label>
-                                            <input type="text" maxlength="1000" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.address">
+                                            <input type="text" maxlength="1000" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.address" (blur)="validateValidEmptyNullUndefinedCurrentDate($event,employeeObj.address)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -273,7 +273,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Alternate Mobile Number</label>
-                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo" (blur)="validateValidEmptyNullUndefinedalternateMobileNo($event,employeeObj.alternateMobileNo)">
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -516,7 +516,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Employer Name</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Employer Name</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.employerName" (blur)="validateemployerName($event,previousEmployer.employerName)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -526,7 +526,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label ">Date Of Joining</label>
+                                            <label class="info-label "><span class="text-danger">*</span>Date Of Joining</label>
                                             <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" >
                                         </div>
                                     </div>
@@ -534,7 +534,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Date of Relieving</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Date of Relieving</label>
                                             <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
                                         </div>
                                     </div>
@@ -542,7 +542,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Years of Experience</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Years of Experience</label>
                                             <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" (blur)="validatYearsOfExperience($event,previousEmployer.yearsOfExperience)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -562,7 +562,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Designation</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Designation</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.designation" (blur)="validaeDesignation($event,previousEmployer.designation)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -572,7 +572,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Manager Name</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Manager Name</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerName" (blur)="validaeManagerName($event,previousEmployer.managerName)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -582,7 +582,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">Manager Contact Number</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Manager Contact Number</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.managerContactNumber" (blur)="validaeManagerContactNumber($event,previousEmployer.managerContactNumber)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -592,7 +592,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">HR Name</label>
+                                            <label class="info-label"><span class="text-danger">*</span>HR Name</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName" (blur)="validaeHrName($event,previousEmployer.hrName)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -602,7 +602,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label">HR Contact Number</label>
+                                            <label class="info-label"><span class="text-danger">*</span>HR Contact Number</label>
                                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrContactNumber" (blur)="validaeHrContactNumber($event,previousEmployer.hrContactNumber)">
                                             <small class="errorMsg text-danger"></small>
 
@@ -719,7 +719,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">PF Account Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pfAccountNumber" (blur)="validatepfAccountNumber($event,employeeObj.pfAccountNumber)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pfAccountNumber" >
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -729,7 +729,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Previous PF Account Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.previousPfAccountNumber" (blur)="validatePreviouspfAccountNumber($event,employeeObj.previousPfAccountNumber)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.previousPfAccountNumber" >
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -739,7 +739,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">UAN</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.uan" (blur)="validateUan($event,employeeObj.uan)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.uan" >
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>

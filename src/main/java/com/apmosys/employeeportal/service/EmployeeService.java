@@ -585,11 +585,22 @@ public class EmployeeService {
 		previousEmployeeDTOList.forEach((previousEmployeeDTO) -> {
 
 			PreviousEmployment previousEmployment = new PreviousEmployment();
+			LocalDate dateOfJoining;
+			LocalDate dateOfRelieving;
+			if(previousEmployeeDTO.getDateOfJoining() != null) {
+				dateOfJoining = stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd");
+			}else {
+				dateOfJoining = null;
+			}
+			if(previousEmployeeDTO.getDateOfRelieving() != null){
+				dateOfRelieving = stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd");
+			}else {
+				dateOfRelieving = null;
+			}
 
-			previousEmployment.setDateOfJoining(
-					stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd"));
-			previousEmployment.setDateOfRelieving(
-					stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd"));
+			previousEmployment.setDateOfJoining(dateOfJoining);
+			previousEmployment.setDateOfRelieving(dateOfRelieving);
+
 			previousEmployment.setDesignation(previousEmployeeDTO.getDesignation());
 			previousEmployment.setHrContactNumber(previousEmployeeDTO.getHrContactNumber());
 			previousEmployment.setHrName(previousEmployeeDTO.getHrName());
@@ -612,13 +623,20 @@ public class EmployeeService {
 		List<EmployeeCertificate> list = new ArrayList<EmployeeCertificate>();
 
 		employeeCertifcateDTOList.forEach((certificate) -> {
+			
+			LocalDate dateOfCompletion;
+			if(certificate.getDateOfCompletion() != null) {
+				dateOfCompletion = stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd");
+			}else {
+				dateOfCompletion = null;
+			}
+			
 
 			EmployeeCertificate employeeCertificate = new EmployeeCertificate();
 
 			employeeCertificate.setCertificationName(certificate.getCertificationName());
 			employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
-			employeeCertificate.setDateOfCompletion(
-					stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
+			employeeCertificate.setDateOfCompletion(dateOfCompletion);
 			employeeCertificate.setDuration(certificate.getDuration());
 			employeeCertificate.setEmpId(certificate.getEmpId());
 //			employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
