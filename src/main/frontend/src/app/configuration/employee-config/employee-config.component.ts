@@ -882,7 +882,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
    // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
-    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.email)){
+    if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
         this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Fail") {
@@ -895,10 +895,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, "Please enter valid email id !!");
         this.employeeObj.email = '';
       }
-    } else {
-      this.openAlertMod(template, "Please enter email id !!");
-      this.employeeObj.email = '';
-    }
+    } 
 
     
   }

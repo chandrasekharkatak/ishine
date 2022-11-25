@@ -85,11 +85,6 @@ export class EmployeeInfoComponent implements OnInit{
     } else {
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
     }
-
-    // child info
-    console.log("   this.employeeObj.child1 ", this.employeeObj.child1);
-    console.log("   this.employeeObj.child2 ", this.employeeObj.child2);
-    console.log("   this.employeeObj.child3 ", this.employeeObj.child3);
     
     if(this.employeeObj.child1 == null && this.employeeObj.child2 == null && this.employeeObj.child3 ){
       this.addInputChildField();

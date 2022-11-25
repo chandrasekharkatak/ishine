@@ -138,7 +138,10 @@ public class DraftEmployeeService {
 
 				if (!previousEmployerList.isEmpty()) {
 					previousEmployerList.forEach((previousEmployer) -> {
-						previousEmployer.setEmpId(dbResponse.getDraftEmpId());
+						
+						if(previousEmployer.getPreviousEmploymentId() == null) {
+							previousEmployer.setEmpId(dbResponse.getDraftEmpId());
+						}
 
 					});
 					employeeService.addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
@@ -502,25 +505,29 @@ public class DraftEmployeeService {
 							.filter((certification) -> certification.getEmployeeCertificateId() != null)
 							.forEach((certificate) -> {
 								
-								LocalDate dateOfCompletion;
-								if(certificate.getDateOfCompletion() != null) {
-									dateOfCompletion = stringToDateTimeParser
-											.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd");
+								if(certificate.getCertificationName() == null || certificate.getCertificationName() == "") {
+									employeeCertificateRepository.deleteById(certificate.getEmployeeCertificateId());
 								}else {
-									dateOfCompletion = null;
+									LocalDate dateOfCompletion;
+									if(certificate.getDateOfCompletion() != null) {
+										dateOfCompletion = stringToDateTimeParser
+												.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd");
+									}else {
+										dateOfCompletion = null;
+									}
+
+									EmployeeCertificate employeeCertificate = employeeCertificateRepository
+											.findById(certificate.getEmployeeCertificateId()).get();
+
+									employeeCertificate.setCertificationName(certificate.getCertificationName());
+									employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
+									employeeCertificate.setDateOfCompletion(dateOfCompletion);
+									employeeCertificate.setDuration(certificate.getDuration());
+									employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
+									employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
+
+									employeeCertificateRepository.save(employeeCertificate);
 								}
-
-								EmployeeCertificate employeeCertificate = employeeCertificateRepository
-										.findById(certificate.getEmployeeCertificateId()).get();
-
-								employeeCertificate.setCertificationName(certificate.getCertificationName());
-								employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
-								employeeCertificate.setDateOfCompletion(dateOfCompletion);
-								employeeCertificate.setDuration(certificate.getDuration());
-								employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
-								employeeCertificate.setModeOfCourse(certificate.getModeOfCourse());
-
-								employeeCertificateRepository.save(employeeCertificate);
 							});
 				}
 
@@ -1013,11 +1020,11 @@ public class DraftEmployeeService {
 					 */
 
 					List<EmployeeDocument> approvedDocumentList = employeeDocumentRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employee.getEmpId());
 					List<EmployeeCertificate> approvedCertificationsList = employeeCertificateRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employee.getEmpId());
 					List<PreviousEmployment> approvedPreviousEmploymentList = previousEmploymentRepository
-							.findByEmpId(employeedto.getEmpId());
+							.findByEmpId(employee.getEmpId());
 
 					approvedDocumentList.forEach((list) -> {
 						employeeDocumentRepository.deleteById(list.getEmployeeDocumentId());
