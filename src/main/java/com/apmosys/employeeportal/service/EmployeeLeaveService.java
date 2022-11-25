@@ -102,6 +102,7 @@ public class EmployeeLeaveService {
 					empDto.setManagerEmail(object[1] != null ? object[1].toString() : null);
 					empDto.setName(object[2] != null ? object[2].toString() : null);
 					empDto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()): null);
+					empDto.setManagerName(object[4] != null ? object[4].toString() : null);
 					});
 				
 			
@@ -154,10 +155,42 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Leave application submitted.");
 				
+				LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
 				
-			mailService.sendMailWithCC(hrMailAddress,empDto.getManagerEmail() + " , " + empDto.getEmail(),"Regarding Leave Application",
-					"Employee Id : A-"+empDto.getEmployeementId()+"<br>"+
-					"Employee Name :-  "+ empDto.getName()+"  has applied for leave ");
+				if(leaveDTO.getCreatedBy().equals(leaveDTO.getEmpId())){
+					//Leave Applied for self
+					
+					mailService.sendMailWithCC(empDto.getManagerEmail(), hrMailAddress +","+ empDto.getEmail(),
+							"Regarding Leave Application Request",
+							"Dear "+ empDto.getManagerName() + ","
+							+"<br>"+ empDto.getName() + " has applied leave for " + leaveDTO.getNoOfDays() + " days" 
+							+"<br><br> Leave Details :"
+							+"<br> EmpId : A-" + empDto.getEmployeementId()
+							+"<br> Name : " + empDto.getName()
+							+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
+							+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
+							+"<br> Leave Type : " + leaveType.getLeaveType()
+							+"<br> Leave reason : " + leaveDTO.getReason());
+					
+				}else {
+					//Leave Applied for team
+					Optional<Employee> createdByEmp = employeeRepository.findById(leaveDTO.getCreatedBy());
+					if(!createdByEmp.isEmpty()) {
+						Employee createdByObj = createdByEmp.get();
+						
+						mailService.sendMailWithCC(empDto.getManagerEmail(), hrMailAddress +","+ empDto.getEmail() +","+ createdByObj.getEmail(),
+								"Regarding Leave Application Request",
+								"Dear "+ empDto.getManagerName() + ","
+								+"<br> Leave has been applied for "+ empDto.getName() +" by "+createdByObj.getName()
+								+"<br><br> Leave Details :"
+								+"<br> EmpId : A-" + empDto.getEmployeementId()
+								+"<br> Name : " + empDto.getName()
+								+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
+								+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
+								+"<br> Leave Type : " + leaveType.getLeaveType()
+								+"<br> Leave reason : " + leaveDTO.getReason());
+					}
+				}
 			
 				apiLogInfo.setApiResponse("Leave application submitted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
