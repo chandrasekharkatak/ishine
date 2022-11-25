@@ -527,7 +527,7 @@ export class ReportDashboardComponent implements OnInit {
         console.log(employeeWorkLocationChartData, " employeeWorkLocationChartData")
         console.log(this.employeeWorkLocationList , " : employeeWorkLocation");
 
-        this.renderColumnBarSummaryChart('Employee WorkLocation Summary','employeeWorkLocationSummary',employeeWorkLocationChartData,employeeWorkLocationCategories,'employee', this.openWorkLocationSummaryTableModal.bind(this));
+        this.renderColumnBarSummaryChart('Employee Work Location Summary','employeeWorkLocationSummary',employeeWorkLocationChartData,employeeWorkLocationCategories,'employee', this.openWorkLocationSummaryTableModal.bind(this));
       } else{
         console.error(response.serviceResponse);
       }

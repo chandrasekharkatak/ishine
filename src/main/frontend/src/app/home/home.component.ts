@@ -1241,7 +1241,7 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 bulkRejectLeave(template: TemplateRef<any>){
 
   if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
-    this.alertMessage = "Reason cannot contain single character !!"
+    this.alertMessage = "please enter valid reason !!"
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
