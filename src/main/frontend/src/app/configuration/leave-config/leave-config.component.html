@@ -137,7 +137,7 @@
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                                 <td>{{holiday.dayOfTheWeek}}</td>
-                                <td>{{holiday.dateOfHoliday}}</td>
+                                <td>{{holiday.dateOfHoliday | date:'dd-MM-yyyy'}}</td>
                                 <td>{{holiday.state}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -648,7 +648,7 @@
                                     <td>{{leavePolicy.leaveType}}</td>
                                     <td class="desc-text-wrap">{{leavePolicy.description}}</td>
                                     <td>{{leavePolicy.createdByName}}</td>
-                                    <td>{{leavePolicy.createdOn}}</td>
+                                    <td>{{leavePolicy.createdOn | date:'dd-MM-yyyy'}}</td>
                                     <td>
                                         <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>

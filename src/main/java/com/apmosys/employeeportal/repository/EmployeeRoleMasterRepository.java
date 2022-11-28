@@ -16,4 +16,7 @@ public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole
 	@Query(nativeQuery = true)
 	public List<Object[]> getAccessControlList(String jobRoleName, Long departmentId, String employeeRole);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getAccessControlListByPersona(String employeeRole);
+
 }

@@ -120,8 +120,8 @@
             <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                 <td>{{20*(page-1)+i+1}}</td>
                 <td>{{compOffReq.compOffReasons}}</td>
-                <td>{{compOffReq.fromDate}}</td>
-                <td>{{compOffReq.toDate}}</td>
+                <td>{{compOffReq.fromDate | date:'dd-MM-yyyy'}}</td>
+                <td>{{compOffReq.toDate | date:'dd-MM-yyyy'}}</td>
                 <td>{{compOffReq.noOfDays}}</td>
                 <td>{{compOffReq.description}}</td>
                 <td>{{compOffReq.status}}</td>
@@ -163,8 +163,8 @@
                 <td>{{20*(page-1)+i+1}}</td>
                 <td>{{compOffApp.createdByName}}</td>
                 <td>{{compOffApp.compOffReasons}}</td>
-                <td>{{compOffApp.fromDate}}</td>
-                <td>{{compOffApp.toDate}}</td>
+                <td>{{compOffApp.fromDate | date:'dd-MM-yyyy'}}</td>
+                <td>{{compOffApp.toDate | date:'dd-MM-yyyy'}}</td>
                 <td>{{compOffApp.noOfDays}}</td>
                 <td>{{compOffApp.description}}</td>
                 <td>{{compOffApp.status}}</td>

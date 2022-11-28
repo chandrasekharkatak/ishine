@@ -25,7 +25,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date of birth</p>
-                                        <p class="info-text">{{currentEmployeeInfo.dateOfBirth}}</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -269,7 +269,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of completion</p>
-                                            <p class="info-text info-highlight">{{certification.dateOfCompletion}}</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -289,7 +289,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date Of Joining</p>
-                                        <p class="info-text">{{currentEmployeeInfo.dateOfJoining}}</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfJoining | date:'dd-MM-yyyy'}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -364,14 +364,14 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date Of Joining</p>
-                                        <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                        <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
                                         </p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date of Relieving</p>
-                                        <p class="info-text">{{previousEmployer.dateOfRelieving}} Days</p>
+                                        <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}} Days</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">

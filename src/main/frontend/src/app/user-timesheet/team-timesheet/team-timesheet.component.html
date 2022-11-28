@@ -58,7 +58,7 @@
                   <td>{{20*(page-1)+i+1}}</td>
                   <td>{{timesheet.employeementId}}</td>
                   <td>{{timesheet.employeeName}}</td>
-                  <td>{{timesheet.date}}</td>
+                  <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                   <td>{{timesheet.dayType}}</td>
                   <td colspan="4" [innerHTML]="timesheet.description"></td>
                   <td>{{timesheet.totalTime}}</td>
@@ -127,7 +127,7 @@
                   <td>{{items*(page-1)+i+1}}</td>
                   <td>A-{{timesheet.employeementId}}</td>
                   <td>{{timesheet.employeeName}}</td>
-                  <td>{{timesheet.date}}</td>
+                  <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                   <td>{{timesheet.dayType}}</td>
                   <td colspan="4" [innerHTML]="timesheet.description"></td>
                   <td>{{timesheet.createdByName}}</td>

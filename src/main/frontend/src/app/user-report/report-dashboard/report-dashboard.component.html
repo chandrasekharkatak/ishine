@@ -36,8 +36,8 @@
                 <td>{{emp.employeementId}}</td>
                 <td>{{emp.name}}</td>
                 <td>{{emp.departmentName}}</td>
-                <td>{{emp.dateOfResign}}</td>
-                <td>{{emp.dateOfRelieving}}</td>
+                <td>{{emp.dateOfResign | date:'dd-MM-yyyy'}}</td>
+                <td>{{emp.dateOfRelieving | date:'dd-MM-yyyy'}}</td>
                 <td>{{emp.managerName}}</td>   
             </tbody>
           </table>
@@ -183,8 +183,8 @@
                     <td>{{leave.employeementId}}</td>
                     <td>{{leave.employeeName}}</td>
                     <td>{{leave.departmentName}}</td>
-                    <td>{{leave.fromDate}}</td>
-                    <td>{{leave.toDate}}</td>
+                    <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{leave.status}}</td>
                 </tr>
             </tbody>
@@ -234,7 +234,7 @@
                         <td>{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
-                        <td>{{leave.date}}</td>
+                        <td>{{leave.date | date:'dd-MM-yyyy'}}</td>
                         <td>{{leave.dayType}}</td>
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
@@ -291,7 +291,7 @@
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
-                        <td>{{leave.date}}</td>
+                        <td>{{leave.date | date:'dd-MM-yyyy'}}</td>
                         <td>{{leave.dayType}}</td>
                         <td>{{leave.totalWorkingHours}}</td>
                     </tr>
@@ -347,7 +347,7 @@
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
-                        <td>{{leave.dateOfJoining}}</td>
+                        <td>{{leave.dateOfJoining | date:'dd-MM-yyyy'}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td>{{leave.employmentstatus}}</td>
                         <td>{{leave.totalExperience}}</td>
@@ -400,7 +400,7 @@
                     <td>{{emp.clientName}}</td>
                     <td>{{emp.teamName}}</td>
                     <td>{{emp.managerName}}</td>
-                    <td>{{emp.date}}</td>
+                    <td>{{emp.date | date:'dd-MM-yyyy'}}</td>
                 </tr>
             </tbody>
         </table>

@@ -820,7 +820,7 @@
                                 <td>{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
-                                <td>{{employee.dateOfJoining}}</td>
+                                <td>{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
                                     *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
@@ -912,11 +912,11 @@
                    
                     <td>{{empHistory.teamName}}</td>
                     <td>{{empHistory.projectName}}</td>
-                    <td>{{empHistory.startDate}}</td>
-                    <td>{{empHistory.endDate}}</td>
+                    <td>{{empHistory.startDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{empHistory.endDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{empHistory.teamLeadName}}</td>
-                    <td>{{empHistory.dateOfJoining}}</td>
-                    <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign}}</td>
+                    <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td>
+                    <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td>
                     <td>{{empHistory.role}}</td>
                     <td>{{empHistory.jobRoleName}}</td>
                     <td>{{empHistory.clientLocation}}</td>
@@ -1034,7 +1034,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date of birth</p>
-                                                <p class="info-text">{{previewObj.dateOfBirth}}</p>
+                                                <p class="info-text">{{previewObj.dateOfBirth | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1290,7 +1290,7 @@
                                                 <div class="info-wrapper">
                                                     <p class="info-label">Date of completion</p>
                                                     <p class="info-text info-highlight">
-                                                        {{certification.dateOfCompletion}}</p>
+                                                        {{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-4 mb-0">
@@ -1311,7 +1311,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date Of Joining</p>
-                                                <p class="info-text">{{previewObj.dateOfJoining}}</p>
+                                                <p class="info-text">{{previewObj.dateOfJoining | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1379,14 +1379,14 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date Of Joining</p>
-                                                <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                                <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date of Relieving</p>
-                                                <p class="info-text">{{previousEmployer.dateOfRelieving}} Days</p>
+                                                <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}} Days</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1538,7 +1538,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date of birth</p>
-                                                <p class="info-text">{{previewEmployeeObj.dateOfBirth}}</p>
+                                                <p class="info-text">{{previewEmployeeObj.dateOfBirth | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1794,7 +1794,7 @@
                                                 <div class="info-wrapper">
                                                     <p class="info-label">Date of completion</p>
                                                     <p class="info-text info-highlight">
-                                                        {{certification.dateOfCompletion}}</p>
+                                                        {{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-4 mb-0">
@@ -1815,7 +1815,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date Of Joining</p>
-                                                <p class="info-text">{{previewEmployeeObj.dateOfJoining}}</p>
+                                                <p class="info-text">{{previewEmployeeObj.dateOfJoining | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1883,14 +1883,14 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date Of Joining</p>
-                                                <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                                <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date of Relieving</p>
-                                                <p class="info-text">{{previousEmployer.dateOfRelieving}} Days</p>
+                                                <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}} Days</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
