@@ -286,6 +286,10 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.allCertificationList?.forEach(certificaiton => {
       console.log("All certificaiton : ", this.allCertificationList);
+      if(certificaiton.dateOfCompletion == 'Invalid date' || certificaiton.dateOfCompletion == ''){
+        certificaiton.dateOfCompletion = null;
+      }
+      console.log(certificaiton.dateOfCompletion, " : certificaiton.dateOfCompletion after")
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
         if(certificaiton.dateOfCompletion != null){
           certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
@@ -297,6 +301,12 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.allPreviousEmployment?.forEach(prevEmployer => {
       console.log("All Prev Employer : ", this.allPreviousEmployment);
+      if(prevEmployer.dateOfJoining == 'Invalid date' || prevEmployer.dateOfJoining == ''){
+        prevEmployer.dateOfJoining = null;
+      }
+      if(prevEmployer.dateOfRelieving == 'Invalid date' || prevEmployer.dateOfRelieving == ''){
+        prevEmployer.dateOfRelieving = null;
+      }
       if ((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0) && (prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)) {
         if(prevEmployer.dateOfJoining != null || prevEmployer.dateOfRelieving != null){
           prevEmployer.dateOfJoining = moment(prevEmployer.dateOfJoining).format(dateFormat);
