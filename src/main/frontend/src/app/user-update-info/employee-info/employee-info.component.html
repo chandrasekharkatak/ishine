@@ -374,7 +374,10 @@
                                 </div>
                             </div>
                             <hr>
-                            <h4 class="info-label" >Certifications <small>(Certification(s) documents is mandatory in Upload Document section)</small></h4>
+                            <h4 class="info-label" >Certifications</h4>
+                            <div class="alert alert-primary" role="alert">
+                                <p>Certification(s) are not mandatory, but if added all fields for certificate are mandatory with document in Upload Document section</p>
+                            </div>
                             <div *ngFor="let certification of allCertificationList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
@@ -510,8 +513,11 @@
                         </div>
                     </app-accordion-item>
     
-                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information (mandatory if employee is experienced)">
+                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
+                            <div class="alert alert-primary" role="alert">
+                                <p>Mandatory if user is Experienced</p>
+                            </div>
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
