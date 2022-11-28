@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,6 +31,13 @@ public class Team {
 	private String teamLeadName;
 	private String isActive;
 	
+//	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+//	private Timestamp startDate;
+//	
+//	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+//	private Timestamp endDate;
+//	
+ 
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 

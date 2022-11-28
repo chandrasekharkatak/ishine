@@ -44,7 +44,7 @@
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="resetToDate()" disabled>
-                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #fromDatePicker disabled="false" ></mat-datepicker>
                         </div>
@@ -57,7 +57,7 @@
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="compOffObj.toDate" (dateChange)="setNoOfDays(alert_message)" disabled>
-                                <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #toDatePicker disabled="false"></mat-datepicker>
                         </div>

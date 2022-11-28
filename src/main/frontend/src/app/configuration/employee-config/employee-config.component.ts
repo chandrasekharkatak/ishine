@@ -1058,6 +1058,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         this._allEmployeeList = this.allEmployeeList;
+        this.changeEvent("Active");
 
         console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)

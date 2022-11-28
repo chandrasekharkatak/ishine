@@ -315,7 +315,7 @@ export class MyTimesheetComponent implements OnInit {
         if(activity.description != ''){
   
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `single character or single digit is not allowed in Activity Description  - ${index + 1}!!`
+          this.alertMessage = `Please enter valid Activity Description  - ${index + 1}!!`
           flag = false;
           return;
         }
@@ -348,7 +348,7 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = `Only (/'&"-.) special character and digits are allowed in Activity Description  !!`
+        this.alertMessage = `Please enter valid Description  !!`
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -359,6 +359,9 @@ export class MyTimesheetComponent implements OnInit {
 
   onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
+
+    this.timesheetObj.description = this.timesheetObj.description.trim();
+
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 

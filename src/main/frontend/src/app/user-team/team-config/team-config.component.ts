@@ -41,6 +41,7 @@ export class TeamConfigComponent implements OnInit {
   isTeamTable: boolean = false;
   isActivityTable: boolean = false;
   isDisabled: boolean = false;
+  _allTeamList:any[] ;
 
   //modal 
   alertMessage: any;
@@ -384,6 +385,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamList = response.serviceResponse;
+        this._allTeamList = this.allTeamList
+        this.changeEvent("Active")
         // this.allTeamList = this.allTeamList.sort(function (a, b) {
         //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
         // });
@@ -394,6 +397,19 @@ export class TeamConfigComponent implements OnInit {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  changeEvent(value:string){
+    if(value == "Active"){
+      this.allTeamList = this._allTeamList.filter(x =>
+        x.isActive == 'Y'
+      );
+    } else if(value == "InActive"){
+      this.allTeamList = this._allTeamList.filter(x =>
+        x.isActive == 'N'
+      );
+    }
+    this.page = 1
   }
 
   getTeamMembersByTeamId(teamId: any) {
@@ -629,7 +645,6 @@ export class TeamConfigComponent implements OnInit {
       }
     });
   }
-
 
   // download excel
 
