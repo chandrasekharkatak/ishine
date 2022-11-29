@@ -91,92 +91,123 @@
             </div>
         </div>
     </div>
+</div>
 <!-- end :: Apply CompOff form -->
 
 <!-- start :: My compOff Request Table -->
-<div class="row d-flex " *ngIf="isCompOffRequestsTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">My Compensatory off Requests</h1>
-    </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+<div class="row" *ngIf="isCompOffRequestsTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">My Compensatory off Requests</h1>
+            </div>
         </div>
-    <table class="table table-responsive scrollable-table " id="compOffRequest-table" matSort (matSortChange)="sortCompensatory($event)">	
-        <thead class="thead-light">	
-          <tr>	
-            <th scope="col" class="info-label">Sr No.</th>	
-            <th scope="col" class="info-label" mat-sort-header="compOffReasons">Leave Applied For</th>	
-            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
-            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-         </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="allCompOffRequests.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-              </tr>
-            <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 20, currentPage: page };let i = index">
-                <td>{{20*(page-1)+i+1}}</td>
-                <td>{{compOffReq.compOffReasons}}</td>
-                <td>{{compOffReq.fromDate}}</td>
-                <td>{{compOffReq.toDate}}</td>
-                <td>{{compOffReq.noOfDays}}</td>
-                <td>{{compOffReq.description}}</td>
-                <td>{{compOffReq.status}}</td>
-            </tr>
-        </tbody>
-      </table>      
-      <pagination-controls class="my-pagination" [hidden]="allCompOffRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffRequests.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+
+        <div class="row">
+            <div class="form-group d-flex flex-row ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
+                    [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+                    <table class="table table-responsive" id="compOffRequest-table" matSort (matSortChange)="sortCompensatory($event)">	
+                        <thead class="thead-light">	
+                          <tr>	
+                            <th scope="col" class="info-label">Sr No.</th>	
+                            <th scope="col" class="info-label" mat-sort-header="compOffReasons">Leave Applied For</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                         </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allCompOffRequests.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                              </tr>
+                            <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                                <td>{{20*(page-1)+i+1}}</td>
+                                <td>{{compOffReq.compOffReasons}}</td>
+                                <td>{{compOffReq.fromDate}}</td>
+                                <td>{{compOffReq.toDate}}</td>
+                                <td>{{compOffReq.noOfDays}}</td>
+                                <td>{{compOffReq.description}}</td>
+                                <td>{{compOffReq.status}}</td>
+                            </tr>
+                        </tbody>
+                      </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allCompOffRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffRequests.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+        </div>
+    </div>       
 </div>
 <!-- end :: My compOff Request table -->
 
 <!-- start :: compOff Application Table -->
-<div class="row d-flex" *ngIf="isCompOffApplicationsTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
-    </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+<div class="row" *ngIf="isCompOffApplicationsTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
+            </div>
         </div>
-    <table class="table table-responsive scrollable-table " id="compOffApplication-table" matSort (matSortChange)="sortReporteeCompensatory($event)">	
-        <thead class="thead-light">	
-          <tr>	
-            <th scope="col" class="info-label">Sr No.</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-            <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>	
-            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
-            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-            <th scope="col" class="info-label">Actions</th>
-         </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="allCompOffApplications.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-              </tr>
-            <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
-                <td>{{20*(page-1)+i+1}}</td>
-                <td>{{compOffApp.createdByName}}</td>
-                <td>{{compOffApp.compOffReasons}}</td>
-                <td>{{compOffApp.fromDate}}</td>
-                <td>{{compOffApp.toDate}}</td>
-                <td>{{compOffApp.noOfDays}}</td>
-                <td>{{compOffApp.description}}</td>
-                <td>{{compOffApp.status}}</td>
-                <td>
-                    <button *ngIf="userMapping.update_comp_off_applications_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                    <button *ngIf="userMapping.update_comp_off_applications_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-                </td>
-            </tr>
-        </tbody>
-      </table>  
-      <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
+
+        <div class="row">
+            <div class="form-group d-flex flex-row ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffAppInfo'" [tableTHeadId]="'compOffAppInfoTHead'"
+                    [tableTHeadTrId]="'compOffAppInfoTHeadTr'">
+                    <table class="table table-responsive scrollable-table " id="compOffAppInfo" matSort (matSortChange)="sortReporteeCompensatory($event)">	
+                        <thead class="thead-light" id="compOffAppInfoTHead">	
+                          <tr id="compOffAppInfoTHeadTr">	
+                            <th scope="col" class="info-label">Sr No.</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
+                            <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                            <th scope="col" class="info-label">Actions</th>
+                         </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allCompOffApplications.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                              </tr>
+                            <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                                <td>{{20*(page-1)+i+1}}</td>
+                                <td>{{compOffApp.createdByName}}</td>
+                                <td>{{compOffApp.compOffReasons}}</td>
+                                <td>{{compOffApp.fromDate}}</td>
+                                <td>{{compOffApp.toDate}}</td>
+                                <td>{{compOffApp.noOfDays}}</td>
+                                <td>{{compOffApp.description}}</td>
+                                <td>{{compOffApp.status}}</td>
+                                <td>
+                                    <button *ngIf="userMapping.update_comp_off_applications_status" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                                    <button *ngIf="userMapping.update_comp_off_applications_status" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                      </table>
+                      <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
+                </div>
+            </div>
+        </div>
+    </div>  
 </div>
 <!-- end :: compOff Application table -->
 

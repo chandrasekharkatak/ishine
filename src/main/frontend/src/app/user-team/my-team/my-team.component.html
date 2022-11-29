@@ -9,343 +9,424 @@
   
   
   <!-- Table of View Team -->
-  
-  <div *ngIf="isViewTeam" class="row col-md-12">
-    <div class="table-header">
-      <h1 class="table-header-title">My Team</h1>
-  </div>
-  <div class="container">
-    <div class="form-group ml-auto col-md-4">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-    </div>
-      <div class="row breadcrumb-div">
-        <p class="hierarchy-breadcrumb" *ngFor="let breadcrumb of breadCrumbs; let a = index" (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
-      </div>
-  </div>
-  <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">	
-    <thead class="thead-light">	
-      <tr>	
-        <th scope="col" class="info-label">Sr No.</th>	
-        <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
-        <th scope="col" class="info-label" mat-sort-header="name">Name</th>	
-        <th scope="col" class="info-label" mat-sort-header="email">Email</th>	
-        <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>	
-        <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>	
-        <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
-        <th scope="col" class="info-label">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="teamViewList.length == 0">
-          <th colspan="8" class="text-center info-label">No details to display...</th>
-        </tr>
-        <tr *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index" (click)="myTeamHierarchy(teamView)">
-          <td class="info-label">{{10*(page-1)+i+1}}</td>
-          <td class="info-label">A-{{teamView.employeementId}}</td>
-          <td class="info-label myTeam-hierarchy">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i></td>
-          <td class="info-label">{{teamView.email}}</td>
-          <td class="info-label">{{teamView.jobRoleName}}</td>
-          <td class="info-label">{{teamView.mobileNo}}</td>
-          <td class="info-label">{{teamView.managerName}}</td>
-          <td>
-            <button *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)" class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button> 
-
-            <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <pagination-controls class="my-pagination" [hidden]="teamViewList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-   </div> 
-   
-     <!-- Table of View Team  Leave History  -->
-
-     
-  <div class="row col-md-12" *ngIf="isTeamLeaveHistory">
-    <div class="table-header">
-      <h1 class="table-header-title">My Team Leave History</h1>
-  </div>
-  <div class="row mb-3">
-    <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveHistory}" (click)="viewLeaveHistory()">View Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffHistory}" (click)="viewCompOffHistory()">View CompOff History</button>
-    </div>
-  </div>
-
-  <!-- Table of view Leave History -->
-
-  <div class="row col-md-12" *ngIf="isLeaveHistory">
+<div class="row" *ngIf="isViewTeam">
+  <div class="col-md-12">
     <div class="row">
-      <div class="col-md-6 mb-0">
-        <div class="info-wrapper">
-            <div class="form-group">
-                <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                <input id="historyFromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
-            </div>
-        </div>
-    </div>
-      <div class="col-md-6 mb-0">
-          <div class="info-wrapper">
-              <div class="form-group">
-                  <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                  <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
-              </div>
-          </div>
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">My Team</h1>
       </div>
-  </div>
-  <div class="form-group ml-auto col-md-3 search-box">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-  </div>
-  <table class="table leave-history-table" id="leave-history-table" matSort (matSortChange)="sortViewLeaveHistory($event)">	
-    <thead class="thead-light">	
-      <tr>	
-        <th scope="col" class="info-label"> Sr No.</th>	
-        <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
-        <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
-        <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
-        <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
-        <!-- <th scope="col" class="info-label">Approver</th>	
-        <th scope="col" class="info-label">Approval Date</th> -->	
-        <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-        <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-        <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
-        <th scope="col" class="info-label" mat-sort-header="reason">Leave Reason</th>	
-        <th scope="col" class="info-label" mat-sort-header="leaveType">Type</th>
-        <th scope="col" class="info-label" >Remarks</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="teamViewLeaveHistoryList.length == 0">
-          <th colspan="9" class="text-center info-label">No details to display...</th>
-        </tr>
-        <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-          <td class="info-label">{{10*(page-1)+i+1}}</td>
-          <td class="info-label">{{leaveHistory.createdByName}}</td>
-          <td class="info-label">{{leaveHistory.fromDate}}</td>
-          <td class="info-label">{{leaveHistory.toDate}}</td>
-          <td class="info-label">{{leaveHistory.createdOn | date:'dd-MM-yyyy'}}</td>
-          <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
-          <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
-          <td class="info-label">{{leaveHistory.noOfDays}}</td>
-          <td class="info-label">{{leaveHistory.status}}</td>
-          <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
-          <td class="info-label">{{leaveHistory.reason}}</td>
-          <td class="info-label">{{leaveHistory.leaveType}}</td>
-          <td class="info-label">{{leaveHistory.remark}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <pagination-controls class="my-pagination" [hidden]="teamViewLeaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-  </div>
-    <!-- Table of view Comp OFF History -->
+    </div>
 
-    <div class="row col-md-12" *ngIf="isCompOffHistory">
-      <div class="row">
-        <div class="col-md-6 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                    <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                    <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="form-group ml-auto col-md-3 search-box">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-    </div>
-    <table class="table compOff-history-table" id="compOff-history-table" matSort (matSortChange)="sortViewCompOffLeave($event)">	
-      <thead class="thead-light">	
-        <tr>	
-          <th scope="col" class="info-label"> Sr No.</th>	
-          <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
-          <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
-          <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
-          <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
-          <!-- <th scope="col" class="info-label">Approver</th>	
-          <th scope="col" class="info-label">Approval Date</th> -->	
-          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-          <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-          <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
-          <th scope="col" class="info-label" mat-sort-header="reason">Comp-Off Reason</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="teamViewCompOffHistoryList.length == 0">
-          <th colspan="9" class="text-center info-label">No details to display...</th>
-        </tr>
-        <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-        <td class="info-label">{{10*(page-1)+i+1}}</td>
-        <td class="info-label">{{compOffHistory.createdByName}}</td>
-        <td class="info-label">{{compOffHistory.fromDate}}</td>
-        <td class="info-label">{{compOffHistory.toDate}}</td>
-        <td class="info-label">{{compOffHistory.createdOn | date:'yyyy-MM-dd'}}</td>
-        <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
-        <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
-        <td class="info-label">{{compOffHistory.noOfDays}}</td>
-        <td class="info-label">{{compOffHistory.status}}</td>
-        <td class="info-label">{{compOffHistory.leaveStatusUpdatedByName}}</td>
-        <td class="info-label">{{compOffHistory.reason}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <pagination-controls class="my-pagination" [hidden]="teamViewCompOffHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-  </div>
-</div>
-  
-  <!-- Table of View Team Request  -->
-
-  
-  <div class="row col-md-12" *ngIf="isTeamRequest">
-    <div class="table-header">
-      <h1 class="table-header-title">My Team Requests</h1>
-  </div>
-  <div class="row mb-3">
-    <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}" (click)="viewTeamLeaveRequest()">View Leave Request</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffRequest}" (click)="viewTeamCompOffRequest()">View CompOff Request</button>
-    </div>
-  </div>
-
-  <!-- Leave Request Table -->
-  
-  <div class="row col-md-12" *ngIf="isLeaveRequest">
-    <div *ngIf="bulkTeamLeaveApprove.length > 1 && bulkTeamLeaveReject.length > 1"
-      class="form-group ">
-      <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkTeamLeaveApproval()">Bulk
-        Approve</button>&nbsp;
-      <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openBulklLeaveReject(teamLeave_reject)">Bulk
-        Reject</button>
-    </div>
-    
-    <div class="row col-md-12">
-      <div class="form-inline col-md-3">
-        <small>View</small>
-        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
-          (change)="page=1">
-          <option class="option-bg" selected value="10">10</option>
-          <option class="option-bg" value="20">20</option>
-          <option class="option-bg" value="50">50</option>
-          <option class="option-bg" value="100">100</option>
-        </select>
-        <small>entries</small>
-      </div>
-      <div class="row d-flex ml-auto col-md-3">
+    <div class="row">
+      <div class="form-group ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
       </div>
     </div>
-      
-    
-    <!-- <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-      </div> -->
-    <table class="table leave-request-table" id="leave-request-table" matSort
-      (matSortChange)="sortLeaveRequestTable($event)">
-      <thead class="thead-light">
-        <tr>
-          <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
-              [(ngModel)]="isSelectAll"></th>
-          <th scope="col" class="info-label">Sr No.</th>
-          <th scope="col" class="info-label">Name</th>
-          <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
-          <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
-          <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
-          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
-          <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-          <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
-          <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
-          <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
-          <th scope="col" class="info-label">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="leaveApplicationList.length == 0">
-          <th colspan="9" class="text-center info-label">No details to display...</th>
-        </tr>
-        <tr
-          *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-          <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
-              [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
-          <td>{{items*(page-1)+i+1}}</td>
-          <td>{{leaveApplication.employeeName}}</td>
-          <td>{{leaveApplication.leaveType}}</td>
-          <td>{{leaveApplication.fromDate}}</td>
-          <td>{{leaveApplication.toDate}}</td>
-          <td>{{leaveApplication.noOfDays}} day(s)</td>
-          <td>{{leaveApplication.status}}</td>
-          <td>{{leaveApplication.createdByName}}</td>
-          <td>{{leaveApplication.createdOn}}</td>
-          <td>{{leaveApplication.reason}}</td>
-          <td>
-            <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit"
-              (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
-                class="fa-solid fa-check"></em></button>&nbsp;
-            <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
-              (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
-                class="fa-solid fa-xmark"></em></button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0"
-      (pageChange)="handlePageChange($event)"></pagination-controls>
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-      [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
-        class="fa fa-file-arrow-down fa-2x"></em></button>
-  </div>
 
-<!-- CompOff Request table -->
-
-<div class="row col-md-12" *ngIf="isCompOffRequest">
-  <div class="form-group ml-auto col-md-3">
-    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+    <div class="row">
+      <div class="col-md-12 breadcrumb-div">
+        <p class="hierarchy-breadcrumb" *ngFor="let breadcrumb of breadCrumbs; let a = index"
+          (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
+      </div>
     </div>
-  <table class="table compOffApplication-table" id="compOffApplication-table" matSort (matSortChange)="sortCompOffRequestTable($event)">	
-    <thead class="thead-light">	
-      <tr>	
-        <th scope="col" class="info-label">Sr No.</th>	
-        <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-        <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>	
-        <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-        <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-        <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-        <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
-        <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-      <th scope="col" class="info-label">Actions</th>
-   </tr>
-  </thead>
-  <tbody>
-    <tr *ngIf="allCompOffApplications.length == 0">
-      <th colspan="9" class="text-center info-label">No details to display...</th>
-    </tr>
-      <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-          <td>{{10*(page-1)+i+1}}</td>
-          <td>{{compOffApp.createdByName}}</td>
-          <td>{{compOffApp.compOffReasons}}</td>
-          <td>{{compOffApp.fromDate}}</td>
-          <td>{{compOffApp.toDate}}</td>
-          <td>{{compOffApp.noOfDays}}</td>
-          <td>{{compOffApp.description}}</td>
-          <td>{{compOffApp.status}}</td>
-          <td>
-              <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-              <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-          </td>
-      </tr>
-  </tbody>
-</table>
-<pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-<button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
+          [tableTHeadTrId]="'holidayInfoTHeadTr'">
+          <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="name">Name</th>
+                <th scope="col" class="info-label" mat-sort-header="email">Email</th>
+                <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>
+                <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
+                <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
+                <th scope="col" class="info-label">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="teamViewList.length == 0">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
+                (click)="myTeamHierarchy(teamView)">
+                <td class="info-label">{{10*(page-1)+i+1}}</td>
+                <td class="info-label">A-{{teamView.employeementId}}</td>
+                <td class="info-label myTeam-hierarchy">{{teamView.name}} <i class="fa-solid fa-sitemap"
+                    *ngIf="teamView.isHierarchy"></i></td>
+                <td class="info-label">{{teamView.email}}</td>
+                <td class="info-label">{{teamView.jobRoleName}}</td>
+                <td class="info-label">{{teamView.mobileNo}}</td>
+                <td class="info-label">{{teamView.managerName}}</td>
+                <td>
+                  <button
+                    *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
+                    class="btn btn-sm btn-outline-primary" type="submit"
+                    (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>
+
+                  <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="teamViewList.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+          [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Table of View Team  Leave History  -->
+<div class="row" *ngIf="isTeamLeaveHistory">
+  <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12 table-header">
+          <h1 class="table-header-title">My Team Leave History</h1>
+        </div>  
+      </div>
+
+      <div class="row mb-2">
+        <div class="col-md-12">
+          <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveHistory}" (click)="viewLeaveHistory()">View Leave History</button>
+          <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffHistory}" (click)="viewCompOffHistory()">View CompOff History</button>
+        </div>
+      </div>
+
+      <!-- Table of view Leave History -->
+      <div class="row" *ngIf="isLeaveHistory">
+        <div class="col-md-12">
+          <div class="row mb-2">
+            <div class="col-md-4 mb-0">
+              <div class="info-wrapper">
+                  <div class="form-group">
+                      <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                      <input id="historyFromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
+                  </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                  <div class="info-wrapper">
+                      <div class="form-group">
+                          <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                          <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
+                      </div>
+                  </div>
+              </div>
+
+              <div class="form-group ml-auto col-md-3 search-box">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+              </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
+                    [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
+                    <table class="table leave-history-table" id="leaveHistoryInfo" matSort (matSortChange)="sortViewLeaveHistory($event)">	
+                      <thead class="thead-light" id="leaveHistoryInfoTHead">	
+                        <tr id="leaveHistoryInfoTHeadTr">	
+                          <th scope="col" class="info-label"> Sr No.</th>	
+                          <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
+                          <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
+                          <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
+                          <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
+                          <!-- <th scope="col" class="info-label">Approver</th>	
+                          <th scope="col" class="info-label">Approval Date</th> -->	
+                          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+                          <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+                          <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
+                          <th scope="col" class="info-label" mat-sort-header="reason">Leave Reason</th>	
+                          <th scope="col" class="info-label" mat-sort-header="leaveType">Type</th>
+                          <th scope="col" class="info-label" >Remarks</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngIf="teamViewLeaveHistoryList.length == 0">
+                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                          </tr>
+                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                            <td class="info-label">{{10*(page-1)+i+1}}</td>
+                            <td class="info-label">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label">{{leaveHistory.fromDate}}</td>
+                            <td class="info-label">{{leaveHistory.toDate}}</td>
+                            <td class="info-label">{{leaveHistory.createdOn | date:'dd-MM-yyyy'}}</td>
+                            <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
+                            <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
+                            <td class="info-label">{{leaveHistory.noOfDays}}</td>
+                            <td class="info-label">{{leaveHistory.status}}</td>
+                            <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label">{{leaveHistory.reason}}</td>
+                            <td class="info-label">{{leaveHistory.leaveType}}</td>
+                            <td class="info-label">{{leaveHistory.remark}}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <pagination-controls class="my-pagination" [hidden]="teamViewLeaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+              </div>
+          </div>
+      </div>
+    </div>
+    <!-- Table of view Comp OFF History -->
+    <div class="row" *ngIf="isCompOffHistory">
+      <div class="col-md-12">
+        <div class="row mb-2">
+          <div class="col-md-4 mb-0">
+              <div class="info-wrapper">
+                  <div class="form-group">
+                      <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                      <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-0">
+              <div class="info-wrapper">
+                  <div class="form-group">
+                      <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                      <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
+                  </div>
+              </div>
+          </div>
+          <div class="form-group ml-auto col-md-3 search-box">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+          </div>
+      </div>
+  
+      <div class="row">
+        <div class="col-md-12">
+          <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffHistoryInfo'" [tableTHeadId]="'compOffHistoryInfoTHead'"
+          [tableTHeadTrId]="'compOffHistoryInfoTHeadTr'">
+          <table class="table compOff-history-table" id="compOffHistoryInfo" matSort (matSortChange)="sortViewCompOffLeave($event)">	
+            <thead class="thead-light" id="compOffHistoryInfoTHead">	
+              <tr id="compOffHistoryInfoTHeadTr">	
+                <th scope="col" class="info-label"> Sr No.</th>	
+                <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
+                <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
+                <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
+                <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
+                <!-- <th scope="col" class="info-label">Approver</th>	
+                <th scope="col" class="info-label">Approval Date</th> -->	
+                <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
+                <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
+                <th scope="col" class="info-label" mat-sort-header="reason">Comp-Off Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="teamViewCompOffHistoryList.length == 0">
+                <th colspan="9" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <td class="info-label">{{10*(page-1)+i+1}}</td>
+              <td class="info-label">{{compOffHistory.createdByName}}</td>
+              <td class="info-label">{{compOffHistory.fromDate}}</td>
+              <td class="info-label">{{compOffHistory.toDate}}</td>
+              <td class="info-label">{{compOffHistory.createdOn | date:'yyyy-MM-dd'}}</td>
+              <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
+              <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
+              <td class="info-label">{{compOffHistory.noOfDays}}</td>
+              <td class="info-label">{{compOffHistory.status}}</td>
+              <td class="info-label">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label">{{compOffHistory.reason}}</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <pagination-controls class="my-pagination" [hidden]="teamViewCompOffHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+<!-- Table of View Team Request  -->
+<div class="row" *ngIf="isTeamRequest">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">My Team Requests</h1>
+      </div>
+    </div>
+    <div class="row mb-2">
+      <div class="col-md-12">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}"
+          (click)="viewTeamLeaveRequest()">View Leave Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffRequest}"
+          (click)="viewTeamCompOffRequest()">View CompOff Request</button>
+      </div>
+    </div>
+
+    <!-- Leave Request Table -->
+    <div class="row" *ngIf="isLeaveRequest">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12" *ngIf="bulkTeamLeaveApprove.length > 1 && bulkTeamLeaveReject.length > 1"
+            class="form-group ">
+            <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkTeamLeaveApproval()">Bulk
+              Approve</button>&nbsp;
+            <button type="submit" class="btn btn-sm btn-outline-danger ml-2"
+              (click)="openBulklLeaveReject(teamLeave_reject)">Bulk
+              Reject</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-inline col-md-6">
+            <small>View</small>
+            <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+              (change)="page=1">
+              <option class="option-bg" selected value="10">10</option>
+              <option class="option-bg" value="20">20</option>
+              <option class="option-bg" value="50">50</option>
+              <option class="option-bg" value="100">100</option>
+            </select>
+            <small>entries</small>
+          </div>
+          <div class="form-group ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveRequestInfo'"
+              [tableTHeadId]="'leaveRequestInfoTHead'" [tableTHeadTrId]="'leaveRequestInfoTHeadTr'">
+              <table class="table leave-request-table" id="leaveRequestInfo" matSort
+                (matSortChange)="sortLeaveRequestTable($event)">
+                <thead class="thead-light" id="leaveRequestInfoTHead">
+                  <tr id="leaveRequestInfoTHeadTr">
+                    <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+                        [(ngModel)]="isSelectAll"></th>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
+                    <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+                    <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
+                    <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="leaveApplicationList.length == 0">
+                    <th colspan="9" class="text-center info-label">No details to display...</th>
+                  </tr>
+                  <tr
+                    *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                    <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
+                        [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
+                    <td>{{items*(page-1)+i+1}}</td>
+                    <td>{{leaveApplication.employeeName}}</td>
+                    <td>{{leaveApplication.leaveType}}</td>
+                    <td>{{leaveApplication.fromDate}}</td>
+                    <td>{{leaveApplication.toDate}}</td>
+                    <td>{{leaveApplication.noOfDays}} day(s)</td>
+                    <td>{{leaveApplication.status}}</td>
+                    <td>{{leaveApplication.createdByName}}</td>
+                    <td>{{leaveApplication.createdOn}}</td>
+                    <td>{{leaveApplication.reason}}</td>
+                    <td>
+                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit"
+                        (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
+                          class="fa-solid fa-check"></em></button>&nbsp;
+                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+                        (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
+                          class="fa-solid fa-xmark"></em></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+              [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CompOff Request table -->
+    <div class="row" *ngIf="isCompOffRequest">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="form-group ml-auto col-md-3">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
+              [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+              <table class="table compOffApplication-table" id="compOffApplication-table" matSort
+                (matSortChange)="sortCompOffRequestTable($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                    <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>
+                    <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+                    <th scope="col" class="info-label" mat-sort-header="description">Description</th>
+                    <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="allCompOffApplications.length == 0">
+                    <th colspan="9" class="text-center info-label">No details to display...</th>
+                  </tr>
+                  <tr
+                    *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                    <td>{{10*(page-1)+i+1}}</td>
+                    <td>{{compOffApp.createdByName}}</td>
+                    <td>{{compOffApp.compOffReasons}}</td>
+                    <td>{{compOffApp.fromDate}}</td>
+                    <td>{{compOffApp.toDate}}</td>
+                    <td>{{compOffApp.noOfDays}}</td>
+                    <td>{{compOffApp.description}}</td>
+                    <td>{{compOffApp.status}}</td>
+                    <td>
+                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success"
+                        type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em
+                          class="fa-solid fa-check"></em></button>&nbsp;
+                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+                        (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
+                          class="fa-solid fa-xmark"></em></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em
+                  class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal Template -->
