@@ -363,6 +363,11 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
+            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.employerName)){
+              this.alertMessage = `Please Enter valid Employer Name - ${index+1}!!`;
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
             }
         
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
@@ -384,9 +389,31 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
+            }else  if(!this.validationService.validateNumber(previousEmployer.yearsOfExperience)){
+              this.alertMessage = `Please Enter valid Years of Experience - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
             }
-      
+            
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.designation)){
+              this.alertMessage = `Please Enter Designation - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else if(!this.validationService.validateAlphaWithSpace(previousEmployer.designation)){
+              this.alertMessage = `Please Enter valid Designation - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
+              this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.managerName)){
               this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
@@ -398,6 +425,11 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
+            }else  if(!this.validationService.validateMobileNumber(previousEmployer.managerContactNumber)){
+              this.alertMessage = `Please Enter valid Manager Contact Number - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
             }
       
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
@@ -405,10 +437,20 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
+            }else  if(!this.validationService.validateAlphabeticCharacters(previousEmployer.hrName)){
+              this.alertMessage = `Please Enter valid HR Name - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
             }
       
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
               this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else if(!this.validationService.validateMobileNumber(previousEmployer.hrContactNumber)){
+              this.alertMessage = `Please Enter valid HR Contact Number - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;

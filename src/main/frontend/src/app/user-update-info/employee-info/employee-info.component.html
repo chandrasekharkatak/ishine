@@ -32,7 +32,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Your views on our Organisation</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.viewsOnOrganisation">
+                                            <textarea type="text" class="form-control" autocomplete="none" rows="1" [(ngModel)]="employeeObj.viewsOnOrganisation"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -40,7 +40,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>About me</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aboutMe">
+                                            <textarea type="text" class="form-control" autocomplete="none" rows="1" [(ngModel)]="employeeObj.aboutMe"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -60,7 +60,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date of Birth</p>
-                                        <p class="info-text">{{employeeObj.dateOfBirth}}</p>
+                                        <p class="info-text">{{employeeObj.dateOfBirth | date:'dd-MM-yyyy'}}</p>
                                     </div>
 
                                     <!-- <div class="info-wrapper">
@@ -374,7 +374,10 @@
                                 </div>
                             </div>
                             <hr>
-                            <h4 class="info-label" >Certifications</h4>
+                            <h4 class="info-label" >Certifications</h4> 
+                            <div class="alert alert-primary" role="alert">
+                                <p>Certification(s) are not mandatory, but if added all fields for certificate are mandatory with document in Upload Document section</p>
+                            </div>
                             <div *ngFor="let certification of allCertificationList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
@@ -448,7 +451,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date Of Joining</p>
-                                        <p class="info-text">{{employeeObj.dateOfJoining}}</p>
+                                        <p class="info-text">{{employeeObj.dateOfJoining | date:'dd-MM-yyyy'}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -512,6 +515,9 @@
     
                     <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
+                            <div class="alert alert-primary" role="alert">
+                                <p>Mandatory if user is Experienced</p>
+                            </div>
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">

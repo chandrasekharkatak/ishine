@@ -144,4 +144,41 @@ public class ReportService {
 		return response;
 	}
 
+	public ServiceResponse getAccessControlListByPersona(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> accessControlList = employeeRoleMasterRepository
+					.getAccessControlListByPersona(employeeDto.getEmployeeRole());
+			
+			List<EmployeeDTO> dtoList = new ArrayList<>();
+			
+			if(!accessControlList.isEmpty()) {
+				
+				accessControlList.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					
+					empDTO.setEmployeeRole(object[0] != null ? object[0].toString() : null);
+					empDTO.setTabName(object[1] != null ? object[1].toString() : null);
+					empDTO.setFeatureName(object[2] != null ? object[2].toString() : null);
+					empDTO.setSubFeatureName(object[3] != null ? object[3].toString() : null);
+					
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+				response.setServiceResponse(dtoList);
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("ACL (Access control list) is empty.");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }

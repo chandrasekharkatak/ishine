@@ -684,12 +684,11 @@ export class ReportDashboardComponent implements OnInit {
         if(employee.totalExperience == null)employee.totalExperience = 0;
         let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
         employee.totalExperience = empTotalExperience.toFixed(1);
-        console.log(empTotalExperience);
-        if(empTotalExperience >= 0 && empTotalExperience <= 1)experienceCountBetween0and1++;
-        else if(empTotalExperience > 1 && empTotalExperience <= 2)experienceCountBetween1and2++;
-        else if(empTotalExperience > 2 && empTotalExperience <= 5)experienceCountBetween2and5++;
-        else if(empTotalExperience > 5 && empTotalExperience <= 10)experienceCountBetween5and10++;
-        else if(empTotalExperience > 10)experienceCountAbove10++;
+        if(employee.totalExperience >= 0 && employee.totalExperience <= 1)experienceCountBetween0and1++
+        else if(employee.totalExperience > 1 && employee.totalExperience <= 2)experienceCountBetween1and2++;
+        else if(employee.totalExperience > 2 && employee.totalExperience <= 5)experienceCountBetween2and5++;
+        else if(employee.totalExperience > 5 && employee.totalExperience <= 10)experienceCountBetween5and10++;
+        else if(employee.totalExperience > 10)experienceCountAbove10++;
       }
       
       if(employee.joiningMonth == 'January' && moment(employee.dateOfJoining).year() == currentYear)joiningJanCount++;
@@ -1667,7 +1666,7 @@ export class ReportDashboardComponent implements OnInit {
       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
-  openEmployeeExperienceModalTable(pointName:any){
+  openEmployeeExperienceModalTable(pointName:any){ 
     this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');

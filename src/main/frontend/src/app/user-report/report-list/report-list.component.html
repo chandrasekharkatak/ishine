@@ -43,8 +43,8 @@
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
-                <td>{{leave.fromDate}}</td>
-                <td>{{leave.toDate}}</td>
+                <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
+                <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
                 <td>{{leave.noOfDays}}</td>
                 <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
@@ -94,7 +94,7 @@
                 *ngFor="let timesheet of allTimesheetApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td colspan="4">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
@@ -190,14 +190,14 @@
             <td>{{employee.mobileNo}}</td>
             <td>{{employee.email}}</td>
             <td>{{employee.employmentstatus}}</td>
-            <td>{{employee.dateOfJoining}}</td>
+            <td>{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</td>
             <td>{{employee.aadhar}}</td>
             <td>{{employee.aboutMe}}</td>
             <td>{{employee.address}}</td>
             <td>{{employee.permanentAddress}}</td>
             <td>{{employee.city}}</td>
             <td>{{employee.bloodGroup}}</td>
-            <td>{{employee.dateOfBirth}}</td>
+            <td>{{employee.dateOfBirth | date:'dd-MM-yyyy'}}</td>
             <td>{{employee.gender}}</td>
             <td>{{employee.fatherName}}</td>
 
@@ -233,7 +233,7 @@
             <td>{{employee.passingGrade}}</td>
             <td>{{employee.yearOfPassing}}</td>
             <td>{{employee.createdBy}}</td>
-            <td>{{employee.createdOn}}</td>
+            <td>{{employee.createdOn | date:'dd-MM-yyyy'}}</td>
           </tr>
         </tbody>
       </table>
@@ -288,8 +288,8 @@
           <thead class="thead-light table-scroll">	
             <tr>
               <th scope="col" class="info-label" >Sr No.</th>	
-              <th scope="col" class="info-label">Department Name</th>
-              <th scope="col" class="info-label">Designation</th>	
+              <th scope="col" class="info-label" *ngIf="!isAccessControlListByPersona">Department Name</th>
+              <th scope="col" class="info-label" *ngIf="!isAccessControlListByPersona">Designation</th>	
               <th scope="col" class="info-label">Employee Role</th>	
               <th scope="col" class="info-label">Tab Name</th>	
               <th scope="col" class="info-label">Feature Name</th>	
@@ -302,8 +302,8 @@
               </tr>
               <tr *ngFor="let acl of accessControlList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                   <th class="info-label">{{i+1}}</th>
-                  <td>{{acl.departmentName}}</td>
-                  <td>{{acl.jobRoleName}}</td>
+                  <td *ngIf="!isAccessControlListByPersona">{{acl.departmentName}}</td>
+                  <td *ngIf="!isAccessControlListByPersona">{{acl.jobRoleName}}</td>
                   <td>{{acl.employeeRole}}</td>
                   <td>{{acl.tabName}}</td>
                   <td>{{acl.featureName}}</td>

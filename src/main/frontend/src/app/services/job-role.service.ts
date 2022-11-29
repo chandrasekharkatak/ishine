@@ -40,4 +40,8 @@ export class JobRoleService {
     return this.http.post(`${this.baseUrl}`+`api/getAccessControlListData`, employeeObj);
   }
 
+  getAccessControlListByPersona(employeeObj : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getAccessControlListByPersona`, employeeObj);
+  }
+
 }

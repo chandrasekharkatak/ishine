@@ -156,8 +156,8 @@
                           <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
                             <td class="info-label">{{leaveHistory.createdByName}}</td>
-                            <td class="info-label">{{leaveHistory.fromDate}}</td>
-                            <td class="info-label">{{leaveHistory.toDate}}</td>
+                            <td class="info-label">{{leaveHistory.fromDate | date:'dd-MM-yyyy'}}</td>
+                            <td class="info-label">{{leaveHistory.toDate | date:'dd-MM-yyyy'}}</td>
                             <td class="info-label">{{leaveHistory.createdOn | date:'dd-MM-yyyy'}}</td>
                             <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
                             <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
@@ -229,8 +229,8 @@
               <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
               <td class="info-label">{{compOffHistory.createdByName}}</td>
-              <td class="info-label">{{compOffHistory.fromDate}}</td>
-              <td class="info-label">{{compOffHistory.toDate}}</td>
+              <td class="info-label">{{compOffHistory.fromDate | date:'dd-MM-yyyy'}}</td>
+              <td class="info-label">{{compOffHistory.toDate | date:'dd-MM-yyyy'}}</td>
               <td class="info-label">{{compOffHistory.createdOn | date:'yyyy-MM-dd'}}</td>
               <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
               <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
@@ -334,8 +334,8 @@
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate}}</td>
-                    <td>{{leaveApplication.toDate}}</td>
+                    <td>{{leaveApplication.fromDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{leaveApplication.toDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
                     <td>{{leaveApplication.createdByName}}</td>
@@ -400,8 +400,8 @@
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
-                    <td>{{compOffApp.fromDate}}</td>
-                    <td>{{compOffApp.toDate}}</td>
+                    <td>{{compOffApp.fromDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{compOffApp.toDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{compOffApp.noOfDays}}</td>
                     <td>{{compOffApp.description}}</td>
                     <td>{{compOffApp.status}}</td>

@@ -26,7 +26,7 @@
                     <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">A-{{employee.employeementId}}</span></h6>
                     <h6 class="mr-5 mt-2 info-label">Email : <span style=" color: #193d8a;">{{employee.email}}</span></h6>
                     <h6 class="mr-5 mt-2 info-label">Employment Status : <span style=" color: #193d8a;">{{employee.employmentstatus}}</span></h6>
-                    <h6 class="mr-5 mt-2 info-label">Joining Date : <span style=" color: #193d8a;">{{employee.dateOfJoining}}</span></h6>
+                    <h6 class="mr-5 mt-2 info-label">Joining Date : <span style=" color: #193d8a;">{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</span></h6>
                   </div>
                   <div class="d-flex">
                     <h6 class="mr-5 mt-2 info-label">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>

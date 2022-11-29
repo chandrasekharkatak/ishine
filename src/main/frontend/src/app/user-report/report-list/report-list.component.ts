@@ -46,6 +46,7 @@ export class ReportListComponent implements OnInit {
   isTimesheetReportTable:boolean = false;
   isEmployeeReportTable:boolean = false;
   isAccessControlListTable:boolean = false;
+  isAccessControlListByPersona:boolean = false;
 
   allEmployeeList:any[] = [];
 
@@ -329,7 +330,22 @@ export class ReportListComponent implements OnInit {
 
   selectPersona(event) {
     this.employeeRole = event.target.value;
-    this.getAccessControlListData(this.alertModal);
+    if(this.jobRoleName != null){
+      this.getAccessControlListData(this.alertModal);
+    }else{
+      this.employeeObj.employeeRole = this.employeeRole;
+      this.jobRoleService.getAccessControlListByPersona(this.employeeObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.isAccessControlListByPersona = true;
+          console.log(this.isAccessControlListByPersona);
+          
+          this.accessControlList = response.serviceResponse;
+          console.log("accessControlList : ", this.accessControlList);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
+    }
   }
 
   getAccessControlListData(template: TemplateRef<any>) {
@@ -350,13 +366,13 @@ export class ReportListComponent implements OnInit {
     
     this.jobRoleService.getAccessControlListData(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.isAccessControlListByPersona = false;
         this.accessControlList = response.serviceResponse;
         console.log("accessControlList : ", this.accessControlList);
       } else {
         console.error(response.serviceResponse)
       }
     });
-
   }
 
   /* Filter */

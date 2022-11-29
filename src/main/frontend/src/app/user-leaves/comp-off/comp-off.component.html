@@ -44,7 +44,7 @@
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="resetToDate()" disabled>
-                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #fromDatePicker disabled="false" ></mat-datepicker>
                         </div>
@@ -57,7 +57,7 @@
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="compOffObj.toDate" (dateChange)="setNoOfDays(alert_message)" disabled>
-                                <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #toDatePicker disabled="false"></mat-datepicker>
                         </div>
@@ -132,8 +132,8 @@
                             <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffReq.compOffReasons}}</td>
-                                <td>{{compOffReq.fromDate}}</td>
-                                <td>{{compOffReq.toDate}}</td>
+                                <td>{{compOffReq.fromDate | date:'dd-MM-yyyy'}}</td>
+                                <td>{{compOffReq.toDate | date:'dd-MM-yyyy'}}</td>
                                 <td>{{compOffReq.noOfDays}}</td>
                                 <td>{{compOffReq.description}}</td>
                                 <td>{{compOffReq.status}}</td>
@@ -190,8 +190,8 @@
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffApp.createdByName}}</td>
                                 <td>{{compOffApp.compOffReasons}}</td>
-                                <td>{{compOffApp.fromDate}}</td>
-                                <td>{{compOffApp.toDate}}</td>
+                                <td>{{compOffApp.fromDate | date:'dd-MM-yyyy'}}</td>
+                                <td>{{compOffApp.toDate | date:'dd-MM-yyyy'}}</td>
                                 <td>{{compOffApp.noOfDays}}</td>
                                 <td>{{compOffApp.description}}</td>
                                 <td>{{compOffApp.status}}</td>

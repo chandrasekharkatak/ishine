@@ -35,7 +35,7 @@
                     <td>{{20*(page-1)+i+1}}</td>
                     <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight"><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                     <td>{{holiday.dayOfTheWeek}}</td>
-                    <td>{{holiday.dateOfHoliday}}</td>
+                    <td>{{holiday.dateOfHoliday | date:'dd-MM-yyyy'}}</td>
                     <td>{{holiday.state}}</td>
                 </tr>
             </tbody>

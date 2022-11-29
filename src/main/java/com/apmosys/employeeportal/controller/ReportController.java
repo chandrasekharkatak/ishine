@@ -37,5 +37,12 @@ public class ReportController {
 		ServiceResponse response =	reportService.getAccessControlListData(employeeDto);
 		return response;
 	}
+	
+	@RequestMapping(value="/getAccessControlListByPersona" , method = RequestMethod.POST)
+	public ServiceResponse getAccessControlListByPersona(@RequestBody EmployeeDTO employeeDto) {		
+		
+		ServiceResponse response =	reportService.getAccessControlListByPersona(employeeDto);
+		return response;
+	}
 
 }
