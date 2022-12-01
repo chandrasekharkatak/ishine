@@ -1,97 +1,98 @@
-<div class="row card">
-    <div class="card col-md-12 px-0" >
-        <div class="card-header text-center text-uppercase">
-            <strong >Appreciation</strong>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label" ><span class="text-danger">*</span><strong >Select Employee Name</strong></label>
-                            <select class="form-control" [(ngModel)]="employeeObj.empId" name="Appreciation" aria-hidden="true" (change)="getManagerByEmpId(employeeObj.empId)">
-                                <option selected="selected" value="" disabled>Select</option>
 
-                               <option *ngFor="let appr of allEmployee" value="{{appr.empId}}" [disabled]="appr.isAppreciated"  [class.disabled-item] = "appr.isAppreciated" >{{appr.name}}</option> 
-                              </select> 
-                        </div>
-                    </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span><strong >Reporting To</strong></label>
-                            <input type="text" [(ngModel)]="employeeObj.managerName" class="form-control" maxlength="255" autocomplete="none"   disabled>
-                        </div>
-                    </div>
-                </div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header text-center text-uppercase">
+                <strong >Appreciation</strong>
             </div>
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span><strong>Appreciation Type</strong></label> 
-                                <div>
-                                  <input type="radio" id="Star" name="appreciationType" value="You are my Star"  checked  [(ngModel)]="employeeObj.appreciateType">
-                                  <label for="Star">You are my Star. </label>
-                                  <img src="assets/Images/star1.jpeg" style="height: 36px; display: inline-block;">
-                                </div>
-                                <div>
-                                  <input type="radio" id="Gem" name="appreciationType" value="You are Gem of a Person" [(ngModel)]="employeeObj.appreciateType">
-                                  <label for="Gem">You are Gem of a Person.</label>
-                                  <img src="assets/Images/gem.jpeg" style="height: 36px; display: inline-block;">
-                                </div>
-                            
-                                <div>
-                                  <input type="radio" id="Problem Solver" name="appreciationType" value="You are a Problem Solver" [(ngModel)]="employeeObj.appreciateType">
-                                  <label for="Problem Solver">You are a Problem Solver</label>
-                                  <img src="assets/Images/problemsolver1.jpg" style="height: 36px; display: inline-block;">
-
-                                </div>
-                                <div>
-                                    <input type="radio" id="Supportive" name="appreciationType" value="You are Supportive" [(ngModel)]="employeeObj.appreciateType">
-                                    <label for="Supportive">You are Supportive</label>
-                                    <img src="assets/Images/supportive.png" style="height: 36px; display: inline-block;">
-
-                                </div>
-                                <div>
-                                    <input type="radio" id="Reliable" name="appreciationType" value="You are Reliable" [(ngModel)]="employeeObj.appreciateType">
-                                    <label for="Reliable">You are Reliable</label>
-                                    <img src="assets/Images/dependable.jpg" style="height: 36px; display: inline-block;">
-
-                                </div>
-                                <div>
-                                    <input type="radio" id="Motivator" name="appreciationType" value="You are a Motivator" [(ngModel)]="employeeObj.appreciateType">
-                                    <label for="Motivator">You are a Motivator</label>
-                                    <img src="assets/Images/motivation11.jpg" style="height: 36px; display: inline-block;">
-
-                                </div>
-                        
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label" ><span class="text-danger">*</span><strong >Select Employee Name</strong></label>
+                                <select class="form-control" [(ngModel)]="employeeObj.empId" name="Appreciation" aria-hidden="true" (change)="getManagerByEmpId(employeeObj.empId)">
+                                    <option selected="selected" value="" disabled>Select</option>
+    
+                                   <option *ngFor="let appr of allEmployee" value="{{appr.empId}}" [disabled]="appr.isAppreciated"  [class.disabled-item] = "appr.isAppreciated">{{appr.name}}</option> 
+                                  </select> 
+                            </div>
+                        </div>
                     </div>
-                </div>
-                </div> 
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span><strong >Reporting To</strong></label>
+                                <input type="text" [(ngModel)]="employeeObj.managerName" class="form-control" maxlength="255" autocomplete="none"   disabled>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label for="leaveDesc"><span class="text-danger">*</span><strong>Why you want to give Appreciation?</strong></label>
-                            <textarea class="form-control" id="Desc" [(ngModel)]="employeeObj.reason" rows="3" ></textarea>
-                          </div>
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span><strong>Appreciation Type</strong></label> 
+                                    <div>
+                                      <input type="radio" id="Star" name="appreciationType" value="You are my Star"  checked  [(ngModel)]="employeeObj.appreciateType">
+                                      <label for="Star">You are my Star. </label>
+                                      <img src="assets/Images/star1.jpeg" style="height: 36px; display: inline-block;">
+                                    </div>
+                                    <div>
+                                      <input type="radio" id="Gem" name="appreciationType" value="You are Gem of a Person" [(ngModel)]="employeeObj.appreciateType">
+                                      <label for="Gem">You are Gem of a Person.</label>
+                                      <img src="assets/Images/gem.jpeg" style="height: 36px; display: inline-block;">
+                                    </div>
+                                
+                                    <div>
+                                      <input type="radio" id="Problem Solver" name="appreciationType" value="You are a Problem Solver" [(ngModel)]="employeeObj.appreciateType">
+                                      <label for="Problem Solver">You are a Problem Solver</label>
+                                      <img src="assets/Images/problemsolver1.jpg" style="height: 36px; display: inline-block;">
+    
+                                    </div>
+                                    <div>
+                                        <input type="radio" id="Supportive" name="appreciationType" value="You are Supportive" [(ngModel)]="employeeObj.appreciateType">
+                                        <label for="Supportive">You are Supportive</label>
+                                        <img src="assets/Images/supportive.png" style="height: 36px; display: inline-block;">
+    
+                                    </div>
+                                    <div>
+                                        <input type="radio" id="Reliable" name="appreciationType" value="You are Reliable" [(ngModel)]="employeeObj.appreciateType">
+                                        <label for="Reliable">You are Reliable</label>
+                                        <img src="assets/Images/dependable.jpg" style="height: 36px; display: inline-block;">
+    
+                                    </div>
+                                    <div>
+                                        <input type="radio" id="Motivator" name="appreciationType" value="You are a Motivator" [(ngModel)]="employeeObj.appreciateType">
+                                        <label for="Motivator">You are a Motivator</label>
+                                        <img src="assets/Images/motivation11.jpg" style="height: 36px; display: inline-block;">
+    
+                                    </div>
+                            
+                        </div>
+                    </div>
+                    </div> 
+                    </div>
+                    <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="leaveDesc"><span class="text-danger">*</span><strong>Why you want to give Appreciation?</strong></label>
+                                <textarea class="form-control" id="Desc" [(ngModel)]="employeeObj.reason" rows="3" ></textarea>
+                              </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">                  
-                        <!-- <button  type="submit" class="btn btn-primary btn-sm mx-1" >Submit</button> -->
-                        <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="submitAppreciation(alert_message)" >Submit</button>
+                <div class="row">
+                    <div class="col-md-12">                  
+                            <!-- <button  type="submit" class="btn btn-primary btn-sm mx-1" >Submit</button> -->
+                            <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="submitAppreciation(alert_message)" >Submit</button>
                     </div>
                 </div>
-              
-               
-            </div>            
+            </div> 
+        </div>           
     </div>
 </div>
 

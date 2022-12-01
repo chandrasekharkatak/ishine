@@ -37,6 +37,19 @@ export class OnBoardingComponent implements OnInit {
   ngOnInit(): void {   
   }
 
+  getAssetDataFromSnipitPortal(template: TemplateRef<any>){
+    this.cancelRequest();
+    this.onBoardingService.getAssetDataFromSnipitPortal(this.assetObj).pipe(first()).subscribe((response:any) => {
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template, response.serviceResponse);
+        this.getEmployeeOnBoardingDetailByEmployeementId(template);
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+        this.getEmployeeOnBoardingDetailByEmployeementId(template);
+      }
+    });
+  }
+
   getEmployeeOnBoardingDetailByEmployeementId(template: TemplateRef<any>){
 
     if(!this.validationService.validateNullUndefinedEmptyString(this.assetObj.employeementId)){
@@ -44,6 +57,7 @@ export class OnBoardingComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    this.cancelRequest();
 
     this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(this.assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -62,12 +76,16 @@ export class OnBoardingComponent implements OnInit {
           dept.assetList.forEach((asset:Asset) => {
             asset.isAssigned = (asset.isAssigned != null) ? JSON.parse(asset.isAssigned) : false;
           });
+
+          if(dept.deptId == null){
+            dept.deptId = this.currentUser.departmentId;
+          }
         });
 
         // department name check is static
         if(this.currentUser.departmentName != 'HR' && this.currentUser.departmentName != 'Director'){
           this.departmentList = this.departmentList.filter(x => x.deptId == this.currentUser.departmentId);
-        } 
+        }
 
         console.log("Assets according to departments : ", this.departmentList);
         

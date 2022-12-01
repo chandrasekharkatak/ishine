@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.model;
 
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,15 +13,13 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class Asset {
+public class BirthdayMail {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long assetId;
-	private String assetName;
-	private Long deptId;
-	private String assetType;
+	private Long birthdayMailId;
+	private String birthdayImage;
+	private String description;
+	private String heading;
 	
-	@Embedded
-	public CommonProperties commonProperty = new CommonProperties();
 }

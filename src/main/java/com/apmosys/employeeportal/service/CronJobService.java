@@ -28,7 +28,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Stream;
+
+import javax.mail.MessagingException;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
@@ -40,6 +43,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -49,6 +53,7 @@ import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.repository.BirthdayMailRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -100,6 +105,9 @@ public class CronJobService {
 	
 	@Autowired
 	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	
+	@Autowired
+	BirthdayMailRepository birthdayMailRepository;
 	
 	@Autowired
 	MailService mailService;
@@ -188,8 +196,11 @@ public class CronJobService {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
 		     List<Employee> employeeList = employeeRepository.findAll();
 		     
-		          for(LeaveTypeMaster ltm :leaveType) {
+		     if(!leaveType.isEmpty()) {
+		    	 for(LeaveTypeMaster ltm :leaveType) {
 		        	  for(Employee employeeObj : employeeList) {
+		        		  
+		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
 		        		  
 		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
 		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
@@ -201,19 +212,21 @@ public class CronJobService {
 		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
 		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
 		        				  
+		        				  System.out.println(employeeLeaveMap.getBalance() +"  "+ leavePolicyObj.getIncrementValue());
+		        				  
 		        				          if(employeeLeaveMap != null) {
 		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+		        				        	  System.out.println(newBalance);
 		        				        	  employeeLeaveMap.setBalance(newBalance);
 		      								  employeeLeavesMapRepository.save(employeeLeaveMap);
-		        				          }else {
-		        				        	  System.out.println("Employee Leave Mapping not found");
 		        				          }
 		        			  }
 		        		  }else {
 		        			  System.out.println("Leave Policy not found");
 		        		  }
-		        	  }	
+		        	  }
 		            }
+		     }
 		   }catch(Exception e) {
 			e.printStackTrace();
 		   }
@@ -738,5 +751,67 @@ public class CronJobService {
 				response.setServiceError(e.getMessage());
 			}
 			return response;
+		}
+		
+//		0 0 7 ? * * - At 07:00:00am every day
+		@Scheduled(cron = "0 0 7 ? * *")
+		public void birthdayGreetingMail() {
+			StringBuilder builder = new StringBuilder();
+			
+			List<Object[]> employeeObj = employeeRepository.getAllEmployeesBirthDayToday();
+			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
+
+			if(!employeeObj.isEmpty()) {
+				for(Object[] object: employeeObj) {
+					EmployeeDTO employee = new EmployeeDTO();
+
+					employee.setName(object[0] != null ? object[0].toString() : null);
+					employee.setEmail(object[2] != null ? object[2].toString() : null);
+
+					employeeList.add(employee);
+				}
+			}
+			Random random = new Random();
+			Long id = (long) (random.nextInt(25 - 1) + 1); /* Random number will be generated between 1 and 25 */
+
+			Optional<BirthdayMail> birthDayMail = birthdayMailRepository.findById(1l);
+
+			if (birthDayMail.isPresent() && !employeeList.isEmpty()) {
+				for (EmployeeDTO emp : employeeList) {
+					String subject = "Happy Birthday " + emp.getName();
+					String heading = birthDayMail.get().getHeading();
+					String description = birthDayMail.get().getDescription();
+					String mailBody = "<table style=\"background-color: #4E94CF; font-family: Arial; font-size: 14px; padding: 20px; width: 800px;\" align=\"center\">\n"
+							+ "    <tbody>\n" + "    <tr>\n"
+							+ "        <td class=\"wysiwyg-text-align-center\" style=\"padding: 20px;\"><span class=\"wysiwyg-color-black10\"></span><br />\n"
+							+ "            <table style=\"background-color: #ffffff;\" border=\"0\" width=\"700px\" cellspacing=\"0\" cellpadding=\"0\" align=\"center\">\n"
+							+ "                <tbody>\n"
+							+ "                <tr style=\"padding-top: 20px; text-align: center;\">\n"
+							+ "                    <td style=\"padding: 30px;\">\n"
+							+ "                        <div style=\"text-align: left;\">Dear " + emp.getName() + ",</div>\n"
+							+ "<br>                    <p style=\"text-align: left;\"></p>\n"
+							+ "                        <div style=\"text-align: left;\">" + heading + "</div><br>\n"
+							+ "                        <div style=\"text-align: left;\">" + description + "</div>\n"
+							+ "<br><img src=\"cid:image\" />"
+							+ "                            <p style=\"text-align: left;\">Regards,<br>ApMoSyS</p>\n"
+							+ "                </tr>\n" + "                </tbody>\n" + "            </table>\n"
+							+ "        </td>\n" + "    </tr>\n" + "    </tbody>\n" + "</table>";
+
+					try {
+						boolean flag = mailService.sendMailWithImage(emp.getEmail(),hrMailAddress,subject, mailBody,birthDayMail.get().getBirthdayImage());
+						String msg = "";
+						if (flag) {
+						//	System.out.println("mail sent to " + empEmail);
+							msg = "Mail sent to " + emp.getEmail()+" ";
+						} else {
+						//	System.out.println("mail not sent to"+ empEmail+" ");
+							msg = "Mail not sent to "+ emp.getEmail()+" ";
+						}
+						builder.append(msg);
+					} catch (MessagingException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 }	

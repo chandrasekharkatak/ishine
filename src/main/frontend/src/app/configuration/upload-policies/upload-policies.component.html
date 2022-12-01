@@ -1,7 +1,3 @@
-<!-- <div class="card-header text-center text-uppercase">
-    <strong>Policies</strong>
-</div> -->
-
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_policy" [ngClass]="{'active' : isDocumentForm}" (click)="showDocumentForm()">Upload Policies</button>
@@ -45,91 +41,118 @@
         </div>
     </div>
 </div>
+
 <!-- start :: See all Documents Table -->
-<div class="row col-md-12" *ngIf="isTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Documents</h1>
-    </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+<div class="row" *ngIf="isTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Documents</h1>
+            </div>
         </div>
-    <table class="table department-table" matSort (matSortChange)="sortData($event)">	
 
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>	
-            <th scope="col" class="info-label" mat-sort-header="fileName">File Name</th>	
-            <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
-            <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
-            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-            <!-- <th scope="col" class="info-label" mat-sort-header="createdOn">Read Enabled</th> -->
-            <th scope="col" class="info-label">Action</th>	
-            <th scope="col" class="info-label">Read Confirmation</th>	  
-  
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="document.length == 0">
-                <th colspan="6" class="text-center info-label">No Files to display...</th>
-            </tr>
-            <tr *ngFor="let doc of document | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
-             <th class="info-label">{{10*(page-1)+i+1}}</th>
-            <td>{{doc.fileName}}</td>
-            <td>{{doc.policyName}}</td>
-            <td>{{doc.createdByName}}</td>
-            <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-            <td>
-                <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
-                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>&nbsp;  
-            </td>
-            <td>
-                <button  *ngIf="doc.readEnabled == 'false'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="openReadEnabledMod(read_enabled,doc)">Enable</button>
-                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="onReadDisabledMod(read_disabled,doc)">Disable</button>&nbsp; 
-                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="policyReadResponseById(doc)">View Response</button>  
+        <div class="row">
+            <div class="form-group d-flex flex-row ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
 
-            </td>
-          </tr>
-        </tbody>
-      </table>  
-       <pagination-controls class="my-pagination" [hidden]="document.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'policyDocInfo'" [tableTHeadId]="'policyDocInfoTHead'"
+                [tableTHeadTrId]="'policyDocInfoTHeadTr'">
+                    <table class="table department-table" matSort (matSortChange)="sortData($event)" id="policyDocInfo">	
+                        <thead class="thead-light" id="policyDocInfoTHead">
+                        <tr id="policyDocInfoTHeadTr">
+                            <th scope="col" class="info-label">Sr No.</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fileName">File Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                            <!-- <th scope="col" class="info-label" mat-sort-header="createdOn">Read Enabled</th> -->
+                            <th scope="col" class="info-label">Action</th>	
+                            <th scope="col" class="info-label">Read Confirmation</th>	  
+                
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="document.length == 0">
+                                <th colspan="6" class="text-center info-label">No Files to display...</th>
+                            </tr>
+                            <tr *ngFor="let doc of document | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
+                            <th class="info-label">{{10*(page-1)+i+1}}</th>
+                            <td>{{doc.fileName}}</td>
+                            <td>{{doc.policyName}}</td>
+                            <td>{{doc.createdByName}}</td>
+                            <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                            <td>
+                                <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
+                                <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>&nbsp;  
+                            </td>
+                            <td>
+                                <button  *ngIf="doc.readEnabled == 'false'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="openReadEnabledMod(read_enabled,doc)">Enable</button>
+                                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="onReadDisabledMod(read_disabled,doc)">Disable</button>&nbsp; 
+                                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="policyReadResponseById(doc)">View Response</button>  
+                
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table> 
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="document.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            </div>
+        </div>
+    </div> 
 </div>
 <!-- end :: see all Documents table -->
 
 <!-- start :: See all Document Read Responses Table -->
-<div class="row col-md-12" *ngIf="isreadEnabled">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Document Read Responses</h1>
-    </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="responsedata" (keyup)="page=1">	
+<div class="row" *ngIf="isreadEnabled">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Document Read Responses</h1>
+            </div>
         </div>
-    <table class="table department-table" matSort (matSortChange)="sortReadData($event)">	
-        
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Sr No.</th>	
-            <th scope="col" class="info-label" mat-sort-header="name">Emp Name</th>	
-            <th scope="col" class="info-label" mat-sort-header="empId" >Emp id</th>
-            <th scope="col" class="info-label" mat-sort-header="policyName">policy name</th>
-            <th scope="col" class="info-label" mat-sort-header="readEnabled">Read on</th>
 
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="responseList.length == 0">
-                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
-            </tr>
-            <tr *ngFor="let doc of responseList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
-            <th class="info-label">{{10*(page-1)+i+1}}</th> 
-            <td>{{doc.name}}</td>
-            <td>{{doc.empId}}</td>
-            <td>{{doc.policyName}}</td>
-            <td>{{doc.readEnabled | date:'dd-MM-yyyy HH:mm:ss'}}</td>           
-          </tr>
-        </tbody>
-      </table> 
-      <pagination-controls class="my-pagination" [hidden]="responseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
- 
+        <div class="row">
+            <div class="form-group d-flex flex-row ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="responsedata" (keyup)="page=1">	
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'policyReadInfo'" [tableTHeadId]="'policyReadInfoTHead'"
+                [tableTHeadTrId]="'policyReadInfoTHeadTr'">
+                    <table class="table department-table" matSort (matSortChange)="sortReadData($event)" id="policyReadInfo">	
+                        <thead class="thead-light" id="policyReadInfoTHead">
+                        <tr id="policyReadInfoTHeadTr">
+                            <th scope="col" class="info-label">Sr No.</th>	
+                            <th scope="col" class="info-label" mat-sort-header="name">Emp Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="empId" >Emp id</th>
+                            <th scope="col" class="info-label" mat-sort-header="policyName">policy name</th>
+                            <th scope="col" class="info-label" mat-sort-header="readEnabled">Read on</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="responseList.length == 0">
+                                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
+                            </tr>
+                            <tr *ngFor="let doc of responseList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
+                            <th class="info-label">{{10*(page-1)+i+1}}</th> 
+                            <td>{{doc.name}}</td>
+                            <td>{{doc.empId}}</td>
+                            <td>{{doc.policyName}}</td>
+                            <td>{{doc.readEnabled | date:'dd-MM-yyyy HH:mm:ss'}}</td>           
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="responseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            </div>
+        </div>
+    </div> 
 </div>
 
 <!-- end :: see all Survey Responses table -->

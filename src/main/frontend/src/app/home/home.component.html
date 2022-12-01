@@ -78,16 +78,16 @@
                 <p class="section-heading m-0 pl-2">My Leave Details</p>
             </div>
             <div class="leave-details-body">
-                <table class="table table-borderless">
+                <table class="table table-borderless leaveBucketTable">
                     <thead>
-                      <tr>
+                      <tr class="leaveBucketTableHdTr">
                         <th scope="col">Type</th>
                         <th scope="col">Balance</th>
                         <th scope="col">Approved</th>
                         <th scope="col">Pending</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="leave-body" [ngClass]="(userMapping.view_all_team_requests)? 'leave-body--scroll' : ''">
                       <tr *ngFor="let leave of leaveBucketDetails">
                         <td scope="row">{{leave.leaveTypeCode}}</td>
                         <td><h3><span class="badge badge-primary">{{leave.balance}}</span></h3></td>
@@ -176,7 +176,7 @@
                         <tbody>
                           <tr *ngFor="let timesheet of timesheetDetails; let i = index">
                             <th scope="row">{{i+1}}</th>
-                            <td>{{timesheet.date}}</td>
+                            <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                             <td>{{timesheet.weekDayName}}</td>
                             <td>{{timesheet.dayType}}</td>
                             <td>{{timesheet.status}}</td>
@@ -257,9 +257,7 @@
         </div>
       </div>
       <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
-        <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
-            </div>
+       
         <table class="table timesheet-details-table">
             <thead class="thead-light">
               <tr>
@@ -375,8 +373,8 @@
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate}}</td>
-                    <td>{{leaveApplication.toDate}}</td>
+                    <td>{{leaveApplication.fromDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{leaveApplication.toDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
                     <td>{{leaveApplication.createdByName}}</td>
@@ -435,8 +433,8 @@
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
-                    <td>{{compOffApp.fromDate}}</td>
-                    <td>{{compOffApp.toDate}}</td>
+                    <td>{{compOffApp.fromDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{compOffApp.toDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{compOffApp.noOfDays}}</td>
                     <td>{{compOffApp.description}}</td>
                     <td>{{compOffApp.status}}</td>
@@ -509,7 +507,7 @@
                 <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td colspan="4" [innerHTML]="timesheet.description"></td>
                 <td>{{timesheet.status}}</td>

@@ -177,7 +177,7 @@ export class DocumentUploadComponent implements OnInit {
     }
     
     if ( imgHeight > 900 || imgWidth > 700) {
-      this.alertMessage = "File dimension exceeds 900 x 700 !!";
+      this.alertMessage = "File dimension exceeds 900px x 700px !!";
       console.log("File dimension exceeds 900 x 700 !! :", this.alertMessage);
       this.openAlertMod(template, this.alertMessage);
       return false;

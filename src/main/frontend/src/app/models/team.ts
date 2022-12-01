@@ -14,4 +14,5 @@ export class Team{
 	createdBy: any;	
 	updatedOn: any;	
 	updatedBy: any;
+    isActive:any;
 } 

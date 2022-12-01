@@ -1,6 +1,6 @@
 <!-- start :: Upload Document Table -->
 <div class="row d-flex">
-    <p>File Size : upto 200 kB. Dimension : upto 900 x 700 </p>
+    <p>File Size : upto 200 kB. Dimension : upto 900px x 700px. File Type : jpeg </p>
     <table class="table employee-table">
         <thead class="thead-light">
             <tr>
@@ -13,7 +13,7 @@
         </thead>
         <tbody>
             <tr *ngFor="let document of documentList;let i = index">
-                <td>{{document.documentType}}</td>
+                <td><span class="text-danger">*</span>{{document.documentType}}</td>
                 <td>{{document.uploadStatus}}</td>
                 <td>
                     <input class="uploadFile" id="doc{{i+1}}" type="file" accept="image/jpeg"

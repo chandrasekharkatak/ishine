@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,7 +30,7 @@ public class Team {
 	private Integer projectId;
 	private String teamLeadName;
 	private String isActive;
-	
+ 
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 

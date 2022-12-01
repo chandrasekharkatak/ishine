@@ -71,7 +71,7 @@ public class AuthenticationService {
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Login");
+		apiLogInfo.setFeatureName("Login");
 		apiLogInfo.setSubFeatureName("Sign In");
 		apiLogInfo.setApiUrl("/api/authenticateUser");
 		apiLogInfo.setLogLevel("INFO");

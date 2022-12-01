@@ -85,11 +85,6 @@ export class EmployeeInfoComponent implements OnInit{
     } else {
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
     }
-
-    // child info
-    console.log("   this.employeeObj.child1 ", this.employeeObj.child1);
-    console.log("   this.employeeObj.child2 ", this.employeeObj.child2);
-    console.log("   this.employeeObj.child3 ", this.employeeObj.child3);
     
     if(this.employeeObj.child1 == null && this.employeeObj.child2 == null && this.employeeObj.child3 ){
       this.addInputChildField();
@@ -291,8 +286,14 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.allCertificationList?.forEach(certificaiton => {
       console.log("All certificaiton : ", this.allCertificationList);
+      if(certificaiton.dateOfCompletion == 'Invalid date' || certificaiton.dateOfCompletion == ''){
+        certificaiton.dateOfCompletion = null;
+      }
+      console.log(certificaiton.dateOfCompletion, " : certificaiton.dateOfCompletion after")
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
-        certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
+        if(certificaiton.dateOfCompletion != null){
+          certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
+        }
         console.log("New certificaiton : ", certificaiton);
         this.updatedCertificationList.push(certificaiton);
       }
@@ -300,7 +301,17 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.allPreviousEmployment?.forEach(prevEmployer => {
       console.log("All Prev Employer : ", this.allPreviousEmployment);
+      if(prevEmployer.dateOfJoining == 'Invalid date' || prevEmployer.dateOfJoining == ''){
+        prevEmployer.dateOfJoining = null;
+      }
+      if(prevEmployer.dateOfRelieving == 'Invalid date' || prevEmployer.dateOfRelieving == ''){
+        prevEmployer.dateOfRelieving = null;
+      }
       if ((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0) && (prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)) {
+        if(prevEmployer.dateOfJoining != null || prevEmployer.dateOfRelieving != null){
+          prevEmployer.dateOfJoining = moment(prevEmployer.dateOfJoining).format(dateFormat);
+          prevEmployer.dateOfRelieving = moment(prevEmployer.dateOfRelieving).format(dateFormat);
+        }
         console.log("New Prev Employer : ", prevEmployer);
         this.updatedPreviousEmployment.push(prevEmployer);
       }
@@ -372,9 +383,9 @@ export class EmployeeInfoComponent implements OnInit{
   validateBloodGroup(event, data:any){
     console.log("Element :", event.target);
     console.log("Sibling : ", event.target.nextElementSibling);
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Blood Group !!"   
+  }
      else if (!this.validationService.validateBloodGroup(data)) {
         this.errorMsg = "Please enter valid Blood Group !!"   
     }
@@ -390,8 +401,8 @@ export class EmployeeInfoComponent implements OnInit{
     
   }
   validateFathersName(event, data:any){
-  if(data === null){
-    this.errorMsg = ""
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter father name !!"   
   }
  else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid father name !!"   
@@ -407,8 +418,8 @@ if(this.errorMsg == ""){
   }
 
   validateMothersName(event, data:any){
-  if(data === null){
-    this.errorMsg = ""
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter mother name !!"   
   }
  else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid mother name !!"   
@@ -424,8 +435,8 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validatePlaceOfBirth(event, data:any){
-  if(data === null){
-    this.errorMsg = ""
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Place of Birth !!"   
   }
   else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid Place of birth !!"   
@@ -442,9 +453,9 @@ if(this.errorMsg == ""){
 
 
   validateMotherTongue(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter valid mother tongue !!"   
+  }
    else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid mother tongue !!"   
 }
@@ -458,27 +469,27 @@ if(this.errorMsg == ""){
 }
   }
 
-  validatePassportNumber(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
-   else if (!this.validationService.validatePassportNumber(data)) {
-    this.errorMsg = "Please enter valid passport number !!"   
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
-  }
+//   validatePassportNumber(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//    else if (!this.validationService.validatePassportNumber(data)) {
+//     this.errorMsg = "Please enter valid passport number !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// }
+//   }
 
   validateAadhar(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter aadhar card number !!"   
+  }
    else if (data.toString().length != 12) {
       this.errorMsg = "Please enter Valid aadhar card number !!";
   }
@@ -492,9 +503,9 @@ if(this.errorMsg == ""){
 }
   }
   validatePan(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter pan number !!"   
+  }
    else if (!this.validationService.validatePancardNumber(data)) {
     this.errorMsg = "Please enter valid pan number !!"   
 }
@@ -510,9 +521,9 @@ if(this.errorMsg == ""){
 
 
   validatePincode(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter valid father name !!"   
+  }
    else if (!this.validationService.validatePincodeNumber(data)) {
     this.errorMsg = "Please enter valid pincode !!"   
 }
@@ -527,9 +538,9 @@ if(this.errorMsg == ""){
   }
 
   validateValidEmptyNullUndefinedalternateMobileNo(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Mobile number !!"   
+  }
   else  if (!this.validationService.validateMobileNumber(data)) {
     this.errorMsg = "Please enter valid  Mobile Number !!"   
 }
@@ -543,10 +554,28 @@ if(this.errorMsg == ""){
 }
 
   }
+
+  validateValidEmptyNullUndefinedCurrentDate(event , data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Current Address !!"   
+  }
+  else  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+    this.errorMsg = "Please enter valid  Current Address !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
   validateContactPerson(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Emergency Contact person !!"   
+  }
    else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid Emergency Contact person !!"   
 }
@@ -560,9 +589,9 @@ if(this.errorMsg == ""){
 }
   }
   validateRelation(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter relation !!"   
+  }
  else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid relation !!"   
 }
@@ -576,9 +605,9 @@ if(this.errorMsg == ""){
 }
   }
   validateValidEmptyNullUndefinedemergencyContactMobile(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter emergency contact number !!"   
+  }
  else  if (!this.validationService.validateMobileNumber(data)) {
     this.errorMsg = "Please enter valid emergency contact number !!"   
 }
@@ -592,9 +621,9 @@ if(this.errorMsg == ""){
 } 
   }
   validatebankName(event, data:any){
-    if(data === null || data === ""){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter bank name !!"   
+  }
  else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid bank name !!"   
 }
@@ -609,9 +638,9 @@ if(this.errorMsg == ""){
   }
 
   validatebankAccountNo(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter bank account number !!"   
+  }
  else  if (!this.validationService.validateAccountNumber(data)) {
     this.errorMsg = "Please enter valid  bank account number !!"   
 }
@@ -625,9 +654,9 @@ if(this.errorMsg == ""){
 } 
   }
   validatebankIFSCCode(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter bank IFSC code !!"   
+  }
  else  if (!this.validationService.validateIFSCCodeRegex(data)) {
     this.errorMsg = "Please enter valid  bank IFSC code !!"   
 }
@@ -640,58 +669,58 @@ if(this.errorMsg == ""){
   event.target.nextElementSibling.textContent =  this.errorMsg
 } 
   }
-  validatepfAccountNumber(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid  PF account number !!"   
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-} 
-  }
-  validatePreviouspfAccountNumber(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid  PF account number !!"   
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-} 
-  }
-  validateUan(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid  UAN !!"   
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-} 
-  }
+//   validatepfAccountNumber(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//  else  if (!this.validationService.validateAlphaNumeric(data)) {
+//     this.errorMsg = "Please enter valid  PF account number !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// } 
+//   }
+//   validatePreviouspfAccountNumber(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//  else  if (!this.validationService.validateAlphaNumeric(data)) {
+//     this.errorMsg = "Please enter valid  PF account number !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// } 
+//   }
+//   validateUan(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//  else  if (!this.validationService.validateAlphaNumeric(data)) {
+//     this.errorMsg = "Please enter valid  UAN !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// } 
+//   }
   validateEsicNumber(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
-    }
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Esic number !!"   
+  }
  else  if (!this.validationService.validateAlphaNumeric(data)) {
     this.errorMsg = "Please enter valid  Esic number !!"   
 }
@@ -705,8 +734,8 @@ if(this.errorMsg == ""){
 } 
   }
   validateemployerName(event, data:any){
-    if(data === null || data === ""){
-      this.errorMsg = ""
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter Employer name !!"  
     }
  else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid Employer name !!"   
@@ -721,8 +750,8 @@ if(this.errorMsg == ""){
 } 
   }
   validatYearsOfExperience(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter year of experience !!"  
     }
  else  if (!this.validationService.validateAlphaNumeric(data)) {
     this.errorMsg = "Please enter valid year of experience !!"   
@@ -738,10 +767,10 @@ if(this.errorMsg == ""){
   }
 
   validaeTotalExperience(event, data:any){
-    if(data === null){
-      this.errorMsg = ""
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter Total  year of experience !!"  
     }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
+ else  if (!this.validationService.validateNumber(data)) {
     this.errorMsg = "Please enter valid Total  year of experience !!"   
 }
   else{
@@ -754,9 +783,9 @@ if(this.errorMsg == ""){
 } 
   }
   validaeDesignation(event, data:any){ 
-    if(data === null || data === ""){
-    this.errorMsg = ""
-  }
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter Designation !!"  
+    }
 else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid Designation !!"   
 }
@@ -770,9 +799,9 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 } 
   }
   validaeManagerName(event, data:any){ 
-    if(data === null || data === ""){
-    this.errorMsg = ""
-  }
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter manager name !!"  
+    }
 else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid manager name !!"   
 }
@@ -787,9 +816,9 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validaeManagerContactNumber(event, data:any){ 
-    if(data === null || data === "" || data === undefined){
-    this.errorMsg = ""
-  }
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter manager contact number !!"  
+    }
 else  if (!this.validationService.validateMobileNumber(data)) {
   this.errorMsg = "Please enter valid manager contact number !!"   
 }
@@ -804,9 +833,9 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validaeHrName(event, data:any){ 
-    if(data === null || data === ""){
-    this.errorMsg = ""
-  }
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter HR name !!"  
+    }
 else  if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
   this.errorMsg = "Please enter valid HR name !!"   
 }
@@ -821,11 +850,11 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validaeHrContactNumber(event, data:any){ 
-    if(data === null || data === "" || data === undefined ){
-    this.errorMsg = ""
-  }
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter HR contact number !!"  
+    }
 else  if (!this.validationService.validateMobileNumber(data)) {
-  this.errorMsg = "Please enter valid contact number !!"   
+  this.errorMsg = "Please enter valid HR contact number !!"   
 }
 else{
 this.errorMsg = ""

@@ -882,7 +882,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
    // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
-    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.email)){
+    if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
         this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Fail") {
@@ -895,32 +895,40 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, "Please enter valid email id !!");
         this.employeeObj.email = '';
       }
-    } else {
-      this.openAlertMod(template, "Please enter email id !!");
-      this.employeeObj.email = '';
-    }
+    } 
 
     
   }
 
-  // checkSecondaryEmail(template: TemplateRef<any>) {
+  checkSecondaryEmail(template: TemplateRef<any>) {
 
-  //   const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-  //  // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
-  //   if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
-  //     if (regex.test(this.employeeObj.secondaryEmail)) {
+    const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
+      if (regex.test(this.employeeObj.secondaryEmail)) {
        
-  //       this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
-  //       this.employeeObj.secondaryEmail = '';
-  //     }
-  //   } else{
-  //     this.openAlertMod(template, "Please enter email !!");
-  //     this.employeeObj.secondaryEmail = '';
-  //   }
+        this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
+        this.employeeObj.secondaryEmail = '';
+      }
+    } else{
+      this.openAlertMod(template, "Please enter email !!");
+      this.employeeObj.secondaryEmail = '';
+    }
     
-  // }
+  }
 
   checkEmployeementId(template: TemplateRef<any>) {
+    
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if (!this.validationService.validateEmployeementId(this.employeeObj.employeementId)) {
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -969,9 +977,9 @@ export class EmployeeConfigComponent implements OnInit {
    
 
     this.allCertificationList.forEach(certificaiton => {
-      certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
       console.log("All certificaiton : ", this.allCertificationList);
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
+        certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
         console.log("New certificaiton : ", certificaiton);
         this.updatedCertificationList.push(certificaiton);
       }
@@ -1061,6 +1069,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         this._allEmployeeList = this.allEmployeeList;
+        this.changeEvent("Active");
 
         console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
@@ -1315,11 +1324,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>){
     if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)){
-      this.alertMessage = "Please enter Reason for rejecting !!"
+      this.alertMessage = "Please enter Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
-      this.alertMessage = "Reason shouldn't contain single character !!"
+      this.alertMessage = "Enter Valid Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

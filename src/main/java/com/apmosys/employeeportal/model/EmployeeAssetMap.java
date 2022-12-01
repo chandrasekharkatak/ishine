@@ -22,6 +22,7 @@ public class EmployeeAssetMap {
 	private Long assetId;
 	private Long empId;
 	private String isAssigned;
+	private String deptConsent;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

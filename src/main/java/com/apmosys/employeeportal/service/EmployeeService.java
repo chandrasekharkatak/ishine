@@ -30,8 +30,10 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
+import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -43,6 +45,8 @@ import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -97,6 +101,12 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeCertificateRepository employeeCertificateRepository;
+	
+	@Autowired
+	EmployeeOnBoardingRepository employeeOnboardingRepository;
+	
+	@Autowired
+	EmployeeOnBoardingMapRepository employeeOnboardingMapRepository;
 
 	@Autowired
 	private ModelMapper mapper;
@@ -378,6 +388,23 @@ public class EmployeeService {
 					log.setRemarks("Employee profile created.");
 
 					logsRepository.save(log);
+					
+					List<Asset> assetList = employeeOnboardingRepository.findAll();
+					List<EmployeeAssetMap> assetMappingObj = new ArrayList<>();
+					
+					if(assetList != null) {
+						for(Asset assetObj : assetList) {
+							EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
+							
+							employeeAssetMap.setAssetId(assetObj.getAssetId());
+							employeeAssetMap.setEmpId(newEmployee.getEmpId());
+							employeeAssetMap.setIsAssigned("false");
+							
+							assetMappingObj.add(employeeAssetMap);
+						}
+						
+					employeeOnboardingMapRepository.saveAll(assetMappingObj);
+					}
 
 					List<Object[]> objectList = jobRoleRepository.getHoDByJobRoleId(newEmployee.getJobRoleId());
 					EmployeeDTO hod = new EmployeeDTO();
@@ -613,11 +640,22 @@ public class EmployeeService {
 		previousEmployeeDTOList.forEach((previousEmployeeDTO) -> {
 
 			PreviousEmployment previousEmployment = new PreviousEmployment();
+			LocalDate dateOfJoining;
+			LocalDate dateOfRelieving;
+			if(previousEmployeeDTO.getDateOfJoining() != null) {
+				dateOfJoining = stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd");
+			}else {
+				dateOfJoining = null;
+			}
+			if(previousEmployeeDTO.getDateOfRelieving() != null){
+				dateOfRelieving = stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd");
+			}else {
+				dateOfRelieving = null;
+			}
 
-			previousEmployment.setDateOfJoining(
-					stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfJoining(), "yyyy-MM-dd"));
-			previousEmployment.setDateOfRelieving(
-					stringToDateTimeParser.getDate(previousEmployeeDTO.getDateOfRelieving(), "yyyy-MM-dd"));
+			previousEmployment.setDateOfJoining(dateOfJoining);
+			previousEmployment.setDateOfRelieving(dateOfRelieving);
+
 			previousEmployment.setDesignation(previousEmployeeDTO.getDesignation());
 			previousEmployment.setHrContactNumber(previousEmployeeDTO.getHrContactNumber());
 			previousEmployment.setHrName(previousEmployeeDTO.getHrName());
@@ -640,13 +678,20 @@ public class EmployeeService {
 		List<EmployeeCertificate> list = new ArrayList<EmployeeCertificate>();
 
 		employeeCertifcateDTOList.forEach((certificate) -> {
+			
+			LocalDate dateOfCompletion;
+			if(certificate.getDateOfCompletion() != null) {
+				dateOfCompletion = stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd");
+			}else {
+				dateOfCompletion = null;
+			}
+			
 
 			EmployeeCertificate employeeCertificate = new EmployeeCertificate();
 
 			employeeCertificate.setCertificationName(certificate.getCertificationName());
 			employeeCertificate.setCertificationNumber(certificate.getCertificationNumber());
-			employeeCertificate.setDateOfCompletion(
-					stringToDateTimeParser.getDate(certificate.getDateOfCompletion(), "yyyy-MM-dd"));
+			employeeCertificate.setDateOfCompletion(dateOfCompletion);
 			employeeCertificate.setDuration(certificate.getDuration());
 			employeeCertificate.setEmpId(certificate.getEmpId());
 //			employeeCertificate.setEmployeeCertificateId(certificate.getEmployeeCertificateId());
@@ -2141,6 +2186,7 @@ public class EmployeeService {
 					employee.setIsAppreciationEnable(object[10] != null ? object[10].toString() : null);
 					employee.setTimesheetLockDays(timesheetLockDays);
 					employee.setDepartmentName(object[11] != null ? object[11].toString() : null);
+					employee.setDateOfResign(object[12] != null ? object[12].toString() : null);
 
 				});
 				return employee;
@@ -2358,15 +2404,15 @@ public class EmployeeService {
 					emplDto.setProjectId(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
 					emplDto.setProjectName(object[6] != null ? object[6].toString() : null);
 					emplDto.setStartDate(object[7] != null ? object[7].toString() : null);
-					emplDto.setEndDate(object[8] != null ? object[8].toString() : null);
+					emplDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					emplDto.setTeamLeadName(object[9] != null ? object[9].toString() : null);
 					emplDto.setDateOfJoining(object[10] != null ? object[10].toString() : null);
-					emplDto.setDateOfResign(object[11] != null ? object[11].toString() : null);
-					emplDto.setRole(object[12] != null ? object[12].toString() : null);
-					emplDto.setJobRoleName(object[13] != null ? object[13].toString() : null);
-					emplDto.setStartDate(object[14] != null ? object[14].toString() : null);
-					emplDto.setClientLocation(object[15] != null ? object[15].toString() : null);
-					emplDto.setClientName(object[16] != null ? object[16].toString() : null); 
+//					emplDto.setDateOfResign(object[11] != null ? object[11].toString() : null);
+//					emplDto.setRole(object[12] != null ? object[12].toString() : null);
+					emplDto.setJobRoleName(object[11] != null ? object[11].toString() : null);
+//					emplDto.setStartDate(object[14] != null ? object[14].toString() : null);
+					emplDto.setClientLocation(object[12] != null ? object[12].toString() : null);
+					emplDto.setClientName(object[13] != null ? object[13].toString() : null); 
 					historyList.add(emplDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

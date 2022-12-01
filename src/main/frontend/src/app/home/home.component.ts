@@ -225,7 +225,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveObj.email = leaveApplication.email
-    leaveObj.rejectReason = leaveApplication.rejectReason
+    leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
     console.log("   leaveObj.email   ",leaveObj.email);
     
     
@@ -244,8 +244,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
    // single leave reject modal
    onSingleReject(template: TemplateRef<any> , ){
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
-      this.alertMessage = "Reason cannot contain single character !!"
+    if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
+      this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -359,7 +359,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
-    timesheetObj.rejectReason = timesheet.rejectReason;
+    timesheetObj.rejectReason = timesheet.rejectReason?.trim();
     timesheetObj.employeementId = timesheet.employeementId;
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
@@ -376,8 +376,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   
   rejectTimesheetRequest(template: TemplateRef<any> , ){
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
-      this.alertMessage = "Reason cannot contain single character !!"
+    if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
+      this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -456,15 +456,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
           }
         }).filter(data => data != undefined);
         console.log("balanceChartData : ", balanceChartData);
-
-        let checkData = balanceChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
         
-        if(checkData && checkData.length != 0){
-          checkData.forEach(data => {
+        if(balanceChartData && balanceChartData.length != 0){
+          balanceChartData.forEach(data => {
             let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
-             if(leaveDetail){
-               leaveDetail.balance = data.y
+             
+            if(leaveDetail){ 
+               leaveDetail.balance = (data.y) ? data.y : 0;
              }
          }); 
         }
@@ -1185,8 +1183,8 @@ onBulkApproval(template:TemplateRef<any>){
 
 onBulkRejectTimesheet(template: TemplateRef<any>){
 
-  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
-    this.alertMessage = "Reason cannot contain single character !!"
+  if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
+    this.alertMessage = "Please enter Valid Reason !!"
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
@@ -1194,7 +1192,7 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
-  timesheetObj.rejectReason = this.timesheetObj.rejectReason;
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
   console.log(" timesheet reason :  ", timesheetObj.rejectReason);
   timesheetObj.status = "Rejected"
   console.log("For Bulk Update : ", timesheetObj);
@@ -1240,8 +1238,8 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 
 bulkRejectLeave(template: TemplateRef<any>){
 
-  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
-    this.alertMessage = "Reason cannot contain single character !!"
+  if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
+    this.alertMessage = "please enter valid reason !!"
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
@@ -1250,7 +1248,7 @@ bulkRejectLeave(template: TemplateRef<any>){
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
-  leaveObj.rejectReason = this.leaveObj.rejectReason
+  leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {

@@ -22,4 +22,7 @@ public class AssetDTO {
 	private Long deptId;
 	private List<EmployeeAssetMapDTO> departmentWiseAssetList;
 	private Long updatedBy;
+	private String deptConsent;
+	private String employeeName;
+	
 }

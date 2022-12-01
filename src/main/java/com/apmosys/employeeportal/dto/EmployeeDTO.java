@@ -132,7 +132,7 @@ public class EmployeeDTO {
 	private Integer projectId;
 	private String projectName;
 	private String startDate;
-	private String endDate;
+	private String updatedOn;
 	private String teamLeadName;
 	private String employeeRole;
 	private String clientName;
@@ -149,7 +149,10 @@ public class EmployeeDTO {
 		
 	private String toDate;	
 		
-	private Long appreciationEventId;	
+	private Long appreciationEventId;
+	private String tabName;
+	private String subFeatureName;
+	private String featureName;
 		
 //	private String eventCreatedOn;
 

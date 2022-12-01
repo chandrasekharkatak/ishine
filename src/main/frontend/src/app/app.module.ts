@@ -69,6 +69,7 @@ import { UploadPoliciesComponent } from './configuration/upload-policies/upload-
 import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
+import { UserExitComponent } from './user-exit/user-exit.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -119,6 +120,7 @@ import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.com
     UploadPoliciesComponent,
     RecruitmentComponent,
     OnBoardingComponent,
+    UserExitComponent,
   ],
   imports: [
     BrowserModule,

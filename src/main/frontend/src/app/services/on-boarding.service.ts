@@ -18,4 +18,8 @@ export class OnBoardingService {
   updateOnBoardingCheckList(assetObj: Asset) {
     return this.http.post(`${this.baseUrl}` + `api/updateOnBoardingCheckList`, assetObj);
   }
+
+  getAssetDataFromSnipitPortal(assetObj: Asset) {
+    return this.http.post(`${this.baseUrl}` + `api/getAssetDataFromSnipitPortal`, assetObj);
+  }
 }

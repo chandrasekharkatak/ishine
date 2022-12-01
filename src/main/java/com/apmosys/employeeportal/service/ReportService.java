@@ -6,9 +6,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -20,6 +22,9 @@ public class ReportService {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	EmployeeRoleMasterRepository employeeRoleMasterRepository;
 
 	public ServiceResponse leaveReport() {
 		ServiceResponse response = new ServiceResponse();
@@ -90,6 +95,82 @@ public class ReportService {
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet list is empty.");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAccessControlListData(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> accessControlList = employeeRoleMasterRepository
+					.getAccessControlList(employeeDto.getJobRoleName(), employeeDto.getDepartmentId(), employeeDto.getEmployeeRole());
+			
+			List<EmployeeDTO> dtoList = new ArrayList<>();
+			
+			if(!accessControlList.isEmpty()) {
+				
+				accessControlList.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					
+					empDTO.setDepartmentName(object[0] != null ? object[0].toString() : null);
+					empDTO.setJobRoleName(object[1] != null ? object[1].toString() : null);
+					empDTO.setEmployeeRole(object[2] != null ? object[2].toString() : null);
+					empDTO.setTabName(object[3] != null ? object[3].toString() : null);
+					empDTO.setFeatureName(object[4] != null ? object[4].toString() : null);
+					empDTO.setSubFeatureName(object[5] != null ? object[5].toString() : null);
+					
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+				response.setServiceResponse(dtoList);
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("ACL (Access control list) is empty.");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAccessControlListByPersona(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> accessControlList = employeeRoleMasterRepository
+					.getAccessControlListByPersona(employeeDto.getEmployeeRole());
+			
+			List<EmployeeDTO> dtoList = new ArrayList<>();
+			
+			if(!accessControlList.isEmpty()) {
+				
+				accessControlList.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					
+					empDTO.setEmployeeRole(object[0] != null ? object[0].toString() : null);
+					empDTO.setTabName(object[1] != null ? object[1].toString() : null);
+					empDTO.setFeatureName(object[2] != null ? object[2].toString() : null);
+					empDTO.setSubFeatureName(object[3] != null ? object[3].toString() : null);
+					
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+				response.setServiceResponse(dtoList);
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("ACL (Access control list) is empty.");
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
