@@ -287,7 +287,7 @@ export class MyTimesheetComponent implements OnInit {
 
       this.allTimesheetActivities.forEach((activity, index) => {
 
-        if(activity.description) activity.description = activity.description.trim();
+        if(activity.description) activity.description = activity.description?.trim();
 
         if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
           this.alertMessage = `Please select Client - ${index + 1}!!`
@@ -360,7 +360,7 @@ export class MyTimesheetComponent implements OnInit {
   onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
 
-    this.timesheetObj.description = this.timesheetObj.description.trim();
+    this.timesheetObj.description = this.timesheetObj.description?.trim();
 
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
@@ -694,6 +694,9 @@ export class MyTimesheetComponent implements OnInit {
 
   getAllMyActivitiesByTimesheetId(timesheet: any) {
     this.allTimesheetActivities = [];
+
+    console.log("timesheet : ", timesheet);
+    
 
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;

@@ -456,15 +456,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
           }
         }).filter(data => data != undefined);
         console.log("balanceChartData : ", balanceChartData);
-
-        let checkData = balanceChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
         
-        if(checkData && checkData.length != 0){
-          checkData.forEach(data => {
+        if(balanceChartData && balanceChartData.length != 0){
+          balanceChartData.forEach(data => {
             let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
-             if(leaveDetail){
-               leaveDetail.balance = data.y
+             
+            if(leaveDetail){ 
+               leaveDetail.balance = (data.y) ? data.y : 0;
              }
          }); 
         }

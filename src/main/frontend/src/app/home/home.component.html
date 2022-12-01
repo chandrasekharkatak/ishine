@@ -78,16 +78,16 @@
                 <p class="section-heading m-0 pl-2">My Leave Details</p>
             </div>
             <div class="leave-details-body">
-                <table class="table table-borderless">
+                <table class="table table-borderless leaveBucketTable">
                     <thead>
-                      <tr>
+                      <tr class="leaveBucketTableHdTr">
                         <th scope="col">Type</th>
                         <th scope="col">Balance</th>
                         <th scope="col">Approved</th>
                         <th scope="col">Pending</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="leave-body" [ngClass]="(userMapping.view_all_team_requests)? 'leave-body--scroll' : ''">
                       <tr *ngFor="let leave of leaveBucketDetails">
                         <td scope="row">{{leave.leaveTypeCode}}</td>
                         <td><h3><span class="badge badge-primary">{{leave.balance}}</span></h3></td>
