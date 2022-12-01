@@ -31,4 +31,6 @@ public class ActivityDTO {
 
 	private Integer clientId;
 	private Integer clientLocationId;
+	private String employeeName;
+	private String managerName;
 }

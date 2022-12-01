@@ -41,6 +41,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class TeamsService {
@@ -77,6 +78,9 @@ public class TeamsService {
 
 	@Autowired
 	ModelMapper modelMapper;
+
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -289,7 +293,7 @@ public class TeamsService {
 						dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dto.setTeamMemberName(object[5] != null ? object[5].toString() : null);
+						dto.setTeamMemberName(object[7] != null ? object[7].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -358,7 +362,13 @@ public class TeamsService {
 						// Case 2 : No New Member is Added + ONLY Removed Existing Member
 						updatedTeamMemberList.stream().filter((teamMember) -> teamMember.getEmployeeTeamMapId() != null)
 								.forEach((employee) -> {
-									employeeTeamMapRepository.deleteById(employee.getEmployeeTeamMapId());
+//									employee.setActive((long) 0);
+									
+									EmployeeTeamMap map = employeeTeamMapRepository.findByEmployeeTeamMapId(employee.getEmployeeTeamMapId());
+									map.setActive((long) 0);
+									map.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+									employeeTeamMapRepository.save(map);
+									//employeeTeamMapRepository.deleteById(employee.getEmployeeTeamMapId());
 								});
 
 						// Case 3 : Removed Existing Member + Added New Member (Combination of Case 1&2)

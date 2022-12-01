@@ -537,10 +537,11 @@ toDateFilter = (d: Date)=>{
       if (response.serviceStatus == "Success") {
         this.all = response.serviceResponse;
         console.log("appreciation : ", this.all)
-        this.enableAppreciationList = []
-        this.allEmployeeList = []
+        // this.enableAppreciationList = []
+        // this.allEmployeeList = []
         this.openAlertMod(template, response.serviceResponse); 
-        this.reset();       
+        this.viewAppreciationEventOnClick();
+        // this.reset();       
       } else {
         console.error(response.serviceResponse)
       }

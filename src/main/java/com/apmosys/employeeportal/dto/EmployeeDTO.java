@@ -132,7 +132,7 @@ public class EmployeeDTO {
 	private Integer projectId;
 	private String projectName;
 	private String startDate;
-	private String endDate;
+	private String updatedOn;
 	private String teamLeadName;
 	private String employeeRole;
 	private String clientName;

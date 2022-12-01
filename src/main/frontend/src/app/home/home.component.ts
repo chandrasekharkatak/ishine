@@ -225,7 +225,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveObj.email = leaveApplication.email
-    leaveObj.rejectReason = leaveApplication.rejectReason.trim();
+    leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
     console.log("   leaveObj.email   ",leaveObj.email);
     
     
@@ -359,7 +359,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
-    timesheetObj.rejectReason = timesheet.rejectReason.trim();
+    timesheetObj.rejectReason = timesheet.rejectReason?.trim();
     timesheetObj.employeementId = timesheet.employeementId;
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
@@ -1192,7 +1192,7 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
-  timesheetObj.rejectReason = this.timesheetObj.rejectReason.trim();
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
   console.log(" timesheet reason :  ", timesheetObj.rejectReason);
   timesheetObj.status = "Rejected"
   console.log("For Bulk Update : ", timesheetObj);
@@ -1248,7 +1248,7 @@ bulkRejectLeave(template: TemplateRef<any>){
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
-  leaveObj.rejectReason = this.leaveObj.rejectReason.trim();
+  leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {

@@ -677,7 +677,7 @@ export class LeaveComponent implements OnInit {
   
   onApplyLeave(template: TemplateRef<any>){
     const dateFormat = 'YYYY-MM-DD';
-    this.leaveObj.reason = this.leaveObj.reason.trim();
+    this.leaveObj.reason = this.leaveObj.reason?.trim();
     let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
     if(!inputValidated) return;
 
@@ -749,7 +749,7 @@ export class LeaveComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
-    leaveApplication.rejectReason = this.leaveObj.rejectReason.trim();
+    leaveApplication.rejectReason = this.leaveObj.rejectReason?.trim();
     leaveApplication.email = this.leaveObj.email;
     leaveApplication.employeementId = this.leaveObj.employeementId
     console.log("leaveApplication : ", leaveApplication);

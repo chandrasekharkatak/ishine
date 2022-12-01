@@ -30,13 +30,6 @@ public class Team {
 	private Integer projectId;
 	private String teamLeadName;
 	private String isActive;
-	
-//	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
-//	private Timestamp startDate;
-//	
-//	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
-//	private Timestamp endDate;
-//	
  
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
