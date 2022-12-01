@@ -918,6 +918,17 @@ export class EmployeeConfigComponent implements OnInit {
   // }
 
   checkEmployeementId(template: TemplateRef<any>) {
+    
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if (!this.validationService.validateEmployeementId(this.employeeObj.employeementId)) {
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1313,11 +1324,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>){
     if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)){
-      this.alertMessage = "Please enter Reason for rejecting !!"
+      this.alertMessage = "Please enter Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
-      this.alertMessage = "Reason shouldn't contain single character !!"
+      this.alertMessage = "Enter Valid Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

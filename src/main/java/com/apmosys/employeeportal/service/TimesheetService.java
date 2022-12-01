@@ -413,11 +413,13 @@ public class TimesheetService {
 						dto.setClientName(object[6] != null ? object[6].toString() : null);
 						dto.setClientLocation(object[7] != null ? object[7].toString() : null);
 						dto.setTeamName(object[8] != null ? object[8].toString() : null);
-						dto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-						dto.setProjectId(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-						dto.setTimesheetActivityMapId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
-						dto.setClientId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
-						dto.setClientLocationId(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
+						dto.setEmployeeName(object[9] != null ? object[9].toString() : null);
+						dto.setManagerName(object[10] != null ? object[10].toString() : null);
+						dto.setActivityId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+						dto.setProjectId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+						dto.setTimesheetActivityMapId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+						dto.setClientId(object[14] != null ? Integer.parseInt(object[14].toString()) : null);
+						dto.setClientLocationId(object[15] != null ? Integer.parseInt(object[15].toString()) : null);
 						
 						dtoList.add(dto);
 					});

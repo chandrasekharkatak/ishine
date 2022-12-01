@@ -116,6 +116,7 @@ export class UploadPoliciesComponent implements OnInit {
     this.files = [];
   }
   onUploadFiles(template: TemplateRef<any>){
+    this.policyName = this.policyName?.trim();
     if(!this.validationService.validateNullUndefinedEmptyString(this.policyName)){
       this.alertMessage = "Please enter Policy Name !!"
       this.openAlertMod(template, this.alertMessage);

@@ -894,8 +894,8 @@
                     <th scope="col" class="info-label ">Team Lead Name</th>
                     <th scope="col" class="info-label ">Date Of Joining</th>
                     <th scope="col" class="info-label " *ngIf="employeeObj.employmentstatus == 'InActive'">Date Of Resign</th>
-                    <th scope="col" class="info-label ">Role</th>
-                    <th scope="col" class="info-label ">Team Leader Designation</th>
+                    <!-- <th scope="col" class="info-label ">Role</th> -->
+                    <th scope="col" class="info-label ">Designation</th>
                     <th scope="col" class="info-label ">Client Location</th>
                     <th scope="col" class="info-label ">Client Name</th>
                     
@@ -912,12 +912,12 @@
                    
                     <td>{{empHistory.teamName}}</td>
                     <td>{{empHistory.projectName}}</td>
-                    <td>{{empHistory.startDate | date:'dd-MM-yyyy'}}</td>
-                    <td>{{empHistory.endDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{empHistory.startDate | date:'dd-MM-yyyy hh:mm:ss'}}</td>
+                    <td>{{empHistory.updatedOn | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                     <td>{{empHistory.teamLeadName}}</td>
                     <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td>
                     <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td>
-                    <td>{{empHistory.role}}</td>
+                    <!-- <td>{{empHistory.role}}</td> -->
                     <td>{{empHistory.jobRoleName}}</td>
                     <td>{{empHistory.clientLocation}}</td>
                     <td>{{empHistory.clientName}}</td>
