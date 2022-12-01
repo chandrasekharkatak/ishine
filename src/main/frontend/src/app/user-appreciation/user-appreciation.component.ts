@@ -32,6 +32,8 @@ export class UserAppreciationComponent implements OnInit {
   currentUser: User;
   empid:any;
   appreciationEventInfo:enableAppreciation;
+  appreciateEmployeeByCurrentUser: any[] = [];
+  allAppreciateEmployee:any;
   
  
   constructor(private appreciationService : AppreciationService,
@@ -44,10 +46,10 @@ export class UserAppreciationComponent implements OnInit {
 
   ngOnInit(): void {
     this.employeeObj.empId=this.currentUser.empId;
-    this.getAllEmployees();
-    this.employeeObj.appreciateType = 'You are my Star';	
-    
+    this.employeeObj.appreciateType = 'You are my Star';	 
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
+    this.getAppreciateEmployeeByCurrentUser();
+
   }
   reset(){
    this.employeeObj = new Employee();
@@ -56,16 +58,49 @@ export class UserAppreciationComponent implements OnInit {
    this.employeeObj.appreciateType=null;
    this.employeeObj.reason=null;
   }
-  
+  getAppreciateEmployeeByCurrentUser(){
+    this.employeeObj.appreciationBy = this.currentUser.employeementId;
+    this.employeeObj.appreciationEventId = this.currentUser.appreciationEventInfo.appreciationEventId;
+    console.log(this.employeeObj.appreciationEventId, "this.employeeObj.appreciationEventId");
+    console.log(this.currentUser.appreciationEventInfo.appreciationEventId, "checking current event");
+    this.appreciationService.getAppreciateEmployeeByCurrentUser(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.appreciateEmployeeByCurrentUser = response.serviceResponse;
+        console.log("getAppreciateEmployeeByCurrentUser : ", this.appreciateEmployeeByCurrentUser);
+      } else {
+        console.error(response.serviceResponse);
+      }
+
+      this.getAllEmployees();
+    });
+
+  }
   getAllEmployees() {
     
     this.appreciationService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployee = response.serviceResponse;
-        this.allEmployee = this.allEmployee.filter(x => x.employmentstatus != 'InActive' && x.empId != this.currentUser.empId);
-        this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
-        console.log("appreciation : ", this.allEmployee)
 
+        this.allEmployee = this.allEmployee.filter(x => x.employmentstatus != 'InActive' && x.empId != this.currentUser.empId);
+
+        this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
+
+        console.log("appreciation : ", this.allEmployee);
+
+       this.appreciateEmployeeByCurrentUser.forEach((x) => {
+       console.log(x.appreciationTo , " :   appriciation to");
+       })
+       
+       this.allEmployee.forEach((employee)=>{
+         const appreciatedEmployee = this.appreciateEmployeeByCurrentUser.find((apprEmployee)=> employee.employeementId == apprEmployee.appreciationTo);
+         if(appreciatedEmployee){
+          employee.isAppreciated = true;
+         }else{
+          employee.isAppreciated = false;
+         }
+      });
+
+        console.log(this.allAppreciateEmployee, "allAppreciateEmployee");
       } else {
         console.error(response.serviceResponse)
       }

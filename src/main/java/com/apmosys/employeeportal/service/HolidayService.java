@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Holiday;
@@ -33,10 +36,22 @@ public class HolidayService {
 	@Autowired
 	EmployeeRepository employeeRepository;
 
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("add_holidays");
+		apiLogInfo.setApiUrl("/api/addHoliday");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("occasion : " + holidayDTO.getOccasion()+ "optionalHoliday : " +holidayDTO.getOptionalHoliday()+  "holidayType : " +holidayDTO.getHolidayType());
 		try {
 			     Holiday newHoliday = new Holiday();
 
@@ -52,10 +67,15 @@ public class HolidayService {
 			     if (newHolidayCreated != null) {
 			     	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				    response.setServiceResponse("New holiday added.");
-
+				    
+				    apiLogInfo.setApiResponse("New holiday added.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			     } else {
 			    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				    response.setServiceResponse("Failed to add new holiday.");
+				   
+				    apiLogInfo.setApiResponse("Failed to add new holiday.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			     }
 
 		} catch (Exception e) {
@@ -63,13 +83,26 @@ public class HolidayService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse updateHoliday(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("update_holidays");
+		apiLogInfo.setApiUrl("/api/updateHoliday");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("holidayId : " + holidayDTO.getHolidayId());
 		String message = "";
 		try {
 			Optional<Holiday> existingHoliday = holidayRepository.findById(holidayDTO.getHolidayId());
@@ -88,13 +121,25 @@ public class HolidayService {
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Holiday updated successfully." + message);
+					
+					apiLogInfo.setApiResponse("Holiday updated successfully." + message);			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to update holiday.");
+					
+					apiLogInfo.setApiResponse("Failed to update holiday.");	
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+					
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No such holiday available.");
+				
+				apiLogInfo.setApiResponse("No such holiday available.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+				
 			}
 
 		} catch (Exception e) {
@@ -102,12 +147,25 @@ public class HolidayService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse deleteHoliday(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("delete_holiday");
+		apiLogInfo.setApiUrl("/api/deleteHoliday");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("holidayId : " + holidayDTO.getHolidayId());
 		try {
 			Optional<Holiday> holidayObject = holidayRepository.findById(holidayDTO.getHolidayId());
 			if (holidayObject.isPresent()) {
@@ -115,16 +173,29 @@ public class HolidayService {
 				holidayRepository.deleteById(holidayToBeDeleted.getHolidayId());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Holiday Deleted.");
+				
+				apiLogInfo.setApiResponse("Holiday Deleted.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Holiday Not Found.");
+				
+				apiLogInfo.setApiResponse("Holiday Not Found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -167,6 +238,13 @@ public class HolidayService {
 	public ServiceResponse getAllHolidayByEmpWorkLocation(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("delete_holiday");
+		apiLogInfo.setApiUrl("/api/getAllHolidayByEmpWorkLocation");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeedto.getEmpId());
+		
 		try {
 
 			List<Object[]> list = employeeRepository.getAllHolidayByEmpWorkLocation(employeedto.getEmpId());
@@ -175,6 +253,9 @@ public class HolidayService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Holidays found");
+				
+				apiLogInfo.setApiResponse("No Holidays found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -189,6 +270,9 @@ public class HolidayService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -196,12 +280,26 @@ public class HolidayService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse checkOccasionIfAlreadyExist(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("delete_holiday");
+		apiLogInfo.setApiUrl("/api/checkOccasionIfAlreadyExist");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("occasion : " + holidayDTO.getOccasion());
+		
 		
 		  try {
 			  Holiday checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
@@ -209,6 +307,9 @@ public class HolidayService {
 			  if(checkOccasion!=null) {
 				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				  response.setServiceResponse("Occasion already exist!");
+				  
+				  apiLogInfo.setApiResponse("Occasion already exist!");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			  }
 			
 		  } catch (Exception e) {
@@ -216,8 +317,14 @@ public class HolidayService {
 			   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			   response.setServiceResponse("Something Went Wrong.");
 			   response.setServiceError(e.getMessage());
-		  }
-		  return response;
+			   
+			   apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			   apiLogInfo.setLogLevel("ERROR");
+				
+			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return response;
 	}
 	
 }

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -17,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Employee;
@@ -46,11 +49,24 @@ public class UploadPolicyService {
 	@Value("${file.location.document}")
 	private String documentFileLocation;
 	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
 	
 	
 	public ServiceResponse uploadPolicies(List<MultipartFile> files, String policyName, Long uploadedBy, String readEnabled) {
 		
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Upload Policy");
+		apiLogInfo.setApiUrl("/api/uploadPolicies");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("policyName : " +policyName+ "uploadedBy : " +uploadedBy+ "readEnabled : " +readEnabled );
 		List<File> savedFiles = new ArrayList<File>();
 		String errorMsg = "";
 		
@@ -92,30 +108,50 @@ public class UploadPolicyService {
 						}
 						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			             response.setServiceResponse("Document Uploaded.");
+			             
+			             apiLogInfo.setApiResponse("Appreciation not submitted");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						}else {
 							for(File file: savedFiles){
 								file.delete();
 							}
 							response.setServiceResponse(errorMsg + "Upload document Failed !!");
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							
+							apiLogInfo.setApiResponse("Upload document Failed !!");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 
 					}else {
 						response.setServiceResponse("uploaded document Not Found !!");
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						
+						apiLogInfo.setApiResponse("uploaded document Not Found !!");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 					
 				}else {
 					response.setServiceResponse("User Not Found !!");
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					
+					apiLogInfo.setApiResponse("User Not Found !!");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+			
 		}
-
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 		
 	}
@@ -163,6 +199,13 @@ public class UploadPolicyService {
 
 	public ServiceResponse deleteDocument(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Delete Document");
+		apiLogInfo.setApiUrl("/api/deletePolicyDocument");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("policyID : " +uploadPolicyDTO.getPolicyID());
 		try {
 		if(uploadPolicyDTO.getPolicyID() != null) {
 			Optional<UploadPolicy> policyDocument = UploadPolicyRepository.findById(uploadPolicyDTO.getPolicyID());
@@ -179,25 +222,43 @@ public class UploadPolicyService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Policy Document deleted.");
+					
+					apiLogInfo.setApiResponse("Policy Document deleted.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Failed to delete Policy Document.");
+					
+					apiLogInfo.setApiResponse("Failed to delete Policy Document");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
             }
 			}, () ->{
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Documentfound for given id.");
+				
+				apiLogInfo.setApiResponse("No Documentfound for given id.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("policy document id cannot be null.");
+				
+				apiLogInfo.setApiResponse("policy document id cannot be null.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -209,7 +270,7 @@ public class UploadPolicyService {
 		List<Object[]> object = UploadPolicyRepository.findByPolicyID(policyID);
 		for (Object[] objectlist : object) {
 		     filename= (String)objectlist[3];
-		    System.out.println("ssssssssssssssss" +filename);
+		    System.out.println("filename" +filename);
 		}
 		
 		String Location = documentFileLocation + File.separator + filename;
@@ -228,6 +289,13 @@ public class UploadPolicyService {
 
 	public ServiceResponse changepolicyEnabledMode(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/changepolicyEnabledMode");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("policyID : " +uploadPolicyDTO.getPolicyID()+ "readEnabled" +uploadPolicyDTO.getReadEnabled() );
+		
 		try {
 		Optional<UploadPolicy> uploadPolicyObject = UploadPolicyRepository.findById(uploadPolicyDTO.getPolicyID());
 		if(uploadPolicyObject.isPresent()) {
@@ -244,21 +312,33 @@ public class UploadPolicyService {
 				if(updatedPolicy.getReadEnabled().equalsIgnoreCase("false")) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Read Disable status changed.");
+					
+					apiLogInfo.setApiResponse("Read Disable status changed.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Read Enable status changed.");
+					
+					apiLogInfo.setApiResponse("Read Enable status changed.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					
 				}
 
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Failed to change status.");
+				
+				apiLogInfo.setApiResponse("Failed to change status.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		} else {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(" Policy Not Found.");
+			
+			apiLogInfo.setApiResponse("Policy Not Found.");			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		}
 
 	} catch (Exception e) {
@@ -266,17 +346,32 @@ public class UploadPolicyService {
 		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 		response.setServiceResponse("Something Went Wrong.");
 		response.setServiceError(e.getMessage());
+		
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+		
 	}	
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 
 	public ServiceResponse setPolicyReadResponseByEmpId(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/setPolicyReadResponseByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("policyID : " +uploadPolicyDTO.getPolicyID()+ "empID :" +uploadPolicyDTO.getEmpId());
 		try {
 		if (!validationService.validateEmpId(uploadPolicyDTO.getEmpId())) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Employee Id does not exists.");
+			
+			apiLogInfo.setApiResponse("Employee Id does not exists");			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			return response;
 		}
 		PolicyReadResponse policyreadresponse = new PolicyReadResponse();
@@ -286,10 +381,16 @@ public class UploadPolicyService {
 		if(dbResponse!=null) {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Your response has been submitted");
+			
+			apiLogInfo.setApiResponse("Your response has been submitted");			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			//return response;	
 		}else {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Appreciation not submitted.");
+			
+			apiLogInfo.setApiResponse("Appreciation not submitted.");			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		}
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -298,14 +399,26 @@ public class UploadPolicyService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+			
 		}
 		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 
 	public ServiceResponse showPolicyReadResponseByPolicyID(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/showPolicyReadResponseByPolicyID");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("policyID: " +uploadPolicyDTO.getPolicyID());
 		try {
 		List<Object[]> objectList = PolicyReadResponseRepository
 				.getPolicyAllResponsesByPolicyId(uploadPolicyDTO.getPolicyID());
@@ -330,31 +443,52 @@ public class UploadPolicyService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("dtoList" +dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		},()-> {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("No responses found for Policy. List is null.");
+			
+			apiLogInfo.setApiResponse("No responses found for Policy. List is null.");			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		});
 	} catch (Exception e) {
 		e.printStackTrace();
 		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 		response.setServiceResponse("Something Went Wrong.");
 		response.setServiceError(e.getMessage());
+		
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+		
 	}	
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 
 	public ServiceResponse getReadPoliciesByEmpId(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/getReadPoliciesByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("policyID : " +uploadPolicyDTO.getPolicyID()+ "empId : " +uploadPolicyDTO.getEmpId());
 		try {
 		List<Object[]> objectList = PolicyReadResponseRepository
 				.getReadPoliciesByEmpId(uploadPolicyDTO.getEmpId());
-Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+        Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 			
 			if(list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No responses found for policy. List is empty.");
+				
+				apiLogInfo.setApiResponse("No responses found for policy. List is empty..");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				List<UploadPolicyDTO> dtoList = new ArrayList<UploadPolicyDTO>();
 				
@@ -369,17 +503,29 @@ Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("dtoList" +dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		},()-> {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("No responses found for Policy. List is null.");
+			
+			apiLogInfo.setApiResponse("No responses found for Policy. List is null");			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		});
 	} catch (Exception e) {
 		e.printStackTrace();
 		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 		response.setServiceResponse("Something Went Wrong.");
 		response.setServiceError(e.getMessage());
-	}	
+		
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+		
+	}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	

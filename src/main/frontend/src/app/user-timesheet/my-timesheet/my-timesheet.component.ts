@@ -199,11 +199,20 @@ export class MyTimesheetComponent implements OnInit {
 
 
   addInputActivityField(activityObj?:Activity) {
+
+    
+
         console.log("before allTimesheetActivities : " , this.allTimesheetActivities)
         let newActivityObj = new Activity();
         if(activityObj != undefined){
           newActivityObj.clientId = activityObj.clientId;
+
+
           newActivityObj.clientLocationId = activityObj.clientLocationId;
+
+
+
+
           newActivityObj.projectId = activityObj.projectId;
           console.log("newActivityObj : ",newActivityObj);
 
@@ -529,7 +538,7 @@ export class MyTimesheetComponent implements OnInit {
 
   getProjectList(activityObj: Activity){
     this.projectList = [];
-
+    
     const key = "projectId";
     this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
@@ -542,15 +551,16 @@ export class MyTimesheetComponent implements OnInit {
 
   setAllProjects(activityObj, projectList: any) {
     const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if(!this.isTimesheetUpdate && activityObj.projectId == ""){
+    selectedActivityObj.projectList = projectList;
+    if((!this.isTimesheetUpdate && activityObj.projectId == "") || !this.projectList.find(project => project.projectId == selectedActivityObj.projectId)){
       selectedActivityObj.projectId = '';
     }
-    selectedActivityObj.projectList = projectList;
   } 
 
   getClientLocationList(activityObj: any){
     this.clientLocationList = [];
 
+   // this.allTimesheetActivities.find(activity => activity == activityObj).clientLocationId = '';
     const key = "clientLocationId";
     this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
@@ -563,10 +573,13 @@ export class MyTimesheetComponent implements OnInit {
 
   setAllClientLocations(activityObj, clientLocationList: any) {
     const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if(!this.isTimesheetUpdate && activityObj.clientLocationId == ""){
+    selectedActivityObj.clientLocationList = clientLocationList;
+
+    console.log("clientLocationList : ", clientLocationList);
+    
+    if((!this.isTimesheetUpdate && activityObj.clientLocationId == "") || !this.clientLocationList.find(clientLocation => clientLocation.clientLocationId == selectedActivityObj.clientLocationId)){
       selectedActivityObj.clientLocationId = '';
     }
-    selectedActivityObj.clientLocationList = clientLocationList;
   } 
 
 
@@ -806,12 +819,9 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  validateNullUndefinedEmptyDescription(event,data:any){
+  validateDescription(event,data:any){
  
-  if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Description !!"   
-  }
-  else if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
     this.errorMsg = "Please enter valid Description !!"   
   }
   else{
@@ -823,36 +833,82 @@ export class MyTimesheetComponent implements OnInit {
     event.target.nextElementSibling.textContent =  this.errorMsg
   }
   }
-  // validateTime(event,data:any){
-  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-  //     this.errorMsg = "Please enter Time !!"
-  //   }  
-  //   else if(data <= 0 || data > 24){
-  //     this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
-  // } 
-  // else{
-  //   this.errorMsg = ""
-  // }
-  // if(this.errorMsg == ""){
-  //   event.target.nextElementSibling.textContent = ""
-  // }else{
-  //   event.target.nextElementSibling.textContent =  this.errorMsg
-  // }
+  validateTime(event,data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Time !!"
+    }  
+    else if(data <= 0 || data > 24){
+      this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
+  } 
+  else{
+    this.errorMsg = ""
+  }
+  if(this.errorMsg == ""){
+    event.target.nextElementSibling.textContent = ""
+  }else{
+    event.target.nextElementSibling.textContent =  this.errorMsg
+  }
 
-  // }
-  // validateNullUndefinedEmptyclientId(event,data:any){
-  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-  //     this.errorMsg = "Please enter Timessssssss !!"
-  //   } 
+  }
+  
 
-  // }
-  // validateNullUndefinedEmptyActivity(event,data:any){
-  //   if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-  //     this.errorMsg = "Please enter Time !!"
-  //   } 
+  validateClientName(event,data:any){
+ 
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+        this.errorMsg = "Please Select Client Name !!"   
+    } 
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    }
+  validateClientLocation(event,data:any){
+ 
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+        this.errorMsg = "Please Select Client Location !!"   
+    } 
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    }
+  validateProjectName(event,data:any){
+ 
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+        this.errorMsg = "Please Select Project Name !!"   
+    } 
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    }
 
-  // }
-
+    validateActivity(event,data:any){
+ 
+      if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+          this.errorMsg = "Please Select Activity !!"   
+      } 
+      else{
+        this.errorMsg = ""
+      }
+      if(this.errorMsg == ""){
+        event.target.nextElementSibling.textContent = ""
+      }else{
+        event.target.nextElementSibling.textContent =  this.errorMsg
+      }
+      }
   //pagination 
 
   page = 1;

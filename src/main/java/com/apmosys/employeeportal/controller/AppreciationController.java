@@ -60,4 +60,10 @@ public class AppreciationController {
 		return response;	
 	}
     
+    @RequestMapping(value = "getAppreciateEmployeeByCurrentUser", method = RequestMethod.POST )	
+    public ServiceResponse getAppreciateEmployeeByCurrentUser(@RequestBody AppreciationDTO appreciationDTO){	
+		ServiceResponse response=appreciationService.getAppreciateEmployeeByCurrentUser(appreciationDTO);	
+		return response;	
+	}
+    
 }

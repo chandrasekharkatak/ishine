@@ -110,12 +110,14 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Client Name</label>
                                         <select class="form-control" aria-hidden="true"
-                                            [(ngModel)]="activityObj.clientId"
-                                            (change)="getClientLocationList(activityObj);">
+                                            [(ngModel)]="activityObj.clientId" (blur)="validateClientName($event,activityObj.clientId)"
+                                            (change)="getClientLocationList(activityObj);" >
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option *ngFor="let client of clientList" value="{{client.clientId}}">
+                                            <option *ngFor="let client of clientList" value="{{client.clientId}}" >
                                                 {{client.clientName}}</option>
                                         </select>
+                                        <small class="errorMsg text-danger"></small>
+
                                     </div>
                                 </div>
                             </div>
@@ -125,13 +127,14 @@
                                         <label class="info-label"><span class="text-danger">*</span>Client
                                             Location</label>
                                         <select class="form-control" aria-hidden="true"
-                                            [(ngModel)]="activityObj.clientLocationId"
+                                            [(ngModel)]="activityObj.clientLocationId" (blur)="validateClientLocation($event,activityObj.clientLocationId)"
                                             (change)="getProjectList(activityObj);">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let clientLocation of activityObj.clientLocationList"
                                                 value="{{clientLocation.clientLocationId}}">
                                                 {{clientLocation.clientLocation}}</option>
                                         </select>
+                                        <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
                             </div>
@@ -142,12 +145,13 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
                                         <select class="form-control" aria-hidden="true"
-                                            [(ngModel)]="activityObj.projectId"
-                                            (change)="getAllActivitiesByProjectIdandEmpId(activityObj)">
+                                            [(ngModel)]="activityObj.projectId" (blur)="validateProjectName($event,activityObj.projectId)"
+                                            (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let project of activityObj.projectList"
                                                 value="{{project.projectId}}">{{project.projectName}}</option>
                                         </select>
+                                        <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
                             </div>
@@ -156,11 +160,13 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
                                         <select class="form-control" aria-hidden="true"
-                                            [(ngModel)]="activityObj.activityId" (change)="setActivity(activityObj)">
+                                            [(ngModel)]="activityObj.activityId" (blur)="validateActivity($event,activityObj.activityId)" (change)="setActivity(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let activity of activityObj.projectActivities"
                                                 value="{{activity.activityId}}">{{activity.activity}}</option>
                                         </select>
+                                        <small class="errorMsg text-danger"></small>
+
                                     </div>
                                 </div>
                             </div>
@@ -169,7 +175,9 @@
                                     <div class="form-group">
                                         <label for="leaveDesc">Description</label>
                                         <textarea class="form-control" id="dayTypeDesc" rows="1"  
-                                            [(ngModel)]="activityObj.description"></textarea>
+                                            [(ngModel)]="activityObj.description" (blur)="validateDescription($event,activityObj.description)" ></textarea>
+                                            <small class="errorMsg text-danger"></small>
+
                                     </div>
                                 </div>
                             </div>
@@ -179,14 +187,15 @@
                                         <label class="info-label"><span class="text-danger">*</span>Time
                                             <small>(Hrs)</small></label>
                                         <input type="number" class="form-control" autocomplete="none" 
-                                            [(ngModel)]="activityObj.completionTime">
+                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)">
+                                            <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-1 d-flex">
                                 <div class="m-0 mt-4 pt-2">
                                     <button type="button" class="btn btn-sm btn-outline-primary mx-1"
-                                        (click)="addInputActivityField(activityObj)"><i class="fa fa-plus"
+                                        (click)="addInputActivityField(activityObj)" ><i class="fa fa-plus"
                                             aria-hidden="true"></i></button>
                                     <button *ngIf="i != 0" type="button" class="btn btn-sm btn-outline-primary mx-1"
                                         (click)="removeInputActivityField(activityObj)"><i class="fa fa-trash"
