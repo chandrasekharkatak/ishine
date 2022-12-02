@@ -293,6 +293,12 @@ export class SurveyConfigComponent implements OnInit {
     });
   }
 
+  spaceTrimOnSurveyName(){
+    if(this.surveyObj.surveyName != null || this.surveyObj.surveyName != ''){
+      this.surveyObj.surveyName = this.surveyObj.surveyName?.trim();
+    }
+  }
+
   getAllSurveys(){
     this.allSurveyList = [];
     

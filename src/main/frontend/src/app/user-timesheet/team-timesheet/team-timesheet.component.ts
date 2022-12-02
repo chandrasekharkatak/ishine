@@ -128,6 +128,11 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
+
+        for(let x of this.allTeamTimesheets){
+          x.employeementId = "A-".concat(x.employeementId);
+        }
+
         console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
         console.error(response.serviceResponse)
@@ -147,6 +152,9 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
+        for(let x of this.allTeamTimesheetRequests){
+          x.employeementId = "A-".concat(x.employeementId);
+        }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
@@ -159,6 +167,7 @@ export class TeamTimesheetComponent implements OnInit {
     let timesheetObj = Object.assign({}, timesheet);
     timesheetObj.status = status
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -195,6 +204,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
+    
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.allTimesheetActivities = response.serviceResponse;
@@ -207,8 +217,10 @@ export class TeamTimesheetComponent implements OnInit {
 
   revokeApprovedTimesheet(template: TemplateRef<any>) {
     this.cancelRequest();
+    let timesheetObj = Object.assign({}, this.timesheetObj);
+    timesheetObj.employeementId = timesheetObj.employeementId.substring(2)
 
-    this.timesheetService.revokeApprovedTimesheet(this.timesheetObj).pipe(first()).subscribe((response :any) => {
+    this.timesheetService.revokeApprovedTimesheet(timesheetObj).pipe(first()).subscribe((response :any) => {
       if(response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showAllTimesheetsTable();

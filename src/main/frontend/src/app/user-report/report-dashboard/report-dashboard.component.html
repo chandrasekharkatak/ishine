@@ -17,7 +17,7 @@
 
         <div class="row">
             <div class="form-group ml-auto col-md-3">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
             </div>
         </div>
 
@@ -204,7 +204,7 @@
                 <tr
                     *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
-                    <td>{{leave.employeementId}}</td>
+                    <td>A-{{leave.employeementId}}</td>
                     <td>{{leave.employeeName}}</td>
                     <td>{{leave.departmentName}}</td>
                     <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
@@ -255,7 +255,7 @@
                     <tr
                         *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
-                        <td>{{leave.employeementId}}</td>
+                        <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.date | date:'dd-MM-yyyy'}}</td>
@@ -309,7 +309,7 @@
                     <tr
                         *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
-                        <td>{{leave.employeementId}}</td>
+                        <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
@@ -418,7 +418,7 @@
                 <tr
                     *ngFor="let emp of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
-                    <td>{{emp.employeementId}}</td>
+                    <td>A-{{emp.employeementId}}</td>
                     <td>{{emp.employeeName}}</td>
                     <td>{{emp.projectName}}</td>
                     <td>{{emp.clientName}}</td>

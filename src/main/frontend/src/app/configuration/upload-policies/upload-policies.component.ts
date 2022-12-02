@@ -163,6 +163,12 @@ export class UploadPoliciesComponent implements OnInit {
   
   }
 
+  spaceTrimInpolicyName(){
+    if(this.policyName != null || this.policyName != ''){
+      this.policyName = this.policyName?.trim();
+    }
+  }
+
   getAllDocuments(){
     this.data='';
     this.document = [];
@@ -257,6 +263,9 @@ export class UploadPoliciesComponent implements OnInit {
     this.uploadPoliciesService.showPolicyReadResponse(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.responseList = response.serviceResponse;
+        for(let x of this.responseList){
+          x.empId = "A-".concat(x.empId);
+        }
         console.log(this.responseList);      
       }
       else{

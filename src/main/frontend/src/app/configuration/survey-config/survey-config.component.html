@@ -18,7 +18,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Survey Name</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.surveyName">
+                            <input type="text" class="form-control" autocomplete="none" (blur)="spaceTrimOnSurveyName()" [(ngModel)]="surveyObj.surveyName">
                         </div>
                     </div>
                 </div>

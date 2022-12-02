@@ -164,7 +164,8 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   setYearOfPassingList(){
-    for (let start = 1990; start < 2051; start++) {
+    const currentYear = new Date().getFullYear();
+    for (let start = 1990; start <= currentYear; start++) {
       this.yearOfPassingList.push(start);
     }   
   }

@@ -819,17 +819,17 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         console.log("leaveHistoryList : ", this.leaveHistoryList);
-        this.filteredMyLeaveApplication();
+        this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  filteredMyLeaveApplication(){
-    this.filterLeaveHistoryList = this.leaveHistoryList.filter(x => x.status != 'Rejected');
-    console.log("allEmployeeList : ", this.filterLeaveHistoryList)
-  }
+  // filteredMyLeaveApplication(){
+  //   this.filterLeaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
+  //   console.log("allEmployeeList : ", this.filterLeaveHistoryList)
+  // }
 
   getAllMyTeamApplicationsByEmpId(userObj:User){
     this.leaveHistoryList = [];

@@ -33,7 +33,7 @@
             </div>
           </div>
           <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
           </div>
         </div>
 
@@ -115,7 +115,7 @@
         <small>entries</small>
       </div>
       <div class="form-group col-md-3 ml-auto mb-2 mt-4 pt-2">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+        <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
       </div>
     </div>
     <div class="row">
@@ -149,7 +149,7 @@
                 <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected"
                     (change)="select(timesheet,$event)"></td>
                 <td>{{items*(page-1)+i+1}}</td>
-                <td>A-{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                 <td>{{timesheet.dayType}}</td>

@@ -53,7 +53,7 @@
                                             <div class="form-group">
                                                 <label class="info-label" ><span class="text-danger">*</span>Secondary Email ID</label>
                                                 <input type="email" class="form-control" autocomplete="none" maxlength="50"
-                                                [(ngModel)]="employeeObj.secondaryEmail">
+                                                [(ngModel)]="employeeObj.secondaryEmail" (blur)="checkSecondaryEmail(alert_message)">
                                             </div>
                                         </div>
                                     </div>
@@ -787,7 +787,7 @@
             </div>
             <div class="col-md-3">
                 <div class="form-group" *ngIf="!isDraftTable">
-                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+                    <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
                 </div>
             </div>
         </div>
@@ -991,7 +991,7 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.remarks"> </textarea><br>
-        <button type="button" class="btn btn-success" (click)="cancelRequest();rejectDraftEmployeeApplication(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="cancelRequest();rejectDraftEmployeeApplication(alert_message)" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

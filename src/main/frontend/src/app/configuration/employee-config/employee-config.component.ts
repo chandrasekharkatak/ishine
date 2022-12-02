@@ -334,6 +334,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
+    
+    employee.employeementId = employee.employeementId.substring(2);
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -377,7 +379,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.getManagerList();
     this.getAllDepartmentList();    
     
-    
+    employee.employeementId = employee.employeementId.substring(2);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -900,22 +902,22 @@ export class EmployeeConfigComponent implements OnInit {
     
   }
 
-  // checkSecondaryEmail(template: TemplateRef<any>) {
+  checkSecondaryEmail(template: TemplateRef<any>) {
 
-  //   const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-  //  // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
-  //   if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
-  //     if (regex.test(this.employeeObj.secondaryEmail)) {
+    const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
+      if (regex.test(this.employeeObj.secondaryEmail)) {
        
-  //       this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
-  //       this.employeeObj.secondaryEmail = '';
-  //     }
-  //   } else{
-  //     this.openAlertMod(template, "Please enter email !!");
-  //     this.employeeObj.secondaryEmail = '';
-  //   }
+        this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
+        this.employeeObj.secondaryEmail = '';
+      }
+    } else{
+      this.openAlertMod(template, "Please enter email !!");
+      this.employeeObj.secondaryEmail = '';
+    }
     
-  // }
+  }
 
   checkEmployeementId(template: TemplateRef<any>) {
     
@@ -1012,7 +1014,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   onDeleteEmployee(updatetemplate: TemplateRef<any>, template: TemplateRef<any>) {
     this.cancelRequest();
-    
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1070,6 +1072,11 @@ export class EmployeeConfigComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
+
+        for(let x of this.allEmployeeList){
+          x.employeementId = "A-".concat(x.employeementId)
+        }
+
 
         console.log("allEmployeeList : ", this.allEmployeeList)
         // this.createEmployeeList(this.allEmployeeList)
@@ -1245,6 +1252,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllDraftEmployees(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+        for(let x of this.allEmployeeList){
+          x.employeementId = "A-".concat(x.employeementId)
+        }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -1340,6 +1350,7 @@ export class EmployeeConfigComponent implements OnInit {
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
+    this.employeeObj.remarks = this.employeeObj.remarks?.trim();
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1377,7 +1388,7 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("employeeObj : ", employeeObj);
     
     let currentEmp = new Employee();
-    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.employeementId = employeeObj.employeementId.substring(2);
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = true;
 
@@ -1415,9 +1426,10 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("employeeObj : ", employeeObj);
     
     let currentEmp = new Employee();
-    currentEmp.employeementId = employeeObj.employeementId;
+    currentEmp.employeementId = employeeObj.employeementId.substring(2);
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = false;
+
 
     const infoResponse: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (infoResponse.serviceStatus == "Success") {

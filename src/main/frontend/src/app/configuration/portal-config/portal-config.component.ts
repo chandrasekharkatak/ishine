@@ -122,8 +122,8 @@ export class PortalConfigComponent implements OnInit {
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEventList : ", this.allAppreciationEvent)
       } else {
-       this.openAlertMod(this.alertTemplate, response.serviceResponse)
-        // console.log("allEventList : ", this.allAppreciationEvent);
+       //this.openAlertMod(this.alertTemplate, response.serviceResponse)
+      console.log("allEventList : ", this.allAppreciationEvent);
 
       }
     });
@@ -436,6 +436,8 @@ export class PortalConfigComponent implements OnInit {
           this.allEmployeeList = response.serviceResponse;
           console.log("response" +response);
 
+          this.allEmployeeList = this.allEmployeeList.filter(x =>x.employmentstatus != 'InActive');
+          console.log(this.allEmployeeList, "   this.allEmployeeList");
           this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
           index === self.findIndex((t) => (
             t.employeementId === value.employeementId
@@ -507,7 +509,7 @@ toDateFilter = (d: Date)=>{
   let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));	
   let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));	
     
-  return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)));	
+  return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && (moment(d).format(dateFormat) >= moment(this.appreciationObj.fromDate).format(dateFormat)));	
   
 }
 
@@ -532,7 +534,12 @@ toDateFilter = (d: Date)=>{
     this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
     this.appreciationObj.enableAppreciationList = this.enableAppreciationList;
     console.log("enableAppreciation : ", this.appreciationObj)
-    
+
+    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <=this.appreciationObj.toDate) && (this.appreciationObj.fromDate<= x.toDate)) ); 
+    if(checkEventDate != undefined) {
+    this.openAlertMod(template,"Event is already exist on this date"); 
+    }
+    else{
     this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.all = response.serviceResponse;
@@ -546,32 +553,46 @@ toDateFilter = (d: Date)=>{
         console.error(response.serviceResponse)
       }
     });
-
   }
-  viewAppreciationsOnSubmit(){
+  }
+
+  disableMannualDateInput() {
+    return false;
+  }
+  
+  viewAppreciationsOnSubmit(appreciationObj: enableAppreciation,template: TemplateRef<any>){
     this.portalConfig = false;
     this.appreciationConfig=false;
     this.viewAppreciationForm = false;
     // this.isAppreciationTable = true;
     this.isTable = false;
-   this.viewAppreciations();
-   this.isAppreciationTable = true;	
+   
+    this.isAppreciationTable = true;	
     this.viewEventConfig= false;	
     this.isCreation = false;	
     this.isUpdation = false;	
+    this.viewAppreciations(appreciationObj,template);
 
 
   }
 
-  viewAppreciations(){
+  viewAppreciations(appreciationObj: enableAppreciation,template: TemplateRef<any>){
+
     this.appByCategory = [];	
+    this.appreciationObj.appreciationEventId = this.appreciationObj.appreciationEventId;
+    this.appreciationObj.appreciateType = this.appreciationObj.appreciateType;
+
+    console.log(appreciationObj, "appreciationObj");
+
+    let inputValidated: boolean = this.validateViewAppreciation(appreciationObj,template)
+    if (!inputValidated) return;
+    console.log(appreciationObj, "appreciationObj");
+    
     this.portalService.viewAppreciations(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.appByCategory = response.serviceResponse;
-        console.log("appreciation : ", this.appByCategory)
+        console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
-
-        // this.openAlertMod(template, response.serviceResponse); 
         this.reset();       
       } else {
         console.error(response.serviceResponse)
@@ -579,6 +600,23 @@ toDateFilter = (d: Date)=>{
     });
 
   }
+  validateViewAppreciation(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventId)) {
+      this.alertMessage = "Please Select Appreciation EventName !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciateType)) {
+      this.alertMessage = "Please select appreciateType !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
+
   viewAppreciationEventOnClick(){	
     this.portalConfig = false;	
     this.appreciationConfig=false;	
@@ -635,6 +673,11 @@ toDateFilter = (d: Date)=>{
   
     this.appreciationObj.updatedBy = this.currentUser.empId;;	
     console.log("Update dept : ", this.appreciationObj);	
+    this.allAppreciationEvent =  this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
+    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <=this.appreciationObj.toDate) && (this.appreciationObj.fromDate<= x.toDate)) ); 
+    if(checkEventDate != undefined) {
+    this.openAlertMod(template,"Event is already exist on this date"); 
+    }else{
     this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
@@ -644,7 +687,8 @@ toDateFilter = (d: Date)=>{
         this.openAlertMod(template, response.serviceResponse);	
         this.reset();	
       }	
-    });	
+    });
+  }	
   }
   showUpdateForm(appreciationEvent: enableAppreciation) {	
     this.portalConfig = false;	

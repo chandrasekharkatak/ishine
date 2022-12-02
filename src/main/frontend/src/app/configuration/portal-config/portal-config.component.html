@@ -121,9 +121,9 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <div class="d-flex">	
-                                <input  #input (focus)="fromDatePicker.open()" (change)="onDateChange(alert_message)" matInput id="fromDatePicker" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none"  >	
-                               <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>	
-                               <mat-datepicker  #fromDatePicker disabled="false"></mat-datepicker>	
+                                <input  #input (focus)="fromDatePicker.open()" (change)="onDateChange(alert_message)" matInput id="fromDatePicker" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" class="form-control" [(ngModel)]="appreciationObj.fromDate" autocomplete="none" (keydown)="disableMannualDateInput()">	
+                               <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>	
+                               <mat-datepicker  #fromDatePicker (closed)="input.blur()"></mat-datepicker>	
                             </div>
                         </div>
                     </div>
@@ -133,9 +133,9 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <div class="d-flex">	
-                                <input #input (focus)="toDatePicker.open()" (change)="onToDateChange(alert_message)" matInput id="toDatePicker" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" class="form-control" [(ngModel)]="appreciationObj.toDate" autocomplete="none"  >	
-                                <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>	
-                                <mat-datepicker  #toDatePicker disabled="false"></mat-datepicker>	
+                                <input #input (focus)="toDatePicker.open()" (change)="onToDateChange(alert_message)" matInput id="toDatePicker" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" class="form-control" [(ngModel)]="appreciationObj.toDate" autocomplete="none" (keydown)="disableMannualDateInput()" >	
+                                <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>	
+                                <mat-datepicker  #toDatePicker (closed)="input.blur()"></mat-datepicker>	
                        </div>
                     </div>
                     </div>
@@ -253,7 +253,7 @@
         </div>
             <div class="row">
                 <div class="col-md-12">                  
-                        <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="viewAppreciationsOnSubmit()" >Submit</button>
+                        <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="viewAppreciations(appreciationObj,alert_message)" >Submit</button>
                 </div>
             </div>
         

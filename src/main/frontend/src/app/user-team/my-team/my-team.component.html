@@ -19,7 +19,7 @@
 
     <div class="row">
       <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+        <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
       </div>
     </div>
 
@@ -55,7 +55,7 @@
                 *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
                 (click)="myTeamHierarchy(teamView)">
                 <td class="info-label">{{10*(page-1)+i+1}}</td>
-                <td class="info-label">A-{{teamView.employeementId}}</td>
+                <td class="info-label">{{teamView.employeementId}}</td>
                 <td class="info-label myTeam-hierarchy">{{teamView.name}} <i class="fa-solid fa-sitemap"
                     *ngIf="teamView.isHierarchy"></i></td>
                 <td class="info-label">{{teamView.email}}</td>
