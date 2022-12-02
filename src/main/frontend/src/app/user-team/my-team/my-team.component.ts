@@ -204,6 +204,10 @@ export class MyTeamComponent implements OnInit {
     this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
+
+        for(let y of this.teamViewList){
+          y.employeementId = "A-".concat(y.employeementId);
+        }
         for(let x of this.teamViewList){
            x.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == x.empId);

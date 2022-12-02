@@ -27,7 +27,7 @@
             </button>
           </div>
           <div class="col-10 col-sm-10 col-md-10 col-lg-10">
-            <input type="text" class="form-control" placeholder='Search Employee Id Without using "A-"' [(ngModel)]="data" (keyup)="page=1">
+            <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@
               </tr>
               <tr
                 *ngFor="let leave of allLeaveApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td>A-{{leave.employeementId}}</td>
+                <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
@@ -109,7 +109,7 @@
             </button>
           </div>
           <div class="col-10 col-sm-10 col-md-10 col-lg-10">
-            <input type="text" class="form-control" placeholder='Search Employee Id Without using "A-"' [(ngModel)]="data" (keyup)="page=1">
+            <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@
               </tr>
               <tr
                 *ngFor="let timesheet of allTimesheetApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td>A-{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                 <td>{{timesheet.dayType}}</td>
@@ -185,7 +185,7 @@
               </button>
             </div>
             <div class="col-10 col-sm-10 col-md-10 col-lg-10">
-              <input type="text" class="form-control" placeholder='Search Employee Id Without using "A-"' [(ngModel)]="data" (keyup)="page=1">
+              <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@
                     <th colspan="20" class="text-center info-label">No details to display...</th>
                 </tr>
               <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td>A-{{employee.employeementId}}</td>
+                <td>{{employee.employeementId}}</td>
                 <td>{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
                 <td>{{employee.jobRoleName}}</td>
