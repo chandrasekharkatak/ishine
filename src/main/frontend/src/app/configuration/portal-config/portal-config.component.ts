@@ -555,6 +555,11 @@ toDateFilter = (d: Date)=>{
     });
   }
   }
+
+  disableMannualDateInput() {
+    return false;
+  }
+  
   viewAppreciationsOnSubmit(appreciationObj: enableAppreciation,template: TemplateRef<any>){
     this.portalConfig = false;
     this.appreciationConfig=false;

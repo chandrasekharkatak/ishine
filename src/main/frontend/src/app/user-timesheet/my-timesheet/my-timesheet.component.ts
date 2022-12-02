@@ -621,8 +621,31 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getTimesheetData(template:TemplateRef<any>){
+ // getTimesheetData(template:TemplateRef<any>){
 
+  //   if (this.endDate < this.startDate) {
+  //     if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
+  //       this.alertMessage = "Please enter Start Date !!"
+  //       this.openAlertMod(template, this.alertMessage);
+  //       return false;
+  //     }
+
+  //     if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
+  //       this.alertMessage = "Please enter End Date !!"
+  //       this.openAlertMod(template, this.alertMessage);
+  //       return false;
+  //     }
+  //     console.log("end date is small");
+  //     this.endDate = ''
+      
+  //   } else {
+  //     this.allMyTimesheets = [];
+  //   }
+  // }
+
+  /* View Timesheets */
+  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
+    this.allMyTimesheets = [];
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
@@ -637,31 +660,26 @@ export class MyTimesheetComponent implements OnInit {
       }
       console.log("end date is small");
       this.endDate = ''
+      this.startDate = ''
       
     } else {
-      this.allMyTimesheets = [];
-    }
-  }
 
-  /* View Timesheets */
-  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
-    this.allMyTimesheets = [];
+      let timesheetObj = new Timesheet();
+      timesheetObj.empId = this.currentUser.empId;
+      timesheetObj.startDate = this.startDate;
+      timesheetObj.endDate = this.endDate;
+      
+      console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
+      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allMyTimesheets = response.serviceResponse;
+          console.log("allMyTimesheets :", this.allMyTimesheets);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
 
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.currentUser.empId;
-    timesheetObj.startDate = this.startDate;
-    timesheetObj.endDate = this.endDate;
-    
-    console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allMyTimesheets = response.serviceResponse;
-        console.log("allMyTimesheets :", this.allMyTimesheets);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+    } 
   }
 
   /* Timesheets Applied By ME for My Team Members */

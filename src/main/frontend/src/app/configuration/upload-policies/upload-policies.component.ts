@@ -163,6 +163,12 @@ export class UploadPoliciesComponent implements OnInit {
   
   }
 
+  spaceTrimInpolicyName(){
+    if(this.policyName != null || this.policyName != ''){
+      this.policyName = this.policyName?.trim();
+    }
+  }
+
   getAllDocuments(){
     this.data='';
     this.document = [];
