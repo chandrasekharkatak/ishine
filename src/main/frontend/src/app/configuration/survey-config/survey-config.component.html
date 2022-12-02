@@ -185,23 +185,25 @@
             </div>
         </div>
         <div class="row">
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyResponseInfo'" [tableTHeadId]="'surveyResponseInfoTHead'"
-            [tableTHeadTrId]="'surveyResponseInfoTHeadTr'">
-                <table class="table">
-                    <thead class="thead-light">
-                    <tr>
-                        <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">{{columnHeader}}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngIf="allSurveyResponseList.length == 0">
-                            <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyResponseInfo'" [tableTHeadId]="'surveyResponseInfoTHead'"
+                [tableTHeadTrId]="'surveyResponseInfoTHeadTr'">
+                    <table class="table">
+                        <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">{{columnHeader}}</th>
                         </tr>
-                    <tr *ngFor="let response of allSurveyResponseList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                        <td *ngFor="let colValue of response">{{colValue}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allSurveyResponseList.length == 0">
+                                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
+                            </tr>
+                        <tr *ngFor="let response of allSurveyResponseList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                            <td *ngFor="let colValue of response">{{colValue}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <pagination-controls class="my-pagination" [hidden]="allSurveyResponseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allSurveyResponseList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 

@@ -368,7 +368,7 @@ export class SurveyConfigComponent implements OnInit {
       console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return [response.employeementId, response.name]
+        return ["A-" + response.employeementId, response.name]
         // return { 
         //   name: response.name,
         //   employeementId : response.employeementId 
@@ -378,7 +378,7 @@ export class SurveyConfigComponent implements OnInit {
       console.log("employees : ", employees);
       
       employees.forEach(employee => {
-        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0]);
+        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => "A-"+ response.employeementId == employee[0]);
         employeeResponse.forEach((response:SurveyQuestion, index) => {
           employee.push(response.response);
           // employee.push(response.question, response.response);

@@ -189,6 +189,10 @@
     width: 75px;
 }
 
+.leaveBucketTable td, .leaveBucketTable th {
+    padding: 0;
+}
+
 .leave-body--scroll {
     max-height: 50px;
 }
