@@ -154,7 +154,9 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
-    this.data =''
+    this.data ='';
+    this.columns = [];
+    this.paginateData = [];
   }
 
   // Leave Report 
