@@ -31,17 +31,17 @@ public class ReportController {
 		return response;
 	}
 	
-	@RequestMapping(value="/getAccessControlListData" , method = RequestMethod.POST)
-	public ServiceResponse getAccessControlListData(@RequestBody EmployeeDTO employeeDto) {		
+	@RequestMapping(value="/getMappedSubFeatureList" , method = RequestMethod.POST)
+	public ServiceResponse getMappedSubFeatureList(@RequestBody EmployeeDTO employeeDto) {		
 		
-		ServiceResponse response =	reportService.getAccessControlListData(employeeDto);
+		ServiceResponse response =	reportService.getMappedSubFeatureList(employeeDto);
 		return response;
 	}
 	
-	@RequestMapping(value="/getAccessControlListByPersona" , method = RequestMethod.POST)
-	public ServiceResponse getAccessControlListByPersona(@RequestBody EmployeeDTO employeeDto) {		
+	@RequestMapping(value="/getAllSubFeatureList" , method = RequestMethod.GET)
+	public ServiceResponse getAllSubFeatureList() {		
 		
-		ServiceResponse response =	reportService.getAccessControlListByPersona(employeeDto);
+		ServiceResponse response =	reportService.getAllSubFeatureList();
 		return response;
 	}
 

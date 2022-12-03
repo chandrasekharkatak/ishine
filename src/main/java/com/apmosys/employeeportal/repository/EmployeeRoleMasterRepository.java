@@ -14,9 +14,9 @@ public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole
 	public List<EmployeeRole> findBySubFeatureMasterIdAndPermission(Long subFeatureMasterId,String permission);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getAccessControlList(String jobRoleName, Long departmentId, String employeeRole);
+	public List<Object[]> getAllSubFeatureList();
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getAccessControlListByPersona(String employeeRole);
+	public List<Object[]> getMappedSubFeatureByJobRoleId(Long jobRoleId);
 
 }

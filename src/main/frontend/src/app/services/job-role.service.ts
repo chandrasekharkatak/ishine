@@ -36,12 +36,20 @@ export class JobRoleService {
     return this.http.post(`${this.baseUrl}`+`api/checkJobRole`, jobRoleObj);
   }
 
-  getAccessControlListData(employeeObj : Employee){
-    return this.http.post(`${this.baseUrl}`+`api/getAccessControlListData`, employeeObj);
+  updateJobRoleSubFeatureMapping(jobRoleObj :JobRole){
+    return this.http.post(`${this.baseUrl}`+`api/updateJobRoleSubFeatureMapping`, jobRoleObj);
   }
 
-  getAccessControlListByPersona(employeeObj : Employee){
-    return this.http.post(`${this.baseUrl}`+`api/getAccessControlListByPersona`, employeeObj);
+  /*
+  Report API
+  */
+
+  getAllSubFeatureList(){
+    return this.http.get(`${this.baseUrl}`+`api/getAllSubFeatureList`);
+  }
+
+  getMappedSubFeatureList(employeeObj : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getMappedSubFeatureList`, employeeObj);
   }
 
 }

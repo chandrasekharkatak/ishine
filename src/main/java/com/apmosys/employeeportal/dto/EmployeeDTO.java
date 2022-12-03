@@ -151,8 +151,12 @@ public class EmployeeDTO {
 		
 	private Long appreciationEventId;
 	private String tabName;
+	private Long subFeatureId;
 	private String subFeatureName;
+	private Long featureId;
 	private String featureName;
+	private String permission;
+	private String isAssigned;
 		
 //	private String eventCreatedOn;
 

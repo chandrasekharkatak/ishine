@@ -70,6 +70,8 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
 import { UserExitComponent } from './user-exit/user-exit.component';
+import { MatTableModule } from '@angular/material/table';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 @NgModule({
   declarations: [
     AppComponent,
@@ -141,7 +143,9 @@ import { UserExitComponent } from './user-exit/user-exit.component';
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
-    NgHorizontalScrollModule
+    NgHorizontalScrollModule,
+    MatTableModule,
+    DragDropModule
   ],
   providers: [
     BsModalService,

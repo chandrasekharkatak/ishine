@@ -13,4 +13,5 @@ export class JobRole{
 	oldJobRoleId:any;
 	newJobRoleId:any;
 	employeeRole:any;
+	updatedJobRoleFeatureMapping:any[] = [];
 }
