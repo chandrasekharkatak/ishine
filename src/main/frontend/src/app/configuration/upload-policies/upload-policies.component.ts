@@ -116,6 +116,7 @@ export class UploadPoliciesComponent implements OnInit {
     this.files = [];
   }
   onUploadFiles(template: TemplateRef<any>){
+    this.policyName = this.policyName?.trim();
     if(!this.validationService.validateNullUndefinedEmptyString(this.policyName)){
       this.alertMessage = "Please enter Policy Name !!"
       this.openAlertMod(template, this.alertMessage);
@@ -160,6 +161,12 @@ export class UploadPoliciesComponent implements OnInit {
       }
     });
   
+  }
+
+  spaceTrimInpolicyName(){
+    if(this.policyName != null || this.policyName != ''){
+      this.policyName = this.policyName?.trim();
+    }
   }
 
   getAllDocuments(){
@@ -256,6 +263,9 @@ export class UploadPoliciesComponent implements OnInit {
     this.uploadPoliciesService.showPolicyReadResponse(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.responseList = response.serviceResponse;
+        for(let x of this.responseList){
+          x.empId = "A-".concat(x.empId);
+        }
         console.log(this.responseList);      
       }
       else{

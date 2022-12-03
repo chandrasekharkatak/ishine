@@ -461,7 +461,7 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    else  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(leaveObj.reason.trim())){
+    else  if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason)){
       this.alertMessage = "Please enter valid Leave reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -677,6 +677,7 @@ export class LeaveComponent implements OnInit {
   
   onApplyLeave(template: TemplateRef<any>){
     const dateFormat = 'YYYY-MM-DD';
+    this.leaveObj.reason = this.leaveObj.reason?.trim();
     let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
     if(!inputValidated) return;
 
@@ -748,7 +749,7 @@ export class LeaveComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
-    leaveApplication.rejectReason = this.leaveObj.rejectReason
+    leaveApplication.rejectReason = this.leaveObj.rejectReason?.trim();
     leaveApplication.email = this.leaveObj.email;
     leaveApplication.employeementId = this.leaveObj.employeementId
     console.log("leaveApplication : ", leaveApplication);
@@ -818,17 +819,17 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         console.log("leaveHistoryList : ", this.leaveHistoryList);
-        this.filteredMyLeaveApplication();
+        this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  filteredMyLeaveApplication(){
-    this.filterLeaveHistoryList = this.leaveHistoryList.filter(x => x.status != 'Rejected');
-    console.log("allEmployeeList : ", this.filterLeaveHistoryList)
-  }
+  // filteredMyLeaveApplication(){
+  //   this.filterLeaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
+  //   console.log("allEmployeeList : ", this.filterLeaveHistoryList)
+  // }
 
   getAllMyTeamApplicationsByEmpId(userObj:User){
     this.leaveHistoryList = [];

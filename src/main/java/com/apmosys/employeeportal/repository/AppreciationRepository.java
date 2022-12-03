@@ -13,6 +13,9 @@ public interface AppreciationRepository extends JpaRepository<Appreciation, Long
 
 	@Query(nativeQuery = true)
 	List<Object[]> getAppreciationByCategories(Long appreciationEventId, String appreciateType);
+
+	@Query(nativeQuery = true)
+	List<Object[]> getAppreciateEmployeeByCurrentUser(Long appreciationBy, Long appreciationEventId );
 	
 
 

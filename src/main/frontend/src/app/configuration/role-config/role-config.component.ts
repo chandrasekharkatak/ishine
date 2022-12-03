@@ -211,7 +211,11 @@ export class RoleConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
       } else {
+        // this.jobRoleObj.name = ''
+        // this.jobRoleObj.employeeRole = ''
+        // this.jobRoleObj.departmentId = ''
         this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
       }
 
     });

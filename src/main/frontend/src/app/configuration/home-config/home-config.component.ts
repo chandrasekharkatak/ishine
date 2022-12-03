@@ -166,8 +166,10 @@ export class HomeConfigComponent implements OnInit {
   }
 
   onDeleteEventPhoto(template: TemplateRef<any>) {
+    let imageObj = new EventPhoto();
     this.cancelRequest();
-   
+   this.imageObj.updatedBy = this.currentUser.empId;
+   console.log("Updated by .. ",this.imageObj.updatedBy)
     this.imageService.deleteEventPhoto(this.imageObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

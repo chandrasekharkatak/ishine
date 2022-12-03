@@ -19,6 +19,7 @@
     height: 50px;
     background: var(--ghost-white);
     margin-bottom: 1em;
+    text-overflow: ellipsis;
 }
 
 .table-header-title{

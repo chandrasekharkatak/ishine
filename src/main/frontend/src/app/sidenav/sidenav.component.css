@@ -93,6 +93,11 @@
     padding-left: 0.225rem;
 }
 
+.sidenav-nav-link.active{
+    pointer-events: none;
+    cursor: default;
+}
+
 .sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-icon{
     font-size: 16px;
     width: 2rem;

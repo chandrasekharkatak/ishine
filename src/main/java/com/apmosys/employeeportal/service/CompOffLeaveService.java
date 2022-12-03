@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.CompOffMaster;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -43,6 +46,12 @@ public class CompOffLeaveService {
 	
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 
 	public ServiceResponse getAllCompOffReasons() {
 		ServiceResponse response = new ServiceResponse();
@@ -75,6 +84,12 @@ public class CompOffLeaveService {
 
 	public ServiceResponse applyForCompOff(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Apply Comp off req");
+		apiLogInfo.setApiUrl("/api/applyForCompOff");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + leaveDTO.getEmpId()+ "managerId : " +leaveDTO.getManagerId()+ "createdBy : " +leaveDTO.getCreatedBy()+ "noOfDays : " +(Float) leaveDTO.getNoOfDays());
 		try {
 
 			CompOffLeave leave = new CompOffLeave();
@@ -98,10 +113,16 @@ public class CompOffLeaveService {
 			if (leaveApplied != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Compoff Request applied.");
+				
+				apiLogInfo.setApiResponse("Compoff Request applied.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Compoff Request creation failed.");
+				
+				apiLogInfo.setApiResponse("Compoff Request creation failed.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -109,13 +130,25 @@ public class CompOffLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 
 	}
 
 	public ServiceResponse getPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("view_reportee_comp_off_applications ");
+		apiLogInfo.setApiUrl("/api/getPendingCompOffRequestsByManagerId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("managerId : " + leaveDTO.getManagerId() );
 		try {
 
 			List<Object[]> objectList = compOffLeaveRepository
@@ -147,6 +180,9 @@ public class CompOffLeaveService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("dtoList" +dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -154,12 +190,25 @@ public class CompOffLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllCompOffRequestsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("delete_role");
+		apiLogInfo.setApiUrl("/api/getAllCompOffRequestsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " +leaveDTO.getEmpId());
 		try {
 
 			List<Object[]> compOffList = compOffLeaveRepository.getAllCompOffRequestsByEmpId(leaveDTO.getEmpId());
@@ -168,6 +217,10 @@ public class CompOffLeaveService {
 			if (compOffList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No compoff request(s) found for employee.");
+				
+				apiLogInfo.setApiResponse("No compoff request(s) found for employee");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			} else {
 				compOffList.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
@@ -185,6 +238,10 @@ public class CompOffLeaveService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("dtoList" +dtoList);			
+
 			}
 
 		} catch (Exception e) {
@@ -192,13 +249,25 @@ public class CompOffLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse updateCompOffById(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Comp off Applications Status");
+		apiLogInfo.setApiUrl("/api/updateCompOffById");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " +leaveDTO.getEmpId()+ "compOffLeaveId : " +leaveDTO.getCompOffLeaveId()+ "leaveStatusUpdatedBy :" +leaveDTO.getLeaveStatusUpdatedBy()+ "leaveStatusId" +leaveDTO.getLeaveStatusId());
 		try {
 
 			Optional<CompOffLeave> leaveObject = compOffLeaveRepository.findById(leaveDTO.getCompOffLeaveId());
@@ -243,10 +312,18 @@ public class CompOffLeaveService {
 
 				if (compOffUpdated != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Compoff leave status updated");
+
+					
+					apiLogInfo.setApiResponse("Compoff leave status updated");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Compoff leave status updation failed.");
+					
+					apiLogInfo.setApiResponse("Compoff leave status updation failed.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
 
@@ -255,12 +332,26 @@ public class CompOffLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+
 		return response;
 	}
 
 	public ServiceResponse countPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Comp off Applications Status");
+		apiLogInfo.setApiUrl("/api/countPendingCompOffRequestsByManagerId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("managerId : " +leaveDTO.getManagerId());
 		try {
 
 			Long applicationCount = compOffLeaveRepository
@@ -269,12 +360,18 @@ public class CompOffLeaveService {
 			if (applicationCount == 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No compoff request(s) found.");
+				
+				apiLogInfo.setApiResponse("No compoff request(s) found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			} else {
 				leaveDTO = new LeaveDTO();
 				leaveDTO.setApplicationCount(applicationCount);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(leaveDTO);
+				
+				apiLogInfo.setApiResponse("leaveDTO" +leaveDTO);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -282,7 +379,13 @@ public class CompOffLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+
 		return response;
 
 	}
