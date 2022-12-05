@@ -350,7 +350,12 @@
               (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
               <ng-container *ngFor="let column of columns; let i = index">
                 <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
-                  {{ column.header }}
+                  <ng-container *ngIf="i == 0">
+                    {{ column.header }}
+                  </ng-container>
+                  <ng-container *ngIf="i != 0">
+                    {{ column.header }}<button class="btn" (click)="hideColumn(column.header)"><em class="fa-regular fa-eye"></em></button>
+                  </ng-container>
                   <div *cdkDragPreview>
                     <div [style.width]="pos?.width" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x">
                       <thead>

@@ -389,7 +389,7 @@ dropRow(event: CdkDragDrop<string[]>) {
 }
 
 dropCol(event: CdkDragDrop<string[]>) {
-  if(event.previousIndex != 0){
+  if(event.previousIndex != 0 && event.currentIndex !== 0){
     moveItemInArray(this.columns, event.previousIndex, event.currentIndex);
   }
 }
@@ -407,7 +407,7 @@ onDragRelease(event: CdkDragRelease) {
 }
 
 selectCellCheckbox(element:any, isAssigned:any, subFeatureId:any){
-  const alreadyUpdatedMapping = this.updatedRoleSubFeature.find((x) => x.subFeatureId == subFeatureId);
+  const alreadyUpdatedMapping = this.updatedRoleSubFeature.find((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
   if(alreadyUpdatedMapping){
     this.updatedRoleSubFeature.splice(alreadyUpdatedMapping,1);
   }else{
@@ -431,6 +431,14 @@ updateJobRoleSubFeatureMapping(template: TemplateRef<any>){
       this.openAlertMod(template,response.serviceResponse);
     }
   });
+}
+
+hideColumn(column:any){
+  this.columns = this.columns.filter(x => x.header != column);
+}
+
+showColumn(column:any){
+  
 }
 
 // ACL end
