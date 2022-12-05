@@ -135,4 +135,5 @@ export class Employee{
 	oldManagerId:any;
 
 	isSelected:boolean = false;
+	columnHeader:any;
 }

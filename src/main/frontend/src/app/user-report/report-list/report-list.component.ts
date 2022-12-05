@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild, Renderer2 } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, Renderer2, ElementRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
@@ -64,6 +64,8 @@ export class ReportListComponent implements OnInit {
   subfeatureList:any[] = [];
 
   updatedRoleSubFeature:any[] = [];
+  hiddenColumnObj:any[] = [];
+  showColumnList:any[] = [];
 
   excelName:any;
   jobRoleName:any;
@@ -318,6 +320,7 @@ export class ReportListComponent implements OnInit {
 
   selectPersona(event) {
     this.employeeRole = event.target.value;
+    this.showColumnList = [];
     this.getAllJobRoleList(this.employeeRole);
   }
 
@@ -434,11 +437,19 @@ updateJobRoleSubFeatureMapping(template: TemplateRef<any>){
 }
 
 hideColumn(column:any){
+  this.hiddenColumnObj = this.columns.find(x => x.header == column);
   this.columns = this.columns.filter(x => x.header != column);
+  this.showColumnList.push(this.hiddenColumnObj);
 }
 
-showColumn(column:any){
-  
+showColumn(){
+  let headerId = this.employeeObj.columnHeader;
+  let hiddenFound = this.showColumnList.find(x => x.field == headerId);
+  if(hiddenFound){
+    this.columns.push(hiddenFound);
+    this.showColumnList.splice(hiddenFound,1);
+    this.employeeObj.columnHeader = '';
+  }
 }
 
 // ACL end

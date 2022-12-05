@@ -326,19 +326,32 @@
     <h1 class="table-header-title">Access Control List</h1>
   </div>
 
-  <div class="col-md-12 ml-auto">
-    <input class="ml-5 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
-    <label for="Employee">Employee</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
-    <label for="TeamLead">Team Lead</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
-    <label for="Manager">Manager</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
-    <label for="HR">HR</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
-    <label for="HOD">HOD</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin" (click)="selectPersona($event)">
-    <label for="SuperAdmin">Super Admin</label>
+  <div class="col-md-12 ml-auto d-flex">
+    <div class="col-md-8">
+      <input class="ml-5 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
+      <label for="Employee">Employee</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
+      <label for="TeamLead">Team Lead</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
+      <label for="Manager">Manager</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
+      <label for="HR">HR</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
+      <label for="HOD">HOD</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin"
+        (click)="selectPersona($event)">
+      <label for="SuperAdmin">Super Admin</label>
+    </div>
+
+    <div class="col-md-2 ml-auto mb-2">
+      <label class="info-label">Show Column</label>
+      <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.columnHeader" (click)="showColumn()">
+        <option selected="selected" value="" disabled>Select</option>
+        <option *ngFor="let show of showColumnList" value="{{show.field}}">{{show.header}}</option>
+      </select>
+    </div>
+
+  </div>  
 
     <div class="col-md-12">
       <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
@@ -399,7 +412,6 @@
       </div>
       <button type="button" class="btn btn-sm btn-outline-primary mt-2" [hidden]="paginateData.length == 0"
         (click)="updateJobRoleSubFeatureMapping(alert_message)">Updated Role ACL</button>
-    </div>
     </div>
 </div>
 <!-- end :: ACL (access control list) -->
