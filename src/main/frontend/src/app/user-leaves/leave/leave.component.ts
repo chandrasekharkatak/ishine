@@ -461,7 +461,7 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    else  if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason)){
+    else  if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason?.trim())){
       this.alertMessage = "Please enter valid Leave reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -1321,7 +1321,7 @@ export class LeaveComponent implements OnInit {
       leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
       leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
       leaveObj.leaveStatusId = 3
-      leaveObj.rejectReason = this.leaveObj.rejectReason 
+      leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
       this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template , "All Selected Application Rejected Successfully ");

@@ -229,6 +229,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log("   leaveObj.email   ",leaveObj.email);
     
     
+    
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -346,6 +347,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
+        for(let x of this.allTeamTimesheetRequests){
+          x.employeementId = "A-".concat(x.employeementId);
+        }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
@@ -360,9 +364,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
     timesheetObj.rejectReason = timesheet.rejectReason?.trim();
-    timesheetObj.employeementId = timesheet.employeementId;
+    timesheetObj.employeementId = timesheet.employeementId.substring(2);
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
+    
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.countMyReporteesTimesheetRequests();
@@ -1168,6 +1173,9 @@ onBulkApproval(template:TemplateRef<any>){
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Approved"
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkApprovedList.forEach((x)=>{
+    x.employeementId = x.employeementId.substring(2);
+  })
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
@@ -1196,6 +1204,9 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
   console.log(" timesheet reason :  ", timesheetObj.rejectReason);
   timesheetObj.status = "Rejected"
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkRejectList.forEach((item)=>{
+    item.employeementId = item.employeementId.substring(2);
+  })
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template , "All Selected Timesheet Rejected Successfully "); 
@@ -1221,7 +1232,7 @@ onBulkLeaveApproval(template:TemplateRef<any>){
   leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 2;
- 
+  
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template , "All Selected Application Approved Successfully ");
@@ -1246,9 +1257,13 @@ bulkRejectLeave(template: TemplateRef<any>){
       
   let leaveObj = new Leave();
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
+  console.log(" ............................ ",leaveObj.bulkLeaveRejectList)
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
   leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+  leaveObj.bulkLeaveRejectList.forEach((y)=>{
+    y.employeementId = y.employeementId;
+  })
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {

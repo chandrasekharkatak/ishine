@@ -152,6 +152,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddHolidayForm(){
+    this.employeeData = []
     this.isHolidayForm = true;
     this.isCreation = true;
 
@@ -168,6 +169,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showHoliaysTable(){
+    this.employeeData = []
     this.isHolidayTable = true;
 
     this.isLeaveRuleTable = false;
@@ -184,6 +186,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showLeaveTypesTable(){
+    this.employeeData = []
     this.isLeaveRuleTable = true;
 
     this.isHolidayTable = false;
@@ -200,6 +203,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddLeaveTypeForm(){
+    this.employeeData = []
     this.isLeaveTypeForm = true;
     this.isCreation = true;
     
@@ -265,6 +269,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddLeavePolicyForm(){
+    this.employeeData = []
     this.isLeavePolicyForm = true;
     this.isCreation = true;
     
@@ -297,6 +302,7 @@ export class LeaveConfigComponent implements OnInit {
 
 
   showLeavePoliciesTable(){
+    this.employeeData = []
     this.isLeavePolicyTable = true;
     
     this.isHolidayTable = false;
@@ -775,9 +781,10 @@ exportToExcel(): void {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
+    let leaveObj:Leave = new Leave();
+    leaveObj.employeementId  = this.leaveBalanceObj.employeementId.substring(2);
     console.log("Employee :", this.leaveBalanceObj);
-    this.leaveService.getMyLeaveBalancesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
+    this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
         this.leaveBalanceObj.empId = response.serviceResponse1;

@@ -595,7 +595,8 @@ toDateFilter = (d: Date)=>{
         this.isAppreciationTable = true;
         this.reset();       
       } else {
-        console.error(response.serviceResponse)
+        this.openAlertMod(template, response.serviceResponse)
+        
       }
     });
 

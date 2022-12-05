@@ -1572,25 +1572,27 @@ export class EmployeeConfigComponent implements OnInit {
         this.employeeObj = employee;
       }
 
-       onRevokeAccount(template: TemplateRef<any>) {
-        this.cancelRequest();
-        this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, response.serviceResponse);
-            this.showTable();
-          } else {
-            this.openAlertMod(template, response.serviceResponse);
-          }
-        });
-      }
+      
 
       findEmployeeWorkingHistory(template: TemplateRef<any>, employee: any){
         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
        this.employeeObj = employee;
      }
 
+     onRevokeAccount(template: TemplateRef<any>) {
+      this.cancelRequest();
+      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2)
+      this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showTable();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
+    
 
- 
    onFindHistoryWorking(employee:Employee) {
     this.employeeWorkingHistory = [];
     let empObj = new Employee();
