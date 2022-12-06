@@ -85,10 +85,11 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" > -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate()" disabled>
+                                <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter"
+                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate()" (keydown)="disableMannualDateInput()">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" [disabled]="isUpdation"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" [disabled]="isUpdation" #fromDatePicker disabled="false"></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" [disabled]="isUpdation" #fromDatePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -111,10 +112,11 @@
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.toDate" (change)="setNoOfDays(alert_message)"> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" disabled>
+                                <input class="form-control" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter"
+                                 placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="isUpdation"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker [disabled]="isUpdation" disabled="false"></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="isUpdation" disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>

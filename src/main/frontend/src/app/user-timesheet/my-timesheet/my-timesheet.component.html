@@ -243,7 +243,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" type="date" class="form-control" autocomplete="none"
+                        <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="startDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
@@ -254,7 +254,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none"
+                        <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="endDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
@@ -265,7 +265,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" type="date" class="form-control" autocomplete="none"
+                        <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="endDate" (change)="getMyTeamTimesheets(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>

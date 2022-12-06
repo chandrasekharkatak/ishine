@@ -109,7 +109,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                      <input id="historyFromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
                   </div>
               </div>
             </div>
@@ -117,7 +117,7 @@
                   <div class="info-wrapper">
                       <div class="form-group">
                           <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                          <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
+                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
                       </div>
                   </div>
               </div>
@@ -185,7 +185,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                      <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
                   </div>
               </div>
           </div>
@@ -193,7 +193,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                      <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
                   </div>
               </div>
           </div>

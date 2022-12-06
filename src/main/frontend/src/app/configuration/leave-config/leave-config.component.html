@@ -54,7 +54,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
-                            <input id="occasionDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.dateOfHoliday" (change)="setHolidayWeekDay()" (keydown)="disableMannualDateInput()">
+                            <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.dateOfHoliday" (change)="setHolidayWeekDay()" (keydown)="disableMannualDateInput()">
                         </div>
                     </div>
                 </div>
