@@ -400,7 +400,7 @@ export class EmployeeInfoComponent implements OnInit{
         path = data[0].PostOffice[0];
 
         this.employeeObj.state = path.State;
-        this.employeeObj.city = path.Block;
+        this.employeeObj.city = path.Name;
         this.employeeObj.country = path.Country;
       }else{
         this.employeeObj.state = "";

@@ -194,7 +194,7 @@ export class EmployeeConfigComponent implements OnInit {
 
         let empObj = new Employee();
         empObj.state = path.State;
-        empObj.city = path.Block;
+        empObj.city = path.Name;
         empObj.pincode = path.Pincode;
         empObj.country = path.Country;
         empObj.employeementId = empId;
