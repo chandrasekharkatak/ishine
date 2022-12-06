@@ -326,5 +326,45 @@ public class HolidayService {
 			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 	}
+
+	public ServiceResponse getHolidayWeekOffSize(HolidayDTO holidayDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		List<Object[]> list = holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate());
+		List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
+
+		System.out.println(list+ "list");
+		
+		if (list.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No Holidays found");
+		}
+		 else {
+
+				list.forEach((object) -> {
+					HolidayDTO dto = new HolidayDTO();
+					dto.setHolidayId(object[0] != null ? Short.parseShort(object[0].toString()) : null);
+					dto.setDateOfHoliday(object[1] != null ? object[1].toString() : null);
+					dto.setDayOfTheWeek(object[2] != null ? object[2].toString() : null);
+					dto.setOccasion(object[3] != null ? object[3].toString() : null);
+					dto.setOptionalHoliday(object[4] != null ? object[4].toString() : null);
+					dto.setState(object[6] != null ? object[6].toString() : null);
+
+					dtoList.add(dto);		
+					});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);				
+		 }	
+			}
+		catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());		
+			
+		}
+		return response;
+	}
 	
 }

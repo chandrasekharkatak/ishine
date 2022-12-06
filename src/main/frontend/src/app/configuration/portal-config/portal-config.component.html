@@ -162,6 +162,9 @@
                         </div>
                     </div>
                 </div>
+                <div *ngIf="appreciationObj.enableAppreciationFor == 'custom'">	
+                    <button type="button"  id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" style="margin-top: 35px;" (click)="openFilterModal(filter, appreciationColumns, 'Filter Appreciation')"><i class="fa-solid fa-filter"></i></button>	
+                    </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
@@ -179,7 +182,7 @@
 <div class="row" style="width:100%" *ngIf="isTable"   >   
     <div class="form-group d-flex flex-row ml-auto col-md-3" >
     <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-    <button type="button"  id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, appreciationColumns, 'Filter Appreciation')"><i class="fa-solid fa-filter"></i></button>
+    <!-- <button type="button"  id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, appreciationColumns, 'Filter Appreciation')"><i class="fa-solid fa-filter"></i></button> -->
     </div>
     <table class="table appreciation-config-table"  id="table appreciation-config-table" matSort (matSortChange)="sortData($event) ">	
     <thead class="thead-light">	

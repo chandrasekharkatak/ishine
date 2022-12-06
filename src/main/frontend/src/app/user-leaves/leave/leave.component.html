@@ -40,7 +40,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata()">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">{{teamMember.name}}</option>
                             </select>
@@ -48,15 +48,32 @@
                     </div>
                 </div>
             </div>
+
+            <!-- <div class="card" *ngFor="let leave of leaveBalance">
+                <div class="card-header">{{leave.leaveType}} : {{leave.balance}}</div>
+                
+              </div>
+            <div class="alert alert-primary" role="alert">
+                <p>Certification(s) are not mandatory, but if added all fields for certificate are mandatory with document in Upload Document section</p>
+            </div> --> 
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId)">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId);getAllLeaveBalanceByEmpId(leaveObj)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="leaveDetails.length !== 0" class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;">
+                            <h6 class="ml-5 mr-5 mt-0 mb-0"> <span style=" color: #193d8a;" > Available Balance : {{leaveDetails}}</span></h6>
                         </div>
                     </div>
                 </div>
@@ -77,8 +94,8 @@
                 </div>
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group leave_day" *ngIf="isCreation">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message)">
+                        <div class="form-group leave_day" >
+                            <select class="form-control" *ngIf="isCreation" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType"  (change)="setNoOfDays(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>
@@ -103,8 +120,8 @@
                 </div>
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group leave_day" *ngIf="isCreation">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType" (change)="setNoOfDays(alert_message)">
+                        <div class="form-group leave_day" >
+                            <select class="form-control"  *ngIf="isCreation" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>

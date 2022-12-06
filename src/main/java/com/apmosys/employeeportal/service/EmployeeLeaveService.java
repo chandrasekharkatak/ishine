@@ -1772,4 +1772,73 @@ public class EmployeeLeaveService {
 		}
 		return response;
 	}
+
+	public ServiceResponse getAllLeaveBalanceByEmpId(LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllLeaveBalanceByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+
+		try {
+
+			Employee employee = employeeRepository.findByEmpId(leaveDTO.getEmpId());
+					
+			if (employee != null) {
+				List<Object[]> employeeLeavesListByEmpId = employeeLeavesMapRepository
+						.getAllLeaveBalancesByEmpId(employee.getEmpId(),leaveDTO.getLeaveTypeMasterId());
+				List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+				if (!employeeLeavesListByEmpId.isEmpty()) {
+					
+					
+					employeeLeavesListByEmpId.forEach((object) -> {
+						LeaveDTO dto = new LeaveDTO();
+						dto.setLeaveType(object[0] != null ? object[0].toString() : null);
+						dto.setBalance(object[1] != null ? Float.parseFloat(object[1].toString()) : null);
+						dto.setLeaveTypeMasterId(object[2] != null ? Short.parseShort(object[2].toString()) : null);
+						dto.setLeaveTypeCode(object[3] != null ? object[3].toString() : null);
+
+						dtoList.add(dto);
+					});
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					
+					apiLogInfo.setApiResponse("dtoList : " +dtoList);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+				} else {
+
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No Leaves balance found.");
+					
+					apiLogInfo.setApiResponse("No Leave Balance Found.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found.");
+				
+				apiLogInfo.setApiResponse("Employee not found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }

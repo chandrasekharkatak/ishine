@@ -593,11 +593,12 @@ toDateFilter = (d: Date)=>{
         this.appByCategory = response.serviceResponse;
         console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
-        this.reset();       
+        //this.reset();       
       } else {
-        this.openAlertMod(template, response.serviceResponse)
-        
+       // this.openAlertMod(template, response.serviceResponse)
+       console.error(response.serviceResponse)	;
       }
+      this.isAppreciationTable = true;
     });
 
   }

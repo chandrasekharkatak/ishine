@@ -191,4 +191,13 @@ export class LeaveService {
   bulkRejectLeaveRequest(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequest`, leaveObj);
   }
+
+  getAllLeaveBalanceByEmpId(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/getAllLeaveBalanceByEmpId`, leaveObj);
+  }
+
+  getHolidayWeekOffSize(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/getHolidayWeekOffSize`, leaveObj);
+
+  }
 }

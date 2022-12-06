@@ -864,10 +864,12 @@ if(this.errorMsg == ""){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter year of experience !!"  
     }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid year of experience !!"   
-}
-  else{
+    else if(data === 0){		
+      this.errorMsg = "Please enter more than 0 number !!"	  	
+  }		
+      else if (!this.validationService.validateExperiencedNumber(data)) {		
+      this.errorMsg = "Please enter valid experience in Format (Years.Months)  !!"		
+  }else{
   this.errorMsg = ""
 }
 if(this.errorMsg == ""){
