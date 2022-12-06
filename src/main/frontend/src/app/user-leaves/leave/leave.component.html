@@ -6,7 +6,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_reportee_leave_applications || userMapping.update_leave_applications_status" [ngClass]="{'active' : isLeaveApplicationsTable}" (click)="showLeaveApplicationsTable()">View My Reportee Leave Applications</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isReporteeLeaveRevokeApplicationsTable}" (click)="showReporteeLeaveRevokeApplicationTable()">View My Reportee Leave Revoke Applications</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_reportee_leave_revoke_applications" [ngClass]="{'active' : isReporteeLeaveRevokeApplicationsTable}" (click)="showReporteeLeaveRevokeApplicationTable()">View My Reportee Leave Revoke Applications</button>
     </div>
 </div>
 
