@@ -206,13 +206,7 @@ export class MyTimesheetComponent implements OnInit {
         let newActivityObj = new Activity();
         if(activityObj != undefined){
           newActivityObj.clientId = activityObj.clientId;
-
-
           newActivityObj.clientLocationId = activityObj.clientLocationId;
-
-
-
-
           newActivityObj.projectId = activityObj.projectId;
           console.log("newActivityObj : ",newActivityObj);
 
@@ -260,6 +254,7 @@ export class MyTimesheetComponent implements OnInit {
 
   setActivity(activityObj) {
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
+    activityObj.description = null;
   }
 
   // Manage Timesheet Dates
@@ -423,6 +418,11 @@ export class MyTimesheetComponent implements OnInit {
             this.timesheetObj.updatedTimesheetActivities = [];
             
           }
+          this.timesheetObj.updatedTimesheetActivities.forEach(timesheet => {
+            if(timesheet.activityId == ""){
+              this.timesheetObj.updatedTimesheetActivities.splice(timesheet,1);
+            }
+          });
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
       } else {

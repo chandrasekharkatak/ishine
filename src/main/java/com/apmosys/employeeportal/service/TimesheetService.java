@@ -855,7 +855,12 @@ public class TimesheetService {
 								TimesheetActivityMap map = new TimesheetActivityMap();
 								map.setActivityId(activity.getActivityId());
 								map.setCompletionTime(activity.getCompletionTime());
-								map.setDescription(activity.getDescription());
+								if(activity.getDescription() == null) {
+									Activity activityObj = activitiesRepository.getById(activity.getActivityId());
+									map.setDescription(activityObj.getActivity());
+								}else {
+									map.setDescription(activity.getDescription());
+								}
 								map.setTimesheetId(timesheetDTO.getTimesheetId());
 								map.setClientLocationId(activity.getClientLocationId());
 								timesheetActivityMapRepository.save(map);
@@ -881,7 +886,12 @@ public class TimesheetService {
 
 									map.setActivityId(activity.getActivityId());
 									map.setCompletionTime(activity.getCompletionTime());
-									map.setDescription(activity.getDescription());
+									if(activity.getDescription() == null) {
+										Activity activityObj = activitiesRepository.getById(activity.getActivityId());
+										map.setDescription(activityObj.getActivity());
+									}else {
+										map.setDescription(activity.getDescription());
+									}
 									map.setClientLocationId(activity.getClientLocationId());
 									timesheetActivityMapRepository.save(map);
 								}
