@@ -262,7 +262,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="leaveTypes.length == 0">
-                                <th colspan="8" class="info-label">No details to display...</th>
+                                <th colspan="16" class="info-label">No details to display...</th>
                             </tr>
                             <tr *ngFor="let leaveType of leaveTypes|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
                                 <td>{{leaveType.leaveType}}</td>
@@ -299,7 +299,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="Search">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101">
                         </div>
                     </div>
                 </div>

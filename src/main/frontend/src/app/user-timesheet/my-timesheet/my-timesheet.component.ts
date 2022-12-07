@@ -330,16 +330,23 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
       }
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
+      if (!this.validationService.validateCompletionTime(activity.completionTime) && !this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {      
+        this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+        flag = false;
+        activity.completionTime = ''
+        return;
+      }
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {      
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;
           return;
         }
-        if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
-          this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
-          flag = false;
-          return;
-        }
+        // validateCompletionTime
+        // if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
+        //   this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+        //   flag = false;
+        //   return;
+        // }
         totalActivityTime = totalActivityTime + activity.completionTime;
         console.log(totalActivityTime, " totalActivityTime");
       });
@@ -863,23 +870,23 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  validateDescription(event,data:any){
+  // validateDescription(event,data:any){
  
-  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
-    this.errorMsg = "Please enter valid Description !!"   
-  }
-  else{
-    this.errorMsg = ""
-  }
-  if(this.errorMsg == ""){
-    event.target.nextElementSibling.textContent = ""
-  }else{
-    event.target.nextElementSibling.textContent =  this.errorMsg
-  }
-  }
+  // if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+  //   this.errorMsg = "Please enter valid Description !!"   
+  // }
+  // else{
+  //   this.errorMsg = ""
+  // }
+  // if(this.errorMsg == ""){
+  //   event.target.nextElementSibling.textContent = ""
+  // }else{
+  //   event.target.nextElementSibling.textContent =  this.errorMsg
+  // }
+  // }
   validateTime(event,data:any){
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Time !!"
+     if (!this.validationService.validateCompletionTime(data) && !this.validationService.validateTimesheetCompletionTime(data)){
+      this.errorMsg = "Please enter valid Time !!"
     }  
     else if(data <= 0 || data > 24){
       this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "

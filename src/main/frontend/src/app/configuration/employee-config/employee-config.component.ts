@@ -921,11 +921,12 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmployeementId(template: TemplateRef<any>) {
     
-    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-      this.alertMessage = "Please enter Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if (!this.validationService.validateEmployeementId(this.employeeObj.employeementId)) {
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+    //   this.alertMessage = "Please enter Employment ID !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else 
+    if (!this.validationService.validateEmployeementId(this.employeeObj.employeementId) && this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
       this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -938,6 +939,7 @@ export class EmployeeConfigComponent implements OnInit {
       }
     });
   }
+
 
   checkEmployeeMobileNo(template: TemplateRef<any>) {
     this.employeeService.checkEmployeeMobileNo(this.employeeObj).pipe(first()).subscribe((response: any) => {

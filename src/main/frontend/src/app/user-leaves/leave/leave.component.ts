@@ -813,7 +813,8 @@ export class LeaveComponent implements OnInit {
   }
 
    // single leave reject modal
-   onSingleReject(template: TemplateRef<any> , ){
+   onSingleReject(template: TemplateRef<any> ){
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
     this.onUpdateLeaveStatus(template, this.leaveObj,3);
   }
 
