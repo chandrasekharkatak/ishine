@@ -538,6 +538,8 @@ toDateFilter = (d: Date)=>{
     let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <=this.appreciationObj.toDate) && (this.appreciationObj.fromDate<= x.toDate)) ); 
     if(checkEventDate != undefined) {
     this.openAlertMod(template,"Event is already exist on this date"); 
+    this.appreciationObj.fromDate=[];
+    this.appreciationObj.toDate = [];
     }
     else{
     this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
@@ -713,13 +715,10 @@ toDateFilter = (d: Date)=>{
     this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
-        // this.showTable();	
         this.getAllEvent();	
-        // this.viewAppreciationEventOnClick();	
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
         this.getAllEvent();	
-        // this.viewAppreciationEventOnClick();	
       }	
     });	
   }	

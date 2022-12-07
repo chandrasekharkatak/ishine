@@ -130,7 +130,11 @@ public class EmployeeLeaveService {
 
 			// Leave deduction from balance leaves
 			Float balance = employeeLeavesMap.getBalance();
+			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+				balance = balance ;
+			}else {
 			balance = balance - leaveDTO.getNoOfDays();
+			}
 			Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 			pendingForApproval = pendingForApproval + leaveDTO.getNoOfDays();
 
