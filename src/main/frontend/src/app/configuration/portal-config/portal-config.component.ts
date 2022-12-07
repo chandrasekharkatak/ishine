@@ -538,6 +538,8 @@ toDateFilter = (d: Date)=>{
     let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <=this.appreciationObj.toDate) && (this.appreciationObj.fromDate<= x.toDate)) ); 
     if(checkEventDate != undefined) {
     this.openAlertMod(template,"Event is already exist on this date"); 
+    this.appreciationObj.fromDate=[];
+    this.appreciationObj.toDate = [];
     }
     else{
     this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
@@ -550,7 +552,8 @@ toDateFilter = (d: Date)=>{
         this.viewAppreciationEventOnClick();
         // this.reset();       
       } else {
-        console.error(response.serviceResponse)
+        // console.error(response.serviceResponse)
+        this.openAlertMod(template, response.serviceResponse); 
       }
     });
   }
@@ -593,10 +596,12 @@ toDateFilter = (d: Date)=>{
         this.appByCategory = response.serviceResponse;
         console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
-        this.reset();       
+        //this.reset();       
       } else {
-        console.error(response.serviceResponse)
+       // this.openAlertMod(template, response.serviceResponse)
+       console.error(response.serviceResponse)	;
       }
+      this.isAppreciationTable = true;
     });
 
   }
@@ -711,13 +716,10 @@ toDateFilter = (d: Date)=>{
     this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
-        // this.showTable();	
         this.getAllEvent();	
-        // this.viewAppreciationEventOnClick();	
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
         this.getAllEvent();	
-        // this.viewAppreciationEventOnClick();	
       }	
     });	
   }	

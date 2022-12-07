@@ -203,6 +203,18 @@
     justify-content: space-around;
     align-items: center;
 }
+.mb1{
+    margin-bottom: 1px !important;
+}
+.mb1{
+    margin-bottom: 1px !important;
+}
+.mb2{
+    margin-bottom: 2px !important;
+}
+.mb2{
+    margin-bottom: 2px !important;
+}
 
 @media (min-width: 1024px){
     .home-container{

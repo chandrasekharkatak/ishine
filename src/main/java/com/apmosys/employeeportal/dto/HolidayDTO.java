@@ -20,4 +20,7 @@ public class HolidayDTO {
 	private String state;
 	private String holidayType;
 	
+	private String fromDate;
+	private String toDate;
+	
 }

@@ -30,7 +30,7 @@ export class EmployeeInfoComponent implements OnInit{
   //Obj 
   currentUser: User;
   employeeObj: Employee = new Employee();
-
+  
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -138,6 +138,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.addInputCertificationField();
     this.addInputPreviousEmployerField();
     this.addInputChildField();
+
   }
 
 
@@ -221,6 +222,7 @@ export class EmployeeInfoComponent implements OnInit{
 
   // Validations 
   checkEmployeeAadharNumber(template: TemplateRef<any>) {
+    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
     this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -230,6 +232,7 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   checkEmployeePanNumber(template: TemplateRef<any>) {
+    this.employeeObj.panNumber = this.employeeObj.panNumber?.trim();
     this.employeeService.checkEmployeePanNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -278,9 +281,47 @@ export class EmployeeInfoComponent implements OnInit{
   
 
   async onSave(template : TemplateRef<any>){
+
+    this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
+    this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
+    this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
+    this.employeeObj.fatherName = this.employeeObj.fatherName?.trim();
+    this.employeeObj.mothersName = this.employeeObj.mothersName?.trim();
+    this.employeeObj.placeOfBirth = this.employeeObj.placeOfBirth?.trim();
+    this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim();
+    this.employeeObj.passportNumber = this.employeeObj.passportNumber?.trim();
+    
+    this.employeeObj.panNumber = this.employeeObj.panNumber?.trim();
+    this.employeeObj.spouse = this.employeeObj.spouse?.trim();
+    this.employeeObj.child1 = this.employeeObj.child1?.trim();
+    this.employeeObj.child2 = this.employeeObj.child2?.trim();
+    this.employeeObj.child3 = this.employeeObj.child3?.trim();
+    this.employeeObj.address = this.employeeObj.address?.trim();
+    this.employeeObj.permanentAddress = this.employeeObj.permanentAddress?.trim();
+    this.employeeObj.emergencyContactPerson = this.employeeObj.emergencyContactPerson?.trim();
+    this.employeeObj.relation = this.employeeObj.relation?.trim();
+    this.employeeObj.passingGrade = this.employeeObj.passingGrade?.trim();
+    this.employeeObj.bankName = this.employeeObj.bankName?.trim();
+    this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
+    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
+
+
+    this.employeeObj.previousEmploymentList?.forEach((x)=>{
+      x.employerName = x.employerName?.trim();
+      x.designation = x.designation?.trim();
+      x.managerName = x.managerName?.trim();
+      x.hrName = x.hrName?.trim();
+    })
+
+    this.employeeObj.certifications?.forEach((y)=>{
+      y.certificationName = y.certificationName?.trim();
+      y.certificationNumber = y.certificationNumber?.trim();
+    })
+
+
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
     const dateFormat = 'YYYY-MM-DD';
-    
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
@@ -338,6 +379,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.createdBy = this.currentUser.empId;
 
     console.log("onSave --> employeeObj : ", this.employeeObj);
+    
     this.updateUserInfoService.setUserInfoObj(this.employeeObj);
     const response = await this.updateUserInfoService.saveEmployeeInfo();
     if (response.serviceStatus == "Success") {
@@ -358,7 +400,7 @@ export class EmployeeInfoComponent implements OnInit{
         path = data[0].PostOffice[0];
 
         this.employeeObj.state = path.State;
-        this.employeeObj.city = path.Block;
+        this.employeeObj.city = path.Name;
         this.employeeObj.country = path.Country;
       }else{
         this.employeeObj.state = "";
@@ -382,6 +424,7 @@ export class EmployeeInfoComponent implements OnInit{
   // Validations 
 
   validateBloodGroup(event, data:any){
+    this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
     console.log("Element :", event.target);
     console.log("Sibling : ", event.target.nextElementSibling);
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
@@ -402,6 +445,7 @@ export class EmployeeInfoComponent implements OnInit{
     
   }
   validateFathersName(event, data:any){
+    this.employeeObj.fatherName = this.employeeObj.fatherName?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter father name !!"   
   }
@@ -419,6 +463,7 @@ if(this.errorMsg == ""){
   }
 
   validateMothersName(event, data:any){
+    this.employeeObj.mothersName = this.employeeObj.mothersName?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter mother name !!"   
   }
@@ -436,6 +481,7 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validatePlaceOfBirth(event, data:any){
+    this.employeeObj.placeOfBirth = this.employeeObj.placeOfBirth?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter Place of Birth !!"   
   }
@@ -454,6 +500,7 @@ if(this.errorMsg == ""){
 
 
   validateMotherTongue(event, data:any){
+    this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter valid mother tongue !!"   
   }
@@ -488,6 +535,7 @@ if(this.errorMsg == ""){
 //   }
 
   validateAadhar(event, data:any){
+    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter aadhar card number !!"   
   }
@@ -538,7 +586,44 @@ if(this.errorMsg == ""){
 }
   }
 
+  validateViewOnOrganisation(event , data:any){
+    this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter views On Organisation !!"   
+  }
+  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+    this.errorMsg = "Please enter valid views On Organisation !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateAboutMe(event , data:any){
+    this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter About me !!"   
+  }
+  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+    this.errorMsg = "Please enter valid About me !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
   validateValidEmptyNullUndefinedalternateMobileNo(event, data:any){
+    this.employeeObj.emergencyContactMobile = this.employeeObj.emergencyContactMobile?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter Mobile number !!"   
   }
@@ -556,7 +641,26 @@ if(this.errorMsg == ""){
 
   }
 
+  validateValidEmptyNullUndefinedPermanentAddress(event , data:any){
+    this.employeeObj.permanentAddress = this.employeeObj.permanentAddress?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Permanent Address !!"   
+  }
+  else  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+    this.errorMsg = "Please enter valid  Permanent Address !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
   validateValidEmptyNullUndefinedCurrentDate(event , data:any){
+    this.employeeObj.address = this.employeeObj.address?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter Current Address !!"   
   }
@@ -574,6 +678,7 @@ if(this.errorMsg == ""){
   }
 
   validateContactPerson(event, data:any){
+    this.employeeObj.emergencyContactPerson = this.employeeObj.emergencyContactPerson?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter Emergency Contact person !!"   
   }
@@ -590,6 +695,7 @@ if(this.errorMsg == ""){
 }
   }
   validateRelation(event, data:any){
+    this.employeeObj.relation = this.employeeObj.relation?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter relation !!"   
   }
@@ -622,6 +728,7 @@ if(this.errorMsg == ""){
 } 
   }
   validatebankName(event, data:any){
+    this.employeeObj.bankName = this.employeeObj.bankName?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter bank name !!"   
   }
@@ -639,6 +746,7 @@ if(this.errorMsg == ""){
   }
 
   validatebankAccountNo(event, data:any){
+    this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter bank account number !!"   
   }
@@ -655,6 +763,7 @@ if(this.errorMsg == ""){
 } 
   }
   validatebankIFSCCode(event, data:any){
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter bank IFSC code !!"   
   }
@@ -719,6 +828,7 @@ if(this.errorMsg == ""){
 // } 
 //   }
   validateEsicNumber(event, data:any){
+    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter Esic number !!"   
   }
@@ -754,10 +864,12 @@ if(this.errorMsg == ""){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter year of experience !!"  
     }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid year of experience !!"   
-}
-  else{
+    else if(data === 0){		
+      this.errorMsg = "Please enter more than 0 number !!"	  	
+  }		
+      else if (!this.validationService.validateExperiencedNumber(data)) {		
+      this.errorMsg = "Please enter valid experience in Format (Years.Months)  !!"		
+  }else{
   this.errorMsg = ""
 }
 if(this.errorMsg == ""){

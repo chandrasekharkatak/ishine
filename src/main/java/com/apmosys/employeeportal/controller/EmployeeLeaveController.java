@@ -204,5 +204,14 @@ public class EmployeeLeaveController {
 		ServiceResponse response =	employeeLeaveService.updateRevokeLeaveStatus(leaveDTO);		
 		return response;
 	}
+	
+	@RequestMapping(value = "/getAllLeaveBalanceByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllLeaveBalanceByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getAllLeaveBalanceByEmpId(leaveDTO);
+		return response;
+	}
+	
+	
 
 }

@@ -41,7 +41,7 @@ export class InformationPreviewComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateActivityTimesheetDiscription(employeeObj.viewsOnOrganisation)){
-      this.alertMessage = "Only string character will be valid in  your view on organisation !!";
+      this.alertMessage = "Please enter valid view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -51,7 +51,7 @@ export class InformationPreviewComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateActivityTimesheetDiscription(employeeObj.aboutMe)){
-      this.alertMessage = "Only string character will be valid in  About me !!";
+      this.alertMessage = "Please enter valid in  About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -107,7 +107,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter mother name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.mothersName.trim())){
+    }else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.mothersName)){
       this.alertMessage = "Please enter Valid mother Name !!";
       this.openAlertMod(template, this.alertMessage);
       return false;

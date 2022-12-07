@@ -105,35 +105,37 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse getAccessControlListData(EmployeeDTO employeeDto) {
+	public ServiceResponse getMappedSubFeatureList(EmployeeDTO employeeDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			List<Object[]> accessControlList = employeeRoleMasterRepository
-					.getAccessControlList(employeeDto.getJobRoleName(), employeeDto.getDepartmentId(), employeeDto.getEmployeeRole());
+			List<Object[]> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
+					.getMappedSubFeatureByJobRoleId(employeeDto.getJobRoleId());
 			
 			List<EmployeeDTO> dtoList = new ArrayList<>();
 			
-			if(!accessControlList.isEmpty()) {
-				
-				accessControlList.forEach((object) -> {
+			if (!mappedSubFeatureByJobRoleId.isEmpty()) {
+
+				mappedSubFeatureByJobRoleId.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-					
-					empDTO.setDepartmentName(object[0] != null ? object[0].toString() : null);
+
+					empDTO.setJobRoleId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setJobRoleName(object[1] != null ? object[1].toString() : null);
 					empDTO.setEmployeeRole(object[2] != null ? object[2].toString() : null);
-					empDTO.setTabName(object[3] != null ? object[3].toString() : null);
-					empDTO.setFeatureName(object[4] != null ? object[4].toString() : null);
-					empDTO.setSubFeatureName(object[5] != null ? object[5].toString() : null);
+					empDTO.setSubFeatureId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+					empDTO.setSubFeatureName(object[4] != null ? object[4].toString() : null);
+					empDTO.setFeatureId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+					empDTO.setFeatureName(object[6] != null ? object[6].toString() : null);
 					
 					dtoList.add(empDTO);
 				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
-				response.setServiceResponse(dtoList);
 				
-			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("ACL (Access control list) is empty.");
+				response.setServiceResponse("Mapped Role List is Empty.");
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -144,31 +146,31 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse getAccessControlListByPersona(EmployeeDTO employeeDto) {
+	public ServiceResponse getAllSubFeatureList() {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
 			List<Object[]> accessControlList = employeeRoleMasterRepository
-					.getAccessControlListByPersona(employeeDto.getEmployeeRole());
+					.getAllSubFeatureList();
 			
 			List<EmployeeDTO> dtoList = new ArrayList<>();
 			
-			if(!accessControlList.isEmpty()) {
-				
+			if (!accessControlList.isEmpty()) {
+
 				accessControlList.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-					
-					empDTO.setEmployeeRole(object[0] != null ? object[0].toString() : null);
-					empDTO.setTabName(object[1] != null ? object[1].toString() : null);
-					empDTO.setFeatureName(object[2] != null ? object[2].toString() : null);
-					empDTO.setSubFeatureName(object[3] != null ? object[3].toString() : null);
-					
+
+					empDTO.setSubFeatureId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setSubFeatureName(object[1] != null ? object[1].toString() : null);
+					empDTO.setFeatureId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					empDTO.setFeatureName(object[3] != null ? object[3].toString() : null);
+
 					dtoList.add(empDTO);
 				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				
-			}else {
+
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("ACL (Access control list) is empty.");
 			}

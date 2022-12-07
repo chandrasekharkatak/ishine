@@ -10,7 +10,7 @@ public class LeaveLogMessage {
 	public static String deleteLeave = "Added 0.0 leaves. Employee deleted leave Application.";
 	
 	public static String deductLeave = "Deducted 0.0 leaves.";
-	public static String autoDeductLeave = "Deducted 0.0 leaves.";
+	public static String autoDeductLeave = "Deducted 0.0 leaves.Deducted automatically by system.";
 	public static String requestDeductLeave = "Deducted 0.0 leaves. Employee requested for leave.";
 	public static String adminDeductLeave = "Deducted 0.0 leaves. Deducted by admin.";
 	

@@ -48,6 +48,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PortalConfig;
@@ -58,12 +59,14 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -108,6 +111,9 @@ public class CronJobService {
 	
 	@Autowired
 	BirthdayMailRepository birthdayMailRepository;
+	
+	@Autowired
+	LeaveBalanceLogRepository leaveBalanceLogRepository;
 	
 	@Autowired
 	MailService mailService;
@@ -218,7 +224,20 @@ public class CronJobService {
 		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
 		        				        	  System.out.println(newBalance);
 		        				        	  employeeLeaveMap.setBalance(newBalance);
-		      								  employeeLeavesMapRepository.save(employeeLeaveMap);
+		        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+		        				        	  
+		        				        	  if(dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(employeeObj.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+													log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+															leavePolicyObj.getIncrementValue().toString()));
+													log.setUpdateBalanceBy("+" + leavePolicyObj.getIncrementValue());
+
+													leaveBalanceLogRepository.save(log);
+		        				        	  }
 		        				          }
 		        			  }
 		        		  }else {
@@ -247,19 +266,53 @@ public class CronJobService {
 			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
 			      
 			          for(LeavePolicyMaster lpm : leavePolicy) {
-				         if(lpm.getCarryForward().equals("Yes")) {
-				     	     float carryForwardValue = lpm.getCarryForwardValue();
+				         if(lpm.getCarryForward().equals("Yes") || lpm.getCarryForward().equals("No")) {
 					
 					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
 					       
 					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
 						              float dbBalance = elm.getBalance();
 						              
-						              if(dbBalance > carryForwardValue) {
-						            	  float newBalance = carryForwardValue;
-						            	  elm.setBalance(newBalance);
-							              employeeLeavesMapRepository.save(elm);
-							              break;
+										if (lpm.getCarryForward().equals("No")) {
+											
+											float newBalance = 0;
+											elm.setBalance(newBalance);
+											EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+											
+											if (dbResponse != null) {
+												LeaveBalanceLog log = new LeaveBalanceLog();
+
+												log.setBalance(newBalance);
+												log.setEmpId(elm.getEmpId());
+												log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+												log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",
+														Float.toString(dbBalance)));
+												log.setUpdateBalanceBy("-" + dbBalance);
+
+												leaveBalanceLogRepository.save(log);
+											}
+										} else if (lpm.getCarryForward().equals("Yes")) {
+											float carryForwardValue = lpm.getCarryForwardValue();
+											
+											if (dbBalance > carryForwardValue) {
+												float newBalance = carryForwardValue;
+												float deductedLeaveCount = dbBalance - carryForwardValue;
+												elm.setBalance(newBalance);
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(elm.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+													log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",
+															Float.toString(deductedLeaveCount)));
+													log.setUpdateBalanceBy("-" + deductedLeaveCount);
+
+													leaveBalanceLogRepository.save(log);
+												}
+											}
 						              }
 					              }
 				          }

@@ -326,71 +326,93 @@
     <h1 class="table-header-title">Access Control List</h1>
   </div>
 
-  <div class="col-md-3">
-    <ul class="list-group">
-      <li class="list-group-item text-center list-header">
-        <label class="form-check-label" for="jobRole">Designation</label>
-      </li>
-      <li class="list-group-item text-center">
-        <input type="text" class="form-control" placeholder="Search Designation" [(ngModel)]="designationData" (keyup)="page=1">
-      </li>
-      <li *ngFor="let role of allJobRoleList | filter:designationData" class="list-group-item text-center">
-        <input class="form-check-input me-1 jobrole-radio" type="radio" name="listGroupRadio" value="{{role.name+role.departmentId}}" (click)="selectedJobRole($event)" id="jobRole">
-        <label class="form-check-label" for="jobRole">{{role.name}}</label>
-      </li>
-    </ul>
-  </div>
+  <div class="col-md-12 ml-auto d-flex">
+    <div class="col-md-8">
+      <input class="ml-5 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
+      <label for="Employee">Employee</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
+      <label for="TeamLead">Team Lead</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
+      <label for="Manager">Manager</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
+      <label for="HR">HR</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
+      <label for="HOD">HOD</label>
+      <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin"
+        (click)="selectPersona($event)">
+      <label for="SuperAdmin">Super Admin</label>
+    </div>
 
-  <div class="col-md-9 ml-auto">
-    <input class="ml-5 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
-    <label for="Employee">Employee</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
-    <label for="TeamLead">Team Lead</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
-    <label for="Manager">Manager</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
-    <label for="HR">HR</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
-    <label for="HOD">HOD</label>
-    <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin" (click)="selectPersona($event)">
-    <label for="SuperAdmin">Super Admin</label>
+    <div class="col-md-2 ml-auto mb-2">
+      <label class="info-label">Show Column</label>
+      <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.columnHeader" (click)="showColumn()">
+        <option selected="selected" value="" disabled>Select</option>
+        <option *ngFor="let show of showColumnList" value="{{show.field}}">{{show.header}}</option>
+      </select>
+    </div>
 
+  </div>  
 
-    <div class="row d-flex">
-      <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-      </div>
-      <table class="table table-responsive scrollable-table">	
-          <thead class="thead-light table-scroll">	
-            <tr>
-              <th scope="col" class="info-label" >Sr No.</th>	
-              <th scope="col" class="info-label" *ngIf="!isAccessControlListByPersona">Department Name</th>
-              <th scope="col" class="info-label" *ngIf="!isAccessControlListByPersona">Designation</th>	
-              <th scope="col" class="info-label">Employee Role</th>	
-              <th scope="col" class="info-label">Tab Name</th>	
-              <th scope="col" class="info-label">Feature Name</th>	
-              <th scope="col" class="info-label">Sub-Feature Name</th>	
+    <div class="col-md-12">
+      <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
+        [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'"
+        style="max-height: 65vh;">
+        <table class="table table-responsive table-bordered table-hover" id="table">
+          <thead>
+            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="columns"
+              (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
+              <ng-container *ngFor="let column of columns; let i = index">
+                <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
+                  <ng-container *ngIf="i == 0">
+                    {{ column.header }}
+                  </ng-container>
+                  <ng-container *ngIf="i != 0">
+                    {{ column.header }}<button class="btn" (click)="hideColumn(column.header)"><em class="fa-regular fa-eye"></em></button>
+                  </ng-container>
+                  <div *cdkDragPreview>
+                    <div [style.width]="pos?.width" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x">
+                      <thead>
+                        <tr>
+                          <th>
+                            {{ column.header }}
+                          </th>
+                        </tr>
+                      </thead>
+                    </div>
+                  </div>
+                  <div class="placeholder" *cdkDragPlaceholder></div>
+                </th>
+              </ng-container>
             </tr>
           </thead>
-          <tbody>
-              <tr *ngIf="accessControlList.length == 0" >
-                  <th colspan="13" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr *ngFor="let acl of accessControlList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                  <th class="info-label">{{i+1}}</th>
-                  <td *ngIf="!isAccessControlListByPersona">{{acl.departmentName}}</td>
-                  <td *ngIf="!isAccessControlListByPersona">{{acl.jobRoleName}}</td>
-                  <td>{{acl.employeeRole}}</td>
-                  <td>{{acl.tabName}}</td>
-                  <td>{{acl.featureName}}</td>
-                  <td>{{acl.subFeatureName}}</td>
-              </tr>
+          <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
+            <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
+              (cdkDragReleased)="onDragRelease($event)" *ngFor="let element of paginateData">
+              <ng-container *ngFor="let cell of columns; let i = index">
+                <ng-container *ngIf="i == 0">
+                  <td>{{ element[cell.field] }}</td>
+                </ng-container>
+                <ng-container *ngIf="i != 0">
+                  <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
+                      (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
+                </ng-container>
+              </ng-container>
+              <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
+                [style.width]="pos?.width">
+                <table>
+                  <tr>
+                    <td *ngFor="let cell of columns">{{ element[cell.field] }}</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="preview placeholder" *cdkDragPlaceholder></div>
+            </tr>
           </tbody>
         </table>
-        <pagination-controls class="my-pagination" [hidden]="accessControlList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="accessControlList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-primary mt-2" [hidden]="paginateData.length == 0"
+        (click)="updateJobRoleSubFeatureMapping(alert_message)">Updated Role ACL</button>
     </div>
-  </div>
 </div>
 <!-- end :: ACL (access control list) -->
 

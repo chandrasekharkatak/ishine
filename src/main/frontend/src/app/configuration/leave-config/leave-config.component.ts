@@ -152,6 +152,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddHolidayForm(){
+    this.employeeData = []
     this.isHolidayForm = true;
     this.isCreation = true;
 
@@ -168,6 +169,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showHoliaysTable(){
+    this.employeeData = []
     this.isHolidayTable = true;
 
     this.isLeaveRuleTable = false;
@@ -184,6 +186,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showLeaveTypesTable(){
+    this.employeeData = []
     this.isLeaveRuleTable = true;
 
     this.isHolidayTable = false;
@@ -200,6 +203,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddLeaveTypeForm(){
+    this.employeeData = []
     this.isLeaveTypeForm = true;
     this.isCreation = true;
     
@@ -265,6 +269,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddLeavePolicyForm(){
+    this.employeeData = []
     this.isLeavePolicyForm = true;
     this.isCreation = true;
     
@@ -297,6 +302,7 @@ export class LeaveConfigComponent implements OnInit {
 
 
   showLeavePoliciesTable(){
+    this.employeeData = []
     this.isLeavePolicyTable = true;
     
     this.isHolidayTable = false;
@@ -769,25 +775,29 @@ exportToExcel(): void {
   onGetEmpLeaveBalance(template: TemplateRef<any>){
     this.leaveBalanceList = [];
     this.employeeData = [];
-
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)){
-      this.alertMessage = "Please enter Employee ID !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    console.log("Employee :", this.leaveBalanceObj);
-    this.leaveService.getMyLeaveBalancesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveBalanceList = response.serviceResponse;
-        this.leaveBalanceObj.empId = response.serviceResponse1;
-        this.employeeData = response.serviceResponse2;
-        console.log("employeeData : ", this.employeeData);
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+    if(this.leaveBalanceObj.employeementId.startsWith('A-')){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)){
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
       }
-    });
+      let leaveObj:Leave = new Leave();
+      leaveObj.employeementId  = this.leaveBalanceObj.employeementId.substring(2);
+      console.log("Employee :", this.leaveBalanceObj);
+      this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.leaveBalanceList = response.serviceResponse;
+          this.leaveBalanceObj.empId = response.serviceResponse1;
+          this.employeeData = response.serviceResponse2;
+          console.log("employeeData : ", this.employeeData);
+          console.log("leaveBalanceList : ", this.leaveBalanceList);
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }else {
+      this.openAlertMod(template, "Please Enter A- with Employee ID");
+    }   
   }
 
   leaveBalanceInputValidation(balance:any, template: TemplateRef<any>){
@@ -798,6 +808,7 @@ exportToExcel(): void {
   }
 
   onUpdateLeaveBalance(template: TemplateRef<any>){
+    
     let inputValidated = true;
     this.leaveBalanceList.forEach(leave => {
       if(!this.validationService.validateNullUndefinedEmptyString(leave.balance)){
@@ -813,6 +824,7 @@ exportToExcel(): void {
     };
     
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
+    this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
     console.log("manage Leave Balance :", this.leaveBalanceObj);
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -460,163 +460,254 @@ public class EmployeeService {
 		logBuilder.append("employeementId : " + employeedto.getEmployeementId()+ "aadhar : " +employeedto.getAadhar()+ "alternateMobileNo : " +employeedto.getAlternateMobileNo()+ "jobRoleId : " +employeedto.getJobRoleId()+ "employeementStatus"+employeedto.getEmploymentstatus());
 
 		try {
-
+			
+			
 			Employee employee = new Employee();
 
 			employee.setEmployeementId(employeedto.getEmployeementId());
 			employee.setName(employeedto.getName());
-			if (employeedto.getDateOfBirth() == null) {
-				employee.setDateOfBirth(stringToDateTimeParser.getDate("2001-01-01", "yyyy-MM-dd"));
-			} else {
-				employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
-			}
+			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
 			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
-			employee.setManagerId(employeedto.getManagerId());
 			employee.setEmail(employeedto.getEmail());
-			employee.setGender(employeedto.getGender());
-			employee.setBloodGroup(employeedto.getBloodGroup());
-			employee.setMaritalStatus(employeedto.getMaritalStatus());
-			employee.setFatherName(employeedto.getFatherName());
-			employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
-			employee.setMotherTongue(employeedto.getMotherTongue());
-			employee.setPassportNumber(employeedto.getPassportNumber());
-			if (employeedto.getAadhar() == null) {
-				employee.setAadhar(123456789012l);
-			} else {
-				employee.setAadhar(employeedto.getAadhar());
-			}
-			employee.setPanNumber(employeedto.getPanNumber());
+			employee.setSecondaryEmail(employeedto.getSecondaryEmail());
 			employee.setMobileNo(employeedto.getMobileNo());
-			employee.setLandline(employeedto.getLandline());
-			employee.setAddress(employeedto.getAddress());
-			employee.setCity(employeedto.getCity());
-			employee.setState(employeedto.getState());
-			employee.setCountry(employeedto.getCountry());
-			employee.setPincode(employeedto.getPincode());
-			if (employeedto.getAlternateMobileNo() == null) {
-				employee.setAlternateMobileNo(1111111111l);
-			} else {
-				employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
-			}
-			employee.setPermanentAddress(employeedto.getPermanentAddress());
-			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
-			employee.setRelation(employeedto.getRelation());
-			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
-			employee.setNoticePeriod(employeedto.getNoticePeriod());
-
-			LocalDate joinDate = stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd");
-			LocalDate todayDate = LocalDate.now();
-			LocalDate returnvalue = todayDate.minusMonths(9);
-			Integer result = returnvalue.compareTo(joinDate);
-
-			if (employeedto.getEmploymentstatus().equals("N")) {
-				employee.setEmploymentstatus("InActive");
-			} else if (result <= 0) {
-				employee.setEmploymentstatus("Probation");
-			} else if (result >= 0) {
-				employee.setEmploymentstatus("Confirmed");
-			}
-
-//			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
-			employee.setBankName(employeedto.getBankName());
-			employee.setBankAccountNo(employeedto.getBankAccountNo());
-			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
-			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
-			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
-			employee.setUan(employeedto.getUan());
-			employee.setEsicNumber(employeedto.getEsicNumber());
-			employee.setGraduationType(employeedto.getGraduationType());
-			employee.setPursuing(employeedto.getPursuing());
-			employee.setYearOfPassing(employeedto.getYearOfPassing());
-			employee.setPassingGrade(employeedto.getPassingGrade());
-			employee.setAboutMe("Add about yourself.");
-			employee.setViewsOnOrganisation("Add your views.");
-
+			employee.setManagerId(employeedto.getManagerId());
+			
 			if (jobRoleRepository.findById(employeedto.getJobRoleId()).isEmpty()) {
 				employee.setJobRoleId(138L);
 			} else {
 				employee.setJobRoleId(employeedto.getJobRoleId());
 			}
-
-			// employee.setJobRoleId(employeedto.getJobRoleId());
-
-			employee.setPassword(employeedto.getPassword());
-			// employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
+//			employee.setJobRoleId(employeedto.getJobRoleId());
+			
+			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
-			employee.setExperience(employeedto.getExperience());
-			employee.setRole(employeedto.getRole());
+
+			if (employeedto.getExperience().equals("Fresher")) {
+				employee.setExperience(employeedto.getExperience());
+				employee.setTotalExperience(0f);
+			} else {
+				employee.setExperience(employeedto.getExperience());
+				employee.setTotalExperience(employeedto.getTotalExperience());
+			}
+
+			employee.setNoticePeriod((short) 90);
+			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
 			employee.setWorkLocation(employeedto.getWorkLocation());
 			employee.setInvalidAccessAttempt(0);
 
+			employee.setAboutMe("Add about yourself.");
+			employee.setViewsOnOrganisation("Add your views.");
+			employee.setIsNew("true");
+			employee.setProbationPeriod((short)180);
+			employee.setIsUserInfoUpdated("false");
+			employee.setBillable(employeedto.getBillable());
+
 			Employee newEmployee = employeeRepository.save(employee);
 
-			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
+			if (newEmployee.getEmpId() != null) {
 
-				if (!previousEmployerList.isEmpty()) {
-					previousEmployerList.forEach((previousEmployer) -> {
-						previousEmployer.setEmpId(newEmployee.getEmpId());
+				List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
 
-					});
-					addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
+				List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
+
+				List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
+
+				leaveTypeMasterList.forEach((leaveType) -> {
+
+					EmployeeLeavesMap map = new EmployeeLeavesMap();
+					LeaveBalanceLog log = new LeaveBalanceLog();
+
+					map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+					map.setEmpId(newEmployee.getEmpId());
+					map.setBalance((float) 0);
+					map.setPendingForApproval((float) 0);
+					mapList.add(map);
+
+					log.setBalance(0.0f);
+					log.setEmpId(newEmployee.getEmpId());
+					log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+					log.setMessage(LeaveLogMessage.addLeave);
+					log.setUpdateBalanceBy("+0.0");
+					logList.add(log);
+
+				});
+
+				List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
+				List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
+
+				if (list != null && updatedLogList != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Employee Profile Created.");
+
+					Log log = new Log();
+
+					log.setEmpId(employeedto.getCreatedBy().longValue());
+					log.setEvent(LogEvents.CREATE);
+					log.setTableName(DbTable.EMPLOYEE);
+					log.setTableEntryId(newEmployee.getEmpId());
+					log.setRemarks("Employee profile created.");
+
+					logsRepository.save(log);
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Profile Creation Failed.");
 				}
-
-			});
-
-			Optional.ofNullable(employeedto.getCertifications()).ifPresent((certificationList) -> {
-
-				if (!certificationList.isEmpty()) {
-					certificationList.forEach((certification) -> {
-						certification.setEmpId(newEmployee.getEmpId());
-
-					});
-					addCertifications(certificationList, employeedto.getIsDraft());
-				}
-
-			});
-
-			List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
-
-			List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
-
-			List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
-
-			leaveTypeMasterList.forEach((leaveType) -> {
-
-				EmployeeLeavesMap map = new EmployeeLeavesMap();
-				LeaveBalanceLog log = new LeaveBalanceLog();
-
-				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-				map.setEmpId(newEmployee.getEmpId());
-				map.setBalance((float) 0);
-				map.setPendingForApproval((float) 0);
-				mapList.add(map);
-
-				log.setBalance(0.0f);
-				log.setEmpId(newEmployee.getEmpId());
-				log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-				log.setMessage(LeaveLogMessage.addLeave);
-				log.setUpdateBalanceBy("+0.0");
-				logList.add(log);
-
-			});
-
-			List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
-			List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
-
-			if (list != null && updatedLogList != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Employee Profile Created.");
-				
-				apiLogInfo.setApiResponse("Employee Profile Created..");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Creation Failed.");
-				
-				apiLogInfo.setApiResponse("Employee Profile Creation Failed.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
+			
+			
+
+//			Employee employee = new Employee();
+//
+//			employee.setEmployeementId(employeedto.getEmployeementId());
+//			employee.setName(employeedto.getName());
+//			if (employeedto.getDateOfBirth() == null) {
+//				employee.setDateOfBirth(stringToDateTimeParser.getDate("2001-01-01", "yyyy-MM-dd"));
+//			} else {
+//				employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
+//			}
+//			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
+//			employee.setManagerId(employeedto.getManagerId());
+//			employee.setEmail(employeedto.getEmail());
+//			employee.setGender(employeedto.getGender());
+//			employee.setBloodGroup(employeedto.getBloodGroup());
+//			employee.setMaritalStatus(employeedto.getMaritalStatus());
+//			employee.setFatherName(employeedto.getFatherName());
+//			employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
+//			employee.setMotherTongue(employeedto.getMotherTongue());
+//			employee.setPassportNumber(employeedto.getPassportNumber());
+//			if (employeedto.getAadhar() == null) {
+//				employee.setAadhar(123456789012l);
+//			} else {
+//				employee.setAadhar(employeedto.getAadhar());
+//			}
+//			employee.setPanNumber(employeedto.getPanNumber());
+//			employee.setMobileNo(employeedto.getMobileNo());
+//			employee.setLandline(employeedto.getLandline());
+//			employee.setAddress(employeedto.getAddress());
+//			employee.setCity(employeedto.getCity());
+//			employee.setState(employeedto.getState());
+//			employee.setCountry(employeedto.getCountry());
+//			employee.setPincode(employeedto.getPincode());
+//			if (employeedto.getAlternateMobileNo() == null) {
+//				employee.setAlternateMobileNo(1111111111l);
+//			} else {
+//				employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
+//			}
+//			employee.setPermanentAddress(employeedto.getPermanentAddress());
+//			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
+//			employee.setRelation(employeedto.getRelation());
+//			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
+//			employee.setNoticePeriod(employeedto.getNoticePeriod());
+//
+//			LocalDate joinDate = stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd");
+//			LocalDate todayDate = LocalDate.now();
+//			LocalDate returnvalue = todayDate.minusMonths(9);
+//			Integer result = returnvalue.compareTo(joinDate);
+//
+//			if (employeedto.getEmploymentstatus().equals("N")) {
+//				employee.setEmploymentstatus("InActive");
+//			} else if (result <= 0) {
+//				employee.setEmploymentstatus("Probation");
+//			} else if (result >= 0) {
+//				employee.setEmploymentstatus("Confirmed");
+//			}
+//
+////			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+//			employee.setBankName(employeedto.getBankName());
+//			employee.setBankAccountNo(employeedto.getBankAccountNo());
+//			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
+//			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
+//			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
+//			employee.setUan(employeedto.getUan());
+//			employee.setEsicNumber(employeedto.getEsicNumber());
+//			employee.setGraduationType(employeedto.getGraduationType());
+//			employee.setPursuing(employeedto.getPursuing());
+//			employee.setYearOfPassing(employeedto.getYearOfPassing());
+//			employee.setPassingGrade(employeedto.getPassingGrade());
+//			employee.setAboutMe("Add about yourself.");
+//			employee.setViewsOnOrganisation("Add your views.");
+//
+//			if (jobRoleRepository.findById(employeedto.getJobRoleId()).isEmpty()) {
+//				employee.setJobRoleId(138L);
+//			} else {
+//				employee.setJobRoleId(employeedto.getJobRoleId());
+//			}
+//
+//			// employee.setJobRoleId(employeedto.getJobRoleId());
+//
+//			employee.setPassword(employeedto.getPassword());
+//			// employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
+//			employee.setCreatedBy(employeedto.getCreatedBy());
+//			employee.setExperience(employeedto.getExperience());
+//			employee.setRole(employeedto.getRole());
+//			employee.setWorkLocation(employeedto.getWorkLocation());
+//			employee.setInvalidAccessAttempt(0);
+//
+//			Employee newEmployee = employeeRepository.save(employee);
+//
+//			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
+//
+//				if (!previousEmployerList.isEmpty()) {
+//					previousEmployerList.forEach((previousEmployer) -> {
+//						previousEmployer.setEmpId(newEmployee.getEmpId());
+//
+//					});
+//					addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
+//				}
+//
+//			});
+//
+//			Optional.ofNullable(employeedto.getCertifications()).ifPresent((certificationList) -> {
+//
+//				if (!certificationList.isEmpty()) {
+//					certificationList.forEach((certification) -> {
+//						certification.setEmpId(newEmployee.getEmpId());
+//
+//					});
+//					addCertifications(certificationList, employeedto.getIsDraft());
+//				}
+//
+//			});
+//
+//			List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
+//
+//			List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
+//
+//			List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
+//
+//			leaveTypeMasterList.forEach((leaveType) -> {
+//
+//				EmployeeLeavesMap map = new EmployeeLeavesMap();
+//				LeaveBalanceLog log = new LeaveBalanceLog();
+//
+//				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+//				map.setEmpId(newEmployee.getEmpId());
+//				map.setBalance((float) 0);
+//				map.setPendingForApproval((float) 0);
+//				mapList.add(map);
+//
+//				log.setBalance(0.0f);
+//				log.setEmpId(newEmployee.getEmpId());
+//				log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+//				log.setMessage(LeaveLogMessage.addLeave);
+//				log.setUpdateBalanceBy("+0.0");
+//				logList.add(log);
+//
+//			});
+//
+//			List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
+//			List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
+//
+//			if (list != null && updatedLogList != null) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse("Employee Profile Created.");
+//
+//			} else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee Profile Creation Failed.");
+//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2499,7 +2590,7 @@ public class EmployeeService {
 						+ "<br>"
 						+ "links - <br>"
 						+ "portal link : https://ishine.apmosys.com/ <br>"
-						+ "tutorial : https://apmosystech-my.sharepoint.com/:v:/g/personal/bansi_prasad_apmosys_com/EX-izLxX6I1Kn4JcJOgxTk4BfrfXuCTj2jeMUbfbN_rRqA?e=HRYtCt");
+						+ "tutorial : https://share.apmosys.com/index.php/s/WbgeWcvwzj0ZWxI");
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New Portal Credentials Mail sent successfully");

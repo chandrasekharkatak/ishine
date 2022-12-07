@@ -6,7 +6,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_reportee_leave_applications || userMapping.update_leave_applications_status" [ngClass]="{'active' : isLeaveApplicationsTable}" (click)="showLeaveApplicationsTable()">View My Reportee Leave Applications</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isReporteeLeaveRevokeApplicationsTable}" (click)="showReporteeLeaveRevokeApplicationTable()">View My Reportee Leave Revoke Applications</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_reportee_leave_revoke_applications" [ngClass]="{'active' : isReporteeLeaveRevokeApplicationsTable}" (click)="showReporteeLeaveRevokeApplicationTable()">View My Reportee Leave Revoke Applications</button>
     </div>
 </div>
 
@@ -40,7 +40,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata()">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">{{teamMember.name}}</option>
                             </select>
@@ -48,15 +48,32 @@
                     </div>
                 </div>
             </div>
+
+            <!-- <div class="card" *ngFor="let leave of leaveBalance">
+                <div class="card-header">{{leave.leaveType}} : {{leave.balance}}</div>
+                
+              </div>
+            <div class="alert alert-primary" role="alert">
+                <p>Certification(s) are not mandatory, but if added all fields for certificate are mandatory with document in Upload Document section</p>
+            </div> --> 
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId)">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId);getAllLeaveBalanceByEmpId(leaveObj)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="leaveDetails.length !== 0" class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;">
+                            <h6 class="ml-5 mr-5 mt-0 mb-0"> <span style=" color: #193d8a;" > Available Balance : {{leaveDetails}}</span></h6>
                         </div>
                     </div>
                 </div>
@@ -68,17 +85,18 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" > -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate()" disabled>
+                                <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter"
+                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate()" (keydown)="disableMannualDateInput()">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" [disabled]="isUpdation"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" [disabled]="isUpdation" #fromDatePicker disabled="false"></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" [disabled]="isUpdation" #fromDatePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group leave_day" *ngIf="isCreation">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message)">
+                        <div class="form-group leave_day" >
+                            <select class="form-control" *ngIf="isCreation" aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType"  (change)="setNoOfDays(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>
@@ -94,17 +112,18 @@
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.toDate" (change)="setNoOfDays(alert_message)"> -->
                             <div class="d-flex">
-                                <input class="form-control" matInput id="toDate" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" disabled>
+                                <input class="form-control" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter"
+                                 placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="isUpdation"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker [disabled]="isUpdation" disabled="false" [startAt]="leaveObj.fromDate" ></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="isUpdation" disabled="false"></mat-datepicker>
                         </div>
                     </div>
                 </div>
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group leave_day" *ngIf="isCreation">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType" (change)="setNoOfDays(alert_message)">
+                        <div class="form-group leave_day" >
+                            <select class="form-control"  *ngIf="isCreation" aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>
@@ -184,10 +203,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveHistoryList.length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            <tr *ngIf="leaveHistoryListForTable.length == 0">
+                                <th colspan="14" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let leaveHistory of leaveHistoryListForTable |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                                 <td>{{leaveHistory.leaveType}}</td>
@@ -209,8 +228,8 @@
                         </tbody>
                     </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="leaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                <pagination-controls class="my-pagination" [hidden]="leaveHistoryListForTable.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveHistoryListForTable.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
     </div>        
@@ -275,7 +294,7 @@
                     </thead>
                     <tbody>
                         <tr *ngIf="leaveApplicationList.length == 0">
-                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                            <th colspan="9" class="text-center info-label">No details to display...</th>
                         </tr>
                         <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                             <td><input class="leave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>

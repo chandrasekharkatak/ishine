@@ -109,7 +109,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                      <input id="historyFromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
                   </div>
               </div>
             </div>
@@ -117,7 +117,7 @@
                   <div class="info-wrapper">
                       <div class="form-group">
                           <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                          <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
+                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
                       </div>
                   </div>
               </div>
@@ -151,7 +151,7 @@
                         </thead>
                         <tbody>
                           <tr *ngIf="teamViewLeaveHistoryList.length == 0">
-                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                            <th colspan="14" class="text-center info-label">No details to display...</th>
                           </tr>
                           <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
@@ -185,7 +185,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                      <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="fromDate" autocomplete="none" (change)="getAllTeamCompOffHistoryView()">
                   </div>
               </div>
           </div>
@@ -193,7 +193,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                      <input id="historyFromDate" type="date" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamCompOffHistoryView()">
                   </div>
               </div>
           </div>
@@ -325,7 +325,7 @@
                 </thead>
                 <tbody>
                   <tr *ngIf="leaveApplicationList.length == 0">
-                    <th colspan="9" class="text-center info-label">No details to display...</th>
+                    <th colspan="14" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr
                     *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">

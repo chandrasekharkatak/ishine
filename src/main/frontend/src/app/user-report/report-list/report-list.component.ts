@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, Renderer2, ElementRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
@@ -13,6 +13,8 @@ import { Query } from 'src/app/models/query';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { Employee } from 'src/app/models/employee';
+import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
+import { JobRole } from 'src/app/models/jobRole';
 
 class FilterData{
   title:any;
@@ -46,7 +48,6 @@ export class ReportListComponent implements OnInit {
   isTimesheetReportTable:boolean = false;
   isEmployeeReportTable:boolean = false;
   isAccessControlListTable:boolean = false;
-  isAccessControlListByPersona:boolean = false;
 
   allEmployeeList:any[] = [];
 
@@ -57,7 +58,14 @@ export class ReportListComponent implements OnInit {
   timesheetApplicationsDataForExcel: any[] = [];
 
   allJobRoleList:any[] = [];
+  personaWiseJobRole:any[] = [];
   accessControlList:any[] = [];
+  mappedSubFeatureList:any[] = [];
+  subfeatureList:any[] = [];
+
+  updatedRoleSubFeature:any[] = [];
+  hiddenColumnObj:any[] = [];
+  showColumnList:any[] = [];
 
   excelName:any;
   jobRoleName:any;
@@ -68,7 +76,12 @@ export class ReportListComponent implements OnInit {
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   timesheetColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   queryList:any[] = [];
-  filterData:any = new FilterData(); 
+  filterData:any = new FilterData();
+
+  columns: any[] = [];
+  paginateData: any[] = [];
+  pos:any;
+  release:boolean = true;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -79,6 +92,7 @@ export class ReportListComponent implements OnInit {
     private leaveService : LeaveService,
     private jobRoleService : JobRoleService,
     private validationService : ValidationService,
+    private renderer2: Renderer2,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -90,10 +104,7 @@ export class ReportListComponent implements OnInit {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
      console.log(this.feature, this.userMapping);
-
-     this.getAllJobRoleList();
-
-    this.sectionViewInit();
+     this.sectionViewInit();
   }
 
   sectionViewInit() {
@@ -145,9 +156,9 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
-
-    this.getAllEmployeeList();
-    this.data =''
+    this.data ='';
+    this.columns = [];
+    this.paginateData = [];
   }
 
   // Leave Report 
@@ -305,75 +316,143 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-  getAllJobRoleList() {
-    this.allJobRoleList = [];
-
-    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allJobRoleList = response.serviceResponse;
-        console.log("allJobRoleList : ", this.allJobRoleList);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  selectedJobRole(event){
-    let value = event.target.value;
-    let string = value.split(/(\d+)/);
-
-    this.jobRoleName = string[0];
-    this.departmentId = string[1];
-
-    this.getAccessControlListData(this.alertModal);
-  }
+// ACL Start
 
   selectPersona(event) {
     this.employeeRole = event.target.value;
-    if(this.jobRoleName != null){
-      this.getAccessControlListData(this.alertModal);
-    }else{
-      this.employeeObj.employeeRole = this.employeeRole;
-      this.jobRoleService.getAccessControlListByPersona(this.employeeObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.isAccessControlListByPersona = true;
-          console.log(this.isAccessControlListByPersona);
-          
-          this.accessControlList = response.serviceResponse;
-          console.log("accessControlList : ", this.accessControlList);
-        } else {
-          console.error(response.serviceResponse)
-        }
-      });
-    }
+    this.showColumnList = [];
+    this.getAllJobRoleList(this.employeeRole);
   }
 
-  getAccessControlListData(template: TemplateRef<any>) {
-    if(!this.validationService.validateNullUndefinedEmptyString(this.jobRoleName)){
-      this.alertMessage = "Please select Designation !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if(!this.validationService.validateNullUndefinedEmptyString(this.employeeRole)){
-      this.alertMessage = "Please select Persona (Employee Role) !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+  getAllJobRoleList(persona: any) {
+    this.personaWiseJobRole = [];
+    this.columns = [];
+    this.mappedSubFeatureList = [];
+    this.subfeatureList = [];
+    this.paginateData = [];
 
-    this.employeeObj.jobRoleName = this.jobRoleName;
-    this.employeeObj.employeeRole = this.employeeRole;
-    this.employeeObj.departmentId = this.departmentId;
-    
-    this.jobRoleService.getAccessControlListData(this.employeeObj).pipe(first()).subscribe((response: any) => {
+
+    this.jobRoleService.getAllSubFeatureList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.isAccessControlListByPersona = false;
-        this.accessControlList = response.serviceResponse;
-        console.log("accessControlList : ", this.accessControlList);
-      } else {
-        console.error(response.serviceResponse)
+        this.subfeatureList = response.serviceResponse;
+        this.columns.push({ "field": "subFeature", "header": "Sub-Feature" });
+
+        this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.allJobRoleList = response.serviceResponse;
+            this.personaWiseJobRole = this.allJobRoleList.filter((x) => x.employeeRole == persona);
+            this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name }) })
+
+            // Generate Template
+            this.subfeatureList.forEach(subfeature => {
+              let paginateDataItem = {}
+
+              this.columns.forEach((column, index) => {
+                if (index === 0) {
+                  paginateDataItem[column.field] = subfeature.subFeatureName;
+                  paginateDataItem['subfeatureId'] = subfeature.subFeatureId;
+                } else {
+                  paginateDataItem[column.field] = false;
+                }
+              });
+              this.paginateData.push(paginateDataItem)
+            });
+            console.log("paginateData : ", this.paginateData);
+
+            this.personaWiseJobRole.forEach((role) => {
+              this.employeeObj.jobRoleId = role.jobRoleId;
+              this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
+                if (response.serviceStatus == "Success") {
+                  const mappedSubFeatures = response.serviceResponse;
+                  console.log("mappedSubFeatures : ", mappedSubFeatures);
+                  mappedSubFeatures.forEach(subFeature => {
+                    let mappedSubFeatureData = this.paginateData.find(data => {
+                      const subFeatureName = data.subFeature;
+                      if (subFeatureName == subFeature.subFeatureName)
+                        return data;
+                    });
+                    if (mappedSubFeatureData)
+                      mappedSubFeatureData[role.jobRoleId] = true;
+                  });
+                } else {
+                  console.error(response.serviceResponse);
+                }
+              });
+            });
+          } else {
+            console.error(response.serviceResponse)
+          }
+        });
       }
     });
   }
+
+dropRow(event: CdkDragDrop<string[]>) {
+  moveItemInArray(this.paginateData, event.previousIndex, event.currentIndex);
+}
+
+dropCol(event: CdkDragDrop<string[]>) {
+  if(event.previousIndex != 0 && event.currentIndex !== 0){
+    moveItemInArray(this.columns, event.previousIndex, event.currentIndex);
+  }
+}
+
+mouseDown(event,el:any=null){
+  el=el || event.target
+  this.pos={x:el.getBoundingClientRect().left-event.clientX+'px',
+  y:el.getBoundingClientRect().top-event.clientY+'px',
+  width:el.getBoundingClientRect().width+'px'
+  }
+}
+
+onDragRelease(event: CdkDragRelease) {
+  this.renderer2.setStyle(event.source.element.nativeElement,'margin-left','0px')
+}
+
+selectCellCheckbox(element:any, isAssigned:any, subFeatureId:any){
+  const alreadyUpdatedMapping = this.updatedRoleSubFeature.find((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
+  if(alreadyUpdatedMapping){
+    this.updatedRoleSubFeature.splice(alreadyUpdatedMapping,1);
+  }else{
+    this.updatedRoleSubFeature.push({
+      "jobRoleId":element,
+      "isAssigned":isAssigned,
+      "subFeatureId":subFeatureId
+    });
+  }
+  console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
+}
+
+updateJobRoleSubFeatureMapping(template: TemplateRef<any>){
+  let jobRoleObj = new JobRole();
+  jobRoleObj.updatedJobRoleFeatureMapping = this.updatedRoleSubFeature;
+
+  this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response:any) => {
+    if(response.serviceStatus == "Success"){
+      this.openAlertMod(template,response.serviceResponse);
+    }else{
+      this.openAlertMod(template,response.serviceResponse);
+    }
+  });
+}
+
+hideColumn(column:any){
+  this.hiddenColumnObj = this.columns.find(x => x.header == column);
+  this.columns = this.columns.filter(x => x.header != column);
+  this.showColumnList.push(this.hiddenColumnObj);
+}
+
+showColumn(){
+  let headerId = this.employeeObj.columnHeader;
+  let hiddenFound = this.showColumnList.find(x => x.field == headerId);
+  if(hiddenFound){
+    this.columns.push(hiddenFound);
+    this.showColumnList.splice(hiddenFound,1);
+    this.employeeObj.columnHeader = '';
+  }
+}
+
+// ACL end
 
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {

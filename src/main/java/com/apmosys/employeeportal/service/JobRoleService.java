@@ -607,5 +607,39 @@ public class JobRoleService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	@Transactional
+	public ServiceResponse updateJobRoleSubFeatureMapping(JobRoleDTO jobRoleDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
+
+			jobRoleDTO.getUpdatedJobRoleFeatureMapping().forEach(dto -> {
+				
+				if(dto.getIsAssigned().equals("true")) {
+					RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+					roleFeatureMap.setJobRoleId(dto.getJobRoleId());
+					roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureId());
+					roleFeatureMapList.add(roleFeatureMap);
+				}else if(dto.getIsAssigned().equals("false")) {
+					Long jobRoleId = dto.getJobRoleId();
+					roleFeatureMapRepository.deleteByJobRoleId(jobRoleId);
+				}
+			});
+
+			roleFeatureMapRepository.saveAll(roleFeatureMapList);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Role ACL Updated");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 	
 }

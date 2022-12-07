@@ -205,8 +205,8 @@ export class CompOffComponent implements OnInit {
         return false;
       }
 
-      if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(compOffObj.description)){
-        this.alertMessage = "Space and single character should not contain in comp off description !!"
+      if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
+        this.alertMessage = "Please enter valid description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }

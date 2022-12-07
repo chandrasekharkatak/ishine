@@ -77,10 +77,11 @@
                                                 <!-- <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth" (keydown)="disableMannualDateInput()"
                                                 (blur)="validateBirthDate(alert_message)"> -->
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOB" [matDatepicker]="DOBPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" disabled>
+                                                    <input class="form-control" matInput id="DOB" #input (click)="DOBPicker.open()" [matDatepicker]="DOBPicker" (keydown)="disableMannualDateInput()"
+                                                    [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)">
                                                     <mat-datepicker-toggle  matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DOBPicker disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DOBPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>
@@ -452,10 +453,11 @@
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of Joining</label>
                                                 <!-- <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()"> -->
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOJ" [matDatepicker]="DOJPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining" disabled>
+                                                    <input class="form-control" matInput id="DOJ" #input (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
+                                                      [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining">
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DOJPicker disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DOJPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>
@@ -1047,7 +1049,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Employee code</p>
+                                                <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
                                                     A-{{previewObj.employeementId}}</p>
                                             </div>
@@ -1551,7 +1553,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Employee code</p>
+                                                <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
                                                     A-{{previewEmployeeObj.employeementId}}</p>
                                             </div>

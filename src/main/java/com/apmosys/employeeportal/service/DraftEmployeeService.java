@@ -139,9 +139,7 @@ public class DraftEmployeeService {
 				if (!previousEmployerList.isEmpty()) {
 					previousEmployerList.forEach((previousEmployer) -> {
 						
-						if(previousEmployer.getPreviousEmploymentId() == null) {
-							previousEmployer.setEmpId(dbResponse.getDraftEmpId());
-						}
+						previousEmployer.setEmpId(dbResponse.getDraftEmpId());
 
 					});
 					employeeService.addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());

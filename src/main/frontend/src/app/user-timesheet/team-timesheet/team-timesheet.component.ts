@@ -431,6 +431,9 @@ onBulkApproval(template:TemplateRef<any>){
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Approved"
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkApprovedList.forEach((x)=>{
+    x.employeementId = x.employeementId.substring(2)
+  })
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
@@ -450,8 +453,11 @@ OnBulkReject(template: TemplateRef<any>){
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Rejected"
-  timesheetObj.rejectReason = this.timesheetObj.rejectReason
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkRejectList.forEach((y)=>{
+    y.employeementId = y.employeementId.substring(2);
+  })
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template , "All Selected Timesheet Rejected Successfully ");
