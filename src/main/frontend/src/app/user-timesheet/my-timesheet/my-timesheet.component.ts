@@ -512,7 +512,18 @@ export class MyTimesheetComponent implements OnInit {
 
   getAllTeamMemberList(){
     this.teamMemberList = []
-
+    this.timesheetObj.date = ''
+    this.timesheetObj.dayType = ''
+    this.allTimesheetActivities.forEach((timesheet) =>{
+      timesheet.clientId = ''
+      timesheet.clientLocationId = ''
+      timesheet.projectId = ''
+      timesheet.activityId = ''
+      timesheet.description = ''
+      timesheet.completionTime = ''
+      
+    })
+    
     if(this.timesheetObj.timesheetAppliedFor == "team"){
       let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;

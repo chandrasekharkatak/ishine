@@ -181,6 +181,8 @@ export class LeaveComponent implements OnInit {
     this.reset();
     this.getAllHolidays();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
+    this.leaveObj.fromDateDayType = ''
+    this.leaveObj.toDateDayType = ''
   }
 
   showLeaveHistoryTable() {
@@ -847,6 +849,13 @@ export class LeaveComponent implements OnInit {
   getAllTeamMemberList(){
     this.teamMemberList = []
     this.leaveDetails = []
+    this.leaveObj.leaveTypeMasterId = ''
+    this.leaveObj.fromDate = ''
+    this.leaveObj.toDate = ''
+    this.leaveObj.noOfDays = ''
+    this.leaveObj.reason = ''
+    this.leaveObj.fromDateDayType = ''
+    this.leaveObj.toDateDayType = ''
 
     let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;

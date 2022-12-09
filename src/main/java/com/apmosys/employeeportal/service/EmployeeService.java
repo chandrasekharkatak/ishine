@@ -1991,25 +1991,26 @@ public class EmployeeService {
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
 			if (employee != null) {
+				
+					employee.setPassword(employeedto.getNewPassword());
+					employee.setIsNew("false");
+					Employee dbResponse = employeeRepository.save(employee);
 
-				employee.setPassword(employeedto.getNewPassword());
-				employee.setIsNew("false");
-				Employee dbResponse = employeeRepository.save(employee);
+					if (dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Password Updated.");
+						
+						apiLogInfo.setApiResponse("Password Updated.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Password Updation Failed.");
+						
+						apiLogInfo.setApiResponse("Password Updation Failed.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
 
-				if (dbResponse != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Password Updated.");
-					
-					apiLogInfo.setApiResponse("Password Updated.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Password Updation Failed.");
-					
-					apiLogInfo.setApiResponse("Password Updation Failed.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
