@@ -6,5 +6,5 @@ export class Project{
 	projectName:any;
 	description:any;
 	projectManagerId:any;
-	
+	departmentName:any;
 }

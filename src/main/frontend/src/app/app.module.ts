@@ -72,6 +72,7 @@ import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.com
 import { UserExitComponent } from './user-exit/user-exit.component';
 import { MatTableModule } from '@angular/material/table';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { NgxMatSelectModule } from 'ngx-mat-select';
 @NgModule({
   declarations: [
     AppComponent,
@@ -145,7 +146,21 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     ClipboardModule,
     NgHorizontalScrollModule,
     MatTableModule,
-    DragDropModule
+    DragDropModule,
+    NgxMatSelectModule.forRoot({
+      maxWidthForMobileView: 600,
+      inFirstLoadCallSearcher: true,
+      inFirstLoadSearcherValue: '',
+      emptyLabel: 'no entry found',
+      noMoreResultLabel: 'no more found',
+      useInfiniteScroll: false,
+      searchBoxPlaceholder: 'search',
+      maximumResultForShow: 40,
+      useMobileView: false,
+      valueMember: 'key',
+      displayMember: 'value',
+      mobileViewType: 'FullScreen'
+  }),
   ],
   providers: [
     BsModalService,
