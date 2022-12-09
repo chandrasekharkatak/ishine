@@ -342,7 +342,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Pursuing</label>
-                                            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.pursuing">
+                                            <select class="form-control" (change)="dataClean(changedata.value)" #changedata aria-hidden="true" [(ngModel)]="employeeObj.pursuing">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option value="Yes">Yes</option>
                                                 <option value="No">No</option>

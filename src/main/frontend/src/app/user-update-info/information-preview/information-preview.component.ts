@@ -311,6 +311,12 @@ export class InformationPreviewComponent implements OnInit {
           certFlag = false;
           return;
         }
+        if(!this.validationService.validateAlphabetAtLeastTwoCharacter(certification.certificationName)){
+          this.alertMessage = `Please Enter valid Certification Name - ${index+1}!!`;
+          this.openAlertMod(template, this.alertMessage);
+          certFlag = false;
+          return;
+        }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.duration)){
           this.alertMessage = `Please Select Duration - ${index+1}!!`;
@@ -335,6 +341,12 @@ export class InformationPreviewComponent implements OnInit {
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.certificationNumber)){
           this.alertMessage = `Please Enter Certification Number - ${index+1}!!`;
+          this.openAlertMod(template, this.alertMessage);
+          certFlag = false;
+          return;
+        }
+        if(!this.validationService.validateAlphaNumeric(certification.certificationNumber)){
+          this.alertMessage = `Please Enter valid Certification Number - ${index+1}!!`;
           this.openAlertMod(template, this.alertMessage);
           certFlag = false;
           return;

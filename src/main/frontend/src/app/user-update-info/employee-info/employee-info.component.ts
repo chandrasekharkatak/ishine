@@ -277,7 +277,11 @@ export class EmployeeInfoComponent implements OnInit{
     }
   }
 
-
+  dataClean(value:string){
+    if(value == 'No'){
+      this.employeeObj.yearOfPassing = ''
+    }
+  }
   
 
   async onSave(template : TemplateRef<any>){

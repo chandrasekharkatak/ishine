@@ -19,6 +19,7 @@ import { ImageService } from 'src/app/services/image.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Document } from 'src/app/models/document';
 import { PortalService } from 'src/app/services/portal.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-employee-config',
@@ -121,7 +122,8 @@ export class EmployeeConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
-    private portalService:PortalService,) {
+    private portalService:PortalService,
+    private utilityService:UtilityService) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -335,13 +337,19 @@ export class EmployeeConfigComponent implements OnInit {
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
     
-    employee.employeementId = employee.employeementId.substring(2);
+    employee.employeementId = this.utilityService.substringEmployeementid(employee.employeementId);
+    // employee.employeementId = employee.employeementId?.substring(2)
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+ 
         this.employeeObj = Object.assign({}, response.serviceResponse);
-        console.log("employee :", this.employeeObj);
+        // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
+        
+        this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
 
+        console.log("employee :", this.employeeObj);
+        // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
           this.getJobRolesByDept(this.employeeObj.departmentId, this.employeeObj.jobRoleId);
@@ -379,7 +387,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.getManagerList();
     this.getAllDepartmentList();    
     
-    employee.employeementId = employee.employeementId.substring(2);
+    employee.employeementId = this.utilityService.substringEmployeementid(employee.employeementId);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -448,15 +456,15 @@ export class EmployeeConfigComponent implements OnInit {
 
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
-      this.alertMessage = "Please enter Employment Id !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateEmployeementId(employeeObj.employeementId)) {
-      this.alertMessage = "Please enter valid Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
+    //   this.alertMessage = "Please enter Employment Id !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (!this.validationService.validateEmployeementId(employeeObj.employeementId)) {
+    //   this.alertMessage = "Please enter valid Employment ID !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)) {
       this.alertMessage = "Please enter Full Name !!";
@@ -850,6 +858,7 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
+
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
 
@@ -868,7 +877,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
-    this.employeeService.createEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
+   let employee = Object.assign({},this.employeeObj)
+    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
+    this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
         this.openAlertMod(template, response.serviceResponse);
@@ -881,12 +892,14 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   checkEmail(template: TemplateRef<any>) {
-
+    let employee = new Employee();
+    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
     const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+    // this.employeeObj.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
    // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
     if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
-        this.employeeService.checkEmployeeEmail(this.employeeObj).pipe(first()).subscribe((response: any) => {
+        this.employeeService.checkEmployeeEmail(employee).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Fail") {
             this.openAlertMod(template, response.serviceResponse);
             this.employeeObj.email = '';
@@ -920,29 +933,33 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   checkEmployeementId(template: TemplateRef<any>) {
+    let employee = new Employee();
+    
     
     // if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
     //   this.alertMessage = "Please enter Employment ID !!";
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
     // }else 
-    if (!this.validationService.validateEmployeementId(this.employeeObj.employeementId) && this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+    if (!this.validationService.validateEmployeementId(employee.employeementId) && this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
       this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
-    this.employeeService.checkEmployeementId(this.employeeObj).pipe(first()).subscribe((response: any) => {
+     
+    this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
-        this.employeeObj.employeementId = '';
+        employee.employeementId = '';
       }
     });
   }
 
 
   checkEmployeeMobileNo(template: TemplateRef<any>) {
-    this.employeeService.checkEmployeeMobileNo(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    let employee = new Employee();
+    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
+    this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.mobileNo = '';
@@ -968,6 +985,9 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  clearAfterChange(){
+    this.employeeObj.totalExperience = ''
+  }
   onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
@@ -1004,7 +1024,11 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
-    this.employeeService.updateEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
+
+    let employee = Object.assign({}, this.employeeObj);
+    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
+
+    this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
@@ -1074,13 +1098,10 @@ export class EmployeeConfigComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
-
-        for(let x of this.allEmployeeList){
-          x.employeementId = "A-".concat(x.employeementId)
-        }
-
-
         console.log("allEmployeeList : ", this.allEmployeeList)
+        this.allEmployeeList.forEach(employeeObj => {
+            employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
+        });
         // this.createEmployeeList(this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -1170,9 +1191,11 @@ export class EmployeeConfigComponent implements OnInit {
 
     console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";	
+    // employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         employeeList = response.serviceResponse;	
+        // this.employeeObj.employeementId = this.utilityService.appendEmployeementid(employee.employeementId)
         console.log("employeeList By Role : ", employeeList)
         if(this.isUpdation || this.isDeletion){
           this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);

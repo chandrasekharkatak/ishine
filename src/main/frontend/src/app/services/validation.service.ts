@@ -517,4 +517,20 @@ export class ValidationService {
     }
   }
   
+  validateAlphabetAtLeastTwoCharacter(text:string): boolean {
+    const regex = (/^[A-Za-z]{2}[A-Za-z\s?]*$/i) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
 }

@@ -85,6 +85,7 @@
                         <th scope="col">Balance</th>
                         <th scope="col">Approved</th>
                         <th scope="col">Pending</th>
+                        <th scope="col">Rejected</th>
                       </tr>
                     </thead>
                     <tbody class="leave-body" [ngClass]="(userMapping.view_all_team_requests)? 'leave-body--scroll' : ''">
@@ -93,6 +94,7 @@
                         <td><h3><span class="badge badge-primary">{{leave.balance}}</span></h3></td>
                         <td><h3><span class="badge badge-success">{{leave.approvedApplicationsCount}}</span></h3></td>
                         <td><h3><span class="badge badge-warning">{{leave.pendingApplicationsCount}}</span></h3></td>
+                        <td><h3><span class="badge badge-danger">{{leave.rejectedApplicationsCount}}</span></h3></td>
                       </tr>
                     </tbody>
                   </table>
@@ -599,7 +601,7 @@
         </div>
   
         <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm" (click)="cancelRequest()">Close</button>&nbsp;
-        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="cancelRequest();updateEmployeePassword(alert_message)">Submit</button>&nbsp;
     </div>
   </ng-template>
 

@@ -25,7 +25,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Emp Id</label>
-                                                <input type="number" class="form-control" maxlength="5" autocomplete="none"
+                                                <input type="text" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                             </div>
                                         </div>
@@ -540,7 +540,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Experience</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.experience">
+                                                <select class="form-control" aria-hidden="true" (change)="clearAfterChange()" [(ngModel)]="employeeObj.experience">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Fresher">Fresher</option>
                                                     <option value="Experienced">Experienced</option>

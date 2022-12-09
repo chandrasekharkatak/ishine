@@ -263,6 +263,11 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(teamObj.teamName)) {
+      this.alertMessage = "Please enter valid Team Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
 
     // if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
@@ -276,6 +281,7 @@ export class TeamConfigComponent implements OnInit {
 
 
   onCreateTeam(template: TemplateRef<any>) {
+    this.teamObj.teamName = this.teamObj.teamName?.trim();
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
 
@@ -283,6 +289,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamObj.allTeamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
     this.teamObj.createdBy = this.currentUser.empId;
     console.log("create teamObj : ", this.teamObj);
+
+    
 
     if(this.teamObj.allTeamMemberList == undefined || this.teamObj.allTeamMemberList.length === 0){
       this.alertMessage = "Please select atleast one Team member !!"
