@@ -269,6 +269,8 @@ export class PortalConfigComponent implements OnInit {
     });
   }
   viewAllAppreciation(){
+    this.appreciationObj.appreciateType = '';
+    this.appreciationObj.appreciationEventId = ''
     this.appreciationObj.fromDate =''
     this.appreciationObj.toDate =''
     this.data = ''
