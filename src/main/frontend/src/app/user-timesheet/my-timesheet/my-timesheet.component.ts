@@ -15,6 +15,8 @@ import { Sort } from '@angular/material/sort';
 import { ClipboardService } from 'ngx-clipboard';
 import { Employee } from 'src/app/models/employee';
 import { TeamViewService } from 'src/app/services/team-view.service';
+import { LeaveService } from 'src/app/services/leave.service';	
+import { Leave } from 'src/app/models/leave';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -71,6 +73,8 @@ export class MyTimesheetComponent implements OnInit {
   teamMemberList:any[] = [];
   errorMsg:any;
 
+  leaveHistoryList:any[] = [];	
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -80,6 +84,7 @@ export class MyTimesheetComponent implements OnInit {
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
     private teamViewService : TeamViewService,
+    private leaveService : LeaveService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -95,6 +100,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
     this.sectionViewInit();
   }
 
@@ -267,8 +273,8 @@ export class MyTimesheetComponent implements OnInit {
     let endDate = currentDate;
     let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
 
-    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
-  }
+    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.fromDate == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.toDate == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+  }  
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
@@ -324,16 +330,23 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
       }
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
+      if (!this.validationService.validateCompletionTime(activity.completionTime) && !this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {      
+        this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+        flag = false;
+        activity.completionTime = ''
+        return;
+      }
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {      
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;
           return;
         }
-        if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
-          this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
-          flag = false;
-          return;
-        }
+        // validateCompletionTime
+        // if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
+        //   this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+        //   flag = false;
+        //   return;
+        // }
         totalActivityTime = totalActivityTime + activity.completionTime;
         console.log(totalActivityTime, " totalActivityTime");
       });
@@ -499,7 +512,18 @@ export class MyTimesheetComponent implements OnInit {
 
   getAllTeamMemberList(){
     this.teamMemberList = []
-
+    this.timesheetObj.date = ''
+    this.timesheetObj.dayType = ''
+    this.allTimesheetActivities.forEach((timesheet) =>{
+      timesheet.clientId = ''
+      timesheet.clientLocationId = ''
+      timesheet.projectId = ''
+      timesheet.activityId = ''
+      timesheet.description = ''
+      timesheet.completionTime = ''
+      
+    })
+    
     if(this.timesheetObj.timesheetAppliedFor == "team"){
       let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
@@ -789,7 +813,21 @@ export class MyTimesheetComponent implements OnInit {
 
   }
 
-
+  getAllMyLeaveApplicationsByEmpId(userObj:User){	
+    this.leaveHistoryList = [];	
+    let leaveObj = new Leave();	
+    leaveObj.empId = userObj.empId;	
+    this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.leaveHistoryList = response.serviceResponse;	
+        console.log("leaveHistoryList In Timesheet : ", this.leaveHistoryList);	
+        this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status == 'Approved');	
+        console.log("leave Approved  History : ", this.leaveHistoryList);	
+      } else {	
+        console.error(response.serviceResponse);	
+      }	
+    });	
+  }
 
 
 
@@ -843,23 +881,23 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  validateDescription(event,data:any){
+  // validateDescription(event,data:any){
  
-  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
-    this.errorMsg = "Please enter valid Description !!"   
-  }
-  else{
-    this.errorMsg = ""
-  }
-  if(this.errorMsg == ""){
-    event.target.nextElementSibling.textContent = ""
-  }else{
-    event.target.nextElementSibling.textContent =  this.errorMsg
-  }
-  }
+  // if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+  //   this.errorMsg = "Please enter valid Description !!"   
+  // }
+  // else{
+  //   this.errorMsg = ""
+  // }
+  // if(this.errorMsg == ""){
+  //   event.target.nextElementSibling.textContent = ""
+  // }else{
+  //   event.target.nextElementSibling.textContent =  this.errorMsg
+  // }
+  // }
   validateTime(event,data:any){
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Time !!"
+     if (!this.validationService.validateCompletionTime(data) && !this.validationService.validateTimesheetCompletionTime(data)){
+      this.errorMsg = "Please enter valid Time !!"
     }  
     else if(data <= 0 || data > 24){
       this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "

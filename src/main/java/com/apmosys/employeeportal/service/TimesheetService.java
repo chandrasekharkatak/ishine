@@ -746,7 +746,8 @@ public class TimesheetService {
 						try {
 							mailService.sendMail(timesheetDTO.getEmail(),
 									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
-									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+" <br> "+timesheetDTO.getRejectReason());
+									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
+									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
 							
 						} catch (Exception e) {
 							e.printStackTrace();

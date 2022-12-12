@@ -61,7 +61,7 @@
                                 [(ngModel)]="compOffObj.toDate" (dateChange)="setNoOfDays(alert_message)">
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #toDatePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
+                            <mat-datepicker #toDatePicker (closed)="input.blur()" disabled="false" [startAt]="compOffObj.fromDate"></mat-datepicker>
                         </div>
                     </div>
                 </div>

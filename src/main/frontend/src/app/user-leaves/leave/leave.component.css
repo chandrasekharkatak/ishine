@@ -58,3 +58,11 @@
 .info-label{
     width: 300px;
 }
+.btn{
+    margin-bottom: 4px;
+}
+
+.wide-col{
+    word-wrap: normal;
+    min-width: 500px;
+}

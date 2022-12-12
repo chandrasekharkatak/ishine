@@ -95,22 +95,25 @@ export class ValidationService {
 
   }
 
-  validateTimesheetCompletionTime(text: string): boolean {
-
-    const regex = /^(?:\d{0,2}[0-9]|0?\.[0-9]|[0-9]?\.[0-9]\d{0,2})*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
-    if (text !== "" || text !== undefined || text !== null) {
-      if (regex.test(text)) {
-        return true;
-      }
-      else {
-        return false;
-      }
+  validateCompletionTime(text :string):boolean{
+    const regex = /^[.Ee][-+]|[+-][eE.]*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
+    if (regex.test(text)) {
+      return true;
     }
     else {
       return false;
     }
+  }
 
+  validateTimesheetCompletionTime(text: string): boolean {
 
+    const regex = /^(?:\d{0,2}[0-9]|0?\.[0-9]|[0-9]?\.[0-9]\d{0,2})*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
+    if (regex.test(text)) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   //^[1-9][0-9]?$ 
@@ -514,4 +517,20 @@ export class ValidationService {
     }
   }
   
+  validateAlphabetAtLeastTwoCharacter(text:string): boolean {
+    const regex = (/^[A-Za-z]{2}[A-Za-z\s?]*$/i) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
 }

@@ -255,7 +255,7 @@ export class LoginComponent implements OnInit{
       this.user.tabList = this.getTabList();	
       this.user.appreciationEventInfo =  this.enableAppreciation;
       this.user.isAppreciationEnable = user.isAppreciationEnable;
-      console.log();
+      this.user.employeeRole = user.employeeRole;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

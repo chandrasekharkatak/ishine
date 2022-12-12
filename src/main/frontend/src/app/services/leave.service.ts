@@ -154,6 +154,10 @@ export class LeaveService {
   }
 
   /* Home - Leave Summary */
+  countMyRejectedLeaveApplicationsByLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/countMyRejectedLeaveApplicationsByLeaveType`, leaveObj);
+  }
+
   countMyApprovedLeaveApplicationsByLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/countMyApprovedLeaveApplicationsByLeaveType`, leaveObj);
   }

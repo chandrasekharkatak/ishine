@@ -91,6 +91,7 @@ export class LeaveComponent implements OnInit {
   bulkLeaveReject:any = [];
   LeaveObj = new Leave();
   filterLeaveHistoryList:any;
+  leaveHistoryListForTable:any[] = [];
 
   leaveBalance:any[] = [];	
   leaveDetails = [];	
@@ -180,6 +181,8 @@ export class LeaveComponent implements OnInit {
     this.reset();
     this.getAllHolidays();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
+    this.leaveObj.fromDateDayType = ''
+    this.leaveObj.toDateDayType = ''
   }
 
   showLeaveHistoryTable() {
@@ -812,7 +815,8 @@ export class LeaveComponent implements OnInit {
   }
 
    // single leave reject modal
-   onSingleReject(template: TemplateRef<any> , ){
+   onSingleReject(template: TemplateRef<any> ){
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
     this.onUpdateLeaveStatus(template, this.leaveObj,3);
   }
 
@@ -845,6 +849,13 @@ export class LeaveComponent implements OnInit {
   getAllTeamMemberList(){
     this.teamMemberList = []
     this.leaveDetails = []
+    this.leaveObj.leaveTypeMasterId = ''
+    this.leaveObj.fromDate = ''
+    this.leaveObj.toDate = ''
+    this.leaveObj.noOfDays = ''
+    this.leaveObj.reason = ''
+    this.leaveObj.fromDateDayType = ''
+    this.leaveObj.toDateDayType = ''
 
     let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
@@ -860,14 +871,21 @@ export class LeaveComponent implements OnInit {
 
   getAllMyLeaveApplicationsByEmpId(userObj:User){
     this.leaveHistoryList = [];
+    this.leaveHistoryListForTable = [];
 
     let leaveObj = new Leave();
     leaveObj.empId = userObj.empId;
     this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
+        this.leaveHistoryListForTable = response.serviceResponse;
+        console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
+
         console.log("leaveHistoryList : ", this.leaveHistoryList);
         this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
+       // this.filteredMyLeaveApplication();
+       console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
+
       } else {
         console.error(response.serviceResponse);
       }
@@ -965,7 +983,12 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
         this.leaveBalanceList = this.leaveBalanceList.map(leaveType => {
+          if(leaveType.leaveTypeCode !=="LWP"){
           leaveType.totalLeaveBalance =  leaveType.pendingForApproval + leaveType.balance;
+          }else{
+            leaveType.totalLeaveBalance =  leaveType.balance ;
+
+          }
           return leaveType;
         });
         console.log("leaveBalanceList : ", this.leaveBalanceList);

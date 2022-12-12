@@ -130,7 +130,11 @@ public class EmployeeLeaveService {
 
 			// Leave deduction from balance leaves
 			Float balance = employeeLeavesMap.getBalance();
+			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+				balance = balance ;
+			}else {
 			balance = balance - leaveDTO.getNoOfDays();
+			}
 			Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 			pendingForApproval = pendingForApproval + leaveDTO.getNoOfDays();
 
@@ -163,14 +167,8 @@ public class EmployeeLeaveService {
 					mailService.sendMailWithCC(empDto.getManagerEmail(), hrMailAddress +","+ empDto.getEmail(),
 							"Regarding Leave Application Request",
 							"Dear "+ empDto.getManagerName() + ","
-							+"<br>"+ empDto.getName() + " has applied leave for " + leaveDTO.getNoOfDays() + " days" 
-							+"<br><br> Leave Details :"
-							+"<br> EmpId : A-" + empDto.getEmployeementId()
-							+"<br> Name : " + empDto.getName()
-							+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
-							+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
-							+"<br> Leave Type : " + leaveType.getLeaveType()
-							+"<br> Leave reason : " + leaveDTO.getReason());
+							+"<br>"+" You have a request for leave approval for "+ empDto.getName() +" from "+ leaveDTO.getFromDate() +" to "+ leaveDTO.getToDate() +" for "+ leaveDTO.getNoOfDays() + " days" 
+							+"<br>"+" and leave type is "+leaveType.getLeaveType());
 					
 				}else {
 					//Leave Applied for team
@@ -537,8 +535,10 @@ public class EmployeeLeaveService {
 				
 				
 				mailService.sendMail(leaveDTO.getEmail(),
-						"Regarding leave Rejection ", "Employee Id"+" A-"+leaveDTO.getEmployeementId()+
-						" "+ " <br> "+" Employee Name -"+" "+leaveDTO.getEmployeeName()+" <br> "+" Reason -: "+leaveDTO.getRejectReason());
+						"Regarding leave Rejection ", 
+				" <br> "+" Employee Name -"+" "+leaveDTO.getEmployeeName()+
+				" <br> "+ "Your leave has been rejected by "+
+						" <br>"+" Reason -: "+leaveDTO.getRejectReason());
 			
 				System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
 				System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
@@ -1177,6 +1177,47 @@ public class EmployeeLeaveService {
 		return response;
 	}
 
+	public ServiceResponse countMyRejectedLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> list = employeeLeaveRepository
+					.countMyRejectedLeaveApplicationsByLeaveType(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			
+			Optional.ofNullable(list).ifPresentOrElse((employeeLeaveList)->{
+				if (employeeLeaveList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Application list is empty.Count is zero");
+					
+				}else {
+					employeeLeaveList.forEach((object)->{
+						LeaveDTO dto = new LeaveDTO();
+						dto.setApplicationCount(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+						dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
+						dtoList.add(dto);	
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					
+				}
+			} , ()->{
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Application list is null");
+			});
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		
+		
+		return response;
+	}
+	
 	public ServiceResponse countMyApprovedLeaveApplicationsByLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

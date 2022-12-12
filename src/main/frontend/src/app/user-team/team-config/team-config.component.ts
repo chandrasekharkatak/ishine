@@ -1,6 +1,6 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first } from 'rxjs/operators';
+import { first, takeUntil } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
@@ -79,7 +79,7 @@ export class TeamConfigComponent implements OnInit {
   excelName = '';
   tableElement = '';
 
-
+  filterStatus:any = '';
 
   constructor(
     private validationService: ValidationService,
@@ -105,10 +105,6 @@ export class TeamConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
-    this.getAllDepartmentList();
-    // this.getAllEmployeesByRole();
-    this.getAllProjectListByProjectManagerId();
-    this.getAllProjectsByEmpId();
   }
 
   sectionViewInit() {
@@ -133,6 +129,8 @@ export class TeamConfigComponent implements OnInit {
     this.isUpdation = false;
 
     this.reset();
+    this.getAllProjectListByProjectManagerId();
+    this.getAllDepartmentList();
   }
 
   showViewTeams() {
@@ -146,9 +144,12 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
     this.page = 1;
-    this.data = ''
+    this.data = '';
+    this.filterStatus= '';
 
     this.allTeamList = [];
+    this.getAllProjectListByProjectManagerId();
+    this.getAllDepartmentList();
   }
 
   showUpdateTeamForm(teamObj: Team) {
@@ -180,6 +181,7 @@ export class TeamConfigComponent implements OnInit {
     this.isUpdation = false;
 
     this.reset();
+    this.getAllProjectsByEmpId();
   }
 
   showViewActivities() {
@@ -195,6 +197,8 @@ export class TeamConfigComponent implements OnInit {
     this.page = 1;
     this.data = ''
     this.allActivityList = [];
+
+    this.getAllProjectsByEmpId();
   }
 
   showUpdateActivityForm(activityObj: Activity) {
@@ -219,6 +223,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.allTeamMembers = [];
     this.newteamMember = new TeamMember();
+    this.filterStatus= '';
     // this.addInputTeamMemberField();
   }
 
@@ -258,6 +263,11 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(teamObj.teamName)) {
+      this.alertMessage = "Please enter valid Team Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
 
     // if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
@@ -271,6 +281,7 @@ export class TeamConfigComponent implements OnInit {
 
 
   onCreateTeam(template: TemplateRef<any>) {
+    this.teamObj.teamName = this.teamObj.teamName?.trim();
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
 
@@ -278,6 +289,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamObj.allTeamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
     this.teamObj.createdBy = this.currentUser.empId;
     console.log("create teamObj : ", this.teamObj);
+
+    
 
     if(this.teamObj.allTeamMemberList == undefined || this.teamObj.allTeamMemberList.length === 0){
       this.alertMessage = "Please select atleast one Team member !!"
@@ -379,6 +392,7 @@ export class TeamConfigComponent implements OnInit {
   getAllTeamsByProjectId(projectId: any) {
     this.allTeamList = [];
     this.allActivityList = [];
+    this.filterStatus = "";
 
     let teamObj = new Team();
     teamObj.projectId = projectId;
@@ -386,7 +400,8 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allTeamList = response.serviceResponse;
         this._allTeamList = this.allTeamList
-        this.changeEvent("Active")
+        this.filterStatus = "Active";
+        this.changeEvent();
         // this.allTeamList = this.allTeamList.sort(function (a, b) {
         //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
         // });
@@ -399,12 +414,12 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
-  changeEvent(value:string){
-    if(value == "Active"){
+  changeEvent(){
+    if(this.filterStatus == "Active"){
       this.allTeamList = this._allTeamList.filter(x =>
         x.isActive == 'Y'
       );
-    } else if(value == "InActive"){
+    } else if(this.filterStatus == "InActive"){
       this.allTeamList = this._allTeamList.filter(x =>
         x.isActive == 'N'
       );
@@ -436,8 +451,23 @@ export class TeamConfigComponent implements OnInit {
     // projectObj.projectManagerId = 184; //! Here we are getting all projects
     this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allProjectListByManagerId = response.serviceResponse;
-        console.log("allProjectListByManagerId :", this.allProjectListByManagerId);
+        console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
+        
+        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
+          this.allProjectListByManagerId = response.serviceResponse;
+          console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
+        }else if(this.currentUser.employeeRole == 'Manager'){
+          this.allProjectListByManagerId = response.serviceResponse;
+
+          if(this.isCreation){
+            this.allProjectListByManagerId = this.allProjectListByManagerId.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+            console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
+          }else if (this.isTeamTable){
+            this.allProjectListByManagerId = this.allProjectListByManagerId.filter((projectObj:Project) => projectObj.projectManagerId == this.currentUser.empId);
+            console.log("allProjectList By ManagerID For Manager :", this.allProjectListByManagerId);
+          }
+        }
+
       } else {
         console.error(response.serviceResponse)
       }

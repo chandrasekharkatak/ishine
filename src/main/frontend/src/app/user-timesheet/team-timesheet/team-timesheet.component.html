@@ -58,7 +58,7 @@
                   </thead>
                   <tbody>
                     <tr *ngIf="allTeamTimesheets.length == 0">
-                      <th colspan="9" class="text-center info-label">No details to display...</th>
+                      <th colspan="16" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr *ngFor="let timesheet of allTeamTimesheets |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                       <td>{{20*(page-1)+i+1}}</td>

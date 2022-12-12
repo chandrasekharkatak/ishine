@@ -137,6 +137,13 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/countMyRejectedLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
+	public ServiceResponse countMyRejectedLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/countMyApprovedLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
 	public ServiceResponse countMyApprovedLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
 		

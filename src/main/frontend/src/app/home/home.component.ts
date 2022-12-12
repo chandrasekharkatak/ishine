@@ -60,6 +60,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isImagesLoaded:boolean = false;
   
   leaveBalanceList:any[] = [];
+  rejectedLeavesList:any[] = [];
   approvedLeavesList:any[] = [];
   pendingLeavesList:any[] = [];
 
@@ -155,6 +156,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.getMyLeaveBalancesByEmpId();
       this.countMyApprovedLeaveApplicationsByLeaveType();
       this.countMyPendingLeaveApplicationsByLeaveType();
+      this.countMyRejectedLeaveApplicationsByLeaveType();
     }
     if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
 
@@ -245,6 +247,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
    // single leave reject modal
    onSingleReject(template: TemplateRef<any> , ){
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
     if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
       this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
@@ -381,6 +384,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   
   rejectTimesheetRequest(template: TemplateRef<any> , ){
+    this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim()
     if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
       this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
@@ -481,6 +485,43 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.error(response.serviceResponse);
         // this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'No Data to Display');
       }
+    });
+  }
+
+  countMyRejectedLeaveApplicationsByLeaveType(){
+    this.rejectedLeavesList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response : any) =>{
+
+      if(response.serviceStatus == 'Success') {
+        this.rejectedLeavesList = response.serviceResponse;
+        console.log("Rejected Leaves : ", this.rejectedLeavesList);
+        let rejecetdChartData = this.rejectedLeavesList.map(leaveType =>{
+          let data = {
+            name : leaveType.leaveTypeCode,
+            y : leaveType.applicationCount
+          }
+          return data;
+        }).filter(data => data != undefined);
+        console.log(" RejecetdChartData : ", rejecetdChartData);
+        let checkData = rejecetdChartData.filter(data => data.y !=0);
+        console.log(" chcekData  : ",checkData)
+        if(checkData && checkData.length !=0){
+          checkData.forEach(data => {
+            let leaveDetail = this.leaveBucketDetails.find((leave:Leave)=> leave.leaveTypeCode == data.name);
+            if(leaveDetail){
+              leaveDetail.rejectedApplicationsCount = data.y ;
+              console.log("    ::   ",data.y);
+              console.log(leaveDetail.rejectedApplicationsCount )
+            }
+          });
+        } 
+      }else {
+        console.error(response.serviceResponse);
+      }
+
     });
   }
 
@@ -1178,7 +1219,8 @@ onBulkApproval(template:TemplateRef<any>){
   })
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
+      this.openAlertMod(template , "All Selected Timesheets Approved Successfully ");
+      this.countMyReporteesTimesheetRequests();
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1190,6 +1232,7 @@ onBulkApproval(template:TemplateRef<any>){
 }
 
 onBulkRejectTimesheet(template: TemplateRef<any>){
+  this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
 
   if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
     this.alertMessage = "Please enter Valid Reason !!"
@@ -1209,10 +1252,12 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
   })
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully "); 
-      this.getMyReporteesTimesheetRequests();
+      this.openAlertMod(template , "All Selected Timesheets Rejected Successfully "); 
       this.bulkApprove = [];
       this.bulkReject = [];
+      this.timesheetApplicationCount ;
+      this.countMyReporteesTimesheetRequests();
+      this.getMyReporteesTimesheetRequests();
     } else {
     console.error(response.serviceResponse)
     }
@@ -1235,8 +1280,10 @@ onBulkLeaveApproval(template:TemplateRef<any>){
   
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Application Approved Successfully ");
+      this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
+      // this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];
       this.bulkLeaveReject = [];
@@ -1248,7 +1295,7 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 }
 
 bulkRejectLeave(template: TemplateRef<any>){
-
+  this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
   if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
     this.alertMessage = "please enter valid reason !!"
     this.openAlertMod(template, this.alertMessage);
@@ -1267,10 +1314,12 @@ bulkRejectLeave(template: TemplateRef<any>){
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Application Rejected Successfully ");
+      this.openAlertMod(template , "All Selected Leaves Rejected Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
       this.bulkLeaveApprove = [];
       this.bulkLeaveReject = [];
+
     } else {
     console.error(response.serviceResponse)
     }
@@ -1432,7 +1481,7 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
 
       this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.cancelRequest();
+          this.userLogout();
           this.openAlertMod(template, response.serviceResponse);
           if (this.currentUser.isNew == "true") {
             this.userLogout();

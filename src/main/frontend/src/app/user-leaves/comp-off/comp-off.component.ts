@@ -226,7 +226,7 @@ export class CompOffComponent implements OnInit {
 
       // const COMP_OFF_MASTER_ID  = 5;
       // this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
-
+      this.compOffObj.description = this.compOffObj.description?.trim();
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
       this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
