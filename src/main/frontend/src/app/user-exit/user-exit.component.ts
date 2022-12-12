@@ -8,6 +8,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { User } from '../models/user';
 import * as moment from 'moment';
 import { Asset } from '../models/asset';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-exit',
@@ -28,14 +29,17 @@ export class UserExitComponent implements OnInit {
   assetObj:Asset = new Asset();
 
   currentUser:User;
+  exitEmployeeId:any;
 
   isResign:boolean = false;
   isResignDetails: boolean = false;
   isConsentCheck:boolean = false;
   isReleivingDate:boolean = false;
   isConsentReceived:boolean = false;
+  isCurrentUser:boolean = false;
 
   exitAssetDetailList:any[] = [];
+  employeeInfo:any[] = [];
 
   dateOfRelieving:any;
   currentUserName:any;
@@ -46,15 +50,40 @@ export class UserExitComponent implements OnInit {
     private employeeService : EmployeeService,
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
+    private route: ActivatedRoute,
+    private router : Router
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
+    this.route.params.subscribe((params:Params) => {
+      this.exitEmployeeId = params['id'];
+    });
+
+    console.log( this.router.url, " : url");
+    
+    
     this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
     this.sectionViewInit();
   }
 
   sectionViewInit(){
-    this.getEmployeeResignationDetails();
+    if(this.exitEmployeeId != null){
+      this.getEmployeeInfo(this.exitEmployeeId);
+    }else{
+      this.getEmployeeResignationDetails();
+    }
+
+    console.log(this.currentUser.employeementId, ": current user");
+    console.log(this.exitEmployeeId, " : url emp");
+    
+
+    if(this.currentUser.employeementId == this.exitEmployeeId || this.exitEmployeeId == undefined){
+      this.isCurrentUser = true;
+    }else{
+      this.isCurrentUser = false;
+    }
+    console.log( this.isCurrentUser, ": iscuurentuser");
+    
   }
 
   openResignRuleModal(template: TemplateRef<any>){
@@ -70,6 +99,30 @@ export class UserExitComponent implements OnInit {
     if(event.target.checked){
       this.isConsentCheck = true;
     }
+  }
+
+  getEmployeeInfo(employmentId:any){
+    this.employeeObj.employeementId = employmentId;
+    this.employeeService.getEmployeeInfo(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeInfo = response.serviceResponse;
+
+        this.employeeInfo.forEach((obj) => {
+          if(obj.dateOfResign != null){
+            this.isReleivingDate = true;
+            this.getEmployeeExitAssetDetails(this.alertTemplate, this.exitEmployeeId);
+          }else{
+            this.employeeInfo = [];
+            this.exitEmployeeId = null;
+            this.router.navigate(['/user-exit']);
+            // this.getEmployeeResignationDetails();
+          }
+        });
+        console.log(this.employeeInfo, " :   this.employeeInfo");
+      } else {
+        console.log(response.serviceResponse);
+      }
+    });
   }
 
   resign(template: TemplateRef<any>){
@@ -98,7 +151,7 @@ export class UserExitComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeDetailObj = response.serviceResponse;
 
-        console.log(this.employeeDetailObj);
+        console.log(this.employeeDetailObj, " : employeeDetailObj");
 
         if(this.employeeDetailObj.dateOfResign != null){
           this.dateOfRelieving = moment(this.employeeDetailObj.dateOfResign).add(this.employeeDetailObj.noticePeriod, 'days').format('YYYY-MM-DD');
@@ -110,7 +163,7 @@ export class UserExitComponent implements OnInit {
             this.isReleivingDate = true;
             this.isResignDetails = false;
             this.isResign = false;
-            this.getEmployeeExitAssetDetails(this.alertTemplate);
+            this.getEmployeeExitAssetDetails(this.alertTemplate,this.exitEmployeeId);
           }
         }else{
           this.isResign = true;
@@ -121,19 +174,24 @@ export class UserExitComponent implements OnInit {
     });
   }
 
-  getEmployeeExitAssetDetails(template: TemplateRef<any>){
+  getEmployeeExitAssetDetails(template: TemplateRef<any>, exitEmployeeId:any){
     this.cancelRequest();
-    this.employeeObj.employeementId = this.currentUser.employeementId;
+
+    if(exitEmployeeId != null){
+      this.employeeObj.employeementId = exitEmployeeId;
+    }else{
+      this.employeeObj.employeementId = this.currentUser.employeementId;
+    }
 
     this.employeeService.getEmployeeExitAssetDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.exitAssetDetailList = response.serviceResponse;
         
         this.exitAssetDetailList.forEach((x) => {
-          if(x.deptConsent == 'not received'){
-            return this.isConsentReceived = false;
+          if(x.deptConsent == 'N' || x.deptConsent == null){
+            x.deptConsent = false;
           }else{
-            this.isConsentReceived = false;
+            x.deptConsent = true;
           }
 
           if(x.departmentName == null){

@@ -2278,7 +2278,7 @@ public class EmployeeService {
 					employee.setTimesheetLockDays(timesheetLockDays);
 					employee.setDepartmentName(object[11] != null ? object[11].toString() : null);
 					employee.setDateOfResign(object[12] != null ? object[12].toString() : null);
-
+					employee.setEmployeeRole(object[13] != null ? object[13].toString() : null);
 				});
 				return employee;
 			}

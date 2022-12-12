@@ -82,6 +82,7 @@ export class ReportListComponent implements OnInit {
   paginateData: any[] = [];
   pos:any;
   release:boolean = true;
+  finalColumns: any[] = [];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -330,6 +331,7 @@ export class ReportListComponent implements OnInit {
     this.mappedSubFeatureList = [];
     this.subfeatureList = [];
     this.paginateData = [];
+    this.finalColumns = [];
 
 
     this.jobRoleService.getAllSubFeatureList().pipe(first()).subscribe((response: any) => {
@@ -341,7 +343,33 @@ export class ReportListComponent implements OnInit {
           if (response.serviceStatus == "Success") {
             this.allJobRoleList = response.serviceResponse;
             this.personaWiseJobRole = this.allJobRoleList.filter((x) => x.employeeRole == persona);
-            this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name }) })
+            this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name, "department":role.departmentName })})
+
+            var final = [];
+            this.columns.forEach(function (e) {
+              var match = false;
+              final.forEach(function (i) {
+                if (e.department == i.department[0].department) {
+                  match = true;
+                }
+              });
+              if (!match) {
+                var obj = {
+                  "header": e.department,
+                  "department" : [e]
+                }
+                final.push(obj);
+              } else {
+                final.forEach(function (i) {
+                  if (e.department == i.department[0].department) {
+                    i.department.push(e);
+                  }
+                });
+              }
+            });
+
+            this.finalColumns = final;
+            console.log(this.finalColumns, " : funal arr");
 
             // Generate Template
             this.subfeatureList.forEach(subfeature => {

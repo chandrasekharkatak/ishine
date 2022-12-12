@@ -359,10 +359,11 @@
         style="max-height: 65vh;">
         <table class="table table-responsive table-bordered table-hover" id="table">
           <thead>
-            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="columns"
+            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
               (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
-              <ng-container *ngFor="let column of columns; let i = index">
-                <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
+              <ng-container *ngFor="let column of finalColumns; let i = index">
+                <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true"
+                  [attr.colspan]="column.department ? column.department.length: null">
                   <ng-container *ngIf="i == 0">
                     {{ column.header }}
                   </ng-container>
@@ -382,6 +383,19 @@
                   </div>
                   <div class="placeholder" *cdkDragPlaceholder></div>
                 </th>
+              </ng-container>
+            </tr>
+            <tr>
+              <ng-container *ngFor="let column of finalColumns, let i = index">
+                <ng-container *ngIf="!column.department">
+                  <th></th>
+                </ng-container>
+        
+                <ng-container *ngFor="let subColumn of column.department">
+                  <th>
+                    {{subColumn.header}}
+                  </th>
+                </ng-container>
               </ng-container>
             </tr>
           </thead>
