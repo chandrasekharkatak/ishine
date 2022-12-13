@@ -151,7 +151,7 @@
                         </thead>
                         <tbody>
                           <tr *ngIf="teamViewLeaveHistoryList.length == 0">
-                            <th colspan="14" class="text-center info-label">No details to display...</th>
+                            <th colspan="11" class="text-center info-label">No details to display...</th>
                           </tr>
                           <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
@@ -275,7 +275,7 @@
         <div class="row">
           <div class="col-md-12" *ngIf="bulkTeamLeaveApprove.length > 1 && bulkTeamLeaveReject.length > 1"
             class="form-group ">
-            <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkTeamLeaveApproval()">Bulk
+            <button class="btn btn-sm btn-outline-success" type="submit" (click)="onBulkTeamLeaveApproval(alert_message)">Bulk
               Approve</button>&nbsp;
             <button type="submit" class="btn btn-sm btn-outline-danger ml-2"
               (click)="openBulklLeaveReject(teamLeave_reject)">Bulk

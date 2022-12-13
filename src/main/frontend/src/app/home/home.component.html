@@ -222,6 +222,20 @@
     </div>
 </ng-template>
 
+<ng-template #leave_success>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #timesheet_success>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
 <ng-template #timesheet_details>
     <div class="modal-header">
       <h5 class="modal-title">Timesheet Details</h5>
@@ -294,8 +308,15 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(timesheet_status)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+<!-- timesheet_reject_reason -->
+<ng-template #timesheet_status>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
     </div>
 </ng-template>
 
@@ -322,7 +343,7 @@
     </div>
 
     <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success" type="submit" (click)="cancelRequest();onBulkLeaveApproval(alert_message)">Bulk
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
             Approve</button>&nbsp;
         <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
     </div>
@@ -367,7 +388,7 @@
               </tr>
             </thead>
             <tbody class="text-center">
-                <tr *ngIf="leaveApplicationCount == 0">
+                <tr *ngIf="leaveApplicationCount.length == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
@@ -428,7 +449,7 @@
              </tr>
             </thead>
             <tbody>
-                <tr *ngIf="compOffApplicationCount == 0">
+                <tr *ngIf="compOffApplicationCount.length == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
@@ -464,7 +485,7 @@
         </button>
     </div>
     <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success" type="submit" (click)="cancelRequest();onBulkApproval(alert_message)">Bulk Approve</button>&nbsp;
+        <button class="btn btn-sm btn-outline-success" type="submit" (click)="cancelRequest();onBulkApproval(timesheet_success)">Bulk Approve</button>&nbsp;
         <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkReject(timesheet_reject)">Bulk Reject</button>
       </div>
       <div class="form-group d-flex justify-content-between">
@@ -517,7 +538,7 @@
                   <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
                     (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
                   <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
-                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                    (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
                       class="fa-solid fa-check"></em></button>&nbsp;
                   <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" title="Reject"
                   (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
@@ -538,8 +559,15 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();bulkRejectLeave(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();bulkRejectLeave(leave_reject)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+<!-- openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId() -->
+<ng-template #leave_reject>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
     </div>
 </ng-template>
 
@@ -547,7 +575,7 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();onBulkRejectTimesheet(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

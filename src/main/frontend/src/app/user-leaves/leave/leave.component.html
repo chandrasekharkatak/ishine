@@ -466,7 +466,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="revokeLeaveApplicationList.length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                                <th colspan="11" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr *ngFor="let leave of revokeLeaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
@@ -528,7 +528,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="reporteeLeaveRevokeApplicationList.length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                                <th colspan="10" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
