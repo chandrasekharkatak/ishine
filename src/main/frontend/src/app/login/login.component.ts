@@ -18,6 +18,7 @@ import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
 import * as moment from 'moment';
 import { enableAppreciation } from '../models/enableAppreciation';	
+import { AuthGuard } from '../guards/auth.guard';
 
 @Component({
   selector: 'app-login',
@@ -70,7 +71,8 @@ export class LoginComponent implements OnInit{
     private employeeService: EmployeeService,
     private bnIdle:BnNgIdleService,
     private bodyComponent:BodyComponent,
-    private logService:LogService
+    private logService:LogService,
+    private authGaurd:AuthGuard
   ) { }
 
 
@@ -259,7 +261,11 @@ export class LoginComponent implements OnInit{
       sessionStorage.setItem('logInfo', JSON.stringify(log));
       this.logService.updateLogInfo(log);
 
-      this.router.navigate(['/home']);
+      if(this.authGaurd.exitEmployeeId != null){
+        this.router.navigate(['/user-exit', this.authGaurd.exitEmployeeId]);
+      }else{
+        this.router.navigate(['/home']);
+      }
       this.authenticationService.startUserSessionCheck();
       }
     } else {

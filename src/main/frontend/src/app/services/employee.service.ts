@@ -178,4 +178,8 @@ export class EmployeeService {
    getEmployeeExitAssetDetails(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeExitAssetDetails`,employeeObj);
    }
+
+   getEmployeeInfo(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeInfo`,employeeObj);
+   }
 }

@@ -170,4 +170,15 @@ public class TeamsController {
 		}
 		return response;
 	}
+	
+	@RequestMapping(value = "/migrateTeamMember", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateTeamMember(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.migrateTeamMember(project);
+		}
+		return response;
+	}
 }

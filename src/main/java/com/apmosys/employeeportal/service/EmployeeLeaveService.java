@@ -883,12 +883,14 @@ public class EmployeeLeaveService {
 				Long managerId = employee.getManagerId();			
 				Long approverId;			
 							
-				Employee approverName = employeeRepository.findByName(leaveDTO.getLeaveStatusUpdatedByName());			
-				if(approverName == null) {			
-					approverId = (long) 2;			
-				}else {			
-					approverId = approverName.getEmpId();			
-				}			
+				if(leaveDTO.getLeaveStatusUpdatedByName() != null && leaveDTO.getLeaveStatusUpdatedByName() != "") {
+					Employee approverName = employeeRepository.findByName(leaveDTO.getLeaveStatusUpdatedByName());			
+					if(approverName == null) {			
+						approverId = (long) 2;			
+					}else {			
+						approverId = approverName.getEmpId();			
+					}	
+				}
 							
 			EmployeeLeave leaveApplication = new EmployeeLeave();			
 			leaveApplication.setEmpId(primaryEmpid);			
@@ -920,8 +922,8 @@ public class EmployeeLeaveService {
 				leaveApplication.setManagerId(managerId.intValue());			
 			}			
 						
-			leaveApplication.setHodId(approverId);			
-			leaveApplication.setLeaveStatusUpdatedBy(approverId);			
+//			leaveApplication.setHodId(approverId);			
+//			leaveApplication.setLeaveStatusUpdatedBy(approverId);			
 						
 			leaveApplication.getCommonProperty().setCreatedBy(primaryEmpid);			
 						
