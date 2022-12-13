@@ -168,6 +168,8 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.status = status
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
