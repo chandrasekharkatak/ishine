@@ -452,19 +452,24 @@ export class TeamConfigComponent implements OnInit {
     this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
-        
+        let allProjectList = response.serviceResponse;
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
-          this.allProjectListByManagerId = response.serviceResponse;
+          this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
         }else if(this.currentUser.employeeRole == 'Manager'){
-          this.allProjectListByManagerId = response.serviceResponse;
+          this.allProjectListByManagerId = allProjectList;
 
           if(this.isCreation){
-            this.allProjectListByManagerId = this.allProjectListByManagerId.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
             console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
           }else if (this.isTeamTable){
-            this.allProjectListByManagerId = this.allProjectListByManagerId.filter((projectObj:Project) => projectObj.projectManagerId == this.currentUser.empId);
+            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.projectManagerId == this.currentUser.empId);
             console.log("allProjectList By ManagerID For Manager :", this.allProjectListByManagerId);
+
+            if(this.allProjectListByManagerId.length == 0){
+              this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+              console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
+            }
           }
         }
 
