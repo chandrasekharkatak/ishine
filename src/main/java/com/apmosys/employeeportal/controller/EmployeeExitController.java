@@ -39,4 +39,11 @@ public class EmployeeExitController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getEmployeeInfo" ,method = RequestMethod.POST)
+	public ServiceResponse getEmployeeInfo(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeExitService.getEmployeeInfo(employeeDTO);
+		return response;
+	}
+	
 }

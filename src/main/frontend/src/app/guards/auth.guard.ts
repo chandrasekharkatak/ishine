@@ -9,6 +9,8 @@ import { AuthenticationService } from '../services/authentication.service';
 })
 export class AuthGuard implements CanActivate {
 
+  exitEmployeeId:any;
+
   constructor(
     private router: Router,
     private authenticationService: AuthenticationService){
@@ -20,13 +22,20 @@ export class AuthGuard implements CanActivate {
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
       const currentUser:User = this.authenticationService.currentUserValue;
       if (currentUser) {
-        if(!currentUser.tabList.find(tab => tab.tabRouteName == route.routeConfig.path)){
+        if(!currentUser.tabList.find(tab => tab.tabRouteName == route.routeConfig.path?.split("/")[0])){
           // role not authorised so redirect to home page
           this.router.navigate(['/user-profile']); // home not mapped for default features yet
           return false;
         }   
         return true;
       }else{
+
+        let employeeId = route.params['id'];
+        let url: string = state.url;
+        if(employeeId != null && url != null){
+          this.exitEmployeeId = employeeId;
+        }
+
           this.router.navigate(['/login'], { queryParams: { }});
           return false;
       }

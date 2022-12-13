@@ -34,6 +34,22 @@
                 </div>
                 <!-- releiving day template : start -->
                 <div class="row d-flex" *ngIf="isReleivingDate">
+
+                    <div class="col-md-12" *ngFor="let employee of employeeInfo">
+                          <h2 class="mt-3 text-center">{{employee.name}}</h2>
+                          <div class="d-flex align-items-center justify-content-center">
+                            <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">A-{{employee.employeementId}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Email : <span style=" color: #193d8a;">{{employee.email}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Employment Status : <span style=" color: #193d8a;">{{employee.employmentstatus}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Joining Date : <span style=" color: #193d8a;">{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</span></h6>
+                          </div>
+                          <div class="d-flex align-items-center justify-content-center">
+                            <h6 class="mr-5 mt-2 info-label">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Job Role : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Reports To : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                          </div>
+                    </div>    
+
                     <table class="table scrollable-table">	
                         <thead class="thead-light">	
                           <tr>	
@@ -42,6 +58,7 @@
                             <th scope="col" class="info-label">Concerned Department</th>	
                             <th scope="col" class="info-label">Assigned</th>	
                             <th scope="col" class="info-label">Department Head Consent</th>
+                            <th scope="col" class="info-label">Approved By</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -53,10 +70,12 @@
                             <td>{{list.assestName}}</td>
                             <td>{{list.departmentName}}</td>
                             <td>{{list.isAssigned}}</td>
-                            <td>{{list.deptConsent}}</td>
+                            <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="list.deptConsent" [disabled]="isCurrentUser"/></td>
+                            <td>{{list.concent}}</td>
                           </tr>
                         </tbody>
                       </table>
+                      <button type="submit" *ngIf="!isCurrentUser" class="btn btn-primary btn-sm mx-auto d-block">Submit Consent</button>
                 </div>
                 <!-- releiving day template : end -->
             </div>

@@ -878,4 +878,25 @@ public class TeamsService {
 		}
 		return response;
 	}
+
+	public ServiceResponse migrateTeamMember(ProjectDTO project) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			EmployeeTeamMap map = new EmployeeTeamMap();
+
+			map.setEmpId(project.getEmpId());
+			map.setTeamId(project.getTeamId());
+			// 1: Active 0: InActive
+			map.setActive((long) 1);
+
+			employeeTeamMapRepository.save(map);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Team Created Successfully");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+	}
 }

@@ -115,7 +115,7 @@ const routes: Routes = [
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
   {path:'user-exit', component: UserExitComponent, canActivate: [AuthGuard]},
-
+  {path:'user-exit/:id', component: UserExitComponent, canActivate: [AuthGuard]},
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
@@ -126,7 +126,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes,{ onSameUrlNavigation: 'reload', enableTracing: true })],
+  imports: [RouterModule.forRoot(routes,{ onSameUrlNavigation: 'reload' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

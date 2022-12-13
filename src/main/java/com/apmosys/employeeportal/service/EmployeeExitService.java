@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.AssetDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Employee;
@@ -173,6 +174,52 @@ public class EmployeeExitService {
 			apiLogInfo.setApiError(e.getMessage());			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+		}
+		return response;
+	}
+
+	public ServiceResponse getEmployeeInfo(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Employee employee = employeeRepository.findByEmployeementId(employeeDTO.getEmployeementId());
+			
+			if(employee != null) {
+				List<Object[]> employeeData = employeeRepository.getEmployeeData(employee.getEmpId());
+				List<EmployeeDTO> employeeDataList = new ArrayList<EmployeeDTO>();
+				
+				if(employeeData != null) {
+					employeeData.forEach((object) -> {
+						EmployeeDTO empDto = new EmployeeDTO();
+						empDto.setManagerName(object[0] != null ? object[0].toString() : null);
+						empDto.setJobRoleName(object[1] != null ? object[1].toString() : null);
+						empDto.setDepartmentName(object[2] != null ? object[2].toString() : null);
+						empDto.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
+						empDto.setEmployeementId(employee.getEmployeementId());
+						empDto.setDateOfJoining(employee.getDateOfJoining() != null ? employee.getDateOfJoining().toString() : null);
+						empDto.setEmail(employee.getEmail());
+						empDto.setName(employee.getName());
+						empDto.setDateOfResign(employee.getDateOfResign() != null ? employee.getDateOfResign().toString() : null);
+						
+						employeeDataList.add(empDto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(employeeDataList);
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Information not found.");
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Emp Id.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}

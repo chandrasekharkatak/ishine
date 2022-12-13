@@ -370,7 +370,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.employeementId = timesheet.employeementId.substring(2);
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
-    
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.countMyReporteesTimesheetRequests();

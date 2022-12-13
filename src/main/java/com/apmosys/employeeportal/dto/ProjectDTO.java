@@ -20,6 +20,7 @@ public class ProjectDTO {
 	private Timestamp approvedOn;
 	private Timestamp createdOn;
 	private Long employeementId;
+	private Long teamId;
 	private String departmentName;
 
 }
