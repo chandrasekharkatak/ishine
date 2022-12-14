@@ -339,7 +339,7 @@
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
                     <td>{{leaveApplication.createdByName}}</td>
-                    <td>{{leaveApplication.createdOn}}</td>
+                    <td>{{leaveApplication.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                     <td>{{leaveApplication.reason}}</td>
                     <td>
                       <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit"

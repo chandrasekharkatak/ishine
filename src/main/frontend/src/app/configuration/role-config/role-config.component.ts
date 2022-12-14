@@ -378,6 +378,9 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
+        this.data=''
+        this.selectedDept = ''
+        this.page = 1
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

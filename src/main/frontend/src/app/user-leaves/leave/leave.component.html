@@ -215,7 +215,7 @@
                                 <td>{{leaveHistory.noOfDays}} day(s)</td>
                                 <td>{{leaveHistory.status}}</td>
                                 <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
-                                <td>{{leaveHistory.createdOn}}</td>
+                                <td>{{leaveHistory.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                                 <td>{{leaveHistory.reason}}</td>
                                 <td>{{leaveHistory.remark}}</td>
                                 <!-- <td>{{leaveHistory.description}}</td> -->
@@ -305,7 +305,7 @@
                             <td>{{leaveApplication.noOfDays}} day(s)</td>
                             <td>{{leaveApplication.status}}</td>
                             <td>{{leaveApplication.createdByName}}</td>
-                            <td>{{leaveApplication.createdOn}}</td>
+                            <td>{{leaveApplication.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                             <td>{{leaveApplication.reason}}</td>
                             <!-- <td>{{leaveApplication.description}}</td> -->
                             <td>
@@ -412,7 +412,7 @@
                                 <td>{{log.updateBalanceBy}}</td>
                                 <td>{{log.balance}}</td>
                                 <td>{{log.message}}</td>
-                                <td>{{log.createdOn}}</td>
+                                <td>{{log.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                             </tr>
                         </tbody>
                       </table>
@@ -477,7 +477,7 @@
                                 <td>{{leave.noOfDays}}</td>
                                 <td>{{leave.status}}</td>
                                 <td *ngIf="isSelfLeaveRevokeApplication">{{leave.createdByName}}</td>
-                                <td>{{leave.createdOn}}</td>
+                                <td>{{leave.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                                 <td>{{leave.revokeReason}}</td>
                                 <td>{{leave.remark}}</td>
                             </tr>
@@ -538,7 +538,7 @@
                                 <td>{{leave.noOfDays}}</td>
                                 <td>{{leave.status}}</td>
                                 <td>{{leave.createdByName}}</td>
-                                <td>{{leave.createdOn}}</td>
+                                <td>{{leave.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                                 <td>{{leave.revokeReason}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateRevokeLeaveStatus(alert_message, leave, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;

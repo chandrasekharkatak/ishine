@@ -263,7 +263,7 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(teamObj.teamName)) {
+    if (!this.validationService.validateTeamName(teamObj.teamName)) {
       this.alertMessage = "Please enter valid Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

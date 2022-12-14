@@ -1167,7 +1167,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Landline No.</p>
-                                                <p class="info-text">022-{{previewObj.landline}}</p>
+                                                <p class="info-text" *ngIf="previewObj.landline != null">022-{{previewObj.landline}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
