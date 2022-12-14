@@ -1365,7 +1365,7 @@ export class LeaveComponent implements OnInit {
      
       this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.openAlertMod(template , "All Selected Application Approved Successfully ");
+          this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
           this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
          
           this.bulkLeaveApprove = [];
@@ -1411,7 +1411,7 @@ export class LeaveComponent implements OnInit {
       leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
       this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.openAlertMod(template , "All Selected Application Rejected Successfully ");
+          this.openAlertMod(template , "All Selected Leaves Rejected Successfully ");
           this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
           this.bulkLeaveApprove = [];
           this.bulkLeaveReject = [];

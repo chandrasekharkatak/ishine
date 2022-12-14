@@ -1282,8 +1282,8 @@ onBulkLeaveApproval(template:TemplateRef<any>){
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
-      // this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
-      this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+  
+       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
       this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];

@@ -438,7 +438,7 @@ onBulkApproval(template:TemplateRef<any>){
   })
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
+      this.openAlertMod(template , "All Selected Timesheets Approved Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -462,7 +462,7 @@ OnBulkReject(template: TemplateRef<any>){
   })
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully ");
+      this.openAlertMod(template , "All Selected Timesheets Rejected Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];

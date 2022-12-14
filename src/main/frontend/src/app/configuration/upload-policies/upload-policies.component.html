@@ -77,7 +77,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="document.length == 0">
-                                <th colspan="6" class="text-center info-label">No Files to display...</th>
+                                <th colspan="8" class="text-center info-label">No Files to display...</th>
                             </tr>
                             <tr *ngFor="let doc of document | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
                             <th class="info-label">{{10*(page-1)+i+1}}</th>
