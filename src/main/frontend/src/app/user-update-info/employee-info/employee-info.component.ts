@@ -506,7 +506,7 @@ if(this.errorMsg == ""){
   validateMotherTongue(event, data:any){
     this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter valid mother tongue !!"   
+      this.errorMsg = "Please enter mother tongue !!"   
   }
    else if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(data)) {
     this.errorMsg = "Please enter valid mother tongue !!"   
@@ -575,7 +575,7 @@ if(this.errorMsg == ""){
 
   validatePincode(event, data:any){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter valid father name !!"   
+      this.errorMsg = "Please enter pincode !!"   
   }
    else if (!this.validationService.validatePincodeNumber(data)) {
     this.errorMsg = "Please enter valid pincode !!"   

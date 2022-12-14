@@ -311,8 +311,15 @@ public class CompOffLeaveService {
 				CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);
 
 				if (compOffUpdated != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Compoff leave status updated");
+					if(leaveDTO.getLeaveStatusId() == 2) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Compoff Request Approved");
+					}else if(leaveDTO.getLeaveStatusId() == 3){
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Compoff Request Rejected");
+					}
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("Compoff leave status updated");
 
 					
 					apiLogInfo.setApiResponse("Compoff leave status updated");			

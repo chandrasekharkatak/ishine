@@ -311,7 +311,7 @@
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.status}}</td>
                                 <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
-                                <td>{{timesheet.createdOn}}</td>
+                                <td>{{timesheet.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"

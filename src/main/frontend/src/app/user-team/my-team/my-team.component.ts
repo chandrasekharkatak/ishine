@@ -778,7 +778,7 @@ export class MyTeamComponent implements OnInit {
       
     }
 
-  onBulkTeamLeaveApproval(){
+  onBulkTeamLeaveApproval(template:TemplateRef<any>){
     console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList =  this.bulkTeamLeaveApprove;
@@ -787,6 +787,7 @@ export class MyTeamComponent implements OnInit {
    
     this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
         this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
        
         this.bulkTeamLeaveApprove = [];
@@ -815,6 +816,7 @@ export class MyTeamComponent implements OnInit {
     console.log(" .. ",leaveObj)
     this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
         this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
         this.bulkTeamLeaveApprove = [];
         this.bulkTeamLeaveReject = [];

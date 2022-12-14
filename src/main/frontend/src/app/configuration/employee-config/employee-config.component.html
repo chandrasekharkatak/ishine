@@ -79,7 +79,7 @@
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOB" #input (click)="DOBPicker.open()" [matDatepicker]="DOBPicker" (keydown)="disableMannualDateInput()"
                                                     [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)">
-                                                    <mat-datepicker-toggle  matSuffix [for]="DOBPicker"></mat-datepicker-toggle>
+                                                    <mat-datepicker-toggle  matSuffix [for]="DOBPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DOBPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
@@ -455,7 +455,7 @@
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOJ" #input (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
                                                       [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining">
-                                                    <mat-datepicker-toggle matSuffix [for]="DOJPicker"></mat-datepicker-toggle>
+                                                    <mat-datepicker-toggle matSuffix [for]="DOJPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DOJPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
@@ -1167,7 +1167,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Landline No.</p>
-                                                <p class="info-text">022-{{previewObj.landline}}</p>
+                                                <p class="info-text" *ngIf="previewObj.landline != null">022-{{previewObj.landline}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1347,7 +1347,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Job Role Name</p>
+                                                <p class="info-label">Designation</p>
                                                 <p class="info-text">{{previewObj.jobRoleName}}</p>
                                             </div>
                                         </div>
@@ -1851,7 +1851,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Job Role Name</p>
+                                                <p class="info-label">Designation</p>
                                                 <p class="info-text">{{previewEmployeeObj.jobRoleName}}</p>
                                             </div>
                                         </div>

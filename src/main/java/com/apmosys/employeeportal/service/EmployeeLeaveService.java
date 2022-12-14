@@ -166,9 +166,23 @@ public class EmployeeLeaveService {
 					
 					mailService.sendMailWithCC(empDto.getManagerEmail(), hrMailAddress +","+ empDto.getEmail(),
 							"Regarding Leave Application Request",
-							"Dear "+ empDto.getManagerName() + ","
-							+"<br>"+" You have a request for leave approval for "+ empDto.getName() +" from "+ leaveDTO.getFromDate() +" to "+ leaveDTO.getToDate() +" for "+ leaveDTO.getNoOfDays() + " days" 
-							+"<br>"+" and leave type is "+leaveType.getLeaveType());
+							"Dear "+ empDto.getManagerName() + ","+"<br>"
+							+"<br>"+" &nbsp"+" &nbsp"+" "+"You have a request for leave applied by "+ empDto.getName() +
+							"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+							"<br>"+
+							"EmpID :"+ empDto.getEmployeementId()+
+							"<br>"+
+							"Name :"+ empDto.getName()+
+							"<br>"+
+							" from "+ leaveDTO.getFromDate() +
+							"<br>"+
+							" to "+ leaveDTO.getToDate() +
+							"<br>"+
+							" No. Of Days : "+ leaveDTO.getNoOfDays() + " days" 
+							+"<br>"+
+							" Leave Type :"+leaveType.getLeaveType()+
+							"<br>"+
+							"leave Reason :"+leaveDTO.getReason());
 					
 				}else {
 					//Leave Applied for team
@@ -512,6 +526,13 @@ public class EmployeeLeaveService {
 					response.setServiceResponse("Leave application approved.");
 					apiLogInfo.setApiResponse("Leave application approved.");
 					
+					mailService.sendMail(leaveDTO.getEmail(),
+							"Regarding leave Approval ", 
+					"Dear "+leaveDTO.getEmployeeName()+","+
+					" <br> "+ 
+					" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved");
+					
+					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
 					pendingLeaveApplication.setLeaveStatusId((short) 3);
 					pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
@@ -528,21 +549,22 @@ public class EmployeeLeaveService {
 					leaveBalanceLogRepository.save(log);
 					response.setServiceResponse("Leave application rejected.");
 					apiLogInfo.setApiResponse("Leave application rejected.");
+					
+					
+					mailService.sendMail(leaveDTO.getEmail(),
+							"Regarding leave Rejection ", 
+					" <br> "+"Dear "+leaveDTO.getEmployeeName()+","+
+					" <br> "+ "   Your leave has been rejected  "+
+							" <br>"+" Reason -: "+leaveDTO.getRejectReason());
+				
+					System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
+					System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
+					System.out.println("  leaveDTO.getRejectReason()   :  "+leaveDTO.getRejectReason());
+					
 				}
 				EmployeeLeave updatedLeaveApplication = employeeLeaveRepository.save(pendingLeaveApplication);
 				EmployeeLeavesMap updatedEmployeeLeavesMap = employeeLeavesMapRepository.save(employeeLeavesMap);
 				
-				
-				
-				mailService.sendMail(leaveDTO.getEmail(),
-						"Regarding leave Rejection ", 
-				" <br> "+" Employee Name -"+" "+leaveDTO.getEmployeeName()+
-				" <br> "+ "Your leave has been rejected by "+
-						" <br>"+" Reason -: "+leaveDTO.getRejectReason());
-			
-				System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
-				System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
-				System.out.println("  leaveDTO.getRejectReason()   :  "+leaveDTO.getRejectReason());
 
 				if (updatedLeaveApplication != null && updatedEmployeeLeavesMap != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

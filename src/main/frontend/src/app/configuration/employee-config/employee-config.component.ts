@@ -1191,11 +1191,11 @@ export class EmployeeConfigComponent implements OnInit {
 
     console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";	
-    // employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
+    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         employeeList = response.serviceResponse;	
-        // this.employeeObj.employeementId = this.utilityService.appendEmployeementid(employee.employeementId)
+      
         console.log("employeeList By Role : ", employeeList)
         if(this.isUpdation || this.isDeletion){
           this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
@@ -1451,7 +1451,7 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("employeeObj : ", employeeObj);
     
     let currentEmp = new Employee();
-    currentEmp.employeementId = employeeObj.employeementId.substring(2);
+    currentEmp.employeementId = currentEmp.employeementId?.substring(2);
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = false;
 
