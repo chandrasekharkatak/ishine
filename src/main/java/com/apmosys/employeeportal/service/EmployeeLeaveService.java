@@ -528,9 +528,9 @@ public class EmployeeLeaveService {
 					
 					mailService.sendMail(leaveDTO.getEmail(),
 							"Regarding leave Approval ", 
-					"Dear "+"Employee Name -"+" "+leaveDTO.getEmployeeName()+
+					"Dear "+leaveDTO.getEmployeeName()+","+
 					" <br> "+ 
-					" <br> "+ "Your leave request"+"from"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved");
+					" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved");
 					
 					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
@@ -553,8 +553,8 @@ public class EmployeeLeaveService {
 					
 					mailService.sendMail(leaveDTO.getEmail(),
 							"Regarding leave Rejection ", 
-					" <br> "+" Employee Name -"+" "+leaveDTO.getEmployeeName()+
-					" <br> "+ "   Your leave has been rejected by "+
+					" <br> "+"Dear "+leaveDTO.getEmployeeName()+","+
+					" <br> "+ "   Your leave has been rejected  "+
 							" <br>"+" Reason -: "+leaveDTO.getRejectReason());
 				
 					System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());

@@ -181,35 +181,35 @@ export class InformationPreviewComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)){
-      this.alertMessage = "Please enter state !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.state)){
-      this.alertMessage = "Please enter Valid state !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)){
+    //   this.alertMessage = "Please enter state !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validateAlphaWithSpace(employeeObj.state)){
+    //   this.alertMessage = "Please enter Valid state !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)){
-      this.alertMessage = "Please enter city !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.city)){
-      this.alertMessage = "Please enter Valid city !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)){
+    //   this.alertMessage = "Please enter city !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validateAlphaWithSpace(employeeObj.city)){
+    //   this.alertMessage = "Please enter Valid city !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)){
-      this.alertMessage = "Please enter country !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.country)){
-      this.alertMessage = "Please enter Valid country !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)){
+    //   this.alertMessage = "Please enter country !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validateAlphaWithSpace(employeeObj.country)){
+    //   this.alertMessage = "Please enter Valid country !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)){
       this.alertMessage = "Please enter pincode !!"
