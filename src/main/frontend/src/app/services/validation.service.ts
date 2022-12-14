@@ -534,7 +534,8 @@ export class ValidationService {
   }
 
   validateTeamName(text:string): boolean {
-    const regex = (/^[\/0-9A-Za-z()-]{2}[\/()-A-Za-z0-9]*$/i) ;
+    // const regex = /^[a-zA-Z0-9 . \- _ \( \) \/ \\ \s]{2,}+$/;
+    const regex = /^[a-zA-Z0-9.\-_()\/\s]{2,}[a-zA-Z0-9.-_()\/\s]*$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
