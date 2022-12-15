@@ -93,5 +93,10 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/bulkRejectTimesheetRequest`, timesheetObj);
   }
 
+  /* Advance filter [view Timesheet] */
+
+  getCustomFilteredTimesheet(timesheetObj:Timesheet){
+    return this.http.post(`${this.baseUrl}` + `api/getCustomFilteredTimesheet`, timesheetObj);
+  }
 
 }

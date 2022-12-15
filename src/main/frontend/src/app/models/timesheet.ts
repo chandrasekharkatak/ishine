@@ -47,4 +47,5 @@ export class Timesheet{
     isSelected:boolean = false;
     bulkApprovedList:any;
     bulkRejectList:any;
+    queryList:any[] = [];
 }

@@ -181,4 +181,22 @@ public class TeamsController {
 		}
 		return response;
 	}
+	
+	@RequestMapping(value="/addDepartmentInProjects" , method = RequestMethod.GET)
+	public ServiceResponse addDepartmentInProjects() {
+		
+		ServiceResponse response = teamsService.addDepartmentInProjects();
+		return response;
+	}
+	
+	@RequestMapping(value = "/setPoProjectIdAndDepartment", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse setPoProjectIdAndDepartment(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.setPoProjectIdAndDepartment(project);
+		}
+		return response;
+	}
 }

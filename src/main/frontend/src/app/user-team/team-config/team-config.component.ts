@@ -263,7 +263,7 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.validationService.validateTeamName(teamObj.teamName)) {
+    if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(teamObj.teamName)) {
       this.alertMessage = "Please enter valid Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -456,11 +456,23 @@ export class TeamConfigComponent implements OnInit {
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
           this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
-        }else{
+        }else if(this.currentUser.employeeRole == 'Manager'){
           this.allProjectListByManagerId = allProjectList;
-          this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
-          console.log("allProjectList By Department :", this.allProjectListByManagerId);
+
+          if(this.isCreation){
+            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+            console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
+          }else if (this.isTeamTable){
+            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.projectManagerId == this.currentUser.empId);
+            console.log("allProjectList By ManagerID For Manager :", this.allProjectListByManagerId);
+
+            if(this.allProjectListByManagerId.length == 0){
+              this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+              console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
+            }
+          }
         }
+
       } else {
         console.error(response.serviceResponse)
       }
@@ -584,15 +596,15 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
-    // if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
-    //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // } else if (activityObj.eta < 0 || activityObj.eta > 999) {
-    //   this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
+    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
+      this.alertMessage = "Please enter Activity ETA (Hours)!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (activityObj.eta < 0 || activityObj.eta > 999) {
+      this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     return true;
   }

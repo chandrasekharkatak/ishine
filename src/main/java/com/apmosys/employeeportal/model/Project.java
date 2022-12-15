@@ -38,5 +38,6 @@ public class Project {
 	private Timestamp createdOn;
 	private Integer clientId;
 	private String departmentName;
+	private Long poProjectId;
 
 }

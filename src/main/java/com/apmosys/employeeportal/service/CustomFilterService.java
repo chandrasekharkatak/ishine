@@ -938,4 +938,127 @@ public class CustomFilterService {
 		return response;
 	}
 	
+	private StringBuilder createQueryForViewTimesheet(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+		
+		for(CustomFilterDTO dto: queryList) {
+			if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
+				dto.setValue("%"+dto.getValue()+"%");
+			}
+			
+			switch (dto.getColumn()) {
+			case "Project Name": {
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Client Name": {
+				query = query.append(" p.client_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "From Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "To Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+	
+	List<Object[]> getCustomViewTimesheet(String customQuery, Long empId) {
+		try {
+			Session session = entityManager.unwrap(Session.class);
+
+			try {
+//				String q = "SELECT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description, et.total_time, et.status, "
+//						+ "em.name created_by,et.created_on,et.emp_id, et.remarks "
+//						+ "FROM employee_timesheets et "
+//						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
+//						+ "INNER JOIN employee em ON  et.created_by = em.emp_id "
+//						+ "WHERE et.emp_id ="+ empId+" AND "+ customQuery;
+				String q = "SELECT et.timesheet_id, et.date, et.day_type, map.completion_time, et.status, e.name, et.created_on, et.remarks "
+						+ ", ac.activity, p.project_name,c.client_name "
+						+ "FROM employee_timesheet_activities_mapping map "
+						+ "LEFT JOIN activities ac ON ac.activity_id = map.activity_id "
+						+ "LEFT JOIN teams t ON t.team_id = ac.team_id "
+						+ "LEFT JOIN projects p ON p.project_id = t.project_id "
+						+ "LEFT JOIN clients c ON c.client_id = p.client_id "
+						+ "LEFT JOIN employee_timesheets et ON et.timesheet_id = map.timesheet_id "
+						+ "LEFT JOIN employee e ON e.emp_id = et.emp_id "
+						+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id "
+						+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id "
+						+ "WHERE et.emp_id ="+ empId+" AND"+ customQuery;
+
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (session != null && session.isOpen()) {
+					session.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+
+	public ServiceResponse getCustomFilteredTimesheet(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			StringBuilder subQuery = createQueryForViewTimesheet(timesheetDTO.getQueryList());
+			List<Object[]> list = getCustomViewTimesheet(subQuery.toString(), timesheetDTO.getEmpId());
+			
+			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+			if (list != null) {
+				list.forEach((object) -> {
+					String activity = object[8] != null ? object[8].toString() : null;
+					String project = object[9] != null ? object[9].toString() : null;
+					String client = object[10] != null ? object[10].toString() : null;
+
+					TimesheetDTO dto = new TimesheetDTO();
+					dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setDate(object[1] != null ? object[1].toString() : null);
+					dto.setDayType(object[2] != null ? object[2].toString() : null);
+					dto.setTotalTime(object[3] != null ? Float.parseFloat(object[3].toString() ) : null);
+					dto.setStatus(object[4] != null ? object[4].toString() : null);
+					dto.setEmployeeName(object[5] != null ? object[5].toString() : null);
+					dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
+					dto.setRemarks(object[7] != null ? object[7].toString() : null);
+					dto.setDescription(object[8] != null ? object[8].toString() : null);
+					
+					dtoList.add(dto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet list is empty.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
 }
