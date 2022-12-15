@@ -188,7 +188,7 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation && userMapping.add_team" type="submit" class="btn btn-primary btn-sm mx-1" [disabled]="allTeamMembers && allTeamMembers.length == 0" (click)="onCreateTeam(alert_message)">Create Team</button>
-                    <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" [disabled]="allTeamMembers && allTeamMembers.length == 0">Update Team</button>
+                    <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button>
                 </div>
             </div>
         </div>
