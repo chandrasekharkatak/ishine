@@ -75,10 +75,23 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Team Lead</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
+                            <mat-select ngxMatSelect class="form-control"
+                                  #selectTeamLead="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="teamLeadsList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="teamObj.teamLeadId"
+                                  >
+                                  <mat-option [value]="teamLead.empId" *ngFor="let teamLead of selectTeamLead.filteredSource">
+                                    {{teamLead.name}}
+                                  </mat-option>
+                                </mat-select>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>
-                            </select>
+                            </select> -->
                         </div>
                     </div>
                 </div>

@@ -313,7 +313,9 @@ export class TeamConfigComponent implements OnInit {
 
   addTeamMember(){
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId); 
-    if(newTeamMember) this.allTeamMembers.push(newTeamMember);
+    if(newTeamMember){
+      this.allTeamMembers.push(newTeamMember);
+    }
 
     this.newteamMember = new TeamMember();
   }
@@ -453,6 +455,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
         let allProjectList = response.serviceResponse;
+        allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
           this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
@@ -517,6 +520,7 @@ export class TeamConfigComponent implements OnInit {
 
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
         this.teamLeadsList = employeeList.filter(x => filterDepartmentList.includes(x.departmentId));
+        this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
         console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
         console.error(response.serviceResponse)
@@ -548,6 +552,7 @@ export class TeamConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
+        this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
         console.log("employeeList By Department : ", this.employeeListByDept);
         this.updateEmployeeListAccordingToTeamMembers();
       } else {
