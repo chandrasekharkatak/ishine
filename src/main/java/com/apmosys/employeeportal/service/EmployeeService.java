@@ -815,10 +815,8 @@ public class EmployeeService {
 
 		try {
 			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
-			List<EmployeeCertificate> certificationsList = employeeCertificateRepository
-					.findByEmpId(employeedto.getEmpId());
-			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-					.findByEmpId(employeedto.getEmpId());
+			List<EmployeeCertificate> certificationsList = employeeCertificateRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
+			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
 
 			if (!objectList.isEmpty()) {
 
