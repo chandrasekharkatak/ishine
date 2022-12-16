@@ -12,6 +12,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Sort } from '@angular/material/sort';
+import { HierarchyUser } from 'src/app/models/hierarchyUser';
 
 @Component({
   selector: 'app-my-team',
@@ -66,6 +67,11 @@ export class MyTeamComponent implements OnInit {
   isSelectAll:boolean = false;
   isSelect:boolean = false;
 
+  isHierarchyChart:boolean = false;
+  isHierarchyTable:boolean = false;
+  
+  nodes: any = [];
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -108,11 +114,17 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = false;
     this.isTeamRequest = false;
     this.page=1;
+    this.isHierarchyTable = true;
+    this.isHierarchyChart = false;
 
     this.getAllManagers();
-   // this.getAllTeamView();    
+    // this.getAllTeamView();    
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    employeeObj.managerId = this.currentUser.managerId;
+    this.myTeamHierarchy(employeeObj); 
   }
 
   viewTeamLeaveHistory() {
@@ -126,6 +138,8 @@ export class MyTeamComponent implements OnInit {
     this.isTeamRequest = false;
     this.page=1;
     this.data=''
+    this.isHierarchyChart = false;
+    this.isHierarchyTable = false;
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
@@ -138,6 +152,8 @@ export class MyTeamComponent implements OnInit {
     this.teamViewLeaveHistoryList = [];
     this.page=1;
     this.data='';
+    this.isHierarchyChart = false;
+    this.isHierarchyTable = false;
   }
 
   viewCompOffHistory() {
@@ -161,6 +177,8 @@ export class MyTeamComponent implements OnInit {
     this.isViewTeam = false;
     this.page=1;
     this.data='';
+    this.isHierarchyChart = false;
+    this.isHierarchyTable = false;
 
     this.getPendingCompOffRequestsByManagerId();
   }
@@ -180,18 +198,16 @@ export class MyTeamComponent implements OnInit {
   }
 
   getAllManagers() {
-
     this.employeeService.getAllManagers().pipe(first()).subscribe((response : any)=>{
       if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;
-        this.getAllTeamView();
         console.log("managerList : ", this.managerList);
       }
       else {
-        this.getAllTeamView();
         console.error(response.serviceResponse);
       }
-    })
+
+    });
   }
 
   getAllTeamView() {
@@ -207,12 +223,6 @@ export class MyTeamComponent implements OnInit {
 
         for(let y of this.teamViewList){
           y.employeementId = "A-".concat(y.employeementId);
-        }
-        for(let x of this.teamViewList){
-           x.isHierarchy = false;
-          let temp = this.managerList.find(manager => manager.managerId == x.empId);
-          
-           if(temp != undefined) x.isHierarchy = true;          
         }
         console.log("teamViewList : ", this.teamViewList);         
 
@@ -507,6 +517,123 @@ export class MyTeamComponent implements OnInit {
     });	
   }
 
+  toggleHierarchyView(event){
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    employeeObj.managerId = this.currentUser.managerId;
+   
+    if(event.target.checked){
+      this.isHierarchyChart = true;
+      this.isHierarchyTable = false;
+      this.myTeamHierarchyChart(employeeObj)
+    }else{
+      this.isHierarchyTable = true;
+      this.isHierarchyChart = false;
+      this.myTeamHierarchy(employeeObj);
+    }
+  }
+
+  myTeamHierarchyChart(employeeObj:Employee) {
+    this.nodes = [];
+    let employee = Object.assign({}, employeeObj);
+    employee.employeementId = employee.employeementId?.substring(2);
+
+    this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {
+        this.teamViewList = response.serviceResponse;
+        for(let teamMember of this.teamViewList){
+          teamMember.employeementId = "A-".concat(teamMember.employeementId);
+        }
+        console.log("teamViewList : ", this.teamViewList);
+
+        let manager = this.teamViewList.find(employee => employee.hierarchyType == "Manager");
+        let coworkers = this.teamViewList.filter(employee => employee.hierarchyType == "Co-Worker");
+        let self = this.teamViewList.find(employee => employee.hierarchyType == "Self");
+        let reportees = this.teamViewList.filter(employee => employee.hierarchyType == "Reportee");
+        
+        console.log("Manager : ", manager);
+        console.log("coworkers : ("+ coworkers.length+")", coworkers);
+        console.log("self : ", self);
+        console.log("reportees :  ("+ reportees.length+")", reportees);
+        
+
+
+        let managerNode = new HierarchyUser();
+        let user = new HierarchyUser();
+        let reporteeList: HierarchyUser[];
+        let coWorkerList: HierarchyUser[];
+        let MID_COUNTER = 0
+
+        if(manager){
+          managerNode.name = manager.name;
+          managerNode.cssClass = manager.hierarchyType;
+          managerNode.title = `${manager.jobRoleName}, ${manager.departmentName} ${(manager.reporteeCount !== 0)? `, ${manager.reporteeCount} reportee(s)`: ``}`;
+          managerNode.empId = manager.empId;
+          managerNode.managerId = manager.managerId;
+        }else {
+          console.error("Manager Not found.");
+        }
+
+        if(coworkers){
+            MID_COUNTER = Math.floor(coworkers.length/2);
+            coWorkerList = coworkers.map(employee => {
+              const name = employee.name;
+              const cssClass = employee.hierarchyType;
+              const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0)? `, ${employee.reporteeCount} reportee(s)`: ``}`;
+              const empId = employee.empId;
+              const managerId = employee.managerId;
+              return new HierarchyUser(name, cssClass, title, empId, managerId);
+            });
+          }else{
+            console.error("Co-Workers Not found.");
+          }
+
+          if(self){
+            user.name = self.name;
+            user.cssClass = self.hierarchyType;
+            user.title = `${self.jobRoleName}, ${self.departmentName} ${(self.reporteeCount !== 0)? `, ${self.reporteeCount} reportee(s)`: ``}`;
+            user.empId = self.empId;
+            user.managerId = self.managerId;
+          }else{
+            console.error("User Not found.");
+          }
+
+          if(reportees){
+            reporteeList = reportees.map(employee => {
+              const name = employee.name;
+              const cssClass = employee.hierarchyType;
+              const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0)? `, ${employee.reporteeCount} reportee(s)`: ``}`;
+              const empId = employee.empId;
+              const managerId = employee.managerId;
+              return new HierarchyUser(name, cssClass, title, empId, managerId);
+            });
+          }else{
+            console.error("Reportees Not found.");
+          }
+
+          user.childs.push(...reporteeList);
+          coWorkerList.splice(MID_COUNTER,0,user)
+          managerNode.childs.push(...coWorkerList);
+        
+        this.nodes.push(managerNode);
+        console.log("nodes : ", this.nodes);
+        setTimeout(()=>{
+          let self = document.querySelector('.Self');
+          console.log("self element : ", self);
+          self.scrollIntoView({behavior: 'smooth', inline: 'center'});
+        }, 1000);
+      } else {	
+        console.error(response.serviceResponse);	
+      }	
+    });	
+  }
+
+  createHierarchyNodes(event){
+    let employeeObj = new Employee();
+    employeeObj.empId =  event.empId;
+    employeeObj.managerId =  event.managerId;
+    this.myTeamHierarchyChart(employeeObj);
+  }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });

@@ -185,6 +185,13 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getHierarchyByEmpId(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getHierarchyChartByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getHierarchyChartByEmpId(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.getHierarchyChartByEmpId(employeedto);
+		return response;
+	}
 
 	@RequestMapping(value = "/revokeAccount", method = RequestMethod.POST)
 	public ServiceResponse revokeAccount(@RequestBody EmployeeDTO employeedto) {

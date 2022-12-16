@@ -82,3 +82,80 @@ input[type=number] {
 .ngx-mat-select-search-box-input{
     width: 100% !important;
 }
+
+
+
+/** Team Org Chart **/
+.ngx-org-image {
+    background-repeat: no-repeat;
+    width: 2em;
+    height: 2em;
+    margin-right: 0.5em;
+    background-color: white;
+    border-radius: 50%;
+    padding: 0.25em;
+}
+
+.ngx-org-name {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.ngx-org-title {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+
+.ngx-org-horizontal {
+    padding: 1em 0;
+}
+
+
+.ngx-org-vertical {
+    padding: 0 1em;
+}
+
+
+.ngx-org-border {
+    border: 1px solid darkgrey;
+}
+
+
+.ngx-org-box {
+    padding: 0.5em 1em;
+    border-radius: .2em;
+    box-shadow: 0.05em 0.05em 0.2em 0.05em #0000002b;
+}
+
+
+.ngx-org-connector-horizontal {
+    width: 1em;
+  }
+
+.ngx-org-connector-vertical {
+    height: 1em;
+}  
+
+.ngx-org-name{
+    font-weight: bold;
+}
+
+/* .ngx-org-name{
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.ngx-org-title{
+    font-size: 0.65rem;
+} */
+
+
+/* EXTRA STYLES */
+.ngx-org-box.Self{
+    background-color: var(--dark-cornflower-blue);
+    color: var(--cultured);
+}
+
+.ngx-org-reports{
+    max-width: 100%;
+    overflow: auto;
+}

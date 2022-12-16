@@ -73,6 +73,7 @@ import { UserExitComponent } from './user-exit/user-exit.component';
 import { MatTableModule } from '@angular/material/table';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NgxMatSelectModule } from 'ngx-mat-select';
+import { NgxOrgChartModule } from 'ngx-org-chart';
 @NgModule({
   declarations: [
     AppComponent,
@@ -161,6 +162,7 @@ import { NgxMatSelectModule } from 'ngx-mat-select';
       displayMember: 'value',
       mobileViewType: 'FullScreen'
   }),
+    NgxOrgChartModule,
   ],
   providers: [
     BsModalService,
