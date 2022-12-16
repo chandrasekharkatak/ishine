@@ -53,7 +53,7 @@ export class UserAppreciationComponent implements OnInit {
   }
   reset(){
    this.employeeObj = new Employee();
-   this.employeeObj.empId=null;
+   this.employeeObj.empId='';
    this.employeeObj.managerName=null;
    this.employeeObj.appreciateType=null;
    this.employeeObj.reason=null;
@@ -135,7 +135,7 @@ export class UserAppreciationComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.reason)){
+    if(!this.validationService.validateTeamName(employeeObj.reason)){
       this.alertMessage = "Please enter a valid comment for why you want to give appreciation?"
       this.openAlertMod(template, this.alertMessage);	
       return false;	
@@ -185,7 +185,8 @@ export class UserAppreciationComponent implements OnInit {
         this.all = response.serviceResponse;
         console.log("appreciation : ", this.all)
         this.openAlertMod(template, response.serviceResponse); 
-        this.reset();       
+        this.getAppreciateEmployeeByCurrentUser();
+        this.reset();  
       } else {
         console.error(response.serviceResponse)
       }

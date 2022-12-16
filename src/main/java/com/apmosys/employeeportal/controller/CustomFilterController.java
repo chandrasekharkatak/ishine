@@ -52,4 +52,10 @@ public class CustomFilterController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getCustomFilteredTimesheet", method = RequestMethod.POST)
+	public ServiceResponse getCustomFilteredTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+		ServiceResponse response = customFilterService.getCustomFilteredTimesheet(timesheetDTO);
+		return response;
+	}
+	
 }

@@ -235,6 +235,7 @@ export class BodyComponent implements OnInit {
       this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.cancelRequest();
+          this.userLogout();
           this.openAlertMod(template, response.serviceResponse);
           if(this.currentUser.isNew == "true"){
             this.userLogout();

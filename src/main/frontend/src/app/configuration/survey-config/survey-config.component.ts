@@ -205,7 +205,7 @@ export class SurveyConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     } 
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(surveyObj.surveyName.trim())){
+    if(!this.validationService.validateTeamName(surveyObj.surveyName.trim())){
       this.alertMessage = "Please enter Valid Survey Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -219,7 +219,7 @@ export class SurveyConfigComponent implements OnInit {
         flag = false;
         return;
       }
-      if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(question.question)){
+      if(!this.validationService.validateTeamName(question.question)){
         this.alertMessage = `Please enter valid Question ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;

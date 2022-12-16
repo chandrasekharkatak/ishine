@@ -298,6 +298,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+    this.getAllLeaveTypes();
   }
 
 
@@ -375,10 +376,18 @@ export class LeaveConfigComponent implements OnInit {
   // Holiday
   setCurrentYearLimit(){
     let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let nextYear;
+
+    if(currentMonth == 10 || currentMonth == 11){
+      nextYear = currentYear + 1;
+    }else{
+      nextYear = currentYear;
+    }
     
     let occasionDate = document.getElementById('occasionDate');
     occasionDate?.setAttribute('min', `${currentYear}-01-01`);
-    occasionDate?.setAttribute('max', `${currentYear}-12-31`);
+    occasionDate?.setAttribute('max', `${nextYear}-12-31`);
   }
   validateHolidayObj(holidayObj:Holiday, template: TemplateRef<any>){
 

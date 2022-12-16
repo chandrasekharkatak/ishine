@@ -98,7 +98,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter father name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.fatherName)){
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.fatherName)){
       this.alertMessage = "Please enter Valid father Name !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -107,7 +107,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter mother name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.mothersName)){
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.mothersName)){
       this.alertMessage = "Please enter Valid mother Name !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -117,7 +117,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter place of birth !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.placeOfBirth)){
+    } else if(!this.validationService.validateAlphaWithSpace(employeeObj.placeOfBirth)){
       this.alertMessage = "Please enter Valid Place of birth !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -127,7 +127,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Mother tongue !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.motherTongue)){
+    } else if(!this.validationService.validateAlphaWithSpace(employeeObj.motherTongue)){
       this.alertMessage = "Please enter Valid  Mother tongue !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -241,7 +241,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Emergency Contact Person Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.emergencyContactPerson)){
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.emergencyContactPerson)){
       this.alertMessage = "Please enter Valid Emergency Contact Person Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -251,7 +251,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Emergency Contact Person Relation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(employeeObj.relation)){
+    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.relation)){
       this.alertMessage = "Please enter Valid Emergency Contact Person Relation !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

@@ -70,7 +70,7 @@
                             <td>{{list.assestName}}</td>
                             <td>{{list.departmentName}}</td>
                             <td>{{list.isAssigned}}</td>
-                            <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="list.deptConsent" [disabled]="isCurrentUser"/></td>
+                            <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="list.deptConsent" [disabled]="isCurrentUser" (change)="selectDeptConsentCheckbox(list)"/></td>
                             <td>{{list.concent}}</td>
                           </tr>
                         </tbody>

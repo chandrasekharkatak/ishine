@@ -180,6 +180,7 @@ export class MyTeamComponent implements OnInit {
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
 
+    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
   }
 

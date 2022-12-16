@@ -22,5 +22,6 @@ public class ProjectDTO {
 	private Long employeementId;
 	private Long teamId;
 	private String departmentName;
+	private Long poProjectId;
 
 }

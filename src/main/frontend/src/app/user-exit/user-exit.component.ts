@@ -40,6 +40,7 @@ export class UserExitComponent implements OnInit {
 
   exitAssetDetailList:any[] = [];
   employeeInfo:any[] = [];
+  updatedConsentList:any[] = [];
 
   dateOfRelieving:any;
   currentUserName:any;
@@ -67,23 +68,18 @@ export class UserExitComponent implements OnInit {
   }
 
   sectionViewInit(){
-    if(this.exitEmployeeId != null){
+    if(this.exitEmployeeId != null && (this.currentUser.employeeRole != 'Employee' && this.currentUser.employeeRole != 'TeamLead')){
       this.getEmployeeInfo(this.exitEmployeeId);
     }else{
       this.getEmployeeResignationDetails();
     }
 
-    console.log(this.currentUser.employeementId, ": current user");
-    console.log(this.exitEmployeeId, " : url emp");
-    
-
     if(this.currentUser.employeementId == this.exitEmployeeId || this.exitEmployeeId == undefined){
       this.isCurrentUser = true;
+      this.router.navigate(['/user-exit']);
     }else{
       this.isCurrentUser = false;
     }
-    console.log( this.isCurrentUser, ": iscuurentuser");
-    
   }
 
   openResignRuleModal(template: TemplateRef<any>){
@@ -209,6 +205,26 @@ export class UserExitComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  selectDeptConsentCheckbox(updatedConsent){
+    const alreadyUpdatedConsent = this.updatedConsentList.find((x) => x.deptConsent == updatedConsent.deptConsent && x.assestName == updatedConsent.assestName);
+      if(alreadyUpdatedConsent){
+        this.updatedConsentList.splice(alreadyUpdatedConsent,1);
+      }else{
+        this.updatedConsentList.push(updatedConsent);
+      }
+      console.log(this.updatedConsentList);
+  }
+
+  /*
+     - submit consent API
+     - mail trigger with ishine link when date of releving == today
+     - add aprroved by in getEmployeeExitAssetDetails api
+  */
+
+  submitConsent(){
+
   }
 
   cancelRequest() {

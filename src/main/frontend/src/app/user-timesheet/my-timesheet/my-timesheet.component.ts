@@ -17,6 +17,13 @@ import { Employee } from 'src/app/models/employee';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { LeaveService } from 'src/app/services/leave.service';	
 import { Leave } from 'src/app/models/leave';
+import { Query } from 'src/app/models/query';
+
+class FilterData{
+  title:any;
+  columns:any;
+  queryList:any;
+}
 
 @Component({
   selector: 'app-my-timesheet',
@@ -74,6 +81,10 @@ export class MyTimesheetComponent implements OnInit {
   errorMsg:any;
 
   leaveHistoryList:any[] = [];	
+
+  filterData:any = new FilterData();
+  queryList:any[] = [];
+  timesheetColumns:any[] = ['From Date', 'To Date', 'Project Name', 'Client Name'];
 
   constructor(
     private validationService: ValidationService,
@@ -203,7 +214,7 @@ export class MyTimesheetComponent implements OnInit {
     this.addInputActivityField();;
   }
 
-
+  
   addInputActivityField(activityObj?:Activity) {
 
     
@@ -827,6 +838,58 @@ export class MyTimesheetComponent implements OnInit {
         console.error(response.serviceResponse);	
       }	
     });	
+  }
+
+  getCustomFilteredTimesheet(queryObjList:any , template:TemplateRef<any>){
+    this.allMyTimesheets= [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+    if(queryObjList == ''){
+      // this.getAllLeaveApplicationsList();
+    }else {
+      let timesheetObj = new Timesheet();
+      timesheetObj.queryList = queryObjList;
+      timesheetObj.empId = this.currentUser.empId;
+      this.timesheetService.getCustomFilteredTimesheet(timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allMyTimesheets = response.serviceResponse;
+
+          if(this.allMyTimesheets.length == 0){
+            this.openAlertMod(template, "No Leave Application Report found ")
+          }
+          // this.allLeaveApplicationsList.forEach(leave => {
+          //   leave.employeementId = "A-".concat(leave.employeementId);
+          // });
+          // console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
+        } else {
+          this.openAlertMod(template,response.serviceResponse)
+        }
+      });
+    }
+  }
+
+
+  /* Filter */
+  openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
+    console.log("columns : ", columns);
+    
+    this.filterData.title  = title;
+    this.filterData.columns = columns;
+    this.filterData.queryList = JSON.stringify(this.queryList);
+
+    console.log("filterData : ", this.filterData);
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  onFilterSubmit(queryList:any , template:TemplateRef<any>){
+    console.log("queryList : ", queryList);
+    this.queryList = queryList;
+    this.cancelRequest();
+
+    if(this.filterData.title == 'Filter Timesheet'){
+      this.getCustomFilteredTimesheet(queryList,template);
+    }
   }
 
 

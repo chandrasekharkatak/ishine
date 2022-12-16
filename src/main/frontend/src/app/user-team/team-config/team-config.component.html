@@ -75,10 +75,23 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Team Lead</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
+                            <mat-select ngxMatSelect class="form-control"
+                                  #selectTeamLead="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="teamLeadsList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="teamObj.teamLeadId"
+                                  >
+                                  <mat-option [value]="teamLead.empId" *ngFor="let teamLead of selectTeamLead.filteredSource">
+                                    {{teamLead.name}}
+                                  </mat-option>
+                                </mat-select>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>
-                            </select>
+                            </select> -->
                         </div>
                     </div>
                 </div>
@@ -135,10 +148,23 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="newteamMember.empId">
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="newteamMember.empId">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}" [disabled]="employee.isSelected">{{employee.name}}</option>
-                            </select>
+                            </select> -->
+                            <mat-select ngxMatSelect class="form-control"
+                                  #addMemberSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="employeeListByDept"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="newteamMember.empId"
+                                  >
+                                  <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
+                                    {{employee.name}}
+                                  </mat-option>
+                                </mat-select>
                         </div>
                     </div>
                 </div>
@@ -175,7 +201,7 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation && userMapping.add_team" type="submit" class="btn btn-primary btn-sm mx-1" [disabled]="allTeamMembers && allTeamMembers.length == 0" (click)="onCreateTeam(alert_message)">Create Team</button>
-                    <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)">Update Team</button>
+                    <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button>
                 </div>
             </div>
         </div>

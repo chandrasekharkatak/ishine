@@ -899,4 +899,97 @@ public class TeamsService {
 		}
 		return response;
 	}
+
+	public ServiceResponse addDepartmentInProjects() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Project> allProjects = projectRepository.findAll();
+			
+			if(allProjects != null) {
+				
+				for(Project obj : allProjects) {
+					String deptCode = obj.getProjectName().split("-")[0];
+					
+					if(deptCode.equals("AUT")) {
+						obj.setDepartmentName("Automation Testing");;
+					}else if(deptCode.equals("FT")) {
+						obj.setDepartmentName("Functional Testing");
+					}else if(deptCode.equals("PT")) {
+						obj.setDepartmentName("Performance Testing");
+					}else if(deptCode.equals("APM")) {
+						obj.setDepartmentName("APM");
+					}else if(deptCode.equals("DEV")) {
+						obj.setDepartmentName("Development");
+					}else if(deptCode.equals("PS")) {
+						obj.setDepartmentName("Production Support");
+					}else if(deptCode.equals("AC")) {
+						obj.setDepartmentName("Accounts");
+					}else if(deptCode.equals("MONITORING")) {
+						obj.setDepartmentName("Application Performance Monitoring");
+					}else if(deptCode.equals("MON")) {
+						obj.setDepartmentName("Application Performance Monitoring");
+					}else if(deptCode.equals("MONT")) {
+						obj.setDepartmentName("Application Performance Monitoring");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Unknown format");
+					}
+					
+					Project dbResponse = projectRepository.save(obj);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Department added successfully");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("department addtion failed");
+					}
+				}
+				
+			}
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse setPoProjectIdAndDepartment(ProjectDTO projectDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Project projectObj = projectRepository.findByProjectName(projectDTO.getProjectName());
+			
+			if(projectObj != null) {
+				projectObj.setPoProjectId(projectDTO.getPoProjectId());
+				projectObj.setDepartmentName(projectDTO.getDepartmentName());
+				
+				
+				Project dbResponse = projectRepository.save(projectObj);
+				
+				if(dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("PoProject Id & department added successfully");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("PoProject Id & department updation failed");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found in PoPotal");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return null;
+	}
 }

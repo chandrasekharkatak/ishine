@@ -116,7 +116,7 @@
                                  placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()">
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="isUpdation"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="isUpdation" disabled="false"></mat-datepicker>
+                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="isUpdation" disabled="false" [startAt]="leaveObj.fromDate"></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -203,10 +203,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveHistoryListForTable.length == 0">
+                            <tr *ngIf="leaveHistoryList.length == 0">
                                 <th colspan="14" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveHistory of leaveHistoryListForTable |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                                 <td>{{leaveHistory.leaveType}}</td>
@@ -279,7 +279,8 @@
                     <thead class="thead-light">	
                       <tr>	
                         <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
-                        <th scope="col" class="info-label" >Sr No.</th>	
+                        <th scope="col" class="info-label" >Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="leaveType">Name</th>		
                         <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
                         <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
                         <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
@@ -294,11 +295,12 @@
                     </thead>
                     <tbody>
                         <tr *ngIf="leaveApplicationList.length == 0">
-                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                            <th colspan="12" class="text-center info-label">No details to display...</th>
                         </tr>
                         <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                             <td><input class="leave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
+                            <td>{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
                             <td>{{leaveApplication.fromDate | date:'dd-MM-yyyy'}}</td>
                             <td>{{leaveApplication.toDate | date:'dd-MM-yyyy'}}</td>

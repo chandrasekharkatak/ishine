@@ -153,7 +153,7 @@ import { NgxOrgChartModule } from 'ngx-org-chart';
       inFirstLoadCallSearcher: true,
       inFirstLoadSearcherValue: '',
       emptyLabel: 'no entry found',
-      noMoreResultLabel: 'no more found',
+      noMoreResultLabel: ' ',
       useInfiniteScroll: false,
       searchBoxPlaceholder: 'search',
       maximumResultForShow: 40,

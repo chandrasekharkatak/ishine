@@ -127,10 +127,11 @@ export class RoleConfigComponent implements OnInit {
   showTable() {
     this.page = 1
     this.isTable = true;
-
+    this.data = ''
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.selectedDept = ''
 
     this.getAllJobRoleList();
     this.getAllSubFeatures();
@@ -181,6 +182,11 @@ export class RoleConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateTeamName(jobRole.name)) {
+      this.alertMessage = "Please enter Valid Designation Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)) {
       this.alertMessage = "Please select Department !!"
@@ -222,27 +228,15 @@ export class RoleConfigComponent implements OnInit {
   }
   
   checkJobRole(template : TemplateRef<any>){
-    // this.sameRoleFound = false
-    if(this.jobRoleObj.name == null || this.jobRoleObj.name.length == 0 || this.jobRoleObj.name == ''){
-      this.openAlertMod(template , "Please Enter Designation name")
-    }else {
-      const regex = /^[a-zA-Z ]+$/;
-      if(regex.test(this.jobRoleObj.name)){
         this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
           if(response.serviceStatus =='Fail'){
             this.openAlertMod(template, response.serviceResponse);
             this.jobRoleObj.name = '';
             this.jobRoleObj.employeeRole = ''
             this.jobRoleObj.departmentId = ''
-            // this.sameRoleFound = true;
-  
-          }
+            }
         })
-      } else{
-        this.openAlertMod(template , "Please Enter Valid Designation name ")
-      }
-    }
-   
+ 
   }
 
   onUpdateJobRole(template: TemplateRef<any>) {
