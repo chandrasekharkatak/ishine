@@ -1424,7 +1424,7 @@ export class ReportDashboardComponent implements OnInit {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         "Emp ID": x.employeementId,
-        "Name":x.name,
+        "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": x.fromDate,
         "To Date": x.toDate,
@@ -1438,7 +1438,7 @@ export class ReportDashboardComponent implements OnInit {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         "Emp ID": x.employeementId,
-        "Name":x.name,
+        "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":x.date,
         "Day Type":x.dayType,
@@ -1457,7 +1457,7 @@ export class ReportDashboardComponent implements OnInit {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         "Emp ID": x.employeementId,
-        "Name":x.name,
+        "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
         "Manager Name": x.managerName,

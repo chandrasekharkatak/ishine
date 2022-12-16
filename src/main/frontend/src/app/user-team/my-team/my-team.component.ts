@@ -161,7 +161,7 @@ export class MyTeamComponent implements OnInit {
     this.isViewTeam = false;
     this.page=1;
     this.data='';
-
+    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
   }
 

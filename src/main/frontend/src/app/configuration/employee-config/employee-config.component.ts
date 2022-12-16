@@ -934,14 +934,13 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
-    
-    
-    // if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-    //   this.alertMessage = "Please enter Employment ID !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }else 
-    if (!this.validationService.validateEmployeementId(employee.employeementId) && this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+    employee.employeementId = this.employeeObj.employeementId?.substring(2)
+    if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
       this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -1362,7 +1361,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.employeeObj.remarks.trim())){
+    } if(!this.validationService.validateTeamName(this.employeeObj.remarks.trim())){
       this.alertMessage = "Enter Valid Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

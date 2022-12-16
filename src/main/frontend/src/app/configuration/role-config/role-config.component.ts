@@ -127,10 +127,11 @@ export class RoleConfigComponent implements OnInit {
   showTable() {
     this.page = 1
     this.isTable = true;
-
+    this.data = ''
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.selectedDept = ''
 
     this.getAllJobRoleList();
     this.getAllSubFeatures();
