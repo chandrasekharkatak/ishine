@@ -187,13 +187,8 @@ public class TimesheetService {
 			
 
 			List<Object[]> objectList = projectRepository
-					.getActivitiesByProjectIdAndEmployeeId(timesheetDTO.getTeamId(), timesheetDTO.getEmpId(), timesheetDTO.getProjectId());
+					.getActivitiesByTeamIdAndEmployeeId(timesheetDTO.getTeamId(), timesheetDTO.getEmpId());
 
-			System.out.println("___________________________________________________________________________");
-			System.out.println("     timesheetDTO.getTeamId()   "+timesheetDTO.getTeamId());
-
-			System.out.println("   timesheetDTO.getEmpId()    "+timesheetDTO.getEmpId());
-			System.out.println("___________________ timesheetDTO.getProjectId()  ________________________________________________________"+timesheetDTO.getProjectId());
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
 				if (list.isEmpty()) {

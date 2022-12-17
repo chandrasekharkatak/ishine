@@ -64,6 +64,13 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllMyTeamsByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsByEmpId(@RequestBody EmployeeDTO employeeDTO) {
+
+		ServiceResponse response = teamsService.getAllMyTeamsByEmpId(employeeDTO);
+		return response;
+	}
+	
 //	MyTeam Contoller
 	
 	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)

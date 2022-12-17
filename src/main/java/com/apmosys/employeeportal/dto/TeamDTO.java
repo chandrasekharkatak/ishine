@@ -36,8 +36,11 @@ public class TeamDTO {
 	private String clientLocation;
 	private String state;
 	private Long projectManagerId;
+	private String projectManagerName;
 	private String isActive;
 	private String startDate;
 	private String endDate;
+	
+	private String departmentName;
 
 }

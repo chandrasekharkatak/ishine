@@ -268,9 +268,11 @@
                     <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortTeam($event)">	
                         <thead class="thead-light" id="teamInfoTHead">	
                           <tr id="teamInfoTHeadTr">	
-                            <th scope="col" class="info-label">Sr No.</th>	
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>	
                             <th scope="col" class="info-label" mat-sort-header="teamName">Team Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="teamLeadName">Team Lead</th>	
+                            <th scope="col" class="info-label" mat-sort-header="teamLeadName">Team Lead</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectManagerName">Project Manager</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
@@ -282,8 +284,10 @@
                             </tr>
                             <tr *ngFor="let team of allTeamList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                                <td>{{team.projectName}}</td>
                                 <td>{{team.teamName}}</td>
                                 <td>{{team.teamLeadName}}</td>
+                                <td>{{team.projectManagerName}}</td>
                                 <td>{{team.createdByName}}</td>
                                 <td>{{team.createdOn}}</td>
                                 <td>

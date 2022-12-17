@@ -150,6 +150,7 @@ export class TeamConfigComponent implements OnInit {
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
     this.getAllDepartmentList();
+    this.getAllMyTeamsByEmpId();
   }
 
   showUpdateTeamForm(teamObj: Team) {
@@ -396,20 +397,53 @@ export class TeamConfigComponent implements OnInit {
     this.allActivityList = [];
     this.filterStatus = "";
 
-    let teamObj = new Team();
-    teamObj.projectId = projectId;
-    this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
+    console.log("selectedProject : ", this.selectedProject);
+    
+    if(projectId == 0){
+        this.getAllMyTeamsByEmpId();
+    }else{
+      let teamObj = new Team();
+      teamObj.projectId = projectId;
+      this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allTeamList = response.serviceResponse;
+          this._allTeamList = this.allTeamList
+          this.filterStatus = "Active";
+          this.changeEvent();
+          // this.allTeamList = this.allTeamList.sort(function (a, b) {
+          //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
+          // });
+  
+          this.isDisabled = false;
+          console.log("allTeamList :", this.allTeamList);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
+    }
+  }
+
+  getAllMyTeamsByEmpId() {
+    this.allTeamList = [];
+    this.allActivityList = [];
+    this.filterStatus = "";
+    this.selectedProject = 0;
+
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    employeeObj.departmentName = this.currentUser.departmentName;
+    employeeObj.employeeRole = this.currentUser.employeeRole;
+
+    this.teamService.getAllMyTeamsByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        console.log("response.serviceResponse :", response.serviceResponse);
+        
         this.allTeamList = response.serviceResponse;
         this._allTeamList = this.allTeamList
         this.filterStatus = "Active";
         this.changeEvent();
-        // this.allTeamList = this.allTeamList.sort(function (a, b) {
-        //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
-        // });
-
         this.isDisabled = false;
-        console.log("allTeamList :", this.allTeamList);
+        console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -463,6 +497,13 @@ export class TeamConfigComponent implements OnInit {
           this.allProjectListByManagerId = allProjectList;
           this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
           console.log("allProjectList By Department :", this.allProjectListByManagerId);
+        }
+
+        if(this.isTeamTable){
+          this.allProjectListByManagerId.unshift({
+            projectId : 0,
+            projectName : 'My Teams'
+          });
         }
 
       } else {
