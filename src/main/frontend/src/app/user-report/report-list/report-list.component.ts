@@ -551,7 +551,7 @@ showColumn(){
             "Employee Name":x.employeeName,
             "date":x.date,
             "dayType":x.dayType,
-            "description":x.description,
+            "description":x.description?.replaceAll('<br>', ' \n'),
             "status":x.status,
             "totalWorkingHours":x.totalWorkingHours,
             "createdOn":x.createdOn,

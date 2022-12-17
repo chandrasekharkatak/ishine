@@ -836,7 +836,7 @@ export class MyTimesheetComponent implements OnInit {
         x => ({
           "Date": x.date,
           "Day Type": x.dayType,
-          "Timesheet Details":x.description,
+          "Timesheet Details":x.description?.replaceAll('<br>', ' \n'),
           "Total Time":x.totalTime,
           "Status": x.status
         })
