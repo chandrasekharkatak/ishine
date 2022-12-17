@@ -459,21 +459,10 @@ export class TeamConfigComponent implements OnInit {
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
           this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
-        }else if(this.currentUser.employeeRole == 'Manager'){
+        }else{
           this.allProjectListByManagerId = allProjectList;
-
-          if(this.isCreation){
-            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
-            console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
-          }else if (this.isTeamTable){
-            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.projectManagerId == this.currentUser.empId);
-            console.log("allProjectList By ManagerID For Manager :", this.allProjectListByManagerId);
-
-            if(this.allProjectListByManagerId.length == 0){
-              this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
-              console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
-            }
-          }
+          this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+          console.log("allProjectList By Department :", this.allProjectListByManagerId);
         }
 
       } else {
