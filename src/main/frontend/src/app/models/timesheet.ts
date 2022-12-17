@@ -48,4 +48,6 @@ export class Timesheet{
     bulkApprovedList:any;
     bulkRejectList:any;
     queryList:any[] = [];
+    teamId:any;
+    teamName:any;
 }
