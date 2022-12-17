@@ -170,8 +170,8 @@
                 </div>
                 <div class="col-md-2 d-flex">
                     <div class="m-0">
-                        <button type="button" class="btn btn-outline-primary mx-1"
-                            (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
+                        [disabled]="!teamObj.departmentList" ><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>
