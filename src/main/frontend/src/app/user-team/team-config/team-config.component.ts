@@ -410,10 +410,7 @@ export class TeamConfigComponent implements OnInit {
           this._allTeamList = this.allTeamList
           this.filterStatus = "Active";
           this.changeEvent();
-          // this.allTeamList = this.allTeamList.sort(function (a, b) {
-          //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
-          // });
-  
+
           this.isDisabled = false;
           console.log("allTeamList :", this.allTeamList);
         } else {
@@ -498,6 +495,8 @@ export class TeamConfigComponent implements OnInit {
           this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
           console.log("allProjectList By Department :", this.allProjectListByManagerId);
         }
+
+        this.allProjectListByManagerId = this.allProjectListByManagerId.sort((a, b) => a.projectName.localeCompare(b.projectName));
 
         if(this.isTeamTable){
           this.allProjectListByManagerId.unshift({
