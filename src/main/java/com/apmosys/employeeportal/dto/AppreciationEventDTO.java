@@ -28,5 +28,7 @@ private Long appreciationEventId;
     private String appreciateType;
     
 	private Long updatedBy;
+	
+	private String appreciationEventType;
 
 }

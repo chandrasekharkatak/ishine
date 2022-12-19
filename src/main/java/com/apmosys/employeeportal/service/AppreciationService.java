@@ -145,6 +145,7 @@ public class AppreciationService {
 		appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
 		appEvent.setFromDate(appreciationEventDTO.getFromDate());
 		appEvent.setToDate(appreciationEventDTO.getToDate());
+		appEvent.setAppreciationEventType(appreciationEventDTO.getAppreciationEventType());
 		
 		AppreciationEvent enableAppreciation = enableAppreciationRepository.save(appEvent);
 
@@ -252,6 +253,7 @@ public class AppreciationService {
 		eventDTO.setFromDate(allevents.getFromDate());	
 		eventDTO.setToDate(allevents.getToDate());;	
 		eventDTO.setCreatedOn(allevents.getCreatedOn());
+		eventDTO.setAppreciationEventType(allevents.getAppreciationEventType());
 		appreciationEventDTO.add(eventDTO);
 		
 	}
@@ -394,6 +396,7 @@ public class AppreciationService {
 			appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
 			appEvent.setFromDate(appreciationEventDTO.getFromDate());
 			appEvent.setToDate(appreciationEventDTO.getToDate());
+			appEvent.setAppreciationEventType(appreciationEventDTO.getAppreciationEventType());
 			
 			AppreciationEvent dbResponse = enableAppreciationRepository.save(appEvent);
 			
