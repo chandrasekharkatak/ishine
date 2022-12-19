@@ -15,4 +15,6 @@ export class Team{
 	updatedOn: any;	
 	updatedBy: any;
     isActive:any;
+    teamLeadDeptId:any;
+    teamMemberDeptId:any;
 } 

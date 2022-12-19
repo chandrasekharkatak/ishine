@@ -19,6 +19,7 @@ import * as XLSX from 'xlsx';
 import { Sort } from '@angular/material/sort';
 import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { Department } from 'src/app/models/department';
 
 @Component({
   selector: 'app-team-config',
@@ -164,6 +165,10 @@ export class TeamConfigComponent implements OnInit {
 
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
+    this.teamObj.departmentList = [];
+    if(this.teamObj.teamLeadDeptId){
+      this.teamObj.departmentList.push(this.teamObj.teamLeadDeptId);
+    }
     this.getTeamMembersByTeamId(this.teamObj.teamId);
 
     /* To Add New Members */
@@ -468,6 +473,16 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getTeamMembersByTeamId(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamObj.allTeamMemberList = response.serviceResponse;
+        if(this.teamObj.allTeamMemberList){
+          this.teamObj.allTeamMemberList.forEach(teamMember => {
+            this.teamObj.departmentList.push(teamMember.teamMemberDeptId);
+          });
+
+          this.teamObj.departmentList = Array.from(new Set(this.teamObj.departmentList));
+
+          this.getAllEmployeesByDepartmentIds();   
+          this.getAllEmployeesByRole();      
+        }
         console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
       } else {
         console.error(response.serviceResponse)
@@ -577,7 +592,14 @@ export class TeamConfigComponent implements OnInit {
     this.employeeListByDept = [];
 
     let empObj = new Employee();
-    empObj.departmentList = this.teamObj.departmentList;
+    empObj.departmentList = this.teamObj.departmentList.map(deptId => {
+       let dept =  new Department();
+       dept.deptId = deptId;
+       return dept;
+    });
+
+    console.log("empObj.departmentList : ", empObj.departmentList);
+    
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;

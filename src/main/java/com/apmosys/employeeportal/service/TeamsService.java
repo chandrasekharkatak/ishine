@@ -235,6 +235,7 @@ public class TeamsService {
 							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
 							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
 							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 							dtoList.add(dto);
 						});
 						
@@ -306,6 +307,8 @@ public class TeamsService {
 						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 						dto.setTeamMemberName(object[7] != null ? object[7].toString() : null);
+						dto.setTeamMemberDeptId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -475,6 +478,8 @@ public class TeamsService {
 							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
 							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
 							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+							
 							dtoList.add(dto);
 						});
 						
@@ -504,11 +509,13 @@ public class TeamsService {
 				try {
 					
 					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
-							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active \n"
+							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept \n"
 							+ "FROM teams t \n"
 							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
 							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
 							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
+							+ "INNER JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
+							+ "INNER JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
 							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
 					
 					System.out.println("Query :"+ q);

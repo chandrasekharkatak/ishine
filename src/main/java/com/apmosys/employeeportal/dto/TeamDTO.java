@@ -42,5 +42,7 @@ public class TeamDTO {
 	private String endDate;
 	
 	private String departmentName;
+	private Long teamLeadDeptId;
+	private Long teamMemberDeptId;
 
 }

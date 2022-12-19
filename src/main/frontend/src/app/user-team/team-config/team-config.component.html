@@ -62,10 +62,25 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="teamObj.departmentList" (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
+                            <!-- <mat-select class="form-control" multiple [(ngModel)]="teamObj.departmentList" (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
                                 <mat-option *ngFor="let dept of allDeptList" [value]="dept">{{dept.name}}</mat-option>
-                            </mat-select>
+                            </mat-select> -->
+
+                            <mat-select ngxMatSelect class="form-control"
+                                  #departmentSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'deptId'"
+                                  [source]="allDeptList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="true"
+                                  [(ngModel)]="teamObj.departmentList"
+                                  (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()"
+                                  >
+                                  <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
+                                    {{dept.name}}
+                                  </mat-option>
+                                </mat-select>
                         </div>
                     </div>
                 </div>
