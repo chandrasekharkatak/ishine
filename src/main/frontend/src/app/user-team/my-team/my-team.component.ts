@@ -531,6 +531,7 @@ export class MyTeamComponent implements OnInit {
       this.isHierarchyTable = true;
       this.isHierarchyChart = false;
       this.myTeamHierarchy(employeeObj);
+      this.viewTeam();
     }
   }
 

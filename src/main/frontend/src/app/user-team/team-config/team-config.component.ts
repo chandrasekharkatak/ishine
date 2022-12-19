@@ -618,7 +618,8 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
+    
+    activityObj.activity = activityObj.activity?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(activityObj.activity)) {
       this.alertMessage = "Please enter Activity !!"
       this.openAlertMod(template, this.alertMessage);
