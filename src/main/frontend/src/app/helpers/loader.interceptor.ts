@@ -116,7 +116,11 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/OnCheckEventName`,
     `${this.baseUrl}` + `api/deleteAppreciationEvent`,
     `${this.baseUrl}` + `api/updateAppreciationEvent`,
-
+    `${this.baseUrl}` + `api/getHierarchyChartByEmpId`,
+    `${this.baseUrl}` + `api/getAllManagers`,
+    `${this.baseUrl}` + `api/getAllTeamMemberView`,
+    `${this.baseUrl}` + `api/getAllTeamsByProjectId`,
+    `${this.baseUrl}` + `api/getAllActivitiesByProjectIdAndTeamId`,
 
 
   ]

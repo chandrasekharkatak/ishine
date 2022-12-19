@@ -1423,8 +1423,8 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": x.employeementId,
-        "Name":x.name,
+        "Emp ID": "A-".concat(x.employeementId),
+        "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": x.fromDate,
         "To Date": x.toDate,
@@ -1437,8 +1437,8 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelTimesheetSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": x.employeementId,
-        "Name":x.name,
+        "Emp ID": "A-".concat(x.employeementId),
+        "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":x.date,
         "Day Type":x.dayType,
@@ -1456,8 +1456,8 @@ export class ReportDashboardComponent implements OnInit {
   exportToExcelEODSegregation(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": x.employeementId,
-        "Name":x.name,
+        "Emp ID": "A-".concat(x.employeementId),
+        "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
         "Manager Name": x.managerName,
@@ -1502,6 +1502,22 @@ export class ReportDashboardComponent implements OnInit {
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  }
+
+  // allResignEmployee
+
+  exportToExcelResignedEmployee():void {
+    const onlySpecificDataArr = this.allResignEmployee.map(
+      x => ({
+        "Emp ID": x.employeementId,
+        "Employee Name":x.name,
+        "Department":x.departmentName,
+        "Date Of Resign":x.dateOfResign,
+        "Date Of Relieving":x.dateOfRelieving,
+        "Reporting To":x.managerName
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, "Resigned Employee".concat(".xlsx"))
   }
 
   //Pagination

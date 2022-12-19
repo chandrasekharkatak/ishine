@@ -134,6 +134,10 @@ public class TimesheetService {
 					timesheetDto.setClientLocation(object[3] != null ? object[3].toString() : null);
 					timesheetDto.setProjectId(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
 					timesheetDto.setProjectName(object[5] != null ? object[5].toString() : null);
+	  				timesheetDto.setTeamName(object[6] != null ? object[6].toString() : null);
+					timesheetDto.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+//					timesheetDto.setActivity(object[8] != null ? object[8].toString() : null);
+//					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					listDto.add(timesheetDto);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -180,9 +184,10 @@ public class TimesheetService {
 		logBuilder.append("projectId : " +timesheetDTO.getProjectId()+ "empId : " +timesheetDTO.getEmpId());
 		
 		try {
+			
 
 			List<Object[]> objectList = projectRepository
-					.getActivitiesByProjectIdAndEmployeeId(timesheetDTO.getProjectId(), timesheetDTO.getEmpId());
+					.getActivitiesByTeamIdAndEmployeeId(timesheetDTO.getTeamId(), timesheetDTO.getEmpId());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -201,6 +206,7 @@ public class TimesheetService {
 
 						dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setActivity(object[1] != null ? object[1].toString() : null);
+						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 						dtoList.add(dto);
 					});
 
@@ -555,7 +561,7 @@ public class TimesheetService {
 						dto.setTimesheetActivityMapId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 						dto.setClientId(object[14] != null ? Integer.parseInt(object[14].toString()) : null);
 						dto.setClientLocationId(object[15] != null ? Integer.parseInt(object[15].toString()) : null);
-						
+						dto.setTeamId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 						dtoList.add(dto);
 					});
 

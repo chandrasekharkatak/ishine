@@ -67,5 +67,6 @@ public class TimesheetDTO {
 	
 	private String remarks;
 	private String teamName;
+	private Long activityId;
 	
 }

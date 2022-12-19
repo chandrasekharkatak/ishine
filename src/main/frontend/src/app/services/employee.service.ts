@@ -77,6 +77,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getHierarchyByEmpId`, employeeObj);
   }
 
+  getHierarchyChartByEmpId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getHierarchyChartByEmpId`, employeeObj);
+  }
+
   customQueryForEmployeeReport(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForEmployeeReport`, queryObj);
   }

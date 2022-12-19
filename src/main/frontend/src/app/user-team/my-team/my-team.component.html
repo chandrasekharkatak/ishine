@@ -17,68 +17,95 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="form-group ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-12 breadcrumb-div">
-        <p class="hierarchy-breadcrumb" *ngFor="let breadcrumb of breadCrumbs; let a = index"
-          (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
-      </div>
-    </div>
-
-    <div class="row">
+    <div class="row mb-2">
       <div class="col-md-12">
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-          [tableTHeadTrId]="'holidayInfoTHeadTr'">
-          <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">
-            <thead class="thead-light">
-              <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                <th scope="col" class="info-label" mat-sort-header="name">Name</th>
-                <th scope="col" class="info-label" mat-sort-header="email">Email</th>
-                <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>
-                <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
-                <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
-                <th scope="col" class="info-label">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngIf="teamViewList.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr
-                *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
-                (click)="myTeamHierarchy(teamView)">
-                <td class="info-label">{{10*(page-1)+i+1}}</td>
-                <td class="info-label">{{teamView.employeementId}}</td>
-                <td class="info-label myTeam-hierarchy">{{teamView.name}} <i class="fa-solid fa-sitemap"
-                    *ngIf="teamView.isHierarchy"></i></td>
-                <td class="info-label">{{teamView.email}}</td>
-                <td class="info-label">{{teamView.jobRoleName}}</td>
-                <td class="info-label">{{teamView.mobileNo}}</td>
-                <td class="info-label">{{teamView.managerName}}</td>
-                <td>
-                  <button
-                    *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
-                    class="btn btn-sm btn-outline-primary" type="submit"
-                    (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>
-
-                  <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="hierarchy-switch" (change)="toggleHierarchyView($event)">
+          <label class="custom-control-label" for="hierarchy-switch">View Hierarchy Chart</label>
         </div>
-        <pagination-controls class="my-pagination" [hidden]="teamViewList.length == 0"
-          (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-          [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+      </div>
+    </div>
+
+    <div *ngIf="isHierarchyChart" class="hierarchy-chart">
+      <div class="row">
+        <div class="col-md-12 my-hierarchy-container ">
+          <ngx-org-chart class="my-hierarchy" [nodes]="nodes" direction="vertical" (itemClick)="createHierarchyNodes($event)"></ngx-org-chart>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="isHierarchyTable" class="hierarchy-table">
+      <div class="row">
+        <div class="form-group ml-auto col-md-3">
+          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
+        </div>
+      </div>
+  
+      <div class="row mb-2">
+        <div class="col-md-12">
+          <div class="alert alert-primary p-0 m-0" role="alert">
+            <p class="p-1 m-0">Here you can un-block your reportee's account, if it gets blocked. </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="breadcrumb-div d-flex">
+            <p class="hierarchy-breadcrumb" *ngFor="let breadcrumb of breadCrumbs; let a = index"
+            (click)="hierarchyBreadCrumb(a)">{{breadcrumb.name}}</p>
+          </div>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col-md-12">
+          <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
+            [tableTHeadTrId]="'holidayInfoTHeadTr'">
+            <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                  <th scope="col" class="info-label" mat-sort-header="name">Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="email">Email</th>
+                  <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>
+                  <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
+                  <th scope="col" class="info-label">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="teamViewList.length == 0">
+                  <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                  *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
+                  (click)="myTeamHierarchy(teamView)">
+                  <td class="info-label">{{10*(page-1)+i+1}}</td>
+                  <td class="info-label">{{teamView.employeementId}}</td>
+                  <td class="info-label myTeam-hierarchy">{{teamView.name}} <i class="fa-solid fa-sitemap"
+                      *ngIf="teamView.isHierarchy"></i></td>
+                  <td class="info-label">{{teamView.email}}</td>
+                  <td class="info-label">{{teamView.jobRoleName}}</td>
+                  <td class="info-label">{{teamView.mobileNo}}</td>
+                  <td class="info-label">{{teamView.managerName}}</td>
+                  <td>
+                    <button
+                      *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
+                      class="btn btn-sm btn-outline-primary" type="submit"
+                      (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>
+  
+                    <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <pagination-controls class="my-pagination" [hidden]="teamViewList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
+              class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
       </div>
     </div>
   </div>
@@ -136,8 +163,8 @@
                         <tr id="leaveHistoryInfoTHeadTr">	
                           <th scope="col" class="info-label"> Sr No.</th>	
                           <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
-                          <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
-                          <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
+                          <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
+                          <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
                           <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
                           <!-- <th scope="col" class="info-label">Approver</th>	
                           <th scope="col" class="info-label">Approval Date</th> -->	

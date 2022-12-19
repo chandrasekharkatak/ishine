@@ -362,7 +362,7 @@
             <small>entries</small>
         </div>
        
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group ml-auto col-md-3 mt10">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
     </div>
@@ -388,8 +388,8 @@
               </tr>
             </thead>
             <tbody class="text-center">
-                <tr *ngIf="leaveApplicationCount.length == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                <tr *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0">
+                    <th colspan="12" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                     <td><input class="homeLeave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
@@ -428,7 +428,7 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="form-group ml-auto col-md-3">
+    <div class="form-group ml-auto col-md-3 mt10">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
         </div>
     <div class="modal-body">
@@ -449,8 +449,8 @@
              </tr>
             </thead>
             <tbody>
-                <tr *ngIf="compOffApplicationCount.length == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0">
+                    <th colspan="10" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{i+1}}</td>
@@ -499,7 +499,7 @@
           </select>
           <small>entries</small>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mt10">
           <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
         </div>
       </div>

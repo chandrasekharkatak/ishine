@@ -298,6 +298,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+    this.getAllLeaveTypes();
   }
 
 

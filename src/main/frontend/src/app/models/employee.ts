@@ -136,4 +136,7 @@ export class Employee{
 
 	isSelected:boolean = false;
 	columnHeader:any;
+
+	reporteeCount:any;
+	hierarchyType:any;
 }

@@ -157,7 +157,9 @@ public class EmployeeDTO {
 	private String featureName;
 	private String permission;
 	private String isAssigned;
-		
+	
+	private Integer reporteeCount;
+	private String hierarchyType;
 //	private String eventCreatedOn;
 
 }

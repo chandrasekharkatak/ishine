@@ -531,7 +531,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label "><span class="text-danger">*</span>Date Of Joining</label>
-                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" >
+                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" >
                                         </div>
                                     </div>
                                 </div>
@@ -539,7 +539,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Relieving</label>
-                                            <input type="date" class="form-control date-input" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
+                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
                                         </div>
                                     </div>
                                 </div>

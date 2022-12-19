@@ -815,10 +815,8 @@ public class EmployeeService {
 
 		try {
 			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
-			List<EmployeeCertificate> certificationsList = employeeCertificateRepository
-					.findByEmpId(employeedto.getEmpId());
-			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-					.findByEmpId(employeedto.getEmpId());
+			List<EmployeeCertificate> certificationsList = employeeCertificateRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
+			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
 
 			if (!objectList.isEmpty()) {
 
@@ -2355,6 +2353,119 @@ public class EmployeeService {
 					dtoList.add(dto);
 				});
 
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	
+	
+	// Here we will get Manager, Co-worker, Reportee's
+	public ServiceResponse getHierarchyChartByEmpId(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("view_my_team");
+		apiLogInfo.setApiUrl("/api/getHierarchyChartByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeedto.getEmpId());
+		try {
+
+			List<Object[]> managerInfoList = employeeRepository.getMyManagerInfo(employeedto.getManagerId());
+			List<Object[]> coWorkerList = employeeRepository.getMyReporteeInfo(employeedto.getManagerId());
+			List<Object[]> reporteeList = employeeRepository.getMyReporteeInfo(employeedto.getEmpId());
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			
+			if(!managerInfoList.isEmpty()) {
+				managerInfoList.forEach((object) -> {
+					EmployeeDTO managerObj = new EmployeeDTO();
+					
+					managerObj.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					managerObj.setName(object[1] != null ? object[1].toString() : null);
+					managerObj.setEmail(object[2] != null ? object[2].toString() : null);
+					managerObj.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+					managerObj.setJobRoleName(object[4] != null ? object[4].toString() : null);
+					managerObj.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					managerObj.setManagerName(object[6] != null ? object[6].toString() : null);
+					managerObj.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					managerObj.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
+
+					managerObj.setHierarchyType("Manager");
+					
+					dtoList.add(managerObj);
+				});
+			}
+			
+			if(!coWorkerList.isEmpty()) {
+				coWorkerList.forEach((object) -> {
+					EmployeeDTO coWorker = new EmployeeDTO();
+					
+					coWorker.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					coWorker.setName(object[1] != null ? object[1].toString() : null);
+					coWorker.setEmail(object[2] != null ? object[2].toString() : null);
+					coWorker.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+					coWorker.setJobRoleName(object[4] != null ? object[4].toString() : null);
+					coWorker.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					coWorker.setManagerName(object[6] != null ? object[6].toString() : null);
+					coWorker.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					coWorker.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
+
+					if(coWorker.getEmpId().equals(employeedto.getEmpId())) {
+						coWorker.setHierarchyType("Self");
+					}else {
+						coWorker.setHierarchyType("Co-Worker");						
+					}
+					
+					dtoList.add(coWorker);
+				});
+			}
+			
+			
+			if(!reporteeList.isEmpty()) {
+				reporteeList.forEach((object) -> {
+					EmployeeDTO reportee = new EmployeeDTO();
+					
+					reportee.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					reportee.setName(object[1] != null ? object[1].toString() : null);
+					reportee.setEmail(object[2] != null ? object[2].toString() : null);
+					reportee.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+					reportee.setJobRoleName(object[4] != null ? object[4].toString() : null);
+					reportee.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					reportee.setManagerName(object[6] != null ? object[6].toString() : null);
+					reportee.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					reportee.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
+					
+					reportee.setHierarchyType("Reportee");
+					
+					dtoList.add(reportee);
+				});
+			}
+			
+			if (dtoList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Hierarchy found");
+				
+				apiLogInfo.setApiResponse("No Hierarchy found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 				

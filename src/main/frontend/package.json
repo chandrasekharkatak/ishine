@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "postinstall": "patch-package"
   },
   "private": true,
   "dependencies": {
@@ -34,7 +35,9 @@
     "ngx-clipboard": "^15.1.0",
     "ngx-mat-select": "^1.5.4",
     "ngx-mat-select-search": "^3.3.3",
+    "ngx-org-chart": "^1.1.1",
     "ngx-pagination": "^5.1.1",
+    "patch-package": "^6.5.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",

@@ -19,6 +19,7 @@ import * as XLSX from 'xlsx';
 import { Sort } from '@angular/material/sort';
 import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { Department } from 'src/app/models/department';
 
 @Component({
   selector: 'app-team-config',
@@ -150,6 +151,7 @@ export class TeamConfigComponent implements OnInit {
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
     this.getAllDepartmentList();
+    this.getAllTeamsByProjectId(0);
   }
 
   showUpdateTeamForm(teamObj: Team) {
@@ -163,6 +165,10 @@ export class TeamConfigComponent implements OnInit {
 
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
+    this.teamObj.departmentList = [];
+    if(this.teamObj.teamLeadDeptId){
+      this.teamObj.departmentList.push(this.teamObj.teamLeadDeptId);
+    }
     this.getTeamMembersByTeamId(this.teamObj.teamId);
 
     /* To Add New Members */
@@ -396,20 +402,50 @@ export class TeamConfigComponent implements OnInit {
     this.allActivityList = [];
     this.filterStatus = "";
 
-    let teamObj = new Team();
-    teamObj.projectId = projectId;
-    this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
+    console.log("selectedProject : ", this.selectedProject);
+    
+    if(projectId == 0){
+        this.getAllMyTeamsByEmpId();
+    }else{
+      let teamObj = new Team();
+      teamObj.projectId = projectId;
+      this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allTeamList = response.serviceResponse;
+          this._allTeamList = this.allTeamList
+          this.filterStatus = "Active";
+          this.changeEvent();
+
+          this.isDisabled = false;
+          console.log("allTeamList :", this.allTeamList);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
+    }
+  }
+
+  getAllMyTeamsByEmpId() {
+    this.allTeamList = [];
+    this.allActivityList = [];
+    this.filterStatus = "";
+    this.selectedProject = "0";
+
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    employeeObj.departmentName = this.currentUser.departmentName;
+    employeeObj.employeeRole = this.currentUser.employeeRole;
+
+    this.teamService.getAllMyTeamsByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        console.log("response.serviceResponse :", response.serviceResponse);
+        
         this.allTeamList = response.serviceResponse;
         this._allTeamList = this.allTeamList
         this.filterStatus = "Active";
         this.changeEvent();
-        // this.allTeamList = this.allTeamList.sort(function (a, b) {
-        //   return a.teamName.toLowerCase().localeCompare(b.teamName.toLowerCase());
-        // });
-
         this.isDisabled = false;
-        console.log("allTeamList :", this.allTeamList);
+        console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -437,6 +473,16 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getTeamMembersByTeamId(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamObj.allTeamMemberList = response.serviceResponse;
+        if(this.teamObj.allTeamMemberList){
+          this.teamObj.allTeamMemberList.forEach(teamMember => {
+            this.teamObj.departmentList.push(teamMember.teamMemberDeptId);
+          });
+
+          this.teamObj.departmentList = Array.from(new Set(this.teamObj.departmentList));
+
+          this.getAllEmployeesByDepartmentIds();   
+          this.getAllEmployeesByRole();      
+        }
         console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
       } else {
         console.error(response.serviceResponse)
@@ -459,21 +505,19 @@ export class TeamConfigComponent implements OnInit {
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
           this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
-        }else if(this.currentUser.employeeRole == 'Manager'){
+        }else{
           this.allProjectListByManagerId = allProjectList;
+          this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+          console.log("allProjectList By Department :", this.allProjectListByManagerId);
+        }
 
-          if(this.isCreation){
-            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
-            console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
-          }else if (this.isTeamTable){
-            this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.projectManagerId == this.currentUser.empId);
-            console.log("allProjectList By ManagerID For Manager :", this.allProjectListByManagerId);
+        this.allProjectListByManagerId = this.allProjectListByManagerId.sort((a, b) => a.projectName.localeCompare(b.projectName));
 
-            if(this.allProjectListByManagerId.length == 0){
-              this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
-              console.log("allProjectList By Department For Manager :", this.allProjectListByManagerId);
-            }
-          }
+        if(this.isTeamTable){
+          this.allProjectListByManagerId.unshift({
+            projectId : 0,
+            projectName : 'My Teams'
+          });
         }
 
       } else {
@@ -548,7 +592,14 @@ export class TeamConfigComponent implements OnInit {
     this.employeeListByDept = [];
 
     let empObj = new Employee();
-    empObj.departmentList = this.teamObj.departmentList;
+    empObj.departmentList = this.teamObj.departmentList.map(deptId => {
+       let dept =  new Department();
+       dept.deptId = deptId;
+       return dept;
+    });
+
+    console.log("empObj.departmentList : ", empObj.departmentList);
+    
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
@@ -589,7 +640,8 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
+    
+    activityObj.activity = activityObj.activity?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(activityObj.activity)) {
       this.alertMessage = "Please enter Activity !!"
       this.openAlertMod(template, this.alertMessage);
@@ -601,15 +653,15 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
-      this.alertMessage = "Please enter Activity ETA (Hours)!!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (activityObj.eta < 0 || activityObj.eta > 999) {
-      this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
+    //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // } else if (activityObj.eta < 0 || activityObj.eta > 999) {
+    //   this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     return true;
   }
@@ -697,8 +749,10 @@ export class TeamConfigComponent implements OnInit {
 
       const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
         x => ({
+          "Project Name": x.projectName,
           "Team Name": x.teamName,
-          "Team Lead": x.teamLeadId,
+          "Team Lead": x.teamLeadName,
+          "Project Manager": x.projectManagerName,
           "Created by": x.createdByName,
           "Created on": x.createdOn
         })

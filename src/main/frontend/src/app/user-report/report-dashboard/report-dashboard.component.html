@@ -38,7 +38,7 @@
                           </tr>
                         </thead>
                         <tbody> 
-                          <tr *ngIf="allResignEmployee.length == 0">
+                          <tr *ngIf="allResignEmployee && allResignEmployee.length == 0">
                             <th colspan="6" class="text-center info-label">No Document to display...</th>
                           </tr>
                           <tr *ngFor="let emp of allResignEmployee |  filter:data |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
@@ -52,7 +52,9 @@
                         </tbody>
                       </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="allResignEmployee.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>    
+                <pagination-controls class="my-pagination" [hidden]="allResignEmployee && allResignEmployee.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allResignEmployee.length == 0" (click)="exportToExcelResignedEmployee()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
     </div>
@@ -367,15 +369,15 @@
                         *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
-                        <td>{{leave.name}}</td>
-                        <td>{{leave.departmentName}}</td>
+                        <td class="text-capitalize">{{leave.name}}</td>
+                        <td class="text-capitalize">{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
-                        <td>{{leave.managerName}}</td>
+                        <td class="text-capitalize" >{{leave.managerName}}</td>
                         <td>{{leave.dateOfJoining | date:'dd-MM-yyyy'}}</td>
                         <td>{{leave.mobileNo}}</td>
-                        <td>{{leave.employmentstatus}}</td>
+                        <td class="text-capitalize" >{{leave.employmentstatus}}</td>
                         <td>{{leave.totalExperience}}</td>
-                        <td>{{leave.gender}}</td>
+                        <td class="text-capitalize" >{{leave.gender}}</td>
                         <td>{{leave.age}}</td>
                     </tr>
                 </tbody>
@@ -419,11 +421,11 @@
                     *ngFor="let emp of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>A-{{emp.employeementId}}</td>
-                    <td>{{emp.employeeName}}</td>
-                    <td>{{emp.projectName}}</td>
-                    <td>{{emp.clientName}}</td>
-                    <td>{{emp.teamName}}</td>
-                    <td>{{emp.managerName}}</td>
+                    <td class="text-capitalize">{{emp.employeeName}}</td>
+                    <td class="text-capitalize">{{emp.projectName}}</td>
+                    <td class="text-capitalize">{{emp.clientName}}</td>
+                    <td class="text-capitalize">{{emp.teamName}}</td>
+                    <td class="text-capitalize">{{emp.managerName}}</td>
                     <td>{{emp.date | date:'dd-MM-yyyy'}}</td>
                 </tr>
             </tbody>

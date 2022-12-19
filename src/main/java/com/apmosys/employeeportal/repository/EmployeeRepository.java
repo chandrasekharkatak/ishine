@@ -116,4 +116,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)	
 	public List<Object[]> checkMultipleAppreciation(Long appreciationEventId, Long appreciationTo, Long appreciationBy);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getMyReporteeInfo(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getMyManagerInfo(Long empId);
 }

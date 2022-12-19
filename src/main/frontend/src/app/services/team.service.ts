@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Activity } from '../models/activity';
+import { Employee } from '../models/employee';
 import { Team } from '../models/team';
 
 @Injectable({
@@ -33,6 +34,9 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/getTeamMembersByTeamId`, teamObj);
   }
 
+  getAllMyTeamsByEmpId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsByEmpId`, employeeObj);
+  }
 
   // Activity Configuration
   createActivity(activityObj: Activity) {

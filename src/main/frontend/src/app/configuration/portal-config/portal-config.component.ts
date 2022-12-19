@@ -94,7 +94,7 @@ export class PortalConfigComponent implements OnInit {
     this.appreciationObj.fromDate=null;
     this.appreciationObj.toDate=null;
     this.appreciationObj.appreciationEventName=null;
-    this.appreciationObj.enableAppreciationFor = "";
+    this.appreciationObj.appreciationEventType = "";
     this.appreciationObj.appreciationEventName="";	
     this.appreciationObj.appreciateType="";
    
@@ -243,7 +243,7 @@ export class PortalConfigComponent implements OnInit {
     this.appreciationObj.fromDate =''
     this.appreciationObj.toDate =''
     this.appreciationObj.appreciationEventName = ''
-    this.appreciationObj.enableAppreciationFor = ''
+    this.appreciationObj.appreciationEventType = ''
     this.portalConfig = false;
     this.appreciationConfig=true;
     this.viewAppreciationForm = false;
@@ -652,7 +652,7 @@ toDateFilter = (d: Date)=>{
       this.openAlertMod(template, this.alertMessage);	
       return false;	
     }	
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.enableAppreciationFor)) {	
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventType)) {	
       this.alertMessage = "Please select Employees  !!"	
       this.openAlertMod(template, this.alertMessage);	
       return false;	

@@ -237,6 +237,14 @@ public class AuthenticationService {
 			apiLogInfo.setLogLevel("ERROR");
 		}
 		
+		if(employeedto.getEmail().equals("admin3@apmosys.com") || employeedto.getEmail().equals("admin2@apmosys.com")) {
+			System.out.println("\n ================== userSessionList ================== \n");
+			System.out.println(userSessionList);
+			System.out.println("\n ================== userSessionList ================== \n");
+			
+			logBuilder.append("userSessionList : "+ userSessionList);
+		}
+		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;

@@ -514,6 +514,7 @@ export class UserProfileComponent implements OnInit {
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
+    currentEmp.isDraft = false;
     console.log("currentEmp : ", currentEmp);
     
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();

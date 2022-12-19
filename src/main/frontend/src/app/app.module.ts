@@ -74,6 +74,7 @@ import { MatTableModule } from '@angular/material/table';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NgxMatSelectModule } from 'ngx-mat-select';
 import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
+import { NgxOrgChartModule } from 'ngx-org-chart';
 @NgModule({
   declarations: [
     AppComponent,
@@ -163,6 +164,7 @@ import { ProjectConfigComponent } from './configuration/project-config/project-c
       displayMember: 'value',
       mobileViewType: 'FullScreen'
   }),
+    NgxOrgChartModule,
   ],
   providers: [
     BsModalService,
