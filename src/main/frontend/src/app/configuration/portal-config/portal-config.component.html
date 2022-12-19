@@ -154,7 +154,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Select Employees</label>
-                                <select  [(ngModel)]="appreciationObj.enableAppreciationFor" (change)="changeEvent(filter, appreciationColumns, 'Filter Appreciation',appreciationObj.enableAppreciationFor)" class="form-control" aria-hidden="true">
+                                <select  [(ngModel)]="appreciationObj.appreciationEventType" (change)="changeEvent(filter, appreciationColumns, 'Filter Appreciation',appreciationObj.appreciationEventType)" class="form-control" aria-hidden="true">
                                     <option selected="selected" value="" disabled>Select</option>
                                     <option value="all">All</option>
                                     <option value="custom">Custom</option>

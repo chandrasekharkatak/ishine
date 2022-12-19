@@ -369,13 +369,13 @@
                         *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
-                        <td>{{leave.name}}</td>
-                        <td>{{leave.departmentName}}</td>
+                        <td class="text-capitalize">{{leave.name}}</td>
+                        <td class="text-capitalize">{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
-                        <td>{{leave.managerName}}</td>
+                        <td class="text-capitalize" >{{leave.managerName}}</td>
                         <td>{{leave.dateOfJoining | date:'dd-MM-yyyy'}}</td>
                         <td>{{leave.mobileNo}}</td>
-                        <td>{{leave.employmentstatus}}</td>
+                        <td class="text-capitalize" >{{leave.employmentstatus}}</td>
                         <td>{{leave.totalExperience}}</td>
                         <td class="text-capitalize" >{{leave.gender}}</td>
                         <td>{{leave.age}}</td>
@@ -421,11 +421,11 @@
                     *ngFor="let emp of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>A-{{emp.employeementId}}</td>
-                    <td>{{emp.employeeName}}</td>
-                    <td>{{emp.projectName}}</td>
-                    <td>{{emp.clientName}}</td>
-                    <td>{{emp.teamName}}</td>
-                    <td>{{emp.managerName}}</td>
+                    <td class="text-capitalize">{{emp.employeeName}}</td>
+                    <td class="text-capitalize">{{emp.projectName}}</td>
+                    <td class="text-capitalize">{{emp.clientName}}</td>
+                    <td class="text-capitalize">{{emp.teamName}}</td>
+                    <td class="text-capitalize">{{emp.managerName}}</td>
                     <td>{{emp.date | date:'dd-MM-yyyy'}}</td>
                 </tr>
             </tbody>

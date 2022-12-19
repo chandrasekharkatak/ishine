@@ -35,6 +35,8 @@ public class AppreciationEvent {
 	
 	private Long updatedBy;
 	
+	private String appreciationEventType;
+	
 	
 
 }
