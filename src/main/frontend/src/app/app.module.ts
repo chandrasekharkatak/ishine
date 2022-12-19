@@ -73,6 +73,7 @@ import { UserExitComponent } from './user-exit/user-exit.component';
 import { MatTableModule } from '@angular/material/table';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NgxMatSelectModule } from 'ngx-mat-select';
+import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -124,6 +125,7 @@ import { NgxMatSelectModule } from 'ngx-mat-select';
     RecruitmentComponent,
     OnBoardingComponent,
     UserExitComponent,
+    ProjectConfigComponent,
   ],
   imports: [
     BrowserModule,

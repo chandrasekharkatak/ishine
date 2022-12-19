@@ -18,4 +18,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	public Team findByTeamNameAndProjectId(String teamName, Integer projectId);
 
+	public Team findByPoTeamId(Long poTeamId);
+
 }

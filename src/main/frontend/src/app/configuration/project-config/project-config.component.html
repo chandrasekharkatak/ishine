@@ -1,0 +1,197 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" *ngIf="isCreateForm" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">View All Projects</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isCreateForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Project</strong>
+            <strong *ngIf="isUpdation">Update Project</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Project Name</label>
+                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectName">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.clientId" (change)="getClientLocationList(projectObj.clientId)">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let client of filteredClientList" value="{{client.clientId}}">{{client.clientName}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentName">
+                                <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept.name">{{dept.name}}</mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Project Manager</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #projectManager="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="managerList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="projectObj.projectManagerId"
+                                  >
+                                  <mat-option [value]="employee.empId" *ngFor="let employee of projectManager.filteredSource">
+                                    {{employee.name}}
+                                  </mat-option>
+                                </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>State</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.state">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- <div class="col-md-12">
+                    <div *ngFor="let client of allClientLocationList;let i = index" class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Client Location - {{i+1}}</label>
+                                    <select class="form-control" aria-hidden="true" [(ngModel)]="client.clientLocationId">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option *ngFor="let client of clientLocationList" value="{{client.clientLocationId}}">{{client.clientLocation}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-group m-0 mt-3 mb-1">
+                                <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputClientLocationField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button *ngIf="allClientLocationList.length > 1" type="button" class="btn btn-outline-primary mx-1" (click)="removeInputClientLocationField(client)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Client Location</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.clientLocationId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let client of clientLocationList" value="{{client.clientLocationId}}">{{client.clientLocation}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" *ngIf="isCreation" class="btn btn-primary btn-sm mx-1" (click)="createProject(alert_message)">Create Project</button>
+                    <button type="submit" *ngIf="isUpdation" class="btn btn-primary btn-sm mx-1">Update Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: create & update form -->
+
+<!-- start :: project table -->
+<div class="row" *ngIf="isTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Projects</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start">
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-1" (click)="showCreateForm()"><em class="fa-solid fa-plus"></em> Create Project</button>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+                    [tableTHeadTrId]="'projectInfoTHeadTr'">
+                    <table class="table table-responsive" id="projectInfo">
+                        <thead class="thead-light" id="projectInfoTHead">
+                            <tr id="projectInfoTHeadTr">
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label">Project Name</th>
+                                <th scope="col" class="info-label">Project Manager</th>
+                                <th scope="col" class="info-label">Client Name</th>
+                                <th scope="col" class="info-label">State</th>
+                                <th scope="col" class="info-label">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allProjects.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let proj of allProjects |filter:data |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                <th class="info-label">{{17*(page-1)+i+1}}</th>
+                                <td>{{proj.projectName}}</td>
+                                <td>{{proj.employeeName}}</td>
+                                <td>{{proj.clientName}}</td>
+                                <td>{{proj.state}}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(proj)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-danger" type="submit"><em class="fa fa-trash"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allProjects.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                    [hidden]="allProjects.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: see all table -->
+
+<!-- modal template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

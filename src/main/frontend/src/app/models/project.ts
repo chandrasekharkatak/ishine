@@ -7,4 +7,9 @@ export class Project{
 	description:any;
 	projectManagerId:any;
 	departmentName:any;
+	clientId:any;
+	clientLocationId:any;
+	departmentList:any[] = [];
+	allClientLocationList;
+	deptId:any;
 }

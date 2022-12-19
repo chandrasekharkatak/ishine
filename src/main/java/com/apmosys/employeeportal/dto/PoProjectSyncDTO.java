@@ -3,18 +3,18 @@ package com.apmosys.employeeportal.dto;
 import java.sql.Timestamp;
 import java.util.List;
 
-import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.Department;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ProjectDTO {
+public class PoProjectSyncDTO {
 
 	private Integer projectId;
 	private String clientName;
-	private String clientLocation;
 	private String state;
 	private String projectName;
 	private String description;
@@ -24,7 +24,6 @@ public class ProjectDTO {
 	private Timestamp createdOn;
 	private Long employeementId;
 	private Long teamId;
-	private String departmentName;
 	private Long poProjectId;
 	private Integer clientId;
     private Integer clientLocationId;
@@ -33,5 +32,7 @@ public class ProjectDTO {
     private String poProjectManagerId;
     private List<TeamDTO> teamList;
     private String[] departmentList;
-
+    private String[] clientLocation;
+    private List<ClientLocation> allClientLocationList;
+	
 }

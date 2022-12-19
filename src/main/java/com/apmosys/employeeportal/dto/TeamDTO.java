@@ -39,5 +39,10 @@ public class TeamDTO {
 	private String isActive;
 	private String startDate;
 	private String endDate;
+	private Long poTeamId;
+	private Long teamMemberId;
+	private String poTeamLeadId;
+	private String[] teamMemberList;
+	private String description;
 
 }

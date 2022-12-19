@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 
 @Service
@@ -18,6 +19,9 @@ public class ValidationService {
 	
 	@Autowired
 	SurveyQuestionRepository surveyQuestionRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
 	
 	public boolean validateEmpId(Long empId) {
 
@@ -47,6 +51,11 @@ public class ValidationService {
 
 		return (surveyQuestionRepository.existsBySurveyId(surveyId)) ? true : false;
 
+	}
+
+	public boolean validateProjectName(String projectName) {
+		
+		return (projectRepository.existsProjectByProjectName(projectName)) ? true : false;
 	}
 
 }

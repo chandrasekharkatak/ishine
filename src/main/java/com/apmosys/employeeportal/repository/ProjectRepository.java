@@ -20,6 +20,12 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public Project findByProjectName(String projectName);
 
-	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllProject();
+
+	public Project findByPoProjectId(Long poProjectId);
+
+	public boolean existsProjectByProjectName(String projectName);
+
 
 }

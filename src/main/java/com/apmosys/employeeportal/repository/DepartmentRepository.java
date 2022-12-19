@@ -14,4 +14,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllDepartments();
 
+	public Department findByName(String department);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getMappedDepartment(Integer projectId);
+
 }

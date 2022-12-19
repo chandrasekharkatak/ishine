@@ -14,4 +14,21 @@ export class ProjectService {
   getAllProjectListByProjectManagerId(projectObj: Project) {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectListByProjectManagerId`, projectObj);
   }
+
+  getAllClients() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllClients`);
+  }
+
+  getAllProjects() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjects`);
+  }
+
+  createProject(projectObj: Project){
+    return this.http.post(`${this.baseUrl}` + `api/createProject`, projectObj);
+  }
+
+  getProjectByProjectId(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/getProjectByProjectId`, project);
+  }
+
 }

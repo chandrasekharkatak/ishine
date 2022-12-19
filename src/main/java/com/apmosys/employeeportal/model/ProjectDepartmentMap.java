@@ -1,12 +1,9 @@
 package com.apmosys.employeeportal.model;
 
-import java.sql.Timestamp;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,13 +13,12 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name="clients")
-public class Client {
+public class ProjectDepartmentMap {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer clientId;
-	private Integer poClientId;
+	private Integer projectDepartmentMapId;
+	private Integer projectId;
+	private Long deptId;
 	
-	private String clientName;
 }
