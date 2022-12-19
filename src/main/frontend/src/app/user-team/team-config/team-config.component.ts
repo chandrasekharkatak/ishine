@@ -150,7 +150,7 @@ export class TeamConfigComponent implements OnInit {
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
     this.getAllDepartmentList();
-    this.getAllMyTeamsByEmpId();
+    this.getAllTeamsByProjectId(0);
   }
 
   showUpdateTeamForm(teamObj: Team) {
@@ -424,7 +424,7 @@ export class TeamConfigComponent implements OnInit {
     this.allTeamList = [];
     this.allActivityList = [];
     this.filterStatus = "";
-    this.selectedProject = 0;
+    this.selectedProject = "0";
 
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;

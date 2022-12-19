@@ -230,10 +230,10 @@
                                   [source]="allProjectListByManagerId"
                                   [useInfiniteScroll]="true"
                                   [multiple]="false"
-                                  [(ngModel)]="selectedProject" 
+                                  [(ngModel)]="selectedProject"
                                   (selectionChange)="getAllTeamsByProjectId(selectedProject)"
                                   >
-                                  <mat-option [value]="project.projectId" *ngFor="let project of viewTeamProjects.filteredSource">
+                                  <mat-option value="{{project.projectId}}" *ngFor="let project of viewTeamProjects.filteredSource">
                                     {{project.projectName}}
                                   </mat-option>
                                 </mat-select>
