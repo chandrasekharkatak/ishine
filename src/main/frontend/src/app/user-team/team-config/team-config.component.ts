@@ -727,8 +727,10 @@ export class TeamConfigComponent implements OnInit {
 
       const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
         x => ({
+          "Project Name": x.projectName,
           "Team Name": x.teamName,
-          "Team Lead": x.teamLeadId,
+          "Team Lead": x.teamLeadName,
+          "Project Manager": x.projectManagerName,
           "Created by": x.createdByName,
           "Created on": x.createdOn
         })
