@@ -291,8 +291,8 @@
                                 <td>{{team.createdByName}}</td>
                                 <td>{{team.createdOn}}</td>
                                 <td>
-                                    <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)"><em class="fa fa-edit"></em></button>&nbsp;
-                                    <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)"><em class="fa fa-trash"></em></button>
+                                    <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)" [disabled]="team.isActive == 'N'"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)" [disabled]="team.isActive == 'N'"><em class="fa fa-trash"></em></button>
                                 </td>
                             </tr>
                         </tbody>
