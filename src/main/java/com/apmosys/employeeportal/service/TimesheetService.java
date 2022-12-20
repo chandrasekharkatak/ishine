@@ -261,6 +261,7 @@ public class TimesheetService {
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
+				newTimesheet.setTotalTime((float)0);
 			} else {
 				String description = "";
 				if (allTimesheetActivities.isEmpty()) {

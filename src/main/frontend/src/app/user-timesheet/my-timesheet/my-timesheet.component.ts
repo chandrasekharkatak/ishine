@@ -929,8 +929,8 @@ export class MyTimesheetComponent implements OnInit {
   // }
   // }
   validateTime(event,data:any){
-     if (!this.validationService.validateCompletionTime(data) && !this.validationService.validateTimesheetCompletionTime(data)){
-      this.errorMsg = "Please enter valid Time !!"
+     if (!this.validationService.validateTimesheetCompletionTime(data)){
+      this.errorMsg = "Please enter Time !!"
     }  
     else if(data <= 0 || data > 24){
       this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
@@ -945,6 +945,27 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   }
+
+  omit_special_char(event) {
+
+    var k;
+    k = event.charCode;  //        k = event.keyCode;  (Both can be used)
+    //console.log("omit function" + k);
+    //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+    if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
+      return (false);
+    }
+    else {
+      return (true);
+    }
+    //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+  }
+
+  onPaste(e) {
+    e.preventDefault();
+    return false;
+  }
+
   
 
   validateClientName(event,data:any){
