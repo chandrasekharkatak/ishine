@@ -69,4 +69,7 @@ public class TimesheetDTO {
 	private String teamName;
 	private Long activityId;
 	
+	private String officeInTime;
+	private String officeOutTime;
+	private String totalWorkingOfficeHours; //<-- totalWorkingHours in Timesheet Model
 }
