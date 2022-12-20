@@ -39,5 +39,6 @@ public class Project {
 	private Integer clientId;
 	private String departmentName;
 	private Long poProjectId;
+	private String active;
 
 }

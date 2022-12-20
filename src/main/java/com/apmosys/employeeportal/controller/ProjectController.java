@@ -46,6 +46,20 @@ public class ProjectController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/updateProject", method = RequestMethod.POST)
+	public ServiceResponse updateProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
+		
+		ServiceResponse response = projectService.updateProject(poProjectSyncDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
+	public ServiceResponse deleteProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
+		
+		ServiceResponse response = projectService.deleteProject(poProjectSyncDto);
+		return response;
+	}
+	
 	@RequestMapping(value = "/syncPoProjectAndTeam", method = RequestMethod.POST)
 	public ServiceResponse syncPoProjectAndTeam(@RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
 		

@@ -30,7 +30,7 @@ public class PoProjectSyncDTO {
     private String employeeName;
     private Integer poClientId;
     private String poProjectManagerId;
-    private List<TeamDTO> teamList;
+    private List<PoTeamDTO> teamList;
     private String[] departmentList;
     private String[] clientLocation;
     private List<ClientLocation> allClientLocationList;

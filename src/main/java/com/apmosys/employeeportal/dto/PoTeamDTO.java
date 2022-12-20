@@ -2,8 +2,6 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
-import javax.persistence.Column;
-
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
 import lombok.Getter;
@@ -13,7 +11,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class TeamDTO {
+public class PoTeamDTO {
+
 
 	private Long teamId;
 	private String teamName;
@@ -22,8 +21,6 @@ public class TeamDTO {
 	private String teamMemberName;
 	private Integer projectId;
 	private List<EmployeeTeamMap> allTeamMemberList;
-	private Long updatedBy;
-	private Long createdBy;
 	private String createdByName;
 	private String createdOn;
 	private Long employeeTeamMapId;
@@ -49,7 +46,8 @@ public class TeamDTO {
 	private Long teamLeadDeptId;
 	private Long teamMemberDeptId;
 	private String updatedOn;
-//	private String updatedBy;
-//	private String createdBy;
+	private String updatedBy;
+	private String createdBy;
 
+	
 }

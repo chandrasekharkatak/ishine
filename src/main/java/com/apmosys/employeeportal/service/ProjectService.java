@@ -3,12 +3,15 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
+import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Client;
@@ -147,6 +150,7 @@ public class ProjectService {
 			projectObj.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
 			projectObj.setClientId(poProjectSyncDTO.getClientId());
 			projectObj.setState(poProjectSyncDTO.getState());
+			projectObj.setActive("true");
 			Project projectDbResponse =  projectRepository.save(projectObj);
 			
 			if(projectDbResponse != null) {
@@ -165,6 +169,7 @@ public class ProjectService {
 				response.setServiceResponse("Unable to create project.");
 			}
 		}catch(Exception e) {
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
@@ -202,6 +207,7 @@ public class ProjectService {
 				projectdto.setDepartmentList(departmentArr);
 				projectdto.setProjectManagerId(projectObj.getProjectManagerId());
 				projectdto.setState(projectObj.getState());
+				projectdto.setProjectId(projectObj.getProjectId());
 				dtoList.add(projectdto);
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -212,6 +218,81 @@ public class ProjectService {
 			}
 			
 		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse updateProject(PoProjectSyncDTO poProjectSyncDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Project project = projectRepository.getById(poProjectSyncDTO.getProjectId());
+			
+			if(project != null) {
+				
+				project.setProjectName(poProjectSyncDTO.getProjectName());
+				project.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
+				project.setClientId(poProjectSyncDTO.getClientId());
+				project.setState(poProjectSyncDTO.getState());
+				project.setActive("true");
+				Project projectDbResponse =  projectRepository.save(project);
+				
+				if(projectDbResponse != null) {
+					// Add department mapping
+					for(String department: poProjectSyncDTO.getDepartmentList()) {
+						Department departmentObj = departmentRepository.findByName(department);
+						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+						projectDeptMap.setDeptId(departmentObj.getDeptId());
+						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project updated successfully.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Project updation failed.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found.");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse deleteProject(PoProjectSyncDTO poProjectSyncDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Optional<Project> projectObj = projectRepository.findById(poProjectSyncDto.getProjectId());
+			if (projectObj.isPresent()) {
+				Project departmentToBeDeleted = projectObj.get();
+				departmentToBeDeleted.setActive("false");
+				Project dbResponse =  projectRepository.save(departmentToBeDeleted);
+				
+				if(dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project deleted.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Project deletion Failed.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
@@ -329,7 +410,7 @@ public class ProjectService {
 					return response;
 				}else if(!poProjectSyncDTO.getTeamList().isEmpty()) {
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
-						TeamDTO team = poProjectSyncDTO.getTeamList().get(i);
+						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
 						if(team.getPoTeamId() == null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Please provide PoTeam Id.");
@@ -396,8 +477,18 @@ public class ProjectService {
 						response.setServiceResponse("Project name already exist : " + poProjectSyncDTO.getProjectName());
 						return response;
 					}
+					if(clientId == null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Cannot create new client while updating a project.");
+						return response;
+					}
+					if(!project.getClientId().equals(clientId)) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Client cannot be updated.");
+						return response;
+					}
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
-						TeamDTO team = poProjectSyncDTO.getTeamList().get(i);
+						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
 						Team teamExists = teamRepository.findByTeamName(team.getTeamName());
 						if(teamExists != null && !project.getProjectId().equals(teamExists.getProjectId())) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -490,8 +581,31 @@ public class ProjectService {
 									response.setServiceResponse("Team updation failed.");
 								}
 							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Team not found while updation.");
+								//create Team
+								
+								Team newTeamObj = new Team();
+								newTeamObj.setIsActive("Y");
+								newTeamObj.setPoTeamId(object.getPoTeamId());
+								newTeamObj.setProjectId(projectDbResponse.getProjectId());
+								newTeamObj.setTeamLeadId(teamLeadObj != null ? teamLeadObj.getEmpId() : null);
+								newTeamObj.setTeamName(object.getTeamName());
+								newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
+								newTeamObj.setDescription(object.getDescription());
+								newTeamObj.getCommonProperty().setCreatedBy(4l);
+								Team teamDbResponse = teamRepository.save(newTeamObj);
+								if(teamDbResponse != null) {
+									// Add team member in team
+									for(String teamMember: object.getTeamMemberList()) {
+										Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
+										EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
+										newEmpTeamMap.setActive(1l);
+										newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
+										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+										EmployeeTeamMap teamMemberDbResponse = employeeTeamMapRepository.save(newEmpTeamMap);
+									}
+								}
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Project updated & new Team created Successfully.");
 							}
 						});
 					}else {
@@ -507,7 +621,7 @@ public class ProjectService {
 						return response;
 					}
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
-						TeamDTO team = poProjectSyncDTO.getTeamList().get(i);
+						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
 						Team teamExists = teamRepository.findByTeamName(team.getTeamName());
 						if(teamExists != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -526,6 +640,11 @@ public class ProjectService {
 						clientDbresponse = clientsRepository.save(clientobj);
 						if(clientDbresponse != null) {
 							clientId = clientDbresponse.getClientId();
+							//default location : WFH
+							ClientLocation clientLocationObj = new ClientLocation();
+							clientLocationObj.setClientId(clientDbresponse.getClientId());
+							clientLocationObj.setClientLocation("WFH");
+							ClientLocation clientLocationDbResponse = clientLocationRepository.save(clientLocationObj);
 							// add client location
 							for(String location: poProjectSyncDTO.getClientLocation()) {
 								ClientLocation locationObj = new ClientLocation();
@@ -546,6 +665,7 @@ public class ProjectService {
 					projectObj.setPoProjectId(poProjectSyncDTO.getPoProjectId());
 					projectObj.setClientId(clientId);
 					projectObj.setState(poProjectSyncDTO.getState());
+					projectObj.setActive("true");
 					Project projectDbResponse =  projectRepository.save(projectObj);
 					
 					// Add department mapping
