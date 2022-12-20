@@ -236,7 +236,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Time
                                             <small>(Hrs)</small></label>
                                         <input type="number" step="any" class="form-control" autocomplete="none" 
-                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)">
+                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)" (keypress)="omit_special_char($event)">
                                             <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>

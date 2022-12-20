@@ -114,7 +114,7 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" *ngIf="isCreation" class="btn btn-primary btn-sm mx-1" (click)="createProject(alert_message)">Create Project</button>
-                    <button type="submit" *ngIf="isUpdation" class="btn btn-primary btn-sm mx-1">Update Project</button>
+                    <button type="submit" *ngIf="isUpdation" class="btn btn-primary btn-sm mx-1" (click)="updateProject(alert_message)">Update Project</button>
                 </div>
             </div>
         </div>
@@ -171,7 +171,7 @@
                                 <td>{{proj.state}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(proj)"><em class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"><em class="fa fa-trash"></em></button>
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProject(proj,delete_project_template)"><em class="fa fa-trash"></em></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -179,9 +179,9 @@
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allProjects.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                     [hidden]="allProjects.length == 0" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>
@@ -193,5 +193,13 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_project_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete Project?</p>
+        <button type="button" class="btn btn-success" (click)="deleteProject(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

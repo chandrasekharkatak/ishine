@@ -542,19 +542,19 @@ toDateFilter = (d: Date)=>{
     this.openAlertMod(template,"Event is already exist on this date"); 
     this.appreciationObj.fromDate=[];
     this.appreciationObj.toDate = [];
+    this.allEmployeeList = []
+    this.appreciationObj.appreciationEventName = ''
+    this.appreciationObj.appreciationEventType = ''
+    this.isTable = false
     }
     else{
     this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.all = response.serviceResponse;
         console.log("appreciation : ", this.all)
-        // this.enableAppreciationList = []
-        // this.allEmployeeList = []
         this.openAlertMod(template, response.serviceResponse); 
         this.viewAppreciationEventOnClick();
-        // this.reset();       
       } else {
-        // console.error(response.serviceResponse)
         this.openAlertMod(template, response.serviceResponse); 
       }
     });
@@ -689,7 +689,7 @@ toDateFilter = (d: Date)=>{
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
         this.reset();	
-        //this.showTable();	
+        this.viewAppreciationEventOnClick()
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
         this.reset();	

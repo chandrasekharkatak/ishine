@@ -200,6 +200,27 @@ export class LoginComponent implements OnInit{
     this.resendOTP(); // used to send otp
   }
 
+  onPaste(e) {
+    e.preventDefault();
+    return false;
+  }
+
+  
+  omit_special_char(event) {
+
+    var k;
+    k = event.charCode;  //        k = event.keyCode;  (Both can be used)
+    //console.log("omit function" + k);
+    //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+    if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
+      return (false);
+    }
+    else {
+      return (true);
+    }
+    //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+  }
+
   async onConfirmLoginOTP(){
     this.isError=false;
     this.errorMsg='';
@@ -212,6 +233,7 @@ export class LoginComponent implements OnInit{
 
     this.user.otp = this.userOTP;
 
+   if(this.userOTP.length <= 8){
     const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
     if (response.serviceStatus == "Success") {
       console.log("USER", response.serviceResponse);
@@ -272,6 +294,12 @@ export class LoginComponent implements OnInit{
       this.isError = true;
       this.errorMsg = response.serviceResponse;
     }
+  
+  }else {
+    this.isError = true;
+      this.errorMsg = "OTP is not valid.Please Try again !!";
+  }
+   
   }
 
    

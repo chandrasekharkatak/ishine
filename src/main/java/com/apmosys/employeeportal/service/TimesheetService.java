@@ -264,6 +264,7 @@ public class TimesheetService {
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
+				newTimesheet.setTotalTime((float)0);
 			} else {
 				
 				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);

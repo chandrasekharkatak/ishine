@@ -122,6 +122,7 @@ export class ProjectConfigComponent implements OnInit {
     this.getAllClientList();
 
     this.allClientLocationList = [];
+    this.filteredClientList = [];
     this.projectObj.departmentName = null;
 
     this.projectObj.projectId = project.projectId;
@@ -151,10 +152,17 @@ export class ProjectConfigComponent implements OnInit {
 
   showTable(){
     this.isTable = true;
+    this.page = 1;
     
     this.isCreateForm = false;
     this.isCreation = false;
     this.getAllProjects();
+  }
+
+  openDeleteProject(project: any,template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.projectObj = new Project();
+    this.projectObj.projectId = project.projectId;
   }
 
   // Manage ClientLocation
@@ -288,19 +296,45 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   createProject(template: TemplateRef<any>){
-    console.log(this.projectObj.departmentName, " : this.projectObj.departmentName");
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
     if (!inputValidated) return;
 
-    this.projectObj.departmentList = this.projectObj.departmentName.map((dept) => {
-      return dept['name'];
-    });
+    this.projectObj.departmentList = this.projectObj.departmentName;
     // this.projectObj.clientLocation = this.allClientLocationList.map((location) => {
     //   return location['clientLocationId'];
     // });
     this.projectObj.departmentName = null;
     
     this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      }else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  updateProject(template: TemplateRef<any>){
+    let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
+    if (!inputValidated) return;
+
+    this.projectObj.departmentList = this.projectObj.departmentName;
+    this.projectObj.departmentName = null;
+
+    this.projectService.updateProject(this.projectObj).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      }else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  deleteProject(template: TemplateRef<any>){
+    this.cancelRequest();
+    this.projectService.deleteProject(this.projectObj).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();

@@ -1164,6 +1164,8 @@ public class EmployeeService {
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 							: null);
+				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
+					employee.setDateOfResign(null);
 				}
 				employee.setBillable(employeedto.getBillable());
 				employee.setChild1(employeedto.getChild1());

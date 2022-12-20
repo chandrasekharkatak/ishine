@@ -413,14 +413,15 @@ export class TeamConfigComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allTeamList = response.serviceResponse;
           this._allTeamList = this.allTeamList
-          this.filterStatus = "Active";
-          this.changeEvent();
 
           this.isDisabled = false;
           console.log("allTeamList :", this.allTeamList);
         } else {
           console.error(response.serviceResponse)
         }
+
+        this.filterStatus = "Active";
+        this.changeEvent();
       });
     }
   }
@@ -442,13 +443,14 @@ export class TeamConfigComponent implements OnInit {
         
         this.allTeamList = response.serviceResponse;
         this._allTeamList = this.allTeamList
-        this.filterStatus = "Active";
-        this.changeEvent();
         this.isDisabled = false;
         console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
+
+      this.filterStatus = "Active";
+      this.changeEvent();
     });
   }
 
