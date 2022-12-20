@@ -32,8 +32,8 @@
                         <div class="form-group">
                             <label for="userOtp" class="sr-only">OTP</label>
                             <div class="d-flex">
-                                <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
-                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off" (keyup.enter)="onConfirmLoginOTP()" />
+                                <input class="form-control" [type]="fieldTextType ? 'number' : 'password'" id="userOtp"
+                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off" (keypress)="omit_special_char($event)" (paste)="onPaste($event)" (keyup.enter)="onConfirmLoginOTP()" />
                                 <span class="btn" style="margin-left: -50px;" id="passwordEye" (click)="toggleFieldTextType()">
                                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                                 </span>
