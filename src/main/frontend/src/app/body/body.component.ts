@@ -113,6 +113,10 @@ export class BodyComponent implements OnInit {
         this.router.navigate(['/login']);
         location.reload();
       } else {
+        if( response.serviceResponse == "Session already destroyed"){
+          this.router.navigate(['/login']);
+          location.reload();
+        }
         console.error(response.serviceResponse);
       }
     });

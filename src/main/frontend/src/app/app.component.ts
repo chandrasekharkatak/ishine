@@ -1,4 +1,5 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 
@@ -19,7 +20,10 @@ export class AppComponent {
   screenWidth = 0;
   currentUser:User = new User();
 
-  constructor(private authenticationService: AuthenticationService){
+  constructor(
+    private authenticationService: AuthenticationService,
+    private router : Router
+  ){
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -30,13 +34,28 @@ export class AppComponent {
   }
 
   // @HostListener('window:beforeunload',[ '$event' ])
-  // logout() {
-  //   let user = new User();
-  //   user.empId = this.currentUser.empId;
-  //   this.authenticationService.logoutUser(user).subscribe((response:any)=>{
-      
-  //   })
+  // browserClosed(event:any){
+  //   event.preventDefault();
+
+  //   this.logout();
   // }
+
+
+  @HostListener('window:unload', [ '$event' ])
+  logout(event) {
+    event.preventDefault();
+
+    let user = new User();
+    user.empId = this.currentUser.empId;
+    this.authenticationService.logoutUser(user).subscribe((response:any)=>{
+      this.authenticationService.stopUserSessionCheck();
+      console.log(response.serviceResponse);
+      sessionStorage.removeItem('currentUser');
+      // delete method call for cookies
+      this.authenticationService.deleteCookies();
+      this.authenticationService.setcurrentUserSubject(null);
+    })
+  }
 
   //implementing cookies
   
