@@ -13,6 +13,7 @@ import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
@@ -151,6 +152,7 @@ public class ProjectService {
 			projectObj.setClientId(poProjectSyncDTO.getClientId());
 			projectObj.setState(poProjectSyncDTO.getState());
 			projectObj.setActive("true");
+			projectObj.setSyncProject("true");
 			Project projectDbResponse =  projectRepository.save(projectObj);
 			
 			if(projectDbResponse != null) {
@@ -277,6 +279,7 @@ public class ProjectService {
 			if (projectObj.isPresent()) {
 				Project departmentToBeDeleted = projectObj.get();
 				departmentToBeDeleted.setActive("false");
+				departmentToBeDeleted.setSyncProject("false");
 				Project dbResponse =  projectRepository.save(departmentToBeDeleted);
 				
 				if(dbResponse != null) {
@@ -380,6 +383,11 @@ public class ProjectService {
 							return response;
 						}
 					}
+				}
+				if(poProjectSyncDTO.getStatus() == null || poProjectSyncDTO.getStatus() == "") {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Please provide project status.");
+					return response;
 				}
 				
 				if(poProjectSyncDTO.getDepartmentList() == null) {
@@ -501,6 +509,13 @@ public class ProjectService {
 					project.setProjectName(poProjectSyncDTO.getProjectName());
 					project.setProjectManagerId(managerObj.getEmpId());
 					project.setState(poProjectSyncDTO.getState());
+					if(poProjectSyncDTO.getStatus().equals("Completed")) {
+						project.setActive("false");
+						project.setSyncProject("false");
+					}else {
+						project.setActive("true");
+						project.setSyncProject("true");
+					}
 					Project projectDbResponse =  projectRepository.save(project);
 					
 					if(projectDbResponse != null) {
@@ -666,6 +681,7 @@ public class ProjectService {
 					projectObj.setClientId(clientId);
 					projectObj.setState(poProjectSyncDTO.getState());
 					projectObj.setActive("true");
+					projectObj.setSyncProject("true");
 					Project projectDbResponse =  projectRepository.save(projectObj);
 					
 					// Add department mapping
@@ -717,6 +733,38 @@ public class ProjectService {
 					}
 				}
 			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getSyncableProject() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Project> syncableProject = projectRepository.findBySyncProject("true");
+			List<SyncableProjectDTO> dtoList = new ArrayList<SyncableProjectDTO>();
+			
+			if(syncableProject != null) {
+				
+				syncableProject.forEach((object -> {
+					SyncableProjectDTO dto = new SyncableProjectDTO();
+					
+					dto.setProjectName(object.getProjectName());
+					dtoList.add(dto);
+				}));
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Syncable project found.");
+			}
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

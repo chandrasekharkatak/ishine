@@ -67,4 +67,11 @@ public class ProjectController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getSyncableProject", method = RequestMethod.GET)
+	public ServiceResponse getSyncableProject() {
+		
+		ServiceResponse response = projectService.getSyncableProject();
+		return response;
+	}
+	
 }

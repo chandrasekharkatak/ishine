@@ -40,5 +40,6 @@ public class Project {
 	private String departmentName;
 	private Long poProjectId;
 	private String active;
+	private String syncProject;
 
 }

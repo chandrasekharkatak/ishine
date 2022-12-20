@@ -34,5 +34,7 @@ public class PoProjectSyncDTO {
     private String[] departmentList;
     private String[] clientLocation;
     private List<ClientLocation> allClientLocationList;
+    private String syncProject;
+    private String status;
 	
 }

@@ -12,4 +12,5 @@ export class Project{
 	departmentList:any[] = [];
 	allClientLocationList;
 	deptId:any;
+	active:any;
 }

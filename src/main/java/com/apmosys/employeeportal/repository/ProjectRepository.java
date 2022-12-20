@@ -27,5 +27,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public boolean existsProjectByProjectName(String projectName);
 
+	public List<Project> findBySyncProject(String sync);
+
 
 }
