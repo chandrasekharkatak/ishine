@@ -4,6 +4,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
     </div>
 </div>
 
@@ -470,6 +471,75 @@
     </div>      
 </div>
 <!-- end :: View Activities -->
+
+
+<!-- start :: Activity Template -->
+
+<!-- create/ update Activity template-->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isActivityCreate">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isActivityCreate">Add Activity</strong>
+            <strong *ngIf="isActivityUpdate">Update Activity</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Employee">Employee</option>
+                                <option value="TeamLead">Team Lead</option>
+                                <option value="HOD">HOD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="HR">HR</option>
+                                <option value="SuperAdmin">Super Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <select class="form-control" aria-hidden="true">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <!-- <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option> -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngFor="let activity of allTemplateActivityList;let i = index" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Activity - {{i+1}}</label>
+                            <input type="text" class="form-control" autocomplete="none">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center">
+                    <div class="form-group m-0 mt-3 mb-1">
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputTemplateActivityField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button type="button" *ngIf="allTemplateActivityList.length > 1" class="btn btn-outline-primary mx-1" (click)="removeInputTemplateActivityField(activity)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" *ngIf="isActivityCreate" class="btn btn-primary btn-sm mx-1">Create Project</button>
+                    <button type="submit" *ngIf="isActivityUpdate" class="btn btn-primary btn-sm mx-1">Update Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- end :: Activity Template -->
 
 
 <!-- Modals Template -->

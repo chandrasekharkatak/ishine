@@ -44,6 +44,10 @@ export class TeamConfigComponent implements OnInit {
   isDisabled: boolean = false;
   _allTeamList:any[] ;
 
+  isActivityTemplate: boolean = false;
+  isActivityCreate: boolean = false;
+  isActivityUpdate: boolean = false;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -68,6 +72,9 @@ export class TeamConfigComponent implements OnInit {
   allProjectListByManagerId: any[] = [];
   allTeamList: any[] = [];
   employeeSpecificProjectList: any[] = [];
+
+  allTemplateActivityList: any[] = [];
+  updatedTemplateActivityList: any[] = [];
 
   //excel
   teamDataForExcel: any[];
@@ -217,6 +224,47 @@ export class TeamConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.activityObj = Object.assign({}, activityObj);
+  }
+
+  showActivityTemplate(){
+    this.isActivityTemplate = true;
+    this.isActivityCreate = true;
+
+    this.isActivityUpdate = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+
+    this.isTeamForm = false;
+    this.isActivityForm = false;
+    this.isTeamTable = false;
+    this.isActivityTable = false;
+    this.isDisabled = false;
+
+    this.teamObj = new Team();
+
+    //Template Activity
+    if (this.teamObj.templateActivityList == undefined || this.teamObj.templateActivityList == 0) {
+      this.addInputTemplateActivityField();
+    } else {
+      this.allTemplateActivityList = this.teamObj.templateActivityList;
+    }
+  }
+
+  // Manage Template Activity
+  addInputTemplateActivityField(){
+    let newTeamObj = new Team();
+    this.allTemplateActivityList.push(newTeamObj);
+    console.log(this.allTemplateActivityList, " : this.allClientLocation");
+  }
+
+  removeInputTemplateActivityField(activityObj) {
+    this.allTemplateActivityList.forEach((value, index) => {
+      if (value == activityObj) {
+        this.updatedTemplateActivityList.push(value);
+        this.allTemplateActivityList.splice(index, 1);
+      }
+    });
+    console.log(this.updatedTemplateActivityList, " :this.updatedCLientLocationList");
   }
 
   reset() {
@@ -501,6 +549,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
         let allProjectList = response.serviceResponse;
+        allProjectList = allProjectList.filter(x => x.active == "true");
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
           this.allProjectListByManagerId = allProjectList;
@@ -535,6 +584,8 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeSpecificProjectList = response.serviceResponse;
 
+        console.log(this.employeeSpecificProjectList, " this.employeeSpecificProjectList==");
+        
         // filter list if data is duplicate
 
         this.employeeSpecificProjectList = this.employeeSpecificProjectList.filter((value, index, self) =>

@@ -69,4 +69,7 @@ public class TimesheetDTO {
 	private String teamName;
 	private Long activityId;
 	
+	//project
+	private String active;
+	
 }
