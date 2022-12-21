@@ -13,4 +13,5 @@ export class Project{
 	allClientLocationList;
 	deptId:any;
 	active:any;
+	syncProject:any;
 }

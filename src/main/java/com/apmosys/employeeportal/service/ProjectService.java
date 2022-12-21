@@ -152,7 +152,7 @@ public class ProjectService {
 			projectObj.setClientId(poProjectSyncDTO.getClientId());
 			projectObj.setState(poProjectSyncDTO.getState());
 			projectObj.setActive("true");
-			projectObj.setSyncProject("true");
+			projectObj.setSyncProject(poProjectSyncDTO.getSyncProject());
 			Project projectDbResponse =  projectRepository.save(projectObj);
 			
 			if(projectDbResponse != null) {
@@ -210,6 +210,7 @@ public class ProjectService {
 				projectdto.setProjectManagerId(projectObj.getProjectManagerId());
 				projectdto.setState(projectObj.getState());
 				projectdto.setProjectId(projectObj.getProjectId());
+				projectdto.setSyncProject(projectObj.getSyncProject());
 				dtoList.add(projectdto);
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -241,6 +242,7 @@ public class ProjectService {
 				project.setClientId(poProjectSyncDTO.getClientId());
 				project.setState(poProjectSyncDTO.getState());
 				project.setActive("true");
+				project.setSyncProject(poProjectSyncDTO.getSyncProject());
 				Project projectDbResponse =  projectRepository.save(project);
 				
 				if(projectDbResponse != null) {
