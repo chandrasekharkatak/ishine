@@ -50,4 +50,9 @@ export class Timesheet{
     queryList:any[] = [];
     teamId:any;
     teamName:any;
+
+    officeInTime:any;
+    officeOutTime:any;
+    totalWorkingOfficeHours:any;
+
 }

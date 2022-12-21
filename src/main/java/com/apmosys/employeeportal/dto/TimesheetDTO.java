@@ -71,5 +71,8 @@ public class TimesheetDTO {
 	
 	//project
 	private String active;
-	
+
+	private String officeInTime;
+	private String officeOutTime;
+	private String totalWorkingOfficeHours; //<-- totalWorkingHours in Timesheet Model
 }

@@ -18,6 +18,7 @@ import { TeamViewService } from 'src/app/services/team-view.service';
 import { LeaveService } from 'src/app/services/leave.service';	
 import { Leave } from 'src/app/models/leave';
 import { Team } from 'src/app/models/team';
+import { ThemePalette } from '@angular/material/core';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -102,6 +103,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
+    this.timesheetObj.totalWorkingOfficeHours = 0;
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
     this.sectionViewInit();
   }
@@ -176,7 +178,9 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
-
+    this.timesheetObj.officeInTime = new Date(this.timesheetObj.officeInTime);
+    this.timesheetObj.officeOutTime = new Date(this.timesheetObj.officeOutTime);
+    
     let userObj:User = new User();
     if (this.isSelfTimesheets) {
       this.timesheetObj.timesheetAppliedFor = "self";
@@ -192,6 +196,7 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllProjectsByEmpId(userObj);
     setTimeout(()=>{
       this.getAllMyActivitiesByTimesheetId(timesheetObj);
+      this.setMaxInTimeDate(this.timesheetObj.date);
     },500)
   }
 
@@ -200,7 +205,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.dayType = '';
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
-    
+    this.timesheetObj.totalWorkingOfficeHours = 0;
     this.allTimesheetActivities = [];
     this.addInputActivityField();;
   }
@@ -274,13 +279,60 @@ export class MyTimesheetComponent implements OnInit {
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
     const time = checkDate?.getTime();
     let currentDate = new Date();
+    const dateFormat = 'YYYY-MM-DD';
 
     // 7 days + 1 current Day
     let endDate = currentDate;
     let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
 
+    if(this.isTimesheetForm && this.isUpdation){
+      this.availableTimesheets = this.availableTimesheets.filter(timesheet => timesheet.date != this.timesheetObj.date);
+      console.log("availableTimesheets : ", this.availableTimesheets);
+      
+    }
+    
     return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.fromDate == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.toDate == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
-  }  
+  } 
+  
+  setMaxInTimeDate(timesheetDate:any){
+    console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
+    
+    if(this.timesheetObj.dayType != "Holiday"){
+      let inTimeDate = document.getElementById('officeInTime');
+      let officeOutTime = document.getElementById('officeOutTime');
+      inTimeDate.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
+      officeOutTime.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
+    }
+  }
+
+  resetTotalWorkingOfficeHours(){
+    this.timesheetObj.officeOutTime = '';
+    this.timesheetObj.totalWorkingOfficeHours = 0;
+  };
+
+  setTotalWorkingOfficeHours(){
+    const dateFormat = 'YYYY-MM-DD';
+    if(this.timesheetObj.officeOutTime){
+      console.log("officeInTime : ", this.timesheetObj.officeInTime);
+      console.log("officeOutTime : ", this.timesheetObj.officeOutTime);
+
+      
+      let start = moment(this.timesheetObj.officeInTime);
+      let end = moment(this.timesheetObj.officeOutTime);
+  
+      // const duration = moment.duration(end.diff(start));
+      // let hours = duration.asHours();
+  
+      // this.timesheetObj.totalWorkingOfficeHours = hours.toFixed(2);
+      // alert(`hours : ${hours}`);
+  
+      const duration = moment.utc(moment(end,"dd/MM/yyyy HH:mm:ss").diff(moment(start,"dd/MM/yyyy HH:mm:ss"))).format("HH:mm");
+      this.timesheetObj.totalWorkingOfficeHours = duration;
+      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+    }else{
+      this.timesheetObj.totalWorkingOfficeHours = 0;
+    }
+  }
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
@@ -300,6 +352,18 @@ export class MyTimesheetComponent implements OnInit {
     if (timesheetObj.dayType != 'Holiday') {
       let flag = true;
       let totalActivityTime = 0;
+
+      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
+        this.alertMessage = "Please enter In Date-Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeOutTime)) {
+        this.alertMessage = "Please select Out Date-Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
       this.allTimesheetActivities.forEach((activity, index) => {
 
@@ -382,6 +446,7 @@ export class MyTimesheetComponent implements OnInit {
 
   onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
+    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
 
     this.timesheetObj.description = this.timesheetObj.description?.trim();
 
@@ -395,7 +460,9 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
-    this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
+    this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+    this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+    this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.createdByName = this.currentUser.name
     console.log("Add timesheetObj : ", this.timesheetObj);
@@ -421,11 +488,14 @@ export class MyTimesheetComponent implements OnInit {
 
   onUpdateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
+    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
     if (this.timesheetObj.dayType != 'Holiday') {
       this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
+      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat)
+      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat)
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
       if (this.timesheetObj.allTimesheetActivities) {
@@ -929,8 +999,8 @@ export class MyTimesheetComponent implements OnInit {
   // }
   // }
   validateTime(event,data:any){
-     if (!this.validationService.validateCompletionTime(data) && !this.validationService.validateTimesheetCompletionTime(data)){
-      this.errorMsg = "Please enter valid Time !!"
+     if (!this.validationService.validateTimesheetCompletionTime(data)){
+      this.errorMsg = "Please enter Time !!"
     }  
     else if(data <= 0 || data > 24){
       this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
@@ -945,6 +1015,27 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   }
+
+  omit_special_char(event) {
+
+    var k;
+    k = event.charCode;  //        k = event.keyCode;  (Both can be used)
+    //console.log("omit function" + k);
+    //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+    if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
+      return (false);
+    }
+    else {
+      return (true);
+    }
+    //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+  }
+
+  onPaste(e) {
+    e.preventDefault();
+    return false;
+  }
+
   
 
   validateClientName(event,data:any){

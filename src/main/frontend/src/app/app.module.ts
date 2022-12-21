@@ -75,6 +75,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NgxMatSelectModule } from 'ngx-mat-select';
 import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
 import { NgxOrgChartModule } from 'ngx-org-chart';
+import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 @NgModule({
   declarations: [
     AppComponent,
@@ -165,6 +166,8 @@ import { NgxOrgChartModule } from 'ngx-org-chart';
       mobileViewType: 'FullScreen'
   }),
     NgxOrgChartModule,
+    OwlDateTimeModule,
+     OwlNativeDateTimeModule,
   ],
   providers: [
     BsModalService,

@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+@import "~ng-pick-datetime/assets/style/picker.min.css";
 
 :root{
 
@@ -158,4 +159,8 @@ input[type=number] {
 .ngx-org-reports{
     max-width: 100%;
     overflow: auto;
+}
+
+.picker{
+    z-index: 1000 !important;
 }

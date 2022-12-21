@@ -496,10 +496,10 @@
                                             <div class="form-group">
                                                 <label class="info-label">Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker"  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" disabled>
-                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker"></mat-datepicker-toggle>
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DORPicker disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>

@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.service;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -251,6 +253,7 @@ public class TimesheetService {
 		logBuilder.append("empId : " +timesheetDTO.getEmpId()+ "dayType:" +timesheetDTO.getDayType());
 		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		try {
 
 			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
@@ -261,7 +264,15 @@ public class TimesheetService {
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			if (timesheetDTO.getDayType().equals("Holiday")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
+				newTimesheet.setTotalTime((float)0);
 			} else {
+				
+				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);
+
+				newTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
+				newTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
+				newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
+				
 				String description = "";
 				if (allTimesheetActivities.isEmpty()) {
 					description = "No activity available in timesheet";
@@ -404,6 +415,10 @@ public class TimesheetService {
 						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
 						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setRemarks(object[10] != null ? object[10].toString() : null);
+						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -481,6 +496,9 @@ public class TimesheetService {
 						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
 						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setRemarks(object[10] != null ? object[10].toString() : null);
+						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -808,6 +826,7 @@ public class TimesheetService {
 		
 		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		try {
 
 			Optional<Timesheet> timesheet = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
@@ -838,6 +857,9 @@ public class TimesheetService {
 
 				} else {
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
+					existingTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
+					existingTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
+					existingTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
 
 					List<ActivityDTO> updatedTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 

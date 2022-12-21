@@ -58,30 +58,32 @@
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange()" >
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Working">Working</option>
+                                <option value="Holiday">Holiday</option>
+                                <option value="Non-working">Working on non-working day</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
                             <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
                                 <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                     id="timesheetDate" [matDatepicker]="timesheetDate"
                                     [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
-                                    [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
+                                    [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()" (dateChange)="setMaxInTimeDate(timesheetObj.date)"
                                     autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange()">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option value="Working">Working</option>
-                                <option value="Holiday">Holiday</option>
-                                <option value="Non-working">Working on non-working day</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -93,6 +95,37 @@
                             <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
                             <textarea class="form-control" id="dayTypeDesc" rows="3"
                                 [(ngModel)]="timesheetObj.description"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- IN/OUT Time-->
+            <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group input-wrapper">
+                            <label class="info-label"><span class="text-danger">*</span>In Time</label>
+                            <input id="officeInTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeInTime" [owlDateTimeTrigger]="officeInTimePicker" [owlDateTime]="officeInTimePicker" [owlDateTimeFilter]="timesheetDateFilter"
+                            (dateTimeChange)="resetTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
+                            <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group input-wrapper">
+                            <label class="info-label"><span class="text-danger">*</span>Out Time</label>
+                            <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker" [min]="timesheetObj.date"
+                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off">
+                            <owl-date-time class="picker" [hour12Timer]="true" [startAt]="timesheetObj.date" #officeOutTimePicker></owl-date-time>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Total Working Hours</label>
+                            <input type="text" [(ngModel)]="timesheetObj.totalWorkingOfficeHours" step="any" class="form-control" autocomplete="none" value="0" disabled>
                         </div>
                     </div>
                 </div>
@@ -203,7 +236,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Time
                                             <small>(Hrs)</small></label>
                                         <input type="number" step="any" class="form-control" autocomplete="none" 
-                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)">
+                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)" (keypress)="omit_special_char($event)">
                                             <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
@@ -300,17 +333,20 @@
                         <thead class="thead-light" id="myTimesheetInfoTHead">
                             <tr id="myTimesheetInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label">Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
-                                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
-                                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                                <th scope="col" colspan="info-label" class="info-label">Total Time</th>
+                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md">Name</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="date">Date</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="dayType">Day Type</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="officeInTime">In Time</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime">Out Time</th>
+                                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Working Hours</th>
+                                <th scope="col" colspan="4" class="info-label column-md">Timesheet Details</th>
+                                <th scope="col" colspan="info-label" class="info-label">Total Activity Time</th>
                                 <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                                 <th *ngIf="isSelfTimesheets" scope="col" class="info-label"
-                                    mat-sort-header="createdByName">Applied By</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
-                                <th scope="col" class="info-label">Remarks</th>
-                                <th scope="col" class="info-label">Actions</th>
+                                    mat-sort-header="createdByName column-md">Applied By</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="createdOn">Applied On</th>
+                                <th scope="col" class="info-label column-md">Remarks</th>
+                                <th scope="col" class="info-label column-md">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -323,6 +359,9 @@
                                 <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
                                 <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                                 <td>{{timesheet.dayType}}</td>
+                                <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                                <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                                <td>{{timesheet.totalWorkingOfficeHours}}</td>
                                 <td colspan="4" [innerHTML]="timesheet.description"></td>
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.status}}</td>

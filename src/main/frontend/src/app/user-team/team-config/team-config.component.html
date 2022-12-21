@@ -455,7 +455,7 @@
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
                         <td>{{activity.createdByName}}</td>
-                        <td>{{activity.createdOn}}</td>
+                        <td>{{activity.createdOn | date:'dd-MM-yyyy'}}</td>
                         <td>
                             <button *ngIf="userMapping.update_activity" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
                             <button *ngIf="userMapping.delete_activity" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button>
