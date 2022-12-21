@@ -748,7 +748,7 @@ public class ProjectService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			List<Project> syncableProject = projectRepository.findBySyncProject("true");
+			List<Project> syncableProject = projectRepository.findBySyncProject("false");
 			List<SyncableProjectDTO> dtoList = new ArrayList<SyncableProjectDTO>();
 			
 			if(syncableProject != null) {
