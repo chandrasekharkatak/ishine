@@ -130,6 +130,11 @@ export class ProjectConfigComponent implements OnInit {
       if(response.serviceStatus == "Success") {
         this.projectObj = Object.assign({}, response.serviceResponse)[0];
         this.getClientLocationList(this.projectObj.clientId);
+        if(this.projectObj.syncProject == "true"){
+          this.projectObj.syncProject = true;
+        }else{
+          this.projectObj.syncProject = false;
+        }
 
         console.log(this.projectObj, " this.projectObj");
 
@@ -163,6 +168,14 @@ export class ProjectConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.projectObj = new Project();
     this.projectObj.projectId = project.projectId;
+  }
+
+  toggleSync(event){
+    if(event.target.checked){
+      this.projectObj.syncProject = true;
+    }else{
+      this.projectObj.syncProject = false;
+    }
   }
 
   // Manage ClientLocation
