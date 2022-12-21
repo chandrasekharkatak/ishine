@@ -1243,12 +1243,12 @@ export class LeaveComponent implements OnInit {
     sortLeaveBalanceChange(sort:Sort){	
       console.log(sort);	
       	
-      const data=this.leaveLogList; 	
+      const data=this.revokeLeaveApplicationList; 	
       if(!sort.active || sort.direction===''){	
-        this.leaveLogList=data;	
+        this.revokeLeaveApplicationList=data;	
         return ;	
       }else {	
-        this.leaveLogList=data.sort(	
+        this.revokeLeaveApplicationList=data.sort(	
           (a , b)=>{	
             const isAsc=sort.direction==='asc'	
             switch(sort.active){	
@@ -1309,6 +1309,75 @@ export class LeaveComponent implements OnInit {
       }	
       	
     }	
+
+    sortReporteeLeaveBalanceChange(sort:Sort){	
+      console.log(sort)	
+      const data = this.reporteeLeaveRevokeApplicationList;	
+      	
+      if(!sort.active || sort.direction===''){	
+        this.reporteeLeaveRevokeApplicationList=data;	
+        return ;	
+      }else {	
+        this.reporteeLeaveRevokeApplicationList=data.sort(	
+          (a , b)=>{	
+            const isAsc=sort.direction==='asc'	
+            switch(sort.active){	
+              case 'leaveType':	
+                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+                case 'fromDate':	
+                  return compare(a.fromDate , b.fromDate ,isAsc)	
+                  case 'toDate':	
+                    return compare(a.toDate , b.toDate ,isAsc)	
+                    case 'noOfDays':	
+                      return compare(a.noOfDays , b.noOfDays , isAsc)	
+                      case 'status':	
+                      return compare(a.status , b.status , isAsc)	
+                    	
+                      case 'createdByName':	
+                        return compare(a.createdByName , b.createdByName , isAsc)	
+                        case 'createdOn':	
+                          return compare(a.createdOn , b.createdOn , isAsc)	
+                          case 'reason':	
+                            return compare(a.reason , b.reason , isAsc)	
+                default :	
+                return 0;	
+            }	
+          }	
+        )	
+      }	
+      	
+    }	
+
+    sortLeaveLogList(sort:Sort){	
+      console.log(sort);	
+      	
+      const data=this.leaveLogList;	
+      	
+      if(!sort.active || sort.direction===''){	
+        this.leaveLogList=data;	
+        return ;	
+      }else {	
+        this.leaveLogList=data.sort(	
+          (a , b)=>{	
+            const isAsc=sort.direction==='asc'	
+            switch(sort.active){	
+              case 'leaveType':	
+                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+                case 'updateBalanceBy':	
+                  return compare(a.updateBalanceBy , b.updateBalanceBy ,isAsc)	
+                  case 'balance':	
+                    return compare(a.balance , b.balance ,isAsc)	
+                    case 'message':	
+                      return compare(a.message , b.message , isAsc)	
+                      case 'createdOn':	
+                      return compare(a.createdOn , b.createdOn , isAsc)	
+                default :	
+                return 0;	
+            }	
+          }	
+        )	
+      }	
+    }
 
     selectAll(event){
       this.bulkLeaveApprove = [];

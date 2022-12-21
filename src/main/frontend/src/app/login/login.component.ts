@@ -297,7 +297,7 @@ export class LoginComponent implements OnInit{
   
   }else {
     this.isError = true;
-      this.errorMsg = "OTP is not valid.Please Try again !!";
+      this.errorMsg = "Invalid OTP !!";
   }
    
   }

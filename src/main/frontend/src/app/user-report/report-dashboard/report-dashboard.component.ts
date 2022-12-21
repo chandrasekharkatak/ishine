@@ -1493,7 +1493,7 @@ export class ReportDashboardComponent implements OnInit {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         "Emp ID": x.employeementId,
-        "Employee Name":x.name,
+        "Employee Name":x.employeeName,
         "Project Name":x.projectName,
         "Client Name":x.clientName,
         "Team Name":x.teamName,

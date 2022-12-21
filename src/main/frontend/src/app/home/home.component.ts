@@ -1361,6 +1361,10 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
         this.router.navigate(['/login']);
         location.reload();
       } else {
+        if(response.serviceResponse == "Session already destroyed"){
+          this.router.navigate(['/login']);
+          location.reload();
+        }
         console.error(response.serviceResponse);
       }
     });
