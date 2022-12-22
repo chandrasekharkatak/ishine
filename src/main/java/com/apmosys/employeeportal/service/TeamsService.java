@@ -702,13 +702,35 @@ public class TeamsService {
 		
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
-			if(checkTeamNameByName==null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				}else if(checkTeamNameByName != null) {
+			
+			if(teamdto.getTeamId() != null) {
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
+				if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
 				}
+				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+			}else {
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
+				if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team Name already exist!");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}
+			
+			
+//			if(checkTeamNameByName==null) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else if(checkTeamNameByName != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Team Name already exist!");
+//				}
+			
+			
 			 
 		}catch (Exception e) {
 			e.printStackTrace();

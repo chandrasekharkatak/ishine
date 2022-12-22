@@ -240,11 +240,14 @@ export class TeamTimesheetComponent implements OnInit {
       this.allTeamTimesheetDataForExcel = this.allTeamTimesheets;
         const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
           x => ({
+            "Employee Id": x.employeementId,
+            "Employee Name":x.employeeName,
             "Date": x.date,
             "Day Type": x.dayType,
             "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
             "Total Time": x.totalTime,
-            "Status": x.status
+            "Status": x.status,
+            "Remarks":x.remarks
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
@@ -260,7 +263,8 @@ export class TeamTimesheetComponent implements OnInit {
             "Name": x.employeeName,
             "Date": x.date,
             "Day Type": x.dayType,
-            "Timesheet Details": x.description,
+            "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
+            "Applied By":x.createdByName,
             "Working Hours": x.totalTime,
             "Status": x.status
           })

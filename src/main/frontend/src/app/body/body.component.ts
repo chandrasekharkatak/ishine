@@ -114,6 +114,10 @@ export class BodyComponent implements OnInit {
         location.reload();
       } else {
         if(response.serviceResponse == "Session already destroyed"){
+          sessionStorage.removeItem('currentUser');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
           this.router.navigate(['/login']);
           location.reload();
         }

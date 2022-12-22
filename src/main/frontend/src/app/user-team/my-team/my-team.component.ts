@@ -422,7 +422,8 @@ export class MyTeamComponent implements OnInit {
           "Status": x.status,
           "Approved/Rejected By":x.leaveStatusUpdatedByName,
           "Leave Reason": x.reason,
-          "Type": x.leaveType
+          "Type": x.leaveType,
+          "Remarks":x.remark
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -453,6 +454,7 @@ export class MyTeamComponent implements OnInit {
   
           const onlySpecificDataArr = this.leaveApplicationList.map(
             x => ({
+              "Name":x.employeeName,
               "Leave Type": x.leaveType,
               "From Date": x.fromDate,
               "To Date": x.toDate,
