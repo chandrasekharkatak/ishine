@@ -59,4 +59,22 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/checkTeamName` , teamObj);
   }
 
+  // Activity template 
+
+  createActivityTemplate(team: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/createActivityTemplate`, team);
+  }
+
+  getActivityTemplate(team: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/getActivityTemplate`, team);
+  }
+
+  getActivityTemplateById(team: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/getActivityTemplateById`, team);
+  }
+
+  updateActivityTemplate(team: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/updateActivityTemplate`, team);
+  }
+
 }

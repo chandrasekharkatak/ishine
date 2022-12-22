@@ -47,6 +47,9 @@ export class TeamConfigComponent implements OnInit {
   isActivityTemplate: boolean = false;
   isActivityCreate: boolean = false;
   isActivityUpdate: boolean = false;
+  isActivityTemplateTable: boolean = false;
+
+  templateActivityList: any[] = [];
 
   //modal 
   alertMessage: any;
@@ -54,6 +57,7 @@ export class TeamConfigComponent implements OnInit {
 
   //Obj 
   teamObj: Team = new Team();
+  activityTemplateObj: Team = new Team();
   allTeamMembers: any[] = [];
   allTeamsList: any[] = [];
 
@@ -135,6 +139,10 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityForm = false;
     this.isActivityTable = false;
     this.isUpdation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
 
     this.reset();
     this.getAllProjectListByProjectManagerId();
@@ -151,6 +159,10 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTable = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
     this.page = 1;
     this.data = '';
     this.filterStatus= '';
@@ -169,6 +181,10 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityForm = false;
     this.isActivityTable = false;
     this.isCreation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
 
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
@@ -192,6 +208,10 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isUpdation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
 
     this.reset();
     this.getAllProjectsByEmpId();
@@ -207,6 +227,10 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
     this.page = 1;
     this.data = ''
     this.allActivityList = [];
@@ -222,6 +246,10 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isCreation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
 
     this.activityObj = Object.assign({}, activityObj);
   }
@@ -231,6 +259,8 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityCreate = true;
 
     this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
+
     this.isCreation = false;
     this.isUpdation = false;
 
@@ -239,8 +269,10 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.allTemplateActivityList = [];
 
     this.teamObj = new Team();
+    this.reset();
 
     //Template Activity
     if (this.teamObj.templateActivityList == undefined || this.teamObj.templateActivityList == 0) {
@@ -248,6 +280,57 @@ export class TeamConfigComponent implements OnInit {
     } else {
       this.allTemplateActivityList = this.teamObj.templateActivityList;
     }
+  }
+
+  showActivityTemplateTable(){
+    this.isActivityTemplateTable = true;
+
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+
+    this.isCreation = false;
+    this.isUpdation = false;
+
+    this.isTeamForm = false;
+    this.isActivityForm = false;
+    this.isTeamTable = false;
+    this.isActivityTable = false;
+    this.isDisabled = false;
+    this.templateActivityList = [];
+    this.allTemplateActivityList = [];
+  }
+
+  showUpdateActivityTemplateForm(activityTemplate: Team){
+    this.isActivityTemplate = true;
+    this.isActivityUpdate = true;
+
+    this.isActivityCreate = false;
+    this.isActivityTemplateTable = false;
+
+    this.isCreation = false;
+    this.isUpdation = false;
+
+    this.isTeamForm = false;
+    this.isActivityForm = false;
+    this.isTeamTable = false;
+    this.isActivityTable = false;
+    this.isDisabled = false;
+    this.allTemplateActivityList = [];
+    this.reset();
+
+    this.teamService.getActivityTemplateById(activityTemplate).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activityTemplateObj = Object.assign({}, response.serviceResponse);
+
+        this.allTemplateActivityList = this.activityTemplateObj.templateActivityList;
+
+        console.log( this.activityTemplateObj , " :  this.activityTemplateObj ");
+        
+      } else {
+        console.log(response.serviceStatus);
+      }
+    });
   }
 
   // Manage Template Activity
@@ -264,7 +347,7 @@ export class TeamConfigComponent implements OnInit {
         this.allTemplateActivityList.splice(index, 1);
       }
     });
-    console.log(this.updatedTemplateActivityList, " :this.updatedCLientLocationList");
+    console.log(this.updatedTemplateActivityList, " :this.updatedTemplateActivityList");
   }
 
   reset() {
@@ -276,6 +359,8 @@ export class TeamConfigComponent implements OnInit {
     this.activityObj = new Activity();
 
     this.allTeamMembers = [];
+    this.allTemplateActivityList = [];
+    this.activityTemplateObj = new Team();
     this.newteamMember = new TeamMember();
     this.filterStatus= '';
     // this.addInputTeamMemberField();
@@ -790,6 +875,128 @@ export class TeamConfigComponent implements OnInit {
       }
     });
   }
+
+  // Activity template :: start
+
+  validateActivityTemplateObj(team: Team, template: TemplateRef<any>,){
+    let flag = true;
+    if (!this.validationService.validateNullUndefinedEmptyString(team.employeeRole)) {
+      this.alertMessage = "Please select Employee role !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(team.deptId)) {
+      this.alertMessage = "Please select Department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.allTemplateActivityList.forEach((activity, index) => {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(activity.activity)) {
+        this.alertMessage = `Please enter Activity - ${index + 1}!!`
+        flag = false;
+        return;
+      }
+    });
+
+    if (!flag) {
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else{
+      return true;
+    }
+  }
+
+  createActivityTemplate(template: TemplateRef<any>){
+    let inputValidated: boolean = this.validateActivityTemplateObj(this.activityTemplateObj, template)
+    if (!inputValidated) return;
+
+    this.activityTemplateObj.templateActivityList = this.allTemplateActivityList;
+
+    this.teamService.createActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showActivityTemplateTable();
+        this.getActivityTemplate(template);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getActivityTemplate(template: TemplateRef<any>){
+    if (!this.validationService.validateNullUndefinedEmptyString(this.activityTemplateObj.deptId)) {
+      this.alertMessage = "Please select department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.teamService.getActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.templateActivityList = response.serviceResponse;
+
+        // filter list if data is duplicate
+
+        this.templateActivityList = this.templateActivityList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.departmentName === value.departmentName && t.employeeRole === value.employeeRole
+          ))
+        )
+        console.log(this.templateActivityList, " this.templateActivityList");
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  updateActivityTemplate(template: TemplateRef<any>){
+    
+    let inputValidated: boolean = this.validateActivityTemplateObj(this.activityTemplateObj, template)
+    if (!inputValidated) return;
+    this.activityTemplateObj.templateActivityList = (Object.keys(this.allTemplateActivityList[0]).length === 0) ? null : this.allTemplateActivityList;
+
+    if (this.activityTemplateObj.templateActivityList) {
+      let newActivities = this.activityTemplateObj.templateActivityList.filter(activity => !activity.activityTemplateId);
+      console.log("newActivities : ", newActivities);
+
+      if (newActivities) {
+        if (this.updatedTemplateActivityList === undefined || this.updatedTemplateActivityList.length === 0) {
+          this.updatedTemplateActivityList = [];
+          
+        }
+        this.updatedTemplateActivityList.forEach(activity => {
+          if(activity.activityTemplateId == ""){
+            this.updatedTemplateActivityList.splice(activity,1);
+          }
+        });
+        this.updatedTemplateActivityList = this.updatedTemplateActivityList.concat(newActivities);
+      }
+    } else {
+      if (this.updatedTemplateActivityList == undefined || this.updatedTemplateActivityList[0].length == 0) {
+        this.updatedTemplateActivityList = null;
+      }
+    }
+
+    console.log(this.activityTemplateObj.templateActivityList, " : this.activityTemplateObj.templateActivityList");
+    console.log(this.updatedTemplateActivityList, " : this.activityTemplateObj.updatedTemplateActivityList");
+    
+    console.log(this.activityTemplateObj, " :this.activityTemplateObj");
+    
+
+    this.teamService.updateActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showActivityTemplateTable();
+        this.getActivityTemplate(template);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  // Activity template :: end
 
   // download excel
 

@@ -4,7 +4,8 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
     </div>
 </div>
 
@@ -477,7 +478,7 @@
 
 <!-- create/ update Activity template-->
 <div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isActivityCreate">
+    <div class="card col-md-12 px-0" *ngIf="isActivityTemplate">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isActivityCreate">Add Activity</strong>
             <strong *ngIf="isActivityUpdate">Update Activity</strong>
@@ -488,7 +489,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.employeeRole" [disabled]="isActivityUpdate">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Employee">Employee</option>
                                 <option value="TeamLead">Team Lead</option>
@@ -504,9 +505,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <select class="form-control" aria-hidden="true">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.deptId" [disabled]="isActivityUpdate">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <!-- <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option> -->
+                                <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                             </select>
                         </div>
                     </div>
@@ -516,8 +517,8 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label">Activity - {{i+1}}</label>
-                            <input type="text" class="form-control" autocomplete="none">
+                            <label class="info-label"><span class="text-danger">*</span>Activity - {{i+1}}</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="activity.activity">
                         </div>
                     </div>
                 </div>
@@ -530,12 +531,75 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" *ngIf="isActivityCreate" class="btn btn-primary btn-sm mx-1">Create Project</button>
-                    <button type="submit" *ngIf="isActivityUpdate" class="btn btn-primary btn-sm mx-1">Update Project</button>
+                    <button type="submit" *ngIf="isActivityCreate" class="btn btn-primary btn-sm mx-1" (click)="createActivityTemplate(alert_message)">Create Activity Template</button>
+                    <button type="submit" *ngIf="isActivityUpdate" class="btn btn-primary btn-sm mx-1" (click)="updateActivityTemplate(alert_message)">Update Activity Template</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+
+<!-- view Activity template -->
+<div class="row" *ngIf="isActivityTemplateTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">All Activity Template</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Department</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.deptId" (change)="getActivityTemplate(alert_message)">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
+                [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
+                <table class="table table-responsive" id="activityTemplateInfo">	
+                    <thead class="thead-light">	
+                      <tr>	
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label">Employee Role</th>
+                        <th scope="col" class="info-label">Activities</th>
+                        <th scope="col" class="info-label">Department</th>
+                        <th scope="col" class="info-label">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="templateActivityList.length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
+                      <tr *ngFor="let activity of templateActivityList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                        <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                        <td>{{activity.employeeRole}}</td>
+                        <td>{{activity.activityDescription}}</td>
+                        <td>{{activity.departmentName}}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityTemplateForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
+                            <!-- <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button> -->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="templateActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="templateActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+        </div>
+    </div>      
 </div>
 
 
