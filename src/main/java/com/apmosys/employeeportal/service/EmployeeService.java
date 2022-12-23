@@ -2643,6 +2643,63 @@ public class EmployeeService {
 		return response;
 
 	}
+	
+	public ServiceResponse getEmployeeProfileCompletion(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Home_Page");
+		apiLogInfo.setApiUrl("/api/getEmployeeProfileCompletion");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeeDto.getEmpId());
+		
+		Double proileCompleted = 0.00;
+		Double totalFields = 0.00;
+		try {
+			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(employeeDto.getEmpId());
+			
+			
+			if (employeeProile.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Profile not found !!");
+			} else {
+				Object[] employee = employeeProile.get(0);
+				totalFields = (double) employee.length;
+						
+				for(int i = 0; i < employee.length; i++) {
+					if(employee[i] != null) {
+						proileCompleted++;
+					}
+				}
+				
+				Double profileCompletedPercent = (proileCompleted/totalFields)*100;
+				
+				employeeDto.setProfileCompletedPercent(profileCompletedPercent);
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(employeeDto);
+				
+
+				apiLogInfo.setApiResponse("historyList : ");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
 
 	public ServiceResponse encryptPassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();

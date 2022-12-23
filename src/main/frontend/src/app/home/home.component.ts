@@ -23,6 +23,7 @@ import { ValidationService } from '../services/validation.service';
 import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
 import * as CryptoJS from 'crypto-js';
+import { Employee } from '../models/employee';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -111,6 +112,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     keyboard  : false
   };
   
+  profileCompletedPercentage:any = 0;
+
   constructor(
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
@@ -135,6 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
+    // this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -1013,6 +1017,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cancelRequest();
   } 
 
+  // Employee Proile Completed Percentage 
+  getEmployeeProfileCompletion(){
+    this.profileCompletedPercentage = 0;
+
+    let employee = new Employee();
+    employee.empId = this.currentUser.empId;
+    this.employeeService.getEmployeeProfileCompletion(employee).pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        let employeeObj = response.serviceResponse;
+        this.profileCompletedPercentage = Math.ceil(employeeObj.profileCompletedPercent)+ "%" ;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   //export to excel
 
   exportToExcelForLeave() {
@@ -1361,6 +1381,10 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
         this.router.navigate(['/login']);
         location.reload();
       } else {
+        if( response.serviceResponse == "Session already destroyed"){
+          this.router.navigate(['/login']);
+          setTimeout(location.reload, 1000);
+        }
         console.error(response.serviceResponse);
       }
     });

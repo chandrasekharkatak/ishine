@@ -89,6 +89,10 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeWorkLocationForSummary`);
   }
 
+  getEmployeeProfileCompletion(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeProfileCompletion`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`api/previewImage`,formData);

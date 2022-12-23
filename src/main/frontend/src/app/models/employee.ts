@@ -139,4 +139,5 @@ export class Employee{
 
 	reporteeCount:any;
 	hierarchyType:any;
+	profileCompletedPercent:any;
 }

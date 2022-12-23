@@ -112,6 +112,23 @@
     background-color: #193d8a;
 }
 
+.profileCompleted{
+    height: 10px;
+}
+
+.progress-bar-success{
+    color: #fff;
+    background-color: #28a745;
+
+    font-size: 0.525rem;
+}
+
+.profileCompleted-value{
+    margin-top: 0.4rem;
+    color: #193d8a;
+    font-weight: bold;
+}
+
 .placeholder{
     height: 100%;
     display: flex;
