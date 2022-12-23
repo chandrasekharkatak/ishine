@@ -40,7 +40,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateActivityTimesheetDiscription(employeeObj.viewsOnOrganisation)){
+    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.viewsOnOrganisation)){
       this.alertMessage = "Please enter valid view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -50,7 +50,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateActivityTimesheetDiscription(employeeObj.aboutMe)){
+    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.aboutMe)){
       this.alertMessage = "Please enter valid in  About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -92,6 +92,35 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter select martial status !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }
+
+    if(employeeObj.maritalStatus == 'married'){
+      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.spouse)){
+        this.alertMessage = "Please enter spouse name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.spouse)){
+        this.alertMessage = "Please enter valid spouse name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.child1)){
+        this.alertMessage = "Please enter valid child1 name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.child2)){
+        this.alertMessage = "Please enter valid child2 name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.child3)){
+        this.alertMessage = "Please enter valid child3 name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){

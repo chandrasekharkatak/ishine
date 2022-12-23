@@ -1454,6 +1454,11 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
   }
 
   openChangePassword(changePasswordTemplate) {
+    this.errorMsg = ''
+    this.password = ''
+    this.oldPasswordValid = false;
+    this.newpassword = ''
+    this.userNewPass = ''
     console.log(this.currentUser.isNew)
     if (this.currentUser.isNew == 'true') {
       this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
