@@ -76,7 +76,9 @@ export class MyTimesheetComponent implements OnInit {
   teamMemberList:any[] = [];
   errorMsg:any;
 
-  leaveHistoryList:any[] = [];	
+  leaveHistoryList:any[] = [];
+  
+  maxOutTimeDate:any;
 
   constructor(
     private validationService: ValidationService,
@@ -103,7 +105,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
-    this.timesheetObj.totalWorkingOfficeHours = 0;
+    this.timesheetObj.totalWorkingOfficeHours = '';
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
     this.sectionViewInit();
   }
@@ -178,8 +180,12 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.officeInTime = new Date(this.timesheetObj.officeInTime);
-    this.timesheetObj.officeOutTime = new Date(this.timesheetObj.officeOutTime);
+    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? new Date(this.timesheetObj.officeInTime) : '';
+    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? new Date(this.timesheetObj.officeOutTime) : '';
+
+    if(this.timesheetObj.officeInTime){
+      this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
+    }
     
     let userObj:User = new User();
     if (this.isSelfTimesheets) {
@@ -196,7 +202,6 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllProjectsByEmpId(userObj);
     setTimeout(()=>{
       this.getAllMyActivitiesByTimesheetId(timesheetObj);
-      this.setMaxInTimeDate(this.timesheetObj.date);
     },500)
   }
 
@@ -205,7 +210,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.dayType = '';
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
-    this.timesheetObj.totalWorkingOfficeHours = 0;
+    this.timesheetObj.totalWorkingOfficeHours = '';
     this.allTimesheetActivities = [];
     this.addInputActivityField();;
   }
@@ -307,7 +312,9 @@ export class MyTimesheetComponent implements OnInit {
 
   resetTotalWorkingOfficeHours(){
     this.timesheetObj.officeOutTime = '';
-    this.timesheetObj.totalWorkingOfficeHours = 0;
+    this.timesheetObj.totalWorkingOfficeHours = '';
+
+    this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
   };
 
   setTotalWorkingOfficeHours(){
@@ -320,17 +327,17 @@ export class MyTimesheetComponent implements OnInit {
       let start = moment(this.timesheetObj.officeInTime);
       let end = moment(this.timesheetObj.officeOutTime);
   
-      // const duration = moment.duration(end.diff(start));
-      // let hours = duration.asHours();
   
-      // this.timesheetObj.totalWorkingOfficeHours = hours.toFixed(2);
-      // alert(`hours : ${hours}`);
-  
-      const duration = moment.utc(moment(end,"dd/MM/yyyy HH:mm:ss").diff(moment(start,"dd/MM/yyyy HH:mm:ss"))).format("HH:mm");
+      //const duration = moment.utc(moment(end,"yyyy-MM-DD HH:mm:ss").diff(moment(start,"yyyy-MM-DD HH:mm:ss"))).format("HH:mm");
+      
+      let ms = moment(end,"DD/MM/YYYY HH:mm").diff(moment(start,"DD/MM/YYYY HH:mm"));
+      let d = moment.duration(ms);
+      let duration = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
+      
       this.timesheetObj.totalWorkingOfficeHours = duration;
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
     }else{
-      this.timesheetObj.totalWorkingOfficeHours = 0;
+      this.timesheetObj.totalWorkingOfficeHours = '';
     }
   }
 

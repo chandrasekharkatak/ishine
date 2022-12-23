@@ -79,7 +79,7 @@
                                 <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                     id="timesheetDate" [matDatepicker]="timesheetDate"
                                     [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
-                                    [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()" (dateChange)="setMaxInTimeDate(timesheetObj.date)"
+                                    [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
                                     autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
                             </div>
@@ -115,8 +115,8 @@
                     <div class="info-wrapper">
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
-                            <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker" [min]="timesheetObj.date"
-                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [min]="timesheetObj.officeInTime">
+                            <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
+                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [min]="timesheetObj.officeInTime"  [max]="maxOutTimeDate" [disabled]="!timesheetObj.officeInTime">
                             <owl-date-time class="picker" [hour12Timer]="true" [startAt]="timesheetObj.officeInTime" #officeOutTimePicker></owl-date-time>
                         </div>
                     </div>
