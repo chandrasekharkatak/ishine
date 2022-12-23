@@ -696,12 +696,13 @@ export class TeamConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
+        console.log("employeeList By Role : ", employeeList);
+        console.log("Department Selected : ", this.teamObj.departmentList);
 
         // remove teamLead if their department are not selected.
 
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
-        this.teamLeadsList = employeeList.filter(x => filterDepartmentList.includes(x.departmentId));
+        this.teamLeadsList = employeeList.filter(x => this.teamObj.departmentList?.includes(x.departmentId));
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
         console.log("teamLeadsList : ", this.teamLeadsList)
       } else {

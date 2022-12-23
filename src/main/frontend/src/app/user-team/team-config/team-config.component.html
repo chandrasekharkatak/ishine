@@ -77,7 +77,7 @@
                                   [useInfiniteScroll]="true"
                                   [multiple]="true"
                                   [(ngModel)]="teamObj.departmentList"
-                                  (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()"
+                                  (selectionChange)="getAllEmployeesByRole();getAllEmployeesByDepartmentIds()"
                                   >
                                   <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
                                     {{dept.name}}
@@ -188,7 +188,7 @@
                 <div class="col-md-2 d-flex">
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
-                        [disabled]="!teamObj.departmentList" ><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        [disabled]="(!teamObj.departmentList || teamObj.departmentList.length == 0)" ><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>
