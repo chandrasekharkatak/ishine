@@ -94,7 +94,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllUserTypeCrudMappings`,
     `${this.baseUrl}` + `api/changeLeaveTypeMapping`,
 
-    `${this.baseUrl}` + `api/getAllEventPhotos`,
     `${this.baseUrl}` + `api/customQueryForLeaveReport`,
     `${this.baseUrl}` + `api/timesheetReport`,
     `${this.baseUrl}` + `api/leaveReport`,
