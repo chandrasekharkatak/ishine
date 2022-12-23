@@ -402,9 +402,15 @@ public class ProjectService {
 					return response;
 				}else if(poProjectSyncDTO.getDepartmentList().length != 0) {
 					for(String department: poProjectSyncDTO.getDepartmentList()) {
+						Department departmentObj = departmentRepository.findByName(department);
 						if(department == "") {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Department is empty.");
+							return response;
+						}
+						if(departmentObj == null) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Department not found : " + department);
 							return response;
 						}
 					}

@@ -21,4 +21,5 @@ export class Team{
     templateActivityList:any;
     employeeRole:any;
     deptId:any;
+    templateActivity:any;
 } 

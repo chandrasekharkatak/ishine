@@ -223,6 +223,7 @@ export class ReportListComponent implements OnInit {
         this.allTimesheetApplicationsList = response.serviceResponse;
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.description = timesheet.description.replaceAll('<br>','')
         });
         console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
       } else {

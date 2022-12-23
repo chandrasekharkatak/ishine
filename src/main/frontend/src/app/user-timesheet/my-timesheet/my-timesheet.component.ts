@@ -906,9 +906,15 @@ export class MyTimesheetComponent implements OnInit {
         x => ({
           "Date": x.date,
           "Day Type": x.dayType,
+          "In Time":x.officeInTime,
+          "Out Time":x.officeOutTime,
+          "Total Working Hours":x.totalWorkingOfficeHours,
           "Timesheet Details":x.description?.replaceAll('<br>', ' \n'),
-          "Total Time":x.totalTime,
-          "Status": x.status
+          "Total Activity Time":x.totalTime,
+          "Status": x.status,
+          "Applied By":x.createdByName,
+          "Applied On":x.createdOn,
+          "Remarks":x.remarks
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)

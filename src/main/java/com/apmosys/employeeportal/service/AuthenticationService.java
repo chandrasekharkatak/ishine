@@ -101,8 +101,8 @@ public class AuthenticationService {
 								if (!isUserLoggedIn) {
 									
 									Random random = new Random();
-									int otp = random.nextInt(9999 - 1000)
-											+ 1000; /* Random number will be generated between 1000 and 9999 */
+									int otp = random.nextInt(999999 - 100000)
+											+ 100000; /* Random number will be generated between 1000 and 9999 */
 									employee.setOtp(otp);
 									mailService.sendMail(employeedto.getEmail(), "Regarding otp",
 											"Please find your otp " + otp);
@@ -367,7 +367,7 @@ public class AuthenticationService {
 					}
 					else {
 						Random random = new Random();	
-						int otp = random.nextInt(9999 - 1000) + 1000;	
+						int otp = random.nextInt(999999 - 100000) + 100000;	
 						employee.setOtp(otp);	
 						employeeRepository.save(employee);	
 							
@@ -463,8 +463,8 @@ public class AuthenticationService {
 			if(employee != null) {
 				
 				Random random = new Random();
-				int otp = random.nextInt(9999 - 1000)
-						+ 1000; /* Random number will be generated between 1000 and 9999 */
+				int otp = random.nextInt(999999 - 100000)
+						+ 100000; /* Random number will be generated between 1000 and 9999 */
 				employee.setOtp(otp);
 				
 				mailService.sendMail(employeedto.getEmail(), "Regarding otp",

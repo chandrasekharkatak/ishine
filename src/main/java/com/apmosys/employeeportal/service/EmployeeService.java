@@ -990,6 +990,9 @@ public class EmployeeService {
 					for (EmployeeTeamMap empToBeDeletedFromTeam : deleteEmpFromTeam) {
 						// 1: Active 0: InActive
 						empToBeDeletedFromTeam.setActive((long) 0);
+						if(empToBeDeletedFromTeam.getUpdatedOn() == null) {
+							empToBeDeletedFromTeam.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+						}	
 						employeeTeamMapRepository.save(empToBeDeletedFromTeam);
 					}
 					employeeToBeDeleted.setEmploymentstatus("InActive");
@@ -2618,6 +2621,7 @@ public class EmployeeService {
 //					emplDto.setStartDate(object[14] != null ? object[14].toString() : null);
 					emplDto.setClientLocation(object[12] != null ? object[12].toString() : null);
 					emplDto.setClientName(object[13] != null ? object[13].toString() : null); 
+					emplDto.setDateOfResign(object[14] != null ? object[14].toString() : null);
 					historyList.add(emplDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

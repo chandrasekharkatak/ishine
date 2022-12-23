@@ -113,7 +113,12 @@ export class BodyComponent implements OnInit {
         this.router.navigate(['/login']);
         location.reload();
       } else {
-        if( response.serviceResponse == "Session already destroyed"){
+        if(response.serviceResponse == "Session already destroyed"){
+          this.authenticationService.stopUserSessionCheck();
+          sessionStorage.removeItem('currentUser');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
           this.router.navigate(['/login']);
           location.reload();
         }
@@ -187,6 +192,9 @@ export class BodyComponent implements OnInit {
     }else{
       this.modalRef = this.modalService.show(changePasswordTemplate);
     }
+    this.errorMsg = ''
+    this.password = ''
+    this.oldPasswordValid = false;
   }
 
   openChangePasswordOnFirstTimeLoggin(){
