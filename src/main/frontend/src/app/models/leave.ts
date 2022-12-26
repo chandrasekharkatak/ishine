@@ -91,4 +91,5 @@ export class Leave{
 	leaveBalance:any = 0;
 	approvedApplicationsCount:any = 0;
 	pendingApplicationsCount:any = 0;
+	rejectedApplicationsCount:any = 0;
 }
