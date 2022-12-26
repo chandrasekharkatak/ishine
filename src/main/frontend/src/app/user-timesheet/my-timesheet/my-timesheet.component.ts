@@ -296,7 +296,7 @@ export class MyTimesheetComponent implements OnInit {
       
     }
     
-    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.fromDate == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.toDate == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
   } 
 
   outTimeFilter = (checkDate: Date) => {
