@@ -298,6 +298,15 @@ export class MyTimesheetComponent implements OnInit {
     
     return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.fromDate == this.datePipe.transform(checkDate, "YYYY-MM-dd")) && !this.leaveHistoryList.find(leaveApplication =>leaveApplication.toDate == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
   } 
+
+  outTimeFilter = (checkDate: Date) => {
+    const dateFormat = 'YYYY-MM-DD';
+
+    let startDate = this.timesheetObj.officeInTime;
+    let endDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
+    
+    return (moment(checkDate).format(dateFormat) <= moment(endDate).format(dateFormat) && moment(checkDate).format(dateFormat) >= moment(startDate).format(dateFormat)) ? true : false;	
+  } 
   
   setMaxInTimeDate(timesheetDate:any){
     console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
@@ -316,6 +325,13 @@ export class MyTimesheetComponent implements OnInit {
 
     this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
   };
+
+  resetTimeonDayTypeChange(){
+    this.timesheetObj.date = '';
+    this.timesheetObj.officeInTime = '';
+    this.timesheetObj.officeOutTime = '';
+    this.timesheetObj.totalWorkingOfficeHours = '';
+  }
 
   setTotalWorkingOfficeHours(){
     const dateFormat = 'YYYY-MM-DD';
@@ -467,9 +483,13 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
-    this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
-    this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
-    this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+    if (this.timesheetObj.dayType != 'Holiday') {
+      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+    }else{
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
+    }
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.createdByName = this.currentUser.name
     console.log("Add timesheetObj : ", this.timesheetObj);

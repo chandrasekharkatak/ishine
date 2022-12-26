@@ -59,7 +59,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange()" >
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Working">Working</option>
                                 <option value="Holiday">Holiday</option>
@@ -116,8 +116,8 @@
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
                             <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
-                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [min]="timesheetObj.officeInTime"  [max]="maxOutTimeDate" [disabled]="!timesheetObj.officeInTime">
-                            <owl-date-time class="picker" [hour12Timer]="true" [startAt]="timesheetObj.officeInTime" #officeOutTimePicker></owl-date-time>
+                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter">
+                            <owl-date-time class="picker" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
                         </div>
                     </div>
                 </div>
