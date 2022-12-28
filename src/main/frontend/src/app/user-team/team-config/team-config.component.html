@@ -4,8 +4,8 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activity_template" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
     </div>
 </div>
 

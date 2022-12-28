@@ -106,23 +106,31 @@ public class TeamsService {
 
 		try {
 
-			List<Project> projectList = projectRepository.findAll();
-
-			Optional.ofNullable(projectList).ifPresent((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Project list is empty.");
-				} else {
-					Type typeList = new TypeToken<List<TimesheetDTO>>() {
-					}.getType();
-					List<TimesheetDTO> dtoList = modelMapper.map(list, typeList);
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-				}
-
-			});
+			List<Object[]> projectList = projectRepository.getAllProject();
+			
+			if(projectList != null) {
+				List<ProjectDTO> dtoList = new ArrayList<ProjectDTO>();
+				
+				projectList.forEach((object) -> {
+					ProjectDTO projectDto = new ProjectDTO();
+					
+					projectDto.setProjectId(object[0] != null ? Integer.valueOf(object[0].toString()) : null);
+					projectDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+					projectDto.setProjectName(object[2] != null ? object[2].toString() : null);
+					projectDto.setState(object[3] != null ? object[3].toString() : null);
+					projectDto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+					projectDto.setClientName(object[5] != null ? object[5].toString() : null);
+					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
+					
+					dtoList.add(projectDto);
+				});
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Projects found.");
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

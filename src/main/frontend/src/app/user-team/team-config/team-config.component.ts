@@ -658,7 +658,15 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
         let allProjectList = response.serviceResponse;
-        allProjectList = allProjectList.filter(x => x.active == "true");
+
+        //revome repeated project
+
+        allProjectList = allProjectList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.projectId === value.projectId
+          ))
+        )
+
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
           this.allProjectListByManagerId = allProjectList;
