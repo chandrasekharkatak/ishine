@@ -941,6 +941,60 @@ export class ReportDashboardComponent implements OnInit {
         })
         console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
+  
+  
+         /*
+          Chart Data for - Employee KYC by Department
+       */
+        console.log("departmentList : ", departmentList);
+        const CHECK_PERCENT = 50.00;
+        let kycChartData = [{
+          name: 'Pending',
+          data: [],
+          stack: 'base'
+        }, {
+          name: 'Completed',
+          data: [],
+          stack: 'base'
+        }];
+
+        let departmentCategories = employeeByDepartment.map(dept => {
+          return [dept.departmentName]
+        });
+
+        let departmentKycData = Object.entries(departmentList).map(entry => {
+          console.log("entry : ", entry);
+          const name = entry[0];
+          const employeeList:any = entry[1];          
+
+          let pendingCount = 0;
+          let completedCount = 0;
+
+          employeeList.forEach(employee => {
+            if(employee.profileCompletedPercent > CHECK_PERCENT){
+              completedCount++;
+            }else{
+              pendingCount++;
+            }
+          });
+
+          return {
+            pending : pendingCount,
+            completed : completedCount,
+            departmentName : name
+          }
+        });
+
+        console.log("departmentKycData : ", departmentKycData);
+        departmentKycData.forEach(dept => {
+          kycChartData[0].data.push(dept.pending);
+          kycChartData[1].data.push(dept.completed);
+        });
+
+        console.log("kycChartData : ", kycChartData);
+
+        this.renderStackBarChart('Employee KYC Summary','employeeKycSummary',kycChartData,departmentCategories,'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
+        
   }
 
   groupBy(objectArray, property) {
@@ -1321,6 +1375,86 @@ export class ReportDashboardComponent implements OnInit {
       },
       series: chartData
   });
+  }
+
+  renderStackBarChart(chartName:any, chartId:any, chartData:any, categories:any, labelName:any, openMod:any){
+
+    let colors = ['#ED561B','#64E572'];
+
+    HighCharts.chart(chartId, {
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: chartName,
+        style:{	
+          fontWeight: 'bold',	
+          color:'#000000'	
+        }
+      },
+      xAxis: {
+        categories: categories,
+        labels: {	
+          overflow: 'justify',	
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',
+            fontSize:'12'	
+          }	
+        },
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'No. Of Employees',
+          align: 'high',
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+          }
+        },
+        labels: {
+          overflow: 'justify',
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+            fontSize:'12'
+          }
+        },
+        tickInterval: 50,
+        endOnTick: false
+      },
+      plotOptions: {
+        series: {
+          cursor: 'pointer',
+          point: {
+            events: {
+              click: function(event) {
+                let category = event.point.category[0]
+                let series = event.point.series.name;
+
+                openMod(category, series);
+              }
+            },
+          },
+        },
+         column: {
+            stacking: 'normal',
+            dataLabels: {
+              enabled: true,
+            },
+            showInLegend: true
+        },
+      },
+      credits: {
+        enabled: false,
+      },
+      legend: {
+        enabled: false
+      },
+      series: chartData,
+      colors : colors
+    });
   }
 
   renderPlaceholderChart(chartName:any, chartId:any){
@@ -1770,6 +1904,22 @@ export class ReportDashboardComponent implements OnInit {
       this.modalTitle = "Work Location : " + category;
       this.modalSummaryList = modalTableList.filter(x => x.clientLocation == category);
       this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
+  }
+
+  openDepartmentWiseEmployeeKycModalTable(deptName:any, status:any){
+    const CHECK_PERCENT = 50.00;
+    this.data = ''
+    this.modalSummaryList = [];
+
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+      this.page=1;
+      this.modalTitle = "Employee(s) with KYC "+status;
+      if(status == "Pending"){
+        this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent < CHECK_PERCENT);
+      }else{
+        this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent > CHECK_PERCENT);
+      }
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

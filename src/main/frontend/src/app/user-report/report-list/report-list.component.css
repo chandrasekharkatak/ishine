@@ -88,3 +88,17 @@
 .table-hover tr,td {
     cursor: move;
 }
+
+
+.progress-bar-success{
+    color: #fff;
+    background-color: #28a745;
+
+    font-size: 0.525rem;
+}
+
+.profileCompleted-value{
+    margin-top: 0.6rem;
+    color: #193d8a;
+    font-weight: bold;
+}

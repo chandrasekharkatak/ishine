@@ -854,6 +854,9 @@ public class TimesheetService {
 					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
 					existingTimesheet.setDescription(timesheetDTO.getDescription());
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
+					existingTimesheet.setOfficeInTime(null);
+					existingTimesheet.setOfficeOutTime(null);
+					existingTimesheet.setTotalWorkingHours("");
 
 				} else {
 					existingTimesheet.setDayType(timesheetDTO.getDayType());

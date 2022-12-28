@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -1387,7 +1388,6 @@ public class EmployeeService {
 	}
 
 	public ServiceResponse getAllEmployees() {
-
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
@@ -1467,10 +1467,17 @@ public class EmployeeService {
 					empDTO.setDateOfRelieving(
 							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
 									: null);
-				
-					dtoList.add(empDTO);
 					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
+				
+					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
+					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+					
+					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+					
+					dtoList.add(empDTO);
 				});
+				
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 			} else {
@@ -2660,6 +2667,7 @@ public class EmployeeService {
 	
 	public ServiceResponse getEmployeeProfileCompletion(EmployeeDTO employeeDto) {
 		ServiceResponse response = new ServiceResponse();
+		DecimalFormat df = new DecimalFormat("0.00");
 		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Home_Page");
@@ -2689,7 +2697,7 @@ public class EmployeeService {
 				
 				Double profileCompletedPercent = (proileCompleted/totalFields)*100;
 				
-				employeeDto.setProfileCompletedPercent(profileCompletedPercent);
+				employeeDto.setProfileCompletedPercent(Double.parseDouble(df.format(profileCompletedPercent)));
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(employeeDto);

@@ -32,6 +32,9 @@ public class CustomFilterService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeService employeeService;
 
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
 			StringBuilder query = new StringBuilder("");
@@ -525,6 +528,12 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					
+					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
+					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+					
+					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+					
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
