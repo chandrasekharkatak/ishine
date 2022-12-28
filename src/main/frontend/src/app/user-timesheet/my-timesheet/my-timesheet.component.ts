@@ -286,7 +286,7 @@ export class MyTimesheetComponent implements OnInit {
     let currentDate = new Date();
     const dateFormat = 'YYYY-MM-DD';
 
-    // 7 days + 1 current Day
+    // timesheetLockDays (days) + 1 current Day
     let endDate = currentDate;
     let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
 
@@ -327,7 +327,6 @@ export class MyTimesheetComponent implements OnInit {
   };
 
   resetTimeonDayTypeChange(){
-    this.timesheetObj.date = '';
     this.timesheetObj.officeInTime = '';
     this.timesheetObj.officeOutTime = '';
     this.timesheetObj.totalWorkingOfficeHours = '';
@@ -348,6 +347,8 @@ export class MyTimesheetComponent implements OnInit {
       
       let ms = moment(end,"DD/MM/YYYY HH:mm").diff(moment(start,"DD/MM/YYYY HH:mm"));
       let d = moment.duration(ms);
+      console.log("d : ", d);
+      
       let duration = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
       
       this.timesheetObj.totalWorkingOfficeHours = duration;
@@ -520,7 +521,7 @@ export class MyTimesheetComponent implements OnInit {
     if (!inputValidated) return;
 
     if (this.timesheetObj.dayType != 'Holiday') {
-      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
+      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat)
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat)
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat)
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
@@ -548,6 +549,10 @@ export class MyTimesheetComponent implements OnInit {
       }
     } else {
       this.timesheetObj.updatedTimesheetActivities = null;
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
+      this.timesheetObj.officeInTime = '';
+      this.timesheetObj.officeOutTime = '';
+      this.timesheetObj.totalWorkingOfficeHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
     console.log("Update timesheetObj : ", this.timesheetObj);
