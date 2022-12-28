@@ -41,6 +41,7 @@ public class ActivitiesService {
 			newActivity.setActivity(activityDTO.getActivity());
 			newActivity.setEta(activityDTO.getEta());
 			newActivity.setTeamId(activityDTO.getTeamId());
+			newActivity.setEmployeeRole(activityDTO.getEmployeeRole());
 			newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
 
 			Activity newActivityCreated = activitiesRepository.save(newActivity);
@@ -76,6 +77,7 @@ public class ActivitiesService {
 				existingActivity.setActivity(activityDTO.getActivity());
 				existingActivity.setEta(activityDTO.getEta());
 				existingActivity.setTeamId(activityDTO.getTeamId());
+				existingActivity.setEmployeeRole(activityDTO.getEmployeeRole());
 				existingActivity.getCommonProperty().setUpdatedBy(activityDTO.getUpdatedBy());
 				existingActivity.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
@@ -135,6 +137,7 @@ public class ActivitiesService {
 						dto.setEta(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 						dto.setCreatedByName(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedOn(object[9] != null ? object[9].toString() : null);
+						dto.setEmployeeRole(object[10] != null ? object[10].toString() : null);
 
 						dtoList.add(dto);
 					});

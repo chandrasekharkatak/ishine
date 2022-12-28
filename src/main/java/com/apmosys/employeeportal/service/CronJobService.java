@@ -32,11 +32,14 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -71,6 +74,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
+@EnableAsync
 public class CronJobService {
 
 	@Autowired
@@ -869,6 +873,71 @@ public class CronJobService {
 						e.printStackTrace();
 					}
 				}
+			}
+		}
+		
+		@Async
+		@Scheduled(cron = "0 0 9 ? * *")
+		public void resignationMailConsent() {
+			try {
+				List<Object[]> employeeObj = employeeRepository.getEmployeeByDateOfRelieving();
+				
+				if(!employeeObj.isEmpty()) {
+					employeeObj.forEach((object) -> {
+						//send mail to manager
+						Long empId = object[1] != null ? Long.parseLong(object[1].toString()) : null;
+						String managerEmail = object[3] != null ? object[3].toString() : null;
+						String managerName = object[4] != null ? object[4].toString() : null;
+						String empName = object[5] != null ? object[5].toString() : null;
+						String dateOfResign = object[6] != null ? object[6].toString() : null;
+						String dateOfRelieving = object[7] != null ? object[7].toString() : null;
+						String department = object[8] != null ? object[8].toString() : null;
+						try {
+							mailService.sendMail(managerEmail, "Asset Consent", 
+									"Dear " + managerName + ",<br><br>"
+									+ "Please provide asset consent of " + empName + "<br>"
+									+ "<br><br>"
+									+ "Employee Info :<br>"
+									+ "EmpId: " + empId +"<br>"
+									+ "Name : " + empName + "<br>"
+									+ "Department : " + department + "<br>"
+									+ "Manager : " + managerName +"<br>"
+									+ "Date Of resignation : " + dateOfResign + "<br>"
+									+ "Date of relieving : " + dateOfRelieving + "<br>"
+									+ "<br>"
+									+ "Link :  http://localhost:4200/#/user-exit/" +empId);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						//send mail to HR,IT,Admin,Accounts department head
+						List<Object[]> emailList = employeeRepository.getEmailForMailConsent();
+						
+						emailList.forEach((mailObj) -> {
+							String mailAddress = object[4] != null ? object[4].toString() : null;
+							String name = object[3] != null ? object[3].toString() : null;
+							try {
+								mailService.sendMail(mailAddress, "Asset Consent", 
+										"Dear " + name + ",<br><br>"
+										+ "Please provide asset consent of " + empName + "<br>"
+										+ "<br><br>"
+										+ "Employee Info :<br>"
+										+ "EmpId: " + empId +"<br>"
+										+ "Name : " + empName + "<br>"
+										+ "Department : " + department + "<br>"
+										+ "Manager : " + managerName +"<br>"
+										+ "Date Of resignation : " + dateOfResign + "<br>"
+										+ "Date of relieving : " + dateOfRelieving + "<br>"
+										+ "<br>"
+										+ "Link :  http://localhost:4200/#/user-exit/" +empId);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						});
+					});
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
 			}
 		}
 }	

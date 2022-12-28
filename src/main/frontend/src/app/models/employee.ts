@@ -139,4 +139,7 @@ export class Employee{
 
 	reporteeCount:any;
 	hierarchyType:any;
+
+	deptHeadConsentList:any;
+	consentMailLink:any;
 }

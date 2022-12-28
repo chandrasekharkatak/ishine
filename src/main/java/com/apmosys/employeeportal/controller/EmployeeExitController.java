@@ -46,4 +46,18 @@ public class EmployeeExitController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/setDeptHeadConcent" ,method = RequestMethod.POST)
+	public ServiceResponse setDeptHeadConcent(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeExitService.setDeptHeadConcent(employeeDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getExitInterviewQuestion" ,method = RequestMethod.GET)
+	public ServiceResponse getExitInterviewQuestion() {
+		
+		ServiceResponse response = employeeExitService.getExitInterviewQuestion();
+		return response;
+	}
+	
 }

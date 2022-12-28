@@ -439,8 +439,8 @@ onDragRelease(event: CdkDragRelease) {
 }
 
 selectCellCheckbox(element:any, isAssigned:any, subFeatureId:any){
-  const alreadyUpdatedMapping = this.updatedRoleSubFeature.find((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
-  if(alreadyUpdatedMapping){
+  const alreadyUpdatedMapping = this.updatedRoleSubFeature.findIndex((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
+  if(alreadyUpdatedMapping >= 0){
     this.updatedRoleSubFeature.splice(alreadyUpdatedMapping,1);
   }else{
     this.updatedRoleSubFeature.push({

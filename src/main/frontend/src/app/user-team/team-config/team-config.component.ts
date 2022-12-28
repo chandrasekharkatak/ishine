@@ -93,6 +93,8 @@ export class TeamConfigComponent implements OnInit {
 
   filterStatus:any = '';
 
+  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR']; 
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -408,6 +410,25 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
+    if (this.allTeamMembers.length !== 0) {
+      let flag = true;
+      this.allTeamMembers.forEach(obj => {
+        if (obj.employeeRole == undefined || obj.employeeRole === null) {
+          this.alertMessage = "Please select atleast one employee role for Activity mapping !!"
+          this.openAlertMod(template, this.alertMessage);
+          flag = false
+          return false;
+        }
+      });
+
+      if (!flag) {
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      } else {
+        return true;
+      }
+    }
+
 
     // if (!this.validationService.validateNullUndefinedEmptyString(teamObj.departmentList)) {
     //   this.alertMessage = "Please select Department !!"
@@ -451,8 +472,9 @@ export class TeamConfigComponent implements OnInit {
   }
 
   addTeamMember(){
-    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId); 
+    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
     if(newTeamMember){
+      newTeamMember.employeeRole = this.newteamMember.employeeRole;
       this.allTeamMembers.push(newTeamMember);
     }
 
@@ -700,8 +722,9 @@ export class TeamConfigComponent implements OnInit {
 
         // remove teamLead if their department are not selected.
 
-        let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
-        this.teamLeadsList = employeeList.filter(x => filterDepartmentList.includes(x.departmentId));
+        // let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
+        // this.teamLeadsList = employeeList.filter(x => filterDepartmentList.includes(x.departmentId));
+        this.teamLeadsList = employeeList.filter(x => x.departmentId == this.teamObj.deptId);
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
         console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
@@ -730,15 +753,16 @@ export class TeamConfigComponent implements OnInit {
     this.employeeListByDept = [];
 
     let empObj = new Employee();
-    empObj.departmentList = this.teamObj.departmentList.map(deptId => {
-       let dept =  new Department();
-       dept.deptId = deptId;
-       return dept;
-    });
+    empObj.departmentId = this.teamObj.deptId;
+    // empObj.departmentList = this.teamObj.departmentList.map(deptId => {
+    //    let dept =  new Department();
+    //    dept.deptId = deptId;
+    //    return dept;
+    // });
 
-    console.log("empObj.departmentList : ", empObj.departmentList);
+    // console.log("empObj.departmentList : ", empObj.departmentList);
     
-    this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
+    this.employeeService.getAllEmployeesByDepartmentId(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
         this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
@@ -787,6 +811,12 @@ export class TeamConfigComponent implements OnInit {
     }
     if (!this.validationService.validateTeamActivity(activityObj.activity)) {
       this.alertMessage = "Please enter Valid Activity !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.employeeRole)) {
+      this.alertMessage = "Please select Employee Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

@@ -25,7 +25,7 @@
                         <div class="col-md-3 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <label>Date Of Relieving</label>
+                                    <label>Estimated Date Of Relieving</label>
                                     <input type="text" style="text-align:center;" class="form-control" [(ngModel)]="employeeDetailObj.dateOfRelieving" autocomplete="none" disabled>
                                 </div>
                             </div>
@@ -71,11 +71,12 @@
                             <td>{{list.departmentName}}</td>
                             <td>{{list.isAssigned}}</td>
                             <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="list.deptConsent" [disabled]="isCurrentUser" (change)="selectDeptConsentCheckbox(list)"/></td>
-                            <td>{{list.concent}}</td>
+                            <td>{{list.updatedByName}}</td>
                           </tr>
                         </tbody>
                       </table>
-                      <button type="submit" *ngIf="!isCurrentUser" class="btn btn-primary btn-sm mx-auto d-block">Submit Consent</button>
+                      <button type="submit" *ngIf="!isCurrentUser && exitAssetDetailList.length != 0" class="btn btn-primary btn-sm mx-auto d-block" (click)="submitConsent(alert_message)">Submit Consent</button>
+                      <button type="submit" *ngIf="isCurrentUser" class="btn btn-primary btn-sm mx-auto d-block" (click)="generateExitInterviewForm(alert_message,exit_interview)">Take Exit Interview</button>
                 </div>
                 <!-- releiving day template : end -->
             </div>
@@ -125,9 +126,24 @@
     </div>
   </ng-template>
 
-  <ng-template #alert_message>
+<ng-template #alert_message>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #exit_interview>
+    <div class="modal-body">
+        <div class="row" *ngFor="let question of allQuestionList">
+            <div class="col-md-12 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label>{{question.question}}</label>
+                        <input type="text" class="form-control" autocomplete="none">
+                      </div>
+                </div>
+            </div>
+        </div>
     </div>
 </ng-template>

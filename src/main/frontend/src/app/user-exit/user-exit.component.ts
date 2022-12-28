@@ -9,6 +9,7 @@ import { User } from '../models/user';
 import * as moment from 'moment';
 import { Asset } from '../models/asset';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ExitService } from '../services/exit.service';
 
 @Component({
   selector: 'app-user-exit',
@@ -41,6 +42,7 @@ export class UserExitComponent implements OnInit {
   exitAssetDetailList:any[] = [];
   employeeInfo:any[] = [];
   updatedConsentList:any[] = [];
+  allQuestionList:any[] = [];
 
   dateOfRelieving:any;
   currentUserName:any;
@@ -49,6 +51,7 @@ export class UserExitComponent implements OnInit {
   constructor(
     private modalService: BsModalService,
     private employeeService : EmployeeService,
+    private exitService : ExitService,
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
     private route: ActivatedRoute,
@@ -94,12 +97,14 @@ export class UserExitComponent implements OnInit {
   consentCheckbox(event){
     if(event.target.checked){
       this.isConsentCheck = true;
+    }else{
+      this.isConsentCheck = false;
     }
   }
 
   getEmployeeInfo(employmentId:any){
     this.employeeObj.employeementId = employmentId;
-    this.employeeService.getEmployeeInfo(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.exitService.getEmployeeInfo(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeInfo = response.serviceResponse;
 
@@ -128,7 +133,7 @@ export class UserExitComponent implements OnInit {
     this.employeeObj.dateOfResign = currentDate;
     this.employeeObj.empId = this.currentUser.empId;
 
-    this.employeeService.updateEmployeeResignationDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.exitService.updateEmployeeResignationDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.isResignDetails = true;
         this.isResign = false;
@@ -143,19 +148,22 @@ export class UserExitComponent implements OnInit {
   getEmployeeResignationDetails(){
     this.cancelRequest();
     this.employeeObj.empId = this.currentUser.empId;
-    this.employeeService.getEmployeeResignationDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.exitService.getEmployeeResignationDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeDetailObj = response.serviceResponse;
 
         console.log(this.employeeDetailObj, " : employeeDetailObj");
 
         if(this.employeeDetailObj.dateOfResign != null){
-          this.dateOfRelieving = moment(this.employeeDetailObj.dateOfResign).add(this.employeeDetailObj.noticePeriod, 'days').format('YYYY-MM-DD');
-          this.employeeDetailObj.dateOfRelieving = this.dateOfRelieving;
+          // this.dateOfRelieving = moment(this.employeeDetailObj.dateOfResign).add(this.employeeDetailObj.noticePeriod, 'days').format('YYYY-MM-DD');
+          // this.employeeDetailObj.dateOfRelieving = this.dateOfRelieving;
 
           this.isResignDetails = true;
 
-          if (moment(new Date()).format('YYYY-MM-DD') >= moment(this.dateOfRelieving).format('YYYY-MM-DD')) {
+          console.log(this.employeeDetailObj.dateOfResign, " :this.employeeDetailObj.dateOfResign");
+          
+
+          if (moment(new Date()).format('YYYY-MM-DD') >= moment(this.employeeDetailObj.dateOfRelieving).format('YYYY-MM-DD')) {
             this.isReleivingDate = true;
             this.isResignDetails = false;
             this.isResign = false;
@@ -179,12 +187,18 @@ export class UserExitComponent implements OnInit {
       this.employeeObj.employeementId = this.currentUser.employeementId;
     }
 
-    this.employeeService.getEmployeeExitAssetDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.exitService.getEmployeeExitAssetDetails(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.exitAssetDetailList = response.serviceResponse;
+
+        if(exitEmployeeId != null){
+          if(this.currentUser.departmentName != "Director"){
+            this.exitAssetDetailList = this.exitAssetDetailList.filter(x => x.departmentName == this.currentUser.departmentName);
+          }
+        }
         
         this.exitAssetDetailList.forEach((x) => {
-          if(x.deptConsent == 'N' || x.deptConsent == null){
+          if(x.deptConsent == 'false' || x.deptConsent == null){
             x.deptConsent = false;
           }else{
             x.deptConsent = true;
@@ -208,8 +222,8 @@ export class UserExitComponent implements OnInit {
   }
 
   selectDeptConsentCheckbox(updatedConsent){
-    const alreadyUpdatedConsent = this.updatedConsentList.find((x) => x.deptConsent == updatedConsent.deptConsent && x.assestName == updatedConsent.assestName);
-      if(alreadyUpdatedConsent){
+    const alreadyUpdatedConsent = this.updatedConsentList.findIndex((x) => x.deptConsent == updatedConsent.deptConsent && x.employeeAssetMapId == updatedConsent.employeeAssetMapId);
+      if(alreadyUpdatedConsent >= 0){
         this.updatedConsentList.splice(alreadyUpdatedConsent,1);
       }else{
         this.updatedConsentList.push(updatedConsent);
@@ -218,13 +232,38 @@ export class UserExitComponent implements OnInit {
   }
 
   /*
-     - submit consent API
-     - mail trigger with ishine link when date of releving == today
-     - add aprroved by in getEmployeeExitAssetDetails api
+     - submit consent API (completed)
+     - mail trigger with ishine link when date of releving == today  (completed)
+     - add aprroved by in getEmployeeExitAssetDetails api (completed)
+     - exit interview
+     - persist resignation rule & regulations consent in DB (hold)
+     - persist assumed date of relieving in DB (completed)
+     - date of releving will be shown on resigned status
   */
 
-  submitConsent(){
+  submitConsent(template: TemplateRef<any>){
+    this.employeeObj.deptHeadConsentList = this.updatedConsentList;
+    this.employeeObj.updatedBy = this.currentUser.empId;
+    this.exitService.setDeptHeadConcent(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getEmployeeResignationDetails();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
+  generateExitInterviewForm(template: TemplateRef<any>, exitInterviewTemplate: TemplateRef<any>){
+    this.exitService.getExitInterviewQuestion().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allQuestionList = response.serviceResponse;
+        console.log(this.allQuestionList, " all question");
+        this.modalRef = this.modalService.show(exitInterviewTemplate, { class: 'modal-lg' });
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
   cancelRequest() {

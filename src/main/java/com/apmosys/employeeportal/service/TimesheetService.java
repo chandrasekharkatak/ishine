@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -203,13 +204,17 @@ public class TimesheetService {
 					List<ActivityDTO> dtoList = new ArrayList<ActivityDTO>();
 
 					list.forEach((object) -> {
+						String[] employeeRoleInTeam = (object[4] != null ? object[4].toString() : null).split(",");
+						boolean contains = Arrays.stream(employeeRoleInTeam).anyMatch((object[3] != null ? object[3].toString() : null)::equals);
 
-						ActivityDTO dto = new ActivityDTO();
+						if(contains) {
+							ActivityDTO dto = new ActivityDTO();
 
-						dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setActivity(object[1] != null ? object[1].toString() : null);
-						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dtoList.add(dto);
+							dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setActivity(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dtoList.add(dto);
+						}
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -45,8 +45,8 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);	
   }
 
-  getAllEmployeesByDepartmentIds(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByDepartmentIds`, employeeObj);
+  getAllEmployeesByDepartmentId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByDepartmentId`, employeeObj);
   }
 
   getAllManagers() {
@@ -167,23 +167,5 @@ export class EmployeeService {
 
    addDemographicsInfo(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
-   }
-
-   /* Employee EXIT  */
-
-   updateEmployeeResignationDetails(employeeObj:Employee){
-    return this.http.post(`${this.baseUrl}`+`api/updateEmployeeResignationDetails`,employeeObj);
-   }
-
-   getEmployeeResignationDetails(employeeObj:Employee){
-    return this.http.post(`${this.baseUrl}`+`api/getEmployeeResignationDetails`,employeeObj);
-   }
-
-   getEmployeeExitAssetDetails(employeeObj:Employee){
-    return this.http.post(`${this.baseUrl}`+`api/getEmployeeExitAssetDetails`,employeeObj);
-   }
-
-   getEmployeeInfo(employeeObj:Employee){
-    return this.http.post(`${this.baseUrl}`+`api/getEmployeeInfo`,employeeObj);
    }
 }
