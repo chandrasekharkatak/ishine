@@ -1467,6 +1467,7 @@ public class EmployeeService {
 					empDTO.setDateOfRelieving(
 							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
 									: null);
+					empDTO.setJobRoleName(object[63] != null ? (object[63].toString()) : null);	
 				
 					dtoList.add(empDTO);
 					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);

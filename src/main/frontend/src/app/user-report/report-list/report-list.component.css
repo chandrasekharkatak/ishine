@@ -85,6 +85,6 @@
     border-color: var(--dark-cornflower-blue);
 }
 
-.table-hover tr,td {
+/* .table-hover tr,td {
     cursor: move;
-}
+} */

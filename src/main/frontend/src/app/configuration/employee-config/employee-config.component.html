@@ -806,6 +806,8 @@
                                 <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
                                 <th scope="col" class="info-label">Employment Status</th>
+                                <th scope="col" class="info-label">Manager Name</th>
+                                <th scope="col" class="info-label">Department Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>
                                 <th scope="col" class="info-label" *ngIf="dateOfReleivingshow" mat-sort-header="dateOfRelieving" > Date of Releiving</th>
 
@@ -826,6 +828,8 @@
                                 <td>{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
+                                <td>{{employee.managerName}}</td>
+                                <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</td>
                                 <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving | date:'dd-MM-yyyy'}}</td>
 

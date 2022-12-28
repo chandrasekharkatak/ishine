@@ -1209,7 +1209,9 @@ export class EmployeeConfigComponent implements OnInit {
           "Passing Grade":x.passingGrade,
           "Year Of Passing":x.yearOfPassing,
           "Created By":x.createdBy,
-          "Created On":x.createdOn 
+          "Created On":x.createdOn,
+          "Manager Name": x.managerName,
+          "Designation":x.jobRoleName,
 
         })
       )

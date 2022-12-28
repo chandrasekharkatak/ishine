@@ -259,6 +259,7 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   getAllProjects(){
+    this.data = ''
     this.allProjects = [];
 
     this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
@@ -308,6 +309,33 @@ export class ProjectConfigComponent implements OnInit {
     return true;
   }
 
+  checkProjectName(template:TemplateRef<any>){
+    let projectObj = new Project();
+    projectObj.projectName = this.projectObj.projectName?.trim();
+
+    if(projectObj.projectName.length >= 5){
+      if (!this.validationService.validateProjectName(projectObj.projectName)) {
+        this.alertMessage = "Please enter valid Project Name !!"
+        this.projectObj.projectName = ''
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+    }else{
+      this.alertMessage = "Please enter more than 4 letters in Project Name !!"
+      this.projectObj.projectName = ''
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    console.log("---_________  ",this.projectObj);
+    this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Fail"){
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+
+  }
+
   createProject(template: TemplateRef<any>){
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
     if (!inputValidated) return;
@@ -317,6 +345,7 @@ export class ProjectConfigComponent implements OnInit {
     //   return location['clientLocationId'];
     // });
     this.projectObj.departmentName = null;
+    this.projectObj.projectName = this.projectObj.projectName?.trim();
     
     this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success") {
