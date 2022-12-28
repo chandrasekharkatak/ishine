@@ -40,8 +40,8 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateDiscriptionUserProfile(employeeObj.viewsOnOrganisation)){
-      this.alertMessage = "Only string character will be valid in  your view on organisation !!";
+    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.viewsOnOrganisation)){
+      this.alertMessage = "Please enter valid view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -50,8 +50,8 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateDiscriptionUserProfile(employeeObj.aboutMe)){
-      this.alertMessage = "Only string character will be valid in  About me !!";
+    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.aboutMe)){
+      this.alertMessage = "Please enter valid in  About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -82,7 +82,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Blood Group !! !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-     } else if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
+     } else if (this.validationService.validateBloodGroup(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
       this.alertMessage = "Please enter Valid Blood Group !!"	
       this.openAlertMod(template, this.alertMessage);	
       return false;	
@@ -92,6 +92,35 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter select martial status !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }
+
+    if(employeeObj.maritalStatus == 'married'){
+      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.spouse)){
+        this.alertMessage = "Please enter spouse name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.spouse)){
+        this.alertMessage = "Please enter valid spouse name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.child1)){
+        this.alertMessage = "Please enter valid child1 name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.child2)){
+        this.alertMessage = "Please enter valid child2 name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateAlphaWithSpace(employeeObj.child3)){
+        this.alertMessage = "Please enter valid child3 name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){
@@ -181,35 +210,35 @@ export class InformationPreviewComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)){
-      this.alertMessage = "Please enter state !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.state)){
-      this.alertMessage = "Please enter Valid state !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.state)){
+    //   this.alertMessage = "Please enter state !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validateAlphaWithSpace(employeeObj.state)){
+    //   this.alertMessage = "Please enter Valid state !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)){
-      this.alertMessage = "Please enter city !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.city)){
-      this.alertMessage = "Please enter Valid city !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.city)){
+    //   this.alertMessage = "Please enter city !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validateAlphaWithSpace(employeeObj.city)){
+    //   this.alertMessage = "Please enter Valid city !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)){
-      this.alertMessage = "Please enter country !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(!this.validationService.validateAlphaWithSpace(employeeObj.country)){
-      this.alertMessage = "Please enter Valid country !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.country)){
+    //   this.alertMessage = "Please enter country !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }else if(!this.validationService.validateAlphaWithSpace(employeeObj.country)){
+    //   this.alertMessage = "Please enter Valid country !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.pincode)){
       this.alertMessage = "Please enter pincode !!"
@@ -311,6 +340,12 @@ export class InformationPreviewComponent implements OnInit {
           certFlag = false;
           return;
         }
+        if(!this.validationService.validateAlphabetAtLeastTwoCharacter(certification.certificationName)){
+          this.alertMessage = `Please Enter valid Certification Name - ${index+1}!!`;
+          this.openAlertMod(template, this.alertMessage);
+          certFlag = false;
+          return;
+        }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.duration)){
           this.alertMessage = `Please Select Duration - ${index+1}!!`;
@@ -339,6 +374,12 @@ export class InformationPreviewComponent implements OnInit {
           certFlag = false;
           return;
         }
+        if(!this.validationService.validateAlphaNumeric(certification.certificationNumber)){
+          this.alertMessage = `Please Enter valid Certification Number - ${index+1}!!`;
+          this.openAlertMod(template, this.alertMessage);
+          certFlag = false;
+          return;
+        }
       });
     }
 
@@ -352,66 +393,112 @@ export class InformationPreviewComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }else{
-        employeeObj.previousEmploymentList.forEach((previousEmployer:PreviousEmployer, index) =>{
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
-            this.alertMessage = `Please Enter Employer Name - ${index+1}!!`;
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
+        if (employeeObj.previousEmploymentList == null) {
+          this.alertMessage = `Please Enter Previous Employment Details !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }else{
+          employeeObj.previousEmploymentList.forEach((previousEmployer:PreviousEmployer, index) =>{
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.employerName)){
+              this.alertMessage = `Please Enter Employer Name - ${index+1}!!`;
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.employerName)){
+              this.alertMessage = `Please Enter valid Employer Name - ${index+1}!!`;
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+        
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
+              this.alertMessage = `Please Enter Date of Joining - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+        
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfRelieving)){
+              this.alertMessage = `Please Enter Date of Relieving - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
       
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
-            this.alertMessage = `Please Enter Date of Joining - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-      
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfRelieving)){
-            this.alertMessage = `Please Enter Date of Relieving - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.yearsOfExperience)){
-            this.alertMessage = `Please Enter Years of Experience - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
-            this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerContactNumber)){
-            this.alertMessage = `Please Enter Manager Contact Number - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
-            this.alertMessage = `Please Enter HR Name - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
-            this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
-            this.openAlertMod(template, this.alertMessage);
-            prevFlag = false;
-            return;
-          }
-        });
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.yearsOfExperience)){
+              this.alertMessage = `Please Enter Years of Experience - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else  if(!this.validationService.validateNumber(previousEmployer.yearsOfExperience)){
+              this.alertMessage = `Please Enter valid Years of Experience - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+            
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.designation)){
+              this.alertMessage = `Please Enter Designation - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else if(!this.validationService.validateAlphaWithSpace(previousEmployer.designation)){
+              this.alertMessage = `Please Enter valid Designation - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
 
-        if(!prevFlag) return false;
-        console.log("prevEX flag ",prevFlag);
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerName)){
+              this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.managerName)){
+              this.alertMessage = `Please Enter Manager Name - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+      
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerContactNumber)){
+              this.alertMessage = `Please Enter Manager Contact Number - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else  if(!this.validationService.validateMobileNumber(previousEmployer.managerContactNumber)){
+              this.alertMessage = `Please Enter valid Manager Contact Number - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+      
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
+              this.alertMessage = `Please Enter HR Name - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else  if(!this.validationService.validateAlphabeticCharacters(previousEmployer.hrName)){
+              this.alertMessage = `Please Enter valid HR Name - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+      
+            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
+              this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }else if(!this.validationService.validateMobileNumber(previousEmployer.hrContactNumber)){
+              this.alertMessage = `Please Enter valid HR Contact Number - ${index+1}!!`
+              this.openAlertMod(template, this.alertMessage);
+              prevFlag = false;
+              return;
+            }
+          });
+          if(!prevFlag) return false;
+        }
       }
     }
 

@@ -205,8 +205,8 @@ export class CompOffComponent implements OnInit {
         return false;
       }
 
-      if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(compOffObj.description)){
-        this.alertMessage = "Space and single character should not contain in comp off description !!"
+      if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
+        this.alertMessage = "Please enter valid description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -226,7 +226,7 @@ export class CompOffComponent implements OnInit {
 
       // const COMP_OFF_MASTER_ID  = 5;
       // this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
-
+      this.compOffObj.description = this.compOffObj.description?.trim();
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
       this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;

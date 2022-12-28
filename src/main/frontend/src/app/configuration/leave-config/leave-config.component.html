@@ -54,7 +54,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Date</label>
-                            <input id="occasionDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.dateOfHoliday" (change)="setHolidayWeekDay()" (keydown)="disableMannualDateInput()">
+                            <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control" autocomplete="none" [(ngModel)]="holidayObj.dateOfHoliday" (change)="setHolidayWeekDay()" (keydown)="disableMannualDateInput()">
                         </div>
                     </div>
                 </div>
@@ -91,69 +91,69 @@
 <!-- end ::  Add & Update Holiday form -->
 
 <!-- start :: holidays Table -->
-<div class="row d-flex" *ngIf="isHolidayTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Holidays</h1>
-    </div>
-    <div class="col-md-12 row">
-        <div class="offset-md-8 col-md-4 mb-0">
-            <label class="info-label">State</label>
-            <div class="info-wrapper d-flex">
-                <div class="form-group">
+<div class="row" *ngIf="isHolidayTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Holidays</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 ml-auto mb-0">
+                <div class="form-inline input-group">
+                    <label class="d-inline-block mr-2 mt-2"><strong>State</strong></label>
                     <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState" (ngModelChange)="onSelect()">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="all state">All state</option>
                         <option value="all">All (common)</option>
                         <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
-                      </select>
+                    </select>
                 </div>
-                <div class="form-group col-md-6">
-                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-                </div>
+            </div>
+            <div class="form-group col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
+                    [tableTHeadTrId]="'holidayInfoTHeadTr'">
+                    <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
+                        <thead class="thead-light" id="holidayInfoTHead">	
+                          <tr id="holidayInfoTHeadTr">	
+                            <th scope="col" class="info-label" >Sr. No</th>	
+                            <th scope="col" class="info-label"  mat-sort-header="occasion">Occasion</th>	
+                            <th scope="col" class="info-label" mat-sort-header="dayOfTheWeek">Day</th>	
+                            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday">Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="state">State</th>
+                            <th scope="col" class="info-label">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="holidayListFilter.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr *ngFor="let holiday of holidayListFilter|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                <td>{{20*(page-1)+i+1}}</td>
+                                <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
+                                <td>{{holiday.dayOfTheWeek}}</td>
+                                <td>{{holiday.dateOfHoliday | date:'dd-MM-yyyy'}}</td>
+                                <td>{{holiday.state}}</td>
+                                <td>
+                                    <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button *ngIf="userMapping.delete_holiday" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                      </table>   
+                </div>    
+                  <pagination-controls class="my-pagination" [hidden]="holidayListFilter.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
     </div>
-    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">	
-        <thead class="thead-light">	
-          <tr>	
-            <th scope="col" class="info-label" >Sr. No</th>	
-            <th scope="col" class="info-label"  mat-sort-header="occasion">Occasion</th>	
-            <th scope="col" class="info-label" mat-sort-header="dayOfTheWeek">Day</th>	
-            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday">Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="state">State</th>
-            <th scope="col" class="info-label">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="holidayListFilter.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-            </tr>
-            <tr *ngFor="let holiday of holidayListFilter|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                <td>{{20*(page-1)+i+1}}</td>
-                <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
-                <td>{{holiday.dayOfTheWeek}}</td>
-                <td>{{holiday.dateOfHoliday}}</td>
-                <td>{{holiday.state}}</td>
-                <td>
-                    <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button *ngIf="userMapping.delete_holiday" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-        </tbody>
-      </table>   
-      <pagination-controls class="my-pagination" [hidden]="holidayListFilter.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 </div>
 <!-- end :: holidays table -->
-
-<!-- model Template - delete holiday -->
-<ng-template #delete_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to delete the Holiday?</p>
-        <button type="button" class="btn btn-success" (click)="onDeleteHoliday(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
 
 <!-- start :: Add & Update Leave Type Form -->
 <div class="row">
@@ -232,45 +232,58 @@
 <!-- end ::  Add & Update Leave Type form -->
 
 <!-- start :: Leave Type Table -->
-<div class="row d-flex" *ngIf="isLeaveRuleTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Leave Types</h1>
-    </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+<div class="row" *ngIf="isLeaveRuleTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Leave Types</h1>
+            </div>
         </div>
-    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortFunc($event)">	
-        <thead class="thead-light" >	
-          <tr>	
-            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-            <th scope="col" class="info-label" mat-sort-header="leaveTypeCode">Leave Code</th>	
-            <th scope="col" class="info-label" mat-sort-header="gender">Employee Gender</th>	
-            <th scope="col" class="info-label" mat-sort-header="noOfDays">Default Leaves</th>	
-            <th scope="col" class="info-label" mat-sort-header="rules">Rules</th>	
-            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
-            <th scope="col" class="info-label">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="leaveTypes.length == 0">
-                <th colspan="8" class="info-label">No details to display...</th>
-            </tr>
-            <tr *ngFor="let leaveType of leaveTypes|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
-                <td>{{leaveType.leaveType}}</td>
-                <td>{{leaveType.leaveTypeCode}}</td>
-                <td>{{leaveType.gender}}</td>
-                <td>{{leaveType.noOfDays}} day(s)</td>
-                <td>{{leaveType.rules}}</td>
-                <td>{{leaveType.description}}</td>
-                <td>
-                    <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button *ngIf="userMapping.delete_leave_type" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeaveType(delete_leave_type,leaveType)"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-        </tbody>
-      </table> 
-      <pagination-controls class="my-pagination" [hidden]="leaveTypes.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>        
+        <div class="row">
+            <div class="form-group ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
+                    [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
+                    <table class="table table-responsive" id="employeeBucketInfo" matSort (matSortChange)="sortFunc($event)">	
+                        <thead class="thead-light" id="employeeBucketInfoTHead">	
+                          <tr id="employeeBucketInfoTHeadTr">	
+                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+                            <th scope="col" class="info-label" mat-sort-header="leaveTypeCode">Leave Code</th>	
+                            <th scope="col" class="info-label" mat-sort-header="gender">Employee Gender</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Default Leaves</th>	
+                            <th scope="col" class="info-label" mat-sort-header="rules">Rules</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
+                            <th scope="col" class="info-label">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="leaveTypes.length == 0">
+                                <th colspan="16" class="info-label">No details to display...</th>
+                            </tr>
+                            <tr *ngFor="let leaveType of leaveTypes|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
+                                <td>{{leaveType.leaveType}}</td>
+                                <td>{{leaveType.leaveTypeCode}}</td>
+                                <td>{{leaveType.gender}}</td>
+                                <td>{{leaveType.noOfDays}} day(s)</td>
+                                <td>{{leaveType.rules}}</td>
+                                <td>{{leaveType.description}}</td>
+                                <td>
+                                    <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button *ngIf="userMapping.delete_leave_type" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeaveType(delete_leave_type,leaveType)"><em class="fa fa-trash"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                      </table> 
+                </div>
+                  <pagination-controls class="my-pagination" [hidden]="leaveTypes.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>   
+            </div>
+        </div>
+    </div>     
 </div>
 <!-- end :: Leave Type table -->
 
@@ -286,7 +299,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="Please Enter Employee ID without prefix A">
+                            <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101">
                         </div>
                     </div>
                 </div>
@@ -349,7 +362,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Policy Name</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.leavePolicyName">
+                            <input type="text" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.leavePolicyName">
                         </div>
                     </div>
                 </div>
@@ -357,7 +371,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.employmentStatus">
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="leavePolicyObj.employmentStatus">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Probation">Probation</option>
                                 <option value="Confirmed">Confirmed</option>
@@ -371,9 +386,11 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.leaveTypeMasterId">
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="leavePolicyObj.leaveTypeMasterId">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
+                                <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">
+                                    {{leave.leaveType}}</option>
                             </select>
                         </div>
                     </div>
@@ -382,8 +399,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leavePolicyDesc">Description</label>
-                            <textarea class="form-control" id="leavePolicyDesc" rows="1" [(ngModel)]="leavePolicyObj.description"></textarea>
-                          </div>
+                            <textarea class="form-control" id="leavePolicyDesc" rows="1"
+                                [(ngModel)]="leavePolicyObj.description"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -393,7 +411,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Allow Leave Application</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.leaveApplication">
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="leavePolicyObj.leaveApplication">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Yes">Yes</option>
                                 <option value="No">No</option>
@@ -421,7 +440,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Monthly Increment Value : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.incrementValue">
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.incrementValue">
                         </div>
                     </div>
                 </div>
@@ -445,7 +465,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>One Time Leave Minimum Limit Value : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.oneTimeLeaveMinCount">
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.oneTimeLeaveMinCount">
                         </div>
                     </div>
                 </div>
@@ -453,7 +474,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>One Time Leave Maximum Limit Value : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.oneTimeLeaveCount">
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.oneTimeLeaveCount">
                         </div>
                     </div>
                 </div>
@@ -477,7 +499,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Carry Forward Value : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.carryForwardValue">
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.carryForwardValue">
                         </div>
                     </div>
                 </div>
@@ -487,8 +510,10 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave Validity Expiration</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.expirationPeriod">
+                            <label class="info-label"><span class="text-danger">*</span>Leave Validity
+                                Expiration</label>
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="leavePolicyObj.expirationPeriod">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Yes">Yes</option>
                                 <option value="No">No</option>
@@ -500,8 +525,10 @@
                 <div *ngIf="leavePolicyObj.expirationPeriod == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Validity Expiration Period <small>(Days)</small> : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.expirationPeriodValue">
+                            <label><span class="text-danger">*</span>Leave Validity Expiration Period
+                                <small>(Days)</small> : </label>
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.expirationPeriodValue">
                         </div>
                     </div>
                 </div>
@@ -511,7 +538,8 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave Application Count Locking</label>
+                            <label class="info-label"><span class="text-danger">*</span>Leave Application Count
+                                Locking</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.lockingPeriod">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Yes">Yes</option>
@@ -524,8 +552,10 @@
                 <div *ngIf="leavePolicyObj.lockingPeriod == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Application Count Locking Period <small>(Days)</small> : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.lockingPeriodValue">
+                            <label><span class="text-danger">*</span>Leave Application Count Locking Period
+                                <small>(Days)</small> : </label>
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.lockingPeriodValue">
                         </div>
                     </div>
                 </div>
@@ -533,7 +563,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Application Count Value : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.lockingValue">
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.lockingValue">
                         </div>
                     </div>
                 </div>
@@ -543,7 +574,8 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave Application Probation</label>
+                            <label class="info-label"><span class="text-danger">*</span>Leave Application
+                                Probation</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="leavePolicyObj.probation">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Yes">Yes</option>
@@ -556,62 +588,80 @@
                 <div *ngIf="leavePolicyObj.probation == 'Yes'" class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Probation Period <small>(Days)</small> : </label>
-                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="leavePolicyObj.probationPeriod">
+                            <label><span class="text-danger">*</span>Leave Probation Period <small>(Days)</small> :
+                            </label>
+                            <input type="number" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.probationPeriod">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onAddLeavePolicy(alert_message)">Add Leave Policy</button>
-                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeavePolicy(alert_message)">Update Leave Policy</button>
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1"
+                        (click)="onAddLeavePolicy(alert_message)">Add Leave Policy</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                        (click)="onUpdateLeavePolicy(alert_message)">Update Leave Policy</button>
                 </div>
             </div>
+        </div>
     </div>
 </div>
 <!-- end ::  Add & Update Leave Policy form -->
 
 <!-- start :: Leave Policy Table -->
-<div class="row d-flex" *ngIf="isLeavePolicyTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Leave Policies</h1>
-    </div>
-    <div class="form-group d-flex flex-row ml-auto col-md-3">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+<div class="row" *ngIf="isLeavePolicyTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Leave Policies</h1>
+            </div>
         </div>
-    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortPolicy($event)">	
-        <thead class="thead-light">	
-          <tr>	
-            <th scope="col" class="info-label">Sr No.</th>	
-            <th scope="col" class="info-label" mat-sort-header="leavePolicyName">Leave Policy Name</th>	
-            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-            <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description">Description</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-            <th scope="col" class="info-label">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="leavePolicyList.length === 0">
-                <th colspan="10" class="text-center info-label">No details to display...</th>
-            </tr>
-            <tr *ngFor="let leavePolicy of leavePolicyList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                <td>{{20*(page-1)+i+1}}</td>
-                <td>{{leavePolicy.leavePolicyName}}</td>
-                <td>{{leavePolicy.leaveType}}</td>
-                <td class="desc-text-wrap">{{leavePolicy.description}}</td>
-                <td>{{leavePolicy.createdByName}}</td>
-                <td>{{leavePolicy.createdOn}}</td>
-                <td>
-                    <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
-                    <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
-                </td>
-            </tr>
-        </tbody>
-      </table>  
-      <pagination-controls class="my-pagination" [hidden]="leavePolicyList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>       
+        <div class="row">
+            <div class="form-group ml-auto col-md-3">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
+                        [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                        <table class="table table-responsive" matSort (matSortChange)="sortPolicy($event)">	
+                            <thead class="thead-light">	
+                              <tr>	
+                                <th scope="col" class="info-label">Sr No.</th>	
+                                <th scope="col" class="info-label" mat-sort-header="leavePolicyName">Leave Policy Name</th>	
+                                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
+                                <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description">Description</th>	
+                                <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>	
+                                <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                                <th scope="col" class="info-label">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="leavePolicyList.length === 0">
+                                    <th colspan="10" class="text-center info-label">No details to display...</th>
+                                </tr>
+                                <tr *ngFor="let leavePolicy of leavePolicyList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                    <td>{{20*(page-1)+i+1}}</td>
+                                    <td>{{leavePolicy.leavePolicyName}}</td>
+                                    <td>{{leavePolicy.leaveType}}</td>
+                                    <td class="desc-text-wrap">{{leavePolicy.description}}</td>
+                                    <td>{{leavePolicy.createdByName}}</td>
+                                    <td>{{leavePolicy.createdOn | date:'dd-MM-yyyy'}}</td>
+                                    <td>
+                                        <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
+                                        <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                          </table> 
+                    </div>                         
+                  <pagination-controls class="my-pagination" [hidden]="leavePolicyList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
+            </div>
+        </div>
+    </div>   
 </div>
 <!-- end :: Leave Policy table -->
 
@@ -620,6 +670,14 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Holiday?</p>
+        <button type="button" class="btn btn-success" (click)="onDeleteHoliday(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 

@@ -94,7 +94,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllUserTypeCrudMappings`,
     `${this.baseUrl}` + `api/changeLeaveTypeMapping`,
 
-    `${this.baseUrl}` + `api/getAllEventPhotos`,
     `${this.baseUrl}` + `api/customQueryForLeaveReport`,
     `${this.baseUrl}` + `api/timesheetReport`,
     `${this.baseUrl}` + `api/leaveReport`,
@@ -113,6 +112,19 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/viewAppreciation`,
     `${this.baseUrl}` + `api/getAllAppreciationEvent`,
     `${this.baseUrl}` + `api/enableAppreciation`,
+    `${this.baseUrl}` + `api/OnCheckEventName`,
+    `${this.baseUrl}` + `api/deleteAppreciationEvent`,
+    `${this.baseUrl}` + `api/updateAppreciationEvent`,
+    `${this.baseUrl}` + `api/getHierarchyChartByEmpId`,
+    `${this.baseUrl}` + `api/getAllManagers`,
+    `${this.baseUrl}` + `api/getAllTeamMemberView`,
+    `${this.baseUrl}` + `api/getAllTeamsByProjectId`,
+    `${this.baseUrl}` + `api/getAllActivitiesByProjectIdAndTeamId`,
+    `${this.baseUrl}` + `api/getAllEmployeesByRole`,
+    `${this.baseUrl}` + `api/getAllMyTeamsByEmpId`,
+    `${this.baseUrl}` + `api/getAllProjectListByProjectManagerId`,
+
+
   ]
 
   constructor(private loaderService: LoaderService) { }

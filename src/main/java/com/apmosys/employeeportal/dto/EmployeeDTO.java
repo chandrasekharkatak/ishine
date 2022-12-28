@@ -132,7 +132,7 @@ public class EmployeeDTO {
 	private Integer projectId;
 	private String projectName;
 	private String startDate;
-	private String endDate;
+	private String updatedOn;
 	private String teamLeadName;
 	private String employeeRole;
 	private String clientName;
@@ -149,8 +149,19 @@ public class EmployeeDTO {
 		
 	private String toDate;	
 		
-	private Long appreciationEventId;	
-		
+	private Long appreciationEventId;
+	private String tabName;
+	private Long subFeatureId;
+	private String subFeatureName;
+	private Long featureId;
+	private String featureName;
+	private String permission;
+	private String isAssigned;
+	
+	private Integer reporteeCount;
+	private String hierarchyType;
 //	private String eventCreatedOn;
+	
+	private Double profileCompletedPercent;
 
 }

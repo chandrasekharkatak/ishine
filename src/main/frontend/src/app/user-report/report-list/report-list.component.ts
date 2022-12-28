@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, Renderer2, ElementRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
@@ -10,6 +10,11 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { Feature } from 'src/app/models/feature';
 import { Query } from 'src/app/models/query';
+import { JobRoleService } from 'src/app/services/job-role.service';
+import { ValidationService } from 'src/app/services/validation.service';
+import { Employee } from 'src/app/models/employee';
+import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
+import { JobRole } from 'src/app/models/jobRole';
 
 class FilterData{
   title:any;
@@ -23,19 +28,26 @@ class FilterData{
 })
 export class ReportListComponent implements OnInit {
 
+  @ViewChild("alert_message")
+  alertModal: TemplateRef<any>;
+
   feature = 'Reports';
   currentUser: User;
   userMapping: any = {};
 
-  data:string; //Search Data 
+  data:string; //Search Data
+  designationData:string;   //Search Designation
 
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
+  employeeObj:Employee = new Employee();
+
   isLeaveReportTable:boolean = false;
   isTimesheetReportTable:boolean = false;
   isEmployeeReportTable:boolean = false;
+  isAccessControlListTable:boolean = false;
 
   allEmployeeList:any[] = [];
 
@@ -45,13 +57,32 @@ export class ReportListComponent implements OnInit {
   allTimesheetApplicationsList:any[] = [];
   timesheetApplicationsDataForExcel: any[] = [];
 
+  allJobRoleList:any[] = [];
+  personaWiseJobRole:any[] = [];
+  accessControlList:any[] = [];
+  mappedSubFeatureList:any[] = [];
+  subfeatureList:any[] = [];
+
+  updatedRoleSubFeature:any[] = [];
+  hiddenColumnObj:any[] = [];
+  showColumnList:any[] = [];
+
   excelName:any;
+  jobRoleName:any;
+  departmentId:any;
+  employeeRole:any;
 
   leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   timesheetColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   queryList:any[] = [];
-  filterData:any = new FilterData(); 
+  filterData:any = new FilterData();
+
+  columns: any[] = [];
+  paginateData: any[] = [];
+  pos:any;
+  release:boolean = true;
+  finalColumns: any[] = [];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -60,6 +91,9 @@ export class ReportListComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
     private leaveService : LeaveService,
+    private jobRoleService : JobRoleService,
+    private validationService : ValidationService,
+    private renderer2: Renderer2,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -71,8 +105,7 @@ export class ReportListComponent implements OnInit {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
      console.log(this.feature, this.userMapping);
-
-    this.sectionViewInit();
+     this.sectionViewInit();
   }
 
   sectionViewInit() {
@@ -90,6 +123,7 @@ export class ReportListComponent implements OnInit {
 
     this.isTimesheetReportTable = false;
     this.isEmployeeReportTable = false;
+    this.isAccessControlListTable = false;
 
     this.getAllLeaveApplicationsList();
     this.data = ''
@@ -100,6 +134,7 @@ export class ReportListComponent implements OnInit {
     
     this.isLeaveReportTable = false;
     this.isEmployeeReportTable = false;
+    this.isAccessControlListTable = false;
 
     this.getAllTimesheetApplicationsList();
     this.data = ''
@@ -110,9 +145,21 @@ export class ReportListComponent implements OnInit {
     
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.isAccessControlListTable = false;
 
     this.getAllEmployeeList();
     this.data =''
+  }
+
+  showAccessControlListTable(){
+    this.isAccessControlListTable = true;
+
+    this.isEmployeeReportTable = false;
+    this.isLeaveReportTable = false;
+    this.isTimesheetReportTable = false;
+    this.data ='';
+    this.columns = [];
+    this.paginateData = [];
   }
 
   // Leave Report 
@@ -176,6 +223,7 @@ export class ReportListComponent implements OnInit {
         this.allTimesheetApplicationsList = response.serviceResponse;
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.description = timesheet.description.replaceAll('<br>','')
         });
         console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
       } else {
@@ -217,7 +265,6 @@ export class ReportListComponent implements OnInit {
       });  
     }
   }
-
 
   // Employee Report 
   getAllEmployeeList() {
@@ -270,6 +317,171 @@ export class ReportListComponent implements OnInit {
       });
     }
   }
+
+// ACL Start
+
+  selectPersona(event) {
+    this.employeeRole = event.target.value;
+    this.showColumnList = [];
+    this.getAllJobRoleList(this.employeeRole);
+  }
+
+  getAllJobRoleList(persona: any) {
+    this.personaWiseJobRole = [];
+    this.columns = [];
+    this.mappedSubFeatureList = [];
+    this.subfeatureList = [];
+    this.paginateData = [];
+    this.finalColumns = [];
+
+
+    this.jobRoleService.getAllSubFeatureList().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.subfeatureList = response.serviceResponse;
+        this.columns.push({ "field": "subFeature", "header": "Sub-Feature" });
+
+        this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.allJobRoleList = response.serviceResponse;
+            this.personaWiseJobRole = this.allJobRoleList.filter((x) => x.employeeRole == persona);
+            this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name, "department":role.departmentName })})
+
+            var final = [];
+            this.columns.forEach(function (e) {
+              var match = false;
+              final.forEach(function (i) {
+                if (e.department == i.department[0].department) {
+                  match = true;
+                }
+              });
+              if (!match) {
+                var obj = {
+                  "header": e.department,
+                  "department" : [e]
+                }
+                final.push(obj);
+              } else {
+                final.forEach(function (i) {
+                  if (e.department == i.department[0].department) {
+                    i.department.push(e);
+                  }
+                });
+              }
+            });
+
+            this.finalColumns = final;
+            console.log(this.finalColumns, " : funal arr");
+
+            // Generate Template
+            this.subfeatureList.forEach(subfeature => {
+              let paginateDataItem = {}
+
+              this.columns.forEach((column, index) => {
+                if (index === 0) {
+                  paginateDataItem[column.field] = subfeature.subFeatureName;
+                  paginateDataItem['subfeatureId'] = subfeature.subFeatureId;
+                } else {
+                  paginateDataItem[column.field] = false;
+                }
+              });
+              this.paginateData.push(paginateDataItem)
+            });
+            console.log("paginateData : ", this.paginateData);
+
+            this.personaWiseJobRole.forEach((role) => {
+              this.employeeObj.jobRoleId = role.jobRoleId;
+              this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
+                if (response.serviceStatus == "Success") {
+                  const mappedSubFeatures = response.serviceResponse;
+                  console.log("mappedSubFeatures : ", mappedSubFeatures);
+                  mappedSubFeatures.forEach(subFeature => {
+                    let mappedSubFeatureData = this.paginateData.find(data => {
+                      const subFeatureName = data.subFeature;
+                      if (subFeatureName == subFeature.subFeatureName)
+                        return data;
+                    });
+                    if (mappedSubFeatureData)
+                      mappedSubFeatureData[role.jobRoleId] = true;
+                  });
+                } else {
+                  console.error(response.serviceResponse);
+                }
+              });
+            });
+          } else {
+            console.error(response.serviceResponse)
+          }
+        });
+      }
+    });
+  }
+
+dropRow(event: CdkDragDrop<string[]>) {
+  moveItemInArray(this.paginateData, event.previousIndex, event.currentIndex);
+}
+
+dropCol(event: CdkDragDrop<string[]>) {
+  if(event.previousIndex != 0 && event.currentIndex !== 0){
+    moveItemInArray(this.columns, event.previousIndex, event.currentIndex);
+  }
+}
+
+mouseDown(event,el:any=null){
+  el=el || event.target
+  this.pos={x:el.getBoundingClientRect().left-event.clientX+'px',
+  y:el.getBoundingClientRect().top-event.clientY+'px',
+  width:el.getBoundingClientRect().width+'px'
+  }
+}
+
+onDragRelease(event: CdkDragRelease) {
+  this.renderer2.setStyle(event.source.element.nativeElement,'margin-left','0px')
+}
+
+selectCellCheckbox(element:any, isAssigned:any, subFeatureId:any){
+  const alreadyUpdatedMapping = this.updatedRoleSubFeature.find((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
+  if(alreadyUpdatedMapping){
+    this.updatedRoleSubFeature.splice(alreadyUpdatedMapping,1);
+  }else{
+    this.updatedRoleSubFeature.push({
+      "jobRoleId":element,
+      "isAssigned":isAssigned,
+      "subFeatureId":subFeatureId
+    });
+  }
+  console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
+}
+
+updateJobRoleSubFeatureMapping(template: TemplateRef<any>){
+  let jobRoleObj = new JobRole();
+  jobRoleObj.updatedJobRoleFeatureMapping = this.updatedRoleSubFeature;
+
+  this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response:any) => {
+    if(response.serviceStatus == "Success"){
+      this.openAlertMod(template,response.serviceResponse);
+    }else{
+      this.openAlertMod(template,response.serviceResponse);
+    }
+  });
+}
+
+hideColumn(column:any){
+  this.hiddenColumnObj = this.columns.find(x => x.header == column);
+  this.columns = this.columns.filter(x => x.header != column);
+  this.showColumnList.push(this.hiddenColumnObj);
+}
+
+showColumn(){
+  let headerId = this.employeeObj.columnHeader;
+  let hiddenFound = this.showColumnList.find(x => x.field == headerId);
+  if(hiddenFound){
+    this.columns.push(hiddenFound);
+    this.showColumnList.splice(hiddenFound,1);
+    this.employeeObj.columnHeader = '';
+  }
+}
+
+// ACL end
 
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
@@ -340,7 +552,7 @@ export class ReportListComponent implements OnInit {
             "Employee Name":x.employeeName,
             "date":x.date,
             "dayType":x.dayType,
-            "description":x.description,
+            "description":x.description?.replaceAll('<br>', ' \n'),
             "status":x.status,
             "totalWorkingHours":x.totalWorkingHours,
             "createdOn":x.createdOn,
@@ -404,6 +616,22 @@ export class ReportListComponent implements OnInit {
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+    }
+
+    if(this.isAccessControlListTable == true){
+      this.excelName = 'ACLReport.xlsx';
+
+        const onlySpecificDataArr = this.accessControlList.map(
+          x => ({
+            "Department Name": x.departmentName,
+            "Designation": x.jobRoleName,
+            "Employee Role": x.employeeRole,
+            "Tab Name": x.tabName,
+            "Feature Name": x.featureName,
+            "Sub-Feature Name": x.subFeatureName,
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
     }
   }
 

@@ -24,7 +24,7 @@ public class AppreciationEvent {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long appreciationEventid;
 	
-	private String appreciationEventEventName;
+	private String appreciationEventName;
 	
 	private String fromDate;
 	
@@ -33,7 +33,9 @@ public class AppreciationEvent {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private LocalDateTime createdOn;
 	
+	private Long updatedBy;
 	
+	private String appreciationEventType;
 	
 	
 

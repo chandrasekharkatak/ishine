@@ -1,10 +1,14 @@
+.row {
+    margin-right: 0 !important;
+}
+
 .user-card{
     width: 100%;
     padding: 0.9375rem 0;
     margin: 0 0 3rem 0;
 }
 
-.user-card .user-card__profile-avatar{
+.user-card__profile-avatar{
     display: flex;
     justify-content: center;
     align-items: center ;
@@ -19,34 +23,30 @@
     left: 30%;
 }
 
-.user-card__profile-info .user-card__profile-info__role{
+.user-card__profile-info__role{
     color: var(--middle-grey);
 }
 
-.user-card__profile-info .user-card__profile-info__container .user-card__profile-info__label{
+.user-card__profile-info__label{
     color: var(--middle-grey);
     margin-bottom: 0.3125rem;
     font-weight: 500;
 }
 
-.user-card__profile-info .user-card__profile-info__container .user-card__profile-info__text{
+.user-card__profile-info__text{
     margin-top: 0.3125rem;
     font-weight: 600;
-}
-
-.user-card__profile-info .user-card__profile-info__container{
-    padding: 1rem 0;
 }
 
 .user-info__tab-container{
     padding: 2rem;
 }
 
-.user-info__tabs .user-info__tab-item .user-info__tab-item__link{
+.user-info__tab-item__link{
     color: var(--middle-grey);
 }
 
-.user-info__tabs .user-info__tab-item .user-info__tab-item__link.active{
+.user-info__tab-item__link.active{
     color: var(--raisin-black);
     font-weight: bold;
     border-bottom: 5px solid var(--dark-cornflower-blue);
@@ -63,6 +63,14 @@
 
 .profile__greetings{
     margin-bottom: 0;
+}
+
+@media (max-width: 768px){
+    .user-card__profile-info{
+        padding-right: 0;
+        margin-left: 1em;
+        overflow: hidden;
+    }
 }
 
 
@@ -102,7 +110,7 @@
 
 
 /* profie photo*/
-.user-card__profile-avatar .user-card__profile-avatar__img{
+.user-card__profile-avatar__img{
     width: 250px;
     height: 250px;
     object-fit: cover;

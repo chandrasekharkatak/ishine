@@ -6,5 +6,12 @@ export class Project{
 	projectName:any;
 	description:any;
 	projectManagerId:any;
-	
+	departmentName:any;
+	clientId:any;
+	clientLocationId:any;
+	departmentList:any[] = [];
+	allClientLocationList;
+	deptId:any;
+	active:any;
+	syncProject:any;
 }

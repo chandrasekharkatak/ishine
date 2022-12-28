@@ -128,6 +128,11 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
+
+        for(let x of this.allTeamTimesheets){
+          x.employeementId = "A-".concat(x.employeementId);
+        }
+
         console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
         console.error(response.serviceResponse)
@@ -147,6 +152,9 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
+        for(let x of this.allTeamTimesheetRequests){
+          x.employeementId = "A-".concat(x.employeementId);
+        }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
@@ -159,6 +167,9 @@ export class TeamTimesheetComponent implements OnInit {
     let timesheetObj = Object.assign({}, timesheet);
     timesheetObj.status = status
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -195,6 +206,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
+    
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.allTimesheetActivities = response.serviceResponse;
@@ -207,8 +219,10 @@ export class TeamTimesheetComponent implements OnInit {
 
   revokeApprovedTimesheet(template: TemplateRef<any>) {
     this.cancelRequest();
+    let timesheetObj = Object.assign({}, this.timesheetObj);
+    timesheetObj.employeementId = timesheetObj.employeementId.substring(2)
 
-    this.timesheetService.revokeApprovedTimesheet(this.timesheetObj).pipe(first()).subscribe((response :any) => {
+    this.timesheetService.revokeApprovedTimesheet(timesheetObj).pipe(first()).subscribe((response :any) => {
       if(response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showAllTimesheetsTable();
@@ -226,11 +240,14 @@ export class TeamTimesheetComponent implements OnInit {
       this.allTeamTimesheetDataForExcel = this.allTeamTimesheets;
         const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
           x => ({
+            "Employee Id": x.employeementId,
+            "Employee Name":x.employeeName,
             "Date": x.date,
             "Day Type": x.dayType,
-            "Timesheet Details": x.description,
+            "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
             "Total Time": x.totalTime,
-            "Status": x.status
+            "Status": x.status,
+            "Remarks":x.remarks
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
@@ -246,7 +263,8 @@ export class TeamTimesheetComponent implements OnInit {
             "Name": x.employeeName,
             "Date": x.date,
             "Day Type": x.dayType,
-            "Timesheet Details": x.description,
+            "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
+            "Applied By":x.createdByName,
             "Working Hours": x.totalTime,
             "Status": x.status
           })
@@ -419,9 +437,12 @@ onBulkApproval(template:TemplateRef<any>){
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Approved"
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkApprovedList.forEach((x)=>{
+    x.employeementId = x.employeementId.substring(2)
+  })
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
+      this.openAlertMod(template , "All Selected Timesheets Approved Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -438,11 +459,14 @@ OnBulkReject(template: TemplateRef<any>){
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Rejected"
-  timesheetObj.rejectReason = this.timesheetObj.rejectReason
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkRejectList.forEach((y)=>{
+    y.employeementId = y.employeementId.substring(2);
+  })
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully ");
+      this.openAlertMod(template , "All Selected Timesheets Rejected Successfully ");
       this.showAllTimesheetRequestsTable();
       this.bulkApprove = [];
       this.bulkReject = [];

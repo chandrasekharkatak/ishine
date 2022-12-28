@@ -185,6 +185,13 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getHierarchyByEmpId(employeedto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getHierarchyChartByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getHierarchyChartByEmpId(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.getHierarchyChartByEmpId(employeedto);
+		return response;
+	}
 
 	@RequestMapping(value = "/revokeAccount", method = RequestMethod.POST)
 	public ServiceResponse revokeAccount(@RequestBody EmployeeDTO employeedto) {
@@ -198,6 +205,7 @@ public class EmployeeController {
 		return response;
 
 	}
+	
 
 	/*
 	 * getAllManagers gets all employees whose empId occurs in manager_id column in
@@ -214,6 +222,12 @@ public class EmployeeController {
 	@RequestMapping(value ="/findEmployeeWorkingHistory" , method = RequestMethod.POST)
 	public ServiceResponse findEmployeeWorkingHistory(@RequestBody EmployeeDTO employeeDto) {
 		ServiceResponse response=employeeService.findEmployeeWorkingHistory(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value ="/getEmployeeProfileCompletion" , method = RequestMethod.POST)
+	public ServiceResponse getEmployeeProfileCompletion(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response=employeeService.getEmployeeProfileCompletion(employeeDto);
 		return response;
 	}
 

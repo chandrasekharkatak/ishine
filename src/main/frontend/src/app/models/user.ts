@@ -14,6 +14,10 @@ export class User{
     departmentId:any;
     isNew:any;
 
+    departmentName:any;
+    dateOfResign:any;
+    employeeRole:any;
+
     /* For Leave Policy */
     gender:any;
     employmentstatus:any;

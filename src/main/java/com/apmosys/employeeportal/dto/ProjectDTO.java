@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
+import java.util.List;
+
+import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -20,5 +23,15 @@ public class ProjectDTO {
 	private Timestamp approvedOn;
 	private Timestamp createdOn;
 	private Long employeementId;
+	private Long teamId;
+	private String departmentName;
+	private Long poProjectId;
+	private Integer clientId;
+    private Integer clientLocationId;
+    private String employeeName;
+    private Integer poClientId;
+    private String poProjectManagerId;
+    private List<TeamDTO> teamList;
+    private String[] departmentList;
 
 }

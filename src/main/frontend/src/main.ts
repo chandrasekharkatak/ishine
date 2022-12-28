@@ -8,8 +8,5 @@ if (environment.production) {
   enableProdMode();
 }
 
-history.pushState = () => {}; 
-Object.freeze(history);
-
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));

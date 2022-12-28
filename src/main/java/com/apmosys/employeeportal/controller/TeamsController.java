@@ -64,6 +64,13 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllMyTeamsByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsByEmpId(@RequestBody EmployeeDTO employeeDTO) {
+
+		ServiceResponse response = teamsService.getAllMyTeamsByEmpId(employeeDTO);
+		return response;
+	}
+	
 //	MyTeam Contoller
 	
 	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)
@@ -167,6 +174,35 @@ public class TeamsController {
 
 		for (ProjectDTO project : projectDTO) {
 			response = teamsService.updateProjectByList(project);
+		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/migrateTeamMember", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse migrateTeamMember(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.migrateTeamMember(project);
+		}
+		return response;
+	}
+	
+	@RequestMapping(value="/addDepartmentInProjects" , method = RequestMethod.GET)
+	public ServiceResponse addDepartmentInProjects() {
+		
+		ServiceResponse response = teamsService.addDepartmentInProjects();
+		return response;
+	}
+	
+	@RequestMapping(value = "/setPoProjectIdAndDepartment", method = RequestMethod.POST, consumes = "application/json")
+	public ServiceResponse setPoProjectIdAndDepartment(@RequestBody ProjectDTO[] projectDTO) {
+
+		ServiceResponse response = null;
+
+		for (ProjectDTO project : projectDTO) {
+			response = teamsService.setPoProjectIdAndDepartment(project);
 		}
 		return response;
 	}

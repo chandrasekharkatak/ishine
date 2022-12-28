@@ -135,4 +135,9 @@ export class Employee{
 	oldManagerId:any;
 
 	isSelected:boolean = false;
+	columnHeader:any;
+
+	reporteeCount:any;
+	hierarchyType:any;
+	profileCompletedPercent:any;
 }

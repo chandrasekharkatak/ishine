@@ -14,4 +14,12 @@ export class Team{
 	createdBy: any;	
 	updatedOn: any;	
 	updatedBy: any;
+    isActive:any;
+    teamLeadDeptId:any;
+    teamMemberDeptId:any;
+
+    templateActivityList:any;
+    employeeRole:any;
+    deptId:any;
+    templateActivity:any;
 } 

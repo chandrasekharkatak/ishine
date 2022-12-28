@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { JobRole } from '../models/jobRole';
+import { Employee } from '../models/employee';
 
 @Injectable({
   providedIn: 'root'
@@ -34,4 +35,21 @@ export class JobRoleService {
   checkJobRole(jobRoleObj : JobRole) {
     return this.http.post(`${this.baseUrl}`+`api/checkJobRole`, jobRoleObj);
   }
+
+  updateJobRoleSubFeatureMapping(jobRoleObj :JobRole){
+    return this.http.post(`${this.baseUrl}`+`api/updateJobRoleSubFeatureMapping`, jobRoleObj);
+  }
+
+  /*
+  Report API
+  */
+
+  getAllSubFeatureList(){
+    return this.http.get(`${this.baseUrl}`+`api/getAllSubFeatureList`);
+  }
+
+  getMappedSubFeatureList(employeeObj : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getMappedSubFeatureList`, employeeObj);
+  }
+
 }

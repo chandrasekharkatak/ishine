@@ -1,39 +1,53 @@
-<div class="container-fluid tab-container" *ngIf="isSurveyList">
-    <!-- start :: See all Surveys Table -->
-    <div class="row d-flex">
-        <div class="col-md-12 table-header">
-            <h1 class="table-header-title">Surveys</h1>
+<!-- start :: See all Surveys Table -->
+<div class="row" *ngIf="isSurveyList">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 table-header">
+                        <h1 class="table-header-title">Surveys</h1>
+                    </div>
+                </div>
+        
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyInfo'"
+                        [tableTHeadId]="'surveyInfoTHead'" [tableTHeadTrId]="'surveyInfoTHeadTr'">
+                        <table class="table" id="surveyInfo">
+                            <thead class="thead-light" id="surveyInfoTHead">
+                                <tr id="surveyInfoTHeadTr">
+                                    <th scope="col" class="info-label">Survey Name</th>
+                                    <th scope="col" class="info-label">Description</th>
+                                    <th scope="col" class="info-label">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="allSurveyList.length == 0">
+                                    <th colspan="6" class="text-center info-label">No Surveys to display...</th>
+                                </tr>
+                                <tr
+                                    *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                                    <td>{{survey.surveyName}}</td>
+                                    <td>{{survey.description}}</td>
+                                    <td>
+                                        <button *ngIf="!survey.isAnswered" class="btn btn-sm btn-primary" type="submit"
+                                            (click)="onTakeSurvey(survey)"><em>Take Survey</em></button>
+                                        <button *ngIf="survey.isAnswered" class="btn btn-sm btn-outline-primary" type="submit"
+                                            (click)="onViewMyResponse(survey)"><em>View Response</em></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                        <pagination-controls class="my-pagination" [hidden]="allSurveyList.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                    </div>
+                </div>
+            </div>
         </div>
-        <table class="table">
-            <thead class="thead-light">
-                <tr>
-                    <th scope="col" class="info-label">Survey Name</th>
-                    <th scope="col" class="info-label">Description</th>
-                    <th scope="col" class="info-label">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngIf="allSurveyList.length == 0">
-                    <th colspan="6" class="text-center info-label">No Surveys to display...</th>
-                </tr>
-                <tr
-                    *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                    <td>{{survey.surveyName}}</td>
-                    <td>{{survey.description}}</td>
-                    <td>
-                        <button *ngIf="!survey.isAnswered" class="btn btn-sm btn-primary" type="submit"
-                            (click)="onTakeSurvey(survey)"><em>Take Survey</em></button>
-                        <button *ngIf="survey.isAnswered" class="btn btn-sm btn-outline-primary" type="submit"
-                            (click)="onViewMyResponse(survey)"><em>View Response</em></button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <pagination-controls class="my-pagination" [hidden]="allSurveyList.length == 0"
-            (pageChange)="handlePageChange($event)"></pagination-controls>
     </div>
-    <!-- end :: see all Surveys table -->
 </div>
+<!-- end :: see all Surveys table -->
 
 <!-- start :: Survey Form -->
 <div class="row" *ngIf="isSurveyForm">

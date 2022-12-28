@@ -43,6 +43,14 @@ public class Timesheet {
 	
 	private Float totalTime;
 	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime officeInTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime officeOutTime;
+	
+	private String totalWorkingHours; // FROM IN-OUT Time
+	
 	private Long timesheetStatusUpdatedBy;
 	
 	@Embedded

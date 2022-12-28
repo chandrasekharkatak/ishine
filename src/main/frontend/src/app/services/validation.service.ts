@@ -95,22 +95,25 @@ export class ValidationService {
 
   }
 
-  validateTimesheetCompletionTime(text: string): boolean {
-
-    const regex = /^(?:\d{0,2}[0-9]|0?\.[0-9]|[0-9]?\.[0-9]\d{0,2})*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
-    if (text !== "" || text !== undefined || text !== null) {
-      if (regex.test(text)) {
-        return true;
-      }
-      else {
-        return false;
-      }
+  validateCompletionTime(text :string):boolean{
+    const regex = /^[.Ee][-+]|[+-][eE.]*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
+    if (regex.test(text)) {
+      return true;
     }
     else {
       return false;
     }
+  }
 
+  validateTimesheetCompletionTime(text: string): boolean {
 
+    const regex = /^(?:\d{0,2}[0-9]|0?\.[0-9]|[0-9]?\.[0-9]\d{0,2})*$/;   ///^(?:1|0?\.[1-9])$/      \\//     0\.1-23\.59
+    if (regex.test(text)) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   //^[1-9][0-9]?$ 
@@ -273,7 +276,7 @@ export class ValidationService {
   }
 
   validateEmployeementId(text: any): boolean {
-    const regex = /^[1-9]\d{1,6}$/;
+    const regex = /^[1-9]\d{3,6}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -514,4 +517,37 @@ export class ValidationService {
     }
   }
   
+  validateAlphabetAtLeastTwoCharacter(text:string): boolean {
+    const regex = (/^[A-Za-z]{2}[A-Za-z\s?]*$/i) ;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateTeamName(text:string): boolean {
+    // const regex = /^[a-zA-Z0-9 . \- _ \( \) \/ \\ \s]{2,}+$/;
+    const regex = /^[a-zA-Z0-9.\-_()\/\s]{2,}[a-zA-Z0-9.-_()\/\s]*$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
 }

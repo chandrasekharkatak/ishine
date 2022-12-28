@@ -41,6 +41,9 @@ import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
+import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
+import { UserExitComponent } from './user-exit/user-exit.component';
+import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -65,7 +68,8 @@ const routes: Routes = [
       { path: 'portal-config', component: PortalConfigComponent, },
       { path: 'survey-config', component: SurveyConfigComponent, },
       { path: 'upload-policies', component: UploadPoliciesComponent, },
-
+      { path: 'on-boarding', component: OnBoardingComponent, },
+      { path: 'project-config', component: ProjectConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -112,7 +116,8 @@ const routes: Routes = [
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
-
+  {path:'user-exit', component: UserExitComponent, canActivate: [AuthGuard]},
+  {path:'user-exit/:id', component: UserExitComponent, canActivate: [AuthGuard]},
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},

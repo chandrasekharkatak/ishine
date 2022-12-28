@@ -56,10 +56,21 @@ export class SidenavComponent implements OnInit, OnDestroy {
     let toDate = this.appreciationEventInfo.toDate;
     var dateCheck=this.dateCheck(currentDate,fromDate,toDate);
 
+    console.log(this.currentUser.isAppreciationEnable, " : isAppreciationEnable");
+    
+
     this.menuItems.forEach((item,index) => {
       if(item.tabName == 'Appreciation' && this.currentUser.isAppreciationEnable != true && dateCheck==false){
         this.menuItems.splice(index,1);
       }
+      else if(item.tabName == 'Appreciation' && this.currentUser.isAppreciationEnable == false && dateCheck==true){
+        this.menuItems.splice(index,1); 
+      }
+      else if(item.tabName == 'Appreciation' && this.currentUser.isAppreciationEnable == true && dateCheck==false){
+        this.menuItems.splice(index,1); 
+
+      }
+
     });
   }
 
@@ -79,12 +90,12 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
   dateCheck(currentDate,fromDate,toDate) {
 
-    var fDate,lDate,cDate;
+    var fDate,tDate,cDate;
     fDate = Date.parse(fromDate);
-    lDate = Date.parse(toDate);
+    tDate = Date.parse(toDate);
     cDate = Date.parse(currentDate);
 
-    if((cDate <= lDate && cDate >= fDate)) {
+    if((cDate <= tDate && cDate >= fDate)) {
       console.log("true date");
         return true;
     }

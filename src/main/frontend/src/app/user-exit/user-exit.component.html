@@ -1,0 +1,133 @@
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Employee Resignation</strong>
+        </div>
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="resign" *ngIf="isResign">
+                    <h4 class="card-title mt-5">Hey, {{currentUserName}}</h4>
+                    <h5 class="card-text">Are you sure you want to resign ?</h5>
+                    <button class="btn btn-primary mb-5" (click)="openResignRuleModal(resign_rules_regulations)">Resign</button>
+                </div>
+                <div class="resign-details" *ngIf="isResignDetails">
+                    <h4 class="card-title mt-3">Hey, {{currentUserName}}</h4>
+                    <h5 class="card-text">Thanks a lot for being a part of ApMoSys Journey<br> your resignation details are</h5>
+                    <div class="row d-flex justify-content-center mt-5">
+                        <div class="col-md-3 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label>Date Of Resign</label>
+                                    <input type="text" style="text-align:center;" class="form-control" [(ngModel)]="employeeDetailObj.dateOfResign" autocomplete="none" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label>Date Of Relieving</label>
+                                    <input type="text" style="text-align:center;" class="form-control" [(ngModel)]="employeeDetailObj.dateOfRelieving" autocomplete="none" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- releiving day template : start -->
+                <div class="row d-flex" *ngIf="isReleivingDate">
+
+                    <div class="col-md-12" *ngFor="let employee of employeeInfo">
+                          <h2 class="mt-3 text-center">{{employee.name}}</h2>
+                          <div class="d-flex align-items-center justify-content-center">
+                            <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">A-{{employee.employeementId}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Email : <span style=" color: #193d8a;">{{employee.email}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Employment Status : <span style=" color: #193d8a;">{{employee.employmentstatus}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Joining Date : <span style=" color: #193d8a;">{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</span></h6>
+                          </div>
+                          <div class="d-flex align-items-center justify-content-center">
+                            <h6 class="mr-5 mt-2 info-label">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Job Role : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
+                            <h6 class="mr-5 mt-2 info-label">Reports To : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                          </div>
+                    </div>    
+
+                    <table class="table scrollable-table">	
+                        <thead class="thead-light">	
+                          <tr>	
+                            <th scope="col" class="info-label" >Sr No.</th>	
+                            <th scope="col" class="info-label">Asset Name</th>	
+                            <th scope="col" class="info-label">Concerned Department</th>	
+                            <th scope="col" class="info-label">Assigned</th>	
+                            <th scope="col" class="info-label">Department Head Consent</th>
+                            <th scope="col" class="info-label">Approved By</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="exitAssetDetailList.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                          <tr *ngFor="let list of exitAssetDetailList, let i = index">
+                            <th class="info-label">{{i+1}}</th>
+                            <td>{{list.assestName}}</td>
+                            <td>{{list.departmentName}}</td>
+                            <td>{{list.isAssigned}}</td>
+                            <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="list.deptConsent" [disabled]="isCurrentUser" (change)="selectDeptConsentCheckbox(list)"/></td>
+                            <td>{{list.concent}}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <button type="submit" *ngIf="!isCurrentUser" class="btn btn-primary btn-sm mx-auto d-block">Submit Consent</button>
+                </div>
+                <!-- releiving day template : end -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+
+<ng-template #resign_rules_regulations>
+    <div class="modal-body text-center">
+        <h4>Resignation Rules & Regulations</h4>
+        <div class="card">
+            <div class="card-body">
+                <h6 class="mt-1 font-weight-normal">1. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">2. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">3. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">4. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">5. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">6. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">7. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>
+                <h6 class="mt-3 font-weight-normal">8. Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptatum consequatur
+                    ex provident? Unde cupiditate commodi delectus iusto non voluptatem, eos eligendi similique
+                    incidunt vitae. Nemo.</h6>    
+            </div>
+          </div>
+          <div class="checkbox">
+            <input id="rules" class="consent" type="checkbox" (click)="consentCheckbox($event)"><span class="concent ml-2">By checking this box you confirm that you have read and agree to our 
+                rules & regulations<br> to be followed while serving notice period</span>
+          </div>
+        <button type="button" [disabled]="!isConsentCheck" class="btn btn-primary btn-sm mt-3 float-right" (click)="resign(alert_message)">Proceed</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary btn-sm mt-3 mr-1 float-right" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>
+
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

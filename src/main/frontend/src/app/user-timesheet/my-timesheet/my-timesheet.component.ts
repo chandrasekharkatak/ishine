@@ -15,6 +15,10 @@ import { Sort } from '@angular/material/sort';
 import { ClipboardService } from 'ngx-clipboard';
 import { Employee } from 'src/app/models/employee';
 import { TeamViewService } from 'src/app/services/team-view.service';
+import { LeaveService } from 'src/app/services/leave.service';	
+import { Leave } from 'src/app/models/leave';
+import { Team } from 'src/app/models/team';
+import { ThemePalette } from '@angular/material/core';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -67,8 +71,14 @@ export class MyTimesheetComponent implements OnInit {
   projectList:any[] = [];
   clientList:any[] = [];
   clientLocationList:any[] = [];
+  // teamList:any[] = [];
 
   teamMemberList:any[] = [];
+  errorMsg:any;
+
+  leaveHistoryList:any[] = [];
+  
+  maxOutTimeDate:any;
 
   constructor(
     private validationService: ValidationService,
@@ -79,6 +89,7 @@ export class MyTimesheetComponent implements OnInit {
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
     private teamViewService : TeamViewService,
+    private leaveService : LeaveService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -94,6 +105,8 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
+    this.timesheetObj.totalWorkingOfficeHours = '';
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
     this.sectionViewInit();
   }
 
@@ -167,7 +180,13 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
+    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? new Date(this.timesheetObj.officeInTime) : '';
+    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? new Date(this.timesheetObj.officeOutTime) : '';
 
+    if(this.timesheetObj.officeInTime){
+      this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
+    }
+    
     let userObj:User = new User();
     if (this.isSelfTimesheets) {
       this.timesheetObj.timesheetAppliedFor = "self";
@@ -191,19 +210,45 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.dayType = '';
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
-    
+    this.timesheetObj.totalWorkingOfficeHours = '';
     this.allTimesheetActivities = [];
     this.addInputActivityField();;
   }
 
 
-  // Manage Activity
-  addInputActivityField() {
-    let newActivityObj = new Activity();
-    // newActivityObj.projectId = '';
-    // newActivityObj.activityId = '';
-    this.allTimesheetActivities.push(newActivityObj);
+  addInputActivityField(activityObj?:Activity) {
+
+    
+
+        console.log("before allTimesheetActivities : " , this.allTimesheetActivities)
+        let newActivityObj = new Activity();
+        if(activityObj != undefined){
+          newActivityObj.clientId = activityObj.clientId;
+          newActivityObj.clientLocationId = activityObj.clientLocationId;
+          newActivityObj.projectId = activityObj.projectId;
+          newActivityObj.teamId = activityObj.teamId;
+          console.log("newActivityObj : ",newActivityObj);
+
+          this.allTimesheetActivities.push(newActivityObj);
+          this.getClientLocationList(newActivityObj);
+          this.getProjectList(newActivityObj);
+          // this.getTeamList(newActivityObj)
+          this.getAllActivitiesByProjectIdandEmpId(newActivityObj);
+        }else{
+          this.allTimesheetActivities.push(newActivityObj);
+        }
+        console.log("After allTimesheetActivities : ",this.allTimesheetActivities)
   }
+
+  // Manage Activity
+
+  // --> pREV
+  // addInputActivityField() {
+  //   let newActivityObj = new Activity();
+  //   // newActivityObj.projectId = '';
+  //   // newActivityObj.activityId = '';
+  //   this.allTimesheetActivities.push(newActivityObj);
+  // }
 
   removeInputActivityField(activityObj: any) {
     this.allTimesheetActivities.forEach((value, index) => {
@@ -229,6 +274,9 @@ export class MyTimesheetComponent implements OnInit {
 
   setActivity(activityObj) {
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
+    activityObj.description = null;
+    console.log("Activity obj : ",activityObj)
+             // console.log("Activity : ",activity)
   }
 
   // Manage Timesheet Dates
@@ -236,12 +284,77 @@ export class MyTimesheetComponent implements OnInit {
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
     const time = checkDate?.getTime();
     let currentDate = new Date();
+    const dateFormat = 'YYYY-MM-DD';
 
     // 7 days + 1 current Day
     let endDate = currentDate;
     let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
 
-    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+    if(this.isTimesheetForm && this.isUpdation){
+      this.availableTimesheets = this.availableTimesheets.filter(timesheet => timesheet.date != this.timesheetObj.date);
+      console.log("availableTimesheets : ", this.availableTimesheets);
+      
+    }
+    
+    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+  } 
+
+  outTimeFilter = (checkDate: Date) => {
+    const dateFormat = 'YYYY-MM-DD';
+
+    let startDate = this.timesheetObj.officeInTime;
+    let endDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
+    
+    return (moment(checkDate).format(dateFormat) <= moment(endDate).format(dateFormat) && moment(checkDate).format(dateFormat) >= moment(startDate).format(dateFormat)) ? true : false;	
+  } 
+  
+  setMaxInTimeDate(timesheetDate:any){
+    console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
+    
+    if(this.timesheetObj.dayType != "Holiday"){
+      let inTimeDate = document.getElementById('officeInTime');
+      let officeOutTime = document.getElementById('officeOutTime');
+      inTimeDate.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
+      officeOutTime.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
+    }
+  }
+
+  resetTotalWorkingOfficeHours(){
+    this.timesheetObj.officeOutTime = '';
+    this.timesheetObj.totalWorkingOfficeHours = '';
+
+    this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1,'d').toString());
+  };
+
+  resetTimeonDayTypeChange(){
+    this.timesheetObj.date = '';
+    this.timesheetObj.officeInTime = '';
+    this.timesheetObj.officeOutTime = '';
+    this.timesheetObj.totalWorkingOfficeHours = '';
+  }
+
+  setTotalWorkingOfficeHours(){
+    const dateFormat = 'YYYY-MM-DD';
+    if(this.timesheetObj.officeOutTime){
+      console.log("officeInTime : ", this.timesheetObj.officeInTime);
+      console.log("officeOutTime : ", this.timesheetObj.officeOutTime);
+
+      
+      let start = moment(this.timesheetObj.officeInTime);
+      let end = moment(this.timesheetObj.officeOutTime);
+  
+  
+      //const duration = moment.utc(moment(end,"yyyy-MM-DD HH:mm:ss").diff(moment(start,"yyyy-MM-DD HH:mm:ss"))).format("HH:mm");
+      
+      let ms = moment(end,"DD/MM/YYYY HH:mm").diff(moment(start,"DD/MM/YYYY HH:mm"));
+      let d = moment.duration(ms);
+      let duration = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
+      
+      this.timesheetObj.totalWorkingOfficeHours = duration;
+      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+    }else{
+      this.timesheetObj.totalWorkingOfficeHours = '';
+    }
   }
 
   /* Timesheet */
@@ -263,9 +376,21 @@ export class MyTimesheetComponent implements OnInit {
       let flag = true;
       let totalActivityTime = 0;
 
+      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
+        this.alertMessage = "Please enter In Date-Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeOutTime)) {
+        this.alertMessage = "Please select Out Date-Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
       this.allTimesheetActivities.forEach((activity, index) => {
 
-        if(activity.description) activity.description = activity.description.trim();
+        if(activity.description) activity.description = activity.description?.trim();
 
         if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
           this.alertMessage = `Please select Client - ${index + 1}!!`
@@ -279,11 +404,11 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
 
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
-          this.alertMessage = `Please select Project - ${index + 1}!!`
-          flag = false;
-          return;
-        }
+        // if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
+        //   this.alertMessage = `Please select Project - ${index + 1}!!`
+        //   flag = false;
+        //   return;
+        // }
 
         if (!this.validationService.validateNullUndefinedEmptyString(activity.activityId)) {
           this.alertMessage = `Please select Activity - ${index + 1}!!`
@@ -293,21 +418,28 @@ export class MyTimesheetComponent implements OnInit {
         if(activity.description != ''){
   
         if(!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-          this.alertMessage = `single character or single digit is not allowed in Activity Description  - ${index + 1}!!`
+          this.alertMessage = `Please enter valid Activity Description  - ${index + 1}!!`
           flag = false;
           return;
         }
       }
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
+      if (!this.validationService.validateCompletionTime(activity.completionTime) && !this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {      
+        this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+        flag = false;
+        activity.completionTime = ''
+        return;
+      }
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {      
           this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
           flag = false;
           return;
         }
-        if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
-          this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
-          flag = false;
-          return;
-        }
+        // validateCompletionTime
+        // if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
+        //   this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
+        //   flag = false;
+        //   return;
+        // }
         totalActivityTime = totalActivityTime + activity.completionTime;
         console.log(totalActivityTime, " totalActivityTime");
       });
@@ -326,7 +458,7 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = `Only (/'&"-.) special character and digits are allowed in Activity Description  !!`
+        this.alertMessage = `Please enter valid Description  !!`
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -337,6 +469,10 @@ export class MyTimesheetComponent implements OnInit {
 
   onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
+    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
+
+    this.timesheetObj.description = this.timesheetObj.description?.trim();
+
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
@@ -347,7 +483,13 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
-    this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
+    if (this.timesheetObj.dayType != 'Holiday') {
+      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+    }else{
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
+    }
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.createdByName = this.currentUser.name
     console.log("Add timesheetObj : ", this.timesheetObj);
@@ -373,11 +515,14 @@ export class MyTimesheetComponent implements OnInit {
 
   onUpdateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
+    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
     if (this.timesheetObj.dayType != 'Holiday') {
       this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat)
+      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat)
+      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat)
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
       if (this.timesheetObj.allTimesheetActivities) {
@@ -389,6 +534,11 @@ export class MyTimesheetComponent implements OnInit {
             this.timesheetObj.updatedTimesheetActivities = [];
             
           }
+          this.timesheetObj.updatedTimesheetActivities.forEach(timesheet => {
+            if(timesheet.activityId == ""){
+              this.timesheetObj.updatedTimesheetActivities.splice(timesheet,1);
+            }
+          });
           this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
         }
       } else {
@@ -465,7 +615,18 @@ export class MyTimesheetComponent implements OnInit {
 
   getAllTeamMemberList(){
     this.teamMemberList = []
-
+    this.timesheetObj.date = ''
+    this.timesheetObj.dayType = ''
+    this.allTimesheetActivities.forEach((timesheet) =>{
+      timesheet.clientId = ''
+      timesheet.clientLocationId = ''
+      timesheet.projectId = ''
+      timesheet.activityId = ''
+      timesheet.description = ''
+      timesheet.completionTime = ''
+      
+    })
+    
     if(this.timesheetObj.timesheetAppliedFor == "team"){
       let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
@@ -486,7 +647,8 @@ export class MyTimesheetComponent implements OnInit {
     this.clientList = [];
     this.clientLocationList = [];
     this.projectList = [];
-
+    // this.teamList = [];
+    // console.log(" team list :    ", this.teamList)
     
     let timesheetObj = new Timesheet();
     timesheetObj.empId = employeeObj.empId;
@@ -507,28 +669,51 @@ export class MyTimesheetComponent implements OnInit {
 
   getProjectList(activityObj: Activity){
     this.projectList = [];
-
-    const key = "projectId";
+    
+    const key = "teamId";
     this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
-        return { projectId: project.projectId, projectName: project.projectName }
+        return { teamId: project.teamId, teamName:project.teamName, projectName: project.projectName }
       }
     });
     console.log("projectList :", this.projectList);
     this.setAllProjects(activityObj, this.projectList);
   }
 
+  // getTeamList(activityObj: Activity){
+  //   this.teamList = []
+
+  //   const key = "teamId"
+  //   this.teamList = [...new Map(this.allProjectsList.map((team: Timesheet) => [team[key], team])).values()].filter((team: Timesheet) =>{
+  //     if( team.teamId == activityObj.teamId) {
+  //       return { teamId: team.teamId, teamName: team.teamName }
+  //     }
+  //   });
+  //   console.log(" teamList :", this.teamList);
+  //   this.setAllTeams(activityObj , this.teamList)
+  // }
+
+  // setAllTeams(activityObj, teamList: any){
+  //   const selectedActivityObj:Activity = this.allTimesheetActivities.find( activity => activity == activityObj);
+  //   selectedActivityObj.teamList = teamList;
+  //   if((!this.isTimesheetUpdate && activityObj.teamId == "") || !this.teamList.find(team => team.teamId == selectedActivityObj.teamId)){
+  //     selectedActivityObj.teamId = '';
+  //   }
+  // }
+
+
   setAllProjects(activityObj, projectList: any) {
     const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if(!this.isTimesheetUpdate){
-      selectedActivityObj.projectId = '';
-    }
     selectedActivityObj.projectList = projectList;
+    if((!this.isTimesheetUpdate && activityObj.teamId == "") || !this.projectList.find(project => project.teamId == selectedActivityObj.teamId)){
+      selectedActivityObj.teamId = '';
+    }
   } 
 
   getClientLocationList(activityObj: any){
     this.clientLocationList = [];
 
+   // this.allTimesheetActivities.find(activity => activity == activityObj).clientLocationId = '';
     const key = "clientLocationId";
     this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
@@ -541,12 +726,14 @@ export class MyTimesheetComponent implements OnInit {
 
   setAllClientLocations(activityObj, clientLocationList: any) {
     const selectedActivityObj:Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if(!this.isTimesheetUpdate){
+    selectedActivityObj.clientLocationList = clientLocationList;
+
+    console.log("clientLocationList : ", clientLocationList);
+    
+    if((!this.isTimesheetUpdate && activityObj.clientLocationId == "") || !this.clientLocationList.find(clientLocation => clientLocation.clientLocationId == selectedActivityObj.clientLocationId)){
       selectedActivityObj.clientLocationId = '';
     }
-    selectedActivityObj.clientLocationList = clientLocationList;
   } 
-
 
   getAllActivitiesByProjectIdandEmpId(activityObj: any) {
     let allActivityList = [];
@@ -555,10 +742,14 @@ export class MyTimesheetComponent implements OnInit {
     
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.timesheetObj.empId;
-    timesheetObj.projectId = activityObj.projectId;
+    timesheetObj.teamId = activityObj.teamId;
+    let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
+    timesheetObj.projectId = projectTimesheet.projectId
+    
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
+        console.log("Team name :  ", timesheetObj.teamName);
         console.log("allActivityList :", allActivityList);
       } else {
         console.error(response.serviceResponse)
@@ -583,8 +774,31 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getTimesheetData(template:TemplateRef<any>){
+ // getTimesheetData(template:TemplateRef<any>){
 
+  //   if (this.endDate < this.startDate) {
+  //     if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
+  //       this.alertMessage = "Please enter Start Date !!"
+  //       this.openAlertMod(template, this.alertMessage);
+  //       return false;
+  //     }
+
+  //     if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
+  //       this.alertMessage = "Please enter End Date !!"
+  //       this.openAlertMod(template, this.alertMessage);
+  //       return false;
+  //     }
+  //     console.log("end date is small");
+  //     this.endDate = ''
+      
+  //   } else {
+  //     this.allMyTimesheets = [];
+  //   }
+  // }
+
+  /* View Timesheets */
+  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
+    this.allMyTimesheets = [];
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
@@ -599,31 +813,26 @@ export class MyTimesheetComponent implements OnInit {
       }
       console.log("end date is small");
       this.endDate = ''
+      this.startDate = ''
       
     } else {
-      this.allMyTimesheets = [];
-    }
-  }
 
-  /* View Timesheets */
-  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
-    this.allMyTimesheets = [];
+      let timesheetObj = new Timesheet();
+      timesheetObj.empId = this.currentUser.empId;
+      timesheetObj.startDate = this.startDate;
+      timesheetObj.endDate = this.endDate;
+      
+      console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
+      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allMyTimesheets = response.serviceResponse;
+          console.log("allMyTimesheets :", this.allMyTimesheets);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
 
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.currentUser.empId;
-    timesheetObj.startDate = this.startDate;
-    timesheetObj.endDate = this.endDate;
-    
-    console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allMyTimesheets = response.serviceResponse;
-        console.log("allMyTimesheets :", this.allMyTimesheets);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+    } 
   }
 
   /* Timesheets Applied By ME for My Team Members */
@@ -670,6 +879,9 @@ export class MyTimesheetComponent implements OnInit {
   getAllMyActivitiesByTimesheetId(timesheet: any) {
     this.allTimesheetActivities = [];
 
+    console.log("timesheet : ", timesheet);
+    
+
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
@@ -688,6 +900,7 @@ export class MyTimesheetComponent implements OnInit {
           this.getAllActivitiesByProjectIdandEmpId(activity)
           this.getClientLocationList(activity);
           this.getProjectList(activity);
+          // this.getTeamList(activity);
         });
       }
     });
@@ -720,9 +933,15 @@ export class MyTimesheetComponent implements OnInit {
         x => ({
           "Date": x.date,
           "Day Type": x.dayType,
-          "Timesheet Details":x.description,
-          "Total Time":x.totalTime,
-          "Status": x.status
+          "In Time":x.officeInTime,
+          "Out Time":x.officeOutTime,
+          "Total Working Hours":x.totalWorkingOfficeHours,
+          "Timesheet Details":x.description?.replaceAll('<br>', ' \n'),
+          "Total Activity Time":x.totalTime,
+          "Status": x.status,
+          "Applied By":x.createdByName,
+          "Applied On":x.createdOn,
+          "Remarks":x.remarks
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -730,7 +949,21 @@ export class MyTimesheetComponent implements OnInit {
 
   }
 
-
+  getAllMyLeaveApplicationsByEmpId(userObj:User){	
+    this.leaveHistoryList = [];	
+    let leaveObj = new Leave();	
+    leaveObj.empId = userObj.empId;	
+    this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        this.leaveHistoryList = response.serviceResponse;	
+        console.log("leaveHistoryList In Timesheet : ", this.leaveHistoryList);	
+        this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status == 'Approved');	
+        console.log("leave Approved  History : ", this.leaveHistoryList);	
+      } else {	
+        console.error(response.serviceResponse);	
+      }	
+    });	
+  }
 
 
 
@@ -784,6 +1017,117 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
+  // validateDescription(event,data:any){
+ 
+  // if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+  //   this.errorMsg = "Please enter valid Description !!"   
+  // }
+  // else{
+  //   this.errorMsg = ""
+  // }
+  // if(this.errorMsg == ""){
+  //   event.target.nextElementSibling.textContent = ""
+  // }else{
+  //   event.target.nextElementSibling.textContent =  this.errorMsg
+  // }
+  // }
+  validateTime(event,data:any){
+     if (!this.validationService.validateTimesheetCompletionTime(data)){
+      this.errorMsg = "Please enter Time !!"
+    }  
+    else if(data <= 0 || data > 24){
+      this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
+  } 
+  else{
+    this.errorMsg = ""
+  }
+  if(this.errorMsg == ""){
+    event.target.nextElementSibling.textContent = ""
+  }else{
+    event.target.nextElementSibling.textContent =  this.errorMsg
+  }
+
+  }
+
+  omit_special_char(event) {
+
+    var k;
+    k = event.charCode;  //        k = event.keyCode;  (Both can be used)
+    //console.log("omit function" + k);
+    //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+    if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
+      return (false);
+    }
+    else {
+      return (true);
+    }
+    //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+  }
+
+  onPaste(e) {
+    e.preventDefault();
+    return false;
+  }
+
+  
+
+  validateClientName(event,data:any){
+ 
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+        this.errorMsg = "Please Select Client Name !!"   
+    } 
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    }
+  validateClientLocation(event,data:any){
+ 
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+        this.errorMsg = "Please Select Client Location !!"   
+    } 
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    }
+  validateProjectName(event,data:any){
+ 
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+        this.errorMsg = "Please Select Project Name !!"   
+    } 
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    }
+
+    validateActivity(event,data:any){
+ 
+      if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+          this.errorMsg = "Please Select Activity !!"   
+      } 
+      else{
+        this.errorMsg = ""
+      }
+      if(this.errorMsg == ""){
+        event.target.nextElementSibling.textContent = ""
+      }else{
+        event.target.nextElementSibling.textContent =  this.errorMsg
+      }
+      }
   //pagination 
 
   page = 1;

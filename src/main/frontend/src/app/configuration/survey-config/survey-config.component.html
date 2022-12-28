@@ -18,7 +18,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Survey Name</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.surveyName">
+                            <input type="text" class="form-control" autocomplete="none" (blur)="spaceTrimOnSurveyName()" [(ngModel)]="surveyObj.surveyName">
                         </div>
                     </div>
                 </div>
@@ -122,70 +122,93 @@
 <!-- end :: Create Survey Form -->
 
 <!-- start :: See all Surveys Table -->
-<div class="row d-flex" *ngIf="isSurveyList">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Surveys</h1>
+<div class="row" *ngIf="isSurveyList">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Surveys</h1>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyInfo'" [tableTHeadId]="'surveyInfoTHead'"
+                [tableTHeadTrId]="'surveyInfoTHeadTr'">
+                <table class="table">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" class="info-label">Survey Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label">Status</th>
+                        <th scope="col" class="info-label">Created by</th>
+                        <th scope="col" class="info-label">Created on</th>
+                        <th scope="col" class="info-label">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="allSurveyList.length == 0">
+                            <th colspan="6" class="text-center info-label">No Surveys to display...</th>
+                        </tr>
+                      <tr *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        <td>{{survey.surveyName}}</td>
+                        <td>{{survey.description}}</td>
+                        <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
+                        <td>{{survey.createdByName}}</td>
+                        <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
+                            
+                            <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
+                            <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
+                            <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
+                            
+                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
+                            <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allSurveyList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            </div>
+        </div>
     </div>
-    <table class="table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label">Survey Name</th>
-            <th scope="col" class="info-label">Description</th>
-            <th scope="col" class="info-label">Status</th>
-            <th scope="col" class="info-label">Created by</th>
-            <th scope="col" class="info-label">Created on</th>
-            <th scope="col" class="info-label">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="allSurveyList.length == 0">
-                <th colspan="6" class="text-center info-label">No Surveys to display...</th>
-            </tr>
-          <tr *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-            <td>{{survey.surveyName}}</td>
-            <td>{{survey.description}}</td>
-            <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
-            <td>{{survey.createdByName}}</td>
-            <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
-                
-                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
-                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
-                <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
-                
-                <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
-                <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
-            </td>
-          </tr>
-        </tbody>
-      </table>  
-      <pagination-controls class="my-pagination" [hidden]="allSurveyList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
 </div>
 <!-- end :: see all Surveys table -->
 
 <!-- start :: See all Survey Responses Table -->
-<div class="row d-flex" *ngIf="isSurveyResponseList">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">{{selectedSurveyName}} - Responses</h1>
-    </div>
-    <table class="table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">{{columnHeader}}</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="allSurveyResponseList.length == 0">
-                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
-            </tr>
-          <tr *ngFor="let response of allSurveyResponseList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-            <td *ngFor="let colValue of response">{{colValue}}</td>
-          </tr>
-        </tbody>
-      </table>  
-      <pagination-controls class="my-pagination" [hidden]="allSurveyResponseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allSurveyResponseList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+<div class="row" *ngIf="isSurveyResponseList">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">{{selectedSurveyName}} - Responses</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyResponseInfo'" [tableTHeadId]="'surveyResponseInfoTHead'"
+                [tableTHeadTrId]="'surveyResponseInfoTHeadTr'">
+                    <table class="table">
+                        <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">{{columnHeader}}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allSurveyResponseList.length == 0">
+                                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
+                            </tr>
+                        <tr *ngFor="let response of allSurveyResponseList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                            <td *ngFor="let colValue of response">{{colValue}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="allSurveyResponseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allSurveyResponseList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+        </div>
+    </div>  
 </div>
 <!-- end :: see all Survey Responses table -->
 

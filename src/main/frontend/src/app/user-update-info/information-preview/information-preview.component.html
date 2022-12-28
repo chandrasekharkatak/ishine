@@ -25,7 +25,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date of birth</p>
-                                        <p class="info-text">{{currentEmployeeInfo.dateOfBirth}}</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -36,7 +36,7 @@
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
-                                        <p class="info-label">Employee code</p>
+                                        <p class="info-label">Employee Id</p>
                                         <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p>
                                     </div>
                                 </div>
@@ -149,7 +149,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Landline No.</p>
-                                        <p class="info-text">022-{{currentEmployeeInfo.landline}}</p>
+                                        <p *ngIf="currentEmployeeInfo.landline != null" class="info-text">022-{{currentEmployeeInfo.landline}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -269,7 +269,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of completion</p>
-                                            <p class="info-text info-highlight">{{certification.dateOfCompletion}}</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -289,7 +289,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date Of Joining</p>
-                                        <p class="info-text">{{currentEmployeeInfo.dateOfJoining}}</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfJoining | date:'dd-MM-yyyy'}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -329,7 +329,7 @@
                                         <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.experience == 'Experienced'">
                                     <div class="info-wrapper">
                                         <p class="info-label">Total Experience</p>
                                         <p class="info-text">{{currentEmployeeInfo.totalExperience}}</p>
@@ -341,12 +341,18 @@
                                         <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
                                     </div>
                                 </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Billable </p>
+                                        <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </app-accordion-item>
                 
                     <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="acc-content" title="Previous Employment Information" [showBody]="true">
+                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList.length != 0 " class="acc-content" title="Previous Employment Information" [showBody]="true">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -358,14 +364,14 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date Of Joining</p>
-                                        <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                        <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
                                         </p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Date of Relieving</p>
-                                        <p class="info-text">{{previousEmployer.dateOfRelieving}} Days</p>
+                                        <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">

@@ -71,7 +71,7 @@ public class AuthenticationService {
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Login");
+		apiLogInfo.setFeatureName("Login");
 		apiLogInfo.setSubFeatureName("Sign In");
 		apiLogInfo.setApiUrl("/api/authenticateUser");
 		apiLogInfo.setLogLevel("INFO");
@@ -101,11 +101,11 @@ public class AuthenticationService {
 								if (!isUserLoggedIn) {
 									
 									Random random = new Random();
-									int otp = random.nextInt(9999 - 1000)
-											+ 1000; /* Random number will be generated between 1000 and 9999 */
+									int otp = random.nextInt(999999 - 100000)
+											+ 100000; /* Random number will be generated between 1000 and 9999 */
 									employee.setOtp(otp);
 									mailService.sendMail(employeedto.getEmail(), "Regarding otp",
-											"please find your otp " + otp);
+											"Please find your otp " + otp);
 									employee.setInvalidAccessAttempt(0);
 
 									employeeRepository.save(employee);
@@ -237,6 +237,14 @@ public class AuthenticationService {
 			apiLogInfo.setLogLevel("ERROR");
 		}
 		
+		if(employeedto.getEmail().equals("admin3@apmosys.com") || employeedto.getEmail().equals("admin2@apmosys.com")) {
+			System.out.println("\n ================== userSessionList ================== \n");
+			System.out.println(userSessionList);
+			System.out.println("\n ================== userSessionList ================== \n");
+			
+			logBuilder.append("userSessionList : "+ userSessionList);
+		}
+		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
@@ -353,17 +361,24 @@ public class AuthenticationService {
 				    apiLogInfo.setApiResponse("Forgot Password feature is not for New User.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {	
-					Random random = new Random();	
-					int otp = random.nextInt(9999 - 1000) + 1000;	
-					employee.setOtp(otp);	
-					employeeRepository.save(employee);	
+					if(employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt()>= failedAttempt) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+						response.setServiceResponse("This user is not authorized for this activity ");
+					}
+					else {
+						Random random = new Random();	
+						int otp = random.nextInt(999999 - 100000) + 100000;	
+						employee.setOtp(otp);	
+						employeeRepository.save(employee);	
+							
+						mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+						response.setServiceResponse("OTP sent to emailId.");
 						
-					mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-					response.setServiceResponse("OTP sent to emailId.");
+						apiLogInfo.setApiResponse("OTP sent to emailId.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
 					
-					apiLogInfo.setApiResponse("OTP sent to emailId.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}	
 			} else {	
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
@@ -448,12 +463,12 @@ public class AuthenticationService {
 			if(employee != null) {
 				
 				Random random = new Random();
-				int otp = random.nextInt(9999 - 1000)
-						+ 1000; /* Random number will be generated between 1000 and 9999 */
+				int otp = random.nextInt(999999 - 100000)
+						+ 100000; /* Random number will be generated between 1000 and 9999 */
 				employee.setOtp(otp);
 				
 				mailService.sendMail(employeedto.getEmail(), "Regarding otp",
-						"please find your otp " + otp);
+						"Please find your otp " + otp);
 
 				Employee employeeSaved = employeeRepository.save(employee);
 

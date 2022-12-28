@@ -37,5 +37,9 @@ public class Project {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	private Integer clientId;
+	private String departmentName;
+	private Long poProjectId;
+	private String active;
+	private String syncProject;
 
 }

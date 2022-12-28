@@ -78,5 +78,12 @@ public class JobRoleController {
 		ServiceResponse response = jobRoleService.checkJobRole(jobRoleDto);
 		return response;		
 	}
+	
+	@RequestMapping(value="/updateJobRoleSubFeatureMapping", method = RequestMethod.POST)
+    public ServiceResponse updateJobRoleSubFeatureMapping(@RequestBody JobRoleDTO jobRoleDTO) {
+		
+    	ServiceResponse response = jobRoleService.updateJobRoleSubFeatureMapping(jobRoleDTO);
+    	return response;
+    }
 
 }

@@ -6,46 +6,54 @@
     </div>
     <div *ngIf="userMapping.view_profile" class="row">
         <div class="card user-card">
-            <div class="d-flex justify-content-between">
-                <div class="col-md-4 d-flex flex-column user-card__profile-avatar">
-                    <img src="assets/Images/default-user-image.jpeg"
-                        id="user-avatar" class="user-card__profile-avatar__img" alt="Avatar" />
-                    
-                    <!-- IMAGE UPLOAD -->
-                    <div *ngIf="isUpdateProfile && userMapping.upload_profile_image" class="user-card__profile-avatar-upload mt-3">
-                        <input type="file" name="file" id="profileImg" class="profileImgFile" (change)="onProfileImageSelect($event)" />
-                        <label id="profileImgLabel" for="profileImg">Select Image</label>
-                        <button type="submit" class="btn btn-primary ml-2 profileImgFile__upload__btn" title="Upload Image" (click)="onUploadImage(alert_message)"><i class="fa-solid fa-upload"></i></button>
-                    </div>
-                </div>
-                <div class="vertical-rule"></div>
-                <div class="col-md-8 user-card__profile-info">
-                    <h2 class="user-card__profile-info__name mb-0">{{currentEmployeeInfo.name}}</h2>
-                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.jobRoleName}}</span>
-                    <div class="row user-card__profile-info__container mt-4">
-                        <div class="col-md-3 user-card__profile-info__container-blocks">
-                            <p class="user-card__profile-info__label">Employee ID</p>
-                            <p class="user-card__profile-info__text">A-{{currentEmployeeInfo.employeementId}}</p>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="row justify-content-between">
+                        <div class="col-xs-12 col-sm-12 col-md-4 d-flex flex-column user-card__profile-avatar">
+                            <img src="assets/Images/default-user-image.jpeg"
+                                id="user-avatar" class="user-card__profile-avatar__img" alt="Avatar" />
+                            
+                            <!-- IMAGE UPLOAD -->
+                            <div *ngIf="isUpdateProfile && userMapping.upload_profile_image" class="user-card__profile-avatar-upload mt-3">
+                                <input type="file" name="file" id="profileImg" class="profileImgFile" (change)="onProfileImageSelect($event)" />
+                                <label id="profileImgLabel" for="profileImg">Select Image</label>
+                                <button type="submit" class="btn btn-primary ml-2 profileImgFile__upload__btn" title="Upload Image" (click)="onUploadImage(alert_message)"><i class="fa-solid fa-upload"></i></button>
+                            </div>
                         </div>
-                        <div class="col-md-4 user-card__profile-info__container-blocks">
-                            <p class="user-card__profile-info__label">Email ID</p>
-                            <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.email}}</p>
-                        </div>
-                        <div class="col-md-2 user-card__profile-info__container-blocks">
-                            <p class="user-card__profile-info__label">Contact No.</p>
-                            <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.mobileNo}}</p>
-                        </div>
-                        <div class="col-md-3 user-card__profile-info__container-blocks">
-                            <p class="user-card__profile-info__label">Employee Status</p>
-                            <p class="user-card__profile-info__text">{{currentEmployeeInfo.employmentstatus}}</p>
-                        </div>
-                        <div class="col-md-3 user-card__profile-info__container-blocks">
-                            <p class="user-card__profile-info__label">Department</p>
-                            <p class="user-card__profile-info__text">{{currentEmployeeInfo.departmentName}}</p>
-                        </div>
-                        <div class="col-md-3 user-card__profile-info__container-blocks">
-                            <p class="user-card__profile-info__label">Reports To</p>
-                            <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
+                        <!-- <div class="vertical-rule"></div> -->
+                        <div class="col-xs-12 col-sm-12 col-md-8 user-card__profile-info">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h2 class="user-card__profile-info__name mb-0">{{currentEmployeeInfo.name}}</h2>
+                                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.jobRoleName}}</span>
+                                </div>
+                            </div>
+                            <div class="row user-card__profile-info__container mt-4 mr-0">
+                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                    <p class="user-card__profile-info__label">Employee ID</p>
+                                    <p class="user-card__profile-info__text">A-{{currentEmployeeInfo.employeementId}}</p>
+                                </div>
+                                <div class="col-sm-5 col-md-4 user-card__profile-info__container-blocks">
+                                    <p class="user-card__profile-info__label">Email ID</p>
+                                    <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.email}}</p>
+                                </div>
+                                <div class="col-sm-5 col-md-2 user-card__profile-info__container-blocks">
+                                    <p class="user-card__profile-info__label">Contact No.</p>
+                                    <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.mobileNo}}</p>
+                                </div>
+                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                    <p class="user-card__profile-info__label">Employee Status</p>
+                                    <p class="user-card__profile-info__text">{{currentEmployeeInfo.employmentstatus}}</p>
+                                </div>
+                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                    <p class="user-card__profile-info__label">Department</p>
+                                    <p class="user-card__profile-info__text">{{currentEmployeeInfo.departmentName}}</p>
+                                </div>
+                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                    <p class="user-card__profile-info__label">Reports To</p>
+                                    <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,7 +110,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of birth</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -113,7 +121,7 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Employee code</p>
+                                            <p class="info-label">Employee Id</p>
                                             <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p>
                                         </div>
                                     </div>
@@ -230,7 +238,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Landline No.</p>
-                                            <p class="info-text">022-{{currentEmployeeInfo.landline}}</p>
+                                            <p class="info-text" *ngIf="currentEmployeeInfo.landline != null">022-{{currentEmployeeInfo.landline}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -265,7 +273,7 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Official Mobile No.</p>
+                                            <p class="info-label">Alternate Mobile No.</p>
                                             <p class="info-text">{{currentEmployeeInfo.alternateMobileNo}}</p>
                                         </div>
                                     </div>
@@ -312,7 +320,7 @@
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.pursuing}}</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.pursuing == 'No'">
                                         <div class="info-wrapper">
                                             <p class="info-label">Year of Passing</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}</p>
@@ -326,7 +334,7 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <h4 class="info-label" >Certifications</h4>
+                                <h4 class="info-label" *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null" >Certifications</h4>
                                 <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
@@ -349,7 +357,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of completion</p>
-                                            <p class="info-text info-highlight">{{certification.dateOfCompletion}}</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -368,7 +376,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Joining</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining | date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -408,7 +416,7 @@
                                             <p class="info-text">{{currentEmployeeInfo.experience}}</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.experience == 'Experience'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Total Experience</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
@@ -418,6 +426,12 @@
                                         <div class="info-wrapper">
                                             <p class="info-label">Work Location <small>(State)</small></p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Billable</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -437,14 +451,14 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Joining</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining}}
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
                                             </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of Relieving</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving}}</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">

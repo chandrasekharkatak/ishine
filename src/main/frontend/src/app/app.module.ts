@@ -67,6 +67,15 @@ import { UserAppreciationComponent } from './user-appreciation/user-appreciation
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
+import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
+import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
+import { UserExitComponent } from './user-exit/user-exit.component';
+import { MatTableModule } from '@angular/material/table';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { NgxMatSelectModule } from 'ngx-mat-select';
+import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
+import { NgxOrgChartModule } from 'ngx-org-chart';
+import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 @NgModule({
   declarations: [
     AppComponent,
@@ -116,6 +125,9 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
     UserPoliciesComponent,
     UploadPoliciesComponent,
     RecruitmentComponent,
+    OnBoardingComponent,
+    UserExitComponent,
+    ProjectConfigComponent,
   ],
   imports: [
     BrowserModule,
@@ -136,6 +148,26 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
+    NgHorizontalScrollModule,
+    MatTableModule,
+    DragDropModule,
+    NgxMatSelectModule.forRoot({
+      maxWidthForMobileView: 600,
+      inFirstLoadCallSearcher: true,
+      inFirstLoadSearcherValue: '',
+      emptyLabel: 'no entry found',
+      noMoreResultLabel: ' ',
+      useInfiniteScroll: false,
+      searchBoxPlaceholder: 'search',
+      maximumResultForShow: 40,
+      useMobileView: false,
+      valueMember: 'key',
+      displayMember: 'value',
+      mobileViewType: 'FullScreen'
+  }),
+    NgxOrgChartModule,
+    OwlDateTimeModule,
+     OwlNativeDateTimeModule,
   ],
   providers: [
     BsModalService,

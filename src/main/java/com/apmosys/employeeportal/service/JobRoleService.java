@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -51,8 +54,20 @@ public class JobRoleService {
 	@Autowired
 	EmployeeRoleMasterRepository employeeRoleMasterRepository;
 
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Create Role");
+		apiLogInfo.setApiUrl("/api/createJobRole");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("createdBy : " + jobRoleDTO.getCreatedById() + "name : " +jobRoleDTO.getName()+ "employeeRole :" +jobRoleDTO.getEmployeeRole()+ "departmentId : " +jobRoleDTO.getDepartmentId());
 		try {
 			JobRole newJobRole = new JobRole();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
@@ -71,6 +86,10 @@ public class JobRoleService {
 				if (defaultSubFeatureList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("New Job Role Created. But Default SubFeatures List Is Empty.");
+					
+					apiLogInfo.setApiResponse("New Job Role Created. But Default SubFeatures List Is Empty.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
 					return response;
 				} else {
 					List<RoleFeatureMap> roleFeatureMapList = new ArrayList<RoleFeatureMap>();
@@ -85,15 +104,24 @@ public class JobRoleService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse(
 								"New Job Role Created. But Default SubFeatures Was Not Assigned To The Role.");
+						
+						apiLogInfo.setApiResponse("New Job Role Created. But Default SubFeatures Was Not Assigned To The Role.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						return response;
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("New Job Role Created.");
+						
+						apiLogInfo.setApiResponse("New Job Role Created.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("New Job Role Creation Failed.");
+				
+				apiLogInfo.setApiResponse("New Job Role Creation Failed");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -101,12 +129,24 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse createJobRoleByList(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/createJobRoleByList");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("createdBy : " + jobRoleDTO.getCreatedById() + "name : " +jobRoleDTO.getName()+ "employeeRole :" +jobRoleDTO.getEmployeeRole()+ "departmentId : " +jobRoleDTO.getDepartmentId());
 		try {
 			JobRole newJobRole = new JobRole();
 			// Department department = new Department();
@@ -126,6 +166,10 @@ public class JobRoleService {
 				if (defaultSubFeatureMasterList.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("New Job Role Created. But Default SubFeatures List Is Empty.");
+				
+					apiLogInfo.setApiResponse("New Job Role Created. But Default SubFeatures List Is Empty.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
 					return response;
 				} else {
 					List<RoleFeatureMap> roleFeatureMapList = new ArrayList<RoleFeatureMap>();
@@ -140,15 +184,24 @@ public class JobRoleService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse(
 								"New Job Role Created. But Default SubFeatures Was Not Assigned To The Role.");
+						
+						apiLogInfo.setApiResponse("New Job Role Created. But Default SubFeatures Was Not Assigned To The Role.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						return response;
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("New Job Role Created.");
+						
+						apiLogInfo.setApiResponse("New Job Role Created.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("New Job Role Creation Failed.");
+				
+				apiLogInfo.setApiResponse("New Job Role Creation Failed.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -156,7 +209,13 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -198,7 +257,12 @@ public class JobRoleService {
 	@Transactional
 	public ServiceResponse updateJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Role");
+		apiLogInfo.setApiUrl("/api/updateJobRole");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("jobRoleId : " +jobRoleDTO.getJobRoleId()+ "updatedBy : " + jobRoleDTO.getUpdatedBy() + "name : " +jobRoleDTO.getName()+ "employeeRole :" +jobRoleDTO.getEmployeeRole()+ "departmentId : " +jobRoleDTO.getDepartmentId());
 		try {
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isPresent()) {
@@ -237,25 +301,46 @@ public class JobRoleService {
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Job Role Updated.");
+					
+					apiLogInfo.setApiResponse("Job Role Updated");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Job Role Updation Failed.");
+					
+					apiLogInfo.setApiResponse("Job Role Updation Failed");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Job Role Not Found");
+				
+				apiLogInfo.setApiResponse("Job Role Not Found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse deleteJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Delete Role");
+		apiLogInfo.setApiUrl("/api/deleteJobRole");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("jobRoleId : " + jobRoleDTO.getJobRoleId());
 		try {
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isPresent()) {
@@ -267,26 +352,51 @@ public class JobRoleService {
 					jobRoleRepository.deleteById(jobRoleToBeDeleted.getJobRoleId());
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Job role deleted.");
+					
+					apiLogInfo.setApiResponse("Job role deleted.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Job role cannot be deleted as it is mapped to employee.");
+					
+					apiLogInfo.setApiResponse("Job role cannot be deleted as it is mapped to employee.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Job Role Not Found.");
+				
+				apiLogInfo.setApiResponse("Job Role Not Found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse changeEmployeeJobRoleMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("delete_role");
+		apiLogInfo.setApiUrl("/api/changeEmployeeJobRoleMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("jobRoleId : " +jobRoleDTO.getOldJobRoleId());
+		
 		try {
 			List<Employee> employeeJobRole = employeeRepository.findByJobRoleId(jobRoleDTO.getOldJobRoleId());
 
@@ -300,9 +410,15 @@ public class JobRoleService {
 					if (dbResponse != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Job Role deleted");
+						
+						apiLogInfo.setApiResponse("Job Role deleted");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Employee Job role mapping Failed.");
+						
+						apiLogInfo.setApiResponse("Employee Job role mapping Failed.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				}
 			}
@@ -312,13 +428,23 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse addNewSubFeatures(SubFeatureMasterDTO subFeatureMasterDTO) {
 		ServiceResponse response = new ServiceResponse();
-
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/addNewSubFeatures");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeeRoles : " + subFeatureMasterDTO.getEmployeeRoleList()+ "subFeatureName : " +subFeatureMasterDTO.getSubFeatureName());
 		try {
 
 			List<EmployeeRole> employeeRoles = subFeatureMasterDTO.getEmployeeRoleList();
@@ -327,7 +453,6 @@ public class JobRoleService {
 					.findBySubFeatureName(subFeatureMasterDTO.getSubFeatureName());
 
 			if (subFeatureMaster != null) {
-
 				List<EmployeeRole> employeeRoleList = new ArrayList<>();
 
 				for (EmployeeRole role : employeeRoles) {
@@ -360,6 +485,10 @@ public class JobRoleService {
 							if (objectlist.isEmpty()) {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Employee role list is empty.");
+								
+								apiLogInfo.setApiResponse("Employee role list is empty");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+								
 							} else {
 								List<RoleFeatureMap> roleFeatureMapList = new ArrayList<RoleFeatureMap>();
 								for (EmployeeRole role : defaultSubFeatureList) {
@@ -383,11 +512,17 @@ public class JobRoleService {
 
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Subfeature added to employee_role_master table.Role mappings added to role_subfeature_mapping");
+								
+								apiLogInfo.setApiResponse("Subfeature added to employee_role_master table.Role mappings added to role_subfeature_mapping");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 							}
 						}, () -> {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Employee role list is null.");
+							
+							apiLogInfo.setApiResponse("Employee role list is null");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						});
 
 					} else {
@@ -395,16 +530,26 @@ public class JobRoleService {
 						response.setServiceResponse(
 								"Subfeature added to employee_role_master table. But no role mapping done as permission was set to"
 										+ " 'N'.");
+						
+						apiLogInfo.setApiResponse("Subfeature added to employee_role_master table. But no role mapping done as permission was set to"
+								+ " 'N'.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to add subfeature in subfeature_master_table.");
+					
+					apiLogInfo.setApiResponse("Failed to add subfeature in subfeature_master_table.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Subfeature not found in subfeature_master_table.");
+				
+				apiLogInfo.setApiResponse("Subfeature not found in subfeature_master_table.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -412,13 +557,24 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse checkJobRole(JobRoleDTO jobRoleDto) {
 	
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setApiUrl("/api/checkJobRole");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("name : " + jobRoleDto.getName()+ "departmentId :" +jobRoleDto.getDepartmentId());
 		try {
 			JobRole checkExistingRole = jobRoleRepository.findByNameAndDeptId(jobRoleDto.getName(), jobRoleDto.getDepartmentId());
 			System.out.println("  jobRoleDto.getDeptId()  : -- " +jobRoleDto.getDepartmentId());
@@ -426,12 +582,58 @@ public class JobRoleService {
 			if(checkExistingRole == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("JobRole created !");
+				
+				apiLogInfo.setApiResponse("JobRole created !");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else if(checkExistingRole !=null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("JobRole already exist!");
+					
+					apiLogInfo.setApiResponse("JobRole already exist!");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	@Transactional
+	public ServiceResponse updateJobRoleSubFeatureMapping(JobRoleDTO jobRoleDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
+
+			jobRoleDTO.getUpdatedJobRoleFeatureMapping().forEach(dto -> {
+				
+				if(dto.getIsAssigned().equals("true")) {
+					RoleFeatureMap roleFeatureMap = new RoleFeatureMap();
+					roleFeatureMap.setJobRoleId(dto.getJobRoleId());
+					roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureId());
+					roleFeatureMapList.add(roleFeatureMap);
+				}else if(dto.getIsAssigned().equals("false")) {
+					Long jobRoleId = dto.getJobRoleId();
+					roleFeatureMapRepository.deleteByJobRoleId(jobRoleId);
+				}
+			});
+
+			roleFeatureMapRepository.saveAll(roleFeatureMapList);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Role ACL Updated");
+			
+		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

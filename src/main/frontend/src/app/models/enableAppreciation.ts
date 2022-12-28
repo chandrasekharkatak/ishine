@@ -13,5 +13,8 @@ export class enableAppreciation{
 	appreciationToName:any;
 	managerName:any;
 	reason:any;
+	updatedBy:any;
+	appreciationEventType:any;
+
 	
 }

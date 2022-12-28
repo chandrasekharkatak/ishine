@@ -22,7 +22,8 @@ import { Feature } from '../models/feature';
 import { ValidationService } from '../services/validation.service';
 import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
-
+import * as CryptoJS from 'crypto-js';
+import { Employee } from '../models/employee';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -60,6 +61,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isImagesLoaded:boolean = false;
   
   leaveBalanceList:any[] = [];
+  rejectedLeavesList:any[] = [];
   approvedLeavesList:any[] = [];
   pendingLeavesList:any[] = [];
 
@@ -82,6 +84,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   @ViewChild('updateInfo')
   private updateInfoTempRef:TemplateRef<any>;
+
+  // TOP BAR
+  @ViewChild("change_password")
+  changePasswordTemplate: TemplateRef<any>;
+
+  fieldTextType: boolean = false;
+  fieldTextTypePassword: boolean = false;
+  fieldTextTypeOldPass: boolean = false;
+  isError:boolean=false;
+  oldPasswordValid:boolean = false;
+
+  password:any;
+  userNewPass:any;
+  newpassword:any;
+  errorMsg:any;
+  empId:any;
+  user:User = new User();
+  
+  leaveTypes:Leave[] = [];
+  leaveBucketDetails : any[] = [];
+
+  // stop modal to close
+  config = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard  : false
+  };
+  
+  profileCompletedPercentage:any = 0;
 
   constructor(
     private modalService: BsModalService,
@@ -107,6 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
+    // this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -116,6 +148,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log(this.feature, " : ", this.userMapping);
     
     this.getAllNotifications();
+    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
     if(this.userMapping.view_event_photos) this.getAllEventPhotos();
     if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
     if(this.userMapping.view_all_team_requests){
@@ -127,6 +160,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.getMyLeaveBalancesByEmpId();
       this.countMyApprovedLeaveApplicationsByLeaveType();
       this.countMyPendingLeaveApplicationsByLeaveType();
+      this.countMyRejectedLeaveApplicationsByLeaveType();
     }
     if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
 
@@ -197,8 +231,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveObj.email = leaveApplication.email
-    leaveObj.rejectReason = leaveApplication.rejectReason
+    leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
     console.log("   leaveObj.email   ",leaveObj.email);
+    
     
     
     console.log("leaveApplication : ", leaveApplication);
@@ -216,8 +251,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
    // single leave reject modal
    onSingleReject(template: TemplateRef<any> , ){
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
-      this.alertMessage = "Reason cannot contain single character !!"
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
+      this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -318,6 +354,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
+        for(let x of this.allTeamTimesheetRequests){
+          x.employeementId = "A-".concat(x.employeementId);
+        }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
@@ -331,10 +370,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
-    timesheetObj.rejectReason = timesheet.rejectReason;
-    timesheetObj.employeementId = timesheet.employeementId;
+    timesheetObj.rejectReason = timesheet.rejectReason?.trim();
+    timesheetObj.employeementId = timesheet.employeementId.substring(2);
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.status = status;
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.countMyReporteesTimesheetRequests();
@@ -348,8 +389,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   
   rejectTimesheetRequest(template: TemplateRef<any> , ){
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
-      this.alertMessage = "Reason cannot contain single character !!"
+    this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim()
+    if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
+      this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -380,6 +422,37 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* My Leave Details */
+  getAllLeaveTypesByLeavePolicies(userObj:User){
+    this.leaveTypes = [];
+
+    let leaveObj = new Leave();
+    leaveObj.employmentStatus = userObj.employmentstatus;
+    leaveObj.gender = userObj.gender;
+
+    this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveTypes = response.serviceResponse;
+        console.log("leaveTypes : ", this.leaveTypes);
+        this.leaveBucketDetails = this.leaveTypes.map((leave:Leave) => {
+          let leaveObj = new Leave();
+          leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
+          leaveObj.leaveType = leave.leaveType;
+          leaveObj.leaveTypeCode = leave.leaveTypeCode;
+          leaveObj.balance = 0;
+          leaveObj.approvedApplicationsCount = 0
+          leaveObj.pendingApplicationsCount = 0;
+          leaveObj.rejectedApplicationsCount = 0;
+
+          return leaveObj;
+        });
+
+        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   getMyLeaveBalancesByEmpId(){
     this.leaveBalanceList = [];
 
@@ -389,31 +462,41 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
         console.log("leaveBalanceList : ", this.leaveBalanceList);
-
-        let balanceChartData = this.leaveBalanceList.map(leaveType => {
-          if(leaveType.leaveTypeMasterId != null){
-            let data = {
-              name : leaveType.leaveTypeCode,
-              y : leaveType.balance
-            }
-
-            return data;
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail =  this.leaveBalanceList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+          if(leaveDetail){ 
+            data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
           }
-        }).filter(data => data != undefined);
-        console.log("balanceChartData : ", balanceChartData);
-
-        let checkData = balanceChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
-        
-        if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
-        }else{
-          this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
-        }
+        }); 
+        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'No Data to Display');
       }
+    });
+  }
+
+  countMyRejectedLeaveApplicationsByLeaveType(){
+    this.rejectedLeavesList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response : any) =>{
+
+      if(response.serviceStatus == 'Success') {
+        this.rejectedLeavesList = response.serviceResponse;
+        console.log("Rejected Leaves : ", this.rejectedLeavesList);
+
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail = this.rejectedLeavesList.find((leave:Leave)=> leave.leaveTypeCode == data.leaveTypeCode);
+          if(leaveDetail){
+            data.rejectedApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
+          }
+        });
+
+      }else {
+        console.error(response.serviceResponse);
+      }
+
     });
   }
 
@@ -427,26 +510,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.approvedLeavesList =  response.serviceResponse;
         console.log("approvedLeaves : ", this.approvedLeavesList);
 
-        let approvedChartData = this.approvedLeavesList.map(leaveType => {
-          let data = {
-            name : leaveType.leaveTypeCode,
-            y : leaveType.applicationCount
-          }
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail =  this.approvedLeavesList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+           if(leaveDetail){
+            data.approvedApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
+           }
+       }); 
 
-          return data;
-        }).filter(data => data != undefined);
-        console.log("approvedChartData : ", approvedChartData);
-        let checkData = approvedChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
-        
-        if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
-        }else{
-          this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
-        }
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'No Data to Display');
       }
     });
   }
@@ -461,27 +533,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.pendingLeavesList =  response.serviceResponse;
         console.log("pendingLeavesList : ", this.pendingLeavesList);
 
-        let pendingChartData = this.pendingLeavesList.map(leaveType => {
-          let data = {
-            name : leaveType.leaveTypeCode,
-            y : leaveType.applicationCount
-          }
-
-          return data;
-        }).filter(data => data != undefined);
-        console.log("pendingChartData : ", pendingChartData);
-        let checkData = pendingChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
-        
-        if(checkData && checkData.length != 0){
-          this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
-        }else{
-          this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
-        }
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail =  this.pendingLeavesList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+           if(leaveDetail){
+            data.pendingApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
+           }
+       }); 
 
       } else {
         console.error(response.serviceResponse);
-        this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
       }
     });
   }
@@ -886,6 +946,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cancelRequest();
   } 
 
+  // Employee Proile Completed Percentage 
+  getEmployeeProfileCompletion(){
+    this.profileCompletedPercentage = 0;
+
+    let employee = new Employee();
+    employee.empId = this.currentUser.empId;
+    this.employeeService.getEmployeeProfileCompletion(employee).pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        let employeeObj = response.serviceResponse;
+        this.profileCompletedPercentage = Math.ceil(employeeObj.profileCompletedPercent)+ "%" ;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   //export to excel
 
   exportToExcelForLeave() {
@@ -961,6 +1037,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
  }
+
+  openNotificationMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+  }
 
   openReqMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
@@ -1084,9 +1164,13 @@ onBulkApproval(template:TemplateRef<any>){
   timesheetObj.updatedBy = this.currentUser.empId;
   timesheetObj.status = "Approved"
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkApprovedList.forEach((x)=>{
+    x.employeementId = x.employeementId.substring(2);
+  })
   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Approved Successfully ");
+      this.openAlertMod(template , "All Selected Timesheets Approved Successfully ");
+      this.countMyReporteesTimesheetRequests();
       this.getMyReporteesTimesheetRequests();
       this.bulkApprove = [];
       this.bulkReject = [];
@@ -1098,9 +1182,10 @@ onBulkApproval(template:TemplateRef<any>){
 }
 
 onBulkRejectTimesheet(template: TemplateRef<any>){
+  this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
 
-  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.timesheetObj.rejectReason)){
-    this.alertMessage = "Reason cannot contain single character !!"
+  if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
+    this.alertMessage = "Please enter Valid Reason !!"
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
@@ -1108,16 +1193,21 @@ onBulkRejectTimesheet(template: TemplateRef<any>){
   let timesheetObj = new Timesheet();
   timesheetObj.bulkRejectList =  this.bulkReject;
   timesheetObj.updatedBy = this.currentUser.empId;
-  timesheetObj.rejectReason = this.timesheetObj.rejectReason;
+  timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
   console.log(" timesheet reason :  ", timesheetObj.rejectReason);
   timesheetObj.status = "Rejected"
   console.log("For Bulk Update : ", timesheetObj);
+  timesheetObj.bulkRejectList.forEach((item)=>{
+    item.employeementId = item.employeementId.substring(2);
+  })
   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheet Rejected Successfully "); 
-      this.getMyReporteesTimesheetRequests();
+      this.openAlertMod(template , "All Selected Timesheets Rejected Successfully "); 
       this.bulkApprove = [];
       this.bulkReject = [];
+      this.timesheetApplicationCount ;
+      this.countMyReporteesTimesheetRequests();
+      this.getMyReporteesTimesheetRequests();
     } else {
     console.error(response.serviceResponse)
     }
@@ -1137,11 +1227,13 @@ onBulkLeaveApproval(template:TemplateRef<any>){
   leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 2;
- 
+  
   this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Application Approved Successfully ");
-      this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+      this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
+  
+       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
      
       this.bulkLeaveApprove = [];
       this.bulkLeaveReject = [];
@@ -1153,25 +1245,31 @@ onBulkLeaveApproval(template:TemplateRef<any>){
 }
 
 bulkRejectLeave(template: TemplateRef<any>){
-
-  if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(this.leaveObj.rejectReason)){
-    this.alertMessage = "Reason cannot contain single character !!"
+  this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+  if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
+    this.alertMessage = "please enter valid reason !!"
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
       
   let leaveObj = new Leave();
   leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
+  console.log(" ............................ ",leaveObj.bulkLeaveRejectList)
   leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
   leaveObj.leaveStatusId = 3
-  leaveObj.rejectReason = this.leaveObj.rejectReason
+  leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+  leaveObj.bulkLeaveRejectList.forEach((y)=>{
+    y.employeementId = y.employeementId;
+  })
   
   this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Application Rejected Successfully ");
+      this.openAlertMod(template , "All Selected Leaves Rejected Successfully ");
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
       this.bulkLeaveApprove = [];
       this.bulkLeaveReject = [];
+
     } else {
     console.error(response.serviceResponse)
     }
@@ -1196,7 +1294,174 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
 }
 
 
+// TOP BAR
+  userLogout() {
 
+    let user = new User();
+    user.empId = this.currentUser.empId;
+    this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.authenticationService.stopUserSessionCheck();
+        console.log(response.serviceResponse);
+        sessionStorage.removeItem('currentUser');
+        // delete method call for cookies
+        this.authenticationService.deleteCookies();
+        this.authenticationService.setcurrentUserSubject(null);
+        this.router.navigate(['/login']);
+        location.reload();
+      } else {
+        if(response.serviceResponse == "Session already destroyed"){
+          this.authenticationService.stopUserSessionCheck();
+          sessionStorage.removeItem('currentUser');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
+          this.router.navigate(['/login']);
+          location.reload();
+        }
+        console.error(response.serviceResponse);
+      }
+    });
+
+
+  }
+
+  toggleFieldTextType() {
+    this.fieldTextType = !this.fieldTextType;
+  }
+
+  toggleFieldChangePassword() {
+    this.fieldTextTypePassword = !this.fieldTextTypePassword;
+  }
+
+  toggleFieldTextTypeOldPass() {
+    this.fieldTextTypeOldPass = !this.fieldTextTypeOldPass;
+  }
+
+  setEncryption(keys, value) {
+
+    var key = CryptoJS.enc.Utf8.parse(keys);
+    var iv = CryptoJS.enc.Utf8.parse(keys);
+
+    var encrypted = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(value.toString()), key,
+      {
+        keySize: 128 / 8,
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+      });
+
+    return encrypted.toString();
+  }
+
+  passreset() {
+
+    this.password = '';
+    this.userNewPass = '';
+    this.newpassword = '';
+    this.errorMsg = '';
+  }
+
+
+  checkEmployeeOldPassword() {
+
+    this.isError = false;
+    this.errorMsg = '';
+
+    this.user.empId = this.currentUser.empId;
+    this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+
+    this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.oldPasswordValid = true;
+      } else {
+        this.isError = true;
+        this.errorMsg = response.serviceResponse;
+        this.oldPasswordValid = false;
+      }
+    });
+  }
+
+  openChangePassword(changePasswordTemplate) {
+    this.errorMsg = ''
+    this.password = ''
+    this.oldPasswordValid = false;
+    this.newpassword = ''
+    this.userNewPass = ''
+    console.log(this.currentUser.isNew)
+    if (this.currentUser.isNew == 'true') {
+      this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
+    } else {
+      this.modalRef = this.modalService.show(changePasswordTemplate);
+    }
+  }
+
+  openChangePasswordOnFirstTimeLoggin() {
+    this.openChangePassword(this.changePasswordTemplate);
+  }
+
+
+  updateEmployeePassword(template: TemplateRef<any>) {
+    this.isError = false;
+    this.errorMsg = '';
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter old Password!!';
+      return;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter new Password!!';
+      return;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter Confirm password !!';
+      return;
+    }
+
+    if (this.userNewPass != this.newpassword) {
+      this.isError = true;
+      this.errorMsg = 'Password did not match. Please try again... !!';
+      this.userNewPass = '';
+      this.newpassword = '';
+      return;
+    }
+
+    if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
+      !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      return;
+    }
+
+    if (this.userNewPass == this.newpassword) {
+      this.user.email = this.currentUser.email;
+      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+      this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
+
+      this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.userLogout();
+          this.openAlertMod(template, response.serviceResponse);
+          if (this.currentUser.isNew == "true") {
+            this.userLogout();
+          }
+          this.passreset();
+        } else {
+          this.isError = true;
+          this.errorMsg = response.serviceResponse;
+        }
+      });
+    } else {
+      this.isError = true;
+      this.errorMsg = 'Password and Confirm Password do not match !!';
+      return;
+    }
+  }
 
 
 }

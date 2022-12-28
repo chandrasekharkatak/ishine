@@ -21,9 +21,14 @@ private Long appreciationEventId;
 	
 	private String toDate;
 	
-	private String createdOn;
+	private LocalDateTime createdOn;
 	
     private List<EmployeeDTO> enableAppreciationList;
     
     private String appreciateType;
+    
+	private Long updatedBy;
+	
+	private String appreciationEventType;
+
 }

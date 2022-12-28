@@ -23,11 +23,14 @@ export class EmployeeInfoComponent implements OnInit{
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  errorMsg:any;
+  errorMsg1:any;
+
 
   //Obj 
   currentUser: User;
   employeeObj: Employee = new Employee();
-
+  
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -82,11 +85,6 @@ export class EmployeeInfoComponent implements OnInit{
     } else {
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
     }
-
-    // child info
-    console.log("   this.employeeObj.child1 ", this.employeeObj.child1);
-    console.log("   this.employeeObj.child2 ", this.employeeObj.child2);
-    console.log("   this.employeeObj.child3 ", this.employeeObj.child3);
     
     if(this.employeeObj.child1 == null && this.employeeObj.child2 == null && this.employeeObj.child3 ){
       this.addInputChildField();
@@ -140,6 +138,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.addInputCertificationField();
     this.addInputPreviousEmployerField();
     this.addInputChildField();
+
   }
 
 
@@ -166,7 +165,8 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   setYearOfPassingList(){
-    for (let start = 1990; start < 2051; start++) {
+    const currentYear = new Date().getFullYear();
+    for (let start = 1990; start <= currentYear; start++) {
       this.yearOfPassingList.push(start);
     }   
   }
@@ -222,6 +222,7 @@ export class EmployeeInfoComponent implements OnInit{
 
   // Validations 
   checkEmployeeAadharNumber(template: TemplateRef<any>) {
+    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
     this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -231,6 +232,7 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   checkEmployeePanNumber(template: TemplateRef<any>) {
+    this.employeeObj.panNumber = this.employeeObj.panNumber?.trim();
     this.employeeService.checkEmployeePanNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -275,21 +277,69 @@ export class EmployeeInfoComponent implements OnInit{
     }
   }
 
-
+  dataClean(value:string){
+    if(value == 'No'){
+      this.employeeObj.yearOfPassing = ''
+    }
+  }
   
 
   async onSave(template : TemplateRef<any>){
+
+    this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
+    this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
+    this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
+    this.employeeObj.fatherName = this.employeeObj.fatherName?.trim();
+    this.employeeObj.mothersName = this.employeeObj.mothersName?.trim();
+    this.employeeObj.placeOfBirth = this.employeeObj.placeOfBirth?.trim();
+    this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim();
+    this.employeeObj.passportNumber = this.employeeObj.passportNumber?.trim();
+    
+    this.employeeObj.panNumber = this.employeeObj.panNumber?.trim();
+    this.employeeObj.spouse = this.employeeObj.spouse?.trim();
+    this.employeeObj.child1 = this.employeeObj.child1?.trim();
+    this.employeeObj.child2 = this.employeeObj.child2?.trim();
+    this.employeeObj.child3 = this.employeeObj.child3?.trim();
+    this.employeeObj.address = this.employeeObj.address?.trim();
+    this.employeeObj.permanentAddress = this.employeeObj.permanentAddress?.trim();
+    this.employeeObj.emergencyContactPerson = this.employeeObj.emergencyContactPerson?.trim();
+    this.employeeObj.relation = this.employeeObj.relation?.trim();
+    this.employeeObj.passingGrade = this.employeeObj.passingGrade?.trim();
+    this.employeeObj.bankName = this.employeeObj.bankName?.trim();
+    this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
+    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
+
+
+    this.employeeObj.previousEmploymentList?.forEach((x)=>{
+      x.employerName = x.employerName?.trim();
+      x.designation = x.designation?.trim();
+      x.managerName = x.managerName?.trim();
+      x.hrName = x.hrName?.trim();
+    })
+
+    this.employeeObj.certifications?.forEach((y)=>{
+      y.certificationName = y.certificationName?.trim();
+      y.certificationNumber = y.certificationNumber?.trim();
+    })
+
+
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
     const dateFormat = 'YYYY-MM-DD';
-    
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.allCertificationList?.forEach(certificaiton => {
       console.log("All certificaiton : ", this.allCertificationList);
+      if(certificaiton.dateOfCompletion == 'Invalid date' || certificaiton.dateOfCompletion == ''){
+        certificaiton.dateOfCompletion = null;
+      }
+      console.log(certificaiton.dateOfCompletion, " : certificaiton.dateOfCompletion after")
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
-        certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
+        if(certificaiton.dateOfCompletion != null){
+          certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
+        }
         console.log("New certificaiton : ", certificaiton);
         this.updatedCertificationList.push(certificaiton);
       }
@@ -297,7 +347,17 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.allPreviousEmployment?.forEach(prevEmployer => {
       console.log("All Prev Employer : ", this.allPreviousEmployment);
+      if(prevEmployer.dateOfJoining == 'Invalid date' || prevEmployer.dateOfJoining == ''){
+        prevEmployer.dateOfJoining = null;
+      }
+      if(prevEmployer.dateOfRelieving == 'Invalid date' || prevEmployer.dateOfRelieving == ''){
+        prevEmployer.dateOfRelieving = null;
+      }
       if ((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0) && (prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)) {
+        if(prevEmployer.dateOfJoining != null || prevEmployer.dateOfRelieving != null){
+          prevEmployer.dateOfJoining = moment(prevEmployer.dateOfJoining).format(dateFormat);
+          prevEmployer.dateOfRelieving = moment(prevEmployer.dateOfRelieving).format(dateFormat);
+        }
         console.log("New Prev Employer : ", prevEmployer);
         this.updatedPreviousEmployment.push(prevEmployer);
       }
@@ -323,6 +383,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.createdBy = this.currentUser.empId;
 
     console.log("onSave --> employeeObj : ", this.employeeObj);
+    
     this.updateUserInfoService.setUserInfoObj(this.employeeObj);
     const response = await this.updateUserInfoService.saveEmployeeInfo();
     if (response.serviceStatus == "Success") {
@@ -343,7 +404,7 @@ export class EmployeeInfoComponent implements OnInit{
         path = data[0].PostOffice[0];
 
         this.employeeObj.state = path.State;
-        this.employeeObj.city = path.Block;
+        this.employeeObj.city = path.Name;
         this.employeeObj.country = path.Country;
       }else{
         this.employeeObj.state = "";
@@ -364,4 +425,561 @@ export class EmployeeInfoComponent implements OnInit{
     this.modalRef.hide();
   }
 
+  // Validations 
+
+  validateBloodGroup(event, data:any){
+    this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
+    console.log("Element :", event.target);
+    console.log("Sibling : ", event.target.nextElementSibling);
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Blood Group !!"   
+  }
+     else if (!this.validationService.validateBloodGroup(data)) {
+        this.errorMsg = "Please enter valid Blood Group !!"   
+    }
+    else{
+      this.errorMsg = ""
+    }
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
+    
+    
+  }
+  validateFathersName(event, data:any){
+    this.employeeObj.fatherName = this.employeeObj.fatherName?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter father name !!"   
+  }
+ else if (!this.validationService.validateTeamName(data)) {
+    this.errorMsg = "Please enter valid father name !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateMothersName(event, data:any){
+    this.employeeObj.mothersName = this.employeeObj.mothersName?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter mother name !!"   
+  }
+ else if (!this.validationService.validateTeamName(data)) {
+  this.errorMsg = "Please enter valid mother name !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validatePlaceOfBirth(event, data:any){
+    this.employeeObj.placeOfBirth = this.employeeObj.placeOfBirth?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Place of Birth !!"   
+  }
+  else if (!this.validationService.validateTeamName(data)) {
+    this.errorMsg = "Please enter valid Place of birth !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+
+  validateMotherTongue(event, data:any){
+    this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter mother tongue !!"   
+  }
+   else if (!this.validationService.validateAlphaWithSpace(data)) {
+    this.errorMsg = "Please enter valid mother tongue !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+//   validatePassportNumber(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//    else if (!this.validationService.validatePassportNumber(data)) {
+//     this.errorMsg = "Please enter valid passport number !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// }
+//   }
+
+  validateAadhar(event, data:any){
+    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter aadhar card number !!"   
+  }
+   else if (data.toString().length != 12) {
+      this.errorMsg = "Please enter Valid aadhar card number !!";
+  }
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+  validatePan(event, data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter pan number !!"   
+  }
+   else if (!this.validationService.validatePancardNumber(data)) {
+    this.errorMsg = "Please enter valid pan number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+
+  validatePincode(event, data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter pincode !!"   
+  }
+   else if (!this.validationService.validatePincodeNumber(data)) {
+    this.errorMsg = "Please enter valid pincode !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateViewOnOrganisation(event , data:any){
+    this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter views On Organisation !!"   
+  }
+  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+    this.errorMsg = "Please enter valid views On Organisation !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateAboutMe(event , data:any){
+    this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter About me !!"   
+  }
+  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+    this.errorMsg = "Please enter valid About me !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateValidEmptyNullUndefinedalternateMobileNo(event, data:any){
+    this.employeeObj.emergencyContactMobile = this.employeeObj.emergencyContactMobile?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Mobile number !!"   
+  }
+  else  if (!this.validationService.validateMobileNumber(data)) {
+    this.errorMsg = "Please enter valid  Mobile Number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+
+  }
+
+  validateValidEmptyNullUndefinedPermanentAddress(event , data:any){
+    this.employeeObj.permanentAddress = this.employeeObj.permanentAddress?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Permanent Address !!"   
+  }
+  else  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+    this.errorMsg = "Please enter valid  Permanent Address !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateValidEmptyNullUndefinedCurrentDate(event , data:any){
+    this.employeeObj.address = this.employeeObj.address?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Current Address !!"   
+  }
+  else  if (!this.validationService.validateActivityTimesheetDiscription(data)) {
+    this.errorMsg = "Please enter valid  Current Address !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+
+  validateContactPerson(event, data:any){
+    this.employeeObj.emergencyContactPerson = this.employeeObj.emergencyContactPerson?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Emergency Contact person !!"   
+  }
+   else if (!this.validationService.validateAlphaWithSpace(data)) {
+    this.errorMsg = "Please enter valid Emergency Contact person !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+  validateRelation(event, data:any){
+    this.employeeObj.relation = this.employeeObj.relation?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter relation !!"   
+  }
+ else  if (!this.validationService.validateAlphaWithSpace(data)) {
+    this.errorMsg = "Please enter valid relation !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+}
+  }
+  validateValidEmptyNullUndefinedemergencyContactMobile(event, data:any){
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter emergency contact number !!"   
+  }
+ else  if (!this.validationService.validateMobileNumber(data)) {
+    this.errorMsg = "Please enter valid emergency contact number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatebankName(event, data:any){
+    this.employeeObj.bankName = this.employeeObj.bankName?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter bank name !!"   
+  }
+ else  if (!this.validationService.validateAlphaWithSpace(data)) {
+    this.errorMsg = "Please enter valid bank name !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validatebankAccountNo(event, data:any){
+    this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter bank account number !!"   
+  }
+ else  if (!this.validationService.validateAccountNumber(data)) {
+    this.errorMsg = "Please enter valid  bank account number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatebankIFSCCode(event, data:any){
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter bank IFSC code !!"   
+  }
+ else  if (!this.validationService.validateIFSCCodeRegex(data)) {
+    this.errorMsg = "Please enter valid  bank IFSC code !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+//   validatepfAccountNumber(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//  else  if (!this.validationService.validateAlphaNumeric(data)) {
+//     this.errorMsg = "Please enter valid  PF account number !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// } 
+//   }
+//   validatePreviouspfAccountNumber(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//  else  if (!this.validationService.validateAlphaNumeric(data)) {
+//     this.errorMsg = "Please enter valid  PF account number !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// } 
+//   }
+//   validateUan(event, data:any){
+//     if(data === null){
+//       this.errorMsg = ""
+//     }
+//  else  if (!this.validationService.validateAlphaNumeric(data)) {
+//     this.errorMsg = "Please enter valid  UAN !!"   
+// }
+//   else{
+//   this.errorMsg = ""
+// }
+// if(this.errorMsg == ""){
+//   event.target.nextElementSibling.textContent = ""
+// }else{
+//   event.target.nextElementSibling.textContent =  this.errorMsg
+// } 
+//   }
+  validateEsicNumber(event, data:any){
+    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+      this.errorMsg = "Please enter Esic number !!"   
+  }
+ else  if (!this.validationService.validateAlphaNumeric(data)) {
+    this.errorMsg = "Please enter valid  Esic number !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validateemployerName(event, data:any){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter Employer name !!"  
+    }
+ else  if (!this.validationService.validateAlphaWithSpace(data)) {
+    this.errorMsg = "Please enter valid Employer name !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validatYearsOfExperience(event, data:any){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter year of experience !!"  
+    }
+    else if(data === 0){		
+      this.errorMsg = "Please enter more than 0 number !!"	  	
+  }		
+      else if (!this.validationService.validateExperiencedNumber(data)) {		
+      this.errorMsg = "Please enter valid experience in Format (Years.Months)  !!"		
+  }else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeTotalExperience(event, data:any){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter Total  year of experience !!"  
+    }
+ else  if (!this.validationService.validateNumber(data)) {
+    this.errorMsg = "Please enter valid Total  year of experience !!"   
+}
+  else{
+  this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+  event.target.nextElementSibling.textContent = ""
+}else{
+  event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validaeDesignation(event, data:any){ 
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter Designation !!"  
+    }
+else  if (!this.validationService.validateAlphaWithSpace(data)) {
+  this.errorMsg = "Please enter valid Designation !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+  validaeManagerName(event, data:any){ 
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter manager name !!"  
+    }
+else  if (!this.validationService.validateAlphaWithSpace(data)) {
+  this.errorMsg = "Please enter valid manager name !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeManagerContactNumber(event, data:any){ 
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter manager contact number !!"  
+    }
+else  if (!this.validationService.validateMobileNumber(data)) {
+  this.errorMsg = "Please enter valid manager contact number !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeHrName(event, data:any){ 
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter HR name !!"  
+    }
+else  if (!this.validationService.validateAlphaWithSpace(data)) {
+  this.errorMsg = "Please enter valid HR name !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
+
+  validaeHrContactNumber(event, data:any){ 
+    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+      this.errorMsg = "Please enter HR contact number !!"  
+    }
+else  if (!this.validationService.validateMobileNumber(data)) {
+  this.errorMsg = "Please enter valid HR contact number !!"   
+}
+else{
+this.errorMsg = ""
+}
+if(this.errorMsg == ""){
+event.target.nextElementSibling.textContent = ""
+}else{
+event.target.nextElementSibling.textContent =  this.errorMsg
+} 
+  }
 }

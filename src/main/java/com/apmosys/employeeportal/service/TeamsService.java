@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +46,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class TeamsService {
@@ -77,6 +83,12 @@ public class TeamsService {
 
 	@Autowired
 	ModelMapper modelMapper;
+
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
+
+	@PersistenceContext
+    private EntityManager entityManager;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -211,13 +223,19 @@ public class TeamsService {
 						list.forEach((object) -> {
 							TeamDTO dto = new TeamDTO();
 
-							dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-							dto.setTeamLeadName(object[1] != null ? object[1].toString() : null);
-							dto.setProjectId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+							dto.setProjectName(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 							dto.setTeamName(object[3] != null ? object[3].toString() : null);
-							dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
-							dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
-							dto.setTeamLeadId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 							dtoList.add(dto);
 						});
 						
@@ -288,7 +306,9 @@ public class TeamsService {
 						dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dto.setTeamMemberName(object[5] != null ? object[5].toString() : null);
+						dto.setTeamMemberName(object[7] != null ? object[7].toString() : null);
+						dto.setTeamMemberDeptId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -357,7 +377,13 @@ public class TeamsService {
 						// Case 2 : No New Member is Added + ONLY Removed Existing Member
 						updatedTeamMemberList.stream().filter((teamMember) -> teamMember.getEmployeeTeamMapId() != null)
 								.forEach((employee) -> {
-									employeeTeamMapRepository.deleteById(employee.getEmployeeTeamMapId());
+//									employee.setActive((long) 0);
+									
+									EmployeeTeamMap map = employeeTeamMapRepository.findByEmployeeTeamMapId(employee.getEmployeeTeamMapId());
+									map.setActive((long) 0);
+									map.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+									employeeTeamMapRepository.save(map);
+									//employeeTeamMapRepository.deleteById(employee.getEmployeeTeamMapId());
 								});
 
 						// Case 3 : Removed Existing Member + Added New Member (Combination of Case 1&2)
@@ -410,6 +436,108 @@ public class TeamsService {
 		return response;
 	}
 	
+	public ServiceResponse getAllMyTeamsByEmpId(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		String customQuery = "";
+		try {
+			
+			String employeeRole = employeeDTO.getEmployeeRole();
+			if(employeeRole.equals("SuperAdmin") || employeeRole.equals("HR") || employeeRole.equals("HOD")) {
+				customQuery = "t.created_by = "+ employeeDTO.getEmpId() +" OR p.department_name = '"+ employeeDTO.getDepartmentName()+"' OR p.project_manager_id = "+ employeeDTO.getEmpId() +" OR t.team_lead_id = "+employeeDTO.getEmpId();
+			}else if(employeeRole.equals("Manager")){
+				customQuery = "t.created_by = "+ employeeDTO.getEmpId() +" OR p.project_manager_id = "+ employeeDTO.getEmpId() +" OR t.team_lead_id = "+employeeDTO.getEmpId()+"";
+			}else if(employeeRole.equals("TeamLead")) {
+				customQuery = "t.created_by = "+ employeeDTO.getEmpId() +" OR t.team_lead_id = "+employeeDTO.getEmpId()+"";
+			}else {
+				customQuery = "t.created_by = "+ employeeDTO.getEmpId();
+			}
+			
+			List<Object[]> objectList = getAllMyTeamsByCustomQuery(customQuery);
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No teams found. Teams list is empty");
+				} else {
+					
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+						
+						list.forEach((object) -> {
+							TeamDTO dto = new TeamDTO();
+
+							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+							dto.setProjectName(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dto.setTeamName(object[3] != null ? object[3].toString() : null);
+							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+							
+							dtoList.add(dto);
+						});
+						
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found.Teams list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	
+	 List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
+			try {
+				Session session = entityManager.unwrap(Session.class);
+				
+				try {
+					
+					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
+							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept \n"
+							+ "FROM teams t \n"
+							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
+							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
+							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
+							+ "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
+							+ "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
+							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
+					
+					System.out.println("Query :"+ q);
+					Query query = session.createSQLQuery(q);
+					System.out.println(query);
+					System.out.println("Result List : "+ query.getResultList());
+					return query.getResultList();
+					
+				}catch(Exception e) {
+					e.printStackTrace();
+				}finally {
+					if(session!=null && session.isOpen()) {
+						session.close();
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+			return new ArrayList<>();
+		}
+	 
+	 
 //	MyTeam Servcie
 	
 	public ServiceResponse getAllTeamView(EmployeeDTO employeedto) {
@@ -431,6 +559,7 @@ public class TeamsService {
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setManagerName(object[5] != null ? object[5].toString(): null);
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
+					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()): null);
 					dtoList.add(dto);
 				});
 
@@ -467,6 +596,8 @@ public class TeamsService {
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()): null);
 					dto.setEmploymentstatus(object[6] != null ? object[6].toString(): null);
+					dto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()): null);
+					
 					dtoList.add(dto);
 					
 				});
@@ -573,13 +704,35 @@ public class TeamsService {
 		
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
-			if(checkTeamNameByName==null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				}else if(checkTeamNameByName != null) {
+			
+			if(teamdto.getTeamId() != null) {
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
+				if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
 				}
+				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+			}else {
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
+				if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team Name already exist!");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}
+			
+			
+//			if(checkTeamNameByName==null) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else if(checkTeamNameByName != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Team Name already exist!");
+//				}
+			
+			
 			 
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -865,5 +1018,119 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+
+	public ServiceResponse migrateTeamMember(ProjectDTO project) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			EmployeeTeamMap map = new EmployeeTeamMap();
+
+			map.setEmpId(project.getEmpId());
+			map.setTeamId(project.getTeamId());
+			// 1: Active 0: InActive
+			map.setActive((long) 1);
+
+			employeeTeamMapRepository.save(map);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Team Created Successfully");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+	}
+
+	public ServiceResponse addDepartmentInProjects() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Project> allProjects = projectRepository.findAll();
+			
+			if(allProjects != null) {
+				
+				for(Project obj : allProjects) {
+					String deptCode = obj.getProjectName().split("-")[0];
+					
+					if(deptCode.equals("AUT")) {
+						obj.setDepartmentName("Automation Testing");;
+					}else if(deptCode.equals("FT")) {
+						obj.setDepartmentName("Functional Testing");
+					}else if(deptCode.equals("PT")) {
+						obj.setDepartmentName("Performance Testing");
+					}else if(deptCode.equals("APM")) {
+						obj.setDepartmentName("APM");
+					}else if(deptCode.equals("DEV")) {
+						obj.setDepartmentName("Development");
+					}else if(deptCode.equals("PS")) {
+						obj.setDepartmentName("Production Support");
+					}else if(deptCode.equals("AC")) {
+						obj.setDepartmentName("Accounts");
+					}else if(deptCode.equals("MONITORING")) {
+						obj.setDepartmentName("Application Performance Monitoring");
+					}else if(deptCode.equals("MON")) {
+						obj.setDepartmentName("Application Performance Monitoring");
+					}else if(deptCode.equals("MONT")) {
+						obj.setDepartmentName("Application Performance Monitoring");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Unknown format");
+					}
+					
+					Project dbResponse = projectRepository.save(obj);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Department added successfully");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("department addtion failed");
+					}
+				}
+				
+			}
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse setPoProjectIdAndDepartment(ProjectDTO projectDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Project projectObj = projectRepository.findByProjectName(projectDTO.getProjectName());
+			
+			if(projectObj != null) {
+				projectObj.setPoProjectId(projectDTO.getPoProjectId());
+				projectObj.setDepartmentName(projectDTO.getDepartmentName());
+				
+				
+				Project dbResponse = projectRepository.save(projectObj);
+				
+				if(dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("PoProject Id & department added successfully");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("PoProject Id & department updation failed");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found in PoPotal");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return null;
 	}
 }

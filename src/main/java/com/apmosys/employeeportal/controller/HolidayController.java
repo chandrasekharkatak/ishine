@@ -62,4 +62,11 @@ public class HolidayController {
 	}
 
 	
+	@RequestMapping(value = "/getHolidayWeekOffSize", method = RequestMethod.POST)
+	public ServiceResponse getHolidayWeekOffSize(@RequestBody HolidayDTO holidayDTO) {
+
+		ServiceResponse response = holidayService.getHolidayWeekOffSize(holidayDTO);
+		return response;
+	}
+	
 }

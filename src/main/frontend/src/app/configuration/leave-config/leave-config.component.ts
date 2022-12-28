@@ -152,6 +152,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddHolidayForm(){
+    this.employeeData = []
     this.isHolidayForm = true;
     this.isCreation = true;
 
@@ -168,6 +169,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showHoliaysTable(){
+    this.employeeData = []
     this.isHolidayTable = true;
 
     this.isLeaveRuleTable = false;
@@ -184,6 +186,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showLeaveTypesTable(){
+    this.employeeData = []
     this.isLeaveRuleTable = true;
 
     this.isHolidayTable = false;
@@ -200,6 +203,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddLeaveTypeForm(){
+    this.employeeData = []
     this.isLeaveTypeForm = true;
     this.isCreation = true;
     
@@ -265,6 +269,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showAddLeavePolicyForm(){
+    this.employeeData = []
     this.isLeavePolicyForm = true;
     this.isCreation = true;
     
@@ -293,10 +298,12 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+    this.getAllLeaveTypes();
   }
 
 
   showLeavePoliciesTable(){
+    this.employeeData = []
     this.isLeavePolicyTable = true;
     
     this.isHolidayTable = false;
@@ -369,10 +376,18 @@ export class LeaveConfigComponent implements OnInit {
   // Holiday
   setCurrentYearLimit(){
     let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let nextYear;
+
+    if(currentMonth == 10 || currentMonth == 11){
+      nextYear = currentYear + 1;
+    }else{
+      nextYear = currentYear;
+    }
     
     let occasionDate = document.getElementById('occasionDate');
     occasionDate?.setAttribute('min', `${currentYear}-01-01`);
-    occasionDate?.setAttribute('max', `${currentYear}-12-31`);
+    occasionDate?.setAttribute('max', `${nextYear}-12-31`);
   }
   validateHolidayObj(holidayObj:Holiday, template: TemplateRef<any>){
 
@@ -764,30 +779,55 @@ exportToExcel(): void {
     });	
   }
 
+  fieldRestictCharacter(event){
+    var k;
+    k = event.charCode;
+    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) || 
+    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) || 
+    (k == 43) || (k == 44) || (k == 46 ) || (k == 47) || (k == 58) ||
+     (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) || 
+     (k == 64) || (k == 66 ) || (k == 67) || (k == 68) || (k == 69 ) ||
+      (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) || 
+      (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) || 
+      (k == 80) || (k == 81 ) || (k == 82) || (k == 83) || (k == 84) ||
+       (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
+      (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+       (k == 95) || (k == 96) || (k == 123) || (k == 124) || (k == 125) || (k == 126))
+    {
+      return (false);
+    }
+    return (true);
+
+  }
 
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>){
     this.leaveBalanceList = [];
     this.employeeData = [];
-
-    if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)){
-      this.alertMessage = "Please enter Employee ID !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    console.log("Employee :", this.leaveBalanceObj);
-    this.leaveService.getMyLeaveBalancesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveBalanceList = response.serviceResponse;
-        this.leaveBalanceObj.empId = response.serviceResponse1;
-        this.employeeData = response.serviceResponse2;
-        console.log("employeeData : ", this.employeeData);
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+    let leaveObj:Leave = new Leave();
+    if(this.leaveBalanceObj.employeementId.startsWith('A-')){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)){
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
       }
-    });
+      leaveObj.employeementId  = this.leaveBalanceObj.employeementId.substring(2);
+      console.log("Employee :", this.leaveBalanceObj);
+    }else {
+      leaveObj.employeementId  = this.leaveBalanceObj.employeementId
+    } 
+      this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.leaveBalanceList = response.serviceResponse;
+          this.leaveBalanceObj.empId = response.serviceResponse1;
+          this.employeeData = response.serviceResponse2;
+          console.log("employeeData : ", this.employeeData);
+          console.log("leaveBalanceList : ", this.leaveBalanceList);
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+   
   }
 
   leaveBalanceInputValidation(balance:any, template: TemplateRef<any>){
@@ -798,6 +838,7 @@ exportToExcel(): void {
   }
 
   onUpdateLeaveBalance(template: TemplateRef<any>){
+    
     let inputValidated = true;
     this.leaveBalanceList.forEach(leave => {
       if(!this.validationService.validateNullUndefinedEmptyString(leave.balance)){
@@ -813,6 +854,7 @@ exportToExcel(): void {
     };
     
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
+    this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
     console.log("manage Leave Balance :", this.leaveBalanceObj);
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

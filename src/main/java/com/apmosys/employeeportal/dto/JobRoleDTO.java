@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.dto;
 
 
+import java.util.List;
+
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -24,12 +27,6 @@ public class JobRoleDTO {
 	private String updatedOn;
 	private Long oldJobRoleId;
 	private String employeeRole;
-	
-	
-	
-	
-	
-	
-	
+	private List<EmployeeDTO> updatedJobRoleFeatureMapping;
 	
 }

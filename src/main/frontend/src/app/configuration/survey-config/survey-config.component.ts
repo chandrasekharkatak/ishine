@@ -205,7 +205,7 @@ export class SurveyConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     } 
-    if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(surveyObj.surveyName.trim())){
+    if(!this.validationService.validateTeamName(surveyObj.surveyName.trim())){
       this.alertMessage = "Please enter Valid Survey Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -219,7 +219,7 @@ export class SurveyConfigComponent implements OnInit {
         flag = false;
         return;
       }
-      if(!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(question.question)){
+      if(!this.validationService.validateTeamName(question.question)){
         this.alertMessage = `Please enter valid Question ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
@@ -291,6 +291,12 @@ export class SurveyConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
+
+  spaceTrimOnSurveyName(){
+    if(this.surveyObj.surveyName != null || this.surveyObj.surveyName != ''){
+      this.surveyObj.surveyName = this.surveyObj.surveyName?.trim();
+    }
   }
 
   getAllSurveys(){
@@ -368,7 +374,7 @@ export class SurveyConfigComponent implements OnInit {
       console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return [response.employeementId, response.name]
+        return ["A-" + response.employeementId, response.name]
         // return { 
         //   name: response.name,
         //   employeementId : response.employeementId 
@@ -378,7 +384,7 @@ export class SurveyConfigComponent implements OnInit {
       console.log("employees : ", employees);
       
       employees.forEach(employee => {
-        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0]);
+        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => "A-"+ response.employeementId == employee[0]);
         employeeResponse.forEach((response:SurveyQuestion, index) => {
           employee.push(response.response);
           // employee.push(response.question, response.response);

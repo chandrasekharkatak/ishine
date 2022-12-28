@@ -19,4 +19,8 @@ export class AppreciationService {
     return this.http.post(`${this.baseUrl}` + `api/saveAppreciation`,data);
 
   }
+  getAppreciateEmployeeByCurrentUser(employeeObj:any){
+    return this.http.post(`${this.baseUrl}` + `api/getAppreciateEmployeeByCurrentUser`,employeeObj);
+
+  }
 }

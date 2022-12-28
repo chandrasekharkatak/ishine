@@ -154,6 +154,10 @@ export class LeaveService {
   }
 
   /* Home - Leave Summary */
+  countMyRejectedLeaveApplicationsByLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/countMyRejectedLeaveApplicationsByLeaveType`, leaveObj);
+  }
+
   countMyApprovedLeaveApplicationsByLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/countMyApprovedLeaveApplicationsByLeaveType`, leaveObj);
   }
@@ -190,5 +194,14 @@ export class LeaveService {
 
   bulkRejectLeaveRequest(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequest`, leaveObj);
+  }
+
+  getAllLeaveBalanceByEmpId(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/getAllLeaveBalanceByEmpId`, leaveObj);
+  }
+
+  getHolidayWeekOffSize(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/getHolidayWeekOffSize`, leaveObj);
+
   }
 }

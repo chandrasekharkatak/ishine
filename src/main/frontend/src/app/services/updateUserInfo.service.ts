@@ -48,7 +48,7 @@ export class UpdateUserInfoService {
                 this.userInfoObj.certifications.forEach((certification:certification) => certification.employeeCertificateId = null);
             }
             if(this.userInfoObj.previousEmploymentList){
-                this.userInfoObj.certifications.forEach((previousEmployer:PreviousEmployer) => previousEmployer.previousEmploymentId = null);
+                this.userInfoObj.previousEmploymentList && this.userInfoObj.previousEmploymentList.forEach((previousEmployer:PreviousEmployer) => previousEmployer.previousEmploymentId = null);
             }
 
             console.log("userInfoObj : ", this.userInfoObj);

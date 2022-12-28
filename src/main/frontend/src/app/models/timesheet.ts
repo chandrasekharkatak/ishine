@@ -47,4 +47,12 @@ export class Timesheet{
     isSelected:boolean = false;
     bulkApprovedList:any;
     bulkRejectList:any;
+    queryList:any[] = [];
+    teamId:any;
+    teamName:any;
+
+    officeInTime:any;
+    officeOutTime:any;
+    totalWorkingOfficeHours:any;
+
 }

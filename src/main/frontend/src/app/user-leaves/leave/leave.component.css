@@ -19,6 +19,7 @@
     height: 50px;
     background: var(--ghost-white);
     margin-bottom: 1em;
+    text-overflow: ellipsis;
 }
 
 .table-header-title{
@@ -56,4 +57,12 @@
 
 .info-label{
     width: 300px;
+}
+.btn{
+    margin-bottom: 4px;
+}
+
+.wide-col{
+    word-wrap: break-word;
+    min-width: 350px;
 }

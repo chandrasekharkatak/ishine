@@ -1,0 +1,30 @@
+.concent{
+    font-size: 14px;
+    line-height: 2px;
+}
+
+.cell-checkbox {
+    background-color: #fff;
+    display: inline-block;
+    height: 24px;
+    margin: 0 .25em;
+    width: 24px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.cell-checkbox input {
+    display: none
+}
+
+.cell-checkbox input:checked+span:after {
+    -webkit-animation: check .8s;
+    -moz-animation: check .8s;
+    -o-animation: check .8s;
+    animation: check .8s;
+    border-color: #555
+}
+
+.cell-checkbox input:checked+.primary:after {
+    border-color: var(--dark-cornflower-blue);
+}

@@ -77,8 +77,20 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getHierarchyByEmpId`, employeeObj);
   }
 
+  getHierarchyChartByEmpId(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getHierarchyChartByEmpId`, employeeObj);
+  }
+
   customQueryForEmployeeReport(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForEmployeeReport`, queryObj);
+  }
+
+  getEmployeeWorkLocationForSummary() {
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeWorkLocationForSummary`);
+  }
+
+  getEmployeeProfileCompletion(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeProfileCompletion`, employeeObj);
   }
 
   /* Profile Image Upload */
@@ -159,5 +171,23 @@ export class EmployeeService {
 
    addDemographicsInfo(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
+   }
+
+   /* Employee EXIT  */
+
+   updateEmployeeResignationDetails(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`api/updateEmployeeResignationDetails`,employeeObj);
+   }
+
+   getEmployeeResignationDetails(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeResignationDetails`,employeeObj);
+   }
+
+   getEmployeeExitAssetDetails(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeExitAssetDetails`,employeeObj);
+   }
+
+   getEmployeeInfo(employeeObj:Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeInfo`,employeeObj);
    }
 }

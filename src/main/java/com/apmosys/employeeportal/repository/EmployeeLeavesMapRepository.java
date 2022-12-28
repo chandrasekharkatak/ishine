@@ -17,10 +17,13 @@ public interface EmployeeLeavesMapRepository extends JpaRepository<EmployeeLeave
 
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyLeaveBalancesByEmpId(Long empId);
+	public List<Object[]> getMyLeaveBalancesByEmpId(Long empId, String employmentStatus, String gender);
 
 	public List<EmployeeLeavesMap> findByLeaveTypeMasterId(short leaveTypeMasterId);
 	
 	public Long countByLeaveTypeMasterId(Short leaveTypeMasterId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveBalancesByEmpId(Long empId,Short leaveTypeMasterId);
 
 }

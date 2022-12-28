@@ -18,8 +18,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Designation Name</label>
-                            <input type="text" class="form-control" maxlength="255" autocomplete="none"
-                            [(ngModel)]="jobRoleObj.name" >
+                            <input type="text" class="form-control" maxlength="255" (keyup)="checkJobRole(alert_message)" autocomplete="none"
+                               [(ngModel)]="jobRoleObj.name">
                         </div>
                     </div>
                 </div>
@@ -35,36 +35,39 @@
                                 <option value="Manager">Manager</option>
                                 <option value="HR">HR</option>
                                 <option value="SuperAdmin">Super Admin</option>
-                                <option value="SELECT">SELECT</option>
-                              </select>
+                                <option value="SELECT">Blank Role</option>
+                            </select>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label" ><span class="text-danger">*</span>Department</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId" (change)="checkJobRole(alert_message)">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.departmentId"
+                                (change)="checkJobRole(alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
-                              </select> 
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isCreation && userMapping.create_role" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="onCreateJobRole(alert_message)">Create Role</button>
+                    <button *ngIf="isCreation && userMapping.create_role" type="submit"
+                        class="btn btn-primary btn-sm mx-1" (click)="onCreateJobRole(alert_message)">Create
+                        Role</button>
 
-                    <button *ngIf="isUpdation && userMapping.update_role" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="onUpdateJobRole(alert_message)">Update Role</button>
+                    <button *ngIf="isUpdation && userMapping.update_role" type="submit"
+                        class="btn btn-primary btn-sm mx-1" (click)="onUpdateJobRole(alert_message)">Update
+                        Role</button>
                 </div>
             </div>
 
             <!-- Update Features -->
             <div *ngIf="isUpdation" class="row ml-1 mt-5">
-                <h3>Features</h3> 
+                <h3>Features</h3>
             </div>
             <div *ngIf="isUpdation">
                 <div *ngFor="let feature of featureList" class="row">
@@ -93,112 +96,97 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button *ngIf="isUpdation && userMapping.update_role_feature_mapping" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="openUpdateConfimationModal(update_mapping_template)">Update Feature Mapping</button>
+                    <button *ngIf="isUpdation && userMapping.update_role_feature_mapping" type="submit"
+                        class="btn btn-primary btn-sm mx-1"
+                        (click)="openUpdateConfimationModal(update_mapping_template)">Update Feature Mapping</button>
                 </div>
             </div>
-
-
-        <!--
-            <div *ngIf="isUpdation" class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label" ><span class="text-danger">*</span>Feature Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="selectedFeature" (change)="getSubfeatureList()">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let feature of featureList" value="{{feature.featureId}}" >{{feature.featureName}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div *ngIf="isUpdation && isSubFeatureList" class="row">
-                <div class="col-md-4">
-                    <div class="list-container">
-                        <ul class="list-group list-group-flush">
-                            <li *ngFor="let subfeature of subFeatureList" class="list-group-item">
-                                {{subfeature.subFeatureName}}
-                                <label class="subfeature-checkbox">
-                                    <input type="checkbox" [(ngModel)]="subfeature.isActive" />
-                                    <span class="primary"></span>
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-12">
-                    <button *ngIf="isUpdation && userMapping.update_role_feature_mapping" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="openUpdateConfimationModal(update_mapping_template)">Update Feature Mapping</button>
-                </div>
-            </div>
-        -->
-
-
+        </div>
     </div>
 </div>
 <!-- end :: create & update form -->
 
 <!-- start :: See all Table -->
-<div class="row d-flex" *ngIf="isTable">
-    <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Designations</h1>
-    </div>
-    <div class="col-md-12 row">
-        <div class="offset-md-7 col-md-5 mb-0">
-            <label class="info-label">Department</label>
-            <div class="info-wrapper d-flex">
-                <div class="form-group">
-                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (ngModelChange)="onSelectDepartment()">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option value="all jobRole">All Designation</option>
-                        <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
-                      </select>
-                </div>
-                <div class="form-group col-md-8">
-                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+<div class="row" *ngIf="isTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Designations</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-3 ml-auto mb-0">
+                        <div class="form-inline input-group">
+                            <label class="d-inline-block mr-2 mt-2"><strong>Department</strong></label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (ngModelChange)="onSelectDepartment()">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="all jobRole">All Designation</option>
+                                <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                              </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                    </div>
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'roleInfo'" [tableTHeadId]="'roleInfoTHead'"
+                    [tableTHeadTrId]="'roleInfoTHeadTr'">
+                    <table class="table table-responsive" id="roleInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="roleInfoTHead">
+                            <tr id="roleInfoTHeadTr">
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label" mat-sort-header="name">Designation Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="employeeRole">Employee Role</th>
+                                <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdBy">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
+                                <th *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role"
+                                    scope="col" class="info-label">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="filterAllJobRoleList && filterAllJobRoleList.length == 0">
+                                <th colspan="8" class="text-center info-label">No Designation to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let jobRole of filterAllJobRoleList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                                <th class="info-label">{{20*(page-1)+i+1}}</th>
+                                <td>{{jobRole.name}}</td>
+                                <td>{{jobRole.employeeRole}}</td>
+                                <td>{{jobRole.departmentName}}</td>
+                                <td>{{jobRole.createdBy}}</td>
+                                <td>{{jobRole.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{jobRole.updatedByName}}</td>
+                                <td>{{jobRole.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td
+                                    *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role">
+                                    <button *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping"
+                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        (click)="showUpdateForm(jobRole)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button *ngIf="userMapping.delete_role" class="btn btn-sm btn-outline-danger" type="submit"
+                                        (click)="openDeleteJobRole(delete_template,jobRole)"><em
+                                            class="fa fa-trash"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allJobRoleList.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                    [hidden]="allJobRoleList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+        </div>
     </div>
-    <table class="table table-responsive scrollable-table"  matSort (matSortChange)="sortData($event)">	
-        <thead class="thead-light">	
-          <tr>	
-            <th scope="col" class="info-label">Sr No.</th>	
-            <th scope="col" class="info-label" mat-sort-header="name">Designation Name</th>	
-            <th scope="col" class="info-label" mat-sort-header="employeeRole">Employee Role</th>	
-            <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdBy">Created by</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>	
-            <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>	
-            <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
-            <th *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role" scope="col" class="info-label">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="filterAllJobRoleList.length == 0">
-                <th colspan="8" class="text-center info-label">No Designation to display...</th>
-            </tr>
-          <tr *ngFor="let jobRole of filterAllJobRoleList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-            <th class="info-label">{{20*(page-1)+i+1}}</th>
-            <td>{{jobRole.name}}</td>
-            <td>{{jobRole.employeeRole}}</td>
-            <td>{{jobRole.departmentName}}</td>
-            <td>{{jobRole.createdBy}}</td>
-            <td>{{jobRole.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-            <td>{{jobRole.updatedByName}}</td>
-            <td>{{jobRole.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-            <td *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role" >
-                <button *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(jobRole)"><em class="fa fa-edit"></em></button>&nbsp;
-                <button *ngIf="userMapping.delete_role"  class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteJobRole(delete_template,jobRole)"><em class="fa fa-trash"></em></button>
-            </td>
-          </tr>
-        </tbody>
-      </table>  
-      <pagination-controls class="my-pagination" [hidden]="allJobRoleList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allJobRoleList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
 </div>
 <!-- end :: see all table -->
 

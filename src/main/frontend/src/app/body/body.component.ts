@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { User } from '../models/user';
 import { first } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
@@ -34,6 +34,7 @@ export class BodyComponent implements OnInit {
   errorMsg:any;
   empId:any;
   user:User = new User();
+  isHome:boolean = false;
 
   //modal
   alertMessage: any;
@@ -52,9 +53,17 @@ export class BodyComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
-    
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.router.events.subscribe((e) => {
+      if (e instanceof NavigationEnd) {
+        if(e.url == "/home"){
+          this.isHome = true;
+        }else{
+          this.isHome = false;
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -104,6 +113,15 @@ export class BodyComponent implements OnInit {
         this.router.navigate(['/login']);
         location.reload();
       } else {
+        if(response.serviceResponse == "Session already destroyed"){
+          this.authenticationService.stopUserSessionCheck();
+          sessionStorage.removeItem('currentUser');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
+          this.router.navigate(['/login']);
+          location.reload();
+        }
         console.error(response.serviceResponse);
       }
     });
@@ -168,6 +186,11 @@ export class BodyComponent implements OnInit {
   }
 
   openChangePassword(changePasswordTemplate) {
+    this.errorMsg = ''
+    this.password = ''
+    this.oldPasswordValid = false;
+    this.newpassword = ''
+    this.userNewPass = ''
     console.log(this.currentUser.isNew)
     if(this.currentUser.isNew == 'true'){
       this.modalRef = this.modalService.show(changePasswordTemplate,this.config);
@@ -226,6 +249,7 @@ export class BodyComponent implements OnInit {
       this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.cancelRequest();
+          this.userLogout();
           this.openAlertMod(template, response.serviceResponse);
           if(this.currentUser.isNew == "true"){
             this.userLogout();

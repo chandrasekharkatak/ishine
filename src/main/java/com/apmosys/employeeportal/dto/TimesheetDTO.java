@@ -66,5 +66,13 @@ public class TimesheetDTO {
 	private List<TimesheetDTO> bulkRejectList;
 	
 	private String remarks;
+	private String teamName;
+	private Long activityId;
 	
+	//project
+	private String active;
+
+	private String officeInTime;
+	private String officeOutTime;
+	private String totalWorkingOfficeHours; //<-- totalWorkingHours in Timesheet Model
 }

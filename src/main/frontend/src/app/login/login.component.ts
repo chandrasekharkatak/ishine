@@ -18,6 +18,7 @@ import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
 import * as moment from 'moment';
 import { enableAppreciation } from '../models/enableAppreciation';	
+import { AuthGuard } from '../guards/auth.guard';
 
 @Component({
   selector: 'app-login',
@@ -70,7 +71,8 @@ export class LoginComponent implements OnInit{
     private employeeService: EmployeeService,
     private bnIdle:BnNgIdleService,
     private bodyComponent:BodyComponent,
-    private logService:LogService
+    private logService:LogService,
+    private authGaurd:AuthGuard
   ) { }
 
 
@@ -198,6 +200,27 @@ export class LoginComponent implements OnInit{
     this.resendOTP(); // used to send otp
   }
 
+  onPaste(e) {
+    e.preventDefault();
+    return false;
+  }
+
+  
+  omit_special_char(event) {
+
+    var k;
+    k = event.charCode;  //        k = event.keyCode;  (Both can be used)
+    //console.log("omit function" + k);
+    //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+    if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
+      return (false);
+    }
+    else {
+      return (true);
+    }
+    //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+  }
+
   async onConfirmLoginOTP(){
     this.isError=false;
     this.errorMsg='';
@@ -210,6 +233,7 @@ export class LoginComponent implements OnInit{
 
     this.user.otp = this.userOTP;
 
+   if(this.userOTP.length <= 8){
     const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
     if (response.serviceStatus == "Success") {
       console.log("USER", response.serviceResponse);
@@ -246,22 +270,36 @@ export class LoginComponent implements OnInit{
       this.user.timesheetLockDays = user.timesheetLockDays;
       this.user.employeementId = user.employeementId;
       this.user.isNew = user.isNew;
+      this.user.departmentName = user.departmentName;
+      this.user.dateOfResign = user.dateOfResign;
       this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
       this.user.userMapping = this.getActiveSubFeatures();
       this.user.tabList = this.getTabList();	
-      this.user.appreciationEventInfo =  this.enableAppreciation;       
+      this.user.appreciationEventInfo =  this.enableAppreciation;
+      this.user.isAppreciationEnable = user.isAppreciationEnable;
+      this.user.employeeRole = user.employeeRole;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));
       this.logService.updateLogInfo(log);
 
-      this.router.navigate(['/home']);
+      if(this.authGaurd.exitEmployeeId != null){
+        this.router.navigate(['/user-exit', this.authGaurd.exitEmployeeId]);
+      }else{
+        this.router.navigate(['/home']);
+      }
       this.authenticationService.startUserSessionCheck();
       }
     } else {
       this.isError = true;
       this.errorMsg = response.serviceResponse;
     }
+  
+  }else {
+    this.isError = true;
+      this.errorMsg = "Invalid OTP !!";
+  }
+   
   }
 
    
@@ -442,6 +480,11 @@ export class LoginComponent implements OnInit{
 
   resendOTP(){
 
+    if(!this.isLoginOTP){	
+      this.user.email = this.userEmailIdForOtpVerification;	
+    }	
+    	
+    console.log("For Resend OTP : ", this.user);
     this.authenticationService.resendOTP(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.isError=true;

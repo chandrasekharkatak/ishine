@@ -46,6 +46,7 @@ export class RoleConfigComponent implements OnInit {
   selectedFeature: any;
   subFeatureList: any;
   isSubFeatureList: boolean = false;
+  // sameRoleFound:boolean = false;
 
   roleDataForExcel: any[];
 
@@ -91,7 +92,7 @@ export class RoleConfigComponent implements OnInit {
     if(this.userMapping.create_role){
       this.showCreateForm();
     }
-    if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
+   else if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
       //for role table data 
       this.showTable();
     }
@@ -124,11 +125,13 @@ export class RoleConfigComponent implements OnInit {
   }
 
   showTable() {
+    this.page = 1
     this.isTable = true;
-
+    this.data = ''
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
+    this.selectedDept = ''
 
     this.getAllJobRoleList();
     this.getAllSubFeatures();
@@ -179,6 +182,11 @@ export class RoleConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateTeamName(jobRole.name)) {
+      this.alertMessage = "Please enter Valid Designation Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.departmentId)) {
       this.alertMessage = "Please select Department !!"
@@ -199,6 +207,9 @@ export class RoleConfigComponent implements OnInit {
   onCreateJobRole(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;
+    // console.log("  :::::  ",this.sameRoleFound)
+    // this.checkJobRole(template);
+    //  if(this.sameRoleFound == true) return;
 
     this.jobRoleObj.createdById = this.currentUser.empId;;
     this.jobRoleService.createJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
@@ -206,27 +217,26 @@ export class RoleConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
       } else {
+        // this.jobRoleObj.name = ''
+        // this.jobRoleObj.employeeRole = ''
+        // this.jobRoleObj.departmentId = ''
         this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
       }
 
     });
   }
-
+  
   checkJobRole(template : TemplateRef<any>){
-    const regex = /^[a-zA-Z ]+$/;
-    if(regex.test(this.jobRoleObj.name)){
-      this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
-        if(response.serviceStatus =='Fail'){
-          this.openAlertMod(template, response.serviceResponse);
-          this.jobRoleObj.name = '';
-          this.jobRoleObj.employeeRole = ''
-          this.jobRoleObj.departmentId = ''
-        }
-      })
-    } else {
-      this.openAlertMod(template, "Enter valid Designation !!");
-      this.jobRoleObj.name = '';
-    }
+        this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
+          if(response.serviceStatus =='Fail'){
+            this.openAlertMod(template, response.serviceResponse);
+            this.jobRoleObj.name = '';
+            this.jobRoleObj.employeeRole = ''
+            this.jobRoleObj.departmentId = ''
+            }
+        })
+ 
   }
 
   onUpdateJobRole(template: TemplateRef<any>) {
@@ -362,6 +372,9 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
+        this.data=''
+        this.selectedDept = ''
+        this.page = 1
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
