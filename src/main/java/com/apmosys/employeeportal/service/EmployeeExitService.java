@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,12 +10,16 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.AssetDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.ExitQuestionDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeAssetMap;
+import com.apmosys.employeeportal.model.ExitQuestion;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.ExitQuestionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -29,6 +34,9 @@ public class EmployeeExitService {
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	ExitQuestionRepository exitQuestionRepository;
 
 	public ServiceResponse updateEmployeeResignationDetails(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -42,7 +50,10 @@ public class EmployeeExitService {
 			Employee employeeObj = employeeRepository.findByEmpId(employeeDTO.getEmpId());
 			
 			if(employeeObj != null) {
+				LocalDate relievingDate = stringToDateTimeParser.getDate(employeeDTO.getDateOfResign(), "yyyy-MM-dd").plusDays(employeeObj.getNoticePeriod());
+				
 				employeeObj.setDateOfResign(stringToDateTimeParser.getDate(employeeDTO.getDateOfResign(), "yyyy-MM-dd"));
+				employeeObj.setDateOfRelieving(relievingDate.toString());
 				employeeObj.setEmploymentstatus("Resigned");
 				Employee dbResponse = employeeRepository.save(employeeObj);
 				
@@ -148,6 +159,8 @@ public class EmployeeExitService {
 					dto.setEmpId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					dto.setIsAssigned(object[7] != null ? object[7].toString() : null);
 					dto.setDeptConsent(object[8] != null ? object[8].toString() : null);
+					dto.setEmployeeAssetMapId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					dto.setUpdatedByName(object[10] != null ? object[10].toString() : null);
 					
 					dtoList.add(dto);
 				}
@@ -213,6 +226,69 @@ public class EmployeeExitService {
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Invalid Emp Id.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse setDeptHeadConcent(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse(); 
+		try {
+			
+			employeeDTO.getDeptHeadConsentList().forEach((Object) -> {
+				EmployeeAssetMap assetObj = employeeOnboardingMapRepository.getById(Object.getEmployeeAssetMapId());
+				
+				if(assetObj != null) {
+					assetObj.setDeptConsent(Object.getDeptConsent());
+					assetObj.getCommonProperty().setUpdatedBy(employeeDTO.getUpdatedBy());
+					EmployeeAssetMap dbResponse = employeeOnboardingMapRepository.save(assetObj);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Consent submitted successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Unable to submit consent.");
+					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Asset Information not found.");
+				}
+			});
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getExitInterviewQuestion() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<ExitQuestion> questionList = exitQuestionRepository.findAll();
+			List<ExitQuestionDTO> dtoList = new ArrayList<>();
+			
+			if(!questionList.isEmpty()) {
+				questionList.forEach((object) -> {
+					ExitQuestionDTO dto = new ExitQuestionDTO();
+					
+					dto.setQuestion(object.getQuestion());
+					dtoList.add(dto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No questions found.");
 			}
 			
 		}catch(Exception e) {

@@ -1254,25 +1254,29 @@ export class LeaveComponent implements OnInit {
           (a , b)=>{	
             const isAsc=sort.direction==='asc'	
             switch(sort.active){	
-              case 'leaveType':	
-                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
-                case 'updateBalanceBy':	
-                  return compare(a.updateBalanceBy , b.updateBalanceBy ,isAsc)	
-                  case 'balance':	
-                    return compare(a.balance , b.balance ,isAsc)	
-                    case 'message':	
-                      return compare(a.message.toLowerCase() , b.message.toLowerCase() , isAsc)	
+             case 'leaveType':	
+               return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
+              case 'fromDate':	
+                return compare(a.fromDate , b.fromDate , isAsc)	
+              case 'toDate':	
+                return compare(a.toDate , b.toDate , isAsc)	         
+                case 'noOfDays':	
+                  return compare(a.noOfDays , b.noOfDays ,isAsc)	
+                  case 'status':	
+                    return compare(a.status , b.status ,isAsc)	
+                    case 'createdByName':	
+                      return compare(a.createdByName , b.createdByName , isAsc)	
                       case 'createdOn':	
                       return compare(a.createdOn , b.createdOn , isAsc)	
-                    	
+                    	case 'reason':	
+                       return compare(a.reason , b.reason , isAsc)	
+               
                 default :	
                 return 0;	
             }	
           }	
         )	
-      }	
-     	
-      	
+      }	    	
     }	
     sortReporteeLog(sort:Sort){	
       console.log(sort)	

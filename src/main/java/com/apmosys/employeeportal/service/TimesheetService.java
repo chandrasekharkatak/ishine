@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -203,13 +204,17 @@ public class TimesheetService {
 					List<ActivityDTO> dtoList = new ArrayList<ActivityDTO>();
 
 					list.forEach((object) -> {
+						String[] employeeRoleInTeam = (object[4] != null ? object[4].toString() : null).split(",");
+						boolean contains = Arrays.stream(employeeRoleInTeam).anyMatch((object[3] != null ? object[3].toString() : null)::equals);
 
-						ActivityDTO dto = new ActivityDTO();
+						if(contains) {
+							ActivityDTO dto = new ActivityDTO();
 
-						dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setActivity(object[1] != null ? object[1].toString() : null);
-						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dtoList.add(dto);
+							dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setActivity(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dtoList.add(dto);
+						}
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -634,7 +639,7 @@ public class TimesheetService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No timesheets found. List is empty.");
 					
-					apiLogInfo.setApiResponse("Appreciation not Enabled");			
+					apiLogInfo.setApiResponse("No timesheets found. List is empty.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
@@ -653,6 +658,9 @@ public class TimesheetService {
 						dto.setEmployeementId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 						dto.setTotalTime(object[9] != null ? Float.parseFloat(object[9].toString()) : null);
 						dto.setEmail(object[10] != null ? object[10].toString() : null);
+						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -1007,6 +1015,9 @@ public class TimesheetService {
 						dto.setTotalTime(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 						dto.setRemarks(object[9] != null ? object[9].toString() : null);
 						dto.setEmployeementId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dtoList.add(dto);
 					});
 

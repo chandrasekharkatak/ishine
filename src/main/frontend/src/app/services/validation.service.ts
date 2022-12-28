@@ -194,6 +194,43 @@ export class ValidationService {
 
   }
 
+  //   /^[ A-Za-z0-9()[]+-*/%]*$/
+
+  validateProjectName(text: string): boolean {
+
+    const regex = /^[ A-Za-z0-9()-\/_\/]*$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateLoginRegex(text: string): boolean {
+
+    const regex = /^[0-9]*$/i
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+  // /^[A-Z@~`!@#$%^&*()_=+\\\\';:\"\\/?>.<,-]*$/i
+
   validateUppercaseAlpha(text: string): boolean {
 
     const regex = /^[A-Z]+$/;

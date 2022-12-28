@@ -71,8 +71,8 @@
                 <td>{{leave.status}}</td>
                 <td>{{leave.managerName}}</td>
                 <td>{{leave.departmentName}}</td>
-                <td>{{leave.createdOn}}</td>
-                <td>{{leave.updatedOn}}</td>
+                <td>{{leave.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                <td>{{leave.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                 <td>{{leave.leaveStatusUpdatedByName}}</td>
               </tr>
             </tbody>
@@ -129,6 +129,9 @@
                 <th scope="col" colspan="4" class="info-label">Description</th>
                 <th scope="col" class="info-label">Status</th>
                 <th scope="col" class="info-label wide-col">Total Working Hours</th>
+                <th scope="col" class="info-label">Office In Time</th>
+                <th scope="col" class="info-label">Office Out Time</th>
+                <th scope="col" class="info-label">Total Office Working Hours</th>
                 <th scope="col" class="info-label">Created On</th>
                 <th scope="col" class="info-label">Updated On</th>
                 <th scope="col" class="info-label">Updated By</th>
@@ -147,8 +150,11 @@
                 <td colspan="4">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.totalWorkingHours}}</td>
-                <td>{{timesheet.createdOn}}</td>
-                <td>{{timesheet.updatedOn}}</td>
+                <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                <td>{{timesheet.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                 <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>

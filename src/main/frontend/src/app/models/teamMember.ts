@@ -3,4 +3,5 @@ export class TeamMember{
     teamId:any;
     empId:any;
     name:any;
+    employeeRole:any;
 }

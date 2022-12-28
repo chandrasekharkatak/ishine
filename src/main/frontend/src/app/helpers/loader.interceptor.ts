@@ -123,7 +123,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllEmployeesByRole`,
     `${this.baseUrl}` + `api/getAllMyTeamsByEmpId`,
     `${this.baseUrl}` + `api/getAllProjectListByProjectManagerId`,
-
+    `${this.baseUrl}` + `api/getAllProjects`,
 
   ]
 

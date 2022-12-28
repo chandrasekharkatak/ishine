@@ -24,5 +24,7 @@ public class AssetDTO {
 	private Long updatedBy;
 	private String deptConsent;
 	private String employeeName;
+	private Long employeeAssetMapId;
+	private String updatedByName;
 	
 }

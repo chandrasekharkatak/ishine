@@ -4,8 +4,8 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate}" (click)="showActivityTemplate()">Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activity_template" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
     </div>
 </div>
 
@@ -69,7 +69,7 @@
                                 <mat-option *ngFor="let dept of allDeptList" [value]="dept">{{dept.name}}</mat-option>
                             </mat-select> -->
 
-                            <mat-select ngxMatSelect class="form-control"
+                            <!-- <mat-select ngxMatSelect class="form-control"
                                   #departmentSelect="ngxMatSelect"
                                   [displayMember]="'name'"
                                   [valueMember]="'deptId'"
@@ -82,7 +82,11 @@
                                   <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
                                     {{dept.name}}
                                   </mat-option>
-                                </mat-select>
+                                </mat-select> -->
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.deptId" (change)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                                </select>
                         </div>
                     </div>
                 </div>
@@ -128,6 +132,17 @@
                         </div>
                     </div>
                     <div class="col-md-2 d-flex">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                    <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
+                                        <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role" disabled>{{role}}</mat-option>
+                                    </mat-select>
+                                </div>
+                            </div>
+                        </div>
                         <div class="m-0">
                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)"><i
                                     class="fa fa-trash" aria-hidden="true"></i></button>
@@ -150,6 +165,17 @@
                         </div>
                     </div>
                     <div class="col-md-2 d-flex">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                    <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
+                                        <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role" disabled>{{role}}</mat-option>
+                                    </mat-select>
+                                </div>
+                            </div>
+                        </div>
                         <div class="m-0">
                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i
                                     class="fa fa-trash" aria-hidden="true"></i></button>
@@ -186,9 +212,20 @@
                     </div>
                 </div>
                 <div class="col-md-2 d-flex">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
+                                    <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                </mat-select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
-                        [disabled]="(!teamObj.departmentList || teamObj.departmentList.length == 0)" ><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        [disabled]="!teamObj.deptId"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>
@@ -376,6 +413,22 @@
                             <label class="info-label">ETA
                                 <small>(Hours)</small></label>
                             <input type="number" class="form-control" autocomplete="none" [(ngModel)]="activityObj.eta">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.employeeRole">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Employee">Employee</option>
+                                <option value="TeamLead">Team Lead</option>
+                                <option value="HOD">HOD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="HR">HR</option>
+                                <option value="SuperAdmin">Super Admin</option>
+                            </select>
                         </div>
                     </div>
                 </div>

@@ -936,6 +936,7 @@ export class MyTimesheetComponent implements OnInit {
 
       const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
         x => ({
+          "Employee Id": "A-".concat(x.employeementId),
           "Date": x.date,
           "Day Type": x.dayType,
           "In Time":x.officeInTime,

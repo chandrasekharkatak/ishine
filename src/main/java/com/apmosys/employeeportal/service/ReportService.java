@@ -87,6 +87,9 @@ public class ReportService {
 					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
+					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
+					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -74,4 +74,11 @@ public class ProjectController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/checkProjectName", method = RequestMethod.POST)
+	public ServiceResponse checkProjectName(@RequestBody ProjectDTO projectDto) {
+		
+		ServiceResponse response = projectService.checkProjectName(projectDto);
+		return response;
+	}
+	
 }
