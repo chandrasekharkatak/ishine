@@ -2038,9 +2038,9 @@ public class EmployeeService {
 
 	public ServiceResponse updateEmployeePassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		
+
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("delete_holiday");
+		// apiLogInfo.setSubFeatureName("delete_holiday");
 		apiLogInfo.setApiUrl("/api/updateEmployeePassword");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -2052,31 +2052,41 @@ public class EmployeeService {
 
 			if (employee != null) {
 				
-					employee.setPassword(employeedto.getNewPassword());
-					employee.setIsNew("false");
-					Employee dbResponse = employeeRepository.save(employee);
+				System.out.println(employee.getPassword());
+				System.out.println(employeedto.getNewPassword());
 
-					if (dbResponse != null) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Password Updated.");
-						
-						apiLogInfo.setApiResponse("Password Updated.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Password Updation Failed.");
-						
-						apiLogInfo.setApiResponse("Password Updation Failed.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					}
+				if (employee.getPassword().equalsIgnoreCase(employeedto.getNewPassword())) {
 
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Old password and new password should not be same");
+				}
+				else {
+
+				employee.setPassword(employeedto.getNewPassword());
+				employee.setIsNew("false");
+				Employee dbResponse = employeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Password Updated.");
+
+					apiLogInfo.setApiResponse("Password Updated.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Password Updation Failed.");
+
+					apiLogInfo.setApiResponse("Password Updation Failed.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Not Found");
-				
-				apiLogInfo.setApiResponse("Employee Not Found.");			
+
+				apiLogInfo.setApiResponse("Employee Not Found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
@@ -2085,10 +2095,10 @@ public class EmployeeService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
+
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -2686,6 +2696,63 @@ public class EmployeeService {
 				System.out.println("\n "+ "history ------" +historyList);
 
 				apiLogInfo.setApiResponse("historyList : " +historyList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+	
+	public ServiceResponse getEmployeeProfileCompletion(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Home_Page");
+		apiLogInfo.setApiUrl("/api/getEmployeeProfileCompletion");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeeDto.getEmpId());
+		
+		Double proileCompleted = 0.00;
+		Double totalFields = 0.00;
+		try {
+			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(employeeDto.getEmpId());
+			
+			
+			if (employeeProile.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Profile not found !!");
+			} else {
+				Object[] employee = employeeProile.get(0);
+				totalFields = (double) employee.length;
+						
+				for(int i = 0; i < employee.length; i++) {
+					if(employee[i] != null) {
+						proileCompleted++;
+					}
+				}
+				
+				Double profileCompletedPercent = (proileCompleted/totalFields)*100;
+				
+				employeeDto.setProfileCompletedPercent(profileCompletedPercent);
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(employeeDto);
+				
+
+				apiLogInfo.setApiResponse("historyList : ");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 

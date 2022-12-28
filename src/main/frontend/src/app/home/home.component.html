@@ -1,6 +1,13 @@
 <div class="home-container">
     <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
         <ul class="navbar-nav">
+            <!-- <li class="nav-item pt-1 mr-2">
+                <small class="nav-text">Profile Completed</small>
+                <div class="progress profileCompleted">
+                    <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                    <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{profileCompletedPercentage}}</small>
+                  </div>
+            </li> -->
             <li class="nav-item">
                 <a class="nav-link nav-text" (click)="openNotificationMod(notification_template)">
                     <i class="fa-solid fa-bullhorn"></i>
@@ -629,7 +636,7 @@
         </div>
   
         <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm" (click)="cancelRequest()">Close</button>&nbsp;
-        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="cancelRequest();updateEmployeePassword(alert_message)">Submit</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
     </div>
   </ng-template>
 

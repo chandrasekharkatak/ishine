@@ -78,7 +78,7 @@
                     <div class="auth__cta d-flex justify-content-between mt-3">
                         <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a>
                         <a *ngIf="!isLoginForm" class="auth__link" (click)="showLoginForm()">SIGN IN</a>
-                        <!-- <a *ngIf="!isLoginForm" class="auth__link" (click)="resendOTP()">Resend OTP</a> -->
+                        <a *ngIf="isOtpForm" class="auth__link" (click)="resendOTP()">Resend OTP</a>
                     </div>
                 </div>
             </div>

@@ -162,5 +162,6 @@ public class EmployeeDTO {
 	private String hierarchyType;
 //	private String eventCreatedOn;
 	private List<AssetDTO> deptHeadConsentList;
+	private Double profileCompletedPercent;
 
 }

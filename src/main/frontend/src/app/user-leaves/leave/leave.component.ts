@@ -735,8 +735,8 @@ export class LeaveComponent implements OnInit {
       if (!response) return;
 
       // this.leaveObj.empId = this.currentUser.empId; //! this empId will set in getLeaveMetadata()
+      // this.leaveObj.managerId = this.currentUser.managerId;
       this.leaveObj.createdBy = this.currentUser.empId;
-      this.leaveObj.managerId = this.currentUser.managerId;
 
       this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
       this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
@@ -833,10 +833,12 @@ export class LeaveComponent implements OnInit {
     let userObj:User = new User();
     if(this.leaveObj.leaveAppliedFor == 'self'){
       this.leaveObj.empId = this.currentUser.empId; 
+      this.leaveObj.managerId = this.currentUser.managerId;
       userObj.empId = this.currentUser.empId;
       userObj.employmentstatus = this.currentUser.employmentstatus;
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      this.leaveObj.managerId = teamMember.managerId;
       console.log("Team Member : ", teamMember);
       userObj.empId = teamMember.empId;
       userObj.employmentstatus = teamMember.employmentstatus;

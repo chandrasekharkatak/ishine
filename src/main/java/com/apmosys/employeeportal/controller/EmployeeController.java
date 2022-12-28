@@ -231,6 +231,12 @@ public class EmployeeController {
 		ServiceResponse response=employeeService.findEmployeeWorkingHistory(employeeDto);
 		return response;
 	}
+	
+	@RequestMapping(value ="/getEmployeeProfileCompletion" , method = RequestMethod.POST)
+	public ServiceResponse getEmployeeProfileCompletion(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response=employeeService.getEmployeeProfileCompletion(employeeDto);
+		return response;
+	}
 
 	/*
 	 Old Employee Portal Password Encryption - part of data migration.

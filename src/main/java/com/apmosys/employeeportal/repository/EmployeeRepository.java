@@ -133,5 +133,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmailForMailConsent();
-
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeProfileCompletion(Long empId);
 }

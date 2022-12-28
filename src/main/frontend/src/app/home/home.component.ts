@@ -23,6 +23,7 @@ import { ValidationService } from '../services/validation.service';
 import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
 import * as CryptoJS from 'crypto-js';
+import { Employee } from '../models/employee';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -111,6 +112,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     keyboard  : false
   };
   
+  profileCompletedPercentage:any = 0;
+
   constructor(
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
@@ -135,6 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
+    // this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -434,6 +438,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
           leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
           leaveObj.leaveType = leave.leaveType;
           leaveObj.leaveTypeCode = leave.leaveTypeCode;
+          leaveObj.balance = 0;
+          leaveObj.approvedApplicationsCount = 0
+          leaveObj.pendingApplicationsCount = 0;
+          leaveObj.rejectedApplicationsCount = 0;
 
           return leaveObj;
         });
@@ -454,37 +462,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
         console.log("leaveBalanceList : ", this.leaveBalanceList);
-
-        let balanceChartData = this.leaveBalanceList.map(leaveType => {
-          if(leaveType.leaveTypeMasterId != null){
-            let data = {
-              name : leaveType.leaveTypeCode,
-              y : leaveType.balance
-            }
-
-            return data;
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail =  this.leaveBalanceList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+          if(leaveDetail){ 
+            data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
           }
-        }).filter(data => data != undefined);
-        console.log("balanceChartData : ", balanceChartData);
-        
-        if(balanceChartData && balanceChartData.length != 0){
-          balanceChartData.forEach(data => {
-            let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
-             
-            if(leaveDetail){ 
-               leaveDetail.balance = (data.y) ? data.y : 0;
-             }
-         }); 
-        }
-        
-        // if(checkData && checkData.length != 0){
-        //   this.renderLeaveChart('Leave Bucket', 'leaveBucketChart', balanceChartData, 'Leaves');
-        // }else{
-        //   this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'zero Leave Balance');
-        // }
+        }); 
+        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
       } else {
         console.error(response.serviceResponse);
-        // this.renderPlaceholderChart('Leave Bucket', 'leaveBucketChart', 'No Data to Display');
       }
     });
   }
@@ -499,26 +485,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if(response.serviceStatus == 'Success') {
         this.rejectedLeavesList = response.serviceResponse;
         console.log("Rejected Leaves : ", this.rejectedLeavesList);
-        let rejecetdChartData = this.rejectedLeavesList.map(leaveType =>{
-          let data = {
-            name : leaveType.leaveTypeCode,
-            y : leaveType.applicationCount
+
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail = this.rejectedLeavesList.find((leave:Leave)=> leave.leaveTypeCode == data.leaveTypeCode);
+          if(leaveDetail){
+            data.rejectedApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
           }
-          return data;
-        }).filter(data => data != undefined);
-        console.log(" RejecetdChartData : ", rejecetdChartData);
-        let checkData = rejecetdChartData.filter(data => data.y !=0);
-        console.log(" chcekData  : ",checkData)
-        if(checkData && checkData.length !=0){
-          checkData.forEach(data => {
-            let leaveDetail = this.leaveBucketDetails.find((leave:Leave)=> leave.leaveTypeCode == data.name);
-            if(leaveDetail){
-              leaveDetail.rejectedApplicationsCount = data.y ;
-              console.log("    ::   ",data.y);
-              console.log(leaveDetail.rejectedApplicationsCount )
-            }
-          });
-        } 
+        });
+
       }else {
         console.error(response.serviceResponse);
       }
@@ -536,35 +510,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.approvedLeavesList =  response.serviceResponse;
         console.log("approvedLeaves : ", this.approvedLeavesList);
 
-        let approvedChartData = this.approvedLeavesList.map(leaveType => {
-          let data = {
-            name : leaveType.leaveTypeCode,
-            y : leaveType.applicationCount
-          }
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail =  this.approvedLeavesList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+           if(leaveDetail){
+            data.approvedApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
+           }
+       }); 
 
-          return data;
-        }).filter(data => data != undefined);
-        console.log("approvedChartData : ", approvedChartData);
-        let checkData = approvedChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
-        
-        if(checkData && checkData.length != 0){
-          checkData.forEach(data => {
-            let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
-             if(leaveDetail){
-               leaveDetail.approvedApplicationsCount = data.y
-             }
-         }); 
-        }
-
-        // if(checkData && checkData.length != 0){
-        //   this.renderLeaveChart('Leave Approved', 'leaveApprovedChart', approvedChartData, 'Leave Applications');
-        // }else{
-        //   this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'zero Leave Applications');
-        // }
       } else {
         console.error(response.serviceResponse);
-        // this.renderPlaceholderChart('Leave Approved', 'leaveApprovedChart', 'No Data to Display');
       }
     });
   }
@@ -579,36 +533,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.pendingLeavesList =  response.serviceResponse;
         console.log("pendingLeavesList : ", this.pendingLeavesList);
 
-        let pendingChartData = this.pendingLeavesList.map(leaveType => {
-          let data = {
-            name : leaveType.leaveTypeCode,
-            y : leaveType.applicationCount
-          }
-
-          return data;
-        }).filter(data => data != undefined);
-        console.log("pendingChartData : ", pendingChartData);
-        let checkData = pendingChartData.filter(data => data.y != 0);
-        console.log("checkData :", checkData);
-        
-        if(checkData && checkData.length != 0){
-          checkData.forEach(data => {
-            let leaveDetail =  this.leaveBucketDetails.find((leave:Leave) => leave.leaveTypeCode == data.name);
-             if(leaveDetail){
-               leaveDetail.pendingApplicationsCount = data.y
-             }
-         }); 
-        }
-
-        // if(checkData && checkData.length != 0){
-        //   this.renderLeaveChart('Pending Leave', 'leaveRequestChart', pendingChartData, 'Leaves Applications');
-        // }else{
-        //   this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'zero Leave Applications');
-        // }
+        this.leaveBucketDetails.forEach(data => {
+          let leaveDetail =  this.pendingLeavesList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+           if(leaveDetail){
+            data.pendingApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
+           }
+       }); 
 
       } else {
         console.error(response.serviceResponse);
-        // this.renderPlaceholderChart('Pending Leave', 'leaveRequestChart', 'No Data to Display');
       }
     });
   }
@@ -1013,6 +946,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cancelRequest();
   } 
 
+  // Employee Proile Completed Percentage 
+  getEmployeeProfileCompletion(){
+    this.profileCompletedPercentage = 0;
+
+    let employee = new Employee();
+    employee.empId = this.currentUser.empId;
+    this.employeeService.getEmployeeProfileCompletion(employee).pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        let employeeObj = response.serviceResponse;
+        this.profileCompletedPercentage = Math.ceil(employeeObj.profileCompletedPercent)+ "%" ;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   //export to excel
 
   exportToExcelForLeave() {
@@ -1362,6 +1311,11 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
         location.reload();
       } else {
         if(response.serviceResponse == "Session already destroyed"){
+          this.authenticationService.stopUserSessionCheck();
+          sessionStorage.removeItem('currentUser');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
           this.router.navigate(['/login']);
           location.reload();
         }
@@ -1429,6 +1383,11 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
   }
 
   openChangePassword(changePasswordTemplate) {
+    this.errorMsg = ''
+    this.password = ''
+    this.oldPasswordValid = false;
+    this.newpassword = ''
+    this.userNewPass = ''
     console.log(this.currentUser.isNew)
     if (this.currentUser.isNew == 'true') {
       this.modalRef = this.modalService.show(changePasswordTemplate, this.config);

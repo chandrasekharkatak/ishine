@@ -593,8 +593,8 @@ public class TeamsService {
 							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
 							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
 							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
-							+ "INNER JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
-							+ "INNER JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
+							+ "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
+							+ "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
 							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
 					
 					System.out.println("Query :"+ q);
@@ -675,6 +675,8 @@ public class TeamsService {
 					dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()): null);
 					dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()): null);
 					dto.setEmploymentstatus(object[6] != null ? object[6].toString(): null);
+					dto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()): null);
+					
 					dtoList.add(dto);
 					
 				});
@@ -781,13 +783,35 @@ public class TeamsService {
 		
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
-			if(checkTeamNameByName==null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				}else if(checkTeamNameByName != null) {
+			
+			if(teamdto.getTeamId() != null) {
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
+				if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
 				}
+				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+			}else {
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
+				if(checkTeamNameByName != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team Name already exist!");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}
+			
+			
+//			if(checkTeamNameByName==null) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else if(checkTeamNameByName != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Team Name already exist!");
+//				}
+			
+			
 			 
 		}catch (Exception e) {
 			e.printStackTrace();

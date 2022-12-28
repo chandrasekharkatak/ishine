@@ -616,7 +616,7 @@ public class EmployeeLeaveService {
 
 			if (employee != null) {
 				List<Object[]> employeeLeavesList = employeeLeavesMapRepository
-						.getMyLeaveBalancesByEmpId(employee.getEmpId());
+						.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());
 				List<Object[]> employeeData = employeeRepository
 						.getEmployeeData(employee.getEmpId());
 				List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();

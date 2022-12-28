@@ -480,6 +480,11 @@ export class LoginComponent implements OnInit{
 
   resendOTP(){
 
+    if(!this.isLoginOTP){	
+      this.user.email = this.userEmailIdForOtpVerification;	
+    }	
+    	
+    console.log("For Resend OTP : ", this.user);
     this.authenticationService.resendOTP(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.isError=true;

@@ -404,7 +404,7 @@ export class TeamConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.validationService.validateStringWithNoSpaceAtBeginAndNoSingleCharacter(teamObj.teamName)) {
+    if (!this.validationService.validateTeamName(teamObj.teamName)) {
       this.alertMessage = "Please enter valid Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -718,7 +718,8 @@ export class TeamConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
+        console.log("employeeList By Role : ", employeeList);
+        console.log("Department Selected : ", this.teamObj.departmentList);
 
         // remove teamLead if their department are not selected.
 

@@ -77,7 +77,7 @@
                                   [useInfiniteScroll]="true"
                                   [multiple]="true"
                                   [(ngModel)]="teamObj.departmentList"
-                                  (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()"
+                                  (selectionChange)="getAllEmployeesByRole();getAllEmployeesByDepartmentIds()"
                                   >
                                   <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
                                     {{dept.name}}
