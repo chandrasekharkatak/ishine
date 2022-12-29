@@ -777,6 +777,40 @@ toDateFilter = (d: Date)=>{
     	
     	
   }	
+  // allAppreciationEvent
+  sortAppreciationEventHistoryData(sort:Sort){
+    console.log(sort);	
+    	
+    const data=this.allAppreciationEvent;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.allAppreciationEvent=data;	
+      return;	
+    }	
+    else {	
+      this.allAppreciationEvent=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'appreciationEventName':	
+              return compare(a.appreciationEventName.toLowerCase() , b.appreciationEventName.toLowerCase() , isAsc)	
+              case 'fromDate':	
+                return compare(a.fromDate , b.fromDate , isAsc)	
+                case 'toDate':	
+                  return compare(a.toDate , b.toDate , isAsc)	
+                  case 'createdOn':	
+                  return compare(a.createdOn, b.createdOn , isAsc)
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	
+
+  }
 
   sortViewAppreciationData(sort:Sort){	
     console.log(sort);	

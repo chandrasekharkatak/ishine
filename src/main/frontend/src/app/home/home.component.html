@@ -1,13 +1,13 @@
 <div class="home-container">
     <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
         <ul class="navbar-nav">
-            <!-- <li class="nav-item pt-1 mr-2">
+            <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
                     <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100"></div>
                     <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{profileCompletedPercentage}}</small>
                   </div>
-            </li> -->
+            </li>
             <li class="nav-item">
                 <a class="nav-link nav-text" (click)="openNotificationMod(notification_template)">
                     <i class="fa-solid fa-bullhorn"></i>
@@ -412,7 +412,7 @@
                     <td>{{leaveApplication.reason}}</td>
                     <!-- <td>{{leaveApplication.description}}</td> -->
                     <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(leave_success, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
                         <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
@@ -524,6 +524,9 @@
                 <th scope="col" class="info-label">Date</th>
                 <th scope="col" class="info-label">Day Type</th>
                 <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
+                <th scope="col" class="info-label">Office In Time</th>
+                <th scope="col" class="info-label">Office Out Time</th>
+                <th scope="col" class="info-label">Total Office Working Hours</th>
                 <th scope="col" class="info-label">Status</th>
                 <th scope="col" class="info-label">Actions</th>
               </tr>
@@ -540,6 +543,9 @@
                 <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td colspan="4" [innerHTML]="timesheet.description"></td>
+                <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
@@ -592,7 +598,7 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(leave_success)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
     </div>
   </ng-template>

@@ -71,8 +71,8 @@
                 <td>{{leave.status}}</td>
                 <td>{{leave.managerName}}</td>
                 <td>{{leave.departmentName}}</td>
-                <td>{{leave.createdOn}}</td>
-                <td>{{leave.updatedOn}}</td>
+                <td>{{leave.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                <td>{{leave.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                 <td>{{leave.leaveStatusUpdatedByName}}</td>
               </tr>
             </tbody>
@@ -129,6 +129,9 @@
                 <th scope="col" colspan="4" class="info-label">Description</th>
                 <th scope="col" class="info-label">Status</th>
                 <th scope="col" class="info-label wide-col">Total Working Hours</th>
+                <th scope="col" class="info-label">Office In Time</th>
+                <th scope="col" class="info-label">Office Out Time</th>
+                <th scope="col" class="info-label">Total Office Working Hours</th>
                 <th scope="col" class="info-label">Created On</th>
                 <th scope="col" class="info-label">Updated On</th>
                 <th scope="col" class="info-label">Updated By</th>
@@ -147,8 +150,11 @@
                 <td colspan="4">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.totalWorkingHours}}</td>
-                <td>{{timesheet.createdOn}}</td>
-                <td>{{timesheet.updatedOn}}</td>
+                <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                <td>{{timesheet.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
                 <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>
@@ -247,6 +253,7 @@
                 <th scope="col" class="info-label wide-col">Year of Passing</th>	
                 <th scope="col" class="info-label wide-col">Created By</th>	
                 <th scope="col" class="info-label wide-col">Created On</th>
+                <th scope="col" class="info-label wide-col">Profile completion Percentage</th>
               </tr>
             </thead>
             <tbody>
@@ -306,6 +313,12 @@
                 <td>{{employee.yearOfPassing}}</td>
                 <td>{{employee.createdBy}}</td>
                 <td>{{employee.createdOn | date:'dd-MM-yyyy'}}</td>
+                <td>
+                  <div class="progress profileCompleted">
+                    <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="employee.profileCompletedPercent" aria-valuemin="0" aria-valuemax="100">{{employee.profileCompletedPercent}}</div>
+                    <!-- <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{employee.profileCompletedPercent}}</small> -->
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>

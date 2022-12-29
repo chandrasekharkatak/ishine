@@ -276,6 +276,7 @@ export class ReportListComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         this.allEmployeeList.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
+          employee.profileCompletedPercent = employee.profileCompletedPercent + "%"
         });
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {

@@ -510,14 +510,16 @@ export class RoleConfigComponent implements OnInit {
           switch(sort.active){	
             case 'name':	
               return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
-              case 'departmentName':	
+              case 'employeeRole':	
+                return compare(a.employeeRole.toLowerCase() , b.employeeRole.toLowerCase() , isAsc)
+                case 'departmentName':	
                 return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
                 case 'createdBy':	
                   return compare(a.createdBy.toLowerCase() , b.createdBy.toLowerCase() ,isAsc)	
                   case 'createdOn':	
                     return compare(a.createdOn , b.createdOn , isAsc)	
                     case 'updatedByName':	
-                      return compare(a.updatedByName.toLowerCase() , b.updatedByName.toLowerCase() ,isAsc)	
+                      return compare(a.updatedByName , b.updatedByName ,isAsc)	
                       case 'updatedOn':	
                         return compare(a.updatedOn , b.updatedOn , isAsc)	
               default:	

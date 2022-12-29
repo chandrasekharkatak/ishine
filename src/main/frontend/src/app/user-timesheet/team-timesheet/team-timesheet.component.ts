@@ -246,6 +246,9 @@ export class TeamTimesheetComponent implements OnInit {
             "Day Type": x.dayType,
             "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
             "Total Time": x.totalTime,
+            "Office In Time": x.officeInTime,
+            "Office Out Time": x.officeOutTime,
+            "Total Office Working Hours": x.totalWorkingOfficeHours,
             "Status": x.status,
             "Remarks":x.remarks
           })
@@ -266,6 +269,9 @@ export class TeamTimesheetComponent implements OnInit {
             "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
             "Applied By":x.createdByName,
             "Working Hours": x.totalTime,
+            "Office In Time": x.officeInTime,
+            "Office Out Time": x.officeOutTime,
+            "Total Office Working Hours": x.totalWorkingOfficeHours,
             "Status": x.status
           })
         )

@@ -956,4 +956,26 @@ public class ProjectService {
 		return response;
 	}
 
+	public ServiceResponse checkProjectName(ProjectDTO projectDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Project checkProjectName = projectRepository.findByProjectName(projectDto.getProjectName());
+			
+			if(checkProjectName != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Name already exist.");
+				System.out.println(" Project  exist"+checkProjectName);
+			}else if(checkProjectName == null){
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

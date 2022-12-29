@@ -138,7 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
-    // this.getEmployeeProfileCompletion();
+    this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -955,7 +955,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.employeeService.getEmployeeProfileCompletion(employee).pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         let employeeObj = response.serviceResponse;
-        this.profileCompletedPercentage = Math.ceil(employeeObj.profileCompletedPercent)+ "%" ;
+        this.profileCompletedPercentage = employeeObj.profileCompletedPercent + "%";
       } else {
         console.error(response.serviceResponse);
       }

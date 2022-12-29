@@ -39,4 +39,8 @@ export class ProjectService {
     return this.http.post(`${this.baseUrl}` + `api/getProjectByProjectId`, project);
   }
 
+  checkProjectName(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/checkProjectName`, project);
+  }
+
 }
