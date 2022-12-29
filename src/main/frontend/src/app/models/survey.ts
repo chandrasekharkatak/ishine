@@ -12,4 +12,6 @@ export class Survey {
 
     surveyTemplate:any;
     isAnswered:boolean = false;
+
+    employeementId:any;
 }

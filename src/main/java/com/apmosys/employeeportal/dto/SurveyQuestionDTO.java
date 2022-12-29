@@ -20,5 +20,6 @@ public class SurveyQuestionDTO {
 	private String createdOn;
 	private String name;
 	private Long employeementId;
+	private Long responseId;
 
 }

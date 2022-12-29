@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,16 +11,18 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.AssetDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.ExitQuestionDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.SurveyDTO;
+import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
-import com.apmosys.employeeportal.model.ExitQuestion;
+import com.apmosys.employeeportal.model.ExitInterviewResponse;
+import com.apmosys.employeeportal.model.SurveyEmployeeResponse;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
-import com.apmosys.employeeportal.repository.ExitQuestionRepository;
+import com.apmosys.employeeportal.repository.ExitInterviewResponseRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -36,7 +39,10 @@ public class EmployeeExitService {
 	StringToDateTimeParser stringToDateTimeParser;
 	
 	@Autowired
-	ExitQuestionRepository exitQuestionRepository;
+	ValidationService validationService;
+	
+	@Autowired
+	ExitInterviewResponseRepository exitInterviewResponseRepository;
 
 	public ServiceResponse updateEmployeeResignationDetails(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -269,28 +275,121 @@ public class EmployeeExitService {
 		}
 		return response;
 	}
-
-	public ServiceResponse getExitInterviewQuestion() {
+	
+	public ServiceResponse setExitInterviewResponseByEmpId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			List<ExitQuestion> questionList = exitQuestionRepository.findAll();
-			List<ExitQuestionDTO> dtoList = new ArrayList<>();
-			
-			if(!questionList.isEmpty()) {
-				questionList.forEach((object) -> {
-					ExitQuestionDTO dto = new ExitQuestionDTO();
-					
-					dto.setQuestion(object.getQuestion());
-					dtoList.add(dto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-			}else {
+			if (!validationService.validateEmpId(surveyDTO.getEmpId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No questions found.");
+				response.setServiceResponse("Employee Id does not exists.");
+				return response;
+			}
+
+			List<ExitInterviewResponse> dtoList = new ArrayList<ExitInterviewResponse>();
+
+			surveyDTO.getSurveyQuestionList().forEach((question) -> {
+
+				ExitInterviewResponse exitInterviewResponse = new ExitInterviewResponse();
+
+				exitInterviewResponse.setEmpId(surveyDTO.getEmpId());
+				exitInterviewResponse.setQuestion(question.getQuestion());
+				exitInterviewResponse.setResponse(question.getResponse());
+				exitInterviewResponse.setSurveyId(question.getSurveyId());
+				dtoList.add(exitInterviewResponse);
+				
+			});
+
+			List<ExitInterviewResponse> responseList = exitInterviewResponseRepository.saveAll(dtoList);
+
+			if (responseList.size() > 0) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Responses stored successfully.");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No responses were stored.");
 			}
 			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAnsweredInterviewByEmpId(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> objectList = exitInterviewResponseRepository.getAnsweredInterviewByEmpId(surveyDTO.getEmpId());
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No survey found. List is empty.");
+				} else {
+					List<ExitInterviewResponse> dtoList = new ArrayList<ExitInterviewResponse>();
+
+					list.forEach((object) -> {
+
+						ExitInterviewResponse dto = new ExitInterviewResponse();
+						dto.setSurveyId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No survey found. List is null.");
+			});
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getExitInterviewResponseBySurveyIdAndEmp(SurveyDTO surveyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Employee employee = employeeRepository.findByEmployeementId(surveyDTO.getEmployeementId());
+			
+			if(employee != null) {
+				
+				List<ExitInterviewResponse> responseList = exitInterviewResponseRepository
+						.findBySurveyIdAndEmpId(surveyDTO.getSurveyId(), employee.getEmpId());
+				
+				if (!responseList.isEmpty()) {
+
+					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
+
+					responseList.forEach((object) -> {
+
+						SurveyQuestionDTO dto = new SurveyQuestionDTO();
+						dto.setResponse(object.getResponse());
+						dto.setQuestion(object.getQuestion());
+						dtoList.add(dto);
+
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No responses found for exit Interview.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found.");
+			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

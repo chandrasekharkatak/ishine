@@ -67,7 +67,7 @@
                             </tr>
                           <tr *ngFor="let list of exitAssetDetailList, let i = index">
                             <th class="info-label">{{i+1}}</th>
-                            <td>{{list.assestName}}</td>
+                            <td>{{list.assestName}}<span *ngIf="list.assestName == 'Exit Interview by HR' && !isCurrentUser"><button class="btn btn-sm btn-outline-primary ml-2" type="submit" (click)="viewExitInterviewResponse()"><em>View Exit Interview Response</em></button></span></td>
                             <td>{{list.departmentName}}</td>
                             <td>{{list.isAssigned}}</td>
                             <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="list.deptConsent" [disabled]="isCurrentUser" (change)="selectDeptConsentCheckbox(list)"/></td>
@@ -76,7 +76,8 @@
                         </tbody>
                       </table>
                       <button type="submit" *ngIf="!isCurrentUser && exitAssetDetailList.length != 0" class="btn btn-primary btn-sm mx-auto d-block" (click)="submitConsent(alert_message)">Submit Consent</button>
-                      <button type="submit" *ngIf="isCurrentUser" class="btn btn-primary btn-sm mx-auto d-block" (click)="generateExitInterviewForm(alert_message,exit_interview)">Take Exit Interview</button>
+                      <button type="submit" *ngIf="isCurrentUser && !isAnswered" class="btn btn-primary btn-sm mx-auto d-block" (click)="getExitInterviewForm(alert_message, exit_interview)">Take Exit Interview</button>
+                      <button *ngIf="isCurrentUser && isAnswered" class="btn btn-sm btn-outline-primary mx-auto d-block" type="submit" (click)="viewExitInterviewResponse()"><em>View Exit Interview Response</em></button>
                 </div>
                 <!-- releiving day template : end -->
             </div>
@@ -135,13 +136,40 @@
 
 <ng-template #exit_interview>
     <div class="modal-body">
-        <div class="row" *ngFor="let question of allQuestionList">
-            <div class="col-md-12 mb-0">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label>{{question.question}}</label>
-                        <input type="text" class="form-control" autocomplete="none">
-                      </div>
+        <div class="card col-md-12 px-0">
+            <div class="card-header text-uppercase px-3">
+                <strong>{{surveyObj.surveyName}}</strong>
+                <small class="d-block text-secondary">{{surveyObj.description}}</small>
+            </div>
+            <div class="card-body px-5" id="surveyContainer">
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1"
+                            (click)="onSubmit(alert_message)" [disabled]="!isSurveyLoaded">Submit</button>
+                        <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
+                        (click)="cancelRequest()" [disabled]="!isSurveyLoaded">Back</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #preview_response_template>
+    <div class="modal-header">
+        <b class="modal-title">Exit Interview Response</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="container-fluid">
+            <div class="row" *ngFor="let response of myResponseList">
+                <div class="col-md-12 mb-2">
+                    <div class="info-wrapper">
+                        <h5 class="info-label mb-1"><i class="fa-solid fa-q question-icon"></i>.&nbsp;{{response.question}}</h5>
+                        <h5 class="info-text"><i class="fa-solid fa-a question-icon"></i>.&nbsp;{{response.response}}</h5>
+                    </div>
                 </div>
             </div>
         </div>

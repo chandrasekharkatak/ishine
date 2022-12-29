@@ -19,6 +19,8 @@ public class ExitInterviewResponse {
 	private Long responseId;
 	private String question;
 	private String response;
+	private Long empId;
+	private Long surveyId;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

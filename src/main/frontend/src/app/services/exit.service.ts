@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Employee } from '../models/employee';
+import { Survey } from '../models/survey';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +37,16 @@ export class ExitService {
     return this.http.post(`${this.baseUrl}`+`api/sentMailForConsent`,employeeObj);
    }
 
-   getExitInterviewQuestion(){
-    return this.http.get(`${this.baseUrl}`+`api/getExitInterviewQuestion`);
+   setExitInterviewResponseByEmpId(surveyObj: Survey){
+    return this.http.post(`${this.baseUrl}`+`api/setExitInterviewResponseByEmpId`, surveyObj);
    }
+
+   getAnsweredInterviewByEmpId(surveyObj: Survey){
+    return this.http.post(`${this.baseUrl}`+`api/getAnsweredInterviewByEmpId`, surveyObj);
+   }
+
+   getExitInterviewResponseBySurveyIdAndEmp(surveyObj: Survey){
+    return this.http.post(`${this.baseUrl}`+`api/getExitInterviewResponseBySurveyIdAndEmp`, surveyObj);
+   }
+
 }
