@@ -127,6 +127,8 @@ public class EmployeeLeaveService {
 			leaveApplication.setReason(leaveDTO.getReason());
 			leaveApplication.setManagerId(leaveDTO.getManagerId());
 			leaveApplication.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
+			leaveApplication.setFromDateDayType(leaveDTO.getFromDateDayType());
+			leaveApplication.setToDateDayType(leaveDTO.getToDateDayType());			
 
 			// Leave deduction from balance leaves
 			Float balance = employeeLeavesMap.getBalance();
@@ -378,7 +380,7 @@ public class EmployeeLeaveService {
 				apiLogInfo.setApiResponse("No Leave Application found");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
-
+      
 				list.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
 					dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
@@ -392,6 +394,8 @@ public class EmployeeLeaveService {
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
 					dto.setRemark(object[10] != null ? object[10].toString() : null);
+					dto.setFromDateDayType(object[11] != null ? Float.parseFloat(object[11].toString()) : null);
+					dto.setToDateDayType(object[12] != null ? Float.parseFloat(object[12].toString()) : null);
 					dtoList.add(dto);
 				});
 

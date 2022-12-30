@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -114,7 +114,8 @@ export class LeaveConfigComponent implements OnInit {
     private holidayService : HolidayService,
     private datePipe: DatePipe,
     private leaveService : LeaveService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -127,7 +128,14 @@ export class LeaveConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  } 
 
   sectionViewInit(){
     if(this.userMapping.add_holidays){

@@ -14,6 +14,7 @@ import { HolidayService } from 'src/app/services/holiday.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-dept-config',
@@ -59,7 +60,8 @@ export class DeptConfigComponent implements OnInit {
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
     private holidayService: HolidayService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private locationStrategy:LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -74,6 +76,13 @@ export class DeptConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {

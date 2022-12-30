@@ -124,6 +124,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllMyTeamsByEmpId`,
     `${this.baseUrl}` + `api/getAllProjectListByProjectManagerId`,
     `${this.baseUrl}` + `api/getAllProjects`,
+    `${this.baseUrl}` + `api/getActivityTemplate`,
 
   ]
 

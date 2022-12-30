@@ -1,3 +1,4 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { first } from 'rxjs/operators';
@@ -24,12 +25,20 @@ export class HolidaysComponent implements OnInit {
   constructor(
     private holidayService : HolidayService,
     private authenticationService : AuthenticationService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
   ngOnInit(): void {
     this.getAllHolidayByEmpWorkLocation()
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   getAllHolidayByEmpWorkLocation(){

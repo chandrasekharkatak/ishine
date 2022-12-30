@@ -3,7 +3,7 @@ import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { first } from 'rxjs/operators';
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
@@ -124,7 +124,8 @@ export class EmployeeConfigComponent implements OnInit {
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
     private portalService:PortalService,
-    private utilityService:UtilityService) {
+    private utilityService:UtilityService,
+    private locationStrategy:LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -146,7 +147,15 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.maritalStatus = '';
     // this.employeeObj.managerId = '';
     this.setYearOfPassingList();
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
+
 
   ngAfterViewInit() {
 
@@ -955,11 +964,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
         this.employeeObj.secondaryEmail = '';
       }
-    } else{
-      this.openAlertMod(template, "Please enter email !!");
-      this.employeeObj.secondaryEmail = '';
-    }
-    
+    }     
   }
 
   checkEmployeementId(template: TemplateRef<any>) {

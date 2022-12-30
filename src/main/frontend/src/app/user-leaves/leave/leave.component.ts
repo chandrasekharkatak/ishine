@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -106,7 +106,8 @@ export class LeaveComponent implements OnInit {
     private holidayService : HolidayService,
     private exportExcelService: ExportExcelService,
     private teamViewService : TeamViewService,
-    private logService:LogService
+    private logService:LogService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -138,8 +139,13 @@ export class LeaveComponent implements OnInit {
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
 
     this.dateToday = this.datePipe.transform(this.dateToday,'yyyy-MM-dd');
-
-    
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -391,6 +397,8 @@ export class LeaveComponent implements OnInit {
     this.isLeaveApplicationsTable = false;	
     this.isLeaveHistoryTable = false;	
     this.isLeaveBalanceTable = false;	
+    this.leaveObj.fromDateDayType = leaveHistory.fromDateDayType;
+    this.leaveObj.toDateDayType = leaveHistory.toDateDayType;
     	
     this.leaveObj = Object.assign({}, leaveHistory);	
 
@@ -1204,7 +1212,7 @@ export class LeaveComponent implements OnInit {
                           case 'createdOn':	
                             return compare(a.createdOn , b.createdOn , isAsc)	
                             case 'reason':	
-                              return compare(a.reason , b.reason , isAsc)	
+                              return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
                 default :	
                 return 0;	
             }	
@@ -1269,7 +1277,7 @@ export class LeaveComponent implements OnInit {
                       case 'createdOn':	
                       return compare(a.createdOn , b.createdOn , isAsc)	
                     	case 'reason':	
-                       return compare(a.reason , b.reason , isAsc)	
+                       return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
                
                 default :	
                 return 0;	
@@ -1306,7 +1314,7 @@ export class LeaveComponent implements OnInit {
                         case 'createdOn':	
                           return compare(a.createdOn , b.createdOn , isAsc)	
                           case 'reason':	
-                            return compare(a.reason , b.reason , isAsc)	
+                            return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
                 default :	
                 return 0;	
             }	
@@ -1344,7 +1352,7 @@ export class LeaveComponent implements OnInit {
                         case 'createdOn':	
                           return compare(a.createdOn , b.createdOn , isAsc)	
                           case 'reason':	
-                            return compare(a.reason , b.reason , isAsc)	
+                            return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
                 default :	
                 return 0;	
             }	
@@ -1374,7 +1382,7 @@ export class LeaveComponent implements OnInit {
                   case 'balance':	
                     return compare(a.balance , b.balance ,isAsc)	
                     case 'message':	
-                      return compare(a.message , b.message , isAsc)	
+                      return compare(a.message.toLowerCase() , b.message.toLowerCase() , isAsc)	
                       case 'createdOn':	
                       return compare(a.createdOn , b.createdOn , isAsc)	
                 default :	

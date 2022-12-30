@@ -106,4 +106,6 @@ public class LeaveDTO {
 	private Long leaveRevokeStatusUpdatedBy;
 	
 	private String remark;
+	private Float fromDateDayType;
+	private Float toDateDayType;
 }

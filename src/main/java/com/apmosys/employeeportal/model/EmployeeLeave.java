@@ -46,5 +46,7 @@ public class EmployeeLeave {
 	//techHead
 	private Long hodId;
 	
+	private Float fromDateDayType;
+	private Float toDateDayType;
 	
 }

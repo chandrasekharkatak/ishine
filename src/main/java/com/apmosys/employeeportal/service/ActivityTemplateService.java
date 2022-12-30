@@ -40,7 +40,7 @@ public class ActivityTemplateService {
 			
 			if(!dbResponse.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activities created successfully.");
+				response.setServiceResponse("Activity template created successfully.");
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Failed to create activity");
@@ -166,10 +166,10 @@ public class ActivityTemplateService {
 			
 			if(activityDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activity Template updated successfully.");
+				response.setServiceResponse("Activity template updated successfully.");
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activity Template updation failed.");
+				response.setServiceResponse("Activity template updation failed.");
 			}
 			
 		}catch(Exception e) {
