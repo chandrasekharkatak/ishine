@@ -75,6 +75,13 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getEmployeeLeaveApplicationwithHolidays" ,method = RequestMethod.POST)
+	public ServiceResponse getEmployeeLeaveApplicationwithHolidays(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getEmployeeLeaveApplicationwithHolidays(leaveDTO);
+		return response;
+	}
+	
 	/*		
 	 *	Data migration - updateleavebalance, oldleaveApplication 		
 	 */		

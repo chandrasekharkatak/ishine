@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Employee;
@@ -25,6 +27,7 @@ import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -71,6 +74,9 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	private HolidayService holidayService;
 
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -1889,6 +1895,150 @@ public class EmployeeLeaveService {
 				response.setServiceResponse("Employee not found.");
 				
 				apiLogInfo.setApiResponse("Employee not found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getEmployeeLeaveApplicationwithHolidays");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("FromDate : "+leaveDTO.getFromDate() + " ToDate : "+leaveDTO.getToDate());
+		List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+
+		try {
+			HolidayDTO holidayRange = new HolidayDTO();
+			holidayRange.setFromDate(leaveDTO.getFromDate());
+			holidayRange.setToDate(leaveDTO.getToDate());
+			
+			List<Object[]> employeeLeavesListByFromDate = employeeLeaveRepository.getAllLeaveApplicationByFromDate(leaveDTO.getFromDate());
+			List<LeaveDTO> leaveList = new ArrayList<LeaveDTO>();
+			
+			ServiceResponse holidayResponse = holidayService.getHolidayWeekOffSize(holidayRange);
+			List<HolidayDTO> holidayList = (List<HolidayDTO>)holidayResponse.getServiceResponse();
+			
+			System.out.println("employeeLeavesListByFromDate : "+ employeeLeavesListByFromDate);
+			System.out.println("holidayList : "+ holidayList);
+			
+			if (!employeeLeavesListByFromDate.isEmpty()) {
+				
+				
+				employeeLeavesListByFromDate.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setFromDate(object[1] != null ? object[1].toString() : null);
+					dto.setToDate(object[2] != null ? object[2].toString() : null);
+					dto.setNoOfDays(object[3] != null ? Float.parseFloat(object[3].toString()) : null);
+					dto.setEmployeeName(object[4] != null ? object[4].toString() : null);
+					dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+					dto.setLeaveStatusId(object[6] != null ? Short.parseShort(object[6].toString()) : null);
+					dto.setEmail(object[7] != null ? object[7].toString() : null);
+					dto.setManagerName(object[8] != null ? object[8].toString() : null);
+					dto.setManagerEmail(object[9] != null ? object[9].toString() : null);
+
+					leaveList.add(dto);
+				});
+				
+				System.out.println("leaveList : "+ leaveList);
+				
+				if(!leaveList.isEmpty()) {
+					for(LeaveDTO leaveApplication : leaveList) {
+						
+						long elapsedDays = ChronoUnit.DAYS.between(stringToDateTimeParser.getDate(leaveApplication.getFromDate(), "yyyy-MM-dd"), stringToDateTimeParser.getDate(leaveApplication.getToDate(), "yyyy-MM-dd"));
+						Long NO_OF_DAYS = elapsedDays + 1;
+						
+						if(elapsedDays == 0) {
+							for(HolidayDTO holiday : holidayList) {
+								if(stringToDateTimeParser.getDate(holiday.getDateOfHoliday(), "yyyy-MM-dd").equals(stringToDateTimeParser.getDate(leaveApplication.getFromDate(), "yyyy-MM-dd")) && leaveApplication.getLeaveStatusId() != 3) {
+									System.out.println(" =============================== ");
+									System.out.println("leaveApplication : "+ leaveApplication);
+									System.out.println(" =============================== ");
+									dtoList.add(leaveApplication);
+									break;
+								}
+							}
+						
+						}
+						
+						if(elapsedDays != 0) {
+							LocalDate checkDate = stringToDateTimeParser.getDate(leaveApplication.getFromDate(), "yyyy-MM-dd");
+							
+							while(checkDate.compareTo(stringToDateTimeParser.getDate(leaveApplication.getToDate(), "yyyy-MM-dd")) != 1) {
+								boolean flag = false;
+								
+								for(HolidayDTO holiday : holidayList) {
+									if(stringToDateTimeParser.getDate(holiday.getDateOfHoliday(), "yyyy-MM-dd").equals(checkDate) && leaveApplication.getNoOfDays().equals(Float.parseFloat(NO_OF_DAYS.toString())) && leaveApplication.getLeaveStatusId() != 3) {
+										flag = true;
+										dtoList.add(leaveApplication);
+										System.out.println(" =============================== ");
+										System.out.println("leaveApplication : "+ leaveApplication);
+										System.out.println(" =============================== ");
+										break;
+									}
+								}
+								
+								if(flag) {
+									break;
+								}
+								
+								checkDate = checkDate.plusDays(1);
+							}
+						}
+						
+					}
+					
+					if(!dtoList.isEmpty()) {
+						for(LeaveDTO leaveApp : dtoList) {
+							if (leaveApp != null) {
+								mailService.sendMailWithCC(leaveApp.getEmail(), hrMailAddress +","+ leaveApp.getManagerEmail(),
+										"Regarding Re-Application of your Leave",
+										"Dear "+ leaveApp.getEmployeeName() + ","
+										+"<br>  Kindly re-apply your leave application, "
+										+"<br> as weekoffs are also included in leave days of your leave application, "
+										+"<br> if reflecting correct number of days then ignore this message."
+										+"<br><br>Leave Application Details :"
+										+"<br> From Date : " + leaveApp.getFromDate() + "   To Date : " + leaveApp.getToDate()
+										+"<br> No. Of Days : " + leaveApp.getNoOfDays());
+							}
+						}
+					}
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					
+					apiLogInfo.setApiResponse(dtoList.size()+ " Leave Applications with Holiday.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No Leave Applications found.");
+					
+					apiLogInfo.setApiResponse("No Leave Applications found.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+
+			} else {
+
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Applications found.");
+				
+				apiLogInfo.setApiResponse("No Leave Applications found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 

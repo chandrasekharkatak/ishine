@@ -106,4 +106,5 @@ public class LeaveDTO {
 	private Long leaveRevokeStatusUpdatedBy;
 	
 	private String remark;
+	private String managerEmail;
 }
