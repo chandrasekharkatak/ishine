@@ -10,6 +10,7 @@ import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { saveAs } from "file-saver";
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
 
 
 
@@ -56,6 +57,7 @@ export class UploadPoliciesComponent implements OnInit {
   private modalService: BsModalService,
   private authenticationService: AuthenticationService,
   private notificationService: NotificationService,
+  private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -68,7 +70,15 @@ export class UploadPoliciesComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
     this.sectionViewInit();
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
+
 
   sectionViewInit() {
     if(this.userMapping.upload_policy){

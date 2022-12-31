@@ -464,6 +464,7 @@ export class LoginComponent implements OnInit{
   resendOTP(){
 
     this.userOTP = ''
+    this.errorMsg = ''
     if(!this.isLoginOTP){	
       this.user.email = this.userEmailIdForOtpVerification;	
     }	

@@ -14,6 +14,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { Query } from 'src/app/models/query';
 import { enableAppreciation } from 'src/app/models/enableAppreciation';
 import * as moment from 'moment';	
+import { LocationStrategy } from '@angular/common';
 
 
 
@@ -74,6 +75,7 @@ export class PortalConfigComponent implements OnInit {
     private modalService: BsModalService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -87,6 +89,13 @@ export class PortalConfigComponent implements OnInit {
     console.log(this.feature, " : ", this.userMapping);
     this.getAllEvent();
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   reset(){

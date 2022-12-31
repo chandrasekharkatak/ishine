@@ -1,6 +1,6 @@
 import { AbstractType, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { EmployeeService } from '../services/employee.service';
 import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
@@ -71,7 +71,8 @@ export class UserExitComponent implements OnInit {
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
     private route: ActivatedRoute,
-    private router : Router
+    private router : Router,
+    private locationStrategy: LocationStrategy
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
@@ -85,6 +86,13 @@ export class UserExitComponent implements OnInit {
     this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
     this.getExitSurvey();
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){

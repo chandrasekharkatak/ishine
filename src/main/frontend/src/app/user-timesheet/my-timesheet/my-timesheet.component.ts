@@ -9,7 +9,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 import { ClipboardService } from 'ngx-clipboard';
@@ -90,6 +90,7 @@ export class MyTimesheetComponent implements OnInit {
     private clipboardService: ClipboardService,
     private teamViewService : TeamViewService,
     private leaveService : LeaveService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -108,7 +109,15 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
     this.sectionViewInit();
-  }
+    this.preventBackButton();	
+  }	
+  preventBackButton(){	
+    history.pushState(null, null, location.href);	
+    this.locationStrategy.onPopState(()=>{	
+      history.pushState(null, null, location.href);	
+    })	
+  }	
+
 
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {

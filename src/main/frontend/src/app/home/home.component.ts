@@ -24,6 +24,7 @@ import { LogService } from '../services/log.service';
 import { Log } from '../models/log';
 import * as CryptoJS from 'crypto-js';
 import { Employee } from '../models/employee';
+import { LocationStrategy } from '@angular/common';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -127,7 +128,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     private bodyComponent: BodyComponent,
     public validationService: ValidationService,
-    private logService:LogService
+    private logService:LogService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.logService.log.subscribe(x => {
@@ -168,6 +170,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if(this.currentUser.isNew == "true"){
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
     }
+    this.preventBackButton();
+  }
+
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   ngAfterViewInit(): void {    

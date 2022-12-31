@@ -7,6 +7,7 @@ import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-team-member',
@@ -30,6 +31,7 @@ export class TeamMemberComponent implements OnInit {
     private authenticationService : AuthenticationService,
     private teamViewService : TeamViewService,
     private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -43,6 +45,13 @@ export class TeamMemberComponent implements OnInit {
     console.log(this.feature, this.userMapping);
     
     this.getAllTeamMemberView();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   getAllTeamMemberView(){

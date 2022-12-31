@@ -20,6 +20,7 @@ import { Sort } from '@angular/material/sort';
 import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { Department } from 'src/app/models/department';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-team-config',
@@ -105,6 +106,7 @@ export class TeamConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -119,6 +121,13 @@ export class TeamConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {
@@ -285,6 +294,7 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showActivityTemplateTable(){
+    this.data = ''
     this.isActivityTemplateTable = true;
 
     this.isActivityTemplate = false;
@@ -933,8 +943,14 @@ export class TeamConfigComponent implements OnInit {
 
     this.allTemplateActivityList.forEach((activity, index) => {
 
+      activity.activity = activity.activity?.trim();
       if (!this.validationService.validateNullUndefinedEmptyString(activity.activity)) {
         this.alertMessage = `Please enter Activity - ${index + 1}!!`
+        flag = false;
+        return;
+      } if (!this.validationService.validateProjectName(activity.activity)) {
+        this.alertMessage = `Please enter valid Activity - ${index + 1}!!`
+        // activity.activity = ''
         flag = false;
         return;
       }

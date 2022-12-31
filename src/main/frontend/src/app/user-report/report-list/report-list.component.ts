@@ -15,6 +15,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { Employee } from 'src/app/models/employee';
 import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
 import { JobRole } from 'src/app/models/jobRole';
+import { LocationStrategy } from '@angular/common';
 
 class FilterData{
   title:any;
@@ -96,6 +97,7 @@ export class ReportListComponent implements OnInit {
     private jobRoleService : JobRoleService,
     private validationService : ValidationService,
     private renderer2: Renderer2,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -108,7 +110,14 @@ export class ReportListComponent implements OnInit {
      });
      console.log(this.feature, this.userMapping);
      this.sectionViewInit();
-  }
+     this.preventBackButton();	
+    }	
+    preventBackButton(){	
+      history.pushState(null, null, location.href);	
+      this.locationStrategy.onPopState(()=>{	
+        history.pushState(null, null, location.href);	
+      })	
+    }
 
   sectionViewInit() {
     if(this.userMapping.leave_report){
@@ -594,6 +603,7 @@ showColumn(){
             "address":x.address,
             "permanentAddress":x.permanentAddress,
             "city":x.city,
+            "Manager Name":x.managerName,
             "Blood Group":x.bloodGroup,
             "date Of Birth":x.dateOfBirth,
             "gender":x.gender,

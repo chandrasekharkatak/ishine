@@ -13,6 +13,7 @@ import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-role-config',
@@ -68,7 +69,8 @@ export class RoleConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private subfeatureService: SubfeatureService,
     private authenticationService: AuthenticationService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -86,6 +88,13 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.departmentId = '';
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {
