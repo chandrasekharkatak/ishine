@@ -1,3 +1,4 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -62,6 +63,7 @@ export class SurveyConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private surveyService : SurveyService,
     private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -80,7 +82,13 @@ export class SurveyConfigComponent implements OnInit {
     this.sectionViewInit();
 
     console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
-    
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){

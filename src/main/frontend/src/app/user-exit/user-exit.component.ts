@@ -1,6 +1,6 @@
 import { AbstractType, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { EmployeeService } from '../services/employee.service';
 import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
@@ -10,6 +10,11 @@ import * as moment from 'moment';
 import { Asset } from '../models/asset';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { ExitService } from '../services/exit.service';
+import { SurveyService } from '../services/survey.service';
+import { Survey } from '../models/survey';
+import { SurveyQuestion } from '../models/surveyQuestion';
+import { SurveyOption } from '../models/sureyOption';
+import { ValidationService } from '../services/validation.service';
 
 @Component({
   selector: 'app-user-exit',
@@ -20,6 +25,8 @@ export class UserExitComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  @ViewChild('preview_response_template')
+  previewResponseTemplate: TemplateRef<any>
 
   //modal 
   alertMessage:any;
@@ -42,7 +49,14 @@ export class UserExitComponent implements OnInit {
   exitAssetDetailList:any[] = [];
   employeeInfo:any[] = [];
   updatedConsentList:any[] = [];
-  allQuestionList:any[] = [];
+  questionList:any[] = [];
+
+  isSurveyLoaded:boolean = false;
+  isAnswered:boolean = false;
+  surveyObj:Survey = new Survey();
+  allSurveyQuestionList:any[] = [];
+  allAnsweredInterviewList:any[] = [];
+  myResponseList:any[] = [];
 
   dateOfRelieving:any;
   currentUserName:any;
@@ -52,10 +66,13 @@ export class UserExitComponent implements OnInit {
     private modalService: BsModalService,
     private employeeService : EmployeeService,
     private exitService : ExitService,
+    private surveyService : SurveyService,
+    private validationService: ValidationService,
     private authenticationService : AuthenticationService,
     private datePipe: DatePipe,
     private route: ActivatedRoute,
-    private router : Router
+    private router : Router,
+    private locationStrategy: LocationStrategy
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
@@ -67,7 +84,15 @@ export class UserExitComponent implements OnInit {
     
     
     this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
+    this.getExitSurvey();
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -242,6 +267,13 @@ export class UserExitComponent implements OnInit {
   */
 
   submitConsent(template: TemplateRef<any>){
+
+    if(this.updatedConsentList.length == 0 || this.updatedConsentList == undefined){
+        this.alertMessage = `Please give consent to atleast one asset !!`;
+        this.openAlertMod(template, this.alertMessage);
+        return;
+    }
+
     this.employeeObj.deptHeadConsentList = this.updatedConsentList;
     this.employeeObj.updatedBy = this.currentUser.empId;
     this.exitService.setDeptHeadConcent(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -254,16 +286,216 @@ export class UserExitComponent implements OnInit {
     });
   }
 
-  generateExitInterviewForm(template: TemplateRef<any>, exitInterviewTemplate: TemplateRef<any>){
-    this.exitService.getExitInterviewQuestion().pipe(first()).subscribe((response: any) => {
+  getExitSurvey(){
+    this.questionList = [];
+    this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allQuestionList = response.serviceResponse;
-        console.log(this.allQuestionList, " all question");
-        this.modalRef = this.modalService.show(exitInterviewTemplate, { class: 'modal-lg' });
+        this.questionList = response.serviceResponse;
+        this.questionList = this.questionList.filter(x => x.type == "exit");
+        this.getAllAnsweredExitInterview();
+        console.log("this.questionList : ", this.questionList[0]);
+      }else{
+        console.log(response.serviceResponse);
+      }
+    });
+  }
+
+  getExitInterviewForm(template: TemplateRef<any>, exitTemplate: TemplateRef<any>){
+          //take generate exit interview form
+
+          let surveyObj = this.questionList[0];
+          this.isSurveyLoaded = false;
+          this.surveyObj = new Survey();
+          this.allSurveyQuestionList = [];
+
+          this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.allSurveyQuestionList = response.serviceResponse;
+              console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+
+              this.surveyObj = surveyObj;
+              this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
+                survey.optionsList = JSON.parse(survey.options);
+                survey.required = JSON.parse(survey.required);
+              });
+
+              const surveyQuestionsTemplate: string = this.createTemplate();
+
+              const formStart = `<form id="surveyForm">`
+              const formEnd = `</form>`
+              const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
+
+              this.modalRef = this.modalService.show(exitTemplate, { class: 'modal-lg' });
+
+              setTimeout(() => {
+                let surveyContainer = document.getElementById('surveyContainer');
+                surveyContainer.insertAdjacentHTML('afterbegin', surveyTemplate);
+                this.isSurveyLoaded = true;
+              }, 1000)
+            } else {
+              console.error(response.serviceResponse);
+            }
+          });
+  }
+
+  getAllAnsweredExitInterview(){
+    this.allAnsweredInterviewList = [];
+    
+    let surveyObj = new Survey();
+    surveyObj.empId = this.currentUser.empId;
+
+    this.exitService.getAnsweredInterviewByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allAnsweredInterviewList = response.serviceResponse;
+       console.log("this.allAnsweredInterviewList : ", response.serviceResponse);
+       this.allAnsweredInterviewList.forEach((Object) => {
+          let exitInterviewObj = this.questionList.find((ques) => Object.surveyId == ques.surveyId);
+          if(exitInterviewObj) this.isAnswered = true;
+        }); 
+      }else{
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  createTemplate():string{
+    let surveyTemplate = ``;
+    this.allSurveyQuestionList.forEach((question:SurveyQuestion, qIndex) => {
+ 
+     let finalQuestionTemplate = ``;
+     const questionStartTemplate = `<div class="row"><div class="form-group">`
+     const questionEndTemplate = `</div></div>`
+     const questionRequiredTemplate = `<span class="text-danger">*</span>`
+     let isQuestionRequired = (question.required == true)? questionRequiredTemplate : '';
+     let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null)? question.description : ''}</small>`
+ 
+     finalQuestionTemplate = questionStartTemplate + questionTemplate;
+     
+      if (question.optionType == "text") {
+        let textTemplate: any =`<textarea class="form-control mt-1" rows="1" name="question-${qIndex+1}"></textarea>`;
+        finalQuestionTemplate = finalQuestionTemplate + textTemplate;
+      } else if (question.optionType == "checkbox") {
+ 
+       let optionTemplate = '';
+       question.optionsList.forEach((option:SurveyOption, opIndex) => {
+         let checkboxTemplate: any =
+         `
+           <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}" name="question-${qIndex+1}">
+            <label class="form-check-label" for="q-${qIndex+1}-check-option-${opIndex+1}">${option.optionValue}</label>
+            </div>
+          `;
+ 
+          optionTemplate = optionTemplate + checkboxTemplate;
+       });
+       
+       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
+      } else if (question.optionType == "radio") {
+ 
+       let optionTemplate = '';
+       question.optionsList.forEach((option:SurveyOption, index) => {
+         let radioboxTemplate: any =
+         `
+         <div class="form-check">
+          <input class="form-check-input" type="radio" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}" name="question-${qIndex+1}">
+          <label class="form-check-label" for="q-${qIndex+1}-radio-option-${index+1}">${option.optionValue}</label>
+          </div>
+        `;
+ 
+        optionTemplate = optionTemplate + radioboxTemplate;
+       });
+       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
+      }
+ 
+      finalQuestionTemplate = finalQuestionTemplate + questionEndTemplate;
+      surveyTemplate = surveyTemplate + finalQuestionTemplate;
+    });
+ 
+    // console.log("surveyTemplate : ", surveyTemplate);
+    return surveyTemplate;
+  }
+
+  validateSurveyResponse(surveyObj:Survey,template: TemplateRef<any>){
+    let flag = true;
+
+    for (let index = 0; index < surveyObj.surveyQuestionList.length; index++) {
+      let question = surveyObj.surveyQuestionList[index];
+      if(question.required && !this.validationService.validateNullUndefinedEmptyString(question.response)){
+        this.alertMessage = `Please provide response for Question ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        break;
+      }
+    }
+    return flag;
+  }
+
+  onSubmit(template: TemplateRef<any>){
+    this.cancelRequest();
+    const form:any = document.getElementById('surveyForm');
+
+    let surveyObj = new Survey();
+    surveyObj.empId = this.currentUser.empId;
+    surveyObj.surveyQuestionList = [];
+
+    this.allSurveyQuestionList.forEach((question, index) => {
+
+      let surveyQuestion = new SurveyQuestion();
+      surveyQuestion.question = question.question;
+      surveyQuestion.surveyId = question.surveyId;
+      surveyQuestion.required = question.required;
+
+      if(question.optionType == 'checkbox'){
+        let response = [];
+        form.elements[`question-${index+1}`]?.forEach((checkboxOption) => {
+          if(checkboxOption.checked) response.push(checkboxOption.value);
+        });
+        surveyQuestion.response = response.join(", ");
+      }else{
+        surveyQuestion.response = form.elements[`question-${index+1}`].value;
+      }
+      surveyObj.surveyQuestionList.push(surveyQuestion);
+    });
+
+    console.log("On Survey Submit : ", surveyObj);
+    let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
+    if (!inputValidated) return;
+    this.exitService.setExitInterviewResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getExitSurvey();
+        this.openAlertMod(template, response.serviceResponse);
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
-    });
+    }); 
+  }
+
+  viewExitInterviewResponse(){
+    this.myResponseList = [];
+    this.surveyObj = new Survey();
+
+    if(this.exitEmployeeId != null){
+      this.surveyObj.employeementId = this.exitEmployeeId;
+    }else{
+      this.surveyObj.employeementId = this.currentUser.employeementId;
+    }
+    this.surveyObj.surveyId = this.questionList[0].surveyId;
+    console.log(this.surveyObj.surveyId, "this.surveyObj.surveyId==");
+    
+    console.log("For View My Response : ", this.surveyObj);
+    this.exitService.getExitInterviewResponseBySurveyIdAndEmp(this.surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.myResponseList = response.serviceResponse;
+        console.log("this.myResponseList : ", this.myResponseList);
+        this.openExitInterviewPreviewMod(this.previewResponseTemplate);
+      }else{
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    }); 
+  }
+
+  openExitInterviewPreviewMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   cancelRequest() {

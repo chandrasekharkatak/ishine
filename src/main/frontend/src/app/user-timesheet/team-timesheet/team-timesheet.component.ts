@@ -9,6 +9,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
 
 
 @Component({
@@ -53,6 +54,7 @@ export class TeamTimesheetComponent implements OnInit {
     private authenticationService : AuthenticationService,
     private timesheetService : TimesheetService,
     private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -67,7 +69,14 @@ export class TeamTimesheetComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }  
 
   sectionViewInit(){
     if(this.userMapping.view_my_teams_timesheets){

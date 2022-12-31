@@ -158,11 +158,11 @@
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
                             
-                            <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
+                            <button *ngIf="survey.isActive == 'false' || survey.type == 'exit'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
                             
-                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
+                            <button *ngIf="survey.isActive == 'true' && survey.type != 'exit'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
                         </td>
                       </tr>

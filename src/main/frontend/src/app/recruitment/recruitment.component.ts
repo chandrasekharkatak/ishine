@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
 import { PortalService } from 'src/app/services/portal.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-recruitment',
@@ -15,11 +16,19 @@ export class RecruitmentComponent implements OnInit {
 
   constructor(
     private portalService:PortalService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private locationStrategy: LocationStrategy
   ) { }
 
   ngOnInit(): void {
     this.getAllPortalConfigData();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   getAllPortalConfigData() {

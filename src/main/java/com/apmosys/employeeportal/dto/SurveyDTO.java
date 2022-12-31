@@ -23,5 +23,7 @@ public class SurveyDTO {
 	private List<SurveyQuestionDTO> surveyQuestionList;
 	private String createdByName;
 	private String updatedByName;
+	private String type;
+	private Long employeementId;
 	
 }

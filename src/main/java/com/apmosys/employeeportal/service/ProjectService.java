@@ -710,11 +710,17 @@ public class ProjectService {
 									for(String teamMember: object.getTeamMemberList()) {
 										Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
 										EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-										newEmpTeamMap.setActive(1l);
-										newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
-										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-										newEmpTeamMap.setEmployeeRole("Employee");
-										mapList.add(newEmpTeamMap);
+										
+										if(!teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
+												!managerObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
+												!hodId.equals(teamMemberObj.getEmpId())) {
+											
+											newEmpTeamMap.setActive(1l);
+											newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
+											newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+											newEmpTeamMap.setEmployeeRole("Employee");
+											mapList.add(newEmpTeamMap);
+										}
 									}
 									teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
 								}
@@ -871,11 +877,19 @@ public class ProjectService {
 								for(String teamMember: teamObj.getTeamMemberList()) {
 									Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
 									EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-									newEmpTeamMap.setActive(1l);
-									newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
-									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-									newEmpTeamMap.setEmployeeRole("Employee");
-									mapList.add(newEmpTeamMap);
+									
+
+									if(!teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
+											!managerObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
+											!hodId.equals(teamMemberObj.getEmpId())) {
+									
+										newEmpTeamMap.setActive(1l);
+										newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
+										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+										newEmpTeamMap.setEmployeeRole("Employee");
+										mapList.add(newEmpTeamMap);
+										
+									}
 								}
 								List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
 								

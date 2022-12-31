@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
@@ -48,7 +48,9 @@ export class CompOffComponent implements OnInit {
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
-    private datePipe: DatePipe,) {
+    private datePipe: DatePipe,
+    private locationStrategy: LocationStrategy
+    ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -62,6 +64,13 @@ export class CompOffComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllCompOffReasons();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){

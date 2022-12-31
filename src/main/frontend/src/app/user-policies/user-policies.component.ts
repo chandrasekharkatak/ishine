@@ -9,6 +9,7 @@ import { Sort } from '@angular/material/sort';
 import { UploadPolicy } from 'src/app/models/UploadPolicy';
 
 import { Feature } from 'src/app/models/feature';
+import { LocationStrategy } from '@angular/common';
 
 
 
@@ -26,7 +27,7 @@ export class UserPoliciesComponent implements OnInit {
   constructor(private policiesService : PoliciesService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
-
+    private locationStrategy: LocationStrategy
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -42,9 +43,14 @@ export class UserPoliciesComponent implements OnInit {
   ngOnInit(): void {
 
     this.getAllDocuments();
+    this.preventBackButton();
   }
-
-
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
   getAllDocuments(){
     this.data='';
     this.document = [];

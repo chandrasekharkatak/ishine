@@ -220,15 +220,21 @@ public class TeamsService {
 								str.append(role).append(",");
 							}
 							EmployeeTeamMap teamMemberMap = new EmployeeTeamMap();
+							
+							if(!teamDTO.getTeamLeadId().equals(teamMember.getEmpId()) && 
+									!teamDTO.getTeamLeadId().equals(teamMember.getEmpId()) && 
+									!teamDTO.getTeamLeadId().equals(teamMember.getEmpId())) {
+								
 
-							teamMemberMap.setEmpId(teamMember.getEmpId());
-							teamMemberMap.setTeamId(teamCreated.getTeamId());
-							teamMemberMap.setJobRoleId(teamMember.getJobRoleId());
-							// 1: Active  0: InActive
-							teamMemberMap.setActive((long) 1);
-							teamMemberMap.setEmployeeRole(str.toString());
-							mapList.add(teamMemberMap);
-
+								teamMemberMap.setEmpId(teamMember.getEmpId());
+								teamMemberMap.setTeamId(teamCreated.getTeamId());
+								teamMemberMap.setJobRoleId(teamMember.getJobRoleId());
+								// 1: Active  0: InActive
+								teamMemberMap.setActive((long) 1);
+								teamMemberMap.setEmployeeRole(str.toString());
+								mapList.add(teamMemberMap);
+								
+							}
 						});
 						
 						List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(teamDTO.getDeptId());

@@ -13,6 +13,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Sort } from '@angular/material/sort';
 import { HierarchyUser } from 'src/app/models/hierarchyUser';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-my-team',
@@ -80,6 +81,7 @@ export class MyTeamComponent implements OnInit {
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     public validationService:ValidationService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -91,9 +93,14 @@ export class MyTeamComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-    
-
     this.sectionViewInit();    
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {

@@ -8,6 +8,8 @@ import { Project } from 'src/app/models/project';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ValidationService } from 'src/app/services/validation.service';
 import { Department } from 'src/app/models/department';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-project-config',
@@ -83,10 +85,19 @@ export class ProjectConfigComponent implements OnInit {
     private projectService: ProjectService,
     private modalService: BsModalService,
     public validationService: ValidationService,
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { }
 
   ngOnInit(): void {
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -386,8 +397,22 @@ export class ProjectConfigComponent implements OnInit {
     });
   }
 
+  name = "projectList.xlsx"
   exportToExcel(){
-
+    this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjects = response.serviceResponse;
+      }
+      const onlySpecificDataArr = this.allProjects.map(
+        x => ({
+          "Project Name": x.projectName,
+          "Project Manager": x.employeeName,
+          "Client Name": x.clientName,
+          "State": x.state
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+    });
   }
 
   //pagination

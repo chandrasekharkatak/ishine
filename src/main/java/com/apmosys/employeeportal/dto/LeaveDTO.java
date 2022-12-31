@@ -107,4 +107,6 @@ public class LeaveDTO {
 	
 	private String remark;
 	private String managerEmail;
+	private Float fromDateDayType;
+	private Float toDateDayType;
 }

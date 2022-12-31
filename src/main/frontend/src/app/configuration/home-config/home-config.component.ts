@@ -1,3 +1,4 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -49,6 +50,7 @@ export class HomeConfigComponent implements OnInit {
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
+    private locationStrategy: LocationStrategy
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
@@ -62,6 +64,13 @@ export class HomeConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {

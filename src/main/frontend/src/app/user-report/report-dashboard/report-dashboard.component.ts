@@ -11,6 +11,7 @@ import { Query } from 'src/app/models/query';
 import * as moment from 'moment';
 import { Leave } from 'src/app/models/leave';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
 
 HC_exportData(HighCharts);
 
@@ -86,11 +87,19 @@ export class ReportDashboardComponent implements OnInit {
     private timesheetService : TimesheetService,
     private modalService: BsModalService,
     private employeeService: EmployeeService,
-    private exportExcelService: ExportExcelService
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { }
 
   ngOnInit(): void {
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
