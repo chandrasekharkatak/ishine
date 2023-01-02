@@ -92,4 +92,6 @@ export class Leave{
 	approvedApplicationsCount:any = 0;
 	pendingApplicationsCount:any = 0;
 	rejectedApplicationsCount:any = 0;
+
+	deptId:any;
 }

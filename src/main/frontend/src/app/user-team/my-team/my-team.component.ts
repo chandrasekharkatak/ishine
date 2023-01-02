@@ -73,6 +73,9 @@ export class MyTeamComponent implements OnInit {
   
   nodes: any = [];
 
+  isLeaveHistoryOfDepartment:boolean = false;
+  departmentLeaveHistoryList:any[] = [];
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -147,6 +150,11 @@ export class MyTeamComponent implements OnInit {
     this.data=''
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
+    this.isLeaveHistoryOfDepartment = false;
+    this.fromDate = null;
+    this.toDate = null;
+    this.teamViewLeaveHistoryList = [];
+    this.departmentLeaveHistoryList = [];
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
@@ -161,6 +169,7 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
+    this.isLeaveHistoryOfDepartment = false;
   }
 
   viewCompOffHistory() {
@@ -171,6 +180,7 @@ export class MyTeamComponent implements OnInit {
     this.teamViewCompOffHistoryList = [];
     this.page=1;
     this.data='';
+    this.isLeaveHistoryOfDepartment = false;
   }
 
   viewTeamRequest() {
@@ -244,36 +254,38 @@ export class MyTeamComponent implements OnInit {
   getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
     
-    if(this.toDate){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
-        this.alertMessage = "Please enter Start Date !!"
-        alert(this.alertMessage);
-        //this.openAlertMod(this.alertTemplate, this.alertMessage);
-        return false;
+    if(this.isLeaveHistoryOfDepartment == false){
+      if(this.toDate){
+        if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
+          this.alertMessage = "Please enter Start Date !!"
+          alert(this.alertMessage);
+          //this.openAlertMod(this.alertTemplate, this.alertMessage);
+          return false;
+        }
+    
+        if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
+          this.alertMessage = "Please enter End Date !!"
+          alert(this.alertMessage);
+          //this.openAlertMod(this.alertTemplate, this.alertMessage);
+          return false;
+        }
+      }else{
+        return;
       }
   
-      if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
-        this.alertMessage = "Please enter End Date !!"
-        alert(this.alertMessage);
-        //this.openAlertMod(this.alertTemplate, this.alertMessage);
-        return false;
-      }
-    }else{
-      return;
+      let leaveObj = new Leave();
+      leaveObj.fromDate = this.fromDate;
+      leaveObj.toDate = this.toDate;
+      leaveObj.empId = this.currentUser.empId;
+      this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamViewLeaveHistoryList = response.serviceResponse;
+          console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
     }
-
-    let leaveObj = new Leave();
-    leaveObj.fromDate = this.fromDate;
-    leaveObj.toDate = this.toDate;
-    leaveObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamViewLeaveHistoryList = response.serviceResponse;
-        console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
   }
 
   getAllTeamCompOffHistoryView(template?: TemplateRef<any>) {
@@ -646,6 +658,37 @@ export class MyTeamComponent implements OnInit {
     this.myTeamHierarchyChart(employeeObj);
   }
 
+  toggleLeaveHistoryView(event){
+    if(event.target.checked){
+      this.isLeaveHistoryOfDepartment = true;
+      this.getDepartmentLeaveHistory();
+    }else{
+      this.isLeaveHistoryOfDepartment = false;
+      this.viewTeamLeaveHistory();
+    }
+  }
+
+  getDepartmentLeaveHistory(){
+    this.teamViewLeaveHistoryList = [];
+    this.departmentLeaveHistoryList = [];
+
+    if(this.isLeaveHistoryOfDepartment == true && this.fromDate != null && this.toDate != null){
+      let leaveObj = new Leave();
+      leaveObj.fromDate = this.fromDate;
+      leaveObj.toDate = this.toDate;
+      leaveObj.deptId = this.currentUser.departmentId;
+      this.teamViewService.getDepartmentLeaveHistory(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.departmentLeaveHistoryList = response.serviceResponse;
+          this.teamViewLeaveHistoryList = response.serviceResponse;
+          console.log("departmentLeaveHistoryList : ", this.departmentLeaveHistoryList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
+  }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -992,7 +1035,6 @@ export class MyTeamComponent implements OnInit {
       }
     });
   }
-  
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
