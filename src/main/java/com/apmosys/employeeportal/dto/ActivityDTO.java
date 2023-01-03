@@ -35,4 +35,6 @@ public class ActivityDTO {
 	private String managerName;
 	private Long activityTemplateId;
 	private String employeeRole;
+	private Long[] departmentList;
+	private Long deptId;
 }

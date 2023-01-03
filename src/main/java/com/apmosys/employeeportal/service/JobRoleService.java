@@ -623,8 +623,11 @@ public class JobRoleService {
 					roleFeatureMap.setSubFeatureMasterId(dto.getSubFeatureId());
 					roleFeatureMapList.add(roleFeatureMap);
 				}else if(dto.getIsAssigned().equals("false")) {
-					Long jobRoleId = dto.getJobRoleId();
-					roleFeatureMapRepository.deleteByJobRoleId(jobRoleId);
+					RoleFeatureMap mappingToBeDeleted = roleFeatureMapRepository
+							.findByJobRoleIdAndSubFeatureMasterId(dto.getJobRoleId(), dto.getSubFeatureId());
+					if(mappingToBeDeleted != null) {
+					    roleFeatureMapRepository.deleteById(mappingToBeDeleted.getRoleFeatureMapId());
+					}
 				}
 			});
 

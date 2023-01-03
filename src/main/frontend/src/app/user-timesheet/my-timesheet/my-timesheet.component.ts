@@ -765,6 +765,7 @@ export class MyTimesheetComponent implements OnInit {
         allActivityList = response.serviceResponse;
         console.log("Team name :  ", timesheetObj.teamName);
         console.log("allActivityList :", allActivityList);
+        allActivityList = allActivityList.filter(x => x.deptId == this.currentUser.departmentId);
       } else {
         console.error(response.serviceResponse)
       }

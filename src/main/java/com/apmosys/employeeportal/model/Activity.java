@@ -33,6 +33,8 @@ public class Activity {
 	
 	private String employeeRole;
 	
+	private Long deptId;
+	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	

@@ -116,19 +116,19 @@ public class EmployeeController {
 		return response;
 	}
 
-//	@RequestMapping(value = "/getAllEmployeesByDepartmentIds", method = RequestMethod.POST)
-//	public ServiceResponse getAllEmployeesByDepartmentIds(@RequestBody EmployeeDTO employeedto) {
-//
-//		ServiceResponse response = employeeService.getAllEmployeesByDepartmentIds(employeedto);
-//		return response;
-//	}
-	
-	@RequestMapping(value = "/getAllEmployeesByDepartmentId", method = RequestMethod.POST)
-	public ServiceResponse getAllEmployeesByDepartmentId(@RequestBody EmployeeDTO employeedto) {
+	@RequestMapping(value = "/getAllEmployeesByDepartmentIds", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByDepartmentIds(@RequestBody EmployeeDTO employeedto) {
 
-		ServiceResponse response = employeeService.getAllEmployeesByDepartmentId(employeedto);
+		ServiceResponse response = employeeService.getAllEmployeesByDepartmentIds(employeedto);
 		return response;
 	}
+	
+//	@RequestMapping(value = "/getAllEmployeesByDepartmentId", method = RequestMethod.POST)
+//	public ServiceResponse getAllEmployeesByDepartmentId(@RequestBody EmployeeDTO employeedto) {
+//
+//		ServiceResponse response = employeeService.getAllEmployeesByDepartmentId(employeedto);
+//		return response;
+//	}
 
 	@RequestMapping(value = "/updateEmployeePassword", method = RequestMethod.POST)
 	public ServiceResponse updatePassword(@RequestBody EmployeeDTO employeedto) {
