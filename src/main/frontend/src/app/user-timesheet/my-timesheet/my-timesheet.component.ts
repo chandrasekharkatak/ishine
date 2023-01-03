@@ -19,6 +19,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { Leave } from 'src/app/models/leave';
 import { Team } from 'src/app/models/team';
 import { ThemePalette } from '@angular/material/core';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -841,6 +842,12 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;
+          this.allMyTimesheets.forEach(timesheet => {
+            timesheet.date = (timesheet.date)? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+            timesheet.officeInTime = (timesheet.officeInTime)? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.officeOutTime = (timesheet.officeOutTime)? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.createdOn = (timesheet.createdOn)? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
           console.log("allMyTimesheets :", this.allMyTimesheets);
         } else {
           console.error(response.serviceResponse)
@@ -879,6 +886,12 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getAllMyTeamTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allMyTimesheets = response.serviceResponse;
+        this.allMyTimesheets.forEach(timesheet => {
+          timesheet.date = (timesheet.date)? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime)? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime)? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn)? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("allMyTimesheets :", this.allMyTimesheets);
       } else {
         console.error(response.serviceResponse);

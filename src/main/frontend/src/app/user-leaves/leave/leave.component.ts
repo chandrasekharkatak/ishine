@@ -20,6 +20,7 @@ import { TeamViewService } from 'src/app/services/team-view.service';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
 import { dateFormat } from 'highcharts';	
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-leave',
@@ -889,6 +890,18 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
+
+        this.leaveHistoryList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.leaveHistoryListForTable.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
 
         console.log("leaveHistoryList : ", this.leaveHistoryList);
@@ -915,6 +928,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllMyTeamApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
+        this.leaveHistoryList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("leaveHistoryList : ", this.leaveHistoryList);
       } else {
         console.error(response.serviceResponse);
@@ -932,6 +950,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
+        this.leaveApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
@@ -977,6 +1000,9 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getLeaveLogsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveLogList = response.serviceResponse;
+        this.leaveLogList.forEach(log => {
+          log.createdOn = (log.createdOn)? moment(log.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("leaveLogList : ", this.leaveLogList);
       } else {
         console.error(response.serviceResponse);
@@ -1053,6 +1079,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getRevokeLeaveApplicationByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.revokeLeaveApplicationList = response.serviceResponse;
+        this.revokeLeaveApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
       } else {
         console.error(response.serviceResponse);
@@ -1067,6 +1098,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllMyTeamLeaveRevokeApplicationsByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.revokeLeaveApplicationList = response.serviceResponse;
+        this.revokeLeaveApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
       } else {
         console.error(response.serviceResponse);
@@ -1081,6 +1117,11 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+        this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
       } else {
         console.error(response.serviceResponse);
@@ -1130,12 +1171,12 @@ export class LeaveComponent implements OnInit {
         const onlySpecificDataArr: Partial<Leave>[] = this.leaveApplicationListDataForExcel.map(	
           x => ({	
             "leave Type": x.leaveType,	
-            "From Date": x.fromDate,	
-            "To Date": x.toDate,	
+            "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,	
+            "To Date": (x.toDate)? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,	
             "No Of Days": x.noOfDays,	
             "status": x.status,	
             "Created By Name": x.createdByName,	
-            "Created On": x.createdOn,	
+            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
             "Reason": x.reason	
           })	
         )	
@@ -1159,12 +1200,12 @@ export class LeaveComponent implements OnInit {
       const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
         x => ({	
           "leave Type": x.leaveType,	
-          "From Date": x.fromDate,	
-          "To Date": x.toDate,	
+          "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,	
+          "To Date": (x.toDate)? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,	
           "No Of Days": x.noOfDays,	
           "status": x.status,	
           "Created By Name": x.createdByName,	
-          "Created On": x.createdOn,	
+          "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
           "Reason": x.reason	
         })	
       )	

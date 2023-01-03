@@ -15,6 +15,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-dept-config',
@@ -254,6 +256,9 @@ export class DeptConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
+        this.allDeptList.forEach(dept => {
+          dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("allDeptList : ", this.allDeptList)
       } else {
         alert(response.serviceResponse)
@@ -309,7 +314,7 @@ export class DeptConfigComponent implements OnInit {
           "Department Name": x.name,
           "Head of Department": x.hodName,
           "Created by": x.createdByName,
-          "Created on": x.createdOn
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)

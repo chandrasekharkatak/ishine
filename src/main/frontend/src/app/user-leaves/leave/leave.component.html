@@ -210,12 +210,12 @@
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                                 <td>{{leaveHistory.leaveType}}</td>
-                                <td>{{leaveHistory.fromDate | date:'dd-MM-yyyy'}}</td>
-                                <td>{{leaveHistory.toDate | date:'dd-MM-yyyy'}}</td>
+                                <td>{{leaveHistory.fromDate}}</td>
+                                <td>{{leaveHistory.toDate}}</td>
                                 <td>{{leaveHistory.noOfDays}} day(s)</td>
                                 <td>{{leaveHistory.status}}</td>
                                 <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
-                                <td>{{leaveHistory.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{leaveHistory.createdOn}}</td>
                                 <td>{{leaveHistory.reason}}</td>
                                 <td>{{leaveHistory.remark}}</td>
                                 <!-- <td>{{leaveHistory.description}}</td> -->
@@ -302,12 +302,12 @@
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
-                            <td>{{leaveApplication.fromDate | date:'dd-MM-yyyy'}}</td>
-                            <td>{{leaveApplication.toDate | date:'dd-MM-yyyy'}}</td>
+                            <td>{{leaveApplication.fromDate}}</td>
+                            <td>{{leaveApplication.toDate}}</td>
                             <td>{{leaveApplication.noOfDays}} day(s)</td>
                             <td>{{leaveApplication.status}}</td>
                             <td>{{leaveApplication.createdByName}}</td>
-                            <td>{{leaveApplication.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                            <td>{{leaveApplication.createdOn}}</td>
                             <td>{{leaveApplication.reason}}</td>
                             <!-- <td>{{leaveApplication.description}}</td> -->
                             <td>
@@ -414,13 +414,13 @@
                                 <td>{{log.updateBalanceBy}}</td>
                                 <td>{{log.balance}}</td>
                                 <td>{{log.message}}</td>
-                                <td>{{log.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{log.createdOn}}</td>
                             </tr>
                         </tbody>
                       </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> 
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  -->
             </div>
         </div>
     </div>    
@@ -474,12 +474,12 @@
                                 <td>{{items*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveRevokeApplication">{{leave.employeeName}}</td>
                                 <td>{{leave.leaveType}}</td>
-                                <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
-                                <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
+                                <td>{{leave.fromDate}}</td>
+                                <td>{{leave.toDate}}</td>
                                 <td>{{leave.noOfDays}}</td>
                                 <td>{{leave.status}}</td>
                                 <td *ngIf="isSelfLeaveRevokeApplication">{{leave.createdByName}}</td>
-                                <td>{{leave.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{leave.createdOn}}</td>
                                 <td>{{leave.revokeReason}}</td>
                                 <td>{{leave.remark}}</td>
                             </tr>
@@ -535,12 +535,12 @@
                             <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
                                 <td>{{leave.leaveType}}</td>
-                                <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
-                                <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
+                                <td>{{leave.fromDate}}</td>
+                                <td>{{leave.toDate}}</td>
                                 <td>{{leave.noOfDays}}</td>
                                 <td>{{leave.status}}</td>
                                 <td>{{leave.createdByName}}</td>
-                                <td>{{leave.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{leave.createdOn}}</td>
                                 <td>{{leave.revokeReason}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-success" type="submit" (click)="onUpdateRevokeLeaveStatus(alert_message, leave, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;

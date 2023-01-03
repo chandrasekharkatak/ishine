@@ -20,6 +20,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { Document } from 'src/app/models/document';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-employee-config',
@@ -111,7 +112,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
-
+  
   constructor(
     private employeeService: EmployeeService,
     public validationService: ValidationService,
@@ -1134,6 +1135,8 @@ export class EmployeeConfigComponent implements OnInit {
         console.log("allEmployeeList : ", this.allEmployeeList)
         this.allEmployeeList.forEach(employeeObj => {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
@@ -1173,7 +1176,8 @@ export class EmployeeConfigComponent implements OnInit {
           "Full Name": x.name,		
           "EmailId": x.email,		
           "Employment Status": x.employmentstatus,		
-          "Date of Joining": x.dateOfJoining,
+          "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,
@@ -1181,7 +1185,7 @@ export class EmployeeConfigComponent implements OnInit {
           "Permanent Address":x.permanentAddress,
           "City":x.city,
           "Blood Group":x.bloodGroup,
-          "Date Of Birth":x.dateOfBirth,
+          "Date Of Birth":(x.dateOfBirth)? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
           "Gender":x.gender,
           "Father Name":x.fatherName,
           "Mobile No":x.mobileNo,
@@ -1214,7 +1218,7 @@ export class EmployeeConfigComponent implements OnInit {
           "Passing Grade":x.passingGrade,
           "Year Of Passing":x.yearOfPassing,
           "Created By":x.createdBy,
-          "Created On":x.createdOn,
+          "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
           "Designation":x.jobRoleName,
 
@@ -1318,6 +1322,8 @@ export class EmployeeConfigComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         for(let x of this.allEmployeeList){
           x.employeementId = "A-".concat(x.employeementId)
+          x.dateOfJoining = (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          x.dateOfRelieving = (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {

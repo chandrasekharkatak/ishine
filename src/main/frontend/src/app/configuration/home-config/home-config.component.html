@@ -74,7 +74,7 @@
                             <td>{{image.imageName}}</td>
                             <td>{{image.eventName}}</td>
                             <td>{{image.createdByName}}</td>
-                            <td>{{image.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                            <td>{{image.createdOn}}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openPreviewEventPhoto(preview_template,image)"><em>Preview</em></button>&nbsp;
                                 <button *ngIf="userMapping.delete_event_photos" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEventPhoto(delete_template,image)"><em class="fa fa-trash"></em></button>

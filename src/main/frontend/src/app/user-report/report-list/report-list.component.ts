@@ -16,6 +16,8 @@ import { Employee } from 'src/app/models/employee';
 import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
 import { JobRole } from 'src/app/models/jobRole';
 import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
 
 class FilterData{
   title:any;
@@ -183,6 +185,10 @@ export class ReportListComponent implements OnInit {
         this.allLeaveApplicationsList = response.serviceResponse;
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          leave.updatedOn = (leave.updatedOn)? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
@@ -216,6 +222,10 @@ export class ReportListComponent implements OnInit {
           }
           this.allLeaveApplicationsList.forEach(leave => {
             leave.employeementId = "A-".concat(leave.employeementId);
+            leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            leave.updatedOn = (leave.updatedOn)? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
           console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
         } else {
@@ -235,6 +245,11 @@ export class ReportListComponent implements OnInit {
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
           timesheet.description = timesheet.description.replaceAll('<br>','')
+          timesheet.date = (timesheet.date)? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime)? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime)? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn)? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.updatedOn = (timesheet.updatedOn)? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
       } else {
@@ -266,8 +281,14 @@ export class ReportListComponent implements OnInit {
           }else {
             this.openAlertMod(template, "No Timesheet Application Report found ");
           }
-          this.allTimesheetApplicationsList.forEach(leave => {
-            leave.employeementId = "A-".concat(leave.employeementId);
+          this.allTimesheetApplicationsList.forEach(timesheet => {
+            timesheet.employeementId = "A-".concat(timesheet.employeementId);
+            timesheet.description = timesheet.description.replaceAll('<br>','')
+            timesheet.date = (timesheet.date)? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+            timesheet.officeInTime = (timesheet.officeInTime)? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.officeOutTime = (timesheet.officeOutTime)? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.createdOn = (timesheet.createdOn)? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.updatedOn = (timesheet.updatedOn)? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
           console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
         } else {
@@ -287,7 +308,10 @@ export class ReportListComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         this.allEmployeeList.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
-          employee.profileCompletedPercent = employee.profileCompletedPercent + "%"
+          employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
+          employee.dateOfBirth = (employee.dateOfBirth)? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
+          employee.dateOfJoining = (employee.dateOfJoining)? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employee.createdOn = (employee.createdOn)? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
@@ -321,6 +345,9 @@ export class ReportListComponent implements OnInit {
           }
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);
+            employee.dateOfBirth = (employee.dateOfBirth)? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
+            employee.dateOfJoining = (employee.dateOfJoining)? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+            employee.createdOn = (employee.createdOn)? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
           console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
@@ -522,8 +549,17 @@ showColumn(){
 
   onFilterSubmit(queryList:any , template:TemplateRef<any>){
     console.log("queryList : ", queryList);
-    this.queryList = queryList;
+    this.queryList = JSON.parse(JSON.stringify(queryList));
     this.cancelRequest();
+
+    queryList.forEach(query => {
+      if(query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining'){
+          query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
+      }else if(query.column == 'Created On' || query.column == 'Updated On'){
+        query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+      }
+    });
+
     
     if(this.filterData.title == 'Filter Leave Report'){
       this.getCustomLeaveApplicationsList(queryList,template);

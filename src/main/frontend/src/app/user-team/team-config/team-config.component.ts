@@ -21,6 +21,8 @@ import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { Department } from 'src/app/models/department';
 import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-team-config',
@@ -584,6 +586,9 @@ export class TeamConfigComponent implements OnInit {
       this.teamService.getAllTeamsByProjectId(teamObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allTeamList = response.serviceResponse;
+          this.allTeamList.forEach(team => {
+            team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
           this._allTeamList = this.allTeamList
 
           this.isDisabled = false;
@@ -622,7 +627,10 @@ export class TeamConfigComponent implements OnInit {
         console.log("response.serviceResponse :", response.serviceResponse);
         
         this.allTeamList = response.serviceResponse;
-        this._allTeamList = this.allTeamList;
+        this.allTeamList.forEach(team => {
+          team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this._allTeamList = this.allTeamList
         this.isDisabled = false;
         console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
       } else {
@@ -966,6 +974,9 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getAllActivitiesByProjectIdAndTeamId(activityObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allActivityList = response.serviceResponse;
+        this.allActivityList.forEach(activity => {
+          activity.createdOn = (activity.createdOn)? moment(activity.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("allActivityList :", this.allActivityList);
       } else {
         console.error(response.serviceResponse)
@@ -1117,7 +1128,7 @@ export class TeamConfigComponent implements OnInit {
           "Team Lead": x.teamLeadName,
           "Project Manager": x.projectManagerName,
           "Created by": x.createdByName,
-          "Created on": x.createdOn
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
@@ -1133,7 +1144,7 @@ export class TeamConfigComponent implements OnInit {
           "Activity": x.activity,
           "ETA": x.eta,
           "Created by": x.createdBy,
-          "Created on": x.createdOn
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);

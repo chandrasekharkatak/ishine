@@ -1,8 +1,10 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { EventPhoto } from 'src/app/models/EventPhoto';
 import { Feature } from 'src/app/models/feature';
 import { NotificationMessage } from 'src/app/models/notification';
@@ -194,6 +196,9 @@ export class HomeConfigComponent implements OnInit {
     this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages =  response.serviceResponse;
+        this.eventImages.forEach(img => {
+          img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
         console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);

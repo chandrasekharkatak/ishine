@@ -14,6 +14,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-role-config',
@@ -331,7 +333,12 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
+        this.allJobRoleList.forEach(role => {
+          role.createdOn = (role.createdOn)? moment(role.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          role.updatedOn = (role.updatedOn)? moment(role.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         this.filterAllJobRoleList = this.allJobRoleList;
+
       } else {
         console.error(response.serviceResponse)
       }
@@ -458,9 +465,9 @@ export class RoleConfigComponent implements OnInit {
           "Employee Role":x.employeeRole,
           "Department": x.departmentName,
           "Created by": x.createdBy,
-          "Created on": x.createdOn,
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Updated by": x.updatedBy,
-          "Updated on": x.updatedOn
+          "Updated on": (x.updatedOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
