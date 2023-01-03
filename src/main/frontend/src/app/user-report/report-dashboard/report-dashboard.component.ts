@@ -12,6 +12,7 @@ import * as moment from 'moment';
 import { Leave } from 'src/app/models/leave';
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
 
 HC_exportData(HighCharts);
 
@@ -142,9 +143,8 @@ export class ReportDashboardComponent implements OnInit {
         this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
         this.allResignEmployee.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
-          // employee.dateOfResign = moment((employee.dateOfResign).format(this.dateFormat));
-          employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
-        
+          employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
+          employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(AppComponent.DATE_FORMAT) : null;
         });
 
         console.log("allResignEmployee : ", this.allResignEmployee)
@@ -1544,8 +1544,19 @@ export class ReportDashboardComponent implements OnInit {
   
     onFilterSubmit(queryList:any , template:TemplateRef<any>){
       console.log("queryList : ", queryList);
-      this.queryList = queryList;
+      this.queryList =  JSON.parse(JSON.stringify(queryList)); 
       this.cancelRequest();
+
+
+      queryList.forEach(query => {
+          if(query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining'){
+              query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
+          }else if(query.column == 'Created On' || query.column == 'Updated On'){
+            query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+          }
+      });
+
+      console.log("updated queryList : ", this.queryList);
 
       if(this.filterData.title == 'Filter Employee Report'){
         this.getCustomEmployeesList(queryList,template);
@@ -1569,8 +1580,8 @@ export class ReportDashboardComponent implements OnInit {
         "Emp ID": "A-".concat(x.employeementId),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "From Date": x.fromDate,
-        "To Date": x.toDate,
+        "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
+        "To Date": (x.toDate)? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,
         "Status": x.status
       })
     )
@@ -1583,7 +1594,7 @@ export class ReportDashboardComponent implements OnInit {
         "Emp ID": "A-".concat(x.employeementId),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "Timesheet Date":x.date,
+        "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
         "Day Type":x.dayType,
         "Email Id": x.email,
         "Manager Name": x.managerName,
@@ -1605,7 +1616,7 @@ export class ReportDashboardComponent implements OnInit {
         "Email Id": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
-        "Timesheet Date":x.date,
+        "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
         "Day Type": x.dayType,
         "Total Working Hours": x.totalWorkingHours
       })
@@ -1620,7 +1631,7 @@ export class ReportDashboardComponent implements OnInit {
         "Name":x.name,
         "Department Name": x.departmentName,
         "Email Id": x.email,
-        "Date Of Joining" : x.dateOfJoining,
+        "Date Of Joining" : (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
@@ -1641,7 +1652,7 @@ export class ReportDashboardComponent implements OnInit {
         "Client Name":x.clientName,
         "Team Name":x.teamName,
         "Client Location":x.managerName,
-        "Working Date":x.date
+        "Working Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -1655,8 +1666,8 @@ export class ReportDashboardComponent implements OnInit {
         "Emp ID": x.employeementId,
         "Employee Name":x.name,
         "Department":x.departmentName,
-        "Date Of Resign":x.dateOfResign,
-        "Date Of Relieving":x.dateOfRelieving,
+        "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
+        "Date Of Relieving":(x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
         "Reporting To":x.managerName
       })
     )

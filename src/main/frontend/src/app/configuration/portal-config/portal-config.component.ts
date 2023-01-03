@@ -15,6 +15,7 @@ import { Query } from 'src/app/models/query';
 import { enableAppreciation } from 'src/app/models/enableAppreciation';
 import * as moment from 'moment';	
 import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
 
 
 
@@ -127,7 +128,12 @@ export class PortalConfigComponent implements OnInit {
    this.allAppreciationEvent=[];
     this.portalService.getAllEvent().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allAppreciationEvent = response.serviceResponse; 
+        this.allAppreciationEvent = response.serviceResponse;
+        this.allAppreciationEvent.forEach(event => {
+          event.fromDate = (event.fromDate)? moment(event.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          event.toDate = (event.toDate)? moment(event.toDate).format(AppComponent.DATE_FORMAT) : null;
+          event.createdOn = (event.createdOn)? moment(event.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        }); 
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEventList : ", this.allAppreciationEvent)
       } else {
@@ -605,6 +611,9 @@ toDateFilter = (d: Date)=>{
     this.portalService.viewAppreciations(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.appByCategory = response.serviceResponse;
+        this.appByCategory.forEach(appr => {
+          appr.appreciationDate = (appr.appreciationDate)? moment(appr.appreciationDate).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
         //this.reset();       

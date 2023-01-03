@@ -14,6 +14,8 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { Sort } from '@angular/material/sort';
 import { HierarchyUser } from 'src/app/models/hierarchyUser';
 import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-my-team',
@@ -269,6 +271,11 @@ export class MyTeamComponent implements OnInit {
     this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewLeaveHistoryList = response.serviceResponse;
+        this.teamViewLeaveHistoryList.forEach(leaveHistory => {
+          leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
+          leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+        });
         console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
       } else {
         console.error(response.serviceResponse);
@@ -307,6 +314,11 @@ export class MyTeamComponent implements OnInit {
     this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewCompOffHistoryList = response.serviceResponse;
+        this.teamViewCompOffHistoryList.forEach(compOffHistory => {
+          compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+        });
         console.log("teamViewCompOffHistory : ", this.teamViewCompOffHistoryList);
       } else {
         console.error(response.serviceResponse);
@@ -326,6 +338,11 @@ export class MyTeamComponent implements OnInit {
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
+        this.leaveApplicationList.forEach(leaveApp => {
+          leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null,
+          leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+        });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
@@ -371,6 +388,10 @@ export class MyTeamComponent implements OnInit {
     this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
+        this.allCompOffApplications.forEach(compOffApp => {
+          compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
+        });
         console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);

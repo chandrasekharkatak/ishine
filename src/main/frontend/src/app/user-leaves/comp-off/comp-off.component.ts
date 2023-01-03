@@ -4,6 +4,7 @@ import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { Leave } from 'src/app/models/leave';
 import { User } from 'src/app/models/user';
@@ -277,6 +278,10 @@ export class CompOffComponent implements OnInit {
       this.leaveService.getAllCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allCompOffRequests = response.serviceResponse;
+          this.allCompOffRequests.forEach(compOff => {
+            compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
+          });
           console.log("allCompOffRequests : ", this.allCompOffRequests);
         } else {
           console.error(response.serviceResponse);
@@ -292,6 +297,10 @@ export class CompOffComponent implements OnInit {
       this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allCompOffApplications = response.serviceResponse;
+          this.allCompOffApplications.forEach(compOff => {
+            compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
+          });
           console.log("allCompOffApplications : ", this.allCompOffApplications);
         } else {
           console.error(response.serviceResponse);

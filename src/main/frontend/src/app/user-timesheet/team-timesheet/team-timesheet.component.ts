@@ -10,6 +10,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 
 @Component({
@@ -140,6 +142,10 @@ export class TeamTimesheetComponent implements OnInit {
 
         for(let x of this.allTeamTimesheets){
           x.employeementId = "A-".concat(x.employeementId);
+          x.date = (x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
+          x.officeInTime = (x.officeInTime)? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          x.officeOutTime = (x.officeOutTime)? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          x.createdOn = (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }
 
         console.log("allTeamTimesheets :", this.allTeamTimesheets);
@@ -163,6 +169,10 @@ export class TeamTimesheetComponent implements OnInit {
         this.allTeamTimesheetRequests = response.serviceResponse;
         for(let x of this.allTeamTimesheetRequests){
           x.employeementId = "A-".concat(x.employeementId);
+          x.date = (x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
+          x.officeInTime = (x.officeInTime)? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          x.officeOutTime = (x.officeOutTime)? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          x.createdOn = (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {

@@ -1,7 +1,9 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { SurveyOption } from 'src/app/models/sureyOption';
 import { Survey } from 'src/app/models/survey';
@@ -313,6 +315,9 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
+       this.allSurveyList.forEach(survey => {
+         survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+       });
        console.log("this.allSurveyList : ", this.allSurveyList); 
       }else{
         console.error(response.serviceResponse);

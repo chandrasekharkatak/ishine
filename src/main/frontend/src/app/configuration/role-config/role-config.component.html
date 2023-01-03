@@ -163,9 +163,9 @@
                                 <td>{{jobRole.employeeRole}}</td>
                                 <td>{{jobRole.departmentName}}</td>
                                 <td>{{jobRole.createdBy}}</td>
-                                <td>{{jobRole.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{jobRole.createdOn}}</td>
                                 <td>{{jobRole.updatedByName}}</td>
-                                <td>{{jobRole.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{jobRole.updatedOn}}</td>
                                 <td
                                     *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role">
                                     <button *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping"

@@ -11,6 +11,8 @@ import { Feature } from 'src/app/models/feature';
 import { saveAs } from "file-saver";
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 
 
@@ -185,6 +187,9 @@ export class UploadPoliciesComponent implements OnInit {
     this.uploadPoliciesService.getAllDocument().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.document =  response.serviceResponse;
+        this.document.forEach(doc => {
+          doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);

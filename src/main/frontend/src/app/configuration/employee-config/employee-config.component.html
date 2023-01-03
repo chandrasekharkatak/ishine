@@ -830,8 +830,8 @@
                                 <td>{{employee.employmentstatus}}</td>
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
-                                <td>{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</td>
-                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving | date:'dd-MM-yyyy'}}</td>
+                                <td>{{employee.dateOfJoining}}</td>
+                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving}}</td>
 
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td

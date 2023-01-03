@@ -348,7 +348,7 @@
             <td>{{event.appreciationEventName}}</td>	
             <td>{{event.fromDate}}</td>	
             <td>{{event.toDate}}</td>	
-            <td>{{event.createdOn | date:'yyyy-MM-dd HH:mm:ss'}}</td>	
+            <td>{{event.createdOn}}</td>	
            <td *ngIf="userMapping.update_appreciation_event || userMapping.delete_appreciation_event">	
             <button *ngIf="userMapping.update_appreciation_event" class="btn btn-sm btn-outline-primary"	
             (click)="showUpdateForm(event)" type="submit" ><em class="fa fa-edit"></em></button>&nbsp;	

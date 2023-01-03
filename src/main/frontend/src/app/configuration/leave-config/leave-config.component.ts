@@ -12,6 +12,8 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-leave-config',
@@ -558,6 +560,9 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
+        this.holidayList.forEach(holiday => {
+            holiday.dateOfHoliday = (holiday.dateOfHoliday)? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null; 
+        });
         console.log("holidayList : ", this.holidayList);
         this.holidayListFilter = this.holidayList;
       } else {
@@ -589,7 +594,7 @@ exportToExcel(): void {
         x => ({
           "Occasion": x.occasion,	
           "Day": x.dayOfTheWeek,	
-          "Date": x.dateOfHoliday,	
+          "Date": (x.dateOfHoliday)? moment(x.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null,	
           "State": x.state
         })
       )
@@ -633,7 +638,7 @@ exportToExcel(): void {
           "Leave Type": x.leaveType,
           "Description": x.description,
           "Created By": x.createdByName,
-          "Created On": x.createdOn
+          "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATE_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
@@ -1057,6 +1062,9 @@ exportToExcel(): void {
     this.leaveService.getAllLeavePolicy().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leavePolicyList = response.serviceResponse;
+        this.leavePolicyList.forEach(leavePolicy => {
+          leavePolicy.createdOn = (leavePolicy.createdOn)? moment(leavePolicy.createdOn).format(AppComponent.DATE_FORMAT) : null;
+        });
         console.log("leavePolicyList : ", this.leavePolicyList);
       } else {
         console.error(response.serviceResponse);

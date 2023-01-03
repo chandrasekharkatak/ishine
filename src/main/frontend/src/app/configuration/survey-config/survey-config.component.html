@@ -154,7 +154,7 @@
                         <td>{{survey.description}}</td>
                         <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
                         <td>{{survey.createdByName}}</td>
-                        <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                        <td>{{survey.createdOn}}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
                             
