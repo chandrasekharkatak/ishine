@@ -27,4 +27,8 @@ export class TeamViewService {
     return this.http.post(`${this.baseUrl}` + `api/getAllTeamMemberView`, employeeObj);
   }
   
+  getDepartmentLeaveHistory(leaveObj : Leave){
+    return this.http.post(`${this.baseUrl}` + `api/getDepartmentLeaveHistory`, leaveObj);
+  }
+
 }

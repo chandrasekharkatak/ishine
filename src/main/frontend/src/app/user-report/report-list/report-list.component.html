@@ -398,14 +398,15 @@
                 </th>
               </ng-container>
             </tr>
-            <tr>
+            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
+              (cdkDragReleased)="release = true" (cdkDropListDropped)="dropInsideCol($event)">
               <ng-container *ngFor="let column of finalColumns, let i = index">
                 <ng-container *ngIf="!column.department">
                   <th></th>
                 </ng-container>
         
                 <ng-container *ngFor="let subColumn of column.department">
-                  <th>
+                  <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
                     {{subColumn.header}}
                   </th>
                 </ng-container>
@@ -415,7 +416,23 @@
           <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
             <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
               (cdkDragReleased)="onDragRelease($event)" *ngFor="let element of paginateData">
-              <ng-container *ngFor="let cell of columns; let i = index">
+
+                <ng-container *ngFor="let cell of finalColumns; let i = index">
+                  <ng-container *ngIf="i == 0">
+                    <td *ngFor="let x of cell.department">{{ element[x.field] }}</td>
+                  </ng-container>
+                  <ng-container *ngIf="i != 0">
+                    <td *ngFor="let x of cell.department">
+                      <label class="cell-checkbox">
+                        <input type="checkbox" [(ngModel)]="element[x.field]"
+                        (change)="selectCellCheckbox(x.field,element[x.field], element.subfeatureId)" />
+                        <span class="primary"></span>
+                    </label>
+                    </td>
+                  </ng-container>
+                </ng-container>
+                
+              <!-- <ng-container *ngFor="let cell of columns; let i = index">
                 <ng-container *ngIf="i == 0">
                   <td>{{ element[cell.field] }}</td>
                 </ng-container>
@@ -423,7 +440,7 @@
                   <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
                       (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
                 </ng-container>
-              </ng-container>
+              </ng-container> -->
               <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
                 [style.width]="pos?.width">
                 <table>
@@ -438,7 +455,7 @@
         </table>
       </div>
       <button type="button" class="btn btn-sm btn-outline-primary mt-2" [hidden]="paginateData.length == 0"
-        (click)="updateJobRoleSubFeatureMapping(alert_message)">Updated Role ACL</button>
+        (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
     </div>
 </div>
 <!-- end :: ACL (access control list) -->

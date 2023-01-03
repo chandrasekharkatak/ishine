@@ -70,6 +70,8 @@ export class ReportListComponent implements OnInit {
   hiddenColumnObj:any[] = [];
   showColumnList:any[] = [];
 
+  insideCols:any[] = [];
+
   excelName:any;
   jobRoleName:any;
   departmentId:any;
@@ -383,6 +385,7 @@ export class ReportListComponent implements OnInit {
             this.personaWiseJobRole = this.allJobRoleList.filter((x) => x.employeeRole == persona);
             this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name, "department":role.departmentName })})
 
+            // segregating jobroles by department
             var final = [];
             this.columns.forEach(function (e) {
               var match = false;
@@ -459,7 +462,19 @@ dropRow(event: CdkDragDrop<string[]>) {
 
 dropCol(event: CdkDragDrop<string[]>) {
   if(event.previousIndex != 0 && event.currentIndex !== 0){
-    moveItemInArray(this.columns, event.previousIndex, event.currentIndex);
+    moveItemInArray(this.finalColumns, event.previousIndex, event.currentIndex);
+  }
+}
+
+dropInsideCol(event: CdkDragDrop<string[]>) {
+  if(event.previousIndex != 0 && event.currentIndex !== 0){
+
+    this.insideCols = [];
+    this.finalColumns.forEach((x) => {
+      this.insideCols.push(...x.department);
+    });
+
+    moveItemInArray(this.insideCols, event.previousIndex, event.currentIndex);
   }
 }
 

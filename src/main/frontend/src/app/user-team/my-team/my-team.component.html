@@ -122,9 +122,15 @@
       </div>
 
       <div class="row mb-2">
-        <div class="col-md-12">
+        <div class="col-md-4">
           <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveHistory}" (click)="viewLeaveHistory()">View Leave History</button>
           <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffHistory}" (click)="viewCompOffHistory()">View CompOff History</button>
+        </div>
+        <div class="col-md-3" *ngIf="userMapping.view_department_leave_history && isLeaveHistory">
+          <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryView($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+            <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
+          </div> 
         </div>
       </div>
 
@@ -136,7 +142,7 @@
               <div class="info-wrapper">
                   <div class="form-group">
                       <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView()">
+                      <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="fromDate" (change)="getAllTeamLeaveHistoryView();getDepartmentLeaveHistory()">
                   </div>
               </div>
             </div>
@@ -144,7 +150,7 @@
                   <div class="info-wrapper">
                       <div class="form-group">
                           <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView()">
+                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView();getDepartmentLeaveHistory()">
                       </div>
                   </div>
               </div>

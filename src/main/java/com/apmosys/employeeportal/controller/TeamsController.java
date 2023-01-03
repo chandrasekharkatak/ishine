@@ -108,6 +108,13 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value="/getDepartmentLeaveHistory" , method = RequestMethod.POST)
+	public ServiceResponse getDepartmentLeaveHistory(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getDepartmentLeaveHistory(leaveDTO);	
+		return response; 
+	}
+	
 	/*
 	 Team, Project, Activity  Data Migration : 17/10/2022 - Harshit
 	  */

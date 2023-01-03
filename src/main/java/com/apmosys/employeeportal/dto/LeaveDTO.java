@@ -109,4 +109,6 @@ public class LeaveDTO {
 	private String managerEmail;
 	private Float fromDateDayType;
 	private Float toDateDayType;
+	
+	private Long deptId;
 }
