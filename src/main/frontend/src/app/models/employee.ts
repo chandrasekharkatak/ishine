@@ -143,4 +143,6 @@ export class Employee{
 	deptHeadConsentList:any;
 	consentMailLink:any;
 	profileCompletedPercent:any;
+	updatedByName:any;
+	createdByName: any;
 }

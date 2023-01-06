@@ -33,5 +33,6 @@ public class ProjectDTO {
     private String poProjectManagerId;
     private List<TeamDTO> teamList;
     private String[] departmentList;
+    private String createdByName;
 
 }

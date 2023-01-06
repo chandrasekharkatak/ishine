@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -7,6 +11,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.joda.LocalDateTimeParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -138,6 +143,8 @@ public class DepartmentService {
 
 	public ServiceResponse getAllDepartments() {
 		ServiceResponse response = new ServiceResponse();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		
 		try {
 			List<Object[]> allDepartmentList = departmentRepository.getAllDepartments();
 			if (allDepartmentList.isEmpty()) {
@@ -154,7 +161,9 @@ public class DepartmentService {
 					departmentDTO.setCreatedByName(object[4].toString());
 					departmentDTO.setHodName(object[5].toString());
 					departmentDTO.setHodId(Long.parseLong(object[6].toString()));
-					dtoList.add(departmentDTO);
+					departmentDTO.setUpdatedOn(object[7] != null ? object[7].toString(): null);
+					departmentDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dtoList.add(departmentDTO);      
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -185,6 +194,7 @@ public class DepartmentService {
 				departmentToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				departmentToBeUpdated.setName(departmentDTO.getName());
 				departmentToBeUpdated.setHodId(departmentDTO.getHodId());
+				departmentToBeUpdated.setUpdatedBy(departmentDTO.getUpdatedBy());
 
 				Department dbResponse = departmentRepository.save(departmentToBeUpdated);
 

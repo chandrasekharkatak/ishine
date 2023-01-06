@@ -19,6 +19,11 @@ export class ImageService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEventPhotos`);
   }
 
+  // getAllEventPhotosForHome
+  getAllEventPhotosForHome() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEventPhotosForHome`);
+  }
+
   deleteEventPhoto(imageObj: EventPhoto) {
     return this.http.post(`${this.baseUrl}` + `api/deleteEventPhoto`, imageObj);
   }

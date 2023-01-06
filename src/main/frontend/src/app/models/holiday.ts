@@ -12,4 +12,11 @@ export class Holiday{
 	deptId:any;
 	departmentHolidayMapId:any;
 	isActive:any;
+	createdOn: any;
+	createdBy: any;
+	updatedOn: any;
+	updatedByName: any;
+	updatedBy: any;
+	createdbyName: any;
+
 }

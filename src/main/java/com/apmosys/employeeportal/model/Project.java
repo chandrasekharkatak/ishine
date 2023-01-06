@@ -41,5 +41,6 @@ public class Project {
 	private Long poProjectId;
 	private String active;
 	private String syncProject;
+	private Integer createdBy;
 
 }

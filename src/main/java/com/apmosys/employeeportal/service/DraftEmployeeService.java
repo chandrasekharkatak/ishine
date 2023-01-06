@@ -689,6 +689,8 @@ public class DraftEmployeeService {
 							object[4] != null ? stringToDateTimeParser.formatDateToString(object[4].toString()) : null);
 					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 					empDTO.setUpdateApplicationStatus(object[6] != null ? object[6].toString() : null);
+					empDTO.setManagerName(object[7] != null ? object[7].toString() : null);
+					empDTO.setDepartmentName(object[8] != null ? object[8].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

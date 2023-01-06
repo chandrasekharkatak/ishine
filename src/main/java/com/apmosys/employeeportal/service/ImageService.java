@@ -244,6 +244,88 @@ public class ImageService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse getAllEventPhotosForHome() {
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("View All Event Photos");
+		apiLogInfo.setApiUrl("/api/getAllEventPhotosForHome");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+
+		try {
+
+			List<Object[]> eventPhotolist = eventPhotosRepository.getAllImagePhotos();
+
+			Optional.ofNullable(eventPhotolist).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No Images found.Event Photos list is empty");
+
+					apiLogInfo.setApiResponse("No Images found for home.Event Photos list is empty.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				} else {
+
+					List<EventPhotoDTO> dtoList = new ArrayList<EventPhotoDTO>();
+
+					list.forEach((object) -> {
+
+						EventPhotoDTO photoDTO = new EventPhotoDTO();
+
+						photoDTO.setEventPhotoId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						photoDTO.setEventName(object[1] != null ? object[1].toString() : null);
+						photoDTO.setImageName(object[2] != null ? object[2].toString() : null);
+						photoDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
+						photoDTO.setCreatedByName(object[4] != null ? object[4].toString() : null);
+						photoDTO.setCreatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+
+						byte[] imageByte;
+
+						try {
+							imageByte = Files
+									.readAllBytes(Paths.get(imageFileLocation + File.separator + object[2].toString()));
+							photoDTO.setImageBytes(imageByte);
+
+							apiLogInfo.setApiResponse("Image set ");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+						} catch (IOException e) {
+							e.printStackTrace();
+							response.setServiceError(e.getMessage());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							apiLogInfo.setLogLevel("ERROR");
+						}
+
+						dtoList.add(photoDTO);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+
+					apiLogInfo.setApiResponse("Get all event photos for home");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Event photo list is empty.");
+
+				apiLogInfo.setApiResponse("Event photo list is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 
 	public ServiceResponse deleteEventPhoto(EventPhotoDTO eventPhotoDTO) {
 		ServiceResponse response = new ServiceResponse();

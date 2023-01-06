@@ -432,9 +432,9 @@ export class TeamConfigComponent implements OnInit {
     if (this.allTeamMembers.length !== 0) {
       let flag = true;
       this.allTeamMembers.forEach(obj => {
-        if (obj.employeeRole == undefined || obj.employeeRole === null) {
+        if (obj.employeeRole == undefined || obj.employeeRole === null || obj.employeeRole.length == 0) {
           this.alertMessage = "Please select atleast one employee role for Activity mapping !!"
-          this.openAlertMod(template, this.alertMessage);
+  
           flag = false
           return false;
         }
@@ -1007,7 +1007,7 @@ export class TeamConfigComponent implements OnInit {
         this.alertMessage = `Please enter Activity - ${index + 1}!!`
         flag = false;
         return;
-      } if (!this.validationService.validateProjectName(activity.activity)) {
+      } if (!this.validationService.validateActivityName(activity.activity)) {
         this.alertMessage = `Please enter valid Activity - ${index + 1}!!`
         // activity.activity = ''
         flag = false;

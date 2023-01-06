@@ -89,7 +89,7 @@ export class InformationPreviewComponent implements OnInit {
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.maritalStatus)){
-      this.alertMessage = "Please enter select martial status !!"
+      this.alertMessage = "Please enter select marital status !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

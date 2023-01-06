@@ -497,6 +497,7 @@ export class LeaveConfigComponent implements OnInit {
     if(!inputValidated) return;
 
     // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
+    this.holidayObj.createdBy = this.currentUser.empId;
     console.log("Add Holiday : ", this.holidayObj);
     this.holidayService.addHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -514,6 +515,7 @@ export class LeaveConfigComponent implements OnInit {
     if(!inputValidated) return;
 
     // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
+    this.holidayObj.updatedBy = this.currentUser.empId;
     console.log("update Holiday : ", this.holidayObj);
 
     this.holidayService.updateHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
@@ -561,7 +563,9 @@ export class LeaveConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayList.forEach(holiday => {
-            holiday.dateOfHoliday = (holiday.dateOfHoliday)? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null; 
+            holiday.dateOfHoliday = (holiday.dateOfHoliday)? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
+            holiday.createdOn = (holiday.createdOn)? moment(holiday.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            holiday.updatedOn = (holiday.updatedOn)? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null; 
         });
         console.log("holidayList : ", this.holidayList);
         this.holidayListFilter = this.holidayList;
@@ -594,7 +598,7 @@ exportToExcel(): void {
         x => ({
           "Occasion": x.occasion,	
           "Day": x.dayOfTheWeek,	
-          "Date": (x.dateOfHoliday)? moment(x.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null,	
+          "Date": (x.dateOfHoliday)? moment(x.dateOfHoliday).format(AppComponent.DATETIME_FORMAT) : null,	
           "State": x.state
         })
       )
@@ -638,7 +642,7 @@ exportToExcel(): void {
           "Leave Type": x.leaveType,
           "Description": x.description,
           "Created By": x.createdByName,
-          "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATE_FORMAT) : null
+          "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)

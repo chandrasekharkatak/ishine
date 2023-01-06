@@ -10,6 +10,10 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { Department } from 'src/app/models/department';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LocationStrategy } from '@angular/common';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-project-config',
@@ -37,6 +41,8 @@ export class ProjectConfigComponent implements OnInit {
 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
+
+  currentUser: User;
 
   allStates: any[] = [
     "Andaman & Nicobar Islands",
@@ -86,8 +92,9 @@ export class ProjectConfigComponent implements OnInit {
     private modalService: BsModalService,
     public validationService: ValidationService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
-  ) { }
+    private locationStrategy: LocationStrategy,
+    private authenticationService:AuthenticationService
+  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
     this.sectionViewInit();
@@ -120,6 +127,7 @@ export class ProjectConfigComponent implements OnInit {
     this.getAllDepartmentList();
     this.getManagerList();
     this.getAllClientList();
+    this.projectObj.clientId = '';
   }
 
   showUpdateForm(project:Project){
@@ -276,13 +284,17 @@ export class ProjectConfigComponent implements OnInit {
     this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjects = response.serviceResponse;
+        this.allProjects.forEach(project =>{
+        project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
 
         //remove duplicate clients
         this.allProjects = this.allProjects.filter((value, index, self) =>
           index === self.findIndex((t) => (
             t.projectId === value.projectId
           ))
-        )
+        );
+
 
         console.log(this.allProjects, " : this.allProjects");
       } else {
@@ -327,14 +339,14 @@ export class ProjectConfigComponent implements OnInit {
     if(projectObj.projectName.length >= 5){
       if (!this.validationService.validateProjectName(projectObj.projectName)) {
         this.alertMessage = "Please enter valid Project Name !!"
-        this.projectObj.projectName = ''
+        // this.projectObj.projectName = ''
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
 
     }else{
       this.alertMessage = "Please enter more than 4 letters in Project Name !!"
-      this.projectObj.projectName = ''
+      // this.projectObj.projectName = ''
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -357,15 +369,26 @@ export class ProjectConfigComponent implements OnInit {
     // });
     this.projectObj.departmentName = null;
     this.projectObj.projectName = this.projectObj.projectName?.trim();
+    this.projectObj.createdBy = this.currentUser.empId;
+    console.log("     :   ",this.projectObj);
     
-    this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus == "Success") {
+    this.projectService.checkProjectName(this.projectObj).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Fail"){
+        this.projectObj.departmentName = this.projectObj.departmentList;
         this.openAlertMod(template, response.serviceResponse);
-        this.showTable();
       }else {
-        this.openAlertMod(template, response.serviceResponse);
+        this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
+          if(response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+          }else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
       }
-    });
+    })
+
+   
   }
 
   updateProject(template: TemplateRef<any>){

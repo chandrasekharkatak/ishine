@@ -1171,6 +1171,7 @@ public class EmployeeService {
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
 				}
+				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
 				employee.setBillable(employeedto.getBillable());
 				employee.setChild1(employeedto.getChild1());
 				employee.setChild2(employeedto.getChild2());
@@ -1178,6 +1179,7 @@ public class EmployeeService {
 				employee.setMothersName(employeedto.getMothersName());
 				employee.setSpouse(employeedto.getSpouse());
 				employee.setTotalExperience(employeedto.getTotalExperience());
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -1469,6 +1471,10 @@ public class EmployeeService {
 							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
 									: null);
 					empDTO.setJobRoleName(object[63] != null ? (object[63].toString()) : null);	
+					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);	
+					empDTO.setCreatedByName(object[65] != null ? (object[65].toString()) : null);	
+					empDTO.setUpdatedOn(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setFailedAttempt(failedAttempt);
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
