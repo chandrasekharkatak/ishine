@@ -71,6 +71,13 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getMappedActivityPreview", method = RequestMethod.POST)
+	public ServiceResponse getMappedActivityPreview(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.getMappedActivityPreview(teamDTO);
+		return response;
+	}
+	
 //	MyTeam Contoller
 	
 	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)

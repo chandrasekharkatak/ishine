@@ -21,4 +21,11 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
 	public List<Department> findByDeptIdIn(List<Long> deptIds);
 
+	public List<Department> findByHodId(Long hodId);
+
+	public boolean existsByHodId(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getDepartmentInfo();
+
 }

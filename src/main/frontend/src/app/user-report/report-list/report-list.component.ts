@@ -72,6 +72,8 @@ export class ReportListComponent implements OnInit {
 
   insideCols:any[] = [];
 
+  storedDataList:any[] = [];
+
   excelName:any;
   jobRoleName:any;
   departmentId:any;
@@ -138,7 +140,21 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
 
-    this.getAllLeaveApplicationsList();
+    console.log(this.storedDataList, " : storeddatalist");
+    
+
+    this.storedDataList.forEach((object) => {
+      if(object.filterName == 'Filter Leave Report'){
+        console.log("hii");
+        
+        this.getCustomLeaveApplicationsList(object.queryList,this.alertModal);
+      }
+    });
+
+    if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Leave Report')){
+      this.getAllLeaveApplicationsList();
+    }
+
     this.data = ''
   }
 
@@ -149,7 +165,16 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
 
-    this.getAllTimesheetApplicationsList();
+    this.storedDataList.forEach((object) => {
+      if(object.filterName == 'Filter Timesheet Report'){
+        this.getCustomTimesheetApplicationsList(object.queryList,this.alertModal);
+      }
+    });
+
+    if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')){
+      this.getAllTimesheetApplicationsList();
+    }
+
     this.data = ''
   }
 
@@ -160,7 +185,16 @@ export class ReportListComponent implements OnInit {
     this.isTimesheetReportTable = false;
     this.isAccessControlListTable = false;
 
-    this.getAllEmployeeList();
+    this.storedDataList.forEach((object) => {
+      if(object.filterName == 'Filter Employee Report'){
+        this.getCustomEmployeesList(object.queryList,this.alertModal);
+      }
+    });
+
+    if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Employee Report')){
+      this.getAllEmployeeList();
+    }
+
     this.data =''
   }
 
@@ -202,7 +236,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    if(queryObjList == ''){
+    if(queryObjList.length == 0){
       this.getAllLeaveApplicationsList();
     }else {
       this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
@@ -538,37 +572,55 @@ showColumn(){
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
     console.log("columns : ", columns);
+    this.queryList = [];
     
     this.filterData.title  = title;
     this.filterData.columns = columns;
+
+    this.storedDataList.forEach((data) => {
+      if(data.filterName == title){
+        this.queryList = data.queryList;
+      }
+    });
+
     this.filterData.queryList = JSON.stringify(this.queryList);
 
     console.log("filterData : ", this.filterData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
-  onFilterSubmit(queryList:any , template:TemplateRef<any>){
-    console.log("queryList : ", queryList);
-    this.queryList = JSON.parse(JSON.stringify(queryList));
+  onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
+    console.log("queryList : ", emittedArray[0]);
+    this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
     this.cancelRequest();
 
-    queryList.forEach(query => {
+    emittedArray[1].forEach((object) => {
+      if(Object.keys(object).length !== 0){
+        if(this.storedDataList.find((x) => x.filterName == object.filterName)){
+          this.storedDataList = this.storedDataList.map(arr1 => emittedArray[1].find(arr2 => arr2.filterName === arr1.filterName) || arr1);
+        }else{
+          this.storedDataList.push(object);
+        }
+      }
+    });
+    
+
+    emittedArray[0].forEach(query => {
       if(query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining'){
           query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
       }else if(query.column == 'Created On' || query.column == 'Updated On'){
         query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
       }
     });
-
     
     if(this.filterData.title == 'Filter Leave Report'){
-      this.getCustomLeaveApplicationsList(queryList,template);
+      this.getCustomLeaveApplicationsList(emittedArray[0],template);
     }
     if(this.filterData.title == 'Filter Employee Report'){
-      this.getCustomEmployeesList(queryList,template);
+      this.getCustomEmployeesList(emittedArray[0],template);
     }
     if(this.filterData.title == 'Filter Timesheet Report'){
-      this.getCustomTimesheetApplicationsList(queryList,template);
+      this.getCustomTimesheetApplicationsList(emittedArray[0],template);
     }
   }
 

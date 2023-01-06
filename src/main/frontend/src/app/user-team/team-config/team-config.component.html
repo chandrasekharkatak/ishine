@@ -213,12 +213,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2 d-flex">
-                    <div class="col-md-4 mb-0">
+                <div class="d-flex">
+                    <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
-                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole" [disabled]="!teamObj.departmentList">
+                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole" [disabled]="!teamObj.departmentList"
+                                 (selectionChange)="getMappedActivityPreview(newteamMember)">
                                     <mat-option selected="selected" value="" disabled>Select</mat-option>
                                     <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
                                 </mat-select>
@@ -228,6 +229,10 @@
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
                         [disabled]="!teamObj.departmentList"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="ol-md-4 m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="openActivityPreviewModal(activity_preview)"
+                            [disabled]="!newteamMember.employeeRole">Preview Activities</button>
                     </div>
                 </div>
             </div>
@@ -713,4 +718,37 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #activity_preview>
+    <div class="modal-header">
+        <b>Activities</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body d-flex">
+    <div class="row col-md-12">
+        <table class="table table-responsive scrollable-table">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Actvity</th>
+                    <th scope="col" class="info-label">Employee Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="activityPreviewList.length == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let emp of activityPreviewList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    <th class="info-label">{{10*(page-1)+i+1}}</th>
+                    <td>{{emp.activity}}</td>
+                    <td>{{emp.employeeRole}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 </ng-template>

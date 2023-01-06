@@ -29,6 +29,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -2903,6 +2904,48 @@ public class EmployeeService {
 			}
 			
 		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllEmployeeInfo() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> employeeObj = employeeRepository.getAllEmployeeInfoForPoPortal();
+			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
+			
+			if(!employeeObj.isEmpty()) {
+				employeeObj.forEach((object) -> {
+					PoPortalDTO dto = new PoPortalDTO();
+					String employeementStatus = object[3] != null ? object[3].toString() : null;
+					String status = null;
+					if(employeementStatus != null) {
+						status = !employeementStatus.equals("InActive") ? "Y" : "N";
+					}
+					Long empId = object[8] != null ? Long.parseLong(object[8].toString()): null;
+					
+					dto.setEmpId(object[0] != null ? object[0].toString() : null);
+					dto.setEmpName(object[1] != null ? object[1].toString() : null);
+					dto.setDeptId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					dto.setIsActive(status);
+					dto.setIsHead(validationService.validateHodId(empId) != false ? "Y" : "N");
+					dto.setMailId(object[4] != null ? object[4].toString() : null);
+					dto.setMobileNo(object[5] != null ? object[5].toString() : null);
+					dto.setRoleId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+					
+					dtoList.add(dto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Info not found.");
+			}
+		}catch(Exception e){
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

@@ -15,4 +15,6 @@ public interface ActivityTemplateRepository extends JpaRepository<ActivityTempla
 	List<ActivityTemplate> findByActivityTemplateIdNotInAndDeptIdAndEmployeeRole(List<Long> activityId, Long deptId,
 			String employeeRole);
 
+	List<ActivityTemplate> getByDeptIdAndEmployeeRoleIn(Long deptId, String[] employeeRole);
+
 }

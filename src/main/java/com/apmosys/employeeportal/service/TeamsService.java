@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -674,6 +675,51 @@ public class TeamsService {
 				e.printStackTrace();
 			}
 			return new ArrayList<>();
+		}
+	 
+		public ServiceResponse getMappedActivityPreview(TeamDTO teamDTO) {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				
+				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
+				Long deptId = null;
+				
+				if(!empObj.isEmpty()){
+					for(Object[] object: empObj) {
+						deptId = object[4] != null ? Long.parseLong(object[4].toString()) : null;
+					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("User Info not found.");
+				}
+				
+				List<ActivityTemplate> activityObj = activityTemplateRepository
+						.getByDeptIdAndEmployeeRoleIn(deptId, teamDTO.getEmployeeRole());
+				
+				if(!activityObj.isEmpty()) {
+					List<ActivityTemplateDTO> dtoList = new ArrayList<>();
+					
+					activityObj.forEach((object) -> {
+						ActivityTemplateDTO dto = new ActivityTemplateDTO();
+						
+						dto.setActivity(object.getTemplateActivity());
+						dto.setEmployeeRole(object.getEmployeeRole());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No activity found.");
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
+			}
+			return response;
 		}
 	 
 	 

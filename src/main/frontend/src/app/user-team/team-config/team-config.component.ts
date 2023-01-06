@@ -84,6 +84,7 @@ export class TeamConfigComponent implements OnInit {
 
   allTemplateActivityList: any[] = [];
   updatedTemplateActivityList: any[] = [];
+  activityPreviewList:any[] = [];
 
   //excel
   teamDataForExcel: any[];
@@ -204,7 +205,7 @@ export class TeamConfigComponent implements OnInit {
     this.teamObj.departmentList = [];
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
-    this.teamObj.departmentList = this.teamObj.departmentList.map(x=>+x);
+    this.teamObj.departmentList = this.teamObj.departmentList?.map(x=>+x);
     // if(this.teamObj.teamLeadDeptId){
     //   this.teamObj.departmentList.push(this.teamObj.teamLeadDeptId);
     // }
@@ -518,6 +519,27 @@ export class TeamConfigComponent implements OnInit {
 
   }
 
+  getMappedActivityPreview(teamMember:any){
+
+    if(teamMember.employeeRole.length == 0){
+      this.activityPreviewList = [];
+    }
+
+    let teamObj = new Team();
+    teamObj.empId = teamMember.empId;
+    teamObj.employeeRole = teamMember.employeeRole;
+    teamObj.departmentList = this.teamObj.departmentList;
+
+    this.teamService.getMappedActivityPreview(teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activityPreviewList = response.serviceResponse;
+        console.log(this.activityPreviewList, " : activityPreviewList");
+      } else {
+        console.log(response.serviceResponse, " response");
+      }
+    });
+  }
+
   onUpdateTeam(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
@@ -822,7 +844,7 @@ export class TeamConfigComponent implements OnInit {
     this.employeeListByDept = [];
 
     let empObj = new Employee();
-    empObj.departmentList = this.teamObj.departmentList.map(deptId => {
+    empObj.departmentList = this.teamObj.departmentList?.map(deptId => {
        let dept =  new Department();
        dept.deptId = deptId;
        return dept;
@@ -1184,6 +1206,10 @@ export class TeamConfigComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  openActivityPreviewModal(template: TemplateRef<any>,) {
+    this.modalRef = this.modalService.show(template);
   }
 
   //pagination 

@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -635,6 +636,38 @@ public class JobRoleService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Role ACL Updated");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllJobRoleInfo() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
+			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
+			
+			if(!jobRoleObj.isEmpty()) {
+				jobRoleObj.forEach((object) -> {
+					PoPortalDTO dto = new PoPortalDTO();
+					
+					dto.setRoleId(object.getJobRoleId());
+					dto.setDeptId(object.getDeptId());
+					dto.setRoleName(object.getName());
+					
+					dtoList.add(dto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("JobRole Info not found.");
+			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

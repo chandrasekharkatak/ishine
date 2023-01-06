@@ -136,4 +136,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeProfileCompletion(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllEmployeeInfoForPoPortal();
 }

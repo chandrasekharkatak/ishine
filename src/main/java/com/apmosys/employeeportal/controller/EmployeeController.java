@@ -278,5 +278,16 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.addDemographicsInfo(employeedto);
 		return response;
 	}
+	
+	/*
+	 API for PoPortal
+	 */
+	
+	@RequestMapping(value = "/getAllEmployeeInfo", method = RequestMethod.GET)
+	public ServiceResponse employeeInfo() {
+
+		ServiceResponse response = employeeService.getAllEmployeeInfo();
+		return response;
+	}
 
 }

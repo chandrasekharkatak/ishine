@@ -17,5 +17,6 @@ public class ActivityTemplateDTO {
 	private String employeeRole;
 	private String departmentName;
 	private String activityDescription;
+	private String activity;
 	
 }

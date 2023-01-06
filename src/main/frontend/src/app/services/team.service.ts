@@ -38,6 +38,10 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsByEmpId`, employeeObj);
   }
 
+  getMappedActivityPreview(teamObj: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/getMappedActivityPreview`, teamObj);
+  }
+
   // Activity Configuration
   createActivity(activityObj: Activity) {
     return this.http.post(`${this.baseUrl}` + `api/createActivity`, activityObj);

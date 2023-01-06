@@ -58,4 +58,10 @@ public class CustomFilterController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getValueOptionData", method = RequestMethod.POST)
+	public ServiceResponse getValueOptionData(@RequestBody CustomFilterDTO customFilterDTO) {
+		ServiceResponse response = customFilterService.getValueOptionData(customFilterDTO);
+		return response;
+	}
+	
 }

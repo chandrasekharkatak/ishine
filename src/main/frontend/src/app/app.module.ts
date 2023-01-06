@@ -76,6 +76,7 @@ import { NgxMatSelectModule } from 'ngx-mat-select';
 import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
 import { NgxOrgChartModule } from 'ngx-org-chart';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
+import {AutocompleteLibModule} from 'angular-ng-autocomplete';
 @NgModule({
   declarations: [
     AppComponent,
@@ -167,7 +168,8 @@ import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
   }),
     NgxOrgChartModule,
     OwlDateTimeModule,
-     OwlNativeDateTimeModule,
+    OwlNativeDateTimeModule,
+    AutocompleteLibModule
   ],
   providers: [
     BsModalService,

@@ -467,6 +467,21 @@ public class ProjectService {
 							response.setServiceResponse("Please provide team name.");
 							return response;
 						}
+						if(team.getDepartmentList().length == 0) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Please provide departments for " + team.getTeamName());
+							return response;
+						}else if(team.getDepartmentList().length != 0) {
+							//check if department present
+							for(String department: team.getDepartmentList()) {
+								Department deptObj = departmentRepository.findByName(department);
+								if(deptObj == null) {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Department does not exists : " + team.getTeamName());
+									return response;
+								}
+							}
+						}
 						if(team.getTeamMemberList() == null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Please provide team member(s) list in " + team.getTeamName());
@@ -487,22 +502,22 @@ public class ProjectService {
 									return response;
 								}
 								//check if employee are from same department
-								List<Object[]> departmentObj = employeeRepository.getDepartmentByEmployeementId(Long.parseLong(teamMember.split("-")[1]));
-								if(departmentObj != null) {
-									String departmentName = null;
-									for(Object[] object: departmentObj) {
-										departmentName = object[1] != null ? object[1].toString() : null;
-									}
-									if(teamMemberDepartment != null) {
-										if(!departmentName.equals(teamMemberDepartment)) {
-											response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-											response.setServiceResponse("Team member(s) should be from same department " + team.getTeamName());
-											return response;
-										}
-									}else {
-										teamMemberDepartment = departmentName;
-									}
-								}
+//								List<Object[]> departmentObj = employeeRepository.getDepartmentByEmployeementId(Long.parseLong(teamMember.split("-")[1]));
+//								if(departmentObj != null) {
+//									String departmentName = null;
+//									for(Object[] object: departmentObj) {
+//										departmentName = object[1] != null ? object[1].toString() : null;
+//									}
+//									if(teamMemberDepartment != null) {
+//										if(!departmentName.equals(teamMemberDepartment)) {
+//											response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//											response.setServiceResponse("Team member(s) should be from same department " + team.getTeamName());
+//											return response;
+//										}
+//									}else {
+//										teamMemberDepartment = departmentName;
+//									}
+//								}
 							}
 							Long duplicateTeamMember = Arrays.stream(team.getTeamMemberList()).distinct().count();
 							if(duplicateTeamMember < team.getTeamMemberList().length) {
@@ -624,11 +639,19 @@ public class ProjectService {
 									hodId = deptObj[4] != null ? Long.parseLong(deptObj[4].toString()) : null;
 								}
 							}
+							StringBuilder deptList = new StringBuilder("");
+							for(String department: object.getDepartmentList()) {
+								Department deptObj = departmentRepository.findByName(department);
+								if(deptObj != null) {
+									deptList.append(deptObj.getDeptId()).append(",");
+								}
+							}
 							if(teamObj != null) {
 								teamObj.setTeamName(object.getTeamName());
 								teamObj.setTeamLeadId(teamLeadObj !=null ? teamLeadObj.getEmpId() : null);
 								teamObj.setDescription(object.getDescription());
 								teamObj.setTeamLeadName(teamLeadObj !=null ? teamLeadObj.getName() : null);
+								teamObj.setDeptIds(deptList.toString());
 								Team teamDbResponse = teamRepository.save(teamObj);
 								
 								if(teamDbResponse != null) {
@@ -645,6 +668,7 @@ public class ProjectService {
 											empTeamMap.setEmpId(teamMemberObj.getEmpId());
 											empTeamMap.setTeamId(teamDbResponse.getTeamId());
 											empTeamMap.setActive(1l);
+											empTeamMap.setEmployeeRole("Employee");
 											EmployeeTeamMap teamMapDbResponse = employeeTeamMapRepository.save(empTeamMap);
 										}
 							        }
@@ -654,6 +678,7 @@ public class ProjectService {
 									if(alreadyExistMember != null) {
 										List<EmployeeTeamMap> inActiveMember = new ArrayList<EmployeeTeamMap>();
 										alreadyExistMember.forEach((member) -> {
+											
 											member.setActive(0l);
 											member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 											inActiveMember.add(member);
@@ -677,7 +702,7 @@ public class ProjectService {
 								newTeamObj.setTeamName(object.getTeamName());
 								newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 								newTeamObj.setDescription(object.getDescription());
-								newTeamObj.setDeptId(deptId);
+								newTeamObj.setDeptIds(deptList.toString());
 								newTeamObj.getCommonProperty().setCreatedBy(4l);
 								Team teamDbResponse = teamRepository.save(newTeamObj);
 								
@@ -727,17 +752,23 @@ public class ProjectService {
 								Activity newActivityCreated = null;
 								if(!teamMemberDbResponse.isEmpty()) {
 									//Add default activities mapping
-									List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptId);
-									if(!activityTemplate.isEmpty()) {
-										
-										for(ActivityTemplate activityObject: activityTemplate) {
-											Activity newActivity = new Activity();
+									for(String department: object.getDepartmentList()) {
+										Department deptObj = departmentRepository.findByName(department);
+										if(deptObj != null) {
+											List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptObj.getDeptId());
+											if(!activityTemplate.isEmpty()) {
+												
+												for(ActivityTemplate activityObject: activityTemplate) {
+													Activity newActivity = new Activity();
 
-											newActivity.setActivity(activityObject.getTemplateActivity());
-											newActivity.setTeamId(teamDbResponse.getTeamId());
-											newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+													newActivity.setActivity(activityObject.getTemplateActivity());
+													newActivity.setTeamId(teamDbResponse.getTeamId());
+													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+													newActivity.setDeptId(activityObject.getDeptId());
 
-											newActivityCreated = activitiesRepository.save(newActivity);
+													newActivityCreated = activitiesRepository.save(newActivity);
+												}
+											}
 										}
 									}
 								}
@@ -837,6 +868,14 @@ public class ProjectService {
 								}
 							}
 							// create new team
+							StringBuilder deptList = new StringBuilder("");
+							for(String department: teamObj.getDepartmentList()) {
+								Department deptObj = departmentRepository.findByName(department);
+								if(deptObj != null) {
+									deptList.append(deptObj.getDeptId()).append(",");
+								}
+							}
+							
 							Team newTeamObj = new Team();
 							newTeamObj.setIsActive("Y");
 							newTeamObj.setPoTeamId(teamObj.getPoTeamId());
@@ -845,7 +884,7 @@ public class ProjectService {
 							newTeamObj.setTeamName(teamObj.getTeamName());
 							newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 							newTeamObj.setDescription(teamObj.getDescription());
-							newTeamObj.setDeptId(deptId);
+							newTeamObj.setDeptIds(deptList.toString());
 							newTeamObj.getCommonProperty().setCreatedBy(4l);
 							Team teamDbResponse = teamRepository.save(newTeamObj);
 							if(teamDbResponse != null) {
@@ -897,17 +936,23 @@ public class ProjectService {
 								Activity newActivityCreated = null;
 								if(!teamMemberDbResponse.isEmpty()) {
 									//Add default activities mapping
-									List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptId);
-									if(!activityTemplate.isEmpty()) {
-										
-										for(ActivityTemplate activityObject: activityTemplate) {
-											Activity newActivity = new Activity();
+									for(String department: teamObj.getDepartmentList()) {
+										Department deptObj = departmentRepository.findByName(department);
+										if(deptObj != null) {
+											List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptObj.getDeptId());
+											if(!activityTemplate.isEmpty()) {
+												
+												for(ActivityTemplate activityObject: activityTemplate) {
+													Activity newActivity = new Activity();
 
-											newActivity.setActivity(activityObject.getTemplateActivity());
-											newActivity.setTeamId(teamDbResponse.getTeamId());
-											newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+													newActivity.setActivity(activityObject.getTemplateActivity());
+													newActivity.setTeamId(teamDbResponse.getTeamId());
+													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+													newActivity.setDeptId(activityObject.getDeptId());
 
-											newActivityCreated = activitiesRepository.save(newActivity);
+													newActivityCreated = activitiesRepository.save(newActivity);
+												}
+											}
 										}
 									}
 								}
