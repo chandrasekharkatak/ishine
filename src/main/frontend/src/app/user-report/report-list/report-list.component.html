@@ -250,7 +250,9 @@
                 <th scope="col" class="info-label wide-col">Graduation Type</th>	
                 <th scope="col" class="info-label wide-col">Pursuing</th>	
                 <th scope="col" class="info-label wide-col">Passing Grade</th>	
-                <th scope="col" class="info-label wide-col">Year of Passing</th>	
+                <th scope="col" class="info-label wide-col">Year of Passing</th>
+                <th scope="col" class="info-label wide-col">Updated on</th>
+                <th scope="col" class="info-label wide-col">Updated By</th>	
                 <th scope="col" class="info-label wide-col">Created By</th>	
                 <th scope="col" class="info-label wide-col">Created On</th>
                 <th scope="col" class="info-label wide-col">Profile completion Percentage</th>
@@ -311,7 +313,9 @@
                 <td>{{employee.pursuing}}</td>
                 <td>{{employee.passingGrade}}</td>
                 <td>{{employee.yearOfPassing}}</td>
-                <td>{{employee.createdBy}}</td>
+                <td>{{employee.updatedOn | date:'dd-MM-yyyy'}}</td>
+                <td>{{employee.updatedByName}}</td>
+                <td>{{employee.createdByName}}</td>
                 <td>{{employee.createdOn}}</td>
                 <td>
                   <div class="progress profileCompleted">

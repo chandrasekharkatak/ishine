@@ -242,7 +242,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.maritalStatus)){
-      this.alertMessage = "Please enter select martial status !!"
+      this.alertMessage = "Please enter select Marital status !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

@@ -681,6 +681,14 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    } if (employeeObj.noticePeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNoticePeriod(employeeObj.noticePeriod)) {
+      this.alertMessage = "Please enter valid notice period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.managerId)) {
@@ -721,7 +729,11 @@ export class EmployeeConfigComponent implements OnInit {
           this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"	
           this.openAlertMod(template, this.alertMessage);	
           return false;	
-        }	
+        }	 if (employeeObj.totalExperience > 60) {
+          this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        } 
       	
     }
 
@@ -862,6 +874,15 @@ export class EmployeeConfigComponent implements OnInit {
     return true;
   }
 
+  omit_character(event){	
+    var k;	
+    k = event.charCode;	
+    if((k == 45) || (k == 69) || (k == 101 ))	
+    {	
+      return (false);	
+    }	
+    return (true);	
+  }
 
   fieldRestictCharacter(event){
     var k;
@@ -919,6 +940,14 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("Create Employe : ", this.employeeObj);
    let employee = Object.assign({},this.employeeObj)
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
+    }
+
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
@@ -970,7 +999,17 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.employeeObj.employeementId?.substring(2)
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
     if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
       this.alertMessage = "Please enter Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
@@ -981,7 +1020,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-     
+  }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1061,7 +1100,15 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("Update Employe : ", this.employeeObj);
 
     let employee = Object.assign({}, this.employeeObj);
-    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
+    employee.updatedBy = this.currentUser.empId;
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
+    }
+    
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1137,6 +1184,8 @@ export class EmployeeConfigComponent implements OnInit {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn)? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn)? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");

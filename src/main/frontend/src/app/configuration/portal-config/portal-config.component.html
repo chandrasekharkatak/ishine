@@ -201,7 +201,7 @@
           <th colspan="9" class="text-center info-label">No details to display...</th>
         </tr>
          <tr *ngFor="let employee of allEmployeeList | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index " > 
-            <td>{{employee.empId}}</td>
+            <td>{{employee.employeementId}}</td>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>
             <td>{{employee.departmentName}}</td>

@@ -80,5 +80,4 @@ export class TeamService {
   updateActivityTemplate(team: Team) {
     return this.http.post(`${this.baseUrl}` + `api/updateActivityTemplate`, team);
   }
-
 }

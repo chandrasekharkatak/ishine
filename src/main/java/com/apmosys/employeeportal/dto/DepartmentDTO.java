@@ -20,11 +20,11 @@ public class DepartmentDTO {
 	private String createdOn;	
 	private Integer createdBy;
 	private String createdByName;	
-	private LocalDateTime updatedOn;	
+	private String updatedOn;	  
 	private Integer updatedBy;
 	private List<HolidayDTO> holidays;
 	private Long oldDeptId;
-	
+	private String updatedByName;
 	
 	
 	

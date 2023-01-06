@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -133,6 +134,8 @@ public class ProjectService {
 					projectDto.setDepartmentName(object[4] != null ? object[4].toString() : null);
 					projectDto.setClientName(object[5] != null ? object[5].toString() : null);
 					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
+					projectDto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+					projectDto.setCreatedOn(Timestamp.valueOf(object[10] != null ? object[10].toString() : null));
 					
 					dtoList.add(projectDto);
 				});
@@ -164,6 +167,7 @@ public class ProjectService {
 			projectObj.setState(poProjectSyncDTO.getState());
 			projectObj.setActive("true");
 			projectObj.setSyncProject(poProjectSyncDTO.getSyncProject());
+			projectObj.setCreatedBy(poProjectSyncDTO.getCreatedBy());
 			Project projectDbResponse =  projectRepository.save(projectObj);
 			
 			if(projectDbResponse != null) {

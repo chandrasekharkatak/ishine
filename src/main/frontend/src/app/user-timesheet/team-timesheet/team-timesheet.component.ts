@@ -239,7 +239,7 @@ export class TeamTimesheetComponent implements OnInit {
   revokeApprovedTimesheet(template: TemplateRef<any>) {
     this.cancelRequest();
     let timesheetObj = Object.assign({}, this.timesheetObj);
-    timesheetObj.employeementId = timesheetObj.employeementId.substring(2)
+    timesheetObj.employeementId = timesheetObj.employeementId?.substring(2)
 
     this.timesheetService.revokeApprovedTimesheet(timesheetObj).pipe(first()).subscribe((response :any) => {
       if(response.serviceStatus == "Success") {

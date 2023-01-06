@@ -204,7 +204,7 @@
                                   [useInfiniteScroll]="true"
                                   [multiple]="false"
                                   [(ngModel)]="newteamMember.empId"
-                                  [disabled]="!teamObj.departmentList"
+                                  [disabled]="!teamObj.departmentList || teamObj.departmentList.length == 0"
                                   >
                                   <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
                                     {{employee.name}}
@@ -228,7 +228,7 @@
                     </div>
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
-                        [disabled]="!teamObj.departmentList"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="ol-md-4 m-0">
                             <button type="button" class="btn btn-outline-primary mx-1" (click)="openActivityPreviewModal(activity_preview)"

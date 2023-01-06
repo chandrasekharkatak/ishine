@@ -454,13 +454,14 @@ public class CustomFilterService {
 						+ "e.views_on_organisation, e.year_of_passing,\n"
 						+ "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name \n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName \n"
 						+ "FROM employee e \n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
+						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q);
@@ -558,7 +559,8 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-					
+					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);	
+					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
@@ -673,13 +675,13 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {
-				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, "
-						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name "
-						+ "FROM employee_timesheets et "
-						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id "
-						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id "
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
+						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours \n"
+						+ "FROM employee_timesheets et \n"
+						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
+						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q);
@@ -724,6 +726,9 @@ public class CustomFilterService {
 					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					timesheetDto.setOfficeInTime(object[13] != null ? object[13].toString() : null);
+					timesheetDto.setOfficeOutTime(object[14] != null ? object[14].toString() : null);
+					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

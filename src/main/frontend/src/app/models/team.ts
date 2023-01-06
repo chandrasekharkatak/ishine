@@ -23,4 +23,5 @@ export class Team{
     deptId:any;
     templateActivity:any;
     empId:any;
+    activity: any;
 } 
