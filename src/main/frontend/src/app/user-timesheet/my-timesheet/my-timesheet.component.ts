@@ -350,14 +350,12 @@ export class MyTimesheetComponent implements OnInit {
       console.log("officeInTime : ", this.timesheetObj.officeInTime);
       console.log("officeOutTime : ", this.timesheetObj.officeOutTime);
 
-      
-      let start = moment(this.timesheetObj.officeInTime);
-      let end = moment(this.timesheetObj.officeOutTime);
-  
+      let start = moment(this.timesheetObj.officeInTime).format('DD-MM-YYYY HH:mm');
+      let end = moment(this.timesheetObj.officeOutTime).format('DD-MM-YYYY HH:mm');
   
       //const duration = moment.utc(moment(end,"yyyy-MM-DD HH:mm:ss").diff(moment(start,"yyyy-MM-DD HH:mm:ss"))).format("HH:mm");
       
-      let ms = moment(end,"DD/MM/YYYY HH:mm").diff(moment(start,"DD/MM/YYYY HH:mm"));
+      let ms = moment(end,"DD-MM-YYYY HH:mm").diff(moment(start,"DD-MM-YYYY HH:mm"));
       let d = moment.duration(ms);
       console.log("d : ", d);
       

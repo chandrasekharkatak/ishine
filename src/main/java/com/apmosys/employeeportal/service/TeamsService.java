@@ -820,6 +820,11 @@ public class TeamsService {
 					dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()): null);
 					dto.setEmploymentstatus(object[6] != null ? object[6].toString(): null);
 					dto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()): null);
+					dto.setManagerName(object[8] != null ? object[8].toString() : null);
+					dto.setManagerEmail(object[9] != null ? object[9].toString() : null);
+					dto.setHodId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setHodName(object[11] != null ? object[11].toString() : null);
+					dto.setHodEmail(object[12] != null ? object[12].toString() : null);
 					
 					dtoList.add(dto);
 					

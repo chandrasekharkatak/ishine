@@ -2365,6 +2365,11 @@ public class EmployeeService {
 					employee.setDepartmentName(object[11] != null ? object[11].toString() : null);
 					employee.setDateOfResign(object[12] != null ? object[12].toString() : null);
 					employee.setEmployeeRole(object[13] != null ? object[13].toString() : null);
+					employee.setManagerName(object[14] != null ? object[14].toString() : null);
+					employee.setManagerEmail(object[15] != null ? object[15].toString() : null);
+					employee.setHodId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+					employee.setHodName(object[17] != null ? object[17].toString() : null);
+					employee.setHodEmail(object[18] != null ? object[18].toString() : null);
 				});
 				return employee;
 			}

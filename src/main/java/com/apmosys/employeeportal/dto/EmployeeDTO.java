@@ -163,6 +163,10 @@ public class EmployeeDTO {
 //	private String eventCreatedOn;
 	private List<AssetDTO> deptHeadConsentList;
 	private Double profileCompletedPercent;
+		
+	private Long hodId;
+	private String hodName;
+	private String hodEmail;
 	private String updatedByName;
 	private String createdByName;
 

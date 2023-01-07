@@ -94,4 +94,9 @@ export class Leave{
 	rejectedApplicationsCount:any = 0;
 
 	deptId:any;
+	approverName:any;
+	approverEmail:any;
+
+	name:any;
+	checkDate:any;
 }

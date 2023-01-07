@@ -78,7 +78,7 @@
                                                 (blur)="validateBirthDate(alert_message)"> -->
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOB" #input (click)="DOBPicker.open()" [matDatepicker]="DOBPicker" (keydown)="disableMannualDateInput()"
-                                                    [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)">
+                                                    [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" autocomplete="off" >
                                                     <mat-datepicker-toggle  matSuffix [for]="DOBPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DOBPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
@@ -454,7 +454,7 @@
                                                 <!-- <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()"> -->
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOJ" #input (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
-                                                      [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining">
+                                                      [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DOJPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
@@ -496,7 +496,7 @@
                                             <div class="form-group">
                                                 <label class="info-label">Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign">
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
@@ -806,14 +806,14 @@
                                 <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
                                 <th scope="col" class="info-label">Employment Status</th>
-                                <th scope="col" class="info-label">Manager Name</th>
-                                <th scope="col" class="info-label">Department Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName">Manager Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="departmentName">Department Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>
                                 <th scope="col" class="info-label" *ngIf="dateOfReleivingshow" mat-sort-header="dateOfRelieving" > Date of Releiving</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Created On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Created by</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Updated On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Updated by</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn"> Created On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdByName"> Created by</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn"> Updated On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedByName"> Updated by</th>
 
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"

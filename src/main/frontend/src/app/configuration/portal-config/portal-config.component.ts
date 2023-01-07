@@ -16,6 +16,7 @@ import { enableAppreciation } from 'src/app/models/enableAppreciation';
 import * as moment from 'moment';	
 import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
+import { DepartmentService } from 'src/app/services/department.service';
 
 
 
@@ -70,13 +71,17 @@ export class PortalConfigComponent implements OnInit {
   all:any;
   enableAppreciationList:any[] = [];
 
+  allDeptList: any[] = [];
+  employeeList: any[] = [];
+
   constructor(
     private portalService:PortalService,
     private validationService:ValidationService,
     private modalService: BsModalService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private departmentService: DepartmentService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -130,8 +135,8 @@ export class PortalConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allAppreciationEvent = response.serviceResponse;
         this.allAppreciationEvent.forEach(event => {
-          event.fromDate = (event.fromDate)? moment(event.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          event.toDate = (event.toDate)? moment(event.toDate).format(AppComponent.DATE_FORMAT) : null;
+          // event.fromDate = (event.fromDate)? moment(event.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          // event.toDate = (event.toDate)? moment(event.toDate).format(AppComponent.DATE_FORMAT) : null;
           event.createdOn = (event.createdOn)? moment(event.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }); 
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
@@ -217,6 +222,8 @@ export class PortalConfigComponent implements OnInit {
      this.isUpdation = false;
 
     this.getAllPortalConfigData();
+    this.getAllDepartmentList();
+    this.getEmployeeList();
   }
   getAllPortalConfigData() {
 
@@ -226,6 +233,7 @@ export class PortalConfigComponent implements OnInit {
         this.portalConfigList = response.serviceResponse;
 
         console.log(this.portalConfigList,  "   :  portalConfigList");
+        console.log(this.portalObj,  "   :  portalObj");
 
         for(let portal of this.portalConfigList){
           if(portal.configName == 'Probation Period'){
@@ -247,6 +255,17 @@ export class PortalConfigComponent implements OnInit {
           }
           if(portal.configName == 'DSR Day'){
             this.portalObj.dsrGenerateDay = portal.configValue;
+          }
+          if(portal.configName == 'Leave Approval Escalation (Level 1)'){
+            this.portalObj.level1MinNoOfDays = portal.configPeriod;
+            this.portalObj.level1ApprovalTo = portal.configValue;
+          }
+          if(portal.configName == 'Leave Approval Escalation (Level 2)'){
+            this.portalObj.level2MinNoOfDays = portal.configPeriod;
+            this.portalObj.level2ApprovalTo = JSON.parse(portal.configValue);
+          }
+          if(portal.configName == 'Leave week-off/holiday exclusion'){
+            this.portalObj.weekOffExcludedDepartmentList = JSON.parse(portal.configValue);
           }
         }
       } else {
@@ -370,39 +389,76 @@ export class PortalConfigComponent implements OnInit {
       return;
     }
 
-    let tempArray = this.portalConfigList;    
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level1MinNoOfDays)) {
+      this.alertMessage = "Please Leave Approval Escalation (Level 1) : Min. No. of Days !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level1ApprovalTo)) {
+      this.alertMessage = "Please select Leave Approval Escalation (Level 1) : Approval To !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level2MinNoOfDays)) {
+      this.alertMessage = "Please enter Leave Approval Escalation (Level 2) : Min. No. of Days !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level2ApprovalTo)) {
+      this.alertMessage = "Please select Leave Approval Escalation (Level 2) : Approval To !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+
+
+
+    let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));    
 
     tempArray.forEach((portalConfig,index)=> {
       
       if(index == 0)
       {       
-        this.portalConfigList[0].configPeriod = this.portalObj.probationPeriod;
-        this.portalConfigList[0].mailTrigger = this.portalObj.probationMailTrigger;
+        portalConfig.configPeriod = portalObj.probationPeriod;
+        portalConfig.mailTrigger = portalObj.probationMailTrigger;
       }
       else if(index == 1)
       {
-        this.portalConfigList[1].configPeriod = this.portalObj.noticePeriod;
-        this.portalConfigList[1].mailTrigger = this.portalObj.noticeMailTrigger;
+        portalConfig.configPeriod = portalObj.noticePeriod;
+        portalConfig.mailTrigger = portalObj.noticeMailTrigger;
       }else if(index == 2)
       {
-        this.portalConfigList[2].configValue = this.portalObj.otrsLink;
+        portalConfig.configValue = portalObj.otrsLink;
       }else if(index == 3)
       {
-        this.portalConfigList[3].configValue = this.portalObj.snipitLink;
+        portalConfig.configValue = portalObj.snipitLink;
       }else if(index == 4)
       {
-        this.portalConfigList[4].configValue = this.portalObj.dsrDownloadPath;
+        portalConfig.configValue = portalObj.dsrDownloadPath;
       }else if(index == 5)
       {
-        this.portalConfigList[5].configValue = this.portalObj.dsrGenerateDay;
+        portalConfig.configValue = portalObj.dsrGenerateDay;
+      }else if(index == 6)
+      {
+        portalConfig.configPeriod = portalObj.level1MinNoOfDays
+        portalConfig.configValue = portalObj.level1ApprovalTo;
+      }else if(index == 7)
+      {
+        portalConfig.configPeriod = portalObj.level2MinNoOfDays
+        portalConfig.configValue = portalObj.level2ApprovalTo;
+      }else if(index == 8)
+      {
+        portalObj.weekOffExcludedDepartmentList = JSON.stringify(portalObj.weekOffExcludedDepartmentList);
+        portalConfig.configValue = portalObj.weekOffExcludedDepartmentList;
       }
       
     })
-        this.portalObj.allPortalConfigData = this.portalConfigList;
+        portalObj.allPortalConfigData = tempArray;
 
          this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
            if (response.serviceStatus == "Success") {
              this.openAlertMod(template, response.serviceResponse);
+             this.getAllPortalConfigData();
            }else{
              this.openAlertMod(template, response.serviceResponse);
            }
@@ -718,7 +774,7 @@ toDateFilter = (d: Date)=>{
     });
   }	
   }
-  showUpdateForm(appreciationEvent: enableAppreciation) {	
+  showUpdateForm(appreciationEvent: enableAppreciation) {
     this.portalConfig = false;	
     this.appreciationConfig=true;	
     this.viewAppreciationForm = false;	
@@ -727,7 +783,11 @@ toDateFilter = (d: Date)=>{
     this.viewEventConfig= false;	
     this.isCreation = false;	
     this.isUpdation = true;	
-    this.appreciationObj = Object.assign({}, appreciationEvent)	
+    this.appreciationObj = JSON.parse(JSON.stringify(appreciationEvent));	
+    this.appreciationObj.appreciationEventType = this.appreciationObj.appreciationEventType
+    // this.appreciationObj.fromDate = new Date(moment(this.appreciationObj.fromDate).format('DD-MM-YYYY'));
+    // this.appreciationObj.toDate = new Date(moment(this.appreciationObj.toDate).format('DD-MM-YYYY'));
+    console.log("this.appreciationObj : ",this.appreciationObj)
   }
   openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {	
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
@@ -736,6 +796,7 @@ toDateFilter = (d: Date)=>{
   }	
   onDeleteAppreciationEvent(template: TemplateRef<any>) {	
     this.cancelRequest();	
+    // this.appreciationObj.createdOn = (this.appreciationObj.createdOn)? moment(this.appreciationObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
     this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
@@ -743,6 +804,37 @@ toDateFilter = (d: Date)=>{
       } else {	
         this.openAlertMod(template, response.serviceResponse);	
         this.getAllEvent();	
+      }	
+    });	
+  }	
+
+
+  getAllDepartmentList() {
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getEmployeeList(employee?:Employee) {
+    this.employeeList = [];	
+    let _employeeList = [];	
+
+    console.log("Skip employee : ", employee)
+
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        _employeeList = response.serviceResponse;	
+
+        this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+        console.log("employeeList : ", this.employeeList)	
+      } else {	
+        console.error(response.serviceResponse)	
       }	
     });	
   }	

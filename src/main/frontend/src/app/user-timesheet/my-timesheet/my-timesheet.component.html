@@ -117,7 +117,7 @@
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
                             <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
                             (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter">
-                            <owl-date-time class="picker" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
+                            <owl-date-time class="picker" [startAt]="timesheetObj.officeInTime" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
                         </div>
                     </div>
                 </div>
