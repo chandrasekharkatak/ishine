@@ -15,7 +15,7 @@ public class PoPortalDTO {
 	private String isActive;
 	private String isHead;
 	private String mailId;
-	private String mobileNo;
+	private String mobile;
 	private Long roleId;
 	private String deptName;
 	private String hodId;

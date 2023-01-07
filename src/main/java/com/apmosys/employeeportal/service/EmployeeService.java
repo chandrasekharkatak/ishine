@@ -2940,7 +2940,7 @@ public class EmployeeService {
 					dto.setIsActive(status);
 					dto.setIsHead(validationService.validateHodId(empId) != false ? "Y" : "N");
 					dto.setMailId(object[4] != null ? object[4].toString() : null);
-					dto.setMobileNo(object[5] != null ? object[5].toString() : null);
+					dto.setMobile(object[5] != null ? object[5].toString() : null);
 					dto.setRoleId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					
 					dtoList.add(dto);
