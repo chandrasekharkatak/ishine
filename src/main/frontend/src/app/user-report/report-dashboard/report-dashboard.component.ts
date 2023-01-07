@@ -143,8 +143,11 @@ export class ReportDashboardComponent implements OnInit {
         this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
         this.allResignEmployee.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
+          employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
+          
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
-          employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(AppComponent.DATE_FORMAT) : null;
+          employee.dateOfRelieving = (employee.dateOfRelieving)? moment(employee.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+
         });
 
         console.log("allResignEmployee : ", this.allResignEmployee)
