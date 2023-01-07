@@ -78,6 +78,13 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getMappedActivityInUpdateTeam", method = RequestMethod.POST)
+	public ServiceResponse getMappedActivityInUpdateTeam(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.getMappedActivityInUpdateTeam(teamDTO);
+		return response;
+	}
+	
 //	MyTeam Contoller
 	
 	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)

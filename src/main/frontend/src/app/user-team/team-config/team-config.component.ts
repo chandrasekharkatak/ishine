@@ -540,6 +540,23 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
+  getActivityInUpdateTeam(existingMember:any){
+    this.activityPreviewList = [];
+    let teamObj = new Team();
+    teamObj.teamId = this.teamObj.teamId;
+    teamObj.empId = existingMember.empId;
+    teamObj.employeeRole = existingMember.employeeRole;
+
+    this.teamService.getMappedActivityInUpdateTeam(teamObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activityPreviewList = response.serviceResponse;
+        console.log(this.activityPreviewList, " : activityPreviewList");
+      } else {
+        console.log(response.serviceResponse, " response");
+      }
+    });
+  }
+
   onUpdateTeam(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;

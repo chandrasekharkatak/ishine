@@ -42,6 +42,10 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/getMappedActivityPreview`, teamObj);
   }
 
+  getMappedActivityInUpdateTeam(teamObj: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/getMappedActivityInUpdateTeam`, teamObj);
+  }
+
   // Activity Configuration
   createActivity(activityObj: Activity) {
     return this.http.post(`${this.baseUrl}` + `api/createActivity`, activityObj);

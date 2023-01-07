@@ -167,7 +167,7 @@ public class ProjectService {
 			projectObj.setState(poProjectSyncDTO.getState());
 			projectObj.setActive("true");
 			projectObj.setSyncProject(poProjectSyncDTO.getSyncProject());
-			projectObj.setCreatedBy(poProjectSyncDTO.getCreatedBy());
+			projectObj.setCreatedBy(Integer.parseInt(poProjectSyncDTO.getCreatedBy()));
 			Project projectDbResponse =  projectRepository.save(projectObj);
 			
 			if(projectDbResponse != null) {
@@ -566,6 +566,16 @@ public class ProjectService {
 				
 				if(project != null) {
 					//validate
+					if(poProjectSyncDTO.getUpdatedBy() == null || poProjectSyncDTO.getUpdatedBy() == "") {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Please provide Updated By : " + poProjectSyncDTO.getProjectName());
+						return response;
+					}
+					if(poProjectSyncDTO.getUpdatedOn() == null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Please provide Updated On : " + poProjectSyncDTO.getProjectName());
+						return response;
+					}
 					if(validationService.validateProjectName(poProjectSyncDTO.getProjectName()) && !project.getProjectName().equals(poProjectSyncDTO.getProjectName())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Project name already exist : " + poProjectSyncDTO.getProjectName());
@@ -804,6 +814,7 @@ public class ProjectService {
 													newActivity.setTeamId(teamDbResponse.getTeamId());
 													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
 													newActivity.setDeptId(activityObject.getDeptId());
+													newActivity.getCommonProperty().setCreatedBy(4l);
 
 													newActivityCreated = activitiesRepository.save(newActivity);
 												}
@@ -827,6 +838,11 @@ public class ProjectService {
 				}else {
 					
 					//validation
+					if(poProjectSyncDTO.getCreatedBy() == null || poProjectSyncDTO.getCreatedBy() == "") {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Please provide Created By : " + poProjectSyncDTO.getProjectName());
+						return response;
+					}
 					if(validationService.validateProjectName(poProjectSyncDTO.getProjectName())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Project name already exist : " + poProjectSyncDTO.getProjectName());
@@ -984,7 +1000,6 @@ public class ProjectService {
 								// Add default activity
 								Activity newActivityCreated = null;
 								if(!teamMemberDbResponse.isEmpty()) {
-									//Add default activities mapping
 									for(String department: teamObj.getDepartmentList()) {
 										Department deptObj = departmentRepository.findByName(department);
 										if(deptObj != null) {
@@ -998,6 +1013,7 @@ public class ProjectService {
 													newActivity.setTeamId(teamDbResponse.getTeamId());
 													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
 													newActivity.setDeptId(activityObject.getDeptId());
+													newActivity.getCommonProperty().setCreatedBy(4l);
 
 													newActivityCreated = activitiesRepository.save(newActivity);
 												}

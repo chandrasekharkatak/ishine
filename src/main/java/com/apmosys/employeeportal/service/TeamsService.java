@@ -721,6 +721,44 @@ public class TeamsService {
 			}
 			return response;
 		}
+		
+		public ServiceResponse getMappedActivityInUpdateTeam(TeamDTO teamDTO) {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				
+				Long deptId = null;
+				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
+				if(!empObj.isEmpty()) {
+					for(Object[] object: empObj) {
+						deptId = object[4] != null ? Long.parseLong(object[4].toString()) : null;
+					}
+				}
+				
+				List<Activity> activityObj = activitiesRepository
+						.findByTeamIdAndEmployeeRoleInAndDeptId(teamDTO.getTeamId(), teamDTO.getEmployeeRole(), deptId);
+				List<Activity> dtoList = new ArrayList<Activity>();
+				
+				if(!activityObj.isEmpty()) {
+					
+					activityObj.forEach((object) -> {
+						Activity dto = new Activity();
+						
+						dto.setActivity(object.getActivity());
+						dto.setEmployeeRole(object.getEmployeeRole());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
+			}
+			return response;
+		}
 	 
 	 
 //	MyTeam Servcie
@@ -1360,4 +1398,5 @@ public class TeamsService {
 		}
 		return response;
 	}
+
 }

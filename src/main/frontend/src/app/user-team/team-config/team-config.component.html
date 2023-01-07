@@ -132,8 +132,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 d-flex">
-                        <div class="col-md-4 mb-0">
+                    <div class="d-flex">
+                        <div class="col-md-3 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
@@ -147,6 +147,9 @@
                         <div class="m-0">
                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)"><i
                                     class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview)">Preview Activities</button>
                         </div>
                     </div>
                 </div>

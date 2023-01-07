@@ -36,6 +36,8 @@ public class PoProjectSyncDTO {
     private List<ClientLocation> allClientLocationList;
     private String syncProject;
     private String status;
-    private Integer createdBy;
+    private String createdBy;
+    private String updatedBy;
+    private Timestamp updatedOn;
 	
 }
