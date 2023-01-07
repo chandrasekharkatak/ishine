@@ -197,6 +197,7 @@
                             <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
                             <th scope="col" class="wide-col" mat-sort-header="reason">Reason</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName">Approver Name</th>
                             <th scope="col" class="info-label">Remarks</th>
                             <th scope="col" class="info-label">Action</th>
                             <!-- <th scope="col" class="info-label">Comments</th> -->
@@ -217,12 +218,13 @@
                                 <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
                                 <td>{{leaveHistory.createdOn}}</td>
                                 <td>{{leaveHistory.reason}}</td>
+                                <td>{{leaveHistory.approverName}}</td>
                                 <td>{{leaveHistory.remark}}</td>
                                 <!-- <td>{{leaveHistory.description}}</td> -->
                                 <td>	
                                     <button *ngIf="leaveHistory.status == 'Pending' && userMapping.update_leave" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;	
                                     <button *ngIf="leaveHistory.status == 'Pending'&& userMapping.delete_leave_application" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeave(delete_leave_application,leaveHistory)"><em class="fa fa-trash"></em></button>&nbsp;
-                                    <button *ngIf="((leaveHistory.status == 'Approved' && leaveHistory.fromDate > dateToday) && userMapping.revoke_leave_application)" class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeApprovedLeaveApplication(revoke_approved_leave,leaveHistory)" title="Revoke"><em>Revoke</em></button>
+                                    <button *ngIf="((leaveHistory.status == 'Approved' && leaveHistory.checkDate > dateToday) && userMapping.revoke_leave_application)" class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeApprovedLeaveApplication(revoke_approved_leave,leaveHistory)" title="Revoke"><em>Revoke</em></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -463,6 +465,7 @@
                             <th *ngIf="isSelfLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
                             <th scope="col" class="info-label" mat-sort-header="reason">Revoke Reason</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName">Approver Name</th>
                             <th scope="col" class="info-label">Remarks</th>
                           </tr>
                         </thead>
@@ -481,6 +484,7 @@
                                 <td *ngIf="isSelfLeaveRevokeApplication">{{leave.createdByName}}</td>
                                 <td>{{leave.createdOn}}</td>
                                 <td>{{leave.revokeReason}}</td>
+                                <td>{{leave.approverName}}</td>
                                 <td>{{leave.remark}}</td>
                             </tr>
                         </tbody>

@@ -95,6 +95,77 @@
                     <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="generatePerviousMonthDSR(alert_message)">Generate Pervious Month DSR</button>
                 </div>
             </div>
+
+            <!-- <hr>
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>Leave Approval Escalation</h4>
+                </div>
+            </div> -->
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 1) : Min. No. of Days </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.level1MinNoOfDays">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 1) : Approval To</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="portalObj.level1ApprovalTo">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Reporting Manager">Reporting Manager</option>
+                                <option value="HOD">HOD</option>
+                              </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 2) : Min. No. of Days </label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.level2MinNoOfDays">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 2) : Approval To</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #approvalSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="employeeList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="portalObj.level2ApprovalTo">
+                                  <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                                    {{employee.name}}
+                                  </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave week-off/holiday exclusion Department(s)</label>
+                            <mat-select class="form-control" multiple [(ngModel)]="portalObj.weekOffExcludedDepartmentList">
+                                <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">{{dept.name}}</mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">Update Portal Global Configuration</button>

@@ -111,4 +111,7 @@ public class LeaveDTO {
 	private Float toDateDayType;
 	
 	private Long deptId;
+	private String approverName;
+	private String approverEmail;
+	private String name;
 }

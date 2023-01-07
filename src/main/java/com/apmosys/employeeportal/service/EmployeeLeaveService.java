@@ -165,22 +165,27 @@ public class EmployeeLeaveService {
 				leaveBalanceLogRepository.save(log);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Leave application submitted.");
+				response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName());
 				
 				LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
+				
+				String managerEmail = "";
+				if(!leaveDTO.getApproverEmail().equals(empDto.getManagerEmail())) {
+					managerEmail = ","+ empDto.getManagerEmail();
+				}
 				
 				if(leaveDTO.getCreatedBy().equals(leaveDTO.getEmpId())){
 					//Leave Applied for self
 					
-					mailService.sendMailWithCC(empDto.getManagerEmail(), hrMailAddress +","+ empDto.getEmail(),
+					mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
 							"Regarding Leave Application Request",
-							"Dear "+ empDto.getManagerName() + ","+"<br>"
-							+"<br>"+" &nbsp"+" &nbsp"+" "+"You have a request for leave applied by "+ empDto.getName() +
+							"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
+							+"<br>"+" &nbsp"+" &nbsp"+" "+"You have a request for leave applied by "+ leaveDTO.getName() +
 							"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
 							"<br>"+
-							"EmpID :"+ empDto.getEmployeementId()+
+							"EmpID :"+ leaveDTO.getEmployeementId()+
 							"<br>"+
-							"Name :"+ empDto.getName()+
+							"Name :"+ leaveDTO.getName()+
 							"<br>"+
 							" from "+ leaveDTO.getFromDate() +
 							"<br>"+
@@ -198,13 +203,13 @@ public class EmployeeLeaveService {
 					if(!createdByEmp.isEmpty()) {
 						Employee createdByObj = createdByEmp.get();
 						
-						mailService.sendMailWithCC(empDto.getManagerEmail(), hrMailAddress +","+ empDto.getEmail() +","+ createdByObj.getEmail(),
+						mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail() +","+ createdByObj.getEmail()+ managerEmail,
 								"Regarding Leave Application Request",
-								"Dear "+ empDto.getManagerName() + ","
-								+"<br> Leave has been applied for "+ empDto.getName() +" by "+createdByObj.getName()
+								"Dear "+ leaveDTO.getApproverName() + ","
+								+"<br> Leave has been applied for "+ leaveDTO.getName() +" by "+createdByObj.getName()
 								+"<br><br> Leave Details :"
-								+"<br> EmpId : A-" + empDto.getEmployeementId()
-								+"<br> Name : " + empDto.getName()
+								+"<br> EmpId : A-" + leaveDTO.getEmployeementId()
+								+"<br> Name : " + leaveDTO.getName()
 								+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
 								+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
 								+"<br> Leave Type : " + leaveType.getLeaveType()
@@ -402,6 +407,7 @@ public class EmployeeLeaveService {
 					dto.setRemark(object[10] != null ? object[10].toString() : null);
 					dto.setFromDateDayType(object[11] != null ? Float.parseFloat(object[11].toString()) : null);
 					dto.setToDateDayType(object[12] != null ? Float.parseFloat(object[12].toString()) : null);
+					dto.setApproverName(object[13] != null ? object[13].toString() : null);
 					dtoList.add(dto);
 				});
 
@@ -536,11 +542,35 @@ public class EmployeeLeaveService {
 					response.setServiceResponse("Leave application approved.");
 					apiLogInfo.setApiResponse("Leave application approved.");
 					
-					mailService.sendMail(leaveDTO.getEmail(),
-							"Regarding leave Approval ", 
-					"Dear "+leaveDTO.getEmployeeName()+","+
-					" <br> "+ 
-					" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved");
+					//send Approval Mail
+					if (!employee.isEmpty()) {
+						Employee empObj = employee.get();
+						Optional<Employee> approver = employeeRepository.findById(Long.parseLong(pendingLeaveApplication.getManagerId().toString()));
+						Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
+						
+						String managerEmail = "";
+						if(!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
+							managerEmail = ","+ reportingManager.get().getEmail();
+						}
+						
+						if(!approver.isEmpty()) {
+							Employee approverObj = approver.get();
+							mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ approverObj.getEmail()+ managerEmail,
+									"Regarding leave Approval",
+									"Dear "+ empObj.getName() + ","
+									+" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved"
+									+"<br><br> Leave Application Details :"
+									+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
+									+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
+									+"<br> Leave Type : " + leaveDTO.getLeaveType());
+						}
+					}
+					
+//					mailService.sendMail(leaveDTO.getEmail(),
+//							"Regarding leave Approval ", 
+//					"Dear "+leaveDTO.getEmployeeName()+","+
+//					" <br> "+ 
+//					" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved");
 					
 					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
@@ -560,12 +590,38 @@ public class EmployeeLeaveService {
 					response.setServiceResponse("Leave application rejected.");
 					apiLogInfo.setApiResponse("Leave application rejected.");
 					
+					Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
 					
-					mailService.sendMail(leaveDTO.getEmail(),
-							"Regarding leave Rejection ", 
-					" <br> "+"Dear "+leaveDTO.getEmployeeName()+","+
-					" <br> "+ "   Your leave has been rejected  "+
-							" <br>"+" Reason -: "+leaveDTO.getRejectReason());
+					//send Approval Mail
+					if (!employee.isEmpty()) {
+						Employee empObj = employee.get();
+						Optional<Employee> approver = employeeRepository.findById(Long.parseLong(pendingLeaveApplication.getManagerId().toString()));
+						Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
+						
+						String managerEmail = "";
+						if(!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
+							managerEmail = ","+ reportingManager.get().getEmail();
+						}
+						
+						if(!approver.isEmpty()) {
+							Employee approverObj = approver.get();
+							mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ approverObj.getEmail()+ managerEmail,
+									"Regarding leave Rejection",
+									"Dear "+ empObj.getName() + ","
+									+" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been rejected"
+									+"<br><br> Leave Application Details :"
+									+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
+									+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
+									+"<br> Leave Type : " + leaveDTO.getLeaveType()
+									+"<br>"+" Reason -: "+leaveDTO.getRejectReason());
+						}
+					}
+					
+//					mailService.sendMail(leaveDTO.getEmail(),
+//							"Regarding leave Rejection ", 
+//					" <br> "+"Dear "+leaveDTO.getEmployeeName()+","+
+//					" <br> "+ "   Your leave has been rejected  "+
+//							" <br>"+" Reason -: "+leaveDTO.getRejectReason());
 				
 					System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
 					System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
@@ -1342,6 +1398,7 @@ public class EmployeeLeaveService {
 					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
 					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setRemark(object[11] != null ? object[11].toString() : null);
+					dto.setApproverName(object[12] != null ? object[12].toString() : null);
 					dtoList.add(dto);
 				});
 
@@ -1452,13 +1509,20 @@ public class EmployeeLeaveService {
 					
 					if(!employee.isEmpty()) {
 						Employee empObj = employee.get();
-						Optional<Employee> empManager = employeeRepository.findById(empObj.getManagerId());
+						Optional<Employee> empManager = employeeRepository.findById(Long.parseLong(leaveToBeRevoked.getManagerId().toString()));
+						Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
+						
+						String managerEmail = "";
+						if(!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
+							managerEmail = ","+ reportingManager.get().getEmail();
+						}
+						
 						if(!empManager.isEmpty()) {
 							Employee empManagerObj = empManager.get();
 							
 							if(leaveToBeRevoked.getEmpId().equals(leaveDTO.getCreatedBy())) {
 								// Revoked leave for self
-										mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress +","+ empObj.getEmail(),
+										mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress +","+ empObj.getEmail()+ managerEmail,
 												"Revoke Request for Leave Application",
 												"Dear "+ empManagerObj.getName() + ","
 												+"<br>"+empObj.getName()+" has revoked its approved leave"
@@ -1475,7 +1539,7 @@ public class EmployeeLeaveService {
 								if(!createdByEmp.isEmpty()) {
 									Employee createdByObj = createdByEmp.get();
 									
-									mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress +","+ empObj.getEmail() +","+ createdByObj.getEmail(),
+									mailService.sendMailWithCC(empManagerObj.getEmail(), hrMailAddress +","+ empObj.getEmail() +","+ createdByObj.getEmail()+ managerEmail,
 											"Revoke Request for Leave Application",
 											"Dear "+ empManagerObj.getName() + ","
 											+"<br> Leave has been revoked for "+ empObj.getName() +" by "+createdByObj.getName()
@@ -1551,6 +1615,7 @@ public class EmployeeLeaveService {
 					dto.setStatus(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveType(object[10] != null ? object[10].toString() : null);
 					dto.setRemark(object[11] != null ? object[11].toString() : null);
+					dto.setApproverName(object[12] != null ? object[12].toString() : null);
 					
 					dtoList.add(dto);
 				});
@@ -1609,6 +1674,7 @@ public class EmployeeLeaveService {
 					dto.setStatus(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveType(object[10] != null ? object[10].toString() : null);
 					dto.setRemark(object[11] != null ? object[11].toString() : null);
+					dto.setApproverName(object[12] != null ? object[12].toString() : null);
 					
 					dtoList.add(dto);
 				});
@@ -1694,7 +1760,7 @@ public class EmployeeLeaveService {
 	public ServiceResponse updateRevokeLeaveStatus(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId");
+		apiLogInfo.setApiUrl("/api/updateRevokeLeaveStatus");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("LeaveRevokeId : "+leaveDTO.getLeaveRevokeId()+", LeaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", LeaveStatusId : "+ leaveDTO.getLeaveStatusId()+", LeaveStatusUpdatedBy : "+ leaveDTO.getLeaveStatusUpdatedBy());
@@ -1764,14 +1830,20 @@ public class EmployeeLeaveService {
 					//send Approval Mail
 						if (!emp.isEmpty()) {
 							Employee empObj = emp.get();
-							Optional<Employee> manager = employeeRepository.findById(empObj.getManagerId());
+							Optional<Employee> approver = employeeRepository.findById(Long.parseLong(employeeLeave.get().getManagerId().toString()));
+							Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
 							
-							if(!manager.isEmpty()) {
-								Employee managerObj = manager.get();
-								mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+							String managerEmail = "";
+							if(!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
+								managerEmail = ","+ reportingManager.get().getEmail();
+							}
+							
+							if(!approver.isEmpty()) {
+								Employee approverObj = approver.get();
+								mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ approverObj.getEmail()+ managerEmail,
 										"Revoke Request for Leave Application Approved",
 										"Dear "+ empObj.getName() + ","
-										+"<br>Your Revoke Leave Application has been Approved by " + managerObj.getName()
+										+"<br>Your Revoke Leave Application has been Approved by " + approverObj.getName()
 										+"<br><br> Revoke Leave Application Details :"
 										+"<br> From Date : " + leaveObj.getFromDate() + "   To Date : " + leaveObj.getToDate()
 										+"<br> No. Of Days : " + leaveObj.getNoOfDays()
@@ -1801,14 +1873,20 @@ public class EmployeeLeaveService {
 					//send Reject Mail
 						if (!emp.isEmpty()) {
 							Employee empObj = emp.get();
-							Optional<Employee> manager = employeeRepository.findById(empObj.getManagerId());
+							Optional<Employee> approver = employeeRepository.findById(Long.parseLong(employeeLeave.get().getManagerId().toString()));
+							Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
 							
-							if(!manager.isEmpty()) {
-								Employee managerObj = manager.get();
-								mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+							String managerEmail = "";
+							if(!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
+								managerEmail = ","+ reportingManager.get().getEmail();
+							}
+							
+							if(!approver.isEmpty()) {
+								Employee approverObj = approver.get();
+								mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ approverObj.getEmail()+ managerEmail,
 										"Revoke Request for Leave Application Rejected",
 										"Dear "+ empObj.getName() + ","
-										+"<br>Your Revoke Leave Application has been Rejected by " + managerObj.getName()
+										+"<br>Your Revoke Leave Application has been Rejected by " + approverObj.getName()
 										+"<br><br> Revoke Leave Application Details :"
 										+"<br> From Date : " + leaveObj.getFromDate() + "   To Date : " + leaveObj.getToDate()
 										+"<br> No. Of Days : " + leaveObj.getNoOfDays()

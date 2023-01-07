@@ -261,6 +261,11 @@ export class LoginComponent implements OnInit{
       this.user.appreciationEventInfo =  this.enableAppreciation;
       this.user.isAppreciationEnable = user.isAppreciationEnable;
       this.user.employeeRole = user.employeeRole;
+      this.user.managerName = user.managerName;
+      this.user.managerEmail = user.managerEmail;
+      this.user.hodId = user.hodId;
+      this.user.hodName = user.hodName;
+      this.user.hodEmail = user.hodEmail;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

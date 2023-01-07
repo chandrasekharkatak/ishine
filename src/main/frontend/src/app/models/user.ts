@@ -32,4 +32,10 @@ export class User{
     updateFormCounter:number = 0;
     isAppreciationEnable: boolean =false;
     appreciationEventInfo:enableAppreciation;
+
+    managerName:any;
+    managerEmail:any;
+    hodId:any;
+	hodName:any;
+    hodEmail:any;
 }
