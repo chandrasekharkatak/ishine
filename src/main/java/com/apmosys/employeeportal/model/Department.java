@@ -32,7 +32,7 @@ public class Department {
 	
 	private String name;
 	
-//	@OneToOne
+//	@OneToOne   
 //	@JoinColumn(name = "hodId")	
 	private Long hodId;
 	

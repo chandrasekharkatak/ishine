@@ -151,7 +151,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     
     this.getAllNotifications();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-    if(this.userMapping.view_event_photos) this.getAllEventPhotos();
+    if(this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
     if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
     if(this.userMapping.view_all_team_requests){
       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
@@ -761,12 +761,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* carousal Images */
-  getAllEventPhotos(){
+  getAllEventPhotosForHome(){
     this.eventImages = [];
     this.isImagesLoaded = false;
     // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
-    this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
+    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages =  response.serviceResponse;
         console.log("eventImages : ", this.eventImages);

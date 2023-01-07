@@ -60,6 +60,8 @@ export class ReportDashboardComponent implements OnInit {
   modalTitle:any;
   modalSummaryList:any[] = [];
 
+  storedDataList:any[] = [];
+
   zeroToFive:any;
   fiveToEight:any;
   eightToNine:any;
@@ -1524,6 +1526,7 @@ export class ReportDashboardComponent implements OnInit {
     /* Filter */
     openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
       console.log("columns : ", columns);
+      this.queryList = [];
       
       this.filterData.title  = title;
       this.filterData.columns = columns;
@@ -1539,19 +1542,30 @@ export class ReportDashboardComponent implements OnInit {
         ];
       }
 
+      this.storedDataList.forEach((data) => {
+        if(data.filterName == title){
+          this.queryList = data.queryList;
+        }
+      });
+
       this.filterData.queryList = JSON.stringify(this.queryList);
   
       console.log("filterData : ", this.filterData);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
   
-    onFilterSubmit(queryList:any , template:TemplateRef<any>){
-      console.log("queryList : ", queryList);
-      this.queryList =  JSON.parse(JSON.stringify(queryList)); 
+    onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
+      console.log("queryList : ", emittedArray[0]);
+      this.queryList =  JSON.parse(JSON.stringify(emittedArray[0])); 
       this.cancelRequest();
 
+      emittedArray[1].forEach((object) => {
+        if(Object.keys(object).length !== 0){
+          this.storedDataList.push(object);
+        }
+      });
 
-      queryList.forEach(query => {
+      emittedArray[0].forEach(query => {
           if(query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining'){
               query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
           }else if(query.column == 'Created On' || query.column == 'Updated On'){
@@ -1562,16 +1576,16 @@ export class ReportDashboardComponent implements OnInit {
       console.log("updated queryList : ", this.queryList);
 
       if(this.filterData.title == 'Filter Employee Report'){
-        this.getCustomEmployeesList(queryList,template);
+        this.getCustomEmployeesList(emittedArray[0],template);
       }
       if(this.filterData.title == 'Filter Leave Summary'){
-        this.getCustomLeaveReport(queryList,template);
+        this.getCustomLeaveReport(emittedArray[0],template);
       }
       if(this.filterData.title == 'Filter Leave Trend Chart'){
-        this.getCustomLeaveTrendAnalysisReport(queryList,template);
+        this.getCustomLeaveTrendAnalysisReport(emittedArray[0],template);
       }
       if(this.filterData.title == 'Filter Timesheet Summary'){
-        this.getCustomTimesheetReport(queryList,template);
+        this.getCustomTimesheetReport(emittedArray[0],template);
       }
     }
 

@@ -27,14 +27,18 @@ public class ActivityTemplateService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<ActivityTemplate> dtoList = new ArrayList<ActivityTemplate>();
-			
 			activityTemplateDTO.getTemplateActivityList().forEach((object) -> {
-				ActivityTemplate activity = new ActivityTemplate();
-				
-				activity.setDeptId(activityTemplateDTO.getDeptId());
-				activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
-				activity.setTemplateActivity(object.getActivity());
-				dtoList.add(activity);
+				ActivityTemplate checkActivityName=activityTemplateRepository
+						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
+			
+				if(checkActivityName == null) {
+					ActivityTemplate activity = new ActivityTemplate();
+					
+					activity.setDeptId(activityTemplateDTO.getDeptId());
+					activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
+					activity.setTemplateActivity(object.getActivity());
+					dtoList.add(activity);
+				}
 			});
 			List<ActivityTemplate> dbResponse = activityTemplateRepository.saveAll(dtoList);
 			
@@ -43,7 +47,7 @@ public class ActivityTemplateService {
 				response.setServiceResponse("Activity template created successfully.");
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Failed to create activity");
+				response.setServiceResponse("Activity already exist.");
 			}
 			
 		}catch(Exception e) {

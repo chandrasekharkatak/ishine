@@ -296,7 +296,10 @@ export class PortalConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse; 
         this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-        console.log("allEmployeeList : ", this.allEmployeeList)
+        this.allEmployeeList.forEach((employee)=>{
+          employee.employeementId = "A-".concat(employee.employeementId)
+        });
+        console.log("allEmployeeList : ", this.allEmployeeList);
       } else {
         this.openAlertMod(template ,response.serviceResponse)
       }

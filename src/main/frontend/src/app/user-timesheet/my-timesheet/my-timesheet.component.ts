@@ -337,9 +337,11 @@ export class MyTimesheetComponent implements OnInit {
   };
 
   resetTimeonDayTypeChange(){
-    this.timesheetObj.officeInTime = '';
-    this.timesheetObj.officeOutTime = '';
-    this.timesheetObj.totalWorkingOfficeHours = '';
+    if(this.timesheetObj.dayType == 'Holiday'){
+      this.timesheetObj.officeInTime = '';
+      this.timesheetObj.officeOutTime = '';
+      this.timesheetObj.totalWorkingOfficeHours = '';
+    }
   }
 
   setTotalWorkingOfficeHours(){
@@ -432,7 +434,7 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
       }
-      if (!this.validationService.validateCompletionTime(activity.completionTime) && !this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {      
+      if (!this.validationService.validateCompletionTime(activity.completionTime) && !this.validationService.validateExperiencedNumber(activity.completionTime)) {      
         this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
         flag = false;
         activity.completionTime = ''
@@ -630,17 +632,20 @@ export class MyTimesheetComponent implements OnInit {
     this.teamMemberList = []
     this.timesheetObj.date = ''
     this.timesheetObj.dayType = ''
+    this.timesheetObj.officeInTime = ''
+    this.timesheetObj.officeOutTime = ''
+    this.timesheetObj.totalWorkingOfficeHours = ''
     this.allTimesheetActivities.forEach((timesheet) =>{
       timesheet.clientId = ''
       timesheet.clientLocationId = ''
-      timesheet.projectId = ''
+      timesheet.teamId = ''
       timesheet.activityId = ''
       timesheet.description = ''
       timesheet.completionTime = ''
-      
     })
     
     if(this.timesheetObj.timesheetAppliedFor == "team"){
+      this.errorMsg = '';
       let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
       this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
@@ -757,13 +762,17 @@ export class MyTimesheetComponent implements OnInit {
     timesheetObj.empId = this.timesheetObj.empId;
     timesheetObj.teamId = activityObj.teamId;
     let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
-    timesheetObj.projectId = projectTimesheet.projectId
+    timesheetObj.projectId = projectTimesheet.projectId;
+    timesheetObj.clientId = this.timesheetObj.clientId;
+    timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
+    console.log(" timesheetObj  :  ",timesheetObj)
     
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
         console.log("Team name :  ", timesheetObj.teamName);
         console.log("allActivityList :", allActivityList);
+        allActivityList = allActivityList.filter(x => x.deptId == this.currentUser.departmentId);
       } else {
         console.error(response.serviceResponse)
       }
@@ -952,7 +961,8 @@ export class MyTimesheetComponent implements OnInit {
     if (this.isTimesheetTable == true) {
       this.excelName = 'MyTimeSheet.xlsx'
 
-      this.allMyTimesheetsDataForExcel = this.allMyTimesheets;
+      const _allEmployeeList = this.allMyTimesheets.slice()
+      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a,b) => a.date.localeCompare(b.date));
 
       const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
         x => ({
@@ -1060,6 +1070,8 @@ export class MyTimesheetComponent implements OnInit {
   validateTime(event,data:any){
      if (!this.validationService.validateTimesheetCompletionTime(data)){
       this.errorMsg = "Please enter Time !!"
+    }else if (!this.validationService.validateExperiencedNumber(data)){
+      this.errorMsg = "Please enter Valid Time !!"
     }  
     else if(data <= 0 || data > 24){
       this.errorMsg ="Total time must be greater than 0 hrs and maximum upto 24 hrs!! "

@@ -258,6 +258,7 @@ export class DeptConfigComponent implements OnInit {
         this.allDeptList = response.serviceResponse;
         this.allDeptList.forEach(dept => {
           dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          dept.updatedOn = (dept.updatedOn)? moment(dept.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allDeptList : ", this.allDeptList)
       } else {

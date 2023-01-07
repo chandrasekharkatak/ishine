@@ -9,7 +9,7 @@
     <div class="card col-md-12 px-0" *ngIf="isCreateForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Project</strong>
-            <strong *ngIf="isUpdation">Update Project</strong>
+            <strong *ngIf="!isCreation">Update Project</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -164,6 +164,8 @@
                                 <th scope="col" class="info-label">Project Name</th>
                                 <th scope="col" class="info-label">Project Manager</th>
                                 <th scope="col" class="info-label">Client Name</th>
+                                <th scope="col" class="info-label">Created on</th>
+                                <th scope="col" class="info-label">Created by</th>
                                 <th scope="col" class="info-label">State</th>
                                 <th scope="col" class="info-label">Actions</th>
                             </tr>
@@ -178,6 +180,8 @@
                                 <td>{{proj.projectName}}</td>
                                 <td>{{proj.employeeName}}</td>
                                 <td>{{proj.clientName}}</td>
+                                <td>{{proj.createdOn}}</td>
+                                <td>{{proj.createdByName}}</td>
                                 <td>{{proj.state}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(proj)"><em class="fa fa-edit"></em></button>&nbsp;

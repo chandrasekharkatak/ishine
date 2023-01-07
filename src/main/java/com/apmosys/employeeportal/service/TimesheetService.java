@@ -213,6 +213,7 @@ public class TimesheetService {
 							dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 							dto.setActivity(object[1] != null ? object[1].toString() : null);
 							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dto.setDeptId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 							dtoList.add(dto);
 						}
 					});

@@ -21,4 +21,6 @@ public interface RoleFeatureMapRepository extends JpaRepository<RoleFeatureMap, 
 	@Query(nativeQuery = true)
 	public List<Object[]> getRolesToBeMappedWithNewSubFeature(List<String> employeeRolelist);
 
+	public RoleFeatureMap findByJobRoleIdAndSubFeatureMasterId(Long jobRoleId, Long subFeatureId);
+
 }

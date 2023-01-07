@@ -37,6 +37,13 @@ public class ImageController {
 		return serviceResponse;
 	}
 	
+	@RequestMapping(value = "/getAllEventPhotosForHome", method = RequestMethod.GET)
+	public ServiceResponse getAllEventPhotosForHome() {
+
+		ServiceResponse response = imageService.getAllEventPhotosForHome();
+		return response;
+	}
+	
 	@RequestMapping(value = "/getAllEventPhotos", method = RequestMethod.GET)
 	public ServiceResponse getAllEventPhotos() {
 

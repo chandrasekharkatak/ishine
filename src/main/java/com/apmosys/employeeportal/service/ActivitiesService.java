@@ -35,16 +35,23 @@ public class ActivitiesService {
 	public ServiceResponse createActivity(ActivityDTO activityDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			
+			List<Activity> dtoList = new ArrayList<Activity>();
+			
+			for(Long deptId: activityDTO.getDepartmentList()) {
+				Activity newActivity = new Activity();
+				
+				newActivity.setActivity(activityDTO.getActivity());
+				newActivity.setEta(activityDTO.getEta());
+				newActivity.setTeamId(activityDTO.getTeamId());
+				newActivity.setEmployeeRole(activityDTO.getEmployeeRole());
+				newActivity.setDeptId(deptId);
+				newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
+				
+				dtoList.add(newActivity);
+			}
 
-			Activity newActivity = new Activity();
-
-			newActivity.setActivity(activityDTO.getActivity());
-			newActivity.setEta(activityDTO.getEta());
-			newActivity.setTeamId(activityDTO.getTeamId());
-			newActivity.setEmployeeRole(activityDTO.getEmployeeRole());
-			newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
-
-			Activity newActivityCreated = activitiesRepository.save(newActivity);
+			List<Activity> newActivityCreated = activitiesRepository.saveAll(dtoList);
 
 			Optional.ofNullable(newActivityCreated).ifPresentOrElse((activity) -> {
 
@@ -138,6 +145,7 @@ public class ActivitiesService {
 						dto.setCreatedByName(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedOn(object[9] != null ? object[9].toString() : null);
 						dto.setEmployeeRole(object[10] != null ? object[10].toString() : null);
+						dto.setDeptId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 
 						dtoList.add(dto);
 					});

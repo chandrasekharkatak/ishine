@@ -20,6 +20,9 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	@Query(nativeQuery = true)
 	List<Object[]> getHolidayWeekOffSize(String fromDate, String toDate);
 
+	@Query(nativeQuery = true)
+	List<Object[]> getAllHolidaysList();
+
 	
 //	public List<Holiday> findByCustomHoliday(String customHoliday);
 

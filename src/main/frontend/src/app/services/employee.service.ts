@@ -45,8 +45,8 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);	
   }
 
-  getAllEmployeesByDepartmentId(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByDepartmentId`, employeeObj);
+  getAllEmployeesByDepartmentIds(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByDepartmentIds`, employeeObj);
   }
 
   getAllManagers() {

@@ -3,7 +3,8 @@
         <div class="col-md-3">
             <div class="form-group">
                 <label class="info-label">Field</label>
-                <select class="form-control" aria-hidden="true" [(ngModel)]="query.column" name="column">
+                <select class="form-control" aria-hidden="true" [(ngModel)]="query.column" name="column"
+                (change)="getValueOptionData(query.column)">
                     <option selected="selected" value="" disabled>Select</option>
                     <option *ngFor="let c of columnList" [value]="c">{{c}}</option>
                 </select>
@@ -20,10 +21,28 @@
                 <span class="text-danger" *ngIf="invalidForm && !query.operator">Required</span>
             </div>
         </div>
-        <div class="col-md-2">
+        <!-- <div class="col-md-2">
             <div class="form-group">
                 <label class="info-label">Value</label>
                 <input type="text" class="form-control" autocomplete="none" [(ngModel)]="query.value" placeholder="Value" name="value">
+                <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
+            </div>
+        </div> -->
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="info-label">Value</label>
+                <ng-autocomplete
+                [data]="valueOptionList"
+                [searchKeyword]="keyword"
+                (selected)='selectEvent($event)'
+                (inputChanged)='onChangeSearch($event)'
+                [itemTemplate]="itemTemplate"
+                [(ngModel)]="query.value">
+              </ng-autocomplete>
+            
+              <ng-template #itemTemplate let-item>
+                <a [innerHTML]="item.name"></a>
+              </ng-template>
                 <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
             </div>
         </div>

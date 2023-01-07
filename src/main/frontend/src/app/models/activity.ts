@@ -23,4 +23,6 @@ export class Activity{
 	updatedBy: any;
 
     employeeRole:any;
+    departmentList:any;
+    deptId:any;
 }

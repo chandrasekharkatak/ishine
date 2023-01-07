@@ -50,6 +50,8 @@ public class TeamDTO {
 	private Long teamMemberDeptId;
 	private String updatedOn;
 	private Long deptId;
+	private String[] departmentList;
+	private String[] employeeRole;
 //	private String updatedBy;
 //	private String createdBy;
 

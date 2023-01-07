@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.sql.Timestamp;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -22,5 +24,11 @@ public class HolidayDTO {
 	
 	private String fromDate;
 	private String toDate;
+	private Integer createdBy;
+	private String createdbyName;
+	private Timestamp createdOn;
+	private String updatedOn;
+	private String updatedByName;
+	private String updatedBy;
 	
 }

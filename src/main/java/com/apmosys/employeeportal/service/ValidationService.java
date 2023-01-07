@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -22,6 +23,9 @@ public class ValidationService {
 	
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	public boolean validateEmpId(Long empId) {
 
@@ -56,6 +60,13 @@ public class ValidationService {
 	public boolean validateProjectName(String projectName) {
 		
 		return (projectRepository.existsProjectByProjectName(projectName)) ? true : false;
+		
+	}
+
+	public boolean validateHodId(Long empId) {
+		
+		return (departmentRepository.existsByHodId(empId)) ? true : false;
+		
 	}
 
 }
