@@ -26,6 +26,7 @@ export class ProjectConfigComponent implements OnInit {
   projectObj: Project = new Project();
 
   isCreateForm:boolean = false;
+  isUpdateForm:boolean = false;
   isTable:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
@@ -121,6 +122,7 @@ export class ProjectConfigComponent implements OnInit {
   showCreateForm(){
     this.isCreateForm = true;
     this.isCreation = true;
+    this.isUpdateForm = false;
 
     this.isTable = false;
     this.projectObj = new Project();
@@ -132,8 +134,8 @@ export class ProjectConfigComponent implements OnInit {
 
   showUpdateForm(project:Project){
     this.isUpdation = true;
-
-    this.isCreateForm = true;
+    this.isUpdateForm = true;
+    this.isCreateForm = false;
     this.isCreation = false;
     this.isTable = false;
     this.getAllDepartmentList();
@@ -178,8 +180,10 @@ export class ProjectConfigComponent implements OnInit {
     this.isTable = true;
     this.page = 1;
     
+    this.isUpdateForm = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.isUpdation = false;
     this.getAllProjects();
   }
 

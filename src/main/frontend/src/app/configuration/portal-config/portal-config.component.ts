@@ -135,8 +135,8 @@ export class PortalConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allAppreciationEvent = response.serviceResponse;
         this.allAppreciationEvent.forEach(event => {
-          event.fromDate = (event.fromDate)? moment(event.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          event.toDate = (event.toDate)? moment(event.toDate).format(AppComponent.DATE_FORMAT) : null;
+          // event.fromDate = (event.fromDate)? moment(event.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          // event.toDate = (event.toDate)? moment(event.toDate).format(AppComponent.DATE_FORMAT) : null;
           event.createdOn = (event.createdOn)? moment(event.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }); 
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
@@ -774,7 +774,7 @@ toDateFilter = (d: Date)=>{
     });
   }	
   }
-  showUpdateForm(appreciationEvent: enableAppreciation) {	
+  showUpdateForm(appreciationEvent: enableAppreciation) {
     this.portalConfig = false;	
     this.appreciationConfig=true;	
     this.viewAppreciationForm = false;	
@@ -783,7 +783,11 @@ toDateFilter = (d: Date)=>{
     this.viewEventConfig= false;	
     this.isCreation = false;	
     this.isUpdation = true;	
-    this.appreciationObj = Object.assign({}, appreciationEvent)	
+    this.appreciationObj = JSON.parse(JSON.stringify(appreciationEvent));	
+    this.appreciationObj.appreciationEventType = this.appreciationObj.appreciationEventType
+    // this.appreciationObj.fromDate = new Date(moment(this.appreciationObj.fromDate).format('DD-MM-YYYY'));
+    // this.appreciationObj.toDate = new Date(moment(this.appreciationObj.toDate).format('DD-MM-YYYY'));
+    console.log("this.appreciationObj : ",this.appreciationObj)
   }
   openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {	
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
@@ -792,6 +796,7 @@ toDateFilter = (d: Date)=>{
   }	
   onDeleteAppreciationEvent(template: TemplateRef<any>) {	
     this.cancelRequest();	
+    // this.appreciationObj.createdOn = (this.appreciationObj.createdOn)? moment(this.appreciationObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
     this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	

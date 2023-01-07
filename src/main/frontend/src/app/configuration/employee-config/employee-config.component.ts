@@ -1674,12 +1674,34 @@ export class EmployeeConfigComponent implements OnInit {
                    
                     case 'email':	
                       return compare(a.email , b.email , isAsc);	
-                      case 'dateOfJoining':	
-                          
-                        return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
-                   default:	
-                     return 0; 	
-                 }	
+
+                      case 'managerName':	
+                        return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc); 
+                      
+                         case 'departmentName':	
+                           return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc); 
+                      
+                            case 'dateOfJoining':	
+                              return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
+                               
+                                case 'dateOfRelieving':	
+                                  return  compare(new Date(a.dateOfRelieving).getTime() ,  new Date(b.dateOfRelieving).getTime(), isAsc);	
+                               
+                                   case 'createdOn':	
+                                     return  compare(new Date(a.createdOn).getTime() ,  new Date(b.createdOn).getTime(), isAsc);	
+                                  
+                                      case 'createdByName':	
+                                        return  compare(a.createdByName.toLowerCase() ,  b.createdByName.toLowerCase(), isAsc);	
+                                  
+                                         case 'updatedOn':	
+                                           return  compare(new Date(a.updatedOn).getTime() ,  new Date(b.updatedOn).getTime(), isAsc);	
+                                  
+                                            case 'updatedByName':	
+                                              return  compare(a.updatedByName ,  b.updatedByName, isAsc);
+                                     
+                                                 default:	
+                                                  return 0; 	
+                            }	
              }	
            )	
          }	

@@ -223,7 +223,7 @@ public class HolidayService {
 					dto.setDayOfTheWeek(object[2] != null ? object[2].toString() : null);
 					dto.setDateOfHoliday(object[3] != null ? object[3].toString() : null);
 					dto.setHolidayType(object[4] != null ? object[4].toString() : null);
-					dto.setCreatedOn(object[5] != null ? Timestamp.valueOf(object[5].toString()) : null);
+					dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
 					dto.setCreatedbyName(object[6] != null ? object[6].toString() : null);
 					dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
 					dto.setUpdatedByName(object[8] != null ? object[8].toString() : null);

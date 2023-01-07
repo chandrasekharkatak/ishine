@@ -1,15 +1,15 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" *ngIf="isCreateForm" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">View All Projects</button>
+        <button type="button" *ngIf="isCreateForm || isUpdateForm" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">View All Projects</button>
     </div>
 </div>
 
 <!-- start :: Create & Update Form -->
 <div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isCreateForm">
+    <div class="card col-md-12 px-0" *ngIf="isCreateForm || isUpdateForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Project</strong>
-            <strong *ngIf="!isCreation">Update Project</strong>
+            <strong *ngIf="isUpdation">Update Project</strong>
         </div>
         <div class="card-body">
             <div class="row">
