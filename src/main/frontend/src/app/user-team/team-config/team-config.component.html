@@ -139,7 +139,7 @@
                                     <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
                                     <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
                                         <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                        <mat-option *ngFor="let role of employeeRole" [value]="role" disabled>{{role}}</mat-option>
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
                                     </mat-select>
                                 </div>
                             </div>

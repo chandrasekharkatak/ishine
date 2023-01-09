@@ -38,6 +38,6 @@ public class PoProjectSyncDTO {
     private String status;
     private String createdBy;
     private String updatedBy;
-    private Timestamp updatedOn;
+    private String updatedOn;
 	
 }

@@ -471,6 +471,22 @@ public class TeamsService {
 			} else {
 				teamLeadName = "NA";
 			}
+			
+			if(!allTeamMemberList.isEmpty()) {
+				
+				// Case 5 : Updating Existing Member
+				allTeamMemberList.stream().filter((existingMember) -> existingMember.getEmployeeTeamMapId() != null)
+				.forEach((employee) -> {
+					StringBuilder str = new StringBuilder("");
+					for(String role: employee.getEmployeeRole()) {
+						str.append(role).append(",");
+					}
+					
+					EmployeeTeamMap map = employeeTeamMapRepository.findByEmployeeTeamMapId(employee.getEmployeeTeamMapId());
+					map.setEmployeeRole(str.toString());
+					employeeTeamMapRepository.save(map);
+				});
+			}
 
 			if (!updatedTeamMemberList.isEmpty()) {
 				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
@@ -520,7 +536,7 @@ public class TeamsService {
 								});
 
 						// Case 3 : Removed Existing Member + Added New Member (Combination of Case 1&2)
-
+						
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Team updated.");
 
