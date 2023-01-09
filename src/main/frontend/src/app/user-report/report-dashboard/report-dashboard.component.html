@@ -243,14 +243,16 @@
                         <th scope="col" class="info-label wide-col">Emp ID</th>
                         <th scope="col" class="info-label wide-col">Name</th>
                         <th scope="col" class="info-label wide-col">Department Name</th>
-                        <th scope="col" class="info-label wide-col">Timesheet Date</th>
-                        <th scope="col" class="info-label wide-col">Day Type</th>
+                        <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
+                        <th scope="col" class="info-label wide-col">Day Type</th> -->
                         <th scope="col" class="info-label wide-col">Email Id</th>
                         <th scope="col" class="info-label wide-col">Manager Name</th>
                         <th scope="col" class="info-label wide-col">Mobile No</th>
                         <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col">Pending EOD Count</th>
-                        <th scope="col" class="info-label wide-col">Total Working Hour</th>
+                        <!-- <th scope="col" class="info-label wide-col">Total Working Hour</th> -->
                         <th scope="col" class="info-label wide-col">Type</th>
+                        <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col">Count</th>	
+
                     </tr>
                 </thead>
                 <tbody>
@@ -263,14 +265,15 @@
                         <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
-                        <td>{{leave.date}}</td>
-                        <td>{{leave.dayType}}</td>
+                        <!-- <td>{{leave.date}}</td>
+                        <td>{{leave.dayType}}</td> -->
                         <td>{{leave.email}}</td>
                         <td>{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
-                        <td>{{leave.totalWorkingHours}}</td>
+                        <!-- <td>{{leave.totalWorkingHours}}</td> -->
                         <td>{{leave.legend}}</td>
+                        <td *ngIf="!isPendingByUser"> {{leave.count}}</td>	
                     </tr>
                 </tbody>
             </table>

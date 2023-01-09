@@ -887,7 +887,7 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-
+					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);	
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1165,13 +1165,14 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
-				if(employee.getEmploymentstatus().equals("Resigned")) {
+				if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 							: null);
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
 				}
+				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
 				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
 				employee.setBillable(employeedto.getBillable());
 				employee.setChild1(employeedto.getChild1());
@@ -2963,5 +2964,53 @@ public class EmployeeService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	public ServiceResponse updateLeaveBalanceList(EmployeeDTO employeedto) {	
+		ServiceResponse response = new ServiceResponse();	
+		Float balance = (float) 14;	
+		try {	
+			Employee EmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());	
+				
+			List<EmployeeLeavesMap> leaveBalance =employeeLeavesMapRepository.findAllByEmpId(EmployeementId.getEmpId());	
+				
+			if(leaveBalance.isEmpty()) {	
+				System.out.println("in if block");				
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);				
+				response.setServiceResponse("No Leaves found.");	
+					
+			}else {	
+				for(EmployeeLeavesMap l : leaveBalance) {	
+						
+					System.out.println(l.getLeaveTypeMasterId() + " leave type id");	
+					if(l.getLeaveTypeMasterId() == 1) {	
+						l.setBalance(balance);	
+					}	
+						
+					EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(l);				
+					System.out.println(dbResponse + " dp response");	
+						
+						
+					if(dbResponse != null) {				
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);						
+						response.setServiceResponse("leave balance Updated.");		
+							
+							
+					}else {				
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);						
+						response.setServiceResponse("leave balance Updation Failed.");	
+							
+							
+					}		
+				}	
+			}	
+	
+		} catch (Exception e) {	
+			e.printStackTrace();	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
+			response.setServiceResponse("Something Went Wrong.");	
+			response.setServiceError(e.getMessage());	
+		}	
+		return null;	
 	}
 }

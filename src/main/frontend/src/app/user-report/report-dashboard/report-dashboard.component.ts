@@ -59,7 +59,7 @@ export class ReportDashboardComponent implements OnInit {
 
   modalTitle:any;
   modalSummaryList:any[] = [];
-
+  countByLegend:any[] = [];	
   storedDataList:any[] = [];
 
   zeroToFive:any;
@@ -82,7 +82,7 @@ export class ReportDashboardComponent implements OnInit {
   filterData:any = new FilterData();
   queryList:any[] = [];
   leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
+  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
   constructor(
@@ -164,7 +164,7 @@ export class ReportDashboardComponent implements OnInit {
     this.leaveSumarryList = [];
     this.queryList=[];
     let leaveObj= new Leave();
-
+    console.log(leaveObj);
      leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
      leaveObj.endDate = moment().format(this.dateFormat);
 
@@ -503,6 +503,23 @@ export class ReportDashboardComponent implements OnInit {
         return;
       }
 
+      let _tempQueryList = JSON.parse(JSON.stringify(queryObj.queryList));	
+      console.log(_tempQueryList, "_tempQueryList");	
+      let _filteredQueryList = _tempQueryList.filter((query)=> {	
+        if(query.column == 'Employee Id' || query.column == 'Department' || query.column == 'Full Name' || query.column == 'Team Name' || query.column == 'Project Name' || query.column == 'Client Name'){	
+          return Object.assign({}, query);	
+        }	
+      });	
+        	
+      _filteredQueryList.forEach((query:Query, index, queries) => {	
+        if(index == (queries.length-1)){	
+          query.conjunction = "";	
+        }	
+      });	
+      queryObj.queryList1 = _filteredQueryList;	
+      console.log( queryObj.queryList1," queryObj.queryList1");	
+      console.log(queryObj.queryList, "queryObj.queryList")	
+      
       this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.timsheetSummaryList = response.serviceResponse;
@@ -1766,10 +1783,32 @@ export class ReportDashboardComponent implements OnInit {
   openTimesheetSummaryTableModel(legendName:any){
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
+    this.countByLegend = [];
+
     this.data = ''
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
+      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")	
+      	console.log(this.countByLegend);
+      this.modalSummaryList.forEach(x=>{	
+        if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){	
+          this.countByLegend.push({	
+            employeementId : x.employeementId,	
+            employeeName : x.employeeName,	
+            departmentName : x.departmentName,	
+            email : x.email,	
+            mobileNo : x.mobileNo,	
+            managerName : x.managerName,	
+            pendingEodCount : x.pendingEodCount,	
+            legend : x.legend,	
+            count : this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length	
+          });	
+        }	
+      });	
+      console.log(this.countByLegend,"Data");	
+      this.modalSummaryList = this.countByLegend;	
+
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
       if(legendName == 'Pending By User'){
         this.isPendingByUser = true;

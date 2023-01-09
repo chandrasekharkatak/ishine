@@ -1072,7 +1072,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
     this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
-   
+
+    if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){	
+      this.employeeObj.dateOfResign = null;	
+      this.employeeObj.dateOfRelieving= null; 	
+    }
 
     this.allCertificationList.forEach(certificaiton => {
       console.log("All certificaiton : ", this.allCertificationList);
@@ -1598,6 +1602,24 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  updateNoticePeriod(employeeObj: Employee){	
+    const dateFormat = 'YYYY-MM-DD';	
+    console.log(employeeObj,"employeeObj");	
+    this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfRelieving).format(dateFormat);	
+    console.log(this.employeeObj.dateOfRelieving);	
+    const diff =  Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));		
+    this.employeeObj.noticePeriod = diff;	
+    console.log(diff, "diffDaysdiffDays")	
+  }	
+  estimateDateOfReleiving(employeeObj: Employee){	
+    const dateFormat = 'YYYY-MM-DD';	
+    console.log(employeeObj,"employeeObj");	
+    let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
+    this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
+    console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
+  }	
+
+
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -1674,34 +1696,12 @@ export class EmployeeConfigComponent implements OnInit {
                    
                     case 'email':	
                       return compare(a.email , b.email , isAsc);	
-
-                      case 'managerName':	
-                        return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc); 
-                      
-                         case 'departmentName':	
-                           return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc); 
-                      
-                            case 'dateOfJoining':	
-                              return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
-                               
-                                case 'dateOfRelieving':	
-                                  return  compare(new Date(a.dateOfRelieving).getTime() ,  new Date(b.dateOfRelieving).getTime(), isAsc);	
-                               
-                                   case 'createdOn':	
-                                     return  compare(new Date(a.createdOn).getTime() ,  new Date(b.createdOn).getTime(), isAsc);	
-                                  
-                                      case 'createdByName':	
-                                        return  compare(a.createdByName.toLowerCase() ,  b.createdByName.toLowerCase(), isAsc);	
-                                  
-                                         case 'updatedOn':	
-                                           return  compare(new Date(a.updatedOn).getTime() ,  new Date(b.updatedOn).getTime(), isAsc);	
-                                  
-                                            case 'updatedByName':	
-                                              return  compare(a.updatedByName ,  b.updatedByName, isAsc);
-                                     
-                                                 default:	
-                                                  return 0; 	
-                            }	
+                      case 'dateOfJoining':	
+                          
+                        return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
+                   default:	
+                     return 0; 	
+                 }	
              }	
            )	
          }	

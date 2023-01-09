@@ -79,9 +79,9 @@ export class ReportListComponent implements OnInit {
   departmentId:any;
   employeeRole:any;
 
-  leaveColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  leaveColumns:any[] = ['Employee Id', 'Full Name','Employment Status', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
-  timesheetColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
+  timesheetColumns:any[] = ['Employee Id','Full Name','Employment Status','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   queryList:any[] = [];
   filterData:any = new FilterData();
 
@@ -145,14 +145,18 @@ export class ReportListComponent implements OnInit {
 
     this.storedDataList.forEach((object) => {
       if(object.filterName == 'Filter Leave Report'){
-        console.log("hii");
-        
         this.getCustomLeaveApplicationsList(object.queryList,this.alertModal);
       }
     });
 
     if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Leave Report')){
-      this.getAllLeaveApplicationsList();
+      let inActiveQuery = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+      ];
+     // this.getAllLeaveApplicationsList();
+
+     this.getCustomLeaveApplicationsList(inActiveQuery,this.alertModal);
+
     }
 
     this.data = ''
@@ -172,7 +176,12 @@ export class ReportListComponent implements OnInit {
     });
 
     if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')){
-      this.getAllTimesheetApplicationsList();
+      let inActiveQuery = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+      ];
+      this.getCustomTimesheetApplicationsList(inActiveQuery,this.alertModal);
+
+      //this.getAllTimesheetApplicationsList();
     }
 
     this.data = ''
@@ -192,7 +201,11 @@ export class ReportListComponent implements OnInit {
     });
 
     if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Employee Report')){
-      this.getAllEmployeeList();
+      let inActiveQuery = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+      ];
+      this.getCustomEmployeesList(inActiveQuery,this.alertModal);
+      // this.getAllEmployeeList();
     }
 
     this.data =''
@@ -217,6 +230,7 @@ export class ReportListComponent implements OnInit {
     this.leaveService.leaveReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allLeaveApplicationsList = response.serviceResponse;
+       // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter(x => x.employmentstatus != 'InActive');
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
@@ -276,6 +290,8 @@ export class ReportListComponent implements OnInit {
     this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetApplicationsList = response.serviceResponse;
+       // this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter(x => x.employmentstatus != 'InActive');	
+
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
           timesheet.description = timesheet.description.replaceAll('<br>','')
@@ -340,6 +356,8 @@ export class ReportListComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+       // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
+
         this.allEmployeeList.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
           employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
@@ -359,6 +377,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    
     if(queryObjList == ''){
       this.getAllEmployeeList();
     }else {
@@ -576,6 +595,10 @@ showColumn(){
     
     this.filterData.title  = title;
     this.filterData.columns = columns;
+
+    this.queryList = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+      ];
 
     this.storedDataList.forEach((data) => {
       if(data.filterName == title){

@@ -8,7 +8,18 @@
     </div>
 
     <div class="row">
-      <div class="form-group d-flex flex-row ml-auto col-md-3">
+
+      <div class="col-md-2 ml-auto mb-2">	
+        <div class="form-inline input-group">	
+          <label class="d-inline-block mr-2 mt-2"><strong>Year</strong></label>	
+          <select class="form-control" aria-hidden="true" #changedata (change)="getFilterHolidayList(changedata.value)">	
+            <option selected="selected" value="" disabled>Select</option>	
+            <option *ngFor="let year of years" value="{{year}}">{{year}}</option>	
+          </select>	
+        </div>	
+      </div>
+      
+      <div class="form-group d-flex flex-row  col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
       </div>  
     </div>

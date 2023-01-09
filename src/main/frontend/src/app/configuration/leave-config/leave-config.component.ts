@@ -67,6 +67,9 @@ export class LeaveConfigComponent implements OnInit {
   leavePolicyObj:Leave = new Leave();
   leavePolicyList:any[] = [];
 
+  years:any[]=[];	
+  selectedYearholidayList:any[] = [];
+
   allStates:any[] = [
     "Andaman & Nicobar Islands",
     "Andhra Pradesh",
@@ -131,6 +134,7 @@ export class LeaveConfigComponent implements OnInit {
 
     this.sectionViewInit();
     this.preventBackButton();
+    this.dynamicYearForDropdown();	
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -357,6 +361,16 @@ export class LeaveConfigComponent implements OnInit {
     this.leavePolicyList = [];
   }
 
+  dynamicYearForDropdown(){	
+    let currentYear = new Date().getFullYear();	
+    this.years = [];	
+    this.years.push(currentYear);	
+    for (var i = 1; i < 2; i++) {	
+      this.years.push(currentYear - i);	
+    }	
+    console.log(this.years, "dynamic year");	
+    	
+  }
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -561,18 +575,34 @@ export class LeaveConfigComponent implements OnInit {
     
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.holidayList = response.serviceResponse;
-        this.holidayList.forEach(holiday => {
+        this.holidayListFilter = response.serviceResponse;
+        this.holidayListFilter.forEach(holiday => {
             holiday.dateOfHoliday = (holiday.dateOfHoliday)? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
             holiday.createdOn = (holiday.createdOn)? moment(holiday.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             holiday.updatedOn = (holiday.updatedOn)? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null; 
         });
-        console.log("holidayList : ", this.holidayList);
-        this.holidayListFilter = this.holidayList;
+        console.log("holidayList : ", this.holidayListFilter);
+       // this.holidayListFilter = this.holidayList;
+        this.holidayList = this.holidayListFilter;	
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  getFilterHolidayList(value:any){	
+    this.selectedYearholidayList = [];	
+    let searchYear = parseInt(value);	
+    console.log(searchYear,"searchYear")	
+    console.log(this.holidayList,"this.holidayListthis.holidayList")	
+    this.holidayList.forEach(holiday =>{	
+      const year = new Date(holiday.dateOfHoliday).getFullYear();	
+      if(searchYear === year){	
+        this.selectedYearholidayList.push(holiday);	
+      }      	
+    });	
+    this.holidayListFilter =  this.selectedYearholidayList;	
+    console.log(this.holidayListFilter,"this.holidayListFilter")	
   }
 
   checkOccasion(template: TemplateRef<any>){

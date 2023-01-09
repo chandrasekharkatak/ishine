@@ -289,5 +289,14 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployeeInfo();
 		return response;
 	}
+	
+	@RequestMapping(value = "/updateLeaveBalanceList", method = RequestMethod.POST, consumes = "application/json")	
+	public ServiceResponse updateLeaveBalanceList(@RequestBody EmployeeDTO[] employeeDTO) {	
+		ServiceResponse response = null;	
+		for (EmployeeDTO employeedto : employeeDTO) {	
+			response = employeeService.updateLeaveBalanceList(employeedto);	
+		}	
+		return response;	
+	}
 
 }

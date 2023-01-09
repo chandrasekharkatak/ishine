@@ -49,6 +49,7 @@ public class ReportService {
 					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
+					leavedto.setEmploymentStatus(object[13] != null ? object[13].toString() : null);
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -90,6 +91,8 @@ public class ReportService {
 					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
 					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
 					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
+					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
+
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
