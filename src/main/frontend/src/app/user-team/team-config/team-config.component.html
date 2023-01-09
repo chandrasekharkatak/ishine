@@ -648,14 +648,14 @@
             <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
-        </div>
+        </div>        
         <div class="row">
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
                 [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
                 <table class="table table-responsive" id="activityTemplateInfo">	
-                    <thead class="thead-light">	
-                      <tr>	
+                    <thead class="thead-light" id="activityTemplateInfoTHead">	
+                      <tr id="activityTemplateInfoTHeadTr">	
                         <th scope="col" class="info-label">Sr No.</th>
                         <th scope="col" class="info-label">Employee Role</th>
                         <th scope="col" class="info-label">Activities</th>

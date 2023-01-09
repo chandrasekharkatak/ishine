@@ -139,4 +139,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployeeInfoForPoPortal();
+
+	public List<Employee> findByEmploymentstatus(String employmentStatus);
 }

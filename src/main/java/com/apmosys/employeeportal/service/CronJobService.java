@@ -47,6 +47,7 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -58,6 +59,7 @@ import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -118,6 +120,9 @@ public class CronJobService {
 	
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
 	
 	@Autowired
 	MailService mailService;
@@ -331,48 +336,109 @@ public class CronJobService {
 	
 	// 0 1 1 ? * * - At 01:01:00am every day
 	
-	@Scheduled(cron = "0 1 1 ? * *")
+	@Scheduled(cron = "0 0/2 * ? * *")
 	public void LeaveExpirationCronJob() {
-		
-		short leaveTypeMasterId = 0;
 		try {
-		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-		     
-		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+//		     
+//		          for(LeaveTypeMaster ltm :leaveType) {
+//			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//			
+//			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//			      
+//			          for(LeavePolicyMaster lpm : leavePolicy) {
+//				         if(lpm.getExpirationPeriod().equals("Yes")) {
+//				        	 
+//				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
+//				     	     Timestamp createdOnDate = lpm.getCreatedOn();
+//				     	     
+//				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
+//				   
+//				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+//				    		 String expiration = f.format(expirationDate);
+//				    		 System.out.println(expiration);
+//				     	     
+//				     	     LocalDateTime dateTime = LocalDateTime.now();
+//				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
+//				             System.out.println(todayDate);
+//					         
+//				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//					
+//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
+//						   
+//						              if(expiration.equals(todayDate)) {
+//						            	  float newBalance = 0;
+//						            	  elm.setBalance(newBalance);
+//							              employeeLeavesMapRepository.save(elm);
+//							              break;
+//						              }
+//					              }
+//				          }
+//			           }
+//		            }
 			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+			
+			
+			LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
+			
+			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
 			      
 			          for(LeavePolicyMaster lpm : leavePolicy) {
 				         if(lpm.getExpirationPeriod().equals("Yes")) {
-				        	 
 				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
-				     	     Timestamp createdOnDate = lpm.getCreatedOn();
-				     	     
-				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
-				   
-				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-				    		 String expiration = f.format(expirationDate);
-				    		 System.out.println(expiration);
-				     	     
-				     	     LocalDateTime dateTime = LocalDateTime.now();
-				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
-				             System.out.println(todayDate);
-					         
-				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						   
-						              if(expiration.equals(todayDate)) {
-						            	  float newBalance = 0;
-						            	  elm.setBalance(newBalance);
-							              employeeLeavesMapRepository.save(elm);
-							              break;
-						              }
-					              }
+				        	 
+				        	 List<Employee> employeeObj = employeeRepository.findByEmploymentstatus(lpm.getEmploymentStatus());
+				        	 
+				        	 if(!employeeObj.isEmpty()) {
+				        		 employeeObj.forEach((object) -> {
+				        			 //Get employee leave balance
+				        			 EmployeeLeavesMap empLeaveMapObj = employeeLeavesMapRepository
+				        					 .findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), leaveType.getLeaveTypeMasterId());
+				        			 
+				        			 //Get CompOff leave applications
+				        			 Timestamp perv45Day = Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay());
+				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(object.getEmpId(), (short)2, perv45Day);
+				        			 if(!compOffLeaveObj.isEmpty()) {
+				        				 compOffLeaveObj.forEach((compOffObj) -> {
+				        					 
+				        					 if(compOffObj.getUpdatedOn() != null) {
+				        						 compOffObj.setApproverDate(compOffObj.getUpdatedOn().toLocalDate());
+					        					 compOffLeaveRepository.save(compOffObj); 
+				        					 }
+				        					 
+				        					 LocalDate expirationDate = compOffObj.getUpdatedOn().toLocalDate().plusDays(expirationPeriod);
+				        					 LocalDate dateToday = LocalDate.now();
+				        					 if(expirationDate.equals(dateToday)) {
+				        						 Float pervBalance = empLeaveMapObj.getBalance();
+				        						 Float newBalance = pervBalance - compOffObj.getNoOfDays();
+				        						 
+				        						 empLeaveMapObj.setBalance(newBalance);
+				        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
+				        						 
+				        						 if(dbResposne != null) {
+				        							 
+				        							 LeaveBalanceLog log = new LeaveBalanceLog();
+
+														log.setBalance(newBalance);
+														log.setEmpId(object.getEmpId());
+														log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+														log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
+																Float.toString(compOffObj.getNoOfDays())));
+														log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+
+														leaveBalanceLogRepository.save(log);
+				        							 
+				        							 System.out.println("CompOff balance updated successfully");
+				        						 }else {
+				        							 System.out.println("CompOff balance updation failed");
+				        						 }
+				        					  }
+				        				 });
+				        			 }
+				        		 });
+				        	 }
 				          }
 			           }
-		            }
 		   }catch(Exception e) {
 			e.printStackTrace();
 		   }
