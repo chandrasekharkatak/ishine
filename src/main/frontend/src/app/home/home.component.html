@@ -286,6 +286,7 @@
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Project Name</th>
+                <th scope="col" class="info-label">Team Name</th>
                 <th scope="col" class="info-label">Activity</th>
                 <th scope="col" colspan="4" class="info-label">Description</th>
                 <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
@@ -298,6 +299,7 @@
               <tr *ngFor="let activity of timesheetObj.allTimesheetActivities|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{activity.projectName}}</td>
+                <td>{{activity.teamName}}</td>
                 <td>{{activity.activity}}</td>
                 <td colspan="4">{{activity.description}}</td>
                 <td>{{activity.completionTime}}</td>
@@ -376,20 +378,20 @@
     <div class="modal-body ">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
             [tableTHeadTrId]="'leaveApplicationTHeadTr'">
-            <table class="table leaveApplication-table" id="leaveApplication">
+            <table class="table leaveApplication-table" matSort (matSortChange)="sortHomeLeave($event)" id="leaveApplication">
             <thead class="thead-light text-center" id="leaveApplicationTHead">
               <tr id="leaveApplicationTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Leave Type</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied On</th>
-                <th scope="col" class="info-label">Reason</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
+                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
+                <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+                <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+                <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
+                <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
                 <!-- <th scope="col" class="info-label">Comments</th> -->
                 <th scope="col" class="info-label">Actions</th>
               </tr>
@@ -441,17 +443,17 @@
     <div class="modal-body">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'" [tableTHeadId]="'compOffApplicationTHead'"
         [tableTHeadTrId]="'compOffApplicationTHeadTr'">
-        <table class="table compOffApplication-table" id="compOffApplication">
+        <table class="table compOffApplication-table" matSort (matSortChange)="sortHomeCompOff($event)" id="compOffApplication">
             <thead class="thead-light" id="compOffApplicationTHead">
               <tr id="compOffApplicationTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied For</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Description</th>
-                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>
+                <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+                <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+                <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+                <th scope="col" class="info-label" mat-sort-header="description">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                 <th scope="col" class="info-label">Actions</th>
              </tr>
             </thead>
@@ -514,20 +516,20 @@
     <div class="modal-body">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'" [tableTHeadId]="'timesheetRequestTHead'"
         [tableTHeadTrId]="'timesheetRequestTHeadTr'">
-        <table class="table teams-request-table" id="timesheetRequest">
+        <table class="table teams-request-table" matSort (matSortChange)="sortHomeTimesheet($event)" id="timesheetRequest">
             <thead class="thead-light" id="timesheetRequestTHead">
               <tr id="timesheetRequestTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Employee Id</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Date</th>
-                <th scope="col" class="info-label">Day Type</th>
-                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                <th scope="col" class="info-label">Office In Time</th>
-                <th scope="col" class="info-label">Office Out Time</th>
-                <th scope="col" class="info-label">Total Office Working Hours</th>
-                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
+                <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Activity</th>
+                <th scope="col" class="info-label" mat-sort-header="officeInTime">Office In Time</th>
+                <th scope="col" class="info-label" mat-sort-header="officeOutTime">Office Out Time</th>
+                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                 <th scope="col" class="info-label">Actions</th>
               </tr>
             </thead>

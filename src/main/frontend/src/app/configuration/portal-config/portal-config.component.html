@@ -417,8 +417,8 @@
             <tr *ngFor="let event of allAppreciationEvent | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">		
              <th class="info-label">{{10*(page-1)+i+1}}</th>	
             <td>{{event.appreciationEventName}}</td>	
-            <td>{{event.fromDate}}</td>	
-            <td>{{event.toDate}}</td>	
+            <td>{{event.fromDate | date:'dd-MM-yyyy'}}</td>	
+            <td>{{event.toDate | date:'dd-MM-yyyy'}}</td>	
             <td>{{event.createdOn}}</td>	
            <td *ngIf="userMapping.update_appreciation_event || userMapping.delete_appreciation_event">	
             <button *ngIf="userMapping.update_appreciation_event" class="btn btn-sm btn-outline-primary"	

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,6 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 	public Long countPendingCompOffRequestsByManagerId(Integer managerId);
 
 	public List<CompOffLeave> findByLeaveTypeMasterId(Short oldLeaveTypeMasterId);
+
+	public List<CompOffLeave> findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(Long empId, short s, Timestamp perv45Day);
 }

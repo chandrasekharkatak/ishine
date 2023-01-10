@@ -22,6 +22,10 @@ export class HolidaysComponent implements OnInit {
 
   holidayList:any[] = [];
 
+  selectedYearholidayList:any[] = [];	
+  holidayList1:any[] = [];	
+  years:any[]=[];
+
   constructor(
     private holidayService : HolidayService,
     private authenticationService : AuthenticationService,
@@ -33,6 +37,7 @@ export class HolidaysComponent implements OnInit {
   ngOnInit(): void {
     this.getAllHolidayByEmpWorkLocation()
     this.preventBackButton();
+    this.dynamicYearForDropdown();	
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -40,20 +45,44 @@ export class HolidaysComponent implements OnInit {
       history.pushState(null, null, location.href);
     })
   }
-
+  dynamicYearForDropdown(){	
+    let currentYear = new Date().getFullYear();	
+    this.years = [];	
+    this.years.push(currentYear);	
+    for (var i = 1; i < 2; i++) {	
+      this.years.push(currentYear - i);	
+    }	
+    console.log(this.years, "dynamic year");	
+    	
+  }
   getAllHolidayByEmpWorkLocation(){
     this.holidayList = [];
-    
+    this.holidayList1 = [];	
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
     this.holidayService.getAllHolidayByEmpWorkLocation(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
+        this.holidayList1 = this.holidayList;	
         console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+  getFilterHolidayList(value:any){	
+    this.selectedYearholidayList = [];	
+    let searchYear = parseInt(value);	
+    console.log(searchYear,"searchYear")	
+    console.log(this.holidayList,"this.holidayListthis.holidayList")	
+    this.holidayList1.forEach(holiday =>{	
+      const year = new Date(holiday.dateOfHoliday).getFullYear();	
+      if(searchYear === year){	
+        this.selectedYearholidayList.push(holiday);	
+      }      	
+    });	
+    this.holidayList =  this.selectedYearholidayList;	
+    console.log(this.selectedYearholidayList,"this.holidayListholidayList")	
   }
 
   //pagination 

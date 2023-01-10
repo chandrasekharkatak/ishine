@@ -1,5 +1,6 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -658,4 +659,46 @@ export class SurveyConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
+
+  // sortSurvey()
+  sortSurvey(sort: Sort) {
+    console.log(sort);
+
+    const data = this.allSurveyList;
+
+    if (!sort.active || sort.direction === '') {
+      this.allSurveyList = data;
+      return;
+    }
+    else {
+      this.allSurveyList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'surveyName':
+              return compare(a.surveyName.toLowerCase(), b.surveyName.toLowerCase(), isAsc)
+            case 'description':
+              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc)
+            case 'isActive':
+              return compare(a.isActive.toLowerCase(), b.isActive.toLowerCase(), isAsc)
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+
 }

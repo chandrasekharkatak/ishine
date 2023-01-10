@@ -40,7 +40,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.viewsOnOrganisation)){
+    } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.viewsOnOrganisation)){
       this.alertMessage = "Please enter valid view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -50,7 +50,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateAlphaWithSpace(employeeObj.aboutMe)){
+    } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.aboutMe)){
       this.alertMessage = "Please enter valid in  About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -430,8 +430,13 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else  if(!this.validationService.validateNumber(previousEmployer.yearsOfExperience)){
-              this.alertMessage = `Please Enter valid Years of Experience - ${index+1}!!`
+            }else if(!this.validationService.validateExperiencedNumber(previousEmployer.yearsOfExperience)){
+				this.alertMessage = `Please Enter valid Years of Experience - ${index+1}!!`
+              	this.openAlertMod(template, this.alertMessage);
+              	prevFlag = false;
+              	return;	
+            }if (previousEmployer.yearsOfExperience > 60) {
+              this.alertMessage = `Please Enter value 1 to 60(yrs) in Years of Experience - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;

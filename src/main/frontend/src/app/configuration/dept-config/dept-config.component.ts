@@ -371,6 +371,10 @@ export class DeptConfigComponent implements OnInit {
                   return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
                   case 'createdOn':	
                     return compare(a.createdOn , b.createdOn , isAsc)	
+                     case 'updatedOn':	
+                       return compare(a.updatedOn , b.updatedOn , isAsc)	
+                        case 'updatedByName':	
+                         return compare(a.updatedByName , b.updatedByName , isAsc)	
                 default:	
                  return 0;	
           }	

@@ -61,6 +61,8 @@ public class TimesheetDTO {
 	private String legend;
 	private String rejectReason;
 	private List<CustomFilterDTO> queryList;
+	private List<CustomFilterDTO> queryList1;
+
 	private String employmentstatus;
 	private List<TimesheetDTO> bulkApprovedList;
 	private List<TimesheetDTO> bulkRejectList;

@@ -16,4 +16,6 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllActivitiesByProjectIdAndTeamId(Integer projectId, Long teamId);
 
+	public List<Activity> findByTeamIdAndEmployeeRoleInAndDeptId(Long teamId, String[] employeeRole, Long deptId);
+
 }

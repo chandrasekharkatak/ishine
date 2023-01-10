@@ -188,7 +188,7 @@
                         <thead class="thead-light" id="leaveHistoryInfoTHead">	
                         <tr id="leaveHistoryInfoTHeadTr">	
                             <th scope="col" class="info-label">Sr No.</th>
-                            <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label">Name</th>
+                            <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
                             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
                             <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
                             <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
@@ -198,7 +198,7 @@
                             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
                             <th scope="col" class="wide-col" mat-sort-header="reason">Reason</th>
                             <th scope="col" class="info-label" mat-sort-header="approverName">Approver Name</th>
-                            <th scope="col" class="info-label">Remarks</th>
+                            <th scope="col" class="info-label" mat-sort-header="remark">Remarks</th>
                             <th scope="col" class="info-label">Action</th>
                             <!-- <th scope="col" class="info-label">Comments</th> -->
                         </tr>
@@ -282,7 +282,7 @@
                       <tr>	
                         <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                         <th scope="col" class="info-label" >Sr No.</th>
-                        <th scope="col" class="info-label" mat-sort-header="leaveType">Name</th>		
+                        <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>		
                         <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
                         <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
                         <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
@@ -452,11 +452,11 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="revoke-history-table" matSort (matSortChange)="sortLeaveBalanceChange($event)">	
+                    <table class="table table-responsive" id="revoke-history-table" matSort (matSortChange)="sortLeaveRevokeTable($event)">	
                         <thead class="thead-light">	
                           <tr>
                             <th scope="col" class="info-label" >Sr. No</th>
-                            <th *ngIf="isTeamLeaveRevokeApplication" scope="col" class="info-label" >Name</th>
+                            <th *ngIf="isTeamLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
                             <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
                             <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
                             <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
@@ -528,8 +528,8 @@
                             <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
-                            <th scope="col" class="info-label" mat-sort-header="reason">Revoke Reason</th>
-                            <th scope="col" class="info-label" mat-sort-header="action">Action</th>
+                            <th scope="col" class="info-label" mat-sort-header="revokeReason">Revoke Reason</th>
+                            <th scope="col" class="info-label">Action</th>
                           </tr>
                         </thead>
                         <tbody>

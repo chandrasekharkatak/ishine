@@ -132,14 +132,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 d-flex">
-                        <div class="col-md-4 mb-0">
+                    <div class="d-flex">
+                        <div class="col-md-3 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
                                     <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
                                         <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                        <mat-option *ngFor="let role of employeeRole" [value]="role" disabled>{{role}}</mat-option>
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
                                     </mat-select>
                                 </div>
                             </div>
@@ -147,6 +147,9 @@
                         <div class="m-0">
                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)"><i
                                     class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview)">Preview Activities</button>
                         </div>
                     </div>
                 </div>
@@ -645,18 +648,18 @@
             <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
-        </div>
+        </div>        
         <div class="row">
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
                 [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
-                <table class="table table-responsive" id="activityTemplateInfo">	
-                    <thead class="thead-light">	
-                      <tr>	
+                <table class="table table-responsive" matSort (matSortChange)="sortActivityTemplate($event)" id="activityTemplateInfo">	
+                    <thead class="thead-light" id="activityTemplateInfoTHead">	
+                      <tr id="activityTemplateInfoTHeadTr">	
                         <th scope="col" class="info-label">Sr No.</th>
-                        <th scope="col" class="info-label">Employee Role</th>
-                        <th scope="col" class="info-label">Activities</th>
-                        <th scope="col" class="info-label">Department</th>
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole">Employee Role</th>
+                        <th scope="col" class="info-label" mat-sort-header="activityDescription">Activities</th>
+                        <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>
@@ -742,7 +745,7 @@
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                    *ngFor="let emp of activityPreviewList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    *ngFor="let emp of activityPreviewList, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{emp.activity}}</td>
                     <td>{{emp.employeeRole}}</td>

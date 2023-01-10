@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -8,6 +10,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,8 +35,13 @@ public class CompOffLeave {
 	@Column(length = 500)
 	private String description;
 	
-	@Embedded
-	private CommonProperties commonProperties = new CommonProperties();
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
+	private Timestamp createdOn;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+	private LocalDateTime updatedOn;
+	private Long updatedBy;
+	private Long createdBy;
 	
 	private LocalDate fromDate;
 	private LocalDate toDate;
@@ -40,5 +49,6 @@ public class CompOffLeave {
 	private String leaveCode;
 	private Long leaveStatusUpdatedBy;
 	private Long hodId;
+	private LocalDate approverDate;
 
 }

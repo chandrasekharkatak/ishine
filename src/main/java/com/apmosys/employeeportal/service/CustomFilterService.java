@@ -156,6 +156,11 @@ public class CustomFilterService {
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
 					}
+					case "Employment Status": {	
+						query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")	
+								.append(dto.getValue() + "' ").append(dto.getConjunction());	
+						break;	
+					}
 					default:
 						break;
 					}
@@ -663,6 +668,16 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Department": {	
+					query = query.append(" d.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Employment Status": {	
+					query = query.append(" e1.employmentstatus ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}
 				default:
 					break;
 				}
@@ -680,6 +695,8 @@ public class CustomFilterService {
 						+ "FROM employee_timesheets et \n"
 						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
+						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"	
+						+ "LEFT JOIN department d on jr.dept_id = d.dept_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
@@ -826,14 +843,71 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Department": {	
+					query = query.append(" d.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}
 				default:
 					break;
 				}
 			}
 			return query;
      }
+	public StringBuilder createQueryForTimesheetSummaryChart1(List<CustomFilterDTO> queryList) {	
+		StringBuilder query = new StringBuilder("");	
+			
+			for(CustomFilterDTO dto: queryList) {	
+				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {	
+					dto.setValue("%"+dto.getValue()+"%");	
+				}	
+					
+				switch (dto.getColumn()) {	
+				case "Employee Id": {	
+					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Full Name": {	
+					query = query.append(" e.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+
+				case "Team Name": {	
+					query = query.append(" t.team_name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Project Name": {	
+					query = query.append(" p.project_name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Client Name": {	
+					query = query.append(" p.client_name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
 	
-	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery, List<CustomFilterDTO> queryList) {
+				case "Updated By": {	
+					query = query.append(" e2.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Department": {	
+					query = query.append(" d.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				default:	
+					break;	
+				}	
+			}	
+			return query;	
+     }	
+	
+	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery,String customQuery1, List<CustomFilterDTO> queryList) {
 		ServiceResponse response = new ServiceResponse();
 		
 			Session session = entityManager.unwrap(Session.class);
@@ -850,13 +924,16 @@ public class CustomFilterService {
 			}
 			
 			try {
+									
 				String q1="SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets et "
 						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
 						+ "WHERE date between '"+fromDate+"' and '"+toDate+"' "
 						+ " group by e.emp_id";
+				Query query1 = session.createSQLQuery(q1);
+				List<Object[]> timesheetList = query1.getResultList();
 				
-				System.out.println(q1);
 				
+
 				String q2="SELECT et.status,e.employeement_id,e.name,d.name dept,e.email,e.mobile_no,date,total_time working_hours, "
 						+ "et.day_type, e2.name manager, t.team_name,p.project_name,p.client_name "
 						+ "FROM employee_timesheets et "
@@ -869,24 +946,68 @@ public class CustomFilterService {
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q2);
-				
-				Query query1 = session.createSQLQuery(q1);
 				Query query2 = session.createSQLQuery(q2);
-				
-				
-				List<Object[]> timesheetList = query1.getResultList();
-
-				List<Object[]> employeeList = employeeRepository.getAllEmployees();
-
 				List<Object[]> filledTimesheetList = query2.getResultList();
+				
 				
 				LocalDate startDate = LocalDate.parse(fromDate);
 				LocalDate endDate = LocalDate.parse(toDate);
 				Long pendingEOdNumber = ChronoUnit.DAYS.between(startDate, endDate);
 
 				List<TimesheetDTO> dtoList = new ArrayList<>();
+				
+				if(timesheetList != null) {
+				if(!customQuery1.equalsIgnoreCase("")) {
+				String empId = " SELECT distinct(e.emp_id),e.employeement_id,e.name,d.name as dept,e.email,e.mobile_no, e2.name as managerName,e.employmentstatus " 
+						+ " FROM employee_timesheets et "
+						+ " INNER JOIN employee e ON e.emp_id = et.emp_id "
+						+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+						+ " INNER JOIN department d ON d.dept_id = jr.dept_id " 
+						+ " INNER JOIN employee e2 on e2.emp_id = e.manager_id "
+						+ " LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
+						+ " LEFT JOIN teams t on t.team_id = etm.team_id "
+						+ " LEFT JOIN projects p on p.project_id = t.project_id "
+						+ "where e.employmentstatus not like 'InActive' and "  +customQuery1;
+				
+				Query EmployeeId = session.createSQLQuery(empId);
+				List<Object[]> employeeList= EmployeeId.getResultList();
+				
+				employeeList.forEach((employee) -> {
+					TimesheetDTO dto = new TimesheetDTO();
 
-				if (timesheetList != null) {
+					dto.setEmployeementId(employee[1] != null ? Long.parseLong(employee[1].toString()) : null);
+					dto.setEmployeeName(employee[2] != null ? employee[2].toString() : null);
+					dto.setDepartmentName(employee[3] != null ? employee[3].toString() : null);
+					dto.setEmail(employee[4] != null ? employee[4].toString() : null);
+					dto.setMobileNo(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
+					dto.setManagerName(employee[6] != null ? employee[6].toString() : null);
+					dto.setEmpId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+					dto.setPendingEodCount(pendingEOdNumber);
+					dto.setLegend("Pending By User");
+					dto.setEmploymentstatus(employee[7] != null ? employee[7].toString() : null);
+
+					timesheetList.forEach((timesheet) -> {
+
+						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+						Long employeeEmpId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
+
+						if (timesheetEmpId.equals(employeeEmpId)) {
+
+							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+
+							Long pendingEodCount = pendingEOdNumber - filledEodCount;
+
+							dto.setPendingEodCount(pendingEodCount);
+
+						}
+
+					});
+					dtoList.add(dto);
+				});
+
+				}else {
+					List<Object[]> employeeList = employeeRepository.getAllEmployees();
+					
 					employeeList.forEach((employee) -> {
 						TimesheetDTO dto = new TimesheetDTO();
 
@@ -920,6 +1041,8 @@ public class CustomFilterService {
 						dtoList.add(dto);
 					});
 
+				}
+				
 					if (filledTimesheetList != null) {
 						filledTimesheetList.forEach((filledTimesheet) -> {
 							TimesheetDTO dto = new TimesheetDTO();
@@ -945,7 +1068,7 @@ public class CustomFilterService {
 					response.setServiceResponse("Timesheet not found. Kindly check date range.");
 				}
 				
-			}catch(Exception e) {
+				}catch(Exception e) {
 				e.printStackTrace();
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 				response.setServiceResponse("Something Went Wrong.");
@@ -958,12 +1081,16 @@ public class CustomFilterService {
 		return response;
 	}
 
+
 	public ServiceResponse customQueryForTimesheetSummaryChart(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
 			StringBuilder subQuery = createQueryForTimesheetSummaryChart(timesheetDTO.getQueryList());
-			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(), timesheetDTO.getQueryList());
+			
+			StringBuilder subQuery1 = createQueryForTimesheetSummaryChart1(timesheetDTO.getQueryList1());
+
+			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(),subQuery1.toString(), timesheetDTO.getQueryList());
 			
 			if(timesheetSummaryLeaveResposne.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

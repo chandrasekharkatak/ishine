@@ -14,6 +14,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-project-config',
@@ -26,6 +27,7 @@ export class ProjectConfigComponent implements OnInit {
   projectObj: Project = new Project();
 
   isCreateForm:boolean = false;
+  isUpdateForm:boolean = false;
   isTable:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
@@ -121,6 +123,7 @@ export class ProjectConfigComponent implements OnInit {
   showCreateForm(){
     this.isCreateForm = true;
     this.isCreation = true;
+    this.isUpdateForm = false;
 
     this.isTable = false;
     this.projectObj = new Project();
@@ -132,8 +135,8 @@ export class ProjectConfigComponent implements OnInit {
 
   showUpdateForm(project:Project){
     this.isUpdation = true;
-
-    this.isCreateForm = true;
+    this.isUpdateForm = true;
+    this.isCreateForm = false;
     this.isCreation = false;
     this.isTable = false;
     this.getAllDepartmentList();
@@ -178,8 +181,10 @@ export class ProjectConfigComponent implements OnInit {
     this.isTable = true;
     this.page = 1;
     
+    this.isUpdateForm = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.isUpdation = false;
     this.getAllProjects();
   }
 
@@ -453,5 +458,48 @@ export class ProjectConfigComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  sortProjectList(sort: Sort) {
+    console.log(sort);
+
+    const data = this.allProjects;
+
+    if (!sort.active || sort.direction === '') {
+      this.allProjects = data;
+      return;
+    }
+    else {
+      this.allProjects = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'projectName':
+              return compare(a.projectName.toLowerCase(), b.projectName.toLowerCase(), isAsc)
+            case 'employeeName':
+              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc)
+            case 'clientName':
+              return compare(a.clientName.toLowerCase(), b.clientName.toLowerCase(), isAsc)
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'createdByName':
+              return compare(a.createdByName, b.createdByName, isAsc)
+            case 'state':
+              return compare(a.state.toLowerCase(), b.state.toLowerCase(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+
+  }
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

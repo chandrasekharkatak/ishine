@@ -1,15 +1,15 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" *ngIf="isCreateForm" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">View All Projects</button>
+        <button type="button" *ngIf="isCreateForm || isUpdateForm" class="btn btn-outline-primary btn-sm mx-1" (click)="showTable()">View All Projects</button>
     </div>
 </div>
 
 <!-- start :: Create & Update Form -->
 <div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isCreateForm">
+    <div class="card col-md-12 px-0" *ngIf="isCreateForm || isUpdateForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Project</strong>
-            <strong *ngIf="!isCreation">Update Project</strong>
+            <strong *ngIf="isUpdation">Update Project</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -157,16 +157,16 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
                     [tableTHeadTrId]="'projectInfoTHeadTr'">
-                    <table class="table table-responsive" id="projectInfo">
+                    <table class="table table-responsive" matSort (matSortChange)="sortProjectList($event)" id="projectInfo">
                         <thead class="thead-light" id="projectInfoTHead">
                             <tr id="projectInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label">Project Name</th>
-                                <th scope="col" class="info-label">Project Manager</th>
-                                <th scope="col" class="info-label">Client Name</th>
-                                <th scope="col" class="info-label">Created on</th>
-                                <th scope="col" class="info-label">Created by</th>
-                                <th scope="col" class="info-label">State</th>
+                                <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="employeeName">Project Manager</th>
+                                <th scope="col" class="info-label" mat-sort-header="clientName">Client Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="state">State</th>
                                 <th scope="col" class="info-label">Actions</th>
                             </tr>
                         </thead>
@@ -212,7 +212,7 @@
 
 <ng-template #delete_project_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to delete Project?</p>
+        <p>Are you sure you want to delete Project? <br>Deleting project will also remove teams under this project.</p>
         <button type="button" class="btn btn-success" (click)="deleteProject(alert_message);">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>

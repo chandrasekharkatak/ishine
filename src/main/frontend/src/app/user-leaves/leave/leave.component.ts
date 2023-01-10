@@ -870,7 +870,7 @@ export class LeaveComponent implements OnInit {
   
   deletePendingLeave(template: TemplateRef<any>) {	
     this.cancelRequest();	
-
+    this.leaveObj.empId = this.currentUser.empId;	
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
         console.log("After Delete this.leaveObj : ", this.leaveObj);	
@@ -893,6 +893,7 @@ export class LeaveComponent implements OnInit {
     leaveApplication.rejectReason = this.leaveObj.rejectReason?.trim();
     leaveApplication.email = this.leaveObj.email;
     leaveApplication.employeementId = this.leaveObj.employeementId
+    leaveApplication.approverEmail = this.currentUser.email;	
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -1219,6 +1220,7 @@ export class LeaveComponent implements OnInit {
 
     leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
     leave.leaveRevokeStatusId = updatedLeaveStatusId;
+    leave.approverEmail = this.currentUser.email;	
     console.log(leave, " : RevokeLeaveObj");
 
     this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
@@ -1361,7 +1363,9 @@ export class LeaveComponent implements OnInit {
         this.leaveHistoryList=data.sort(	
           (a , b)=>{	
             const isAsc=sort.direction==='asc';	
-            switch(sort.active){	
+            switch(sort.active){
+            case 'employeeName':	
+             return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)		
               case 'leaveType':	
                 return compare(a.leaveType , b.leaveType , isAsc)	
                 case 'fromDate':	
@@ -1378,6 +1382,10 @@ export class LeaveComponent implements OnInit {
                             return compare(a.createdOn , b.createdOn , isAsc)	
                             case 'reason':	
                               return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
+                              case 'approverName':	
+                              return compare(a.approverName.toLowerCase() , b.approverName.toLowerCase() , isAsc)	
+                              case 'remark':	
+                              return compare(a.remark, b.remark, isAsc)	
                 default :	
                 return 0;	
             }	
@@ -1415,7 +1423,7 @@ export class LeaveComponent implements OnInit {
         )	
       }	
     }	
-    sortLeaveBalanceChange(sort:Sort){	
+    sortLeaveRevokeTable(sort:Sort){	
       console.log(sort);	
       	
       const data=this.revokeLeaveApplicationList; 	
@@ -1427,12 +1435,14 @@ export class LeaveComponent implements OnInit {
           (a , b)=>{	
             const isAsc=sort.direction==='asc'	
             switch(sort.active){	
-             case 'leaveType':	
+              case 'employeeName':	
+              return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+              case 'leaveType':	
                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
               case 'fromDate':	
-                return compare(a.fromDate , b.fromDate , isAsc)	
+                return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc)	
               case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	         
+                return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc)	         
                 case 'noOfDays':	
                   return compare(a.noOfDays , b.noOfDays ,isAsc)	
                   case 'status':	
@@ -1440,9 +1450,11 @@ export class LeaveComponent implements OnInit {
                     case 'createdByName':	
                       return compare(a.createdByName , b.createdByName , isAsc)	
                       case 'createdOn':	
-                      return compare(a.createdOn , b.createdOn , isAsc)	
+                      return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc)	
                     	case 'reason':	
                        return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
+                       case 'approverName':	
+                       return compare(a.approverName.toLowerCase() , b.approverName.toLowerCase() , isAsc)	
                
                 default :	
                 return 0;	
@@ -1463,21 +1475,23 @@ export class LeaveComponent implements OnInit {
           (a , b)=>{	
             const isAsc=sort.direction==='asc'	
             switch(sort.active){	
-              case 'leaveType':	
+              case 'employeeName':	
+              return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+               case 'leaveType':	
                 return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
                 case 'fromDate':	
-                  return compare(a.fromDate , b.fromDate ,isAsc)	
+                  return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
                   case 'toDate':	
-                    return compare(a.toDate , b.toDate ,isAsc)	
+                    return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
                     case 'noOfDays':	
                       return compare(a.noOfDays , b.noOfDays , isAsc)	
                       case 'status':	
                       return compare(a.status , b.status , isAsc)	
                     	
-                      case 'createdByName':	
-                        return compare(a.createdByName , b.createdByName , isAsc)	
-                        case 'createdOn':	
-                          return compare(a.createdOn , b.createdOn , isAsc)	
+                      case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'createdByName':
+              return compare(a.createdByName, b.createdByName, isAsc)
                           case 'reason':	
                             return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
                 default :	
@@ -1504,9 +1518,9 @@ export class LeaveComponent implements OnInit {
               case 'leaveType':	
                 return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
                 case 'fromDate':	
-                  return compare(a.fromDate , b.fromDate ,isAsc)	
+                  return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
                   case 'toDate':	
-                    return compare(a.toDate , b.toDate ,isAsc)	
+                    return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
                     case 'noOfDays':	
                       return compare(a.noOfDays , b.noOfDays , isAsc)	
                       case 'status':	
@@ -1515,9 +1529,9 @@ export class LeaveComponent implements OnInit {
                       case 'createdByName':	
                         return compare(a.createdByName , b.createdByName , isAsc)	
                         case 'createdOn':	
-                          return compare(a.createdOn , b.createdOn , isAsc)	
-                          case 'reason':	
-                            return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
+                          return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+                          case 'revokeReason':	
+                            return compare(a.revokeReason.toLowerCase() , b.revokeReason.toLowerCase() , isAsc)	
                 default :	
                 return 0;	
             }	

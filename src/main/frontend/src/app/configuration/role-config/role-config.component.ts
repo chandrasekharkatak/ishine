@@ -511,7 +511,7 @@ export class RoleConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort:Sort){	
+  sortroleData(sort:Sort){	
     console.log(sort);	
       
     const data=this.filterAllJobRoleList;	

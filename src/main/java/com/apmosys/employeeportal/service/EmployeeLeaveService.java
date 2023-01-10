@@ -3,7 +3,10 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,6 +38,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -80,6 +84,10 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;
+	
 	
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -219,6 +227,49 @@ public class EmployeeLeaveService {
 			
 				apiLogInfo.setApiResponse("Leave application submitted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+				//DateTimeFormatter format = DateTimeFormatter.ofPattern("dd MM yyyy");
+
+				LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
+				LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
+			    //long daysBetween = Duration.between(leaveDTO.getFromDate(), leaveDTO.getToDate()).toDays();
+
+				long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
+
+				if((elapsedDays == 0)) {
+					Timesheet newTimesheet = new Timesheet();
+					
+					newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
+					newTimesheet.setDate(fromDate);
+					newTimesheet.setDayType("Holiday");
+					newTimesheet.setDescription("On leave");
+					newTimesheet.setEmpId(leaveDTO.getEmpId());
+					newTimesheet.setStatus("Pending");
+
+					timesheetsRepository.save(newTimesheet);
+				}
+				if((elapsedDays != 0)) {
+					LocalDate tempDateToday = fromDate;
+
+					while(tempDateToday.compareTo(toDate) != 1) {
+						
+						Timesheet newTimesheet = new Timesheet();
+
+
+						newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
+						newTimesheet.setDate(tempDateToday);
+						newTimesheet.setDayType("Holiday");
+						newTimesheet.setDescription("On leave");
+						newTimesheet.setEmpId(leaveDTO.getEmpId());
+						newTimesheet.setStatus("Pending");
+
+						timesheetsRepository.save(newTimesheet);
+						
+						tempDateToday = tempDateToday.plusDays(1);
+
+						
+					}
+
+				}
 			} else {
 				response.setServiceResponse("Leave Creation Failed.");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -295,7 +346,34 @@ public class EmployeeLeaveService {
 				response.setServiceResponse("Leave Application Deleted.");
 				
 				apiLogInfo.setApiResponse("Leave Application Deleted.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+				//Autofill timesheet delete on deleting pending leave
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			    
+			    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
+			    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
+
+				 // DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//				  LocalDate start = LocalDate.parse(leaveDTO.getFromDate(),df);
+//				  LocalDate end = LocalDate.parse(leaveDTO.getToDate(),df);
+
+
+
+//		        LocalDate start = LocalDate.parse(leaveDTO.getFromDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+//		        LocalDate end = LocalDate.parse(leaveDTO.getToDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+				
+				List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+
+				if (empTimeSheet != null) {
+
+					empTimeSheet.forEach((timesheet)->{
+						timesheetsRepository.deleteById(timesheet.getTimesheetId());
+					});
+				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -408,6 +486,8 @@ public class EmployeeLeaveService {
 					dto.setFromDateDayType(object[11] != null ? Float.parseFloat(object[11].toString()) : null);
 					dto.setToDateDayType(object[12] != null ? Float.parseFloat(object[12].toString()) : null);
 					dto.setApproverName(object[13] != null ? object[13].toString() : null);
+					dto.setApproverEmail(object[14] != null ? object[14].toString() : null);
+
 					dtoList.add(dto);
 				});
 
@@ -616,7 +696,22 @@ public class EmployeeLeaveService {
 									+"<br>"+" Reason -: "+leaveDTO.getRejectReason());
 						}
 					}
+					 //Autofill timesheet delete on rejecting leave 
+				    
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+				    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				    
+				    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
+				    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
 					
+				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+
+					if (empTimeSheet != null) {
+
+						empTimeSheet.forEach((timesheet)->{
+							timesheetsRepository.deleteById(timesheet.getTimesheetId());
+						});
+					}
 //					mailService.sendMail(leaveDTO.getEmail(),
 //							"Regarding leave Rejection ", 
 //					" <br> "+"Dear "+leaveDTO.getEmployeeName()+","+
@@ -642,7 +737,9 @@ public class EmployeeLeaveService {
 					apiLogInfo.setApiResponse("Leave Updation Failed.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
-
+				
+			    
+			   
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Application found.");
@@ -1734,7 +1831,7 @@ public class EmployeeLeaveService {
 					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					dto.setRevokeReason(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-					
+					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dtoList.add(dto);
 				});
 
@@ -1856,6 +1953,24 @@ public class EmployeeLeaveService {
 						
 						apiLogInfo.setApiResponse("Revoke Leave Application Approved.");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+						//Autofill timesheet delete on approving revoke leave application 
+						
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+					    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					    
+					    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
+					    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
+						
+					    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+
+						if (empTimeSheet != null) {
+
+							empTimeSheet.forEach((timesheet)->{
+								timesheetsRepository.deleteById(timesheet.getTimesheetId());
+							});
+						}
+						
 						
 					}else if(leaveDTO.getLeaveRevokeStatusId() == 3){
 						
