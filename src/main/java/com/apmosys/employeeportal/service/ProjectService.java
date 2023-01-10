@@ -294,12 +294,22 @@ public class ProjectService {
 			
 			Optional<Project> projectObj = projectRepository.findById(poProjectSyncDto.getProjectId());
 			if (projectObj.isPresent()) {
-				Project departmentToBeDeleted = projectObj.get();
-				departmentToBeDeleted.setActive("false");
-				departmentToBeDeleted.setSyncProject("false");
-				Project dbResponse =  projectRepository.save(departmentToBeDeleted);
+				Project projectToBeDeleted = projectObj.get();
+				projectToBeDeleted.setActive("false");
+				projectToBeDeleted.setSyncProject("false");
+				Project dbResponse =  projectRepository.save(projectToBeDeleted);
 				
 				if(dbResponse != null) {
+					//In-Activate Team related to project
+					List<Team> teamList = teamRepository.findByProjectId(dbResponse.getProjectId());
+					
+					if(!teamList.isEmpty()) {
+						teamList.forEach((teamToBeDeleted) -> {
+							teamToBeDeleted.setIsActive("N");
+							teamRepository.save(teamToBeDeleted);
+						});	
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project deleted.");
 				}else {

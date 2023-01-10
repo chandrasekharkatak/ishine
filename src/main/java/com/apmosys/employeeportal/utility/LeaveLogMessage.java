@@ -13,6 +13,7 @@ public class LeaveLogMessage {
 	public static String autoDeductLeave = "Deducted 0.0 leaves.Deducted automatically by system.";
 	public static String requestDeductLeave = "Deducted 0.0 leaves. Employee requested for leave.";
 	public static String adminDeductLeave = "Deducted 0.0 leaves. Deducted by admin.";
+	public static String compOffExpire = "Deducted 0.0 leaves. CompOff expire leaves deducted automatically by system.";
 	
 	public static String leaveRevoked = "Added 0.0 leaves. Leave revoked by employee.";
 

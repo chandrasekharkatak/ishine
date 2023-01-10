@@ -103,7 +103,7 @@ public class CompOffLeaveService {
 //	        leave.setLeaveTypeMasterId((short)5);
 			leave.setLeaveCode("CO");
 			leave.setReason(leaveDTO.getReasonId());
-			leave.getCommonProperties().setCreatedBy(leaveDTO.getCreatedBy());
+			leave.setCreatedBy(leaveDTO.getCreatedBy());
 			leave.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd"));
 			leave.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd"));
 			leave.setNoOfDays((Float) leaveDTO.getNoOfDays());
@@ -282,7 +282,7 @@ public class CompOffLeaveService {
 				CompOffLeave compOffLeave = leaveObject.get();
 
 				compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
-				compOffLeave.getCommonProperties().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				compOffLeave.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
 				// 1 = pending , 2 = Approved , 3= Rejected
 				compOffLeave.setLeaveStatusId(leaveDTO.getLeaveStatusId());

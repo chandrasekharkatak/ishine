@@ -18,11 +18,12 @@ import { JobRole } from 'src/app/models/jobRole';
 import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
+import { UtilityService } from 'src/app/services/utility.service';
 
-class FilterData{
-  title:any;
-  columns:any;
-  queryList:any;
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
 }
 @Component({
   selector: 'app-report-list',
@@ -38,57 +39,57 @@ export class ReportListComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
-  data:string; //Search Data
-  designationData:string;   //Search Designation
+  data: string; //Search Data
+  designationData: string;   //Search Designation
 
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
-  employeeObj:Employee = new Employee();
+  employeeObj: Employee = new Employee();
 
-  isLeaveReportTable:boolean = false;
-  isTimesheetReportTable:boolean = false;
-  isEmployeeReportTable:boolean = false;
-  isAccessControlListTable:boolean = false;
+  isLeaveReportTable: boolean = false;
+  isTimesheetReportTable: boolean = false;
+  isEmployeeReportTable: boolean = false;
+  isAccessControlListTable: boolean = false;
 
-  allEmployeeList:any[] = [];
+  allEmployeeList: any[] = [];
 
-  allLeaveApplicationsList:any[] = [];
+  allLeaveApplicationsList: any[] = [];
   leaveApplicationsDataForExcel: any[] = [];
 
-  allTimesheetApplicationsList:any[] = [];
+  allTimesheetApplicationsList: any[] = [];
   timesheetApplicationsDataForExcel: any[] = [];
 
-  allJobRoleList:any[] = [];
-  personaWiseJobRole:any[] = [];
-  accessControlList:any[] = [];
-  mappedSubFeatureList:any[] = [];
-  subfeatureList:any[] = [];
+  allJobRoleList: any[] = [];
+  personaWiseJobRole: any[] = [];
+  accessControlList: any[] = [];
+  mappedSubFeatureList: any[] = [];
+  subfeatureList: any[] = [];
 
-  updatedRoleSubFeature:any[] = [];
-  hiddenColumnObj:any[] = [];
-  showColumnList:any[] = [];
+  updatedRoleSubFeature: any[] = [];
+  hiddenColumnObj: any[] = [];
+  showColumnList: any[] = [];
 
-  insideCols:any[] = [];
+  insideCols: any[] = [];
 
-  storedDataList:any[] = [];
+  storedDataList: any[] = [];
 
-  excelName:any;
-  jobRoleName:any;
-  departmentId:any;
-  employeeRole:any;
+  excelName: any;
+  jobRoleName: any;
+  departmentId: any;
+  employeeRole: any;
 
-  leaveColumns:any[] = ['Employee Id', 'Full Name','Employment Status', 'Leave Type','Team Name','Project Name','Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
-  timesheetColumns:any[] = ['Employee Id','Full Name','Employment Status','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
-  queryList:any[] = [];
-  filterData:any = new FilterData();
+  leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
+  queryList: any[] = [];
+  filterData: any = new FilterData();
 
   columns: any[] = [];
   paginateData: any[] = [];
-  pos:any;
-  release:boolean = true;
+  pos: any;
+  release: boolean = true;
   finalColumns: any[] = [];
 
   constructor(
@@ -97,43 +98,44 @@ export class ReportListComponent implements OnInit {
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
-    private leaveService : LeaveService,
-    private jobRoleService : JobRoleService,
-    private validationService : ValidationService,
+    private leaveService: LeaveService,
+    private jobRoleService: JobRoleService,
+    private validationService: ValidationService,
     private renderer2: Renderer2,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private utilityService: UtilityService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
-     // Dynamic Subfeature Flags 
-     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-     featureMap.subFeatures?.forEach(sub => {
-       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-     });
-     console.log(this.feature, this.userMapping);
-     this.sectionViewInit();
-     this.preventBackButton();	
-    }	
-    preventBackButton(){	
-      history.pushState(null, null, location.href);	
-      this.locationStrategy.onPopState(()=>{	
-        history.pushState(null, null, location.href);	
-      })	
-    }
+    // Dynamic Subfeature Flags 
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
+    this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton() {
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(() => {
+      history.pushState(null, null, location.href);
+    })
+  }
 
   sectionViewInit() {
-    if(this.userMapping.leave_report){
+    if (this.userMapping.leave_report) {
       this.showLeaveReportTable();
-    }else if(this.userMapping.timesheet_report){
+    } else if (this.userMapping.timesheet_report) {
       this.showTimesheetReportTable();
-    }else if(this.userMapping.employee_report){
+    } else if (this.userMapping.employee_report) {
       this.showEmployeeReportTable();
     }
   }
 
-  showLeaveReportTable(){
+  showLeaveReportTable() {
     this.isLeaveReportTable = true;
 
     this.isTimesheetReportTable = false;
@@ -141,45 +143,45 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
 
     console.log(this.storedDataList, " : storeddatalist");
-    
+
 
     this.storedDataList.forEach((object) => {
-      if(object.filterName == 'Filter Leave Report'){
-        this.getCustomLeaveApplicationsList(object.queryList,this.alertModal);
+      if (object.filterName == 'Filter Leave Report') {
+        this.getCustomLeaveApplicationsList(object.queryList, this.alertModal);
       }
     });
 
-    if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Leave Report')){
+    if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Leave Report')) {
       let inActiveQuery = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
-     // this.getAllLeaveApplicationsList();
+      // this.getAllLeaveApplicationsList();
 
-     this.getCustomLeaveApplicationsList(inActiveQuery,this.alertModal);
+      this.getCustomLeaveApplicationsList(inActiveQuery, this.alertModal);
 
     }
 
     this.data = ''
   }
 
-  showTimesheetReportTable(){
+  showTimesheetReportTable() {
     this.isTimesheetReportTable = true;
-    
+
     this.isLeaveReportTable = false;
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
 
     this.storedDataList.forEach((object) => {
-      if(object.filterName == 'Filter Timesheet Report'){
-        this.getCustomTimesheetApplicationsList(object.queryList,this.alertModal);
+      if (object.filterName == 'Filter Timesheet Report') {
+        this.getCustomTimesheetApplicationsList(object.queryList, this.alertModal);
       }
     });
 
-    if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')){
+    if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')) {
       let inActiveQuery = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
-      this.getCustomTimesheetApplicationsList(inActiveQuery,this.alertModal);
+      this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
 
       //this.getAllTimesheetApplicationsList();
     }
@@ -187,56 +189,56 @@ export class ReportListComponent implements OnInit {
     this.data = ''
   }
 
-  showEmployeeReportTable(){
+  showEmployeeReportTable() {
     this.isEmployeeReportTable = true;
-    
+
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isAccessControlListTable = false;
 
     this.storedDataList.forEach((object) => {
-      if(object.filterName == 'Filter Employee Report'){
-        this.getCustomEmployeesList(object.queryList,this.alertModal);
+      if (object.filterName == 'Filter Employee Report') {
+        this.getCustomEmployeesList(object.queryList, this.alertModal);
       }
     });
 
-    if(this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Employee Report')){
+    if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Employee Report')) {
       let inActiveQuery = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
-      this.getCustomEmployeesList(inActiveQuery,this.alertModal);
+      this.getCustomEmployeesList(inActiveQuery, this.alertModal);
       // this.getAllEmployeeList();
     }
 
-    this.data =''
+    this.data = ''
   }
 
-  showAccessControlListTable(){
+  showAccessControlListTable() {
     this.isAccessControlListTable = true;
 
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
-    this.data ='';
+    this.data = '';
     this.columns = [];
     this.paginateData = [];
   }
 
   // Leave Report 
   getAllLeaveApplicationsList() {
-    this.queryList=[];
+    this.queryList = [];
     this.allLeaveApplicationsList = [];
 
     this.leaveService.leaveReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allLeaveApplicationsList = response.serviceResponse;
-       // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter(x => x.employmentstatus != 'InActive');
+        // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter(x => x.employmentstatus != 'InActive');
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
-          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          leave.updatedOn = (leave.updatedOn)? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          leave.updatedOn = (leave.updatedOn) ? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
@@ -245,14 +247,14 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-  getCustomLeaveApplicationsList(queryObjList:any , template:TemplateRef<any>) {
+  getCustomLeaveApplicationsList(queryObjList: any, template: TemplateRef<any>) {
     this.allLeaveApplicationsList = [];
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    if(queryObjList.length == 0){
+    if (queryObjList.length == 0) {
       this.getAllLeaveApplicationsList();
-    }else {
+    } else {
       this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
@@ -263,23 +265,23 @@ export class ReportListComponent implements OnInit {
             ))
           )
 
-          if(this.allLeaveApplicationsList.length != 0){
+          if (this.allLeaveApplicationsList.length != 0) {
             this.openAlertMod(template, "Leave Application Report found ")
-          }else {
+          } else {
             this.openAlertMod(template, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
             leave.employeementId = "A-".concat(leave.employeementId);
-            leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
-            leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
-            leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            leave.updatedOn = (leave.updatedOn)? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            leave.updatedOn = (leave.updatedOn) ? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
           console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
         } else {
-          this.openAlertMod(template,response.serviceResponse)
+          this.openAlertMod(template, response.serviceResponse)
         }
-      });  
+      });
     }
   }
 
@@ -290,16 +292,16 @@ export class ReportListComponent implements OnInit {
     this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetApplicationsList = response.serviceResponse;
-       // this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter(x => x.employmentstatus != 'InActive');	
+        // this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter(x => x.employmentstatus != 'InActive');	
 
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.description = timesheet.description.replaceAll('<br>','')
-          timesheet.date = (timesheet.date)? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime)? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime)? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn)? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.updatedOn = (timesheet.updatedOn)? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.description = timesheet.description.replaceAll('<br>', '')
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
       } else {
@@ -308,14 +310,14 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-  getCustomTimesheetApplicationsList(queryObjList:any , template:TemplateRef<any>) {
+  getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>) {
     this.allTimesheetApplicationsList = [];
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    if(queryObjList == ''){
+    if (queryObjList == '') {
       this.getAllTimesheetApplicationsList();
-    }else {
+    } else {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allTimesheetApplicationsList = response.serviceResponse;
@@ -326,44 +328,44 @@ export class ReportListComponent implements OnInit {
             ))
           )
 
-          if(this.allTimesheetApplicationsList.length != 0){
+          if (this.allTimesheetApplicationsList.length != 0) {
             this.openAlertMod(template, "Timesheet Application Report found ");
-          }else {
+          } else {
             this.openAlertMod(template, "No Timesheet Application Report found ");
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
             timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            timesheet.description = timesheet.description.replaceAll('<br>','')
-            timesheet.date = (timesheet.date)? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-            timesheet.officeInTime = (timesheet.officeInTime)? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.officeOutTime = (timesheet.officeOutTime)? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.createdOn = (timesheet.createdOn)? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.updatedOn = (timesheet.updatedOn)? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.description = timesheet.description.replaceAll('<br>', '')
+            timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
           console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
         } else {
-          this.openAlertMod(template,response.serviceResponse)
+          this.openAlertMod(template, response.serviceResponse)
         }
-      });  
+      });
     }
   }
 
   // Employee Report 
   getAllEmployeeList() {
-    this.queryList=[];
+    this.queryList = [];
     this.allEmployeeList = [];
 
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-       // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
+        // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
 
         this.allEmployeeList.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
           employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
-          employee.dateOfBirth = (employee.dateOfBirth)? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
-          employee.dateOfJoining = (employee.dateOfJoining)? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employee.createdOn = (employee.createdOn)? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
+          employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
@@ -372,45 +374,45 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-  getCustomEmployeesList(queryObjList:any , template : TemplateRef<any>) {
+  getCustomEmployeesList(queryObjList: any, template: TemplateRef<any>) {
     this.allEmployeeList = [];
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    
-    if(queryObjList == ''){
+
+    if (queryObjList == '') {
       this.getAllEmployeeList();
-    }else {
+    } else {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
           this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-          index === self.findIndex((t) => (
-            t.employeementId === value.employeementId
-          ))
-        )
+            index === self.findIndex((t) => (
+              t.employeementId === value.employeementId
+            ))
+          )
 
-          if(this.allEmployeeList.length != 0){
+          if (this.allEmployeeList.length != 0) {
             this.openAlertMod(template, "Employee Report found")
-          }else{
+          } else {
             this.openAlertMod(template, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);
-            employee.dateOfBirth = (employee.dateOfBirth)? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
-            employee.dateOfJoining = (employee.dateOfJoining)? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-            employee.createdOn = (employee.createdOn)? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
+            employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+            employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
           console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
-          this.openAlertMod(template,response.serviceResponse)
+          this.openAlertMod(template, response.serviceResponse)
         }
       });
     }
   }
 
-// ACL Start
+  // ACL Start
 
   selectPersona(event) {
     this.employeeRole = event.target.value;
@@ -436,7 +438,7 @@ export class ReportListComponent implements OnInit {
           if (response.serviceStatus == "Success") {
             this.allJobRoleList = response.serviceResponse;
             this.personaWiseJobRole = this.allJobRoleList.filter((x) => x.employeeRole == persona);
-            this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name, "department":role.departmentName })})
+            this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name, "department": role.departmentName }) })
 
             // segregating jobroles by department
             var final = [];
@@ -450,7 +452,7 @@ export class ReportListComponent implements OnInit {
               if (!match) {
                 var obj = {
                   "header": e.department,
-                  "department" : [e]
+                  "department": [e]
                 }
                 final.push(obj);
               } else {
@@ -509,99 +511,100 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-dropRow(event: CdkDragDrop<string[]>) {
-  moveItemInArray(this.paginateData, event.previousIndex, event.currentIndex);
-}
-
-dropCol(event: CdkDragDrop<string[]>) {
-  if(event.previousIndex != 0 && event.currentIndex !== 0){
-    moveItemInArray(this.finalColumns, event.previousIndex, event.currentIndex);
+  dropRow(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.paginateData, event.previousIndex, event.currentIndex);
   }
-}
 
-dropInsideCol(event: CdkDragDrop<string[]>) {
-  if(event.previousIndex != 0 && event.currentIndex !== 0){
-
-    this.insideCols = [];
-    this.finalColumns.forEach((x) => {
-      this.insideCols.push(...x.department);
-    });
-
-    moveItemInArray(this.insideCols, event.previousIndex, event.currentIndex);
-  }
-}
-
-mouseDown(event,el:any=null){
-  el=el || event.target
-  this.pos={x:el.getBoundingClientRect().left-event.clientX+'px',
-  y:el.getBoundingClientRect().top-event.clientY+'px',
-  width:el.getBoundingClientRect().width+'px'
-  }
-}
-
-onDragRelease(event: CdkDragRelease) {
-  this.renderer2.setStyle(event.source.element.nativeElement,'margin-left','0px')
-}
-
-selectCellCheckbox(element:any, isAssigned:any, subFeatureId:any){
-  const alreadyUpdatedMapping = this.updatedRoleSubFeature.findIndex((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
-  if(alreadyUpdatedMapping >= 0){
-    this.updatedRoleSubFeature.splice(alreadyUpdatedMapping,1);
-  }else{
-    this.updatedRoleSubFeature.push({
-      "jobRoleId":element,
-      "isAssigned":isAssigned,
-      "subFeatureId":subFeatureId
-    });
-  }
-  console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
-}
-
-updateJobRoleSubFeatureMapping(template: TemplateRef<any>){
-  let jobRoleObj = new JobRole();
-  jobRoleObj.updatedJobRoleFeatureMapping = this.updatedRoleSubFeature;
-
-  this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response:any) => {
-    if(response.serviceStatus == "Success"){
-      this.openAlertMod(template,response.serviceResponse);
-    }else{
-      this.openAlertMod(template,response.serviceResponse);
+  dropCol(event: CdkDragDrop<string[]>) {
+    if (event.previousIndex != 0 && event.currentIndex !== 0) {
+      moveItemInArray(this.finalColumns, event.previousIndex, event.currentIndex);
     }
-  });
-}
-
-hideColumn(column:any){
-  this.hiddenColumnObj = this.columns.find(x => x.header == column);
-  this.columns = this.columns.filter(x => x.header != column);
-  this.showColumnList.push(this.hiddenColumnObj);
-}
-
-showColumn(){
-  let headerId = this.employeeObj.columnHeader;
-  let hiddenFound = this.showColumnList.find(x => x.field == headerId);
-  if(hiddenFound){
-    this.columns.push(hiddenFound);
-    this.showColumnList.splice(hiddenFound,1);
-    this.employeeObj.columnHeader = '';
   }
-}
 
-// ACL end
+  dropInsideCol(event: CdkDragDrop<string[]>) {
+    if (event.previousIndex != 0 && event.currentIndex !== 0) {
+
+      this.insideCols = [];
+      this.finalColumns.forEach((x) => {
+        this.insideCols.push(...x.department);
+      });
+
+      moveItemInArray(this.insideCols, event.previousIndex, event.currentIndex);
+    }
+  }
+
+  mouseDown(event, el: any = null) {
+    el = el || event.target
+    this.pos = {
+      x: el.getBoundingClientRect().left - event.clientX + 'px',
+      y: el.getBoundingClientRect().top - event.clientY + 'px',
+      width: el.getBoundingClientRect().width + 'px'
+    }
+  }
+
+  onDragRelease(event: CdkDragRelease) {
+    this.renderer2.setStyle(event.source.element.nativeElement, 'margin-left', '0px')
+  }
+
+  selectCellCheckbox(element: any, isAssigned: any, subFeatureId: any) {
+    const alreadyUpdatedMapping = this.updatedRoleSubFeature.findIndex((x) => x.subFeatureId == subFeatureId && x.jobRoleId == element);
+    if (alreadyUpdatedMapping >= 0) {
+      this.updatedRoleSubFeature.splice(alreadyUpdatedMapping, 1);
+    } else {
+      this.updatedRoleSubFeature.push({
+        "jobRoleId": element,
+        "isAssigned": isAssigned,
+        "subFeatureId": subFeatureId
+      });
+    }
+    console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
+  }
+
+  updateJobRoleSubFeatureMapping(template: TemplateRef<any>) {
+    let jobRoleObj = new JobRole();
+    jobRoleObj.updatedJobRoleFeatureMapping = this.updatedRoleSubFeature;
+
+    this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  hideColumn(column: any) {
+    this.hiddenColumnObj = this.columns.find(x => x.header == column);
+    this.columns = this.columns.filter(x => x.header != column);
+    this.showColumnList.push(this.hiddenColumnObj);
+  }
+
+  showColumn() {
+    let headerId = this.employeeObj.columnHeader;
+    let hiddenFound = this.showColumnList.find(x => x.field == headerId);
+    if (hiddenFound) {
+      this.columns.push(hiddenFound);
+      this.showColumnList.splice(hiddenFound, 1);
+      this.employeeObj.columnHeader = '';
+    }
+  }
+
+  // ACL end
 
   /* Filter */
-  openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
+  openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
     console.log("columns : ", columns);
     this.queryList = [];
-    
-    this.filterData.title  = title;
+
+    this.filterData.title = title;
     this.filterData.columns = columns;
 
     this.queryList = [
-        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
-      ];
+      { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+    ];
 
     this.storedDataList.forEach((data) => {
-      if(data.filterName == title){
+      if (data.filterName == title) {
         this.queryList = data.queryList;
       }
     });
@@ -612,38 +615,40 @@ showColumn(){
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
-  onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
+  onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
     console.log("queryList : ", emittedArray[0]);
     this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
     this.cancelRequest();
 
     emittedArray[1].forEach((object) => {
-      if(Object.keys(object).length !== 0){
-        if(this.storedDataList.find((x) => x.filterName == object.filterName)){
+      if (Object.keys(object).length !== 0) {
+        if (this.storedDataList.find((x) => x.filterName == object.filterName)) {
           this.storedDataList = this.storedDataList.map(arr1 => emittedArray[1].find(arr2 => arr2.filterName === arr1.filterName) || arr1);
-        }else{
+        } else {
           this.storedDataList.push(object);
         }
       }
     });
-    
+
 
     emittedArray[0].forEach(query => {
-      if(query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining'){
-          query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
-      }else if(query.column == 'Created On' || query.column == 'Updated On'){
-        query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+      if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
+        query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
+      } else if (query.column == 'Created On' || query.column == 'Updated On') {
+        query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+      } if (query.column == 'Employee Id') {
+        query.value = query.value.split("-")[1];
       }
     });
-    
-    if(this.filterData.title == 'Filter Leave Report'){
-      this.getCustomLeaveApplicationsList(emittedArray[0],template);
+
+    if (this.filterData.title == 'Filter Leave Report') {
+      this.getCustomLeaveApplicationsList(emittedArray[0], template);
     }
-    if(this.filterData.title == 'Filter Employee Report'){
-      this.getCustomEmployeesList(emittedArray[0],template);
+    if (this.filterData.title == 'Filter Employee Report') {
+      this.getCustomEmployeesList(emittedArray[0], template);
     }
-    if(this.filterData.title == 'Filter Timesheet Report'){
-      this.getCustomTimesheetApplicationsList(emittedArray[0],template);
+    if (this.filterData.title == 'Filter Timesheet Report') {
+      this.getCustomTimesheetApplicationsList(emittedArray[0], template);
     }
   }
 
@@ -657,118 +662,118 @@ showColumn(){
   // Excel Export 
   exportToExcel(): void {
 
-    if(this.isLeaveReportTable == true){
+    if (this.isLeaveReportTable == true) {
       this.excelName = 'leaveReport.xlsx';
 
-        const onlySpecificDataArr = this.allLeaveApplicationsList.map(
-          x => ({
-            "Employee Id": x.employeementId,
-            "Employee Name":x.employeeName,
-            "Leave Type":x.leaveType,
-            "From Date":x.fromDate,
-            "To Date":x.toDate,
-            "No Of Days":x.noOfDays,
-            "Reason":x.reason,
-            "Status":x.status,
-            "Manager Name":x.managerName,
-            "Created On":x.createdOn,
-            "Updated On":x.updatedOn,
-            "Updated By":x.leaveStatusUpdatedByName
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+      const onlySpecificDataArr = this.allLeaveApplicationsList.map(
+        x => ({
+          "Employee Id": x.employeementId,
+          "Employee Name": x.employeeName,
+          "Leave Type": x.leaveType,
+          "From Date": x.fromDate,
+          "To Date": x.toDate,
+          "No Of Days": x.noOfDays,
+          "Reason": x.reason,
+          "Status": x.status,
+          "Manager Name": x.managerName,
+          "Created On": x.createdOn,
+          "Updated On": x.updatedOn,
+          "Updated By": x.leaveStatusUpdatedByName
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-    if(this.isTimesheetReportTable == true){
+    if (this.isTimesheetReportTable == true) {
       this.excelName = 'timesheetReport.xlsx';
 
-        const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
-          x => ({
-            "Employeement Id": x.employeementId,
-            "Employee Name":x.employeeName,
-            "date":x.date,
-            "dayType":x.dayType,
-            "description":x.description?.replaceAll('<br>', ' \n'),
-            "status":x.status,
-            "totalWorkingHours":x.totalWorkingHours,
-            "createdOn":x.createdOn,
-            "updatedOn":x.updatedOn,
-            "timesheetStatusUpdatedByName":x.timesheetStatusUpdatedByName
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+      const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
+        x => ({
+          "Employeement Id": x.employeementId,
+          "Employee Name": x.employeeName,
+          "date": x.date,
+          "dayType": x.dayType,
+          "description": x.description?.replaceAll('<br>', ' \n'),
+          "status": x.status,
+          "totalWorkingHours": x.totalWorkingHours,
+          "createdOn": x.createdOn,
+          "updatedOn": x.updatedOn,
+          "timesheetStatusUpdatedByName": x.timesheetStatusUpdatedByName
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-    if(this.isEmployeeReportTable == true){
+    if (this.isEmployeeReportTable == true) {
       this.excelName = 'EmployeeReport.xlsx';
 
-        const onlySpecificDataArr = this.allEmployeeList.map(
-          x => ({
-            "Employee Id": x.employeementId,
-            "Full Name": x.name,		
-            "Email Id": x.email,		
-            "Employment Status": x.employmentstatus,
-            "Date Of Joining": x.dateOfJoining,
-            "Aadhar":x.aadhar,
-            "About Me":x.aboutMe,
-            "address":x.address,
-            "permanentAddress":x.permanentAddress,
-            "city":x.city,
-            "Manager Name":x.managerName,
-            "Blood Group":x.bloodGroup,
-            "date Of Birth":x.dateOfBirth,
-            "gender":x.gender,
-            "fatherName":x.fatherName,
-            "mobileNo":x.mobileNo,
-            "panNumber":x.panNumber,
-            "placeOfBirth":x.placeOfBirth,
-            "workLocation":x.workLocation,
-            "Probation Period":x.probationPeriod,
-            "noticePeriod":x.noticePeriod,
-            "country":x.country,
-            "emergencyContactMobile":x.emergencyContactMobile,
-            "emergencyContactPerson":x.emergencyContactPerson,
-            "landline":x.landline,
-            "maritalStatus":x.maritalStatus,
-            "motherTongue":x.motherTongue,
-            "alternateMobileNo":x.alternateMobileNo,
-            "pincode":x.pincode,
-            "relation":x.relation,
-            "State":x.state,
-            "viewsOnOrganisation":x.viewsOnOrganisation,
-            "passportNumber":x.passportNumber,
-            "bankAccountNo":x.bankAccountNo,
-            "bankIFSCCode":x.bankIFSCCode,
-            "bankName":x.bankName,
-            "pfAccountNumber":x.pfAccountNumber,
-            "previousPfAccountNumber":x.previousPfAccountNumber,
-            "uan":x.uan,
-            "esicNumber":x.esicNumber,
-            "graduationType":x.graduationType,
-            "pursuing":x.pursuing,
-            "passingGrade":x.passingGrade,
-            "yearOfPassing":x.yearOfPassing,
-            "createdBy":x.createdBy,
-            "createdOn":x.createdOn 
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      const onlySpecificDataArr = this.allEmployeeList.map(
+        x => ({
+          "Employee Id": x.employeementId,
+          "Full Name": x.name,
+          "Email Id": x.email,
+          "Employment Status": x.employmentstatus,
+          "Date Of Joining": x.dateOfJoining,
+          "Aadhar": x.aadhar,
+          "About Me": x.aboutMe,
+          "address": x.address,
+          "permanentAddress": x.permanentAddress,
+          "city": x.city,
+          "Manager Name": x.managerName,
+          "Blood Group": x.bloodGroup,
+          "date Of Birth": x.dateOfBirth,
+          "gender": x.gender,
+          "fatherName": x.fatherName,
+          "mobileNo": x.mobileNo,
+          "panNumber": x.panNumber,
+          "placeOfBirth": x.placeOfBirth,
+          "workLocation": x.workLocation,
+          "Probation Period": x.probationPeriod,
+          "noticePeriod": x.noticePeriod,
+          "country": x.country,
+          "emergencyContactMobile": x.emergencyContactMobile,
+          "emergencyContactPerson": x.emergencyContactPerson,
+          "landline": x.landline,
+          "maritalStatus": x.maritalStatus,
+          "motherTongue": x.motherTongue,
+          "alternateMobileNo": x.alternateMobileNo,
+          "pincode": x.pincode,
+          "relation": x.relation,
+          "State": x.state,
+          "viewsOnOrganisation": x.viewsOnOrganisation,
+          "passportNumber": x.passportNumber,
+          "bankAccountNo": x.bankAccountNo,
+          "bankIFSCCode": x.bankIFSCCode,
+          "bankName": x.bankName,
+          "pfAccountNumber": x.pfAccountNumber,
+          "previousPfAccountNumber": x.previousPfAccountNumber,
+          "uan": x.uan,
+          "esicNumber": x.esicNumber,
+          "graduationType": x.graduationType,
+          "pursuing": x.pursuing,
+          "passingGrade": x.passingGrade,
+          "yearOfPassing": x.yearOfPassing,
+          "createdBy": x.createdBy,
+          "createdOn": x.createdOn
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
     }
 
-    if(this.isAccessControlListTable == true){
+    if (this.isAccessControlListTable == true) {
       this.excelName = 'ACLReport.xlsx';
 
-        const onlySpecificDataArr = this.accessControlList.map(
-          x => ({
-            "Department Name": x.departmentName,
-            "Designation": x.jobRoleName,
-            "Employee Role": x.employeeRole,
-            "Tab Name": x.tabName,
-            "Feature Name": x.featureName,
-            "Sub-Feature Name": x.subFeatureName,
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+      const onlySpecificDataArr = this.accessControlList.map(
+        x => ({
+          "Department Name": x.departmentName,
+          "Designation": x.jobRoleName,
+          "Employee Role": x.employeeRole,
+          "Tab Name": x.tabName,
+          "Feature Name": x.featureName,
+          "Sub-Feature Name": x.subFeatureName,
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
   }
 
@@ -780,8 +785,275 @@ showColumn(){
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  // Sorting implementing 09/01/2023 
+
+  sortLeaveReportList(sort: Sort) {
+    console.log(sort);
+    const data = this.allLeaveApplicationsList;
+    if (!sort.active || sort.direction === '') {
+      this.allLeaveApplicationsList = data;
+      return;
+    } else {
+      this.allLeaveApplicationsList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'employeementId':
+              return compare(a.employeementId, b.employeementId, isAsc)
+            case 'employeeName':
+              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc)
+            case 'leaveType':
+              return compare(a.leaveType, b.leaveType, isAsc)
+            case 'fromDate':
+              return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
+            case 'toDate':
+              return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
+            case 'noOfDays':
+              return compare(a.noOfDays, b.noOfDays, isAsc);
+            case 'reason':
+              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc);
+            case 'status':
+              return compare(a.status, b.status, isAsc);
+            case 'managerName':
+              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc);
+            case 'departmentName':
+              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc);
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'updatedOn':
+              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
+            case 'leaveStatusUpdatedByName':
+              return compare(a.leaveStatusUpdatedByName, b.leaveStatusUpdatedByName, isAsc);
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+  // sortTimesheetReportList($event)
+  sortTimesheetReportList(sort: Sort) {
+    console.log(sort);
+    const data = this.allTimesheetApplicationsList;
+    if (!sort.active || sort.direction === '') {
+      this.allTimesheetApplicationsList = data;
+      return;
+    } else {
+      this.allTimesheetApplicationsList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'employeementId':
+              return compare(a.employeementId, b.employeementId, isAsc)
+            case 'employeeName':
+              return compare(a.employeeName, b.employeeName, isAsc)
+            case 'date':
+              return compare(a.date, b.date, isAsc)
+            case 'dayType':
+              return compare(a.dayType, b.dayType, isAsc)
+            case 'officeInTime':
+              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
+            case 'officeOutTime':
+              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
+            case 'totalWorkingOfficeHours':
+              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
+            case 'description':
+              return compare(a.description, b.description, isAsc);
+            case 'totalWorkingHours':
+              return compare(a.totalWorkingHours, b.totalWorkingHours, isAsc);
+            case 'timesheetStatusUpdatedByName':
+              return compare(a.timesheetStatusUpdatedByName, b.timesheetStatusUpdatedByName, isAsc);
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'updatedOn':
+              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
+            case 'status':
+              return compare(a.status, b.status, isAsc)
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+  // sortEmployeeReportList($event)
+  sortEmployeeReportList(sort: Sort) {
+    console.log(sort);
+    let data = this.allEmployeeList;
+    console.log("anurag :", this.allEmployeeList);
+
+    if (!sort.active || sort.direction === '') {
+      this.allEmployeeList = data;
+      return;
+    }
+    else {
+      this.allEmployeeList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'employeementId':
+              return compare(a.employeementId, b.employeementId, isAsc);
+
+            case 'name':
+              return compare(a.name.toLowerCase(), b.name.toLowerCase(), isAsc);
+
+            case 'departmentName':
+              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc);
+
+            case 'jobRoleName':
+              return compare(a.jobRoleName.toLowerCase(), b.jobRoleName.toLowerCase(), isAsc);
+
+            case 'managerName':
+              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc);
+
+            case 'mobileNo':
+              return compare(a.mobileNo, b.mobileNo, isAsc);
+
+            case 'email':
+              return compare(a.email, b.email, isAsc);
+
+            case 'employmentstatus':
+              return compare(a.employmentstatus, b.employmentstatus, isAsc);
+
+            case 'dateOfJoining':
+              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc);
+
+            case 'aadhar':
+              return compare(a.aadhar, b.aadhar, isAsc);
+
+            case 'aboutMe':
+              return compare(a.aboutMe.toLowerCase(), b.aboutMe.toLowerCase(), isAsc);
+
+            case 'address':
+              return compare(a.address, b.address, isAsc);
+
+            case 'permanentAddress':
+              return compare(a.permanentAddress, b.permanentAddress, isAsc);
+
+            case 'city':
+              return compare(a.city, b.city, isAsc);
+
+            case 'bloodGroup':
+              return compare(a.bloodGroup, b.bloodGroup, isAsc);
+
+            case 'dateOfBirth':
+              return compare(a.dateOfBirth, b.dateOfBirth, isAsc);
+
+            case 'gender':
+              return compare(a.gender, b.gender, isAsc);
+
+            case 'fatherName':
+              return compare(a.fatherName, b.fatherName, isAsc);
+
+            case 'panNumber':
+              return compare(a.panNumber, b.panNumber, isAsc);
+
+            case 'placeOfBirth':
+              return compare(a.placeOfBirth, b.placeOfBirth, isAsc);
+
+            case 'workLocation':
+              return compare(a.workLocation, b.workLocation, isAsc);
+
+            case 'probationPeriod':
+              return compare(a.probationPeriod, b.probationPeriod, isAsc);
+
+            case 'noticePeriod':
+              return compare(a.noticePeriod, b.noticePeriod, isAsc);
+
+            case 'totalExperience':
+              return compare(a.totalExperience, b.totalExperience, isAsc);
+
+            case 'emergencyContactMobile':
+              return compare(a.emergencyContactMobile, b.emergencyContactMobile, isAsc);
+
+            case 'emergencyContactPerson':
+              return compare(a.emergencyContactPerson, b.emergencyContactPerson, isAsc);
+
+            case 'landline':
+              return compare(a.landline, b.landline, isAsc);
+
+            case 'maritalStatus':
+              return compare(a.maritalStatus, b.maritalStatus, isAsc);
+
+            case 'motherTongue':
+              return compare(a.motherTongue, b.motherTongue, isAsc);
+
+            case 'alternateMobileNo':
+              return compare(a.alternateMobileNo, b.alternateMobileNo, isAsc);
+
+            case 'pincode':
+              return compare(a.pincode, b.pincode, isAsc);
+
+            case 'relation':
+              return compare(a.relation, b.relation, isAsc);
+
+            case 'state':
+              return compare(a.state, b.state, isAsc);
+
+            case 'viewsOnOrganisation':
+              return compare(a.viewsOnOrganisation, b.viewsOnOrganisation, isAsc);
+
+            case 'passportNumber':
+              return compare(a.passportNumber, b.passportNumber, isAsc);
+
+            case 'bankAccountNo':
+              return compare(a.bankAccountNo, b.bankAccountNo, isAsc);
+
+            case 'bankIFSCCode':
+              return compare(a.bankIFSCCode, b.bankIFSCCode, isAsc);
+
+            case 'bankName':
+              return compare(a.bankName, b.bankName, isAsc);
+
+            case 'pfAccountNumber':
+              return compare(a.pfAccountNumber, b.pfAccountNumber, isAsc);
+
+            case 'previousPfAccountNumber':
+              return compare(a.previousPfAccountNumber, b.previousPfAccountNumber, isAsc);
+
+            case 'uan':
+              return compare(a.uan, b.uan, isAsc);
+
+            case 'esicNumber':
+              return compare(a.esicNumber, b.esicNumber, isAsc);
+
+            case 'graduationType':
+              return compare(a.graduationType, b.graduationType, isAsc);
+
+            case 'pursuing':
+              return compare(a.pursuing, b.pursuing, isAsc);
+
+            case 'passingGrade':
+              return compare(a.passingGrade, b.passingGrade, isAsc);
+
+            case 'yearOfPassing':
+              return compare(a.yearOfPassing, b.yearOfPassing, isAsc);
+
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
+
+            case 'updatedOn':
+              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
+
+            case 'updatedByName':
+              return compare(a.updatedByName, b.updatedByName, isAsc);
+
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
 }
 
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

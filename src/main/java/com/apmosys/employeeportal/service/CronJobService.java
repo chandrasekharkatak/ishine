@@ -19,6 +19,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -47,6 +48,8 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
+import com.apmosys.employeeportal.model.CompOffLeave;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -58,6 +61,8 @@ import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -118,6 +123,12 @@ public class CronJobService {
 	
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	@Autowired
 	MailService mailService;
@@ -330,49 +341,109 @@ public class CronJobService {
 	}
 	
 	// 0 1 1 ? * * - At 01:01:00am every day
-	
 	@Scheduled(cron = "0 1 1 ? * *")
 	public void LeaveExpirationCronJob() {
-		
-		short leaveTypeMasterId = 0;
 		try {
-		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-		     
-		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+//		     
+//		          for(LeaveTypeMaster ltm :leaveType) {
+//			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//			
+//			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//			      
+//			          for(LeavePolicyMaster lpm : leavePolicy) {
+//				         if(lpm.getExpirationPeriod().equals("Yes")) {
+//				        	 
+//				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
+//				     	     Timestamp createdOnDate = lpm.getCreatedOn();
+//				     	     
+//				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
+//				   
+//				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+//				    		 String expiration = f.format(expirationDate);
+//				    		 System.out.println(expiration);
+//				     	     
+//				     	     LocalDateTime dateTime = LocalDateTime.now();
+//				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
+//				             System.out.println(todayDate);
+//					         
+//				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//					
+//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
+//						   
+//						              if(expiration.equals(todayDate)) {
+//						            	  float newBalance = 0;
+//						            	  elm.setBalance(newBalance);
+//							              employeeLeavesMapRepository.save(elm);
+//							              break;
+//						              }
+//					              }
+//				          }
+//			           }
+//		            }
 			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+			
+			
+			LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
+			
+			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
 			      
 			          for(LeavePolicyMaster lpm : leavePolicy) {
 				         if(lpm.getExpirationPeriod().equals("Yes")) {
-				        	 
 				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
-				     	     Timestamp createdOnDate = lpm.getCreatedOn();
-				     	     
-				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
-				   
-				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-				    		 String expiration = f.format(expirationDate);
-				    		 System.out.println(expiration);
-				     	     
-				     	     LocalDateTime dateTime = LocalDateTime.now();
-				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
-				             System.out.println(todayDate);
-					         
-				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						   
-						              if(expiration.equals(todayDate)) {
-						            	  float newBalance = 0;
-						            	  elm.setBalance(newBalance);
-							              employeeLeavesMapRepository.save(elm);
-							              break;
-						              }
-					              }
+				        	 
+				        	 List<Employee> employeeObj = employeeRepository.findByEmploymentstatus(lpm.getEmploymentStatus());
+				        	 
+				        	 if(!employeeObj.isEmpty()) {
+				        		 employeeObj.forEach((object) -> {
+				        			 //Get employee leave balance
+				        			 EmployeeLeavesMap empLeaveMapObj = employeeLeavesMapRepository
+				        					 .findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), leaveType.getLeaveTypeMasterId());
+				        			 
+				        			 //Get CompOff leave applications
+				        			 Timestamp perv45Day = Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay());
+				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(object.getEmpId(), (short)2, perv45Day);
+				        			 if(!compOffLeaveObj.isEmpty()) {
+				        				 compOffLeaveObj.forEach((compOffObj) -> {
+				        					 
+				        					 if(compOffObj.getUpdatedOn() != null) {
+				        						 compOffObj.setApproverDate(compOffObj.getUpdatedOn().toLocalDate());
+					        					 compOffLeaveRepository.save(compOffObj); 
+				        					 }
+				        					 
+				        					 LocalDate expirationDate = compOffObj.getUpdatedOn().toLocalDate().plusDays(expirationPeriod);
+				        					 LocalDate dateToday = LocalDate.now();
+				        					 if(expirationDate.equals(dateToday)) {
+				        						 Float pervBalance = empLeaveMapObj.getBalance();
+				        						 Float newBalance = pervBalance - compOffObj.getNoOfDays();
+				        						 
+				        						 empLeaveMapObj.setBalance(newBalance);
+				        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
+				        						 
+				        						 if(dbResposne != null) {
+				        							 
+				        							 LeaveBalanceLog log = new LeaveBalanceLog();
+
+														log.setBalance(newBalance);
+														log.setEmpId(object.getEmpId());
+														log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+														log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
+																Float.toString(compOffObj.getNoOfDays())));
+														log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+
+														leaveBalanceLogRepository.save(log);
+				        							 
+				        							 System.out.println("CompOff balance updated successfully");
+				        						 }else {
+				        							 System.out.println("CompOff balance updation failed");
+				        						 }
+				        					  }
+				        				 });
+				        			 }
+				        		 });
+				        	 }
 				          }
 			           }
-		            }
 		   }catch(Exception e) {
 			e.printStackTrace();
 		   }
@@ -934,6 +1005,113 @@ public class CronJobService {
 								e.printStackTrace();
 							}
 						});
+					});
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// 0 0 10 ? * MON - At 10:00:00am, on every Monday, every month
+		@Async
+		@Scheduled(cron = "0 0 10 ? * MON")
+		public void timesheetDefaulterWeeklyMail() {
+			try {
+				List<Department> allDepartment = departmentRepository.findAll();
+				if(!allDepartment.isEmpty()) {
+					
+					allDepartment.forEach((object) -> {
+						
+						LocalDate start = LocalDate.now().minusDays(8);
+						LocalDate end = LocalDate.now().minusDays(1);
+						Period period = Period.between(start, end);
+
+						List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
+						List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(object.getDeptId());
+
+						List<TimesheetDTO> dtoList = new ArrayList<>();
+						String hodMail = null;
+						
+						if (timesheetList != null) {
+							for(Object[] employee: employeeList) {
+								TimesheetDTO dto = new TimesheetDTO();
+
+								dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+								dto.setEmployeeName(employee[1] != null ? employee[1].toString() : null);
+								dto.setDepartmentName(employee[2] != null ? employee[2].toString() : null);
+								dto.setEmail(employee[3] != null ? employee[3].toString() : null);
+								dto.setManagerName(employee[4] != null ? employee[4].toString() : null);
+								dto.setEmpId(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
+								dto.setPendingEodCount(8L);
+								dto.setEmploymentstatus(employee[6] != null ? employee[6].toString() : null);
+								hodMail = employee[7] != null ? employee[7].toString() : null;
+
+								timesheetList.forEach((timesheet) -> {
+
+									Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+									Long employeeEmpId = employee[5] != null ? Long.parseLong(employee[5].toString()) : null;
+
+									if (timesheetEmpId.equals(employeeEmpId)) {
+										Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+										Long pendingEodCount = 8 - filledEodCount;
+
+										dto.setPendingEodCount(pendingEodCount);
+									}
+								});
+								dtoList.add(dto);
+							}
+						}
+						//Mail timesheet defaulter list to: user cc: HR, HOD	
+						
+						StringBuilder html = new StringBuilder();
+						html.append("<html>\n" +
+					            "  <head>\n" +
+					            "    <style>\n" +
+					            "      table, th, td {\n" +
+					            "        border: 1px solid black;\n" +
+					            "      }\n" +
+					            "      table {\n" +
+					            "        border-collapse: collapse;\n" +
+					            "      }\n" +
+					            "    </style>\n" +
+					            "  </head>\n" +
+					            "  <body>\n" +
+					            "    <table>\n" +
+					            "      <tr>\n" +
+					            "        <th>Emp ID</th>\n" +
+					            "        <th>Name</th>\n" +
+					            "        <th>Email</th>\n" +
+					            "        <th>Manager Name</th>\n" +
+					            "        <th>Expected Timesheet Count</th>\n" +
+					            "        <th>Pending Timesheet Count</th>\n" +
+					            "        <th>Deaprtment</th>\n" +
+					            "      </tr>\n");
+						// add rows to the table
+						for(TimesheetDTO timesheet: dtoList) {
+							html.append("      <tr>\n");
+							  // add cells to the row
+							  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
+							  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
+							  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
+							  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
+							  html.append("        <td>" + period.getDays() + "</td>\n");
+							  html.append("        <td>" + timesheet.getPendingEodCount() + "</td>\n");
+							  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
+							  html.append("      </tr>\n");
+						}
+						
+						html.append("    </table>\n" +
+						            "  </body>\n" +
+						            "</html>");
+						
+						try {
+							mailService.sendMailWithCC("harshit.toxia@apmosys.com",
+									"prasad.more@apmosys.com",
+									"EOD Timesheet Defaulter List for "+start+" to "+end,
+									html.toString());
+						} catch (MessagingException e) {
+							e.printStackTrace();
+						}
 					});
 				}
 			}catch(Exception e) {
