@@ -30,6 +30,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
@@ -1065,6 +1066,10 @@ public class CronJobService {
 								dtoList.add(dto);
 							}
 						}
+						//Filter 0 pending EOD counts
+						
+						dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
+						
 						//Mail timesheet defaulter list to: user cc: HR, HOD	
 						
 						StringBuilder html = new StringBuilder();
