@@ -129,6 +129,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Night Shift</label>
+                            <input class="cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox"/>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- Add & Update Activities -->
             <div *ngIf="timesheetObj.dayType != 'Holiday'" class="container-fluid px-0">
@@ -344,6 +352,7 @@
                                 <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                                 <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md" mat-sort-header="createdByName">Applied By</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="createdOn">Applied On</th>
+                                <th scope="col" class="info-label column-md">Shift</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="remarks">Remarks</th>
                                 <th scope="col" class="info-label column-md">Actions</th>
                             </tr>
@@ -353,7 +362,7 @@
                                 <th colspan="16" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
                                 <td>{{timesheet.date}}</td>
@@ -366,6 +375,7 @@
                                 <td>{{timesheet.status}}</td>
                                 <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
                                 <td>{{timesheet.createdOn}}</td>
+                                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"
@@ -436,6 +446,14 @@
         <p>Are you sure you want to Update the Timesheet?</p>
         <button type="button" class="btn btn-success" (click)="cancelRequest();onUpdateTimesheet(alert_message)">Yes,
             proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #night_shift_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you have required permission for night shift?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();this.timesheetObj.isNightShift = true">Yes,proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

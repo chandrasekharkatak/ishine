@@ -55,4 +55,6 @@ export class Timesheet{
     officeOutTime:any;
     totalWorkingOfficeHours:any;
 
+    isNightShift:any;
+
 }

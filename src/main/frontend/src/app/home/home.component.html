@@ -494,8 +494,8 @@
         </button>
     </div>
     <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkApproval(timesheet_success)">Bulk Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="OnBulkReject(timesheet_reject)">Bulk Reject</button>
+        <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
       </div>
       <div class="form-group d-flex justify-content-between">
         <div class="form-inline col-md-3">
@@ -529,6 +529,7 @@
                 <th scope="col" class="info-label" mat-sort-header="officeInTime">Office In Time</th>
                 <th scope="col" class="info-label" mat-sort-header="officeOutTime">Office Out Time</th>
                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
+                <th scope="col" class="info-label">Shift</th>
                 <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                 <th scope="col" class="info-label">Actions</th>
               </tr>
@@ -537,7 +538,7 @@
               <tr *ngIf="allTeamTimesheetRequests.length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                 <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                 <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
@@ -548,6 +549,7 @@
                 <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
                 <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
@@ -660,4 +662,23 @@
         <p>{{notificationObj.notificationMessage}}</p>
     </div>
 </ng-template>
+
+<!-- Night shift confirmation template -->
+<ng-template #night_shift_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to continue, your timesheet bulk update contains Night shift request?</p>
+        <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary" (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift Request(s)</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #night_shift_reject_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to continue, your timesheet bulk update contains Night shift request?</p>
+        <button type="button" class="btn btn-outline-success" (click)="OnBulkReject(timesheet_reject)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift Request(s)</button>&nbsp;
+    </div>
+  </ng-template>
   

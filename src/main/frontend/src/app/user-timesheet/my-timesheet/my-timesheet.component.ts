@@ -1016,6 +1016,12 @@ export class MyTimesheetComponent implements OnInit {
     this.alertMessage = message;
   }
 
+  openNightShiftTemplate(template: TemplateRef<any>, event){
+    if(event.target.checked){
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    }
+  }
+
   cancelRequest() {
     this.modalRef.hide();
   }

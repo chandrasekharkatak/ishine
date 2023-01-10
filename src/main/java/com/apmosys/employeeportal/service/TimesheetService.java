@@ -292,6 +292,7 @@ public class TimesheetService {
 				newTimesheet.setDescription(description);
 			}
 			newTimesheet.setStatus("Pending");
+			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
@@ -424,6 +425,7 @@ public class TimesheetService {
 						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						
 						dtoList.add(dto);
 					});
@@ -662,6 +664,7 @@ public class TimesheetService {
 						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -847,6 +850,7 @@ public class TimesheetService {
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
 				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+				existingTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 				/*
 				 * Only pending/rejected timesheet can be updated by employee. So even if
 				 * employee is updating pending timesheet or rejected timesheet the status
@@ -1019,6 +1023,7 @@ public class TimesheetService {
 						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dtoList.add(dto);
 					});
 

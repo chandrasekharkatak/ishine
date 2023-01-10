@@ -1020,6 +1020,7 @@ public class CronJobService {
 				List<Department> allDepartment = departmentRepository.findAll();
 				if(!allDepartment.isEmpty()) {
 					
+					StringBuilder defaulterMail = new StringBuilder();
 					allDepartment.forEach((object) -> {
 						
 						LocalDate start = LocalDate.now().minusDays(8);
@@ -1035,6 +1036,9 @@ public class CronJobService {
 						if (timesheetList != null) {
 							for(Object[] employee: employeeList) {
 								TimesheetDTO dto = new TimesheetDTO();
+								
+								defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
+								defaulterMail.append(",");
 
 								dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
 								dto.setEmployeeName(employee[1] != null ? employee[1].toString() : null);
@@ -1105,10 +1109,17 @@ public class CronJobService {
 						            "</html>");
 						
 						try {
-							mailService.sendMailWithCC("harshit.toxia@apmosys.com",
-									"prasad.more@apmosys.com",
+							mailService.sendMailWithCC(defaulterMail.toString(),
+									hodMail+","+hrMailAddress,
 									"EOD Timesheet Defaulter List for "+start+" to "+end,
-									html.toString());
+									"Dear IShine Members, <br><br>"
+                                  + "This is to bring it to your attention that you are in the defaulter list."
+                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
+                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
+								  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
+								  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
+								  + "Thus, ensure you fill time sheets on a daily basis to avoid lock of the timesheets and loosing salary.<br><br>"
+								  +	html.toString());
 						} catch (MessagingException e) {
 							e.printStackTrace();
 						}

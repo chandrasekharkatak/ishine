@@ -454,8 +454,42 @@ export class TeamTimesheetComponent implements OnInit {
 
     console.log("Updated Bulk List : ",  this.bulkApprove);
   }
+
+openBulkApprovalModal(nightShiftTemplate:TemplateRef<any>, alertTemplate:TemplateRef<any>){
+  const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
+  console.log(isNightShiftFound, " : isNightShiftFound");
+  
+  if(isNightShiftFound.length != 0){
+    this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+  }else{
+    this.onBulkApproval(alertTemplate);
+  }
+}
+
+bulkApproveWithoutNightShiftRequest(template:TemplateRef<any>){
+  this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
+  this.onBulkApproval(template);
+}
+
+openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
+  const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
+  console.log(isNightShiftFound, " : isNightShiftFound");
+  
+  if(isNightShiftFound.length != 0){
+    this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+  }else{
+    this.openBulkRejectTimesheet(bulkRejectTimesheet);
+  }
+}
+
+bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet:TemplateRef<any>){
+  this.timesheetObj.rejectReason = null;
+  this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
+  this.openBulkRejectTimesheet(bulkRejectTimesheet);
+}
   
 onBulkApproval(template:TemplateRef<any>){
+  this.cancelRequest();
   console.log("Updated Bulk List : ",  this.bulkApprove);
   let timesheetObj = new Timesheet();
   timesheetObj.bulkApprovedList =  this.bulkApprove;
