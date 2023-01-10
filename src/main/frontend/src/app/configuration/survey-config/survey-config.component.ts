@@ -583,7 +583,7 @@ export class SurveyConfigComponent implements OnInit {
       console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return [response.employeementId, response.name]
+        return ["A-".concat(response.employeementId), response.name]
         // return { 
         //   name: response.name,
         //   employeementId : response.employeementId 

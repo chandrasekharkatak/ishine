@@ -190,9 +190,10 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.date = (this.timesheetObj.date) ? new Date(this.timesheetObj.date) : null;
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime) ? new Date(this.timesheetObj.officeInTime) : '';
-    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime) ? new Date(this.timesheetObj.officeOutTime) : '';
+    this.timesheetObj.date = (this.timesheetObj.date)? new Date(moment(this.timesheetObj.date).format(AppComponent.LOCAL_DATE_FORMAT)) : '';
+    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? new Date(moment(this.timesheetObj.officeInTime).format(AppComponent.LOCAL_DATETIME_FORMAT)) : '';
+    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? new Date(moment(this.timesheetObj.officeOutTime).format(AppComponent.LOCAL_DATETIME_FORMAT)) : '';
+    this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? new Date(moment(this.timesheetObj.createdOn).format(AppComponent.LOCAL_DATETIME_FORMAT)) : '';
 
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
@@ -211,7 +212,8 @@ export class MyTimesheetComponent implements OnInit {
     }
 
     this.getAllProjectsByEmpId(userObj);
-    setTimeout(() => {
+    this.getAllAvailableTimesheetByEmpId(userObj);
+    setTimeout(()=>{
       this.getAllMyActivitiesByTimesheetId(timesheetObj);
     }, 500)
   }
@@ -223,7 +225,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.allTimesheetActivities = [];
-    this.addInputActivityField();;
+    this.addInputActivityField();
   }
 
 
@@ -321,8 +323,8 @@ export class MyTimesheetComponent implements OnInit {
 
   setMaxInTimeDate(timesheetDate: any) {
     console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
-
-    if (this.timesheetObj.dayType != "Holiday") {
+    
+    if(this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave"){
       let inTimeDate = document.getElementById('officeInTime');
       let officeOutTime = document.getElementById('officeOutTime');
       inTimeDate.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
@@ -337,8 +339,8 @@ export class MyTimesheetComponent implements OnInit {
     this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
   };
 
-  resetTimeonDayTypeChange() {
-    if (this.timesheetObj.dayType == 'Holiday') {
+  resetTimeonDayTypeChange(){
+    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -384,7 +386,7 @@ export class MyTimesheetComponent implements OnInit {
       return false;
     }
 
-    if (timesheetObj.dayType != 'Holiday') {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave") {
       let flag = true;
       let totalActivityTime = 0;
 
@@ -488,14 +490,14 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != 'Holiday') {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
-    if (this.timesheetObj.dayType != 'Holiday') {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -531,10 +533,11 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != 'Holiday') {
-      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat)
-      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat)
-      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat)
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+      this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
       if (this.timesheetObj.allTimesheetActivities) {
@@ -560,7 +563,8 @@ export class MyTimesheetComponent implements OnInit {
       }
     } else {
       this.timesheetObj.updatedTimesheetActivities = null;
-      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateTimeFormat);
+      this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -586,9 +590,9 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   __tempDescription = '';
-  onTimesheetDescriptionChange() {
-    if (this.isUpdation) {
-      if (this.timesheetObj.dayType == 'Holiday') {
+  onTimesheetDescriptionChange(){
+    if(this.isUpdation){
+      if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
         this.timesheetObj.description = this.__tempDescription;
         this.__tempDescription = '';
       } else {
@@ -963,7 +967,7 @@ export class MyTimesheetComponent implements OnInit {
       this.excelName = 'MyTimeSheet.xlsx'
 
       const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => a.date.localeCompare(b.date));
+      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
 
       const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
         x => ({

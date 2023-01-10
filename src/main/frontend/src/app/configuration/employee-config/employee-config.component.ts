@@ -1654,6 +1654,12 @@ export class EmployeeConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  cancelDraftRequest() {
+    this.employeeObj.remarks = ''
+    this.modalRef.hide();
+  }
+
+
   //pagination 	
   page = 1;
   handlePageChange(event) {

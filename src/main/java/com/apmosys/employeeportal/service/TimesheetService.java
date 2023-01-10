@@ -268,7 +268,7 @@ public class TimesheetService {
 			newTimesheet.setEmpId(timesheetDTO.getEmpId());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
-			if (timesheetDTO.getDayType().equals("Holiday")) {
+			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
 				newTimesheet.setTotalTime((float)0);
 			} else {
@@ -297,7 +297,7 @@ public class TimesheetService {
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
-			if (!timesheetDTO.getDayType().equals("Holiday")) {				
+			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
 					
 					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();

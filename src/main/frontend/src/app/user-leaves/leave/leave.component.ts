@@ -870,7 +870,7 @@ export class LeaveComponent implements OnInit {
   
   deletePendingLeave(template: TemplateRef<any>) {	
     this.cancelRequest();	
-
+    this.leaveObj.empId = this.currentUser.empId;	
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
         console.log("After Delete this.leaveObj : ", this.leaveObj);	
@@ -893,6 +893,7 @@ export class LeaveComponent implements OnInit {
     leaveApplication.rejectReason = this.leaveObj.rejectReason?.trim();
     leaveApplication.email = this.leaveObj.email;
     leaveApplication.employeementId = this.leaveObj.employeementId
+    leaveApplication.approverEmail = this.currentUser.email;	
     console.log("leaveApplication : ", leaveApplication);
     
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -1219,6 +1220,7 @@ export class LeaveComponent implements OnInit {
 
     leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
     leave.leaveRevokeStatusId = updatedLeaveStatusId;
+    leave.approverEmail = this.currentUser.email;	
     console.log(leave, " : RevokeLeaveObj");
 
     this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
@@ -1343,6 +1345,29 @@ export class LeaveComponent implements OnInit {
     XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');	
   	
     XLSX.writeFile(book, this.excelName);
+  }
+
+  // this.leaveHistoryListForTable
+
+  exportToExcelForLeave() {
+    this.excelName = 'MyLeaveHistory.xlsx';
+
+    const onlySpecificDataArr: any = this.leaveHistoryList.map(
+      x => ({
+        "Name": x.employeeName,
+        "Leave Type": x.leaveType,
+        "From Date": x.fromDate,
+        "To Date": x.toDate,
+        "Duration": (x.noOfDays+" day(s)"),
+        "Status": x.status,
+        "Applied By": x.createdByName,
+        "Applied On": x.createdOn,
+        "Reason": x.reason,
+        "Approved By": x.approverName,
+        "Remark": x.remark
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
 
     //pagination 	
