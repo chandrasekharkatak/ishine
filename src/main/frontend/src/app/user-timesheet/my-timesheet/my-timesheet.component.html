@@ -62,14 +62,16 @@
                             <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Working">Working</option>
-                                <option value="Holiday">Holiday</option>
+                                <option value="Public Holiday">Public Holiday</option>
+                                <option value="Week Off">Week Off</option>
+                                <option value="Leave">Leave</option>
                                 <option value="Non-working">Working on non-working day</option>
                             </select>
                         </div>
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -88,7 +90,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -100,7 +102,7 @@
                 </div>
             </div>
             <!-- IN/OUT Time-->
-            <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row">
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group input-wrapper">
@@ -131,7 +133,7 @@
                 </div>
             </div>
             <!-- Add & Update Activities -->
-            <div *ngIf="timesheetObj.dayType != 'Holiday'" class="container-fluid px-0">
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="container-fluid px-0">
                 <div class="row ml-1 mt-5">
                     <h3>Activities</h3>
                 </div>
@@ -474,7 +476,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+        <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
             <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
@@ -485,7 +487,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+        <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
             <table class="table timesheet-table">
                 <thead class="thead-light">
                     <tr>
