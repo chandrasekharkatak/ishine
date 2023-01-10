@@ -843,6 +843,10 @@ public class TimesheetService {
 			if (timesheet.isPresent()) {
 
 				Timesheet existingTimesheet = timesheet.get();
+				
+				System.out.println("================================================");
+				System.out.println("\n\n "+ existingTimesheet + "\n\n");
+				System.out.println("================================================");
 
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
@@ -859,8 +863,8 @@ public class TimesheetService {
 				existingTimesheet.setStatus("Pending");
 				existingTimesheet.setTotalTime((float) 0);
 
-				if (timesheetDTO.getDayType().equals("Holiday")) {
-					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
+				if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
+					timesheetActivityMapRepository.deleteByTimesheetId(existingTimesheet.getTimesheetId());
 					existingTimesheet.setDescription(timesheetDTO.getDescription());
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
 					existingTimesheet.setOfficeInTime(null);
@@ -949,6 +953,9 @@ public class TimesheetService {
 				}
 				existingTimesheet.setTotalTime(totalTime);
 
+				System.out.println("================================================");
+				System.out.println("\n\n "+ existingTimesheet + "\n\n");
+				
 				Timesheet updatedTimesheet = timesheetsRepository.save(existingTimesheet);
 
 				if (updatedTimesheet.getTimesheetId() != null) {

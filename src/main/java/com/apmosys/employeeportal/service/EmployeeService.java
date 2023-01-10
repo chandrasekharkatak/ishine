@@ -1475,6 +1475,7 @@ public class EmployeeService {
 					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);	
 					empDTO.setCreatedByName(object[65] != null ? (object[65].toString()) : null);	
 					empDTO.setUpdatedOn(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setIsTimesheetLockCheckEnable(object[67] != null ? (object[67].toString()) : null);
 					empDTO.setFailedAttempt(failedAttempt);
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
@@ -2370,6 +2371,7 @@ public class EmployeeService {
 					employee.setHodId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 					employee.setHodName(object[17] != null ? object[17].toString() : null);
 					employee.setHodEmail(object[18] != null ? object[18].toString() : null);
+					employee.setIsTimesheetLockCheckEnable(object[19] != null ? object[19].toString() : null);
 				});
 				return employee;
 			}
@@ -2957,6 +2959,101 @@ public class EmployeeService {
 				response.setServiceResponse("Employee Info not found.");
 			}
 		}catch(Exception e){
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse updateTimesheetLockCheck(EmployeeDTO employeeDto) {
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("update_timesheet_lock_check");
+		apiLogInfo.setApiUrl("/api/getEmployeeProfileCompletion");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeeDto.getEmpId());
+
+		try {
+			Optional<Employee> employeeObject = employeeRepository.findById(employeeDto.getEmpId());
+			if (employeeObject.isPresent()) {
+				Employee employee = employeeObject.get();
+
+				employee.setIsTimesheetLockCheckEnable(employeeDto.getIsTimesheetLockCheckEnable());
+				employee.setUpdatedBy(Integer.parseInt(employeeDto.getUpdatedBy().toString()));
+				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+
+				Employee dbResponse = employeeRepository.save(employee);
+
+				if (dbResponse != null) {
+					if(dbResponse.getIsTimesheetLockCheckEnable().equals("true")) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Timesheet Check Enabled.");
+						
+						apiLogInfo.setApiResponse("Timesheet Check Enabled.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Timesheet Check Disabled.");
+						
+						apiLogInfo.setApiResponse("Timesheet Check Disabled.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Timesheet Check Updation Failed.");
+
+					apiLogInfo.setApiResponse("Timesheet Check Updation Failed.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Not Found");
+
+				apiLogInfo.setApiResponse("Employee Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+	
+	public ServiceResponse getEmployeeBasicInfo(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			if(employeedto.getEmail() != null) {
+				EmployeeDTO employeeInfo = getEmployeeInfoOnLogin(employeedto.getEmail());
+
+				if (employeeInfo != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(employeeInfo);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee Info not found");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee email not found");
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

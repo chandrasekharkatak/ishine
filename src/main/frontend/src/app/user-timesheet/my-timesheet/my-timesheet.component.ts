@@ -20,6 +20,7 @@ import { Leave } from 'src/app/models/leave';
 import { Team } from 'src/app/models/team';
 import { ThemePalette } from '@angular/material/core';
 import { AppComponent } from 'src/app/app.component';
+import { EmployeeService } from 'src/app/services/employee.service';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -80,6 +81,7 @@ export class MyTimesheetComponent implements OnInit {
   leaveHistoryList:any[] = [];
   
   maxOutTimeDate:any;
+  isTimesheetLockCheckEnable:any = "true";
 
   constructor(
     private validationService: ValidationService,
@@ -91,7 +93,8 @@ export class MyTimesheetComponent implements OnInit {
     private clipboardService: ClipboardService,
     private teamViewService : TeamViewService,
     private leaveService : LeaveService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private employeeService : EmployeeService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -109,6 +112,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
+    this.getEmployeeBasicInfo();	
     this.sectionViewInit();
     this.preventBackButton();	
   }	
@@ -215,6 +219,8 @@ export class MyTimesheetComponent implements OnInit {
       userObj.empId = timesheetObj.empId;
     }
     
+    console.log("ON UPDATE TIMESHEET : ", this.timesheetObj);
+    
     this.getAllProjectsByEmpId(userObj);
     this.getAllAvailableTimesheetByEmpId(userObj);
     setTimeout(()=>{
@@ -312,8 +318,12 @@ export class MyTimesheetComponent implements OnInit {
       console.log("availableTimesheets : ", this.availableTimesheets);
       
     }
-    
-    return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+
+    if(this.isTimesheetLockCheckEnable == "false"){
+      return (checkDate <= endDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+    }else{
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+    }
   } 
 
   outTimeFilter = (checkDate: Date) => {
@@ -611,11 +621,14 @@ export class MyTimesheetComponent implements OnInit {
     let userObj:User = new User();
     if(this.timesheetObj.timesheetAppliedFor == 'self'){
       userObj.empId = this.currentUser.empId;
+      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = this.currentUser.empId; 
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
       console.log("Team Member : ", teamMember);
       userObj.empId = teamMember.empId;
+      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = teamMember.empId; 
     }
 
@@ -789,20 +802,53 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  getAllAvailableTimesheetByEmpId(employeeObj:User) {
+  // getAllAvailableTimesheetByEmpId(employeeObj: User) {
+  //   this.availableTimesheets = [];
+  //   console.log(" -- logged availableTimesheets -- ");
+
+  //   let timesheetObj = new Timesheet();
+  //   timesheetObj.empId = employeeObj.empId;
+  //   this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.availableTimesheets = response.serviceResponse;
+  //       console.log("availableTimesheets :", this.availableTimesheets);
+  //     } else {
+  //       console.error(response.serviceResponse)
+  //     }
+  //   });
+  // }
+
+
+  getAllAvailableTimesheetByEmpId(employeeObj: User) {
     this.availableTimesheets = [];
-    console.log(" -- logged availableTimesheets -- ");
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    let currentDate = new Date();
+    const dateFormat = 'YYYY-MM-DD';
+    let endDate:any;
+    let startDate:any;
+
+    if(this.isTimesheetLockCheckEnable == 'false'){
+      endDate = currentDate;
+      startDate = new Date(endDate.getTime() - ((60 + 1) * DAY_IN_MS));
+    }else{
+      endDate = currentDate;
+      startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
+    }
 
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = employeeObj.empId;
-    this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.availableTimesheets = response.serviceResponse;
-        console.log("availableTimesheets :", this.availableTimesheets);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+      timesheetObj.empId = employeeObj.empId;
+      timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
+      timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
+      
+      console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
+      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.availableTimesheets = response.serviceResponse;
+          console.log("availableTimesheets :", this.availableTimesheets);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
   }
 
  // getTimesheetData(template:TemplateRef<any>){
@@ -964,6 +1010,20 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
+  getEmployeeBasicInfo() {
+    let employeeObj = new Employee();
+    employeeObj.email = this.currentUser.email;
+    this.employeeService.getEmployeeBasicInfo(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let employeeInfo = response.serviceResponse;
+        this.currentUser.isTimesheetLockCheckEnable = JSON.parse(JSON.stringify(employeeInfo.isTimesheetLockCheckEnable));
+        this.isTimesheetLockCheckEnable = employeeInfo.isTimesheetLockCheckEnable;
+        console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
   exportToExcel(): void {
 

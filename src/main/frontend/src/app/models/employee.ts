@@ -145,4 +145,6 @@ export class Employee{
 	profileCompletedPercent:any;
 	updatedByName:any;
 	createdByName: any;
+
+	isTimesheetLockCheckEnable:any;
 }
