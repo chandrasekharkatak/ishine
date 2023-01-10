@@ -212,7 +212,7 @@
 
 <ng-template #delete_project_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to delete Project?</p>
+        <p>Are you sure you want to delete Project? <br>Deleting project will also remove teams under this project.</p>
         <button type="button" class="btn btn-success" (click)="deleteProject(alert_message);">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>

@@ -745,7 +745,7 @@
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                    *ngFor="let emp of activityPreviewList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    *ngFor="let emp of activityPreviewList, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{emp.activity}}</td>
                     <td>{{emp.employeeRole}}</td>
