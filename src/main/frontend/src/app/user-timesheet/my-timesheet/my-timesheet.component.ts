@@ -967,7 +967,7 @@ export class MyTimesheetComponent implements OnInit {
       this.excelName = 'MyTimeSheet.xlsx'
 
       const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => a.date.localeCompare(b.date));
+      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
 
       const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
         x => ({

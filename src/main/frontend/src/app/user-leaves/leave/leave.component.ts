@@ -1347,6 +1347,29 @@ export class LeaveComponent implements OnInit {
     XLSX.writeFile(book, this.excelName);
   }
 
+  // this.leaveHistoryListForTable
+
+  exportToExcelForLeave() {
+    this.excelName = 'MyLeaveHistory.xlsx';
+
+    const onlySpecificDataArr: any = this.leaveHistoryList.map(
+      x => ({
+        "Name": x.employeeName,
+        "Leave Type": x.leaveType,
+        "From Date": x.fromDate,
+        "To Date": x.toDate,
+        "Duration": (x.noOfDays+" day(s)"),
+        "Status": x.status,
+        "Applied By": x.createdByName,
+        "Applied On": x.createdOn,
+        "Reason": x.reason,
+        "Approved By": x.approverName,
+        "Remark": x.remark
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
+
     //pagination 	
     page = 1;	
     handlePageChange(event) {	

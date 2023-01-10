@@ -985,7 +985,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         "Leave Type": x.leaveType,
         "From Date": x.fromDate,
         "To Date": x.toDate,
-        "Duration": x.noOfDays,
+        "Duration": (x.noOfDays+" day(s)"),
         "Status": x.status,
         "Applied By": x.createdByName,
         "Applied On": x.createdOn,
