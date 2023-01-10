@@ -725,6 +725,7 @@ showColumn(){
             "pursuing":x.pursuing,
             "passingGrade":x.passingGrade,
             "yearOfPassing":x.yearOfPassing,
+            "Proile Completion Perecentage":x.profileCompletedPercent,
             "createdBy":x.createdBy,
             "createdOn":x.createdOn 
           })
