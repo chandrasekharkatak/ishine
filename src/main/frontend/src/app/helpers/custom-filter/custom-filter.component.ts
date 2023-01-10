@@ -65,6 +65,11 @@ export class CustomFilterComponent implements OnInit {
     this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {        
         this.valueOptionList = response.serviceResponse;
+        if(column == 'Employee Id'){
+          this.valueOptionList.forEach((x) => {
+            x.name = "A-".concat(x.name);
+          });
+        }
         console.log(this.valueOptionList , ":this.valueOptionList ");
       } else {
         console.log(response.serviceResponse, " : response.serviceResponse");

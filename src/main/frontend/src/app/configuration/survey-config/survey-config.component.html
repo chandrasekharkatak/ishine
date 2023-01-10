@@ -134,14 +134,14 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyInfo'" [tableTHeadId]="'surveyInfoTHead'"
                 [tableTHeadTrId]="'surveyInfoTHeadTr'">
-                <table class="table">
+                <table class="table" matSort (matSortChange)="sortSurvey($event)">
                     <thead class="thead-light">
                       <tr>
-                        <th scope="col" class="info-label">Survey Name</th>
-                        <th scope="col" class="info-label">Description</th>
-                        <th scope="col" class="info-label">Status</th>
-                        <th scope="col" class="info-label">Created by</th>
-                        <th scope="col" class="info-label">Created on</th>
+                        <th scope="col" class="info-label" mat-sort-header="surveyName">Survey Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="description">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="isActive">Status</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>

@@ -25,6 +25,7 @@ import { Log } from '../models/log';
 import * as CryptoJS from 'crypto-js';
 import { Employee } from '../models/employee';
 import { LocationStrategy } from '@angular/common';
+import { Sort } from '@angular/material/sort';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -32,59 +33,59 @@ import { LocationStrategy } from '@angular/common';
 })
 export class HomeComponent implements OnInit, AfterViewInit {
 
-    data:string;
+  data: string;
   //modal 
-  alertMessage:any;
+  alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-  
 
-  feature="Home";
-  currentUser:User;
-  userMapping:any = {};
-  log:Log;
 
-  isReqPending:boolean = true;
-  leaveApplicationCount:any = 0;
-  leaveApplicationList:any[] = [];
+  feature = "Home";
+  currentUser: User;
+  userMapping: any = {};
+  log: Log;
 
-  compOffApplicationCount:any = 0;
-  allCompOffApplications:any[] = [];
+  isReqPending: boolean = true;
+  leaveApplicationCount: any = 0;
+  leaveApplicationList: any[] = [];
 
-  timesheetApplicationCount:any = 0;
-  allTeamTimesheetRequests:any[] = [];
-  timesheetObj:Timesheet = new Timesheet();
+  compOffApplicationCount: any = 0;
+  allCompOffApplications: any[] = [];
+
+  timesheetApplicationCount: any = 0;
+  allTeamTimesheetRequests: any[] = [];
+  timesheetObj: Timesheet = new Timesheet();
 
   //export excel
-  excelName:any = '';
+  excelName: any = '';
 
-  birthdayList:any[] =[];
-  eventImages:any[] = [];
-  isImagesLoaded:boolean = false;
-  
-  leaveBalanceList:any[] = [];
-  rejectedLeavesList:any[] = [];
-  approvedLeavesList:any[] = [];
-  pendingLeavesList:any[] = [];
+  birthdayList: any[] = [];
+  eventImages: any[] = [];
+  isImagesLoaded: boolean = false;
+
+  leaveBalanceList: any[] = [];
+  rejectedLeavesList: any[] = [];
+  approvedLeavesList: any[] = [];
+  pendingLeavesList: any[] = [];
 
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
 
   items = 10;
-  bulkApprove:any =[];
-  bulkReject:any = [];
-  isSelectAll:boolean = false;
-  bulkLeaveApprove:any =[];
-  bulkLeaveReject:any = [];
+  bulkApprove: any = [];
+  bulkReject: any = [];
+  isSelectAll: boolean = false;
+  bulkLeaveApprove: any = [];
+  bulkLeaveReject: any = [];
 
   leaveObj = new Leave();
-  
-  @ViewChild("thisMonthCal") 
-  private thisMonthCalendar:CalendarComponent;
+
+  @ViewChild("thisMonthCal")
+  private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
-  private lastMonthCalendar:CalendarComponent;
+  private lastMonthCalendar: CalendarComponent;
 
   @ViewChild('updateInfo')
-  private updateInfoTempRef:TemplateRef<any>;
+  private updateInfoTempRef: TemplateRef<any>;
 
   // TOP BAR
   @ViewChild("change_password")
@@ -93,42 +94,42 @@ export class HomeComponent implements OnInit, AfterViewInit {
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
   fieldTextTypeOldPass: boolean = false;
-  isError:boolean=false;
-  oldPasswordValid:boolean = false;
+  isError: boolean = false;
+  oldPasswordValid: boolean = false;
 
-  password:any;
-  userNewPass:any;
-  newpassword:any;
-  errorMsg:any;
-  empId:any;
-  user:User = new User();
-  
-  leaveTypes:Leave[] = [];
-  leaveBucketDetails : any[] = [];
+  password: any;
+  userNewPass: any;
+  newpassword: any;
+  errorMsg: any;
+  empId: any;
+  user: User = new User();
+
+  leaveTypes: Leave[] = [];
+  leaveBucketDetails: any[] = [];
 
   // stop modal to close
   config = {
     backdrop: true,
     ignoreBackdropClick: true,
-    keyboard  : false
+    keyboard: false
   };
-  
-  profileCompletedPercentage:any = 0;
+
+  profileCompletedPercentage: any = 0;
 
   constructor(
     private modalService: BsModalService,
-    private authenticationService : AuthenticationService,
-    private leaveService : LeaveService,
+    private authenticationService: AuthenticationService,
+    private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
     private router: Router,
     private employeeService: EmployeeService,
-    private timesheetService : TimesheetService,
+    private timesheetService: TimesheetService,
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
     private bodyComponent: BodyComponent,
     public validationService: ValidationService,
-    private logService:LogService,
+    private logService: LogService,
     private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -137,7 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.log.tabName = this.feature;
       this.log.featureName = this.feature;
     });
-   }
+  }
 
   ngOnInit(): void {
     this.getEmployeeProfileCompletion();
@@ -148,55 +149,55 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, " : ", this.userMapping);
-    
+
     this.getAllNotifications();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-    if(this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
-    if(this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
-    if(this.userMapping.view_all_team_requests){
+    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
+    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+    if (this.userMapping.view_all_team_requests) {
       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
       this.countPendingCompOffRequestsByManagerId();
       this.countMyReporteesTimesheetRequests();
     }
-    if(this.userMapping.view_my_leave_details){
+    if (this.userMapping.view_my_leave_details) {
       this.getMyLeaveBalancesByEmpId();
       this.countMyApprovedLeaveApplicationsByLeaveType();
       this.countMyPendingLeaveApplicationsByLeaveType();
       this.countMyRejectedLeaveApplicationsByLeaveType();
     }
-    if(this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+    if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
 
 
-    if(this.currentUser.isNew == "true"){
+    if (this.currentUser.isNew == "true") {
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
     }
     this.preventBackButton();
   }
 
-  preventBackButton(){
+  preventBackButton() {
     history.pushState(null, null, location.href);
-    this.locationStrategy.onPopState(()=>{
+    this.locationStrategy.onPopState(() => {
       history.pushState(null, null, location.href);
     })
   }
 
-  ngAfterViewInit(): void {    
-    if(this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0){
+  ngAfterViewInit(): void {
+    if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
       this.openUpdateInfo(this.updateInfoTempRef);
       this.currentUser.updateFormCounter = 1;
     }
 
   }
 
-  reset(){
+  reset() {
     let leaveObj = new Leave();
     leaveObj.isSelected = false
     this.isSelectAll = false;
-    
+
   }
 
   // Leave Applications
-  getAllMyTeamsPendingLeaveApplicationsByManagerId(){
+  getAllMyTeamsPendingLeaveApplicationsByManagerId() {
     this.data = ''
     this.leaveApplicationList = []
     this.bulkLeaveApprove = []
@@ -218,7 +219,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   /* Leave Applications Count
   *  Added by suraj 07/08/2022
   */
-  countAllMyTeamsPendingLeaveApplicationsByManagerId(){
+  countAllMyTeamsPendingLeaveApplicationsByManagerId() {
     this.leaveApplicationList = []
 
     let leaveObj = new Leave();
@@ -234,7 +235,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId){
+  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     this.cancelRequest();
     let leaveObj = new Leave();
     // 1 = pending , 2 = Approved , 3= Rejected
@@ -242,14 +243,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveObj.email = leaveApplication.email
     leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
-    console.log("   leaveObj.email   ",leaveObj.email);
-    
-    
-    
+    console.log("   leaveObj.email   ", leaveObj.email);
+
+
+
     console.log("leaveApplication : ", leaveApplication);
-    
+
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {        
+      if (response.serviceStatus == "Success") {
         this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
         this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
         this.openAlertMod(template, response.serviceResponse);
@@ -259,19 +260,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-   // single leave reject modal
-   onSingleReject(template: TemplateRef<any> , ){
+  // single leave reject modal
+  onSingleReject(template: TemplateRef<any>,) {
     this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
-    if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
       this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    this.onUpdateLeaveStatus(template, this.leaveObj,3);
+    this.onUpdateLeaveStatus(template, this.leaveObj, 3);
   }
 
   // openLeaveRejectModal
-  openLeaveRejectModal(template: TemplateRef<any>, leave: any){
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
@@ -280,7 +281,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
   //comOff Applications
-  getPendingCompOffRequestsByManagerId(){
+  getPendingCompOffRequestsByManagerId() {
     this.data = ''
     this.allCompOffApplications = []
 
@@ -299,30 +300,30 @@ export class HomeComponent implements OnInit, AfterViewInit {
   /* Leave Applications Count
   *  Added by suraj 07/08/2022
   */
-  countPendingCompOffRequestsByManagerId(){
+  countPendingCompOffRequestsByManagerId() {
     this.allCompOffApplications = []
 
     let compOff = new Leave();
     compOff.managerId = this.currentUser.empId;
     this.leaveService.countPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.compOffApplicationCount =  response.serviceResponse.applicationCount;
+        this.compOffApplicationCount = response.serviceResponse.applicationCount;
         console.log("CompOffApplicationCount : ", this.compOffApplicationCount);
       } else {
-        this.compOffApplicationCount =  0;
+        this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
       }
     });
   }
 
-  onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
+  onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
     this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
     compOffObj.leaveStatusId = updatedCompOffStatusId;
     compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {        
+      if (response.serviceStatus == "Success") {
         this.countPendingCompOffRequestsByManagerId();
         this.getPendingCompOffRequestsByManagerId();
         this.openAlertMod(template, response.serviceResponse);
@@ -335,28 +336,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
   /* Timesheets Applications Count
   *  Added by suraj 07/08/2022
   */
-  countMyReporteesTimesheetRequests(){
+  countMyReporteesTimesheetRequests() {
     this.allTeamTimesheetRequests = []
 
     let timesheet = new Timesheet();
     timesheet.managerId = this.currentUser.empId;
     this.timesheetService.countMyReporteesTimesheetRequests(timesheet).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.timesheetApplicationCount =  response.serviceResponse.applicationCount;
+        this.timesheetApplicationCount = response.serviceResponse.applicationCount;
         console.log("TimesheetApplicationCount : ", this.timesheetApplicationCount);
       } else {
-        this.timesheetApplicationCount =  0;
+        this.timesheetApplicationCount = 0;
         console.error(response.serviceResponse);
       }
     });
   }
 
-  getMyReporteesTimesheetRequests(){
+  getMyReporteesTimesheetRequests() {
     this.data = ''
-    this.bulkApprove = []	
-    this.bulkReject = []	
-    this.allTeamTimesheetRequests = [];	
-   this.isSelectAll = false
+    this.bulkApprove = []
+    this.bulkReject = []
+    this.allTeamTimesheetRequests = [];
+    this.isSelectAll = false
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
@@ -364,7 +365,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
-        for(let x of this.allTeamTimesheetRequests){
+        for (let x of this.allTeamTimesheetRequests) {
           x.employeementId = "A-".concat(x.employeementId);
         }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
@@ -375,7 +376,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* Approve / Reject Timesheet requests */
-  updateTimesheetRequestById(template: TemplateRef<any>, timesheet:Timesheet, status:any){
+  updateTimesheetRequestById(template: TemplateRef<any>, timesheet: Timesheet, status: any) {
     this.cancelRequest();
     let timesheetObj = new Timesheet();
     timesheetObj.timesheetId = timesheet.timesheetId;
@@ -397,26 +398,26 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  
-  rejectTimesheetRequest(template: TemplateRef<any> , ){
+
+  rejectTimesheetRequest(template: TemplateRef<any>,) {
     this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim()
-    if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
+    if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
       this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    this.updateTimesheetRequestById(template, this.timesheetObj,'Rejected');
+    this.updateTimesheetRequestById(template, this.timesheetObj, 'Rejected');
   }
 
-  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
+  opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.cancelRequest();
     this.timesheetObj = timesheet;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
 
-  /* View TImesheet details */ 
-  getAllMyActivitiesByTimesheetId(timesheet:any){
+  /* View TImesheet details */
+  getAllMyActivitiesByTimesheetId(timesheet: any) {
     this.timesheetObj.allTimesheetActivities = [];
 
     let timesheetObj = new Timesheet();
@@ -432,7 +433,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* My Leave Details */
-  getAllLeaveTypesByLeavePolicies(userObj:User){
+  getAllLeaveTypesByLeavePolicies(userObj: User) {
     this.leaveTypes = [];
 
     let leaveObj = new Leave();
@@ -443,7 +444,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
         console.log("leaveTypes : ", this.leaveTypes);
-        this.leaveBucketDetails = this.leaveTypes.map((leave:Leave) => {
+        this.leaveBucketDetails = this.leaveTypes.map((leave: Leave) => {
           let leaveObj = new Leave();
           leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
           leaveObj.leaveType = leave.leaveType;
@@ -463,7 +464,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getMyLeaveBalancesByEmpId(){
+  getMyLeaveBalancesByEmpId() {
     this.leaveBalanceList = [];
 
     let leaveObj = new Leave();
@@ -473,11 +474,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.leaveBalanceList = response.serviceResponse;
         console.log("leaveBalanceList : ", this.leaveBalanceList);
         this.leaveBucketDetails.forEach(data => {
-          let leaveDetail =  this.leaveBalanceList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
-          if(leaveDetail){ 
+          let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+          if (leaveDetail) {
             data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
           }
-        }); 
+        });
         console.log("leaveBucketDetails : ", this.leaveBucketDetails);
       } else {
         console.error(response.serviceResponse);
@@ -485,47 +486,47 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  countMyRejectedLeaveApplicationsByLeaveType(){
+  countMyRejectedLeaveApplicationsByLeaveType() {
     this.rejectedLeavesList = [];
 
     let leaveObj = new Leave();
     leaveObj.empId = this.currentUser.empId;
-    this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response : any) =>{
+    this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
 
-      if(response.serviceStatus == 'Success') {
+      if (response.serviceStatus == 'Success') {
         this.rejectedLeavesList = response.serviceResponse;
         console.log("Rejected Leaves : ", this.rejectedLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
-          let leaveDetail = this.rejectedLeavesList.find((leave:Leave)=> leave.leaveTypeCode == data.leaveTypeCode);
-          if(leaveDetail){
-            data.rejectedApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
+          let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+          if (leaveDetail) {
+            data.rejectedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
           }
         });
 
-      }else {
+      } else {
         console.error(response.serviceResponse);
       }
 
     });
   }
 
-  countMyApprovedLeaveApplicationsByLeaveType(){
+  countMyApprovedLeaveApplicationsByLeaveType() {
     this.approvedLeavesList = [];
 
     let leaveObj = new Leave();
     leaveObj.empId = this.currentUser.empId;
     this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.approvedLeavesList =  response.serviceResponse;
+        this.approvedLeavesList = response.serviceResponse;
         console.log("approvedLeaves : ", this.approvedLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
-          let leaveDetail =  this.approvedLeavesList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
-           if(leaveDetail){
-            data.approvedApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
-           }
-       }); 
+          let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+          if (leaveDetail) {
+            data.approvedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+          }
+        });
 
       } else {
         console.error(response.serviceResponse);
@@ -533,22 +534,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  countMyPendingLeaveApplicationsByLeaveType(){
+  countMyPendingLeaveApplicationsByLeaveType() {
     this.pendingLeavesList = [];
 
     let leaveObj = new Leave();
     leaveObj.empId = this.currentUser.empId;
     this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.pendingLeavesList =  response.serviceResponse;
+        this.pendingLeavesList = response.serviceResponse;
         console.log("pendingLeavesList : ", this.pendingLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
-          let leaveDetail =  this.pendingLeavesList.find((leave:Leave) => leave.leaveTypeCode == data.leaveTypeCode);
-           if(leaveDetail){
-            data.pendingApplicationsCount = (leaveDetail.applicationCount)? leaveDetail.applicationCount : 0;
-           }
-       }); 
+          let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+          if (leaveDetail) {
+            data.pendingApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+          }
+        });
 
       } else {
         console.error(response.serviceResponse);
@@ -556,7 +557,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  renderLeaveChart(chartName:any, chartId:any, chartData:any, labelName:any){
+  renderLeaveChart(chartName: any, chartId: any, chartData: any, labelName: any) {
     HighCharts.chart(chartId, {
       credits: {
         enabled: false
@@ -592,14 +593,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
         data: chartData
       }],
       colors:
-      ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-       '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-        '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-      ],
+        ['#63b598', '#008eff', '#f1a0ff', '#7260d8', '#fce877', '#84a3ff', '#b5e0d3', '#e535fc', '#7d9ff7', '#513d98',
+          '#ffe2f8', '#00a0da', '#ffb380', '#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
+          '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647', '#c6f5e4', '#e7dbce', '#ccfeff', '#f5f3e9', '#f0f7f7'
+        ],
     });
   }
 
-  renderPlaceholderChart(chartName:any, chartId:any, errorMsg:any){
+  renderPlaceholderChart(chartName: any, chartId: any, errorMsg: any) {
     HighCharts.chart(chartId, {
       credits: {
         enabled: false
@@ -611,18 +612,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
         type: 'pie',
         events: {
           render() {
-            let chart:any = this,
+            let chart: any = this,
               x,
               y;
-    
-    
+
+
             //check if label exist after window resize
             if (chart.label) {
               chart.label.destroy();
             };
-    
-            y = (chart.clipBox.height*1.3);
-            x = (chart.clipBox.width/2.5);
+
+            y = (chart.clipBox.height * 1.3);
+            x = (chart.clipBox.width / 2.5);
             chart.label = chart.renderer.text(errorMsg, x, y)
               .css({
                 color: '#b0b0b0',
@@ -654,14 +655,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         name: "error",
         colorByPoint: true,
         type: undefined,
-        data: [{name: 'data', y: 1}]}],
+        data: [{ name: 'data', y: 1 }]
+      }],
       colors:
-      ['#b0b0b0'],
+        ['#b0b0b0'],
     });
   }
 
   // Graphs 
-  renderTimesheetChart(chartName:any, chartId:any, chartData:any, labelName:any) {
+  renderTimesheetChart(chartName: any, chartId: any, chartData: any, labelName: any) {
     let chartTitle = document.getElementById('timesheet-title');
     chartTitle.innerText = chartName;
 
@@ -704,21 +706,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
         data: chartData
       }],
       colors:
-      ['#63b598', '#008eff','#f1a0ff', '#7260d8', '#fce877','#84a3ff', '#b5e0d3', '#e535fc','#7d9ff7', '#513d98', 
-       '#ffe2f8', '#00a0da', '#ffb380','#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
-        '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647',  '#c6f5e4', '#e7dbce', '#ccfeff','#f5f3e9', '#f0f7f7'
-      ],
+        ['#63b598', '#008eff', '#f1a0ff', '#7260d8', '#fce877', '#84a3ff', '#b5e0d3', '#e535fc', '#7d9ff7', '#513d98',
+          '#ffe2f8', '#00a0da', '#ffb380', '#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
+          '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647', '#c6f5e4', '#e7dbce', '#ccfeff', '#f5f3e9', '#f0f7f7'
+        ],
     });
   }
 
   /* Notification */
-  getAllNotifications(){
+  getAllNotifications() {
     this.eventImages = [];
-    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        let notificationList:any[] =  response.serviceResponse;
+        let notificationList: any[] = response.serviceResponse;
         console.log("notificationList : ", notificationList);
-        if(notificationList) this.notificationObj = notificationList[0]; 
+        if (notificationList) this.notificationObj = notificationList[0];
       } else {
         console.error(response.serviceResponse);
       }
@@ -726,13 +728,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* Today's Birthday List */
-  getAllEmployeesBirthDayToday(){
-    this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response:any) => {
+  getAllEmployeesBirthDayToday() {
+    this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.birthdayList =  response.serviceResponse;
+        this.birthdayList = response.serviceResponse;
         console.log("birthdayList : ", this.birthdayList);
       } else {
-        this.compOffApplicationCount =  0;
+        this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
       }
     });
@@ -740,46 +742,46 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
   /* Quick Links */
-  showApplyLeaveForm(){
+  showApplyLeaveForm() {
     this.router.navigate(['/user-leaves'],
-    { queryParams: {tabName: 'leave-tab'}, queryParamsHandling: ''});
+      { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
   }
 
-  showApplyCompOffForm(){
+  showApplyCompOffForm() {
     this.router.navigate(['/user-leaves'],
-    { queryParams: {tabName: 'compOff-tab'}, queryParamsHandling: ''});
+      { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
   }
 
-  showApplyTimesheetForm(){
+  showApplyTimesheetForm() {
     this.router.navigate(['/user-timesheet'],
-    { queryParams: {tabName: 'my-timesheet-tab'}, queryParamsHandling: ''});
+      { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
   }
 
-  showHolidayList(){
+  showHolidayList() {
     this.router.navigate(['/user-leaves'],
-    { queryParams: {tabName: 'holidays-tab'}, queryParamsHandling: ''});
+      { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
   }
 
   /* carousal Images */
-  getAllEventPhotosForHome(){
+  getAllEventPhotosForHome() {
     this.eventImages = [];
     this.isImagesLoaded = false;
     // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
-    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response:any) => {
+    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.eventImages =  response.serviceResponse;
+        this.eventImages = response.serviceResponse;
         console.log("eventImages : ", this.eventImages);
-        setTimeout(()=>{this.loadImages(this.eventImages);}, 1000)
+        setTimeout(() => { this.loadImages(this.eventImages); }, 1000)
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  loadImages(eventImages){
-    eventImages.forEach((photo, index) =>{
-      if(photo.imageBytes){
+  loadImages(eventImages) {
+    eventImages.forEach((photo, index) => {
+      if (photo.imageBytes) {
         let objectURL = 'data:image/*;base64,' + photo.imageBytes;
         let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
         let carouselImg = document.getElementById(`carouselImg${index}`);
@@ -791,12 +793,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   /* Timesheet Details*/
-  dateCompare(a, b){
+  dateCompare(a, b) {
     const dateFormat = 'YYYY-MM-DD';
-    return (moment(new Date(a.date)).format(dateFormat) < moment(new Date(b.date)).format(dateFormat))? -1 : 1;
+    return (moment(new Date(a.date)).format(dateFormat) < moment(new Date(b.date)).format(dateFormat)) ? -1 : 1;
   }
 
-  getWeekDay(date:any): string{
+  getWeekDay(date: any): string {
     let weekDay = '';
     let day = new Date(date).getDay();
 
@@ -810,7 +812,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       }
       case 2: {
-        weekDay = 'Tuesday'; 
+        weekDay = 'Tuesday';
         break;
       }
       case 3: {
@@ -818,7 +820,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       }
       case 4: {
-        weekDay = 'Thursday'; 
+        weekDay = 'Thursday';
         break;
       }
       case 5: {
@@ -826,7 +828,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         break;
       }
       case 6: {
-        weekDay = 'Saturday'; 
+        weekDay = 'Saturday';
         break;
       }
 
@@ -834,24 +836,24 @@ export class HomeComponent implements OnInit, AfterViewInit {
         weekDay = '';
         break;
       }
-    } 
+    }
     return weekDay;
   }
 
-  getTimesheetsForHomePageByEmpId(dateRange:any){
+  getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
     const dateFormat = 'YYYY-MM-DD';
-    let fromDate:any;
-    let toDate:any;
+    let fromDate: any;
+    let toDate: any;
     let totaltimesheetDaysCount = 0;
     let filledTimesheetDetails = []
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
-   
-    if(dateRange == 'Last 7 Days'){
+
+    if (dateRange == 'Last 7 Days') {
       totaltimesheetDaysCount = 7;
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
@@ -860,28 +862,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
       console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
-    }else if(dateRange == 'This Month'){
+    } else if (dateRange == 'This Month') {
       totaltimesheetDaysCount = moment(`${currentDate.getFullYear()}-${currentDate.getMonth()}`, "YYYY-MM").daysInMonth()
-      fromDate = new Date(currentDate.getFullYear() , currentDate.getMonth(), 1);
-      toDate = new Date(currentDate.getFullYear() , currentDate.getMonth() +1, 0);
+      fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
       console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
-    }else if(dateRange == 'Last Month'){
-      totaltimesheetDaysCount = moment(`${currentDate.getFullYear()}-${currentDate.getMonth()-1}`, "YYYY-MM").daysInMonth()
+    } else if (dateRange == 'Last Month') {
+      totaltimesheetDaysCount = moment(`${currentDate.getFullYear()}-${currentDate.getMonth() - 1}`, "YYYY-MM").daysInMonth()
 
-      fromDate = new Date(currentDate.getFullYear() , currentDate.getMonth() -1, 1);
-      toDate = new Date(currentDate.getFullYear() , currentDate.getMonth(), 0);
-    
+      fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
       console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
 
-    this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response:any) => {
+    this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        filledTimesheetDetails =  response.serviceResponse;
+        filledTimesheetDetails = response.serviceResponse;
         console.log("filledTimesheetDetails : ", filledTimesheetDetails);
       } else {
         console.error(response.serviceResponse);
@@ -949,20 +951,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
-  onDocSubmit(){
+  onDocSubmit() {
     this.cancelRequest();
-  } 
+  }
 
   // Employee Proile Completed Percentage 
-  getEmployeeProfileCompletion(){
+  getEmployeeProfileCompletion() {
     this.profileCompletedPercentage = 0;
 
     let employee = new Employee();
     employee.empId = this.currentUser.empId;
-    this.employeeService.getEmployeeProfileCompletion(employee).pipe(first()).subscribe((response:any) => {
+    this.employeeService.getEmployeeProfileCompletion(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let employeeObj = response.serviceResponse;
         this.profileCompletedPercentage = employeeObj.profileCompletedPercent + "%";
@@ -976,44 +978,44 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   exportToExcelForLeave() {
     this.excelName = 'leaveApplication.xlsx';
-    	
-        const onlySpecificDataArr:any = this.leaveApplicationList.map(	
-          x => ({	
-              "Name": x.employeeName,
-              "Leave Type": x.leaveType,
-              "From Date": x.fromDate,
-              "To Date": x.toDate,
-              "Duration": x.noOfDays,
-              "Status": x.status,
-              "Applied By": x.createdByName,
-              "Applied On": x.createdOn,
-              "Reason": x.reason	
-          })	
-        )	
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
-      }
+
+    const onlySpecificDataArr: any = this.leaveApplicationList.map(
+      x => ({
+        "Name": x.employeeName,
+        "Leave Type": x.leaveType,
+        "From Date": x.fromDate,
+        "To Date": x.toDate,
+        "Duration": x.noOfDays,
+        "Status": x.status,
+        "Applied By": x.createdByName,
+        "Applied On": x.createdOn,
+        "Reason": x.reason
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
 
   exportToExcelForCompOff() {
     this.excelName = 'compOffApplication.xlsx';
-    	
-        const onlySpecificDataArr: any = this.allCompOffApplications.map(	
-          x => ({	
-            "Applied By": x.createdByName,
-            "Applied For": x.compOffReasons,
-            "From Date": x.fromDate,
-            "To Date": x.toDate,
-            "Duration": x.noOfDays,
-            "Description": x.description,
-            "Status": x.status
-          })	
-        )	
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)	
-      }
+
+    const onlySpecificDataArr: any = this.allCompOffApplications.map(
+      x => ({
+        "Applied By": x.createdByName,
+        "Applied For": x.compOffReasons,
+        "From Date": x.fromDate,
+        "To Date": x.toDate,
+        "Duration": x.noOfDays,
+        "Description": x.description,
+        "Status": x.status
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
 
   exportToExcelForTimesheet() {
     this.excelName = 'AllTeamTimeSheetRequest.xlsx';
 
-    const onlySpecificDataArr:any = this.allTeamTimesheetRequests.map(
+    const onlySpecificDataArr: any = this.allTeamTimesheetRequests.map(
       x => ({
         "Employee Id": x.employeementId,
         "Name": x.employeeName,
@@ -1039,14 +1041,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   // modals
-  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj:Timesheet){
+  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.cancelRequest();
-    
+
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
- }
+  }
 
   openNotificationMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
@@ -1065,13 +1067,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.modalRef.hide();
   }
 
-  selectAll(event){
+  selectAll(event) {
     this.bulkApprove = [];
     this.bulkReject = [];
-    
+
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
-   
-    checkboxes.forEach((checkbox:any) =>{
+
+    checkboxes.forEach((checkbox: any) => {
       console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
       let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => index == checkboxIndex);
@@ -1093,32 +1095,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
     const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
-    leaveCheckboxes.forEach((leaveCheck :any)=>{
-      console.log("Check in leave home ",leaveCheck);
+    leaveCheckboxes.forEach((leaveCheck: any) => {
+      console.log("Check in leave home ", leaveCheck);
       let leaveCheckboxIndex = leaveCheck.getAttribute('id');
-      let checkedLeaveApplication = this.leaveApplicationList.find((_leave , index)=> index == leaveCheckboxIndex);
+      let checkedLeaveApplication = this.leaveApplicationList.find((_leave, index) => index == leaveCheckboxIndex);
 
-      if(event.target.checked){
+      if (event.target.checked) {
         leaveCheck.checked = true;
         leaveCheck.classList.add('checked');
         this.bulkLeaveApprove.push(checkedLeaveApplication);
         this.bulkLeaveReject.push(checkedLeaveApplication);
-      }else {
+      } else {
         leaveCheck.checked = false;
         leaveCheck.classList.remove('checked');
-        this.bulkLeaveApprove.forEach((leave , index)=>{
-          if(leave == checkedLeaveApplication) this.bulkLeaveApprove.splice(index,1);
+        this.bulkLeaveApprove.forEach((leave, index) => {
+          if (leave == checkedLeaveApplication) this.bulkLeaveApprove.splice(index, 1);
         });
-        this.bulkLeaveReject.forEach((leave , index)=>{
-          if(leave == checkedLeaveApplication) this.bulkLeaveReject.splice(index,1);
+        this.bulkLeaveReject.forEach((leave, index) => {
+          if (leave == checkedLeaveApplication) this.bulkLeaveReject.splice(index, 1);
         });
       }
-      
+
     })
   }
 
   select(timesheetObj, event) {
-    
+
     console.log("clicked on : ", timesheetObj);
 
     if (event.target.checked) {
@@ -1128,9 +1130,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     } else {
       event.target.classList.remove('checked');
       const checkboxes = document.querySelectorAll('.timesheet-req-checkbox.checked');
-      if(checkboxes.length !== this.items) this.isSelectAll = false; 
-      console.log("Checkboxes.length ",checkboxes.length)
-      console.log(" items ",this.items)
+      if (checkboxes.length !== this.items) this.isSelectAll = false;
+      console.log("Checkboxes.length ", checkboxes.length)
+      console.log(" items ", this.items)
       this.bulkApprove.forEach((timesheet, index) => {
         if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
       });
@@ -1138,14 +1140,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ",  this.bulkApprove);
+    console.log("Updated Bulk List : ", this.bulkApprove);
   }
 
 
 
 
   onSelect(leaveObj, event) {
-    
+
     console.log("clicked on : ", leaveObj);
 
     if (event.target.checked) {
@@ -1155,8 +1157,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     } else {
       event.target.classList.remove('checked');
       const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox.checked');
-      if(leaveCheckboxes.length !== this.items) this.isSelectAll = false; 
-      console.log("checkbox.length ",leaveCheckboxes.length)
+      if (leaveCheckboxes.length !== this.items) this.isSelectAll = false;
+      console.log("checkbox.length ", leaveCheckboxes.length)
       this.bulkLeaveApprove.forEach((timesheet, index) => {
         if (timesheet == leaveObj) this.bulkLeaveApprove.splice(index, 1);
       });
@@ -1164,147 +1166,147 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (timesheet == leaveObj) this.bulkLeaveReject.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
+    console.log("Updated Bulk List : ", this.bulkLeaveApprove);
   }
-  
-onBulkApproval(template:TemplateRef<any>){
-  console.log("Updated Bulk List : ",  this.bulkApprove);
-  let timesheetObj = new Timesheet();
-  timesheetObj.bulkApprovedList =  this.bulkApprove;
-  timesheetObj.updatedBy = this.currentUser.empId;
-  timesheetObj.status = "Approved"
-  console.log("For Bulk Update : ", timesheetObj);
-  timesheetObj.bulkApprovedList.forEach((x)=>{
-    x.employeementId = x.employeementId.substring(2);
-  })
-  this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheets Approved Successfully ");
-      this.countMyReporteesTimesheetRequests();
-      this.getMyReporteesTimesheetRequests();
-      this.bulkApprove = [];
-      this.bulkReject = [];
-    } else {
-    console.error(response.serviceResponse)
-    }
-  });
-  
-}
 
-onBulkRejectTimesheet(template: TemplateRef<any>){
-  this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+  onBulkApproval(template: TemplateRef<any>) {
+    console.log("Updated Bulk List : ", this.bulkApprove);
+    let timesheetObj = new Timesheet();
+    timesheetObj.bulkApprovedList = this.bulkApprove;
+    timesheetObj.updatedBy = this.currentUser.empId;
+    timesheetObj.status = "Approved"
+    console.log("For Bulk Update : ", timesheetObj);
+    timesheetObj.bulkApprovedList.forEach((x) => {
+      x.employeementId = x.employeementId.substring(2);
+    })
+    this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected Timesheets Approved Successfully ");
+        this.countMyReporteesTimesheetRequests();
+        this.getMyReporteesTimesheetRequests();
+        this.bulkApprove = [];
+        this.bulkReject = [];
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
 
-  if(!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)){
-    this.alertMessage = "Please enter Valid Reason !!"
-    this.openAlertMod(template, this.alertMessage);
-    return false;
   }
-  console.log("Updated Bulk List : ",  this.bulkReject);
-  let timesheetObj = new Timesheet();
-  timesheetObj.bulkRejectList =  this.bulkReject;
-  timesheetObj.updatedBy = this.currentUser.empId;
-  timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-  console.log(" timesheet reason :  ", timesheetObj.rejectReason);
-  timesheetObj.status = "Rejected"
-  console.log("For Bulk Update : ", timesheetObj);
-  timesheetObj.bulkRejectList.forEach((item)=>{
-    item.employeementId = item.employeementId.substring(2);
-  })
-  this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Timesheets Rejected Successfully "); 
-      this.bulkApprove = [];
-      this.bulkReject = [];
-      this.timesheetApplicationCount ;
-      this.countMyReporteesTimesheetRequests();
-      this.getMyReporteesTimesheetRequests();
-    } else {
-    console.error(response.serviceResponse)
+
+  onBulkRejectTimesheet(template: TemplateRef<any>) {
+    this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+
+    if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
+      this.alertMessage = "Please enter Valid Reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
-  });
-  
-}
+    console.log("Updated Bulk List : ", this.bulkReject);
+    let timesheetObj = new Timesheet();
+    timesheetObj.bulkRejectList = this.bulkReject;
+    timesheetObj.updatedBy = this.currentUser.empId;
+    timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+    console.log(" timesheet reason :  ", timesheetObj.rejectReason);
+    timesheetObj.status = "Rejected"
+    console.log("For Bulk Update : ", timesheetObj);
+    timesheetObj.bulkRejectList.forEach((item) => {
+      item.employeementId = item.employeementId.substring(2);
+    })
+    this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
+        this.bulkApprove = [];
+        this.bulkReject = [];
+        this.timesheetApplicationCount;
+        this.countMyReporteesTimesheetRequests();
+        this.getMyReporteesTimesheetRequests();
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
 
-
-// homeLeave-req-checkbox
-
-
-
-
-onBulkLeaveApproval(template:TemplateRef<any>){
-  console.log("Updated Bulk List : ",  this.bulkLeaveApprove);
-  let leaveObj = new Leave();
-  leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
-  leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
-  leaveObj.leaveStatusId = 2;
-  
-  this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
-  
-       this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
-      this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
-     
-      this.bulkLeaveApprove = [];
-      this.bulkLeaveReject = [];
-    } else {
-    console.error(response.serviceResponse)
-    }
-  });
-  
-}
-
-bulkRejectLeave(template: TemplateRef<any>){
-  this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
-  if(!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)){
-    this.alertMessage = "please enter valid reason !!"
-    this.openAlertMod(template, this.alertMessage);
-    return false;
   }
-      
-  let leaveObj = new Leave();
-  leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
-  console.log(" ............................ ",leaveObj.bulkLeaveRejectList)
-  leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
-  leaveObj.leaveStatusId = 3
-  leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
-  leaveObj.bulkLeaveRejectList.forEach((y)=>{
-    y.employeementId = y.employeementId;
-  })
-  
-  this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.openAlertMod(template , "All Selected Leaves Rejected Successfully ");
-      this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
-      this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
-      this.bulkLeaveApprove = [];
-      this.bulkLeaveReject = [];
 
-    } else {
-    console.error(response.serviceResponse)
+
+  // homeLeave-req-checkbox
+
+
+
+
+  onBulkLeaveApproval(template: TemplateRef<any>) {
+    console.log("Updated Bulk List : ", this.bulkLeaveApprove);
+    let leaveObj = new Leave();
+    leaveObj.bulkLeaveApprovedList = this.bulkLeaveApprove;
+    leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.leaveStatusId = 2;
+
+    this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected Leaves Approved Successfully ");
+
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+        this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
+
+        this.bulkLeaveApprove = [];
+        this.bulkLeaveReject = [];
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+
+  }
+
+  bulkRejectLeave(template: TemplateRef<any>) {
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+      this.alertMessage = "please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
-  });
-  
-}
+
+    let leaveObj = new Leave();
+    leaveObj.bulkLeaveRejectList = this.bulkLeaveReject;
+    console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
+    leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.leaveStatusId = 3
+    leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    leaveObj.bulkLeaveRejectList.forEach((y) => {
+      y.employeementId = y.employeementId;
+    })
+
+    this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected Leaves Rejected Successfully ");
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
+        this.countAllMyTeamsPendingLeaveApplicationsByManagerId()
+        this.bulkLeaveApprove = [];
+        this.bulkLeaveReject = [];
+
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+
+  }
 
 
-OnBulkReject(template: TemplateRef<any>){
-  let timesheet = new Timesheet();
-  this.cancelRequest();
-  this.timesheetObj = timesheet;
-  this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-}
+  OnBulkReject(template: TemplateRef<any>) {
+    let timesheet = new Timesheet();
+    this.cancelRequest();
+    this.timesheetObj = timesheet;
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
 
 
-OnBulkLeaveReject(template: TemplateRef<any>, leave){
-  this.leaveObj.rejectReason = ''
-  this.cancelRequest();
- this.leaveObj = leave
-  this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-}
+  OnBulkLeaveReject(template: TemplateRef<any>, leave) {
+    this.leaveObj.rejectReason = ''
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
 
 
-// TOP BAR
+  // TOP BAR
   userLogout() {
 
     let user = new User();
@@ -1320,7 +1322,7 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
         this.router.navigate(['/login']);
         location.reload();
       } else {
-        if(response.serviceResponse == "Session already destroyed"){
+        if (response.serviceResponse == "Session already destroyed") {
           this.authenticationService.stopUserSessionCheck();
           sessionStorage.removeItem('currentUser');
           // delete method call for cookies
@@ -1473,5 +1475,157 @@ OnBulkLeaveReject(template: TemplateRef<any>, leave){
     }
   }
 
+  // sorting --
 
+  sortHomeTimesheet(sort: Sort) {
+    console.log(sort);
+    let data = this.allTeamTimesheetRequests;
+    console.log("anurag :", this.allTeamTimesheetRequests);
+
+    if (!sort.active || sort.direction === '') {
+      this.allTeamTimesheetRequests = data;
+      return;
+    }
+    else {
+      this.allTeamTimesheetRequests = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'employeementId':
+              return compare(a.employeementId, b.employeementId, isAsc);
+
+            case 'employeeName':
+              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc);
+
+            case 'date':
+              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc);
+
+            case 'dayType':
+              return compare(a.dayType.toLowerCase(), b.dayType.toLowerCase(), isAsc);
+
+            case 'description':
+              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc);
+
+            case 'officeInTime':
+              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
+
+            case 'officeOutTime':
+              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
+
+            case 'totalWorkingOfficeHours':
+              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
+
+            case 'status':
+              return compare(a.status.toLowerCase(), b.status.toLowerCase(), isAsc);
+
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+  }
+
+  sortHomeCompOff(sort: Sort) {
+    console.log(sort);
+    let data = this.allCompOffApplications;
+    console.log("CompOff :", this.allCompOffApplications);
+
+    if (!sort.active || sort.direction === '') {
+      this.allCompOffApplications = data;
+      return;
+    }
+    else {
+      this.allCompOffApplications = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
+
+            case 'compOffReasons':
+              return compare(a.compOffReasons.toLowerCase(), b.compOffReasons.toLowerCase(), isAsc);
+
+            case 'fromDate':
+              return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
+
+            case 'toDate':
+              return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
+
+            case 'noOfDays':
+              return compare(a.noOfDays, b.noOfDays, isAsc);
+
+            case 'description':
+              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc);
+
+            case 'status':
+              return compare(a.status.toLowerCase(), b.status.toLowerCase(), isAsc);
+
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+  }
+  // sortLeave
+  sortHomeLeave(sort: Sort) {
+    console.log(sort);
+    let data = this.allCompOffApplications;
+    console.log("CompOff :", this.allCompOffApplications);
+
+    if (!sort.active || sort.direction === '') {
+      this.allCompOffApplications = data;
+      return;
+    }
+    else {
+      this.allCompOffApplications = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+
+            case 'employeeName':
+              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc);
+
+
+            case 'leaveType':
+              return compare(a.leaveType.toLowerCase(), b.leaveType.toLowerCase(), isAsc);
+
+            case 'fromDate':
+              return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
+
+            case 'toDate':
+              return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
+
+            case 'noOfDays':
+              return compare(a.noOfDays, b.noOfDays, isAsc);
+
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
+
+            case 'status':
+              return compare(a.status.toLowerCase(), b.status.toLowerCase(), isAsc);
+
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+
+            case 'reason':
+              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc);
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+  }
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

@@ -816,15 +816,15 @@
                                 <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
-                                <th scope="col" class="info-label">Employment Status</th>
-                                <th scope="col" class="info-label">Manager Name</th>
-                                <th scope="col" class="info-label">Department Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="employmentstatus">Employment Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName">Manager Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="departmentName">Department Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>
                                 <th scope="col" class="info-label" *ngIf="dateOfReleivingshow" mat-sort-header="dateOfRelieving" > Date of Releiving</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Created On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Created by</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Updated On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" > Updated by</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn"> Created On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdByName"> Created by</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn"> Updated On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedByName"> Updated by</th>
 
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
@@ -912,23 +912,23 @@
             <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">	
         </div>
         <div class="container history-table">
-            <table class="table history-table">
+            <table class="table history-table" >
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" >Sr No.</th>
                     <!-- <th scope="col" class="info-label">Employee Id</th> -->
                     <!-- <th scope="col" class="info-label">Employee Name</th>  -->
-                    <th scope="col" class="info-label ">Team Name</th>
-                    <th scope="col" class="info-label ">Project Name</th>
-                    <th scope="col" class="info-label ">Start Date</th>
-                    <th scope="col" class="info-label ">End Date</th>
-                    <th scope="col" class="info-label ">Team Lead Name</th>
-                    <th scope="col" class="info-label ">Date Of Joining</th>
-                    <th scope="col" class="info-label " *ngIf="employeeObj.employmentstatus == 'InActive'">Date Of Resign</th>
+                    <th scope="col" class="info-label" >Team Name</th>
+                    <th scope="col" class="info-label" >Project Name</th>
+                    <th scope="col" class="info-label" >Start Date</th>
+                    <th scope="col" class="info-label" >End Date</th>
+                    <th scope="col" class="info-label" >Team Lead Name</th>
+                    <!-- <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date Of Joining</th> -->
+                    <!-- <th scope="col" class="info-label" *ngIf="employeeObj.employmentstatus == 'InActive'" mat-sort-header="dateOfResign">Date Of Resign</th> -->
                     <!-- <th scope="col" class="info-label ">Role</th> -->
-                    <th scope="col" class="info-label ">Designation</th>
-                    <th scope="col" class="info-label ">Client Location</th>
-                    <th scope="col" class="info-label ">Client Name</th>
+                    <th scope="col" class="info-label" >Designation</th>
+                    <th scope="col" class="info-label" >Client Location</th>
+                    <th scope="col" class="info-label" >Client Name</th>
                     
                  </tr>
                 </thead>
@@ -946,8 +946,8 @@
                     <td>{{empHistory.startDate | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                     <td>{{empHistory.updatedOn | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                     <td>{{empHistory.teamLeadName}}</td>
-                    <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td>
-                    <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td>
+                    <!-- <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td> -->
+                    <!-- <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td> -->
                     <!-- <td>{{empHistory.role}}</td> -->
                     <td>{{empHistory.jobRoleName}}</td>
                     <td>{{empHistory.clientLocation}}</td>
@@ -1120,7 +1120,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Martial Status</p>
+                                                <p class="info-label">Marital Status</p>
                                                 <p class="info-text">{{previewObj.maritalStatus}}</p>
                                             </div>
                                         </div>
@@ -1624,7 +1624,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Martial Status</p>
+                                                <p class="info-label">Marital Status</p>
                                                 <p class="info-text">{{previewEmployeeObj.maritalStatus}}</p>
                                             </div>
                                         </div>

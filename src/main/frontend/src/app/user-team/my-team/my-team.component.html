@@ -179,7 +179,7 @@
                           <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
                           <th scope="col" class="info-label" mat-sort-header="reason">Leave Reason</th>	
                           <th scope="col" class="info-label" mat-sort-header="leaveType">Type</th>
-                          <th scope="col" class="info-label" >Remarks</th>
+                          <th scope="col" class="info-label" mat-sort-header="remark">Remarks</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -344,7 +344,7 @@
                     <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
                         [(ngModel)]="isSelectAll"></th>
                     <th scope="col" class="info-label">Sr No.</th>
-                    <th scope="col" class="info-label">Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
                     <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
                     <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
                     <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
