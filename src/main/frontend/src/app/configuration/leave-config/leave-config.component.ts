@@ -261,8 +261,9 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.holidayObj = Object.assign({}, holiday);
-    this.holidayObj.optionalHoliday = (JSON.parse(holiday.optionalHoliday) != null) ? JSON.parse(holiday.optionalHoliday) : false;
-    this.holidayObj.customHoliday = (JSON.parse(holiday.customHoliday) != null) ? JSON.parse(holiday.customHoliday) : false;
+    this.holidayObj.optionalHoliday = (holiday.optionalHoliday != null) ? JSON.parse(holiday.optionalHoliday) : false;
+    this.holidayObj.customHoliday = (holiday.customHoliday != null) ? JSON.parse(holiday.customHoliday) : false;
+    this.holidayObj.dateOfHoliday = (this.holidayObj.dateOfHoliday)? moment(this.holidayObj.dateOfHoliday).format(AppComponent.DB_DATE_FORMAT) : '';
 
     setTimeout(this.setCurrentYearLimit, 500);
   }
