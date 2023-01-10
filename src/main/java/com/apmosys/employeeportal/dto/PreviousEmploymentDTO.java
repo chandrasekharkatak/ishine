@@ -13,7 +13,7 @@ public class PreviousEmploymentDTO {
 	private String employerName;	
 	private String  dateOfJoining;	
 	private String  dateOfRelieving;	
-	private Short yearsOfExperience;	
+	private Float yearsOfExperience;	
 	private String managerName;	
     private Long  managerContactNumber;    
     private String designation;    

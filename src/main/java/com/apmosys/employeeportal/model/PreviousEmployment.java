@@ -33,7 +33,7 @@ public class PreviousEmployment {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate  dateOfRelieving;
 	
-	private Short yearsOfExperience;
+	private Float yearsOfExperience;
 	
 	private String managerName;
 	

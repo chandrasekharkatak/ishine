@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,5 +47,11 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllMyTimesheets(Long empId, LocalDate start, LocalDate end);
+
+	@Query(nativeQuery = true)
+	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, String start, String end);
+
+//	@Query(nativeQuery = true)
+//	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, LocalDate start, LocalDate end);
 
 }
