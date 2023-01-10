@@ -56,13 +56,13 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
                     [tableTHeadTrId]="'eventInfoTHeadTr'">
-                    <table class="table table-responsive scrollable-table">
+                    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortEventPhotos($event)">
                         <thead class="thead-light">
                           <tr>
-                            <th scope="col" class="info-label">Image Name</th>
-                            <th scope="col" class="info-label">Event Name</th>
-                            <th scope="col" class="info-label">Created by</th>
-                            <th scope="col" class="info-label">Created on</th>
+                            <th scope="col" class="info-label" mat-sort-header="imageName">Image Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="eventName">Event Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
                         </thead>

@@ -800,6 +800,8 @@ export class MyTeamComponent implements OnInit {
                            return compare(a.reason , b.reason , isAsc)	
                             case 'leaveType':	
                              return compare(a.leaveType , b.leaveType , isAsc)	
+                             case 'remark':	
+                             return compare(a.remark , b.remark , isAsc)	
           default :	
           return 0;	
         }	
@@ -865,6 +867,8 @@ export class MyTeamComponent implements OnInit {
       (a , b)=>{	
         const isAsc=sort.direction==='asc';	
         switch(sort.active){	
+          case 'employeeName':	
+          return compare(a.employeeName , b.employeeName , isAsc)	
           case 'leaveType':	
             return compare(a.leaveType , b.leaveType , isAsc)	
             case 'fromDate':	

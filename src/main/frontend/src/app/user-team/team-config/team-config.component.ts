@@ -1248,14 +1248,18 @@ export class TeamConfigComponent implements OnInit {
         (a, b) => {
           const isAsc = sort.direction === 'asc';
           switch (sort.active) {
+            case 'projectName':
+              return compare(a.projectName.toLowerCase(), b.projectName.toLowerCase(), isAsc)
             case 'teamName':
               return compare(a.teamName.toLowerCase(), b.teamName.toLowerCase(), isAsc)
             case 'teamLeadName':
-              return compare(a.teamLeadName.toLowerCase(), b.teamLeadName.toLowerCase(), isAsc)
+              return compare(a.teamLeadName, b.teamLeadName, isAsc)
+              case 'projectManagerName':
+              return compare(a.projectManagerName.toLowerCase(), b.projectManagerName.toLowerCase(), isAsc)
             case 'createdByName':
               return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(a.createdOn, b.createdOn, isAsc)
+              case 'createdOn':	
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
             default:
               return 0;
           }
@@ -1280,8 +1284,8 @@ export class TeamConfigComponent implements OnInit {
               return compare(a.eta, b.eta, isAsc)
             case 'createdByName':
               return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(a.createdOn, b.createdOn, isAsc)
+              case 'createdOn':	
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
             default:
               return 0;
           }
@@ -1289,6 +1293,33 @@ export class TeamConfigComponent implements OnInit {
       )
     }
   }
+
+  // sortActivityTemplate
+  sortActivityTemplate(sort: Sort) {
+    console.log(sort);
+    const data = this.templateActivityList;
+    if (!sort.active || sort.direction === '') {
+      this.templateActivityList = data;
+      return;
+    } else {
+      this.templateActivityList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'employeeRole':
+              return compare(a.employeeRole.toLowerCase(), b.employeeRole.toLowerCase(), isAsc)
+            case 'activityDescription':
+              return compare(a.activityDescription, b.activityDescription, isAsc)
+            case 'departmentName':
+              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

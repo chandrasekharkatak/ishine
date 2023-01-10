@@ -1588,9 +1588,13 @@ export class ReportDashboardComponent implements OnInit {
           }else if(query.column == 'Created On' || query.column == 'Updated On'){
             query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
           }
+
+          if(query.column == 'Employee Id'){
+            query.value = query.value.split("-")[1];
+          }
       });
 
-      console.log("updated queryList : ", this.queryList);
+      console.log("updated queryList : ", emittedArray[0]);
 
       if(this.filterData.title == 'Filter Employee Report'){
         this.getCustomEmployeesList(emittedArray[0],template);
@@ -1889,6 +1893,9 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee(s) in "+pointName;
       this.modalSummaryList = modalTableList.filter(x => x.departmentName == pointName);
+      this.modalSummaryList.forEach((dept)=>{
+        dept.dateOfJoining = (dept.dateOfJoining)? moment(dept.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+      })
       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
@@ -2041,9 +2048,178 @@ export class ReportDashboardComponent implements OnInit {
           }	
         }	
       )	
+    }	    	
+  }	
+
+  // sortDashboardModal($event)
+  sortDashboardModal(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
     }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'fromDate':	
+                    return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc)	
+                    case 'toDate':	
+                    return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc)	
+                    case 'status':	
+                    return compare(a.status , b.status , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
+  }	
+  // sortTimesheetDashboard($event)
+  sortTimesheetDashboard(sort:Sort){	
+    console.log(sort);	
     	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
+    }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'email':	
+                    return compare(a.email , b.email , isAsc)	
+                    case 'mobileNo':	
+                    return compare(a.mobileNo , b.mobileNo , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                    case 'pendingEodCount':	
+                    return compare(a.pendingEodCount , b.pendingEodCount , isAsc)	
+                    case 'legend':	
+                    return compare(a.legend , b.legend , isAsc)	
+                    case 'count':	
+                    return compare(a.count , b.count , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
+  }	
+  // sort7DaysEODModal($event)
+  sort7DaysEODModal(sort:Sort){	
+    console.log(sort);	
     	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
+    }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'email':	
+                    return compare(a.email , b.email , isAsc)	
+                    case 'mobileNo':	
+                    return compare(a.mobileNo , b.mobileNo , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                    case 'date':	
+                    return compare(new Date(a.date).getTime(), new Date(b.date).getTime(), isAsc)	
+                    case 'dayType':	
+                    return compare(a.dayType , b.dayType , isAsc)	
+                    case 'totalWorkingHours':	
+                    return compare(a.totalWorkingHours , b.totalWorkingHours , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
+  }	
+  // sortEmployeeDashboard($event)
+  sortEmployeeDashboard(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
+    }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'name':	
+                return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'email':	
+                    return compare(a.email , b.email , isAsc)	
+                    case 'mobileNo':	
+                    return compare(a.mobileNo , b.mobileNo , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                    case 'dateOfJoining':	
+                    return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc)	
+                    case 'employmentstatus':	
+                    return compare(a.employmentstatus , b.employmentstatus , isAsc)	
+                    case 'totalExperience':	
+                    return compare(a.totalExperience , b.totalExperience , isAsc)	
+                    case 'gender':	
+                    return compare(a.gender , b.gender , isAsc)	
+                    case 'age':	
+                    return compare(a.age , b.age , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
   }	
 
 }

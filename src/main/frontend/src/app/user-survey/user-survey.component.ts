@@ -1,5 +1,6 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
@@ -27,26 +28,26 @@ export class UserSurveyComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   @ViewChild('preview_response_template') previewResponseTemplate: TemplateRef<any>
 
-  isSurveyForm:boolean = false;
-  isSurveyList:boolean = false;
+  isSurveyForm: boolean = false;
+  isSurveyList: boolean = false;
 
-  surveyObj:Survey = new Survey();
-  allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
+  surveyObj: Survey = new Survey();
+  allSurveyQuestionList: SurveyQuestion[] = [new SurveyQuestion()];
 
-  allSurveyList:any[] = [];
-  allAnsweredSurveyList:any[] = [];
+  allSurveyList: any[] = [];
+  allAnsweredSurveyList: any[] = [];
 
-  myResponseList:any[] = [];
+  myResponseList: any[] = [];
 
-  isSurveyLoaded:boolean = false;
+  isSurveyLoaded: boolean = false;
 
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
-    private surveyService : SurveyService,
+    private surveyService: SurveyService,
     private locationStrategy: LocationStrategy
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -57,85 +58,85 @@ export class UserSurveyComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-  
+
     this.sectionViewInit();
 
     console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
-    
-    this.preventBackButton();	
-  }	
-  preventBackButton(){	
-    history.pushState(null, null, location.href);	
-    this.locationStrategy.onPopState(()=>{	
-      history.pushState(null, null, location.href);	
-    })	
+
+    this.preventBackButton();
+  }
+  preventBackButton() {
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(() => {
+      history.pushState(null, null, location.href);
+    })
   }
 
-  sectionViewInit(){
+  sectionViewInit() {
     this.showSurveys();
   }
 
-  showSurveyForm(){
+  showSurveyForm() {
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
 
     this.isSurveyForm = true;
-    
+
     this.isSurveyList = false;
 
   }
 
-  showSurveys(){
+  showSurveys() {
     this.isSurveyList = true;
-    
+
     this.isSurveyForm = false;
 
     this.getAllSurveys();
   }
 
-  getAllSurveys(){
+  getAllSurveys() {
     this.allSurveyList = [];
-    
+
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-       this.allSurveyList = response.serviceResponse;
-       this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit");
-       this.getAllAnsweredSurveys();
-       console.log("this.allSurveyList : ", this.allSurveyList); 
-      }else{
+        this.allSurveyList = response.serviceResponse;
+        this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit");
+        this.getAllAnsweredSurveys();
+        console.log("this.allSurveyList : ", this.allSurveyList);
+      } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  getAllAnsweredSurveys(){
+  getAllAnsweredSurveys() {
     this.allAnsweredSurveyList = [];
-    
+
     let surveyObj = new Survey();
     surveyObj.empId = this.currentUser.empId;
 
     this.surveyService.getAnsweredSurveysByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allAnsweredSurveyList = response.serviceResponse;
-       console.log("this.allAnsweredSurveyList : ", response.serviceResponse);
-       this.allAnsweredSurveyList.forEach((answeredSurvey:Survey) => {
-          let surveyObj = this.allSurveyList.find((survey:Survey) => answeredSurvey.surveyId == survey.surveyId);
-          if(surveyObj) surveyObj.isAnswered = true;
-        }); 
-      }else{
+        console.log("this.allAnsweredSurveyList : ", response.serviceResponse);
+        this.allAnsweredSurveyList.forEach((answeredSurvey: Survey) => {
+          let surveyObj = this.allSurveyList.find((survey: Survey) => answeredSurvey.surveyId == survey.surveyId);
+          if (surveyObj) surveyObj.isAnswered = true;
+        });
+      } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  onTakeSurvey(surveyObj:Survey){
+  onTakeSurvey(surveyObj: Survey) {
     this.isSurveyLoaded = false;
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
-    
+
     this.isSurveyForm = true;
     this.isSurveyList = false;
-    
+
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
@@ -152,11 +153,11 @@ export class UserSurveyComponent implements OnInit {
         const formStart = `<form id="surveyForm">`
         const formEnd = `</form>`
         const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
-        
+
         this.isSurveyForm = true;
         this.isSurveyList = false;
 
-        setTimeout(()=>{
+        setTimeout(() => {
           let surveyContainer = document.getElementById('surveyContainer');
           surveyContainer.insertAdjacentHTML('afterbegin', surveyTemplate);
           this.isSurveyLoaded = true;
@@ -168,7 +169,7 @@ export class UserSurveyComponent implements OnInit {
     });
   }
 
-  onViewMyResponse(surveyObj:Survey){
+  onViewMyResponse(surveyObj: Survey) {
     this.myResponseList = [];
     this.surveyObj = surveyObj;
 
@@ -179,30 +180,30 @@ export class UserSurveyComponent implements OnInit {
         this.myResponseList = response.serviceResponse;
         console.log("this.myResponseList : ", this.myResponseList);
         this.openSurveyPreviewMod(this.previewResponseTemplate);
-      }else{
+      } else {
         console.error(response.serviceResponse);
       }
-    }); 
+    });
   }
 
-  validateSurveyResponse(surveyObj:Survey,template: TemplateRef<any>){
+  validateSurveyResponse(surveyObj: Survey, template: TemplateRef<any>) {
     let flag = true;
 
     for (let index = 0; index < surveyObj.surveyQuestionList.length; index++) {
       let question = surveyObj.surveyQuestionList[index];
-      if(question.required && !this.validationService.validateNullUndefinedEmptyString(question.response)){
-        this.alertMessage = `Please provide response for Question ${index+1} !!`;
+      if (question.required && !this.validationService.validateNullUndefinedEmptyString(question.response)) {
+        this.alertMessage = `Please provide response for Question ${index + 1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
         break;
       }
-      
+
     }
     return flag;
   }
 
-  onSubmit(template: TemplateRef<any>){
-    const form:any = document.getElementById('surveyForm');
+  onSubmit(template: TemplateRef<any>) {
+    const form: any = document.getElementById('surveyForm');
 
     let surveyObj = new Survey();
     surveyObj.empId = this.currentUser.empId;
@@ -214,14 +215,14 @@ export class UserSurveyComponent implements OnInit {
       surveyQuestion.surveyQuestionId = question.surveyQuestionId;
       surveyQuestion.required = question.required;
 
-      if(question.optionType == 'checkbox'){
+      if (question.optionType == 'checkbox') {
         let response = [];
-        form.elements[`question-${index+1}`]?.forEach((checkboxOption) => {
-          if(checkboxOption.checked) response.push(checkboxOption.value);
+        form.elements[`question-${index + 1}`]?.forEach((checkboxOption) => {
+          if (checkboxOption.checked) response.push(checkboxOption.value);
         });
         surveyQuestion.response = response.join(", ");
-      }else{
-        surveyQuestion.response = form.elements[`question-${index+1}`].value;
+      } else {
+        surveyQuestion.response = form.elements[`question-${index + 1}`].value;
       }
       surveyObj.surveyQuestionList.push(surveyQuestion);
     });
@@ -233,68 +234,68 @@ export class UserSurveyComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showSurveys();
-      }else{
+      } else {
         this.openAlertMod(template, response.serviceResponse);
       }
-    }); 
+    });
   }
 
 
-  createTemplate():string{
+  createTemplate(): string {
 
     let surveyTemplate = ``;
- 
-    this.allSurveyQuestionList.forEach((question:SurveyQuestion, qIndex) => {
- 
-     let finalQuestionTemplate = ``;
-     const questionStartTemplate = `<div class="row"><div class="form-group">`
-     const questionEndTemplate = `</div></div>`
-     const questionRequiredTemplate = `<span class="text-danger">*</span>`
-     let isQuestionRequired = (question.required == true)? questionRequiredTemplate : '';
-     let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null)? question.description : ''}</small>`
- 
-     finalQuestionTemplate = questionStartTemplate + questionTemplate;
-     
+
+    this.allSurveyQuestionList.forEach((question: SurveyQuestion, qIndex) => {
+
+      let finalQuestionTemplate = ``;
+      const questionStartTemplate = `<div class="row"><div class="form-group">`
+      const questionEndTemplate = `</div></div>`
+      const questionRequiredTemplate = `<span class="text-danger">*</span>`
+      let isQuestionRequired = (question.required == true) ? questionRequiredTemplate : '';
+      let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null) ? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null) ? question.description : ''}</small>`
+
+      finalQuestionTemplate = questionStartTemplate + questionTemplate;
+
       if (question.optionType == "text") {
-        let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}"></textarea>`;
+        let textTemplate: any = `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
         finalQuestionTemplate = finalQuestionTemplate + textTemplate;
       } else if (question.optionType == "checkbox") {
- 
-       let optionTemplate = '';
-       question.optionsList.forEach((option:SurveyOption, opIndex) => {
-         let checkboxTemplate: any =
-         `
+
+        let optionTemplate = '';
+        question.optionsList.forEach((option: SurveyOption, opIndex) => {
+          let checkboxTemplate: any =
+            `
            <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}" name="question-${qIndex+1}">
-            <label class="form-check-label" for="q-${qIndex+1}-check-option-${opIndex+1}">${option.optionValue}</label>
+            <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
+            <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
             </div>
           `;
- 
+
           optionTemplate = optionTemplate + checkboxTemplate;
-       });
-       
-       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
+        });
+
+        finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
       } else if (question.optionType == "radio") {
- 
-       let optionTemplate = '';
-       question.optionsList.forEach((option:SurveyOption, index) => {
-         let radioboxTemplate: any =
-         `
+
+        let optionTemplate = '';
+        question.optionsList.forEach((option: SurveyOption, index) => {
+          let radioboxTemplate: any =
+            `
          <div class="form-check">
-          <input class="form-check-input" type="radio" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}" name="question-${qIndex+1}">
-          <label class="form-check-label" for="q-${qIndex+1}-radio-option-${index+1}">${option.optionValue}</label>
+          <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
+          <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
           </div>
         `;
- 
-        optionTemplate = optionTemplate + radioboxTemplate;
-       });
-       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
+
+          optionTemplate = optionTemplate + radioboxTemplate;
+        });
+        finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
       }
- 
+
       finalQuestionTemplate = finalQuestionTemplate + questionEndTemplate;
       surveyTemplate = surveyTemplate + finalQuestionTemplate;
     });
- 
+
     // console.log("surveyTemplate : ", surveyTemplate);
     return surveyTemplate;
   }
@@ -313,9 +314,38 @@ export class UserSurveyComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
-  
+
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
+
+  // sorting implementation 09-01-2023
+  sortAllSurvey(sort: Sort) {
+    console.log(sort);
+    const data = this.allSurveyList;
+    if (!sort.active || sort.direction === '') {
+      this.allSurveyList = data;
+      return;
+    } else {
+      this.allSurveyList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'surveyName':
+              return compare(a.surveyName, b.surveyName, isAsc)
+            case 'description':
+              return compare(a.description, b.description, isAsc)
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

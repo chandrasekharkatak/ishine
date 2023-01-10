@@ -333,19 +333,18 @@
                         <thead class="thead-light" id="myTimesheetInfoTHead">
                             <tr id="myTimesheetInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md">Name</th>
+                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md" mat-sort-header="employeeName">Name</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="date">Date</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="dayType">Day Type</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="officeInTime">In Time</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime">Out Time</th>
                                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Working Hours</th>
-                                <th scope="col" colspan="4" class="info-label column-md">Activity</th>
-                                <th scope="col" colspan="info-label" class="info-label">Total Activity Time</th>
+                                <th scope="col" colspan="4" class="info-label column-md" mat-sort-header="description">Activity</th>
+                                <th scope="col" colspan="info-label" class="info-label" mat-sort-header="totalTime">Total Activity Time</th>
                                 <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label"
-                                    mat-sort-header="createdByName column-md">Applied By</th>
+                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md" mat-sort-header="createdByName">Applied By</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="createdOn">Applied On</th>
-                                <th scope="col" class="info-label column-md">Remarks</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="remarks">Remarks</th>
                                 <th scope="col" class="info-label column-md">Actions</th>
                             </tr>
                         </thead>
@@ -486,22 +485,22 @@
             </div>
         </div>
         <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
-            <table class="table timesheet-table">
+            <table class="table timesheet-table" matSort (matSortChange)="sortMyTimesheetView($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
-                        <th scope="col" class="info-label">Client Name</th>
-                        <th scope="col" class="info-label">Client Location</th>
-                        <th scope="col" class="info-label">Project Name</th>
-                        <th scope="col" class="info-label">Team Name</th>
-                        <th scope="col" class="info-label">Activity</th>
-                        <th scope="col" colspan="4" class="info-label">Description</th>
-                        <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+                        <th scope="col" class="info-label" mat-sort-header="clientName">Client Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="clientLocation">Client Location</th>
+                        <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="teamName">Team Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="activity">Activity</th>
+                        <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="completionTime">Time<small>(Hrs)</small></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
-                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                        <th colspan="10" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
                         *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
