@@ -430,7 +430,7 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else  if(!this.validationService.validateNumber(previousEmployer.yearsOfExperience)){
+            }else  if(!this.validationService.validateExperiencedNumber(previousEmployer.yearsOfExperience)){
               this.alertMessage = `Please Enter valid Years of Experience - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
