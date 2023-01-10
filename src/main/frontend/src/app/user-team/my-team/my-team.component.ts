@@ -78,6 +78,8 @@ export class MyTeamComponent implements OnInit {
   isLeaveHistoryOfDepartment:boolean = false;
   departmentLeaveHistoryList:any[] = [];
 
+  isActionEnabled:boolean = false;
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -550,6 +552,15 @@ export class MyTeamComponent implements OnInit {
          
           if(temp != undefined) x.isHierarchy = true;          
        }
+
+       let blockedReportees = this.teamViewList.filter(reportee => reportee.invalidAccessAttempt > reportee.failedAttempt);
+       
+        if(blockedReportees.length !== 0){
+          this.isActionEnabled = true;
+        }else{
+          this.isActionEnabled = false;
+        }
+
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }

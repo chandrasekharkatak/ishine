@@ -70,7 +70,7 @@
                   <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>
                   <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
                   <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
-                  <th scope="col" class="info-label">Actions</th>
+                  <th *ngIf="isActionEnabled" scope="col" class="info-label">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,7 +88,7 @@
                   <td class="info-label">{{teamView.jobRoleName}}</td>
                   <td class="info-label">{{teamView.mobileNo}}</td>
                   <td class="info-label">{{teamView.managerName}}</td>
-                  <td>
+                  <td *ngIf="isActionEnabled">
                     <button
                       *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
                       class="btn btn-sm btn-outline-primary" type="submit"
