@@ -507,6 +507,7 @@ public class TimesheetService {
 						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dtoList.add(dto);
 					});
 
