@@ -863,7 +863,7 @@ public class TimesheetService {
 				existingTimesheet.setStatus("Pending");
 				existingTimesheet.setTotalTime((float) 0);
 
-				if (timesheetDTO.getDayType().equals("Holiday")) {
+				if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
 					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
 					existingTimesheet.setDescription(timesheetDTO.getDescription());
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
