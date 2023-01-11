@@ -227,13 +227,22 @@ public class EmployeeLeaveService {
 			
 				apiLogInfo.setApiResponse("Leave application submitted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
-				//DateTimeFormatter format = DateTimeFormatter.ofPattern("dd MM yyyy");
 
 				LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
 				LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
-			    //long daysBetween = Duration.between(leaveDTO.getFromDate(), leaveDTO.getToDate()).toDays();
 
 				long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
+				
+			   // Optional<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),fromDate,toDate);
+
+//			    if(!empTimeSheet.isEmpty()) {
+//			    	if((elapsedDays == 0)) {
+//				    	Timesheet empTimesheet = empTimeSheet.get();
+//				    	
+//				    	empTimesheet.getCommonProperty().setCreatedBy(null)
+//			    	}
+//			    	
+//			    }else {
 
 				if((elapsedDays == 0)) {
 					Timesheet newTimesheet = new Timesheet();
@@ -268,8 +277,8 @@ public class EmployeeLeaveService {
 
 						
 					}
-
 				}
+				//}
 			} else {
 				response.setServiceResponse("Leave Creation Failed.");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1525,6 +1534,7 @@ public class EmployeeLeaveService {
 		try {
 
 			for (LeaveDTO leave : leaveDTO.getBulkLeaveApprovedList()) {
+				leave.setApproverEmail(leaveDTO.getApproverEmail());
 				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
 				response = updateLeaveStatus(leave);
@@ -1546,12 +1556,18 @@ public class EmployeeLeaveService {
 			
 
 			for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
+				leave.setApproverEmail(leaveDTO.getApproverEmail());
 				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
 				leave.setRejectReason(leaveDTO.getRejectReason());
 			
 				response = updateLeaveStatus(leave);
 				System.out.println(" leaveDTO.getReason() : "+leaveDTO.getRejectReason());
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			    
+				
 			}
 
 		} catch (Exception e) {

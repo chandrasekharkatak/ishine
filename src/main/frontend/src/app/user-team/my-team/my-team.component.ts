@@ -368,6 +368,8 @@ export class MyTeamComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    leaveApplication.approverEmail = this.currentUser.email;	
+
     console.log("leaveApplication : ", leaveApplication);
 
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -1000,6 +1002,7 @@ export class MyTeamComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList =  this.bulkTeamLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.approverEmail = this.currentUser.email;	
     leaveObj.leaveStatusId = 2;
    
     this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -1030,6 +1033,8 @@ export class MyTeamComponent implements OnInit {
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
     leaveObj.rejectReason = this.leaveObj.rejectReason
+    leaveObj.approverEmail = this.currentUser.email;	
+
     console.log(" .. ",leaveObj)
     this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
