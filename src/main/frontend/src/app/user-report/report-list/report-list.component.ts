@@ -400,6 +400,7 @@ export class ReportListComponent implements OnInit {
           }
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);
+            employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -753,9 +754,9 @@ export class ReportListComponent implements OnInit {
             "pursuing":x.pursuing,
             "passingGrade":x.passingGrade,
             "yearOfPassing":x.yearOfPassing,
-            "Proile Completion Perecentage":x.profileCompletedPercent,
             "createdBy":x.createdBy,
-            "createdOn":x.createdOn 
+            "createdOn":x.createdOn, 
+            "Proile Completion Perecentage":x.profileCompletedPercent,
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
