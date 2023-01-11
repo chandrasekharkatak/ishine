@@ -266,6 +266,7 @@ export class LoginComponent implements OnInit{
       this.user.hodId = user.hodId;
       this.user.hodName = user.hodName;
       this.user.hodEmail = user.hodEmail;
+      this.user.isTimesheetLockCheckEnable = user.isTimesheetLockCheckEnable;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

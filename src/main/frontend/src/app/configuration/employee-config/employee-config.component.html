@@ -872,6 +872,12 @@
                                         (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
                                         (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
+                                    <button *ngIf="employee.isTimesheetLockCheckEnable == 'false'"
+                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em>Enable Timesheet Check</em></button>
+                                    <button *ngIf="employee.isTimesheetLockCheckEnable == 'true'"
+                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em>Disable Timesheet Check</em></button>
                                 </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
