@@ -593,9 +593,9 @@ export class SurveyConfigComponent implements OnInit {
       console.log("employees : ", employees);
       
       employees.forEach(employee => {
-        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0]);
-        employeeResponse.forEach((response:SurveyQuestion, index) => {
-          employee.push(response.response);
+        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0].substring(2));
+        employeeResponse.forEach((surveyResponse:SurveyQuestion, index) => {
+          employee.push(surveyResponse.response);
           // employee.push(response.question, response.response);
 
           // employee[`question${index+1}`] = response.question;
