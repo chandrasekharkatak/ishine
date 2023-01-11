@@ -411,12 +411,14 @@ export class LeaveComponent implements OnInit {
     this.isCreation = false;	
     this.isLeaveApplicationsTable = false;	
     this.isLeaveHistoryTable = false;	
-    this.isLeaveBalanceTable = false;	
+    this.isLeaveBalanceTable = false;
+    
+    this.leaveObj = Object.assign({}, leaveHistory);	
     this.leaveObj.fromDateDayType = leaveHistory.fromDateDayType;
     this.leaveObj.toDateDayType = leaveHistory.toDateDayType;
+    this.leaveObj.fromDate = (this.leaveObj.fromDate)? moment(this.leaveObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
+    this.leaveObj.toDate = (this.leaveObj.toDate)? moment(this.leaveObj.toDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
     	
-    this.leaveObj = Object.assign({}, leaveHistory);	
-
     if(this.isSelfLeaveHistory){
       this.leaveObj.leaveAppliedFor = "self";
       this.leaveObj.empId = this.currentUser.empId;
@@ -424,7 +426,7 @@ export class LeaveComponent implements OnInit {
       this.leaveObj.leaveAppliedFor = "team";
     }
 
-    console.log("this.leaveObj : ", this.leaveObj);
+    console.log("this.leaveObj for Update : ", this.leaveObj);
     this.getLeaveMetadata();
   }
 
@@ -545,7 +547,7 @@ export class LeaveComponent implements OnInit {
     // Leave Probation Period 
     if (leavePolicyObj.probation == "Yes") {
       let date = this.leaveObj.fromDate;
-      let dateOfJoining = new Date();;
+      let dateOfJoining = new Date();
       if (this.currentUser?.dateOfJoining) {
         dateOfJoining = new Date(this.currentUser.dateOfJoining)
       }
