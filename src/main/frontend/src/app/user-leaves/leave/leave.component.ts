@@ -109,6 +109,7 @@ export class LeaveComponent implements OnInit {
   level2ApproverEmail:any;
 
   weekOffExcludedDepartmentList:any[] = [];
+  previouslyAppliedLeavesList:any[] = [];	
 
   constructor(
     public validationService:ValidationService,
@@ -547,7 +548,7 @@ export class LeaveComponent implements OnInit {
     // Leave Probation Period 
     if (leavePolicyObj.probation == "Yes") {
       let date = this.leaveObj.fromDate;
-      let dateOfJoining = new Date();
+      let dateOfJoining = new Date();;	
       if (this.currentUser?.dateOfJoining) {
         dateOfJoining = new Date(this.currentUser.dateOfJoining)
       }
@@ -641,9 +642,9 @@ export class LeaveComponent implements OnInit {
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
     
     if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.leaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
     }else{
-      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.leaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
     }
   }
 
@@ -675,9 +676,9 @@ export class LeaveComponent implements OnInit {
     }
     let checkDate = this.leaveObj.fromDate;
     if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-      return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.leaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
     }else{
-      return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.leaveHistoryList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
     }   
   }
 
@@ -977,6 +978,7 @@ export class LeaveComponent implements OnInit {
     leaveObj.empId = userObj.empId;
     this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.previouslyAppliedLeavesList = JSON.parse(JSON.stringify(response.serviceResponse));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
 
@@ -1015,6 +1017,7 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllMyTeamApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
+        this.previouslyAppliedLeavesList = JSON.parse(JSON.stringify(response.serviceResponse));
         this.leaveHistoryList.forEach(leave => {
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1648,6 +1651,7 @@ export class LeaveComponent implements OnInit {
       let leaveObj = new Leave();
       leaveObj.bulkLeaveApprovedList =  this.bulkLeaveApprove;
       leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+      leaveObj.approverEmail = this.currentUser.email;		
       leaveObj.leaveStatusId = 2;
      
       this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -1695,6 +1699,7 @@ export class LeaveComponent implements OnInit {
       leaveObj.bulkLeaveRejectList =  this.bulkLeaveReject;
       leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
       leaveObj.leaveStatusId = 3
+      leaveObj.approverEmail = this.currentUser.email;		
       leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
       this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {

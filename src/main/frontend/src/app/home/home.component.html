@@ -666,7 +666,7 @@
 <!-- Night shift confirmation template -->
 <ng-template #night_shift_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to continue, your timesheet bulk update contains Night shift request?</p>
+        <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
         <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         <button type="button" class="btn btn-outline-primary" (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift Request(s)</button>&nbsp;
@@ -675,7 +675,7 @@
 
 <ng-template #night_shift_reject_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to continue, your timesheet bulk update contains Night shift request?</p>
+        <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
         <button type="button" class="btn btn-outline-success" (click)="OnBulkReject(timesheet_reject)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift Request(s)</button>&nbsp;

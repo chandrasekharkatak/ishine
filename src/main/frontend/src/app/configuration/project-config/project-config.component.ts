@@ -152,14 +152,13 @@ export class ProjectConfigComponent implements OnInit {
       if(response.serviceStatus == "Success") {
         this.projectObj = Object.assign({}, response.serviceResponse)[0];
         this.getClientLocationList(this.projectObj.clientId);
+        this.projectObj.clientLocationId = '';
         if(this.projectObj.syncProject == "true"){
           this.projectObj.syncProject = true;
         }else{
           this.projectObj.syncProject = false;
         }
-
         console.log(this.projectObj, " this.projectObj");
-
         //client Location
         // if (this.projectObj.allClientLocationList == undefined || this.projectObj.allClientLocationList == 0) {
         //   this.addInputClientLocationField();
@@ -168,9 +167,6 @@ export class ProjectConfigComponent implements OnInit {
         // }
         // console.log(this.projectObj.allClientLocationList, " : this.projectObj.allClientLocationList");
         this.projectObj.departmentName = this.projectObj.departmentList;
-        
-        
-        
       }else {
         console.log(response.serviceResponse);
       }

@@ -1014,6 +1014,7 @@ public class CronJobService {
 		}
 		
 		// 0 0 10 ? * MON - At 10:00:00am, on every Monday, every month
+		// 0 0/2 * ? * *
 		@Async
 		@Scheduled(cron = "0 0 10 ? * MON")
 		public void timesheetDefaulterWeeklyMail() {
@@ -1024,11 +1025,15 @@ public class CronJobService {
 					StringBuilder defaulterMail = new StringBuilder();
 					allDepartment.forEach((object) -> {
 						
-						LocalDate start = LocalDate.now().minusDays(8);
+						int currentYear = LocalDate.now().getYear();
+						int currentMonth = LocalDate.now().getMonthValue();
+						
+						LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 						LocalDate end = LocalDate.now().minusDays(1);
-						Period period = Period.between(start, end);
+						
+						Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 
-						List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
+						List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
 						List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(object.getDeptId());
 
 						List<TimesheetDTO> dtoList = new ArrayList<>();
@@ -1047,7 +1052,7 @@ public class CronJobService {
 								dto.setEmail(employee[3] != null ? employee[3].toString() : null);
 								dto.setManagerName(employee[4] != null ? employee[4].toString() : null);
 								dto.setEmpId(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
-								dto.setPendingEodCount(8L);
+								dto.setPendingEodCount(period);
 								dto.setEmploymentstatus(employee[6] != null ? employee[6].toString() : null);
 								hodMail = employee[7] != null ? employee[7].toString() : null;
 
@@ -1058,7 +1063,7 @@ public class CronJobService {
 
 									if (timesheetEmpId.equals(employeeEmpId)) {
 										Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
-										Long pendingEodCount = 8 - filledEodCount;
+										Long pendingEodCount = period - filledEodCount;
 
 										dto.setPendingEodCount(pendingEodCount);
 									}
@@ -1103,7 +1108,7 @@ public class CronJobService {
 							  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
 							  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
 							  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
-							  html.append("        <td>" + period.getDays() + "</td>\n");
+							  html.append("        <td>" + period + "</td>\n");
 							  html.append("        <td>" + timesheet.getPendingEodCount() + "</td>\n");
 							  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
 							  html.append("      </tr>\n");
@@ -1116,14 +1121,14 @@ public class CronJobService {
 						try {
 							mailService.sendMailWithCC(defaulterMail.toString(),
 									hodMail+","+hrMailAddress,
-									"EOD Timesheet Defaulter List for "+start+" to "+end,
+									"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
 									"Dear IShine Members, <br><br>"
-                                  + "This is to bring it to your attention that you are in the defaulter list."
+                                  + "This is to bring it to your attention that you are in the defaulters list."
                                   + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
                                   + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
 								  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
 								  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
-								  + "Thus, ensure you fill time sheets on a daily basis to avoid lock of the timesheets and loosing salary.<br><br>"
+								  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and loosing salary.<br><br>"
 								  +	html.toString());
 						} catch (MessagingException e) {
 							e.printStackTrace();

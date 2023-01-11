@@ -585,6 +585,8 @@ export class LeaveConfigComponent implements OnInit {
         console.log("holidayList : ", this.holidayListFilter);
         // this.holidayListFilter = this.holidayList;
         this.holidayList = this.holidayListFilter;
+        const currentYear = new Date().getFullYear();	
+        this.holidayListFilter = this.holidayListFilter.filter(x=>new Date (x.dateOfHoliday).getFullYear() == currentYear);
       } else {
         console.error(response.serviceResponse);
       }

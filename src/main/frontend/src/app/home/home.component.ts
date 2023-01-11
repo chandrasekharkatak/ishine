@@ -26,6 +26,7 @@ import * as CryptoJS from 'crypto-js';
 import { Employee } from '../models/employee';
 import { LocationStrategy } from '@angular/common';
 import { Sort } from '@angular/material/sort';
+import { AppComponent } from '../app.component';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -206,9 +207,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
+    leaveObj.approverEmail = this.currentUser.email;
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
+        this.leaveApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
@@ -243,9 +250,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveObj.email = leaveApplication.email
     leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
+    leaveApplication.approverEmail = this.currentUser.email;	
+
     console.log("   leaveObj.email   ", leaveObj.email);
-
-
 
     console.log("leaveApplication : ", leaveApplication);
 
@@ -290,6 +297,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
+        this.allCompOffApplications.forEach(compOff => {
+          compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
+          compOff.createdOn = (compOff.createdOn)? moment(compOff.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
@@ -345,6 +357,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if (response.serviceStatus == "Success") {
         this.timesheetApplicationCount = response.serviceResponse.applicationCount;
         console.log("TimesheetApplicationCount : ", this.timesheetApplicationCount);
+        this.timesheetApplicationCount.forEach(timesheet => {
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
       } else {
         this.timesheetApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -1208,6 +1226,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
+    
     timesheetObj.status = "Approved"
     console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
@@ -1272,6 +1291,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList = this.bulkLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.approverEmail = this.currentUser.email;	
+
     leaveObj.leaveStatusId = 2;
 
     this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -1291,6 +1312,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   bulkRejectLeave(template: TemplateRef<any>) {
+
     this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
     if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
       this.alertMessage = "please enter valid reason !!"
@@ -1303,6 +1325,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
+    leaveObj.approverEmail = this.currentUser.email;	
     leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
     leaveObj.bulkLeaveRejectList.forEach((y) => {
       y.employeementId = y.employeementId;
