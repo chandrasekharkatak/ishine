@@ -64,6 +64,11 @@ export class HolidaysComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayList1 = this.holidayList;	
+
+        const currentYear = new Date().getFullYear();	
+        this.holidayList = this.holidayList.filter(x=>new Date (x.dateOfHoliday).getFullYear() == currentYear);
+
+
         console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
