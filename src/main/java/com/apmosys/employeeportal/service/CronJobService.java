@@ -1016,7 +1016,7 @@ public class CronJobService {
 		// 0 0 10 ? * MON - At 10:00:00am, on every Monday, every month
 		// 0 0/2 * ? * *
 		@Async
-		@Scheduled(cron = "0 0/2 * ? * *")
+		@Scheduled(cron = "0 0 10 ? * MON")
 		public void timesheetDefaulterWeeklyMail() {
 			try {
 				List<Department> allDepartment = departmentRepository.findAll();
