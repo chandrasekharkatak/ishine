@@ -185,7 +185,7 @@
                         <tbody>
                           <tr *ngFor="let timesheet of timesheetDetails; let i = index">
                             <th scope="row">{{i+1}}</th>
-                            <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
+                            <td>{{timesheet.date}}</td>
                             <td>{{timesheet.weekDayName}}</td>
                             <td>{{timesheet.dayType}}</td>
                             <td>{{timesheet.status}}</td>
@@ -405,12 +405,12 @@
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate | date:'dd-MM-yyyy'}}</td>
-                    <td>{{leaveApplication.toDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{leaveApplication.fromDate}}</td>
+                    <td>{{leaveApplication.toDate }}</td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
                     <td>{{leaveApplication.createdByName}}</td>
-                    <td>{{leaveApplication.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                    <td>{{leaveApplication.createdOn}}</td>
                     <td>{{leaveApplication.reason}}</td>
                     <!-- <td>{{leaveApplication.description}}</td> -->
                     <td>
@@ -465,8 +465,8 @@
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
-                    <td>{{compOffApp.fromDate | date:'dd-MM-yyyy'}}</td>
-                    <td>{{compOffApp.toDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{compOffApp.fromDate}}</td>
+                    <td>{{compOffApp.toDate}}</td>
                     <td>{{compOffApp.noOfDays}}</td>
                     <td>{{compOffApp.description}}</td>
                     <td>{{compOffApp.status}}</td>
@@ -543,11 +543,11 @@
                 <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
+                <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td colspan="4" [innerHTML]="timesheet.description"></td>
-                <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
-                <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                <td>{{timesheet.officeInTime}}</td>
+                <td>{{timesheet.officeOutTime}}</td>
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
                 <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                 <td>{{timesheet.status}}</td>

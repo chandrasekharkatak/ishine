@@ -459,11 +459,12 @@ public class CustomFilterService {
 						+ "e.views_on_organisation, e.year_of_passing,\n"
 						+ "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName \n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName \n"
 						+ "FROM employee e \n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
 						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
@@ -566,6 +567,7 @@ public class CustomFilterService {
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);	
 					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
+					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					

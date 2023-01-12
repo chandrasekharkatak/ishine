@@ -7,6 +7,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +53,12 @@ public class CompOffLeaveService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	MailService mailService;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
 
 	public ServiceResponse getAllCompOffReasons() {
 		ServiceResponse response = new ServiceResponse();
@@ -116,6 +123,27 @@ public class CompOffLeaveService {
 				
 				apiLogInfo.setApiResponse("Compoff Request applied.");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+				
+				
+				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Comp-Off Request", 
+						"Dear "+ leaveDTO.getManagerName()+","+
+				"<br> "
+				+" &nbsp;"+" &nbsp;"+" "+"Comp-Off Request has been applied by "+ leaveDTO.getEmployeeName() +"for"+" "+leaveDTO.getNoOfDays() +" day(s)"+", Please take necessary action."+
+				"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
+				"<br>"+
+				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+				"<br>"+
+				"Name :"+" "+ leaveDTO.getEmployeeName()+
+				"<br>"+
+				" From "+" "+ leaveDTO.getFromDate() +
+				"<br>"+
+				" To Date : "+" "+ leaveDTO.getToDate() 
+				+"<br>"+
+				"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"+".");
+				
+				
+				
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);

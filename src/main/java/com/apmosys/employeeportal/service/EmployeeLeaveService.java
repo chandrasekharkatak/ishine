@@ -31,6 +31,7 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -38,6 +39,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -88,6 +90,9 @@ public class EmployeeLeaveService {
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
 	
+	@Autowired
+	TimesheetActivityMapRepository timesheetActivityRepository;
+	
 	
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -100,6 +105,7 @@ public class EmployeeLeaveService {
 		logBuilder.append("empId : "+leaveDTO.getEmpId()+ ", leaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", leaveTypeCode : "+ leaveDTO.getLeaveTypeCode() +", noOfDays : "+ leaveDTO.getNoOfDays());
 		
 		try {
+
 			//LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
@@ -173,7 +179,7 @@ public class EmployeeLeaveService {
 				leaveBalanceLogRepository.save(log);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName());
+				response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". If you already filled the timesheet,that will be automatically updated by system");
 				
 				LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
 				
@@ -188,22 +194,22 @@ public class EmployeeLeaveService {
 					mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
 							"Regarding Leave Application Request",
 							"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
-							+"<br>"+" &nbsp"+" &nbsp"+" "+"You have a request for leave applied by "+ leaveDTO.getName() +
+							+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been applied by "+ leaveDTO.getName() +" "+"for "+leaveDTO.getNoOfDays()+" day(s), Please take necessary action."+
 							"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
 							"<br>"+
-							"EmpID :"+ leaveDTO.getEmployeementId()+
+							"EmpID :"+" "+ leaveDTO.getEmployeementId()+
 							"<br>"+
-							"Name :"+ leaveDTO.getName()+
+							"Name :"+" "+ leaveDTO.getName()+
 							"<br>"+
-							" from "+ leaveDTO.getFromDate() +
+							" From :"+" "+ leaveDTO.getFromDate()+
 							"<br>"+
-							" to "+ leaveDTO.getToDate() +
+							" To :"+" "+ leaveDTO.getToDate() +
 							"<br>"+
-							" No. Of Days : "+ leaveDTO.getNoOfDays() + " days" 
+							" No. Of Days : "+ leaveDTO.getNoOfDays() + " day(s)" 
 							+"<br>"+
-							" Leave Type :"+leaveType.getLeaveType()+
+							" Leave Type :"+" "+leaveDTO.getLeaveType()+
 							"<br>"+
-							"leave Reason :"+leaveDTO.getReason());
+							"leave Reason :"+" "+leaveDTO.getReason());
 					
 				}else {
 					//Leave Applied for team
@@ -214,12 +220,13 @@ public class EmployeeLeaveService {
 						mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail() +","+ createdByObj.getEmail()+ managerEmail,
 								"Regarding Leave Application Request",
 								"Dear "+ leaveDTO.getApproverName() + ","
-								+"<br> Leave has been applied for "+ leaveDTO.getName() +" by "+createdByObj.getName()
+								+"<br> Leave Application has been applied for "+ leaveDTO.getName() +" for "+leaveDTO.getNoOfDays()+" day(s)"+" by "+createdByObj.getName()+","+"Please take necessary action."
 								+"<br><br> Leave Details :"
 								+"<br> EmpId : A-" + leaveDTO.getEmployeementId()
 								+"<br> Name : " + leaveDTO.getName()
-								+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
-								+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
+								+"<br> From Date : " + leaveDTO.getFromDate() 
+								+"<br> To Date : " + leaveDTO.getToDate()
+								+"<br> No. Of Days : " + leaveDTO.getNoOfDays() +" day(s)"
 								+"<br> Leave Type : " + leaveType.getLeaveType()
 								+"<br> Leave reason : " + leaveDTO.getReason());
 					}
@@ -227,22 +234,32 @@ public class EmployeeLeaveService {
 			
 				apiLogInfo.setApiResponse("Leave application submitted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+				System.out.println(leaveDTO.getFromDate());
+				System.out.println(leaveDTO.getToDate());
 
+				
 				LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
 				LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
 
 				long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
 				
-			   // Optional<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),fromDate,toDate);
+			    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
+			    if(!empTimeSheet.isEmpty()) {
+			    empTimeSheet.forEach((timesheet)->{
+			    	
+			    	List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository.getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
+			    	
+			    	timesheetactivities.forEach((timesheetactivity)->{
+			    		
+			    		timesheetActivityRepository.deleteById(timesheetactivity.getTimesheetActivityMapId());
 
-//			    if(!empTimeSheet.isEmpty()) {
-//			    	if((elapsedDays == 0)) {
-//				    	Timesheet empTimesheet = empTimeSheet.get();
-//				    	
-//				    	empTimesheet.getCommonProperty().setCreatedBy(null)
-//			    	}
-//			    	
-//			    }else {
+			    	});
+			    	
+			    	timesheetsRepository.deleteById(timesheet.getTimesheetId());
+			    });
+			    }
+			    //after timesheet deletion
+			    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 
 				if((elapsedDays == 0)) {
 					Timesheet newTimesheet = new Timesheet();
@@ -252,7 +269,7 @@ public class EmployeeLeaveService {
 					newTimesheet.setDayType("Holiday");
 					newTimesheet.setDescription("On leave");
 					newTimesheet.setEmpId(leaveDTO.getEmpId());
-					newTimesheet.setStatus("Pending");
+					newTimesheet.setStatus("Approved");
 
 					timesheetsRepository.save(newTimesheet);
 				}
@@ -269,7 +286,7 @@ public class EmployeeLeaveService {
 						newTimesheet.setDayType("Holiday");
 						newTimesheet.setDescription("On leave");
 						newTimesheet.setEmpId(leaveDTO.getEmpId());
-						newTimesheet.setStatus("Pending");
+						newTimesheet.setStatus("Approved");
 
 						timesheetsRepository.save(newTimesheet);
 						
@@ -278,7 +295,7 @@ public class EmployeeLeaveService {
 						
 					}
 				}
-				//}
+				
 			} else {
 				response.setServiceResponse("Leave Creation Failed.");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -356,6 +373,25 @@ public class EmployeeLeaveService {
 				
 				apiLogInfo.setApiResponse("Leave Application Deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Leave Application Request Deletion", 
+						"Dear "+ leaveDTO.getManagerName()+","+
+				"<br> "
+				+" &nbsp;"+" &nbsp;"+" "+"Pending leave application has been deleted by "+ leaveDTO.getEmployeeName() +"."+
+				"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+				"<br>"+
+				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+				"<br>"+
+				"Name :"+" "+ leaveDTO.getEmployeeName()+
+				"<br>"+
+				" from "+" "+ leaveDTO.getFromDate() +
+				"<br>"+
+				" To Date : "+" "+ leaveDTO.getToDate() 
+				+"<br>"+
+				"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"+
+				"<br>"+
+				"Leave Type:"+" "+leaveDTO.getLeaveType());
+				
 				
 				//Autofill timesheet delete on deleting pending leave
 				

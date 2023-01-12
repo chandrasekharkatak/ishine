@@ -271,6 +271,7 @@ public class TimesheetService {
 			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
 				newTimesheet.setTotalTime((float)0);
+				newTimesheet.setTotalWorkingHours("0");
 			} else {
 				
 				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);
@@ -781,10 +782,28 @@ public class TimesheetService {
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 						try {
-							mailService.sendMail(timesheetDTO.getEmail(),
-									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
-									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
-									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
+//							mailService.sendMail(timesheetDTO.getEmail(),
+//									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
+//									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
+//									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
+							
+							mailService.sendMailWithCC(timesheetDTO.getEmail(), timesheetDTO.getManagerEmail(), "Regarding Timesheet Request Rejection", 
+									"Dear "+ timesheetDTO.getEmployeeName()+","+
+							"<br> "
+							+" &nbsp;"+" &nbsp;"+" "+"Your timesheet application has been rejected by "+ timesheetDTO.getManagerName() +"."+
+							"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+							"<br>"+
+							"EmpID :"+" "+ timesheetDTO.getEmployeementId()+
+							"<br>"+
+							"Name :"+" "+ timesheetDTO.getEmployeeName()+
+							"<br>"+
+							" from "+" "+ timesheetDTO.getDate() +
+							"<br>"+
+							" Day Type : "+" "+ timesheetDTO.getDayType() 
+							+"<br>"+
+							"Total Working Hours :"+" "+timesheetDTO.getTotalWorkingOfficeHours()+" "+"(hrs)"+
+							"<br>"+
+							"Rejection reason :"+" "+timesheetDTO.getRejectReason());
 							
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -870,7 +889,7 @@ public class TimesheetService {
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
 					existingTimesheet.setOfficeInTime(null);
 					existingTimesheet.setOfficeOutTime(null);
-					existingTimesheet.setTotalWorkingHours("");
+					existingTimesheet.setTotalWorkingHours("0");
 
 				} else {
 					existingTimesheet.setDayType(timesheetDTO.getDayType());

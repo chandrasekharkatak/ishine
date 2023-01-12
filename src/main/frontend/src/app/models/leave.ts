@@ -99,4 +99,6 @@ export class Leave{
 
 	name:any;
 	checkDate:any;
+	managerEmail:any;
+	
 }
