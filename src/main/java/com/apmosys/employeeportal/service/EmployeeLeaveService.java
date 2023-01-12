@@ -31,6 +31,7 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -38,6 +39,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -88,6 +90,9 @@ public class EmployeeLeaveService {
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
 	
+	@Autowired
+	TimesheetActivityMapRepository timesheetActivityRepository;
+	
 	
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -100,6 +105,7 @@ public class EmployeeLeaveService {
 		logBuilder.append("empId : "+leaveDTO.getEmpId()+ ", leaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", leaveTypeCode : "+ leaveDTO.getLeaveTypeCode() +", noOfDays : "+ leaveDTO.getNoOfDays());
 		
 		try {
+
 			//LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
@@ -227,22 +233,32 @@ public class EmployeeLeaveService {
 			
 				apiLogInfo.setApiResponse("Leave application submitted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+				System.out.println(leaveDTO.getFromDate());
+				System.out.println(leaveDTO.getToDate());
 
+				
 				LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
 				LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
 
 				long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
 				
-			   // Optional<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),fromDate,toDate);
+			    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
+			    if(!empTimeSheet.isEmpty()) {
+			    empTimeSheet.forEach((timesheet)->{
+			    	
+			    	List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository.getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
+			    	
+			    	timesheetactivities.forEach((timesheetactivity)->{
+			    		
+			    		timesheetActivityRepository.deleteById(timesheetactivity.getTimesheetActivityMapId());
 
-//			    if(!empTimeSheet.isEmpty()) {
-//			    	if((elapsedDays == 0)) {
-//				    	Timesheet empTimesheet = empTimeSheet.get();
-//				    	
-//				    	empTimesheet.getCommonProperty().setCreatedBy(null)
-//			    	}
-//			    	
-//			    }else {
+			    	});
+			    	
+			    	timesheetsRepository.deleteById(timesheet.getTimesheetId());
+			    });
+			    }
+			    //after timesheet deletion
+			    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 
 				if((elapsedDays == 0)) {
 					Timesheet newTimesheet = new Timesheet();
@@ -252,7 +268,7 @@ public class EmployeeLeaveService {
 					newTimesheet.setDayType("Holiday");
 					newTimesheet.setDescription("On leave");
 					newTimesheet.setEmpId(leaveDTO.getEmpId());
-					newTimesheet.setStatus("Pending");
+					newTimesheet.setStatus("Approved");
 
 					timesheetsRepository.save(newTimesheet);
 				}
@@ -269,7 +285,7 @@ public class EmployeeLeaveService {
 						newTimesheet.setDayType("Holiday");
 						newTimesheet.setDescription("On leave");
 						newTimesheet.setEmpId(leaveDTO.getEmpId());
-						newTimesheet.setStatus("Pending");
+						newTimesheet.setStatus("Approved");
 
 						timesheetsRepository.save(newTimesheet);
 						
@@ -278,7 +294,7 @@ public class EmployeeLeaveService {
 						
 					}
 				}
-				//}
+				
 			} else {
 				response.setServiceResponse("Leave Creation Failed.");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
