@@ -78,4 +78,5 @@ public class TimesheetDTO {
 	private String officeOutTime;
 	private String totalWorkingOfficeHours; //<-- totalWorkingHours in Timesheet Model
 	private String isNightShift;
+	private String managerEmail;
 }

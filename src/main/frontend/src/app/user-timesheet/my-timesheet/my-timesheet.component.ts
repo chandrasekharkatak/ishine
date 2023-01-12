@@ -569,7 +569,7 @@ export class MyTimesheetComponent implements OnInit {
       }
     } else {
       this.timesheetObj.updatedTimesheetActivities = null;
-      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateTimeFormat);
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';

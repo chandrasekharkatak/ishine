@@ -566,9 +566,11 @@ public class CronJobService {
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
 										newTimesheet.setDescription("WeekOff : Saturday");
 										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalWorkingHours("0");
 									}else{
 										newTimesheet.setDescription("WeekOff : Sunday");
 										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalWorkingHours("0");
 									}
 									newTimesheet.setEmpId(empId);
 									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..

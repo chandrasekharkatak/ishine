@@ -194,22 +194,22 @@ public class EmployeeLeaveService {
 					mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
 							"Regarding Leave Application Request",
 							"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
-							+"<br>"+" &nbsp"+" &nbsp"+" "+"You have a request for leave applied by "+ leaveDTO.getName() +
+							+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been applied by "+ leaveDTO.getName() +" "+"for "+leaveDTO.getNoOfDays()+" day(s), Please take necessary action."+
 							"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
 							"<br>"+
-							"EmpID :"+ leaveDTO.getEmployeementId()+
+							"EmpID :"+" "+ leaveDTO.getEmployeementId()+
 							"<br>"+
-							"Name :"+ leaveDTO.getName()+
+							"Name :"+" "+ leaveDTO.getName()+
 							"<br>"+
-							" from "+ leaveDTO.getFromDate() +
+							" From :"+" "+ leaveDTO.getFromDate()+
 							"<br>"+
-							" to "+ leaveDTO.getToDate() +
+							" To :"+" "+ leaveDTO.getToDate() +
 							"<br>"+
-							" No. Of Days : "+ leaveDTO.getNoOfDays() + " days" 
+							" No. Of Days : "+ leaveDTO.getNoOfDays() + " day(s)" 
 							+"<br>"+
-							" Leave Type :"+leaveType.getLeaveType()+
+							" Leave Type :"+" "+leaveDTO.getLeaveType()+
 							"<br>"+
-							"leave Reason :"+leaveDTO.getReason());
+							"leave Reason :"+" "+leaveDTO.getReason());
 					
 				}else {
 					//Leave Applied for team
@@ -220,12 +220,13 @@ public class EmployeeLeaveService {
 						mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail() +","+ createdByObj.getEmail()+ managerEmail,
 								"Regarding Leave Application Request",
 								"Dear "+ leaveDTO.getApproverName() + ","
-								+"<br> Leave has been applied for "+ leaveDTO.getName() +" by "+createdByObj.getName()
+								+"<br> Leave Application has been applied for "+ leaveDTO.getName() +" for "+leaveDTO.getNoOfDays()+" day(s)"+" by "+createdByObj.getName()+","+"Please take necessary action."
 								+"<br><br> Leave Details :"
 								+"<br> EmpId : A-" + leaveDTO.getEmployeementId()
 								+"<br> Name : " + leaveDTO.getName()
-								+"<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
-								+"<br> No. Of Days : " + leaveDTO.getNoOfDays()
+								+"<br> From Date : " + leaveDTO.getFromDate() 
+								+"<br> To Date : " + leaveDTO.getToDate()
+								+"<br> No. Of Days : " + leaveDTO.getNoOfDays() +" day(s)"
 								+"<br> Leave Type : " + leaveType.getLeaveType()
 								+"<br> Leave reason : " + leaveDTO.getReason());
 					}
@@ -372,6 +373,25 @@ public class EmployeeLeaveService {
 				
 				apiLogInfo.setApiResponse("Leave Application Deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Leave Application Request Deletion", 
+						"Dear "+ leaveDTO.getManagerName()+","+
+				"<br> "
+				+" &nbsp;"+" &nbsp;"+" "+"Pending leave application has been deleted by "+ leaveDTO.getEmployeeName() +"."+
+				"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+				"<br>"+
+				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+				"<br>"+
+				"Name :"+" "+ leaveDTO.getEmployeeName()+
+				"<br>"+
+				" from "+" "+ leaveDTO.getFromDate() +
+				"<br>"+
+				" To Date : "+" "+ leaveDTO.getToDate() 
+				+"<br>"+
+				"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"+
+				"<br>"+
+				"Leave Type:"+" "+leaveDTO.getLeaveType());
+				
 				
 				//Autofill timesheet delete on deleting pending leave
 				
