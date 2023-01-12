@@ -18,5 +18,6 @@ export class Holiday{
 	updatedByName: any;
 	updatedBy: any;
 	createdbyName: any;
+	currentYear:any;
 
 }
