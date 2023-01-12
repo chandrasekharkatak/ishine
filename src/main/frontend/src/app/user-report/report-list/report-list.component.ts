@@ -602,6 +602,11 @@ export class ReportListComponent implements OnInit {
 
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
+        data.queryList.forEach((queryObj) => {
+          if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
+            queryObj.value = "A-".concat(queryObj.value);
+          }
+        });
         this.queryList = data.queryList;
       }
     });
@@ -613,39 +618,54 @@ export class ReportListComponent implements OnInit {
   }
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
-    console.log("queryList : ", emittedArray[0]);
-    this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
-    this.cancelRequest();
+    if (emittedArray[0].length != 0) {
+      console.log("queryList : ", emittedArray[0]);
+      this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
+      this.cancelRequest();
 
-    emittedArray[1].forEach((object) => {
-      if (Object.keys(object).length !== 0) {
-        if (this.storedDataList.find((x) => x.filterName == object.filterName)) {
-          this.storedDataList = this.storedDataList.map(arr1 => emittedArray[1].find(arr2 => arr2.filterName === arr1.filterName) || arr1);
-        } else {
-          this.storedDataList.push(object);
+      emittedArray[1].forEach((object) => {
+        if (Object.keys(object).length !== 0) {
+          if (this.storedDataList.find((x) => x.filterName == object.filterName)) {
+            this.storedDataList = this.storedDataList.map(arr1 => emittedArray[1].find(arr2 => arr2.filterName === arr1.filterName) || arr1);
+          } else {
+            this.storedDataList.push(object);
+          }
         }
+      });
+
+
+      emittedArray[0].forEach(query => {
+        if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
+          query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
+        } else if (query.column == 'Created On' || query.column == 'Updated On') {
+          query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+        } if (query.column == 'Employee Id') {
+          query.value = query.value.split("-")[1];
+        }
+      });
+
+      if (this.filterData.title == 'Filter Leave Report') {
+        this.getCustomLeaveApplicationsList(emittedArray[0], template);
       }
-    });
-
-
-    emittedArray[0].forEach(query => {
-      if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
-        query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
-      } else if (query.column == 'Created On' || query.column == 'Updated On') {
-        query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
-      } if (query.column == 'Employee Id') {
-        query.value = query.value.split("-")[1];
+      if (this.filterData.title == 'Filter Employee Report') {
+        this.getCustomEmployeesList(emittedArray[0], template);
       }
-    });
+      if (this.filterData.title == 'Filter Timesheet Report') {
+        this.getCustomTimesheetApplicationsList(emittedArray[0], template);
+      }
+    }else{
+      let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
+      this.storedDataList.splice(clearedFilter);
 
-    if (this.filterData.title == 'Filter Leave Report') {
-      this.getCustomLeaveApplicationsList(emittedArray[0], template);
-    }
-    if (this.filterData.title == 'Filter Employee Report') {
-      this.getCustomEmployeesList(emittedArray[0], template);
-    }
-    if (this.filterData.title == 'Filter Timesheet Report') {
-      this.getCustomTimesheetApplicationsList(emittedArray[0], template);
+      if (emittedArray[1] == 'Filter Leave Report') {
+        this.showLeaveReportTable();
+      }
+      if (emittedArray[1] == 'Filter Employee Report') {
+        this.showTimesheetReportTable();
+      }
+      if (emittedArray[1] == 'Filter Timesheet Report') {
+        this.showEmployeeReportTable();
+      }
     }
   }
 

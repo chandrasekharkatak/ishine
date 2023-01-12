@@ -1616,7 +1616,20 @@ export class ReportDashboardComponent implements OnInit {
         }
       }else{
         let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
-        this.storedDataList.splice(clearedFilter ,1);
+        this.storedDataList.splice(clearedFilter);
+
+        if (emittedArray[1] == 'Filter Employee Report') {
+          this.getAllEmployeeList();
+        }
+        if (emittedArray[1] == 'Filter Leave Summary') {
+          this.get8DaysLeaveReport();
+        }
+        if (emittedArray[1] == 'Filter Leave Trend Chart') {
+          this.getLeaveTrendAnalysisReport();
+        }
+        if (emittedArray[1] == 'Filter Timesheet Summary') {
+          this.get9DayTimesheetReport();
+        }
       }
     }
 
