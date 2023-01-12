@@ -52,9 +52,17 @@ export class CustomFilterComponent implements OnInit {
   }
 
   selectEvent(value:any){
+    console.log(value, " : value");
   }
 
   onChangeSearch(a){
+    console.log(a, " : a");
+  }
+
+  valueFocus(columnName){
+    if(this.queryList.length != 0 && columnName != undefined && columnName != null){
+      this.getValueOptionData(columnName);
+    }
   }
 
   getValueOptionData(column:any){
@@ -84,7 +92,8 @@ export class CustomFilterComponent implements OnInit {
     if(this.validateData()){
       if(this.queryList[0].column==null){
         console.log("this.queryList : ",this.queryList);
-        this.filterSubmitted.emit([]);
+        let arrayToBeEmitted = [[],this.data.title];
+        this.filterSubmitted.emit(arrayToBeEmitted);
       }
       else{
         console.log("this.queryList : ",this.queryList);

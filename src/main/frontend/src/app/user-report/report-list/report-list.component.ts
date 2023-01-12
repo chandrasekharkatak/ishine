@@ -265,10 +265,8 @@ export class ReportListComponent implements OnInit {
             ))
           )
 
-          if (this.allLeaveApplicationsList.length != 0) {
-            this.openAlertMod(template, "Leave Application Report found ")
-          } else {
-            this.openAlertMod(template, "No Leave Application Report found ")
+          if (this.allLeaveApplicationsList.length == 0) {
+            this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
             leave.employeementId = "A-".concat(leave.employeementId);
@@ -328,10 +326,8 @@ export class ReportListComponent implements OnInit {
             ))
           )
 
-          if (this.allTimesheetApplicationsList.length != 0) {
-            this.openAlertMod(template, "Timesheet Application Report found ");
-          } else {
-            this.openAlertMod(template, "No Timesheet Application Report found ");
+          if (this.allTimesheetApplicationsList.length == 0) {
+            this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
             timesheet.employeementId = "A-".concat(timesheet.employeementId);
@@ -394,10 +390,8 @@ export class ReportListComponent implements OnInit {
             ))
           )
 
-          if (this.allEmployeeList.length != 0) {
-            this.openAlertMod(template, "Employee Report found")
-          } else {
-            this.openAlertMod(template, "No Data found")
+          if (this.allEmployeeList.length == 0) {
+            this.openAlertMod(this.alertModal, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);

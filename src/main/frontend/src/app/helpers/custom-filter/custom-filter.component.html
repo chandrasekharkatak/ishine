@@ -36,6 +36,7 @@
                 [searchKeyword]="keyword"
                 (selected)='selectEvent($event)'
                 (inputChanged)='onChangeSearch($event)'
+                (inputFocused)="valueFocus(query.column)"
                 [itemTemplate]="itemTemplate"
                 [(ngModel)]="query.value">
               </ng-autocomplete>
