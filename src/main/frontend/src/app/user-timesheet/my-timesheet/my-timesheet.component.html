@@ -385,7 +385,7 @@
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
                                         (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
                                     <button
-                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday'))"
+                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
                                         class="btn btn-sm btn-outline-primary mb3" type="submit"
                                         (click)="showUpdateTimesheetForm(timesheet)"><em
                                             class="fa fa-edit"></em></button>
