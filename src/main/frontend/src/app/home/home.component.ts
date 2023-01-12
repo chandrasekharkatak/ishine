@@ -1206,7 +1206,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   
   bulkApproveWithoutNightShiftRequest(template:TemplateRef<any>){
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    this.onBulkApproval(template);
+    if(this.bulkApprove.length !== 0){
+      this.onBulkApproval(template);
+    }else{
+      this.cancelRequest();
+      this.getMyReporteesTimesheetRequests();
+    }
   }
 
   openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
@@ -1223,7 +1228,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet:TemplateRef<any>){
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    this.OnBulkReject(bulkRejectTimesheet);
+    if(this.bulkReject.length !== 0){
+      this.OnBulkReject(bulkRejectTimesheet);
+    }else{
+      this.cancelRequest();
+      this.getMyReporteesTimesheetRequests();
+    }
   }
 
   onBulkApproval(template: TemplateRef<any>) {

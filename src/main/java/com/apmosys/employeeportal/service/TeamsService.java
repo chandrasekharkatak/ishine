@@ -280,7 +280,7 @@ public class TeamsService {
 									newActivity.setActivity(object.getTemplateActivity());
 									newActivity.setTeamId(teamCreated.getTeamId());
 									newActivity.setEmployeeRole(object.getEmployeeRole());
-									newActivity.setDeptId(object.getDeptId());
+									newActivity.setDeptIds(object.getDeptId().toString());
 
 									newActivityCreated = activitiesRepository.save(newActivity);
 								}
@@ -742,16 +742,16 @@ public class TeamsService {
 			ServiceResponse response = new ServiceResponse();
 			try {
 				
-				Long deptId = null;
+				String deptId = null;
 				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
 				if(!empObj.isEmpty()) {
 					for(Object[] object: empObj) {
-						deptId = object[4] != null ? Long.parseLong(object[4].toString()) : null;
+						deptId = object[4] != null ? object[4].toString() : null;
 					}
 				}
 				
 				List<Activity> activityObj = activitiesRepository
-						.findByTeamIdAndEmployeeRoleInAndDeptId(teamDTO.getTeamId(), teamDTO.getEmployeeRole(), deptId);
+						.findByTeamIdAndEmployeeRoleInAndDeptIds(teamDTO.getTeamId(), teamDTO.getEmployeeRole(), deptId);
 				List<Activity> dtoList = new ArrayList<Activity>();
 				
 				if(!activityObj.isEmpty()) {
@@ -953,10 +953,10 @@ public class TeamsService {
 			if(teamdto.getTeamId() != null) {
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
 			}else {

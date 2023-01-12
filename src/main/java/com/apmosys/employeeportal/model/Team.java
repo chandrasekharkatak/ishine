@@ -32,7 +32,6 @@ public class Team {
 	private String isActive;
 	private Long poTeamId;
 	private String description;
-	private Long deptId;
 	private String deptIds;
  
 	@Embedded
