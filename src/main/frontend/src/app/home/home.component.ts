@@ -356,13 +356,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.countMyReporteesTimesheetRequests(timesheet).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetApplicationCount = response.serviceResponse.applicationCount;
-        console.log("TimesheetApplicationCount : ", this.timesheetApplicationCount);
-        this.timesheetApplicationCount.forEach(timesheet => {
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        });
       } else {
         this.timesheetApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -383,8 +376,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
-        for (let x of this.allTeamTimesheetRequests) {
-          x.employeementId = "A-".concat(x.employeementId);
+        for (let timesheet of this.allTeamTimesheetRequests) {
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
