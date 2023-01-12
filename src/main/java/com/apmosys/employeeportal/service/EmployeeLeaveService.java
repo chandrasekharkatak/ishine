@@ -179,7 +179,7 @@ public class EmployeeLeaveService {
 				leaveBalanceLogRepository.save(log);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName());
+				response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". If you already filled the timesheet,that will be automatically updated by system");
 				
 				LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
 				
