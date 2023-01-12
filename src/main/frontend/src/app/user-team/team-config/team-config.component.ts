@@ -99,7 +99,7 @@ export class TeamConfigComponent implements OnInit {
 
   filterStatus:any = '';
 
-  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR']; 
+  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin']; 
 
   constructor(
     private validationService: ValidationService,
