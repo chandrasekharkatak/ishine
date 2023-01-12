@@ -402,8 +402,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.rejectReason = timesheet.rejectReason?.trim();
     timesheetObj.employeementId = timesheet.employeementId.substring(2);
     timesheetObj.employeeName = timesheet.employeeName;
+    timesheetObj.managerId = this.currentUser.empId;
+    timesheetObj.managerEmail = this.currentUser.email;
+    timesheetObj.managerName = this.currentUser.name;
+    timesheetObj.date = timesheet.date;
+    timesheetObj.dayType = timesheet.dayType;
+    timesheetObj.totalWorkingOfficeHours = timesheet.totalWorkingOfficeHours;
+    console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
+    console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
     timesheetObj.status = status;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    console.log("      :      ",timesheetObj)
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1633,15 +1642,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
   // sortLeave
   sortHomeLeave(sort: Sort) {
     console.log(sort);
-    let data = this.allCompOffApplications;
-    console.log("CompOff :", this.allCompOffApplications);
+    let data = this.leaveApplicationList;
+    console.log("CompOff :", this.leaveApplicationList);
 
     if (!sort.active || sort.direction === '') {
-      this.allCompOffApplications = data;
+      this.leaveApplicationList = data;
       return;
     }
     else {
-      this.allCompOffApplications = data.sort(
+      this.leaveApplicationList = data.sort(
         (a, b) => {
           const isAsc = sort.direction === 'asc';
           switch (sort.active) {

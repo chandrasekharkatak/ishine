@@ -79,11 +79,8 @@ export class MyTimesheetComponent implements OnInit {
   errorMsg: any;
 
   leaveHistoryList: any[] = [];
-
   maxOutTimeDate: any;
-  leaveHistoryList:any[] = [];
-  
-  maxOutTimeDate:any;
+ 
   isTimesheetLockCheckEnable:any = "true";
 
   constructor(
@@ -197,13 +194,18 @@ export class MyTimesheetComponent implements OnInit {
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.date = (this.timesheetObj.date)? new Date(moment(this.timesheetObj.date).format(AppComponent.LOCAL_DATE_FORMAT)) : '';
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? new Date(moment(this.timesheetObj.officeInTime).format(AppComponent.LOCAL_DATETIME_FORMAT)) : '';
-    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? new Date(moment(this.timesheetObj.officeOutTime).format(AppComponent.LOCAL_DATETIME_FORMAT)) : '';
-    this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? new Date(moment(this.timesheetObj.createdOn).format(AppComponent.LOCAL_DATETIME_FORMAT)) : '';
+    this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
+    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
 
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
+    }
+
+    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
+      this.__tempDescription = this.timesheetObj.description;
     }
 
     let userObj: User = new User();
@@ -310,9 +312,7 @@ export class MyTimesheetComponent implements OnInit {
     let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
 
     if (this.isTimesheetForm && this.isUpdation) {
-      this.availableTimesheets = this.availableTimesheets.filter(timesheet => timesheet.date != this.timesheetObj.date);
-      console.log("availableTimesheets : ", this.availableTimesheets);
-
+      this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
     }
 
     if(this.isTimesheetLockCheckEnable == "false"){
@@ -573,7 +573,7 @@ export class MyTimesheetComponent implements OnInit {
       }
     } else {
       this.timesheetObj.updatedTimesheetActivities = null;
-      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateTimeFormat);
+      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
@@ -603,9 +603,11 @@ export class MyTimesheetComponent implements OnInit {
   onTimesheetDescriptionChange(){
     if(this.isUpdation){
       if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
-        this.timesheetObj.description = this.__tempDescription;
-        this.__tempDescription = '';
-      } else {
+        this.timesheetObj.description = (this.__tempDescription != null)? this.__tempDescription : '';
+        if(this.timesheetObj.description){
+          this.__tempDescription = this.timesheetObj.description; 
+        }
+      } else if(this.timesheetObj.dayType == "Working" || this.timesheetObj.dayType == "Non-working"){
         this.__tempDescription = (this.timesheetObj.description != null) ? this.timesheetObj.description : '';
         this.timesheetObj.description = '';
       }

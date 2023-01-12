@@ -20,4 +20,7 @@ public interface TimesheetActivityMapRepository extends JpaRepository<TimesheetA
 
 	public Long countByActivityId(Long activityId);
 
+	@Query(nativeQuery = true)
+	public List<TimesheetActivityMap> getTimesheetActivityByTimesheetId(Long timesheetId);
+
 }

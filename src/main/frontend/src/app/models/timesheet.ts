@@ -56,5 +56,7 @@ export class Timesheet{
     totalWorkingOfficeHours:any;
 
     isNightShift:any;
+    managerEmail: any;
+    managerName: any;
 
 }

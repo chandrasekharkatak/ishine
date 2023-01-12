@@ -874,6 +874,13 @@ export class LeaveComponent implements OnInit {
   deletePendingLeave(template: TemplateRef<any>) {	
     this.cancelRequest();	
     this.leaveObj.empId = this.currentUser.empId;	
+    this.leaveObj.email = this.currentUser.email;
+    this.leaveObj.employeeName = this.currentUser.name;
+    this.leaveObj.employeementId = this.currentUser.employeementId;
+    this.leaveObj.managerId = this.currentUser.managerId;	
+    this.leaveObj.managerEmail = this.currentUser.managerEmail;
+    this.leaveObj.managerName = this.currentUser.managerName;
+    console.log(" this.leaveObj ",this.leaveObj)
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
         console.log("After Delete this.leaveObj : ", this.leaveObj);	

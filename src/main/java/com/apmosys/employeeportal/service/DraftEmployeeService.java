@@ -61,6 +61,9 @@ public class DraftEmployeeService {
 	@Autowired
 	private MailService mailService;
 
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
 	@Autowired
 	private EmployeeRepository employeeRepository;
 
@@ -898,9 +901,11 @@ public class DraftEmployeeService {
 				logsRepository.save(log);
 
 				// trigger mail to employee
-				mailService.sendMail(draftEmployee.getEmail(), "Regarding employee profile creation",
-						"Your profile verification has failed.Kindly resubmit details on IShine portal. <br>Remarks:<br> "
-								+ employeedto.getRemarks());
+				mailService.sendMail(employeedto.getEmail()+","+hrMailAddress, "Regarding Employee KYC Updation Request Rejection", 
+						"Dear"+" "+employeedto.getName()+","
+						+"<br>"+" &nbsp;"+" &nbsp;"+"Your profile verification has been rejected, Kindly re-submit your details on iShine Portal. "
+								+"<br>"+"<br>"
+						+"<b>"+"Rejection reason : "+ employeedto.getRemarks());
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Draft Employee Application Rejected");
@@ -1106,6 +1111,11 @@ public class DraftEmployeeService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee profile approved.");
+					
+					mailService.sendMail(employeedto.getEmail()+","+hrMailAddress, "Regarding Employee KYC Updation Request Approval", 
+							"Dear"+" "+employeedto.getName()+","
+							+"<br>"+" &nbsp;"+" &nbsp;"+"Your profile verification has been approved, Thanks for sharing your details with iShine Portal. ");
+						
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee profile updation failed.");

@@ -1474,6 +1474,9 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
+    this.employeeObj.name = this.currentUser.name;
+    this.employeeObj.email = this.currentUser.email;
+    console.log(" reject KYC :  ",this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1493,7 +1496,9 @@ export class EmployeeConfigComponent implements OnInit {
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }  
-
+    this.employeeObj.name = this.currentUser.name;
+    this.employeeObj.email = this.currentUser.email;
+    console.log("  anurag :  ",this.employeeObj);
     this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
