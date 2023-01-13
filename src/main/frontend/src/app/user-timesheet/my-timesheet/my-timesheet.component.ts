@@ -306,17 +306,24 @@ export class MyTimesheetComponent implements OnInit {
     const time = checkDate?.getTime();
     let currentDate = new Date();
     const dateFormat = 'YYYY-MM-DD';
+    let OPEN_BACKDATED_DAYS = 30;
+    const CURRENT_DAY = 1;
+
+    if(this.currentUser.timesheetBackDatedDays){
+      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+    }
 
     // timesheetLockDays (days) + 1 current Day
     let endDate = currentDate;
-    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
+    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + CURRENT_DAY) * DAY_IN_MS));
 
     if (this.isTimesheetForm && this.isUpdation) {
       this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
     }
 
     if(this.isTimesheetLockCheckEnable == "false"){
-      return (checkDate <= endDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
     }else{
       return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
     }

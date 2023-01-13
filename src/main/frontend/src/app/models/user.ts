@@ -40,4 +40,7 @@ export class User{
     hodEmail:any;
 
     isTimesheetLockCheckEnable:any;
+    timesheetLockUpdatedOn:any;
+	timesheetBackDatedDays:any;
+	compOffLockDays:any;
 }

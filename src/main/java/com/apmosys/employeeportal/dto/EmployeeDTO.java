@@ -171,5 +171,8 @@ public class EmployeeDTO {
 	private String createdByName;
 	
 	private String isTimesheetLockCheckEnable;
+	private String timesheetLockUpdatedOn;
+	private Integer timesheetBackDatedDays;
+	private Integer compOffLockDays;
 
 }

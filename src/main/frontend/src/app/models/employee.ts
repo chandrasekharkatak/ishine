@@ -147,4 +147,7 @@ export class Employee{
 	createdByName: any;
 
 	isTimesheetLockCheckEnable:any;
+	timesheetLockUpdatedOn:any;
+	timesheetBackDatedDays:any;
+	compOffLockDays:any;
 }
