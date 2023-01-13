@@ -841,7 +841,7 @@ public class ProjectService {
 													newActivity.setActivity(activityObject.getTemplateActivity());
 													newActivity.setTeamId(teamDbResponse.getTeamId());
 													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
-													newActivity.setDeptId(activityObject.getDeptId());
+													newActivity.setDeptIds(activityObject.getDeptId().toString());
 													newActivity.getCommonProperty().setCreatedBy(4l);
 
 													newActivityCreated = activitiesRepository.save(newActivity);
@@ -1054,7 +1054,7 @@ public class ProjectService {
 													newActivity.setActivity(activityObject.getTemplateActivity());
 													newActivity.setTeamId(teamDbResponse.getTeamId());
 													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
-													newActivity.setDeptId(activityObject.getDeptId());
+													newActivity.setDeptIds(activityObject.getDeptId().toString());
 													newActivity.getCommonProperty().setCreatedBy(4l);
 
 													newActivityCreated = activitiesRepository.save(newActivity);

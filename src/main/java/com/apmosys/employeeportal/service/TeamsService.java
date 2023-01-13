@@ -3,8 +3,10 @@ package com.apmosys.employeeportal.service;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import javax.persistence.EntityManager;
@@ -280,7 +282,7 @@ public class TeamsService {
 									newActivity.setActivity(object.getTemplateActivity());
 									newActivity.setTeamId(teamCreated.getTeamId());
 									newActivity.setEmployeeRole(object.getEmployeeRole());
-									newActivity.setDeptId(object.getDeptId());
+									newActivity.setDeptIds(object.getDeptId().toString());
 
 									newActivityCreated = activitiesRepository.save(newActivity);
 								}
@@ -742,16 +744,16 @@ public class TeamsService {
 			ServiceResponse response = new ServiceResponse();
 			try {
 				
-				Long deptId = null;
+				String deptId = null;
 				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
 				if(!empObj.isEmpty()) {
 					for(Object[] object: empObj) {
-						deptId = object[4] != null ? Long.parseLong(object[4].toString()) : null;
+						deptId = object[4] != null ? object[4].toString() : null;
 					}
 				}
 				
 				List<Activity> activityObj = activitiesRepository
-						.findByTeamIdAndEmployeeRoleInAndDeptId(teamDTO.getTeamId(), teamDTO.getEmployeeRole(), deptId);
+						.findByTeamIdAndEmployeeRoleInAndDeptIds(teamDTO.getTeamId(), teamDTO.getEmployeeRole(), deptId);
 				List<Activity> dtoList = new ArrayList<Activity>();
 				
 				if(!activityObj.isEmpty()) {
@@ -955,10 +957,10 @@ public class TeamsService {
 			if(teamdto.getTeamId() != null) {
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
 			}else {
@@ -1421,6 +1423,88 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+
+	public ServiceResponse addDeptIdsInActivities() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Team> allTeamList = teamRepository.findAll();
+			if(!allTeamList.isEmpty()) {
+				allTeamList.forEach((teamOBj) -> {
+					// Find team memeber's Department
+					Set<String> deptIds = new HashSet<String>();
+					
+					List<EmployeeTeamMap> allTeamMemeber = employeeTeamMapRepository.findByTeamId(teamOBj.getTeamId());
+					if(!allTeamMemeber.isEmpty()) {
+						allTeamMemeber.forEach((teamMapObj) -> {
+							// get Department of each employee
+							
+							List<Object[]> getEmpDepartemnt = employeeRepository.getEmployeeData(teamMapObj.getEmpId());
+							if(!getEmpDepartemnt.isEmpty()) {
+								getEmpDepartemnt.forEach((empObj) -> {
+									String deptId = empObj[4] != null ? empObj[4].toString() : null;
+									
+									deptIds.add(deptId);
+								});
+							}
+						});
+					}
+					//Add deptIds in teams
+					String departemntIds = String.join(",", deptIds);
+					teamOBj.setDeptIds(departemntIds);
+					Team teamDbResposnse = teamRepository.save(teamOBj);
+					
+					if(teamDbResposnse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("deptIds added successfully in team table");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("deptIds failed to add");
+					}
+					
+					// Get team activities to set deptIds
+//					List<Activity> teamActivity = activitiesRepository.findByTeamId(teamOBj.getTeamId());
+//					if(!teamActivity.isEmpty()) {
+//						teamActivity.forEach((activityObj) -> {
+//							String departemntIds = String.join(",", deptIds);
+//							activityObj.setDeptIds(departemntIds);
+//							Activity activityDbResponse = activitiesRepository.save(activityObj);
+//							
+//							if(activityDbResponse != null) {
+//								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//								response.setServiceResponse("deptIds added successfully in Activity table");
+//							}else {
+//								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//								response.setServiceResponse("deptIds failed to add");
+//							}
+//						});
+//					}
+				});
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse addProjectDepartmentMapping() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return null;
 	}
 
 }

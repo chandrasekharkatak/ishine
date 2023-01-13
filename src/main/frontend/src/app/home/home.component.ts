@@ -356,13 +356,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.countMyReporteesTimesheetRequests(timesheet).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetApplicationCount = response.serviceResponse.applicationCount;
-        console.log("TimesheetApplicationCount : ", this.timesheetApplicationCount);
-        this.timesheetApplicationCount.forEach(timesheet => {
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        });
       } else {
         this.timesheetApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -383,8 +376,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
-        for (let x of this.allTeamTimesheetRequests) {
-          x.employeementId = "A-".concat(x.employeementId);
+        for (let timesheet of this.allTeamTimesheetRequests) {
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
@@ -1209,7 +1206,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   
   bulkApproveWithoutNightShiftRequest(template:TemplateRef<any>){
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    this.onBulkApproval(template);
+    if(this.bulkApprove.length !== 0){
+      this.onBulkApproval(template);
+    }else{
+      this.cancelRequest();
+      this.getMyReporteesTimesheetRequests();
+    }
   }
 
   openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
@@ -1226,7 +1228,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet:TemplateRef<any>){
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    this.OnBulkReject(bulkRejectTimesheet);
+    if(this.bulkReject.length !== 0){
+      this.OnBulkReject(bulkRejectTimesheet);
+    }else{
+      this.cancelRequest();
+      this.getMyReporteesTimesheetRequests();
+    }
   }
 
   onBulkApproval(template: TemplateRef<any>) {

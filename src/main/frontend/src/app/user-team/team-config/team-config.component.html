@@ -133,7 +133,7 @@
                         </div>
                     </div>
                     <div class="d-flex">
-                        <div class="col-md-3 mb-0">
+                        <div class="mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
@@ -145,11 +145,12 @@
                             </div>
                         </div>
                         <div class="m-0">
-                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)"><i
-                                    class="fa fa-trash" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)">
+                                <i class="fa fa-trash" aria-hidden="true"></i></button>
                         </div>
                         <div class="m-0">
-                            <button type="button" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview)">Preview Activities</button>
+                            <button type="button" title="Activity Preview" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview)">
+                                <i class="fa-solid fa-circle-info fa-lg"></i></button>
                         </div>
                     </div>
                 </div>
@@ -217,7 +218,7 @@
                     </div>
                 </div>
                 <div class="d-flex">
-                    <div class="col-md-3 mb-0">
+                    <div class="mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
@@ -234,8 +235,8 @@
                         [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="m-0">
-                            <button type="button" class="btn btn-outline-primary mx-1" (click)="openActivityPreviewModal(activity_preview)"
-                            [disabled]="!newteamMember.employeeRole">Preview Activities</button>
+                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="openActivityPreviewModal(activity_preview)"
+                            [disabled]="!newteamMember.employeeRole"><i class="fa-solid fa-circle-info fa-lg"></i></button>
                     </div>
                 </div>
             </div>

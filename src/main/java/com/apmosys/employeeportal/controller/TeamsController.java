@@ -227,4 +227,18 @@ public class TeamsController {
 		}
 		return response;
 	}
+	
+	@RequestMapping(value="/addDeptIdsInActivities" , method = RequestMethod.GET)
+	public ServiceResponse addDeptIdsInActivities() {
+		
+		ServiceResponse response = teamsService.addDeptIdsInActivities();
+		return response;
+	}
+	
+	@RequestMapping(value="/addProjectDepartmentMapping" , method = RequestMethod.GET)
+	public ServiceResponse addProjectDepartmentMapping() {
+		
+		ServiceResponse response = teamsService.addProjectDepartmentMapping();
+		return response;
+	}
 }

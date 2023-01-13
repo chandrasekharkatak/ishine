@@ -532,7 +532,12 @@ export class TeamTimesheetComponent implements OnInit {
 
   bulkApproveWithoutNightShiftRequest(template: TemplateRef<any>) {
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    this.onBulkApproval(template);
+    if(this.bulkApprove.length !== 0){
+      this.onBulkApproval(template);
+    }else{
+      this.cancelRequest();
+      this.showAllTimesheetRequestsTable();
+    }
   }
 
   openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
@@ -549,7 +554,12 @@ export class TeamTimesheetComponent implements OnInit {
   bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet: TemplateRef<any>) {
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    this.openBulkRejectTimesheet(bulkRejectTimesheet);
+    if(this.bulkReject.length !== 0){
+      this.openBulkRejectTimesheet(bulkRejectTimesheet);
+    }else{
+      this.cancelRequest();
+      this.showAllTimesheetRequestsTable();
+    }
   }
 
   onBulkApproval(template: TemplateRef<any>) {

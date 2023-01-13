@@ -99,7 +99,7 @@ export class TeamConfigComponent implements OnInit {
 
   filterStatus:any = '';
 
-  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR']; 
+  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin']; 
 
   constructor(
     private validationService: ValidationService,
@@ -270,8 +270,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTemplateTable = false;
     
     this.activityObj = Object.assign({}, activityObj);
-    this.activityObj.departmentList = [];
-    this.activityObj.departmentList.push(this.activityObj.deptId);
+    this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
     this.getDepartmentByTeam(this.activityObj.teamId);
   }
 

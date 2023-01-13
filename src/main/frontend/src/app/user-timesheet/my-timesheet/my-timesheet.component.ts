@@ -801,9 +801,9 @@ export class MyTimesheetComponent implements OnInit {
         console.log("allActivityList :", allActivityList);
         if(this.timesheetObj.timesheetAppliedFor == "team"){
           let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-          allActivityList = allActivityList.filter(x => x.deptId == teamMember.departmentId);
+          allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(teamMember.departmentId));
         }else{
-          allActivityList = allActivityList.filter(x => x.deptId == this.currentUser.departmentId);
+          allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(this.currentUser.departmentId));
         }
       } else {
         console.error(response.serviceResponse)

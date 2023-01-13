@@ -13,7 +13,7 @@
         <div class="form-inline input-group">	
           <label class="d-inline-block mr-2 mt-2"><strong>Year</strong></label>	
           <select class="form-control" aria-hidden="true" #changedata (change)="getFilterHolidayList(changedata.value)">	
-            <option selected="selected" value="" disabled>Select</option>	
+            <!-- <option selected="selected" [ngValue]="{{currentYear}" disabled>Select</option>	 -->
             <option *ngFor="let year of years" value="{{year}}">{{year}}</option>	
           </select>	
         </div>	

@@ -25,6 +25,7 @@ export class HolidaysComponent implements OnInit {
   selectedYearholidayList:any[] = [];	
   holidayList1:any[] = [];	
   years:any[]=[];
+  currentYear:any;
 
   constructor(
     private holidayService : HolidayService,
@@ -65,8 +66,9 @@ export class HolidaysComponent implements OnInit {
         this.holidayList = response.serviceResponse;
         this.holidayList1 = this.holidayList;	
 
-        const currentYear = new Date().getFullYear();	
-        this.holidayList = this.holidayList.filter(x=>new Date (x.dateOfHoliday).getFullYear() == currentYear);
+        this.currentYear = new Date().getFullYear();	
+        // sessionStorage.setItem('currentyear');
+        this.holidayList = this.holidayList.filter(x=>new Date (x.dateOfHoliday).getFullYear() == this.currentYear);
 
 
         console.log("holidayList : ", this.holidayList);

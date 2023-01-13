@@ -1561,6 +1561,11 @@ export class ReportDashboardComponent implements OnInit {
 
       this.storedDataList.forEach((data) => {
         if(data.filterName == title){
+          data.queryList.forEach((queryObj) => {
+            if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
+              queryObj.value = "A-".concat(queryObj.value);
+            }
+          });
           this.queryList = data.queryList;
         }
       });
@@ -1572,41 +1577,59 @@ export class ReportDashboardComponent implements OnInit {
     }
   
     onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
-      console.log("queryList : ", emittedArray[0]);
-      this.queryList =  JSON.parse(JSON.stringify(emittedArray[0])); 
-      this.cancelRequest();
+      if (emittedArray[0].length != 0) {
+        console.log("queryList : ", emittedArray[0]);
+        this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
+        this.cancelRequest();
 
-      emittedArray[1].forEach((object) => {
-        if(Object.keys(object).length !== 0){
-          this.storedDataList.push(object);
-        }
-      });
+        emittedArray[1].forEach((object) => {
+          if (Object.keys(object).length !== 0) {
+            this.storedDataList.push(object);
+          }
+        });
 
-      emittedArray[0].forEach(query => {
-          if(query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining'){
-              query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
-          }else if(query.column == 'Created On' || query.column == 'Updated On'){
-            query.value = (query.value)? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+        emittedArray[0].forEach(query => {
+          if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
+            query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
+          } else if (query.column == 'Created On' || query.column == 'Updated On') {
+            query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
           }
 
-          if(query.column == 'Employee Id'){
+          if (query.column == 'Employee Id') {
             query.value = query.value.split("-")[1];
           }
-      });
+        });
 
-      console.log("updated queryList : ", emittedArray[0]);
+        console.log("updated queryList : ", emittedArray[0]);
 
-      if(this.filterData.title == 'Filter Employee Report'){
-        this.getCustomEmployeesList(emittedArray[0],template);
-      }
-      if(this.filterData.title == 'Filter Leave Summary'){
-        this.getCustomLeaveReport(emittedArray[0],template);
-      }
-      if(this.filterData.title == 'Filter Leave Trend Chart'){
-        this.getCustomLeaveTrendAnalysisReport(emittedArray[0],template);
-      }
-      if(this.filterData.title == 'Filter Timesheet Summary'){
-        this.getCustomTimesheetReport(emittedArray[0],template);
+        if (this.filterData.title == 'Filter Employee Report') {
+          this.getCustomEmployeesList(emittedArray[0], template);
+        }
+        if (this.filterData.title == 'Filter Leave Summary') {
+          this.getCustomLeaveReport(emittedArray[0], template);
+        }
+        if (this.filterData.title == 'Filter Leave Trend Chart') {
+          this.getCustomLeaveTrendAnalysisReport(emittedArray[0], template);
+        }
+        if (this.filterData.title == 'Filter Timesheet Summary') {
+          this.getCustomTimesheetReport(emittedArray[0], template);
+        }
+      }else{
+        let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
+        this.storedDataList.splice(clearedFilter);
+
+        if (emittedArray[1] == 'Filter Employee Report') {
+          this.getAllEmployeeList();
+        }
+        if (emittedArray[1] == 'Filter Leave Summary') {
+          this.get8DaysLeaveReport();
+        }
+        if (emittedArray[1] == 'Filter Leave Trend Chart') {
+          this.getLeaveTrendAnalysisReport();
+        }
+        if (emittedArray[1] == 'Filter Timesheet Summary') {
+          this.get9DayTimesheetReport();
+        }
       }
     }
 

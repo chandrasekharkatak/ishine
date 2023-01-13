@@ -1080,7 +1080,7 @@ public class CronJobService {
 						//Filter 0 pending EOD counts
 						
 						dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
-						
+								
 						//Mail timesheet defaulter list to: user cc: HR, HOD	
 						
 						StringBuilder html = new StringBuilder();
@@ -1103,11 +1103,12 @@ public class CronJobService {
 					            "        <th>Email</th>\n" +
 					            "        <th>Manager Name</th>\n" +
 					            "        <th>Expected Timesheet Count</th>\n" +
-					            "        <th>Pending Timesheet Count</th>\n" +
+					            "        <th>Filled Timesheet Count</th>\n" +
 					            "        <th>Deaprtment</th>\n" +
 					            "      </tr>\n");
 						// add rows to the table
 						for(TimesheetDTO timesheet: dtoList) {
+							Long filledEOD = period - timesheet.getPendingEodCount();
 							html.append("      <tr>\n");
 							  // add cells to the row
 							  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
@@ -1115,7 +1116,7 @@ public class CronJobService {
 							  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
 							  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
 							  html.append("        <td>" + period + "</td>\n");
-							  html.append("        <td>" + timesheet.getPendingEodCount() + "</td>\n");
+							  html.append("        <td>" + filledEOD + "</td>\n");
 							  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
 							  html.append("      </tr>\n");
 						}
@@ -1134,7 +1135,7 @@ public class CronJobService {
                                   + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
 								  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
 								  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
-								  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and loosing salary.<br><br>"
+								  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
 								  +	html.toString());
 						} catch (MessagingException e) {
 							e.printStackTrace();
@@ -1198,6 +1199,167 @@ public class CronJobService {
 				
 			}catch(Exception e) {
 				e.printStackTrace();
+			}
+		}
+		
+		@Async
+		@Scheduled(cron = "0 0 10 ? * MON")
+		public void allEmployeeDsrReport() {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				
+				int currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
+				
+				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				LocalDate currentDate = LocalDate.now().minusDays(1);
+					
+//					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
+					Path path = Files.createDirectories(Paths.get("/home/apmosys/Downloads" + File.separator + "monthlyDSR"));
+					var f = new File(path + File.separator + "hii" + ".xlsx");
+//					var f = new File(fileName);
+						
+				        try (var fos = new FileOutputStream(f)) {
+				        	
+				        	 var wb = new Workbook(fos, "Application", "1.0");
+					            Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+					            
+					            ws.value(0, 0, "EmpId");
+					            ws.value(0, 1, "Emp Name");
+					            ws.value(0, 2, "Date");
+					            ws.value(0, 3, "Day Type");
+					            ws.value(0, 4, "In-Time");
+					            ws.value(0, 5, "Out-Time");
+					            ws.value(0, 6, "Total Working Hours");
+					            ws.value(0, 7, "Client");
+					            ws.value(0, 8, "Client Location");
+					            ws.value(0, 9, "Project");
+					            ws.value(0, 10, "Activity");
+					            ws.value(0, 11, "Total Activity Time");
+					            ws.value(0, 12, "Shift");
+					            ws.value(0, 13, "Description");
+					            ws.value(0, 14, "Status");
+					            
+					            int rowNum = 1;
+
+				        	List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+							for(Object[] empObj : employeeList) {
+								
+								Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+								String empName = empObj[2] != null ? empObj[2].toString() : null;
+								Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
+								
+								System.out.println("Emp ID :" + empId);
+								System.out.println("Employment ID :" + employeementId);
+								
+								List<Timesheet> monthlyTimesheet = timesheetsRepository.
+										findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+				 
+						
+				        
+						if(!monthlyTimesheet.isEmpty()){
+							for(Timesheet timesheetObj: monthlyTimesheet) {
+								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+								
+								String perviousProject = "";
+								String perviousDate = "";
+								String perviousClientName = "";
+								String perviousClientLocation = "";
+								
+								if(!objectList.isEmpty()) {
+									for(Object[] object : objectList) {
+										
+										String activity = object[1] != null ? object[1].toString() : null;
+										String project = object[5] != null ? object[5].toString() : null;
+										String clientName = object[6] != null ? object[6].toString() : null;
+										String clientLocation = object[7] != null ? object[7].toString() : null;
+										
+										ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+										ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+										ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+										
+										if(timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 0, rowNum, 0).merge();
+											ws.range(rowNum - 1, 1, rowNum, 1).merge();
+											ws.range(rowNum - 1, 2, rowNum, 2).merge();
+											ws.range(rowNum - 1, 3, rowNum, 3).merge();
+											ws.range(rowNum - 1, 4, rowNum, 4).merge();
+											ws.range(rowNum - 1, 5, rowNum, 5).merge();
+											ws.range(rowNum - 1, 6, rowNum, 6).merge();
+											ws.range(rowNum - 1, 11, rowNum, 11).merge();
+											ws.range(rowNum - 1, 12, rowNum, 12).merge();
+											ws.range(rowNum - 1, 14, rowNum, 14).merge();
+										}else {
+											ws.value(rowNum, 0, "A-"+employeementId);
+											ws.value(rowNum, 1, empName);
+											ws.value(rowNum, 2, timesheetObj.getDate());
+											ws.value(rowNum, 3, timesheetObj.getDayType());
+											ws.value(rowNum, 4, timesheetObj.getOfficeInTime());
+											ws.value(rowNum, 5, timesheetObj.getOfficeOutTime());
+											ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
+											ws.value(rowNum, 11, timesheetObj.getTotalTime());
+											ws.value(rowNum, 12, timesheetObj.getIsNightShift());
+											ws.value(rowNum, 14, timesheetObj.getStatus());
+										}
+										if(clientName.equals(perviousClientName) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 7, rowNum, 7).merge();
+										}else {
+											ws.value(rowNum, 7, clientName);
+										}
+										if(clientLocation.equals(perviousClientLocation) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 8, rowNum, 8).merge();
+										}else {
+											ws.value(rowNum, 8, clientLocation);
+										}
+										if(project.equals(perviousProject) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 9, rowNum, 9).merge();
+										}else {
+											ws.value(rowNum, 9, project);
+										}
+										if(!objectList.isEmpty()) {
+											ws.value(rowNum, 10, activity);
+										}else {
+											ws.value(rowNum, 10, timesheetObj.getDescription());
+										}
+										
+										
+										rowNum++;
+										perviousProject = project;
+										perviousDate = timesheetObj.getDate().toString();
+										perviousClientName = clientName;
+										perviousClientLocation = clientLocation;
+									}
+								}else {
+									
+									// Fill data of weekoff & leave
+									ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+									ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+									ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+									
+									ws.value(rowNum, 0, "A-"+employeementId);
+									ws.value(rowNum, 1, empName);
+									ws.value(rowNum, 2, timesheetObj.getDate());
+									ws.value(rowNum, 3, timesheetObj.getDayType());
+									ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
+									ws.value(rowNum, 13, timesheetObj.getDescription());
+									ws.value(rowNum, 14, timesheetObj.getStatus());
+									
+									rowNum++;
+									
+									System.out.println("Activity List is empty");
+								}
+							}
+						}
+			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("DSR Generated Successfully.");
+				      }
+						wb.finish();
+				    }
+			}catch(Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
 			}
 		}
 }	
