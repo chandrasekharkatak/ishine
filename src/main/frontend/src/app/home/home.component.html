@@ -279,7 +279,7 @@
             </div>
         </div>
       </div>
-      <div *ngIf="timesheetObj.dayType == 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
+      <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
        
         <table class="table timesheet-details-table">
             <thead class="thead-light">
