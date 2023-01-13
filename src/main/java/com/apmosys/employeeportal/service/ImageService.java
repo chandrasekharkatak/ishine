@@ -401,7 +401,7 @@ public class ImageService {
 		return response;
 	}
 
-	public ServiceResponse uploadEmployeeDocument(List<MultipartFile> images, Long uploadedBy, Long employeementId,
+	public ServiceResponse uploadEmployeeDocument(MultipartFile image, Long uploadedBy, Long employeementId,
 			Long empId) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -423,58 +423,41 @@ public class ImageService {
 
 //			if (employeeObject.isPresent()) {
 
-			if (!images.isEmpty()) {
+			if (image != null) {
 				String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + "Documents"
 						+ File.separator + "Draft" + File.separator + employeementId)).toString();
+				
+				byte[] bytes = image.getBytes();
+				String extension = FilenameUtils.getExtension(image.getOriginalFilename());
+				Path path = Paths.get(newPath + File.separator + image.getOriginalFilename());
 
-				for (MultipartFile image : images) {
-					byte[] bytes = image.getBytes();
-					String extension = FilenameUtils.getExtension(image.getOriginalFilename());
-					Path path = Paths.get(newPath + File.separator + image.getOriginalFilename());
+				System.out.println("path : " + path);
 
-					System.out.println("path : " + path);
+				Files.write(path, bytes);
 
-					Files.write(path, bytes);
+				File savedFile = new File(path.toString());
 
-					File savedFile = new File(path.toString());
-
-					if (savedFile.exists()) {
-						savedFiles.add(savedFile);
-
-						apiLogInfo.setApiResponse("Image File save.");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					}
-				}
-
-				if (images.size() == savedFiles.size()) {
+				if (savedFile.exists()) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("image Uploaded.");
-
+					
 					apiLogInfo.setApiResponse("image Uploaded.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-				} else {
-					for (File image : savedFiles) {
-						image.delete();
-					}
-					response.setServiceResponse(errorMsg + "Upload Image Failed !!");
+				}else {
+					response.setServiceResponse("Upload Image Failed !!");
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 
 					apiLogInfo.setApiResponse("Upload Image Failed !!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
+
 			} else {
-				response.setServiceResponse("uploaded images Not Found !!");
+				response.setServiceResponse("uploaded image Not Found !!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 
-				apiLogInfo.setApiResponse("uploaded images Not Found !!");
+				apiLogInfo.setApiResponse("uploaded image Not Found !!");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-
-//			} else {
-//				response.setServiceResponse("User Not Found !!");
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

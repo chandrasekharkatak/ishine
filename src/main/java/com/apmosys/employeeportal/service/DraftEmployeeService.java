@@ -1047,11 +1047,11 @@ public class DraftEmployeeService {
 					 */
 
 					List<EmployeeDocument> documentList = employeeDocumentRepository
-							.findByEmpId(employeedto.getDraftEmpId());
+							.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(), "true");
 					List<EmployeeCertificate> certificationsList = employeeCertificateRepository
-							.findByEmpId(employeedto.getDraftEmpId());
+							.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(),"true");
 					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-							.findByEmpId(employeedto.getDraftEmpId());
+							.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(),"true");
 
 					if (documentList != null) {
 
