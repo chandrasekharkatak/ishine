@@ -846,11 +846,11 @@
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>
+                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving}}</td>
                                 <td *ngIf="isTable">{{employee.createdOn}}</td>
                                 <td *ngIf="isTable">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable">{{employee.updatedOn}}</td>
                                 <td *ngIf="isTable">{{employee.updatedByName}}</td>
-                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving}}</td>
 
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
