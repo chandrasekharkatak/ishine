@@ -39,6 +39,7 @@ import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
@@ -51,6 +52,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -101,6 +103,9 @@ public class TeamsService {
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	ProjectDepartmentMapRepository projectDepartmentMapRepository;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -1494,7 +1499,27 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			
+			List<Project> allProject = projectRepository.findAll();
+			if(!allProject.isEmpty()) {
+				allProject.forEach((projObj) -> {
+					Department deptObj = departmentRepository.findByName(projObj.getDepartmentName());
+					
+					if(deptObj != null) {
+						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+						projectDeptMap.setProjectId(projObj.getProjectId());
+						projectDeptMap.setDeptId(deptObj.getDeptId());
+						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+						
+						if(projDeptMapDbResponse != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Project Department mapping completed");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Failed to mapp Project & department");
+						}
+					}
+				});
+			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
