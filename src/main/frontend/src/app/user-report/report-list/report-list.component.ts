@@ -636,9 +636,11 @@ export class ReportListComponent implements OnInit {
 
       emittedArray[0].forEach(query => {
         if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
-          query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD') : '';
+          console.log(query.value, " : query.value");
+          
+          query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD') : '';
         } else if (query.column == 'Created On' || query.column == 'Updated On') {
-          query.value = (query.value) ? moment(new Date(query.value)).format('YYYY-MM-DD HH:mm:ss') : '';
+          query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
         } if (query.column == 'Employee Id') {
           query.value = query.value.split("-")[1];
         }
