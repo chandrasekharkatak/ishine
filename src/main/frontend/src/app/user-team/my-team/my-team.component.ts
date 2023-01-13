@@ -555,14 +555,6 @@ export class MyTeamComponent implements OnInit {
           if(temp != undefined) x.isHierarchy = true;          
        }
 
-       let blockedReportees = this.teamViewList.filter(reportee => reportee.invalidAccessAttempt > reportee.failedAttempt);
-       
-        if(blockedReportees.length !== 0){
-          this.isActionEnabled = true;
-        }else{
-          this.isActionEnabled = false;
-        }
-
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }
@@ -721,6 +713,31 @@ export class MyTeamComponent implements OnInit {
         }
       });
     }
+  }
+
+  onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
+    let employee = Object.assign({}, employeeObj);
+    employee.isTimesheetLockCheckEnable = status;
+    employee.updatedBy = this.currentUser.empId;
+
+    if(employee.employeementId.startsWith('A-')){
+      employee.employeementId  = employee.employeementId.substring(2);
+    }else {
+      employee.employeementId  = employee.employeementId
+    }
+
+    console.log("updateTimesheetLockCheck : ", employee);
+    this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        let employeeObj = new Employee();
+        employeeObj.empId = this.currentUser.empId;
+        employeeObj.managerId = this.currentUser.managerId;
+        this.myTeamHierarchy(employeeObj);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

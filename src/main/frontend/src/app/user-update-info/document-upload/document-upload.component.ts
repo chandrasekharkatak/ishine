@@ -199,17 +199,16 @@ export class DocumentUploadComponent implements OnInit {
 
     let selectedFile = this.files.find(file => file.inputName == imgObj.inputName);
     if(selectedFile){
-      selectedFile.file = imgObj.image; 
+      selectedFile.file = imgObj.image;
     }else{
       this.files.push(imgObj);
     }
-
+    
     let doc = this.documentList.find(doc => doc.documentType == documentObj.documentType);
     if(doc) {
-      doc.uploadStatus = "Completed";
+      doc.uploadStatus = "Uploading";
       doc.documentName = imageName;
     }
-    
 
     const formData = new FormData();
     formData.append(`image`, image, imageName);
@@ -220,17 +219,33 @@ export class DocumentUploadComponent implements OnInit {
     this.imageService.uploadEmployeeDocument(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         let preview = document.getElementById(`docPreview${index + 1}`);
+        console.log("preview : ", preview);
+        console.log("image : ", image);
         if (image) {
           preview?.setAttribute('src', URL.createObjectURL(image));
         }
+
+        let doc = this.documentList.find(doc => doc.documentType == documentObj.documentType);
+        if(doc) {
+          doc.uploadStatus = "Completed";
+          doc.documentName = imageName;
+        }
       } else {
         this.openAlertMod(template, response.serviceResponse);
+        let doc = this.documentList.find(doc => doc.documentType == documentObj.documentType);
+        if(doc) {
+          doc.uploadStatus = "Pending";
+        }
+      }
+    }, (error) => {
+      console.error(error);
+      this.openAlertMod(template, "Upload Failed");
+      let doc = this.documentList.find(doc => doc.documentType == documentObj.documentType);
+      if(doc) {
+        doc.uploadStatus = "Pending";
       }
     });
-
-
-    
-  }
+  } 
 
 
   // Modals

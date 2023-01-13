@@ -269,7 +269,7 @@
           </div>
         </div>
       </div>
-      <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
+      <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
         <div class="col-md-4 mb-0">
             <div class="info-wrapper">
                 <div class="form-group">
@@ -279,7 +279,7 @@
             </div>
         </div>
       </div>
-      <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
+      <div *ngIf="timesheetObj.dayType == 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
        
         <table class="table timesheet-details-table">
             <thead class="thead-light">

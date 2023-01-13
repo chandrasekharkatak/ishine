@@ -93,6 +93,14 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProfileCompletion`, employeeObj);
   }
 
+  updateTimesheetLockCheck(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/updateTimesheetLockCheck`, employeeObj);
+  }
+  
+  getEmployeeBasicInfo(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeBasicInfo`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`api/previewImage`,formData);

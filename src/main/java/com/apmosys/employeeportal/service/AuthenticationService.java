@@ -64,7 +64,13 @@ public class AuthenticationService {
 	
 	@Value("${spring.servlet.multipart.max-request-size}")
 	private String maxRequestSize;
+	
+	@Value("${timesheet.backdated.days}")
+	private Integer timesheetBackDatedDays;
 
+	@Value("${compoff.lock.days}")
+	private Integer compOffLockDays;
+	
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
 
@@ -193,6 +199,9 @@ public class AuthenticationService {
 				EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 				AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
 
+				currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+				currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+				
 				logInfo.setLoginTime(df.format(new Date()));
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 

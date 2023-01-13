@@ -38,4 +38,9 @@ export class User{
     hodId:any;
 	hodName:any;
     hodEmail:any;
+
+    isTimesheetLockCheckEnable:any;
+    timesheetLockUpdatedOn:any;
+	timesheetBackDatedDays:any;
+	compOffLockDays:any;
 }

@@ -146,6 +146,10 @@ public class CronJobService {
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
+	@Value("${timesheet.reconcile.days}")
+	private Long timesheetReconcileDays;
+	
+	
 //	0 0 0 * * * for every midnight
 //	*/20 * * * * *  for every 20 secs
 
@@ -1138,6 +1142,61 @@ public class CronJobService {
 						}
 					});
 				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+//		*/20 * * * * *  for every 20 secs
+//      @Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM		
+		@Async
+		@Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM	
+		public void timesheetCheckEnable() {
+
+			try {
+				LocalDate dateToday = LocalDate.now();
+				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+				List<EmployeeDTO> listDTO = new ArrayList<EmployeeDTO>();
+				
+				if(!employeeList.isEmpty()) {
+					for(Object[] object: employeeList) {
+						EmployeeDTO empdto = new EmployeeDTO();
+						empdto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						empdto.setName(object[2] != null ? object[2].toString() : null);
+						empdto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+						empdto.setIsTimesheetLockCheckEnable(object[4] != null ? object[4].toString() : null);
+						empdto.setTimesheetLockUpdatedOn(object[5] != null ? object[5].toString() : null);
+						
+						listDTO.add(empdto);
+					}
+				}
+				
+				if(!listDTO.isEmpty()) {
+					listDTO.forEach((employeeDTO) -> {
+						
+						if(employeeDTO.getTimesheetLockUpdatedOn() != null) {
+							DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+							
+							LocalDate lastUpdatedDate = LocalDate.parse(employeeDTO.getTimesheetLockUpdatedOn(), format);			
+							long elapsedDays = ChronoUnit.DAYS.between(lastUpdatedDate, dateToday);
+							
+							System.out.println("today : "+ dateToday + " lastUpdatedDate : "+ lastUpdatedDate);
+							System.out.println("elapsedDays for "+ employeeDTO.getEmpId() + " : "+  elapsedDays);
+							
+							if(elapsedDays >= timesheetReconcileDays && employeeDTO.getIsTimesheetLockCheckEnable().equals("false")) {
+								Optional<Employee> emp = employeeRepository.findById(employeeDTO.getEmpId());
+								if(emp.isPresent()) {
+									Employee employeeObj = emp.get();								
+									employeeObj.setIsTimesheetLockCheckEnable("true");
+									employeeObj.setTimesheetLockUpdatedOn(LocalDate.now());
+									
+									employeeRepository.save(employeeObj);
+								}
+							}
+						}
+					});
+				}
+				
 			}catch(Exception e) {
 				e.printStackTrace();
 			}

@@ -237,6 +237,18 @@ public class EmployeeController {
 		ServiceResponse response=employeeService.getEmployeeProfileCompletion(employeeDto);
 		return response;
 	}
+	
+	@RequestMapping(value ="/updateTimesheetLockCheck" , method = RequestMethod.POST)
+	public ServiceResponse updateTimesheetLockCheck(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response=employeeService.updateTimesheetLockCheck(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getEmployeeBasicInfo", method = RequestMethod.POST)
+	public ServiceResponse getEmployeeBasicInfo(@RequestBody EmployeeDTO employeedto) {
+		ServiceResponse response= employeeService.getEmployeeBasicInfo(employeedto);
+		return response;
+	}
 
 	/*
 	 Old Employee Portal Password Encryption - part of data migration.

@@ -70,7 +70,7 @@
                   <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>
                   <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
                   <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
-                  <th *ngIf="isActionEnabled" scope="col" class="info-label">Actions</th>
+                  <th scope="col" class="info-label">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,12 +88,15 @@
                   <td class="info-label">{{teamView.jobRoleName}}</td>
                   <td class="info-label">{{teamView.mobileNo}}</td>
                   <td class="info-label">{{teamView.managerName}}</td>
-                  <td *ngIf="isActionEnabled">
+                  <td>
                     <button
                       *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
-                      class="btn btn-sm btn-outline-primary" type="submit"
+                      class="btn btn-sm btn-outline-primary mb-1" type="submit"
                       (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>
-  
+                    <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-primary mb-1" type="submit"
+                      (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
+                    <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-outline-primary" type="submit"
+                      (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
                     <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
                   </td>
                 </tr>

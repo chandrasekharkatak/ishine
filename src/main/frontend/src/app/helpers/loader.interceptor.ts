@@ -131,6 +131,8 @@ export class LoaderInterceptor implements HttpInterceptor {
 
     `${this.baseUrl}` + `api/getMappedActivityPreview`,
     `${this.baseUrl}` + `api/getMappedActivityInUpdateTeam`,
+
+    `${this.baseUrl}` + `api/updateTimesheetLockCheck`,
     `${this.baseUrl}` + `api/revokeApprovedLeaveApplication`,
     `${this.baseUrl}` + `api/updateRevokeLeaveStatus`,
   ]

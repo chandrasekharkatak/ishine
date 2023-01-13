@@ -145,4 +145,9 @@ export class Employee{
 	profileCompletedPercent:any;
 	updatedByName:any;
 	createdByName: any;
+
+	isTimesheetLockCheckEnable:any;
+	timesheetLockUpdatedOn:any;
+	timesheetBackDatedDays:any;
+	compOffLockDays:any;
 }

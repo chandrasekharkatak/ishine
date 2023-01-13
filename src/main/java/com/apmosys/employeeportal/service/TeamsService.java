@@ -806,6 +806,7 @@ public class TeamsService {
 					dto.setManagerName(object[5] != null ? object[5].toString(): null);
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()): null);
+					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString(): null);
 					dtoList.add(dto);
 				});
 
@@ -849,6 +850,7 @@ public class TeamsService {
 					dto.setHodName(object[11] != null ? object[11].toString() : null);
 					dto.setHodEmail(object[12] != null ? object[12].toString() : null);
 					dto.setDepartmentId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+					dto.setIsTimesheetLockCheckEnable(object[14] != null ? object[14].toString() : null);
 					
 					dtoList.add(dto);
 					

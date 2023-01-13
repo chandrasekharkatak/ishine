@@ -169,5 +169,10 @@ public class EmployeeDTO {
 	private String hodEmail;
 	private String updatedByName;
 	private String createdByName;
+	
+	private String isTimesheetLockCheckEnable;
+	private String timesheetLockUpdatedOn;
+	private Integer timesheetBackDatedDays;
+	private Integer compOffLockDays;
 
 }

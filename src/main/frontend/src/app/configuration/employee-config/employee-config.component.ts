@@ -1615,7 +1615,8 @@ export class EmployeeConfigComponent implements OnInit {
     const diff =  Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));		
     this.employeeObj.noticePeriod = diff;	
     console.log(diff, "diffDaysdiffDays")	
-  }	
+  }
+  	
   estimateDateOfReleiving(employeeObj: Employee){	
     const dateFormat = 'YYYY-MM-DD';	
     console.log(employeeObj,"employeeObj");	
@@ -1624,6 +1625,27 @@ export class EmployeeConfigComponent implements OnInit {
     console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
   }	
 
+  onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
+    let employee = Object.assign({}, employeeObj);
+    employee.isTimesheetLockCheckEnable = status;
+    employee.updatedBy = this.currentUser.empId;
+
+    if(employee.employeementId.startsWith('A-')){
+      employee.employeementId  = employee.employeementId.substring(2);
+    }else {
+      employee.employeementId  = employee.employeementId
+    }
+
+    console.log("updateTimesheetLockCheck : ", employee);
+    this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getAllEmployeeList();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
