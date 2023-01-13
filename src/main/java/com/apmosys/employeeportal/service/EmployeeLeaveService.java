@@ -106,9 +106,11 @@ public class EmployeeLeaveService {
 		
 		try {
 
-			//LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
+//			LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
+			
+			Optional<LeaveTypeMaster> leavetype = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
 			
 			System.out.println("Leave DTO check :"+leaveDTO);
 			
@@ -207,7 +209,7 @@ public class EmployeeLeaveService {
 							"<br>"+
 							" No. Of Days : "+ leaveDTO.getNoOfDays() + " day(s)" 
 							+"<br>"+
-							" Leave Type :"+" "+leaveDTO.getLeaveType()+
+							" Leave Type :"+" "+leavetype.get().getLeaveType()+
 							"<br>"+
 							"leave Reason :"+" "+leaveDTO.getReason());
 					
@@ -227,7 +229,7 @@ public class EmployeeLeaveService {
 								+"<br> From Date : " + leaveDTO.getFromDate() 
 								+"<br> To Date : " + leaveDTO.getToDate()
 								+"<br> No. Of Days : " + leaveDTO.getNoOfDays() +" day(s)"
-								+"<br> Leave Type : " + leaveType.getLeaveType()
+								+"<br> Leave Type :"+" "+leavetype.get().getLeaveType()
 								+"<br> Leave reason : " + leaveDTO.getReason());
 					}
 				}

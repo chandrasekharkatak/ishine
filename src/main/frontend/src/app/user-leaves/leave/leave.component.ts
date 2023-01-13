@@ -483,9 +483,19 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.fromDateDayType)){
+      this.alertMessage = "Please select from day type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDate)){
       this.alertMessage = "Please select To Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDateDayType)){
+      this.alertMessage = "Please select to day type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
