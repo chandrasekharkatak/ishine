@@ -856,28 +856,28 @@
                                 <td
                                     *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-danger" type="submit"
+                                        class="btn btn-sm btn-outline-danger mb-1" type="submit"
                                         (click)="openDeleteEmployee(delete_template,employee)"><em
                                             class="fa fa-trash"></em></button>&nbsp;
                                     <button type="submit"
                                         (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
-                                        class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle"
+                                        class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
                                             aria-hidden="true"></i></button>&nbsp;
                                     <button
                                         *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)"
-                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
                                         (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'false'"
-                                        class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em>Enable Timesheet Check</em></button>
+                                        class="btn btn-sm btn-primary mb-1" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'true'"
-                                        class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em>Disable Timesheet Check</em></button>
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
                                 </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">

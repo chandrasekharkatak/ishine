@@ -150,4 +150,5 @@ public class Employee {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'true'")
 	private String isTimesheetLockCheckEnable;
 	
+	private LocalDate timesheetLockUpdatedOn;
 }

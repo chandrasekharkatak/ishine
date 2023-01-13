@@ -131,6 +131,8 @@ export class LoaderInterceptor implements HttpInterceptor {
 
     `${this.baseUrl}` + `api/getMappedActivityPreview`,
     `${this.baseUrl}` + `api/getMappedActivityInUpdateTeam`,
+
+    `${this.baseUrl}` + `api/updateTimesheetLockCheck`,
   ]
 
   constructor(private loaderService: LoaderService) { }

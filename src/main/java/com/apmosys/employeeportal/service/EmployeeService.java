@@ -130,6 +130,9 @@ public class EmployeeService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Value("${timesheet.reconcile.days}")
+	private Long timesheetReconcileDays;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -2444,7 +2447,8 @@ public class EmployeeService {
 					dto.setManagerName(object[5] != null ? object[5].toString() : null);
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
-
+					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
+					
 					dtoList.add(dto);
 				});
 
@@ -3033,8 +3037,8 @@ public class EmployeeService {
 
 				employee.setIsTimesheetLockCheckEnable(employeeDto.getIsTimesheetLockCheckEnable());
 				employee.setUpdatedBy(Integer.parseInt(employeeDto.getUpdatedBy().toString()));
-				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-
+				employee.setTimesheetLockUpdatedOn(LocalDate.now());
+				
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {
@@ -3049,7 +3053,7 @@ public class EmployeeService {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Timesheet Check Disabled.");
 						
-						apiLogInfo.setApiResponse("Timesheet Check Disabled.");
+						apiLogInfo.setApiResponse("Timesheet Check Disabled, It will enabled automatically in "+ timesheetReconcileDays +" day(s) if not enabled");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 					
