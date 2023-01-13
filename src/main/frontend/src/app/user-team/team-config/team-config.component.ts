@@ -520,23 +520,27 @@ export class TeamConfigComponent implements OnInit {
 
   getMappedActivityPreview(teamMember:any){
 
-    if(teamMember.employeeRole.length == 0){
-      this.activityPreviewList = [];
-    }
-
-    let teamObj = new Team();
-    teamObj.empId = teamMember.empId;
-    teamObj.employeeRole = teamMember.employeeRole;
-    teamObj.departmentList = this.teamObj.departmentList;
-
-    this.teamService.getMappedActivityPreview(teamObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.activityPreviewList = response.serviceResponse;
-        console.log(this.activityPreviewList, " : activityPreviewList");
-      } else {
-        console.log(response.serviceResponse, " response");
+    if(this.isUpdation == true){
+      this.getActivityInUpdateTeam(teamMember);
+    }else{
+      if(teamMember.employeeRole.length == 0){
+        this.activityPreviewList = [];
       }
-    });
+  
+      let teamObj = new Team();
+      teamObj.empId = teamMember.empId;
+      teamObj.employeeRole = teamMember.employeeRole;
+      teamObj.departmentList = this.teamObj.departmentList;
+  
+      this.teamService.getMappedActivityPreview(teamObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.activityPreviewList = response.serviceResponse;
+          console.log(this.activityPreviewList, " : activityPreviewList");
+        } else {
+          console.log(response.serviceResponse, " response");
+        }
+      });
+    }
   }
 
   getActivityInUpdateTeam(existingMember:any){

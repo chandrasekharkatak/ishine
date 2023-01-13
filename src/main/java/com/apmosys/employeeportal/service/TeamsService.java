@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -288,6 +289,7 @@ public class TeamsService {
 									newActivity.setTeamId(teamCreated.getTeamId());
 									newActivity.setEmployeeRole(object.getEmployeeRole());
 									newActivity.setDeptIds(object.getDeptId().toString());
+									newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
 
 									newActivityCreated = activitiesRepository.save(newActivity);
 								}
@@ -758,20 +760,27 @@ public class TeamsService {
 				}
 				
 				List<Activity> activityObj = activitiesRepository
-						.findByTeamIdAndEmployeeRoleInAndDeptIds(teamDTO.getTeamId(), teamDTO.getEmployeeRole(), deptId);
+						.findByTeamIdAndEmployeeRoleIn(teamDTO.getTeamId(), teamDTO.getEmployeeRole());
 				List<Activity> dtoList = new ArrayList<Activity>();
 				
 				if(!activityObj.isEmpty()) {
 					
-					activityObj.forEach((object) -> {
-						Activity dto = new Activity();
+					for(Activity object: activityObj) {
+						List<String> list = Arrays.asList(object.getDeptIds().split(","));
 						
-						dto.setActivity(object.getActivity());
-						dto.setEmployeeRole(object.getEmployeeRole());
-						dtoList.add(dto);
-					});
+						if (list.contains(deptId)) {
+							Activity dto = new Activity();
+							
+							dto.setActivity(object.getActivity());
+							dto.setEmployeeRole(object.getEmployeeRole());
+							dtoList.add(dto);
+						}
+					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Activity List is empty");
 				}
 				
 			}catch(Exception e) {

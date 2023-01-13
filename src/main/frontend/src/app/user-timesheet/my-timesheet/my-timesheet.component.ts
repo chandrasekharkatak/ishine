@@ -788,6 +788,10 @@ export class MyTimesheetComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.timesheetObj.empId;
     timesheetObj.teamId = activityObj.teamId;
+    console.log(this.allProjectsList, " : all project list");
+    console.log(timesheetObj.teamId, " : timesheetObj.teamId");
+    
+    
     let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
     timesheetObj.projectId = projectTimesheet.projectId;
     timesheetObj.clientId = this.timesheetObj.clientId;

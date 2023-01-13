@@ -222,8 +222,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
-                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole" [disabled]="!teamObj.departmentList"
-                                 (selectionChange)="getMappedActivityPreview(newteamMember)">
+                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole" [disabled]="!teamObj.departmentList">
                                     <mat-option selected="selected" value="" disabled>Select</mat-option>
                                     <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
                                 </mat-select>
@@ -235,7 +234,7 @@
                         [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="m-0">
-                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="openActivityPreviewModal(activity_preview)"
+                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview)"
                             [disabled]="!newteamMember.employeeRole"><i class="fa-solid fa-circle-info fa-lg"></i></button>
                     </div>
                 </div>
