@@ -378,16 +378,18 @@ public class DraftEmployeeService {
 
 				File directoryPath = new File(imageFileLocation + File.separator + "Documents" + File.separator
 						+ "Draft" + File.separator + employeedto.getEmployeementId());
-				String[] contents = directoryPath.list();
+				if(directoryPath.exists()) {
+					String[] contents = directoryPath.list();
+					
+					for (EmployeeDocument document : documentList) {
 
-				for (EmployeeDocument document : documentList) {
+						for (int i = 0; i < contents.length; i++) {
+							if (contents[i].equals(document.getDocumentName())) {
+								File file = new File(directoryPath.getAbsolutePath() + File.separator + contents[i]);
+								file.delete();
+							}
 
-					for (int i = 0; i < contents.length; i++) {
-						if (contents[i].equals(document.getDocumentName())) {
-							File file = new File(directoryPath.getAbsolutePath() + File.separator + contents[i]);
-							file.delete();
 						}
-
 					}
 				}
 
