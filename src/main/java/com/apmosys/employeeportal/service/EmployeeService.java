@@ -330,8 +330,8 @@ public class EmployeeService {
 			employee.setWorkLocation(employeedto.getWorkLocation());
 			employee.setInvalidAccessAttempt(0);
 
-			employee.setAboutMe("Add about yourself.");
-			employee.setViewsOnOrganisation("Add your views.");
+			employee.setAboutMe(employeedto.getAboutMe());
+			employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 			employee.setIsNew("true");
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
 			employee.setIsUserInfoUpdated("false");
@@ -501,8 +501,8 @@ public class EmployeeService {
 			employee.setWorkLocation(employeedto.getWorkLocation());
 			employee.setInvalidAccessAttempt(0);
 
-			employee.setAboutMe("Add about yourself.");
-			employee.setViewsOnOrganisation("Add your views.");
+			employee.setAboutMe(employeedto.getAboutMe());
+			employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 			employee.setIsNew("true");
 			employee.setProbationPeriod((short)180);
 			employee.setIsUserInfoUpdated("false");

@@ -51,6 +51,7 @@ export class Leave{
 
 	updatedBy:any;
 	updatedOn:any;
+	updatedByName: any;
 
 	leaveAppliedFor:any;
 	fromDateDayType:any;

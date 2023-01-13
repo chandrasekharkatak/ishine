@@ -166,6 +166,8 @@
                                 <th scope="col" class="info-label" mat-sort-header="clientName">Client Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>
                                 <th scope="col" class="info-label" mat-sort-header="state">State</th>
                                 <th scope="col" class="info-label">Actions</th>
                             </tr>
@@ -182,6 +184,8 @@
                                 <td>{{proj.clientName}}</td>
                                 <td>{{proj.createdOn}}</td>
                                 <td>{{proj.createdByName}}</td>
+                                <td>{{proj.updatedOn}}</td>
+                                <td>{{proj.updatedByName}}</td>
                                 <td>{{proj.state}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(proj)"><em class="fa fa-edit"></em></button>&nbsp;

@@ -287,6 +287,7 @@ export class ProjectConfigComponent implements OnInit {
         this.allProjects = response.serviceResponse;
         this.allProjects.forEach(project =>{
         project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        project.updatedOn = (project.updatedOn)? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
 
         //remove duplicate clients
@@ -399,6 +400,9 @@ export class ProjectConfigComponent implements OnInit {
     this.projectObj.departmentList = this.projectObj.departmentName;
     this.projectObj.departmentName = null;
 
+    this.projectObj.updatedBy = this.currentUser.empId;
+    console.log(" this project obj   :   ",this.projectObj)
+
     this.projectService.updateProject(this.projectObj).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -481,6 +485,10 @@ export class ProjectConfigComponent implements OnInit {
               return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
             case 'createdByName':
               return compare(a.createdByName, b.createdByName, isAsc)
+              case 'updatedOn':
+              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
+            case 'updatedByName':
+              return compare(a.updatedByName, b.updatedByName, isAsc)
             case 'state':
               return compare(a.state.toLowerCase(), b.state.toLowerCase(), isAsc)
             default:

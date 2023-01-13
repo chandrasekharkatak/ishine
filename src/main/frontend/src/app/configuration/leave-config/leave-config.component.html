@@ -273,6 +273,8 @@
                             <th scope="col" class="info-label" mat-sort-header="gender">Employee Gender</th>	
                             <th scope="col" class="info-label" mat-sort-header="noOfDays">Default Leaves</th>	
                             <th scope="col" class="info-label" mat-sort-header="rules">Rules</th>	
+                            <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>	
+                            <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>	
                             <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
@@ -287,6 +289,8 @@
                                 <td>{{leaveType.gender}}</td>
                                 <td>{{leaveType.noOfDays}} day(s)</td>
                                 <td>{{leaveType.rules}}</td>
+                                <td>{{leaveType.updatedOn}}</td>
+                                <td>{{leaveType.updatedByName}}</td>
                                 <td>{{leaveType.description}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -652,6 +656,8 @@
                                 <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description">Description</th>	
                                 <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>	
                                 <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>	
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated By</th>
                                 <th scope="col" class="info-label">Actions</th>
                               </tr>
                             </thead>
@@ -666,6 +672,8 @@
                                     <td class="desc-text-wrap">{{leavePolicy.description}}</td>
                                     <td>{{leavePolicy.createdByName}}</td>
                                     <td>{{leavePolicy.createdOn}}</td>
+                                    <td>{{leavePolicy.updatedOn}}</td>
+                                    <td>{{leavePolicy.updatedByName}}</td>
                                     <td>
                                         <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
