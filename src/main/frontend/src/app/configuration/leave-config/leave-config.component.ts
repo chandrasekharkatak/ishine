@@ -752,6 +752,7 @@ export class LeaveConfigComponent implements OnInit {
 
   onUpdateLeaveType(template: TemplateRef<any>) {
     console.log("update Leave Type : ", this.leaveTypeObj);
+    this.leaveTypeObj.updatedBy = this.currentUser.empId;
 
     this.leaveService.updateLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -770,6 +771,9 @@ export class LeaveConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
         console.log("leaveTypes : ", this.leaveTypes);
+        this.leaveTypes.forEach((leaveObj)=>{
+          leaveObj.updatedOn = (leaveObj.updatedOn) ? moment(leaveObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
       } else {
         console.error(response.serviceResponse);
       }
@@ -1100,6 +1104,7 @@ export class LeaveConfigComponent implements OnInit {
         this.leavePolicyList = response.serviceResponse;
         this.leavePolicyList.forEach(leavePolicy => {
           leavePolicy.createdOn = (leavePolicy.createdOn) ? moment(leavePolicy.createdOn).format(AppComponent.DATE_FORMAT) : null;
+          leavePolicy.updatedOn = (leavePolicy.updatedOn) ? moment(leavePolicy.updatedOn).format(AppComponent.DATE_FORMAT) : null;
         });
         console.log("leavePolicyList : ", this.leavePolicyList);
       } else {
@@ -1189,6 +1194,10 @@ export class LeaveConfigComponent implements OnInit {
               compare(a.noOfDays, b.noOfDays, isAsc)
             case 'rules':
               return compare(a.rules, b.rules, isAsc)
+              case 'updatedOn':
+                return compare(a.updatedOn, b.updatedOn, isAsc)
+                case 'updatedByName':
+                  return compare(a.updatedByName, b.updatedByName, isAsc)
             case 'description':
               return compare(a.description, b.description, isAsc)
           }

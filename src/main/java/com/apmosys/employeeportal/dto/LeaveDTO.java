@@ -114,4 +114,5 @@ public class LeaveDTO {
 	private String approverName;
 	private String approverEmail;
 	private String name;
+	private String updatedByName;
 }

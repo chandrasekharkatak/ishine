@@ -798,7 +798,7 @@ public class TimesheetService {
 							"<br>"+
 							"Name :"+" "+ timesheetDTO.getEmployeeName()+
 							"<br>"+
-							" from "+" "+ timesheetDTO.getDate() +
+							" Date :"+" "+ timesheetDTO.getDate() +
 							"<br>"+
 							" Day Type : "+" "+ timesheetDTO.getDayType() 
 							+"<br>"+

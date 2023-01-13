@@ -18,4 +18,6 @@ export class Project{
 	empId: any;
 	createdOn: any;
 	createdBy: any;
+	updatedBy:any;
+	updatedByName: any;
 }

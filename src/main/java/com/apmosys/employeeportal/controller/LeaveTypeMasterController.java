@@ -18,9 +18,9 @@ public class LeaveTypeMasterController {
 	LeaveTypeMasterService leaveTypeMasterService;
 	
 	@RequestMapping(value = "/getAllLeaveTypes" ,method = RequestMethod.GET)
-	public ServiceResponse getAllLeaveTypes() {
+	public ServiceResponse getAllLeaveTypes(LeaveDTO leaveDto) {
 		
-		ServiceResponse response = leaveTypeMasterService.getAllLeaveTypes();
+		ServiceResponse response = leaveTypeMasterService.getAllLeaveTypes(leaveDto);
 		return response;
 	}
 	

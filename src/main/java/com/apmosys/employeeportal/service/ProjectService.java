@@ -136,7 +136,8 @@ public class ProjectService {
 					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
 					projectDto.setCreatedByName(object[9] != null ? object[9].toString() : null);
 					projectDto.setCreatedOn(Timestamp.valueOf(object[10] != null ? object[10].toString() : null));
-					
+					projectDto.setUpdatedOn(object[11] != null ? object[11].toString() : null);
+					projectDto.setUpdatedByName(object[12] != null ? object[12].toString() : null);
 					dtoList.add(projectDto);
 				});
 				
@@ -258,6 +259,8 @@ public class ProjectService {
 				project.setState(poProjectSyncDTO.getState());
 				project.setActive("true");
 				project.setSyncProject(poProjectSyncDTO.getSyncProject());
+				project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				project.setUpdatedBy(Long.parseLong(poProjectSyncDTO.getUpdatedBy()));
 				Project projectDbResponse =  projectRepository.save(project);
 				
 				if(projectDbResponse != null) {
@@ -297,6 +300,7 @@ public class ProjectService {
 				Project projectToBeDeleted = projectObj.get();
 				projectToBeDeleted.setActive("false");
 				projectToBeDeleted.setSyncProject("false");
+				projectToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				Project dbResponse =  projectRepository.save(projectToBeDeleted);
 				
 				if(dbResponse != null) {

@@ -13,6 +13,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class LeavePolicyMasterService {
@@ -20,6 +21,8 @@ public class LeavePolicyMasterService {
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
 	
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
 
 	@Transactional
 	public ServiceResponse addLeavePolicy(LeaveDTO leaveDTO) {
@@ -108,6 +111,7 @@ public class LeavePolicyMasterService {
 				leavePolicy.setProbationPeriod(leaveDTO.getProbationPeriod());
 		
 				leavePolicy.setUpdatedBy(leaveDTO.getUpdatedBy());
+				leavePolicy.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
 				LeavePolicyMaster dbResponse = leavePolicyMasterRepository.save(leavePolicy);
 
@@ -196,6 +200,10 @@ public class LeavePolicyMasterService {
 					dto.setProbationPeriod(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
 					dto.setCreatedByName(object[21] != null ? object[21].toString() : null);
 					dto.setCreatedOn(object[22] != null ? format.format(format.parse(object[22].toString())) : null);
+					dto.setUpdatedOn(object[23] != null ? object[23].toString() : null);
+					dto.setUpdatedBy(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+					dto.setUpdatedByName(object[25] != null ? object[25].toString() : null);
+					
 					dtoList.add(dto);
 				}
 				

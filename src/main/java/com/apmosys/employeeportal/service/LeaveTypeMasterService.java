@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class LeaveTypeMasterService {
@@ -52,25 +55,33 @@ public class LeaveTypeMasterService {
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
 
-	public ServiceResponse getAllLeaveTypes() {
+	@Autowired
+	StringToDateTimeParser stringToDateTimePasParser;
+	
+	public ServiceResponse getAllLeaveTypes(LeaveDTO leaveDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
-			List<LeaveTypeMaster> list = leaveTypeMasterRepository.findAll();
+			List<Object[]> list = leaveTypeMasterRepository.findByLeaveTypeMasterId(leaveDto.getLeaveTypeMasterId());
 
 			if (list != null) {
-				for (LeaveTypeMaster leaveMaster : list) {
+				for (Object[] object : list) {
 					LeaveDTO leaveDTO = new LeaveDTO();
 
-					leaveDTO.setLeaveTypeMasterId(leaveMaster.getLeaveTypeMasterId());
-					leaveDTO.setLeaveType(leaveMaster.getLeaveType());
-					leaveDTO.setNoOfDays(leaveMaster.getNoOfDays());
-					leaveDTO.setDescription(leaveMaster.getDescription());
-					leaveDTO.setPaidLeave(leaveMaster.getPaidLeave());
-					leaveDTO.setRules(leaveMaster.getRules());
-					leaveDTO.setLeaveTypeCode(leaveMaster.getLeaveTypeCode());
-					leaveDTO.setGender(leaveMaster.getGender());
+					leaveDTO.setLeaveTypeMasterId(object[0] != null ? Short.parseShort(object[0].toString()) : null);
+					leaveDTO.setDescription(object[1] != null ? object[1].toString() : null);
+					leaveDTO.setLeaveType(object[2] != null ? object[2].toString() : null);
+					leaveDTO.setLeaveTypeCode(object[3] != null ? object[3].toString() : null);
+					leaveDTO.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					leaveDTO.setPaidLeave(object[5] != null ? object[5].toString() : null);
+					leaveDTO.setRules(object[6] != null ? object[6].toString() : null);
+					leaveDTO.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					leaveDTO.setCreatedOn(object[8] != null ? object[8].toString() : null);
+					leaveDTO.setGender(object[9] != null ? object[9].toString() : null);
+					leaveDTO.setUpdatedOn(object[11] != null ? object[11].toString() : null);
+					leaveDTO.setUpdatedByName(object[10] != null ? object[10].toString() : null);
+					
 					dtoList.add(leaveDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -104,6 +115,8 @@ public class LeaveTypeMasterService {
 				leaveType.setGender(leaveDTO.getGender());
 				leaveType.setNoOfDays(leaveDTO.getNoOfDays());
 				leaveType.setPaidLeave(leaveDTO.getPaidLeave());
+				leaveType.setUpdatedBy(leaveDTO.getUpdatedBy());
+				leaveType.setUpdatedOn(stringToDateTimePasParser.getCurrentDateTime());
 
 				LeaveTypeMaster updatedLeaveType = leaveTypeMasterRepository.save(leaveType);
 
