@@ -145,7 +145,6 @@ export class MyTimesheetComponent implements OnInit {
 
     this.reset();
     this.getAllProjectsByEmpId(this.currentUser);
-    this.getTimesheetMetadata();
   }
 
   showViewMyTimesheets() {
@@ -214,13 +213,19 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.empId = this.currentUser.empId;
 
       userObj.empId = this.currentUser.empId;
+      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
     } else if (this.isTeamTimesheets) {
       this.timesheetObj.timesheetAppliedFor = "team";
 
-      userObj.empId = timesheetObj.empId;
+      let teamMember = this.teamMemberList.find(employee => employee.empId == timesheetObj.empId)
+      console.log("Team Member : ", teamMember);
+      userObj.empId = teamMember.empId;
+      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
     }
+
     this.getAllProjectsByEmpId(userObj);
-    this.getTimesheetMetadata();
+    this.getAllAvailableTimesheetByEmpId(userObj);
     setTimeout(()=>{
       this.getAllMyActivitiesByTimesheetId(timesheetObj);
     }, 500)
@@ -798,6 +803,9 @@ export class MyTimesheetComponent implements OnInit {
     
     
     let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
+    console.log(" projectTimesheet  :  ", projectTimesheet)
+    
+
     timesheetObj.projectId = projectTimesheet.projectId;
     timesheetObj.clientId = this.timesheetObj.clientId;
     timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
@@ -1044,7 +1052,11 @@ export class MyTimesheetComponent implements OnInit {
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.isTimesheetLockCheckEnable = employeeInfo.isTimesheetLockCheckEnable;
         console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
-        this.getTimesheetMetadata();
+        
+        let userObj: User = new User();
+        userObj.empId = this.currentUser.empId;
+        userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+        this.getAllAvailableTimesheetByEmpId(userObj);
       } else {
         console.error(response.serviceResponse)
       }
