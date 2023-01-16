@@ -1170,7 +1170,7 @@ export class TeamConfigComponent implements OnInit {
           "Team Lead": x.teamLeadName,
           "Project Manager": x.projectManagerName,
           "Created by": x.createdByName,
-          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+          "Created on": (x.createdOn)? moment(x.createdOn, "DD-MM-YYYY").format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
@@ -1185,8 +1185,8 @@ export class TeamConfigComponent implements OnInit {
         x => ({
           "Activity": x.activity,
           "ETA": x.eta,
-          "Created by": x.createdBy,
-          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+          "Created by": x.createdByName,
+          "Created on": (x.createdOn)? moment(x.createdOn, "DD-MM-YYYY").format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
