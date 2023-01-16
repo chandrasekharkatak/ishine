@@ -145,7 +145,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.reset();
     this.getAllProjectsByEmpId(this.currentUser);
-    this.getAllAvailableTimesheetByEmpId(this.currentUser);
+    this.getTimesheetMetadata();
   }
 
   showViewMyTimesheets() {
@@ -220,7 +220,7 @@ export class MyTimesheetComponent implements OnInit {
       userObj.empId = timesheetObj.empId;
     }
     this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
+    this.getTimesheetMetadata();
     setTimeout(()=>{
       this.getAllMyActivitiesByTimesheetId(timesheetObj);
     }, 500)
@@ -238,8 +238,6 @@ export class MyTimesheetComponent implements OnInit {
 
 
   addInputActivityField(activityObj?: Activity) {
-
-
 
     console.log("before allTimesheetActivities : ", this.allTimesheetActivities)
     let newActivityObj = new Activity();
@@ -320,6 +318,9 @@ export class MyTimesheetComponent implements OnInit {
     if (this.isTimesheetForm && this.isUpdation) {
       this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
     }
+
+    console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
+  
 
     if(this.isTimesheetLockCheckEnable == "false"){
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
@@ -628,6 +629,10 @@ export class MyTimesheetComponent implements OnInit {
       userObj.empId = this.currentUser.empId;
       userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = this.currentUser.empId; 
+      this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+      console.log("this.currentUser  : ", this.currentUser);
+      console.log("userObj  : ", userObj);
+
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
       console.log("Team Member : ", teamMember);
@@ -840,10 +845,15 @@ export class MyTimesheetComponent implements OnInit {
     const dateFormat = 'YYYY-MM-DD';
     let endDate:any;
     let startDate:any;
+    let OPEN_BACKDATED_DAYS = 30;
+
+    if(this.currentUser.timesheetBackDatedDays){
+      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+    }
 
     if(this.isTimesheetLockCheckEnable == 'false'){
       endDate = currentDate;
-      startDate = new Date(endDate.getTime() - ((60 + 1) * DAY_IN_MS));
+      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
     }else{
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
@@ -1031,8 +1041,10 @@ export class MyTimesheetComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         let employeeInfo = response.serviceResponse;
         this.currentUser.isTimesheetLockCheckEnable = JSON.parse(JSON.stringify(employeeInfo.isTimesheetLockCheckEnable));
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.isTimesheetLockCheckEnable = employeeInfo.isTimesheetLockCheckEnable;
         console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
+        this.getTimesheetMetadata();
       } else {
         console.error(response.serviceResponse)
       }
