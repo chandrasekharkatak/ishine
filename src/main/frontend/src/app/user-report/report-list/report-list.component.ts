@@ -136,6 +136,7 @@ export class ReportListComponent implements OnInit {
   }
 
   showLeaveReportTable() {
+    this.page = 1;
     this.isLeaveReportTable = true;
 
     this.isTimesheetReportTable = false;
@@ -165,6 +166,7 @@ export class ReportListComponent implements OnInit {
   }
 
   showTimesheetReportTable() {
+    this.page = 1;
     this.isTimesheetReportTable = true;
 
     this.isLeaveReportTable = false;
@@ -190,6 +192,7 @@ export class ReportListComponent implements OnInit {
   }
 
   showEmployeeReportTable() {
+    this.page = 1;
     this.isEmployeeReportTable = true;
 
     this.isLeaveReportTable = false;
