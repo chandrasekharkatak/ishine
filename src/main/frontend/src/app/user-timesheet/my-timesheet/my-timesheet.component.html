@@ -298,7 +298,8 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
+            <!-- For Self -->
+            <div *ngIf="isSelfTimesheets" class="col-md-4">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
@@ -308,7 +309,7 @@
                     </div>
                 </div>
             </div>
-            <!-- For Self -->
+            
             <div *ngIf="isSelfTimesheets" class="col-md-4">
                 <div class="info-wrapper">
                     <div class="form-group">
@@ -320,6 +321,17 @@
                 </div>
             </div>
             <!-- For Team -->
+            <div *ngIf="isTeamTimesheets" class="col-md-4">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                        <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
+                            [(ngModel)]="startDate" (change)="getMyTeamTimesheets(alert_message)"
+                            (keydown)="disableMannualDateInput()">
+                    </div>
+                </div>
+            </div>
+
             <div *ngIf="isTeamTimesheets" class="col-md-4">
                 <div class="info-wrapper">
                     <div class="form-group">

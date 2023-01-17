@@ -111,8 +111,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
-    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
-    this.getEmployeeBasicInfo();	
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -144,6 +143,7 @@ export class MyTimesheetComponent implements OnInit {
     this.isUpdation = false;
 
     this.reset();
+    this.getEmployeeBasicInfo();
     this.getAllProjectsByEmpId(this.currentUser);
   }
 
