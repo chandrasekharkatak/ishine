@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
@@ -55,7 +55,9 @@ export class UserProfileComponent implements OnInit {
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private sanitizer: DomSanitizer,
-    private imageService : ImageService,) {
+    private imageService : ImageService,
+    private locationStrategy: LocationStrategy
+    ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
@@ -69,6 +71,13 @@ export class UserProfileComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
     this.setYearOfPassingList();    
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   ngAfterViewInit() {
@@ -233,7 +242,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.maritalStatus)){
-      this.alertMessage = "Please enter select martial status !!"
+      this.alertMessage = "Please enter select Marital status !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

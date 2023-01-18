@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.service.EmployeeExitService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -43,6 +44,34 @@ public class EmployeeExitController {
 	public ServiceResponse getEmployeeInfo(@RequestBody EmployeeDTO employeeDTO) {
 		
 		ServiceResponse response = employeeExitService.getEmployeeInfo(employeeDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/setDeptHeadConcent" ,method = RequestMethod.POST)
+	public ServiceResponse setDeptHeadConcent(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeExitService.setDeptHeadConcent(employeeDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/setExitInterviewResponseByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getExitInterviewQuestion(@RequestBody SurveyDTO surveyDTO) {
+		
+		ServiceResponse response = employeeExitService.setExitInterviewResponseByEmpId(surveyDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAnsweredInterviewByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAnsweredInterviewByEmpId(@RequestBody SurveyDTO surveyDTO) {
+		
+		ServiceResponse response = employeeExitService.getAnsweredInterviewByEmpId(surveyDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getExitInterviewResponseBySurveyIdAndEmp" ,method = RequestMethod.POST)
+	public ServiceResponse getExitInterviewResponseBySurveyIdAndEmp(@RequestBody SurveyDTO surveyDTO) {
+		
+		ServiceResponse response = employeeExitService.getExitInterviewResponseBySurveyIdAndEmp(surveyDTO);
 		return response;
 	}
 	

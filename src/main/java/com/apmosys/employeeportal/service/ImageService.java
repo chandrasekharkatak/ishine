@@ -244,6 +244,88 @@ public class ImageService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse getAllEventPhotosForHome() {
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("View All Event Photos");
+		apiLogInfo.setApiUrl("/api/getAllEventPhotosForHome");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+
+		try {
+
+			List<Object[]> eventPhotolist = eventPhotosRepository.getAllImagePhotos();
+
+			Optional.ofNullable(eventPhotolist).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No Images found.Event Photos list is empty");
+
+					apiLogInfo.setApiResponse("No Images found for home.Event Photos list is empty.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				} else {
+
+					List<EventPhotoDTO> dtoList = new ArrayList<EventPhotoDTO>();
+
+					list.forEach((object) -> {
+
+						EventPhotoDTO photoDTO = new EventPhotoDTO();
+
+						photoDTO.setEventPhotoId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						photoDTO.setEventName(object[1] != null ? object[1].toString() : null);
+						photoDTO.setImageName(object[2] != null ? object[2].toString() : null);
+						photoDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
+						photoDTO.setCreatedByName(object[4] != null ? object[4].toString() : null);
+						photoDTO.setCreatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+
+						byte[] imageByte;
+
+						try {
+							imageByte = Files
+									.readAllBytes(Paths.get(imageFileLocation + File.separator + object[2].toString()));
+							photoDTO.setImageBytes(imageByte);
+
+							apiLogInfo.setApiResponse("Image set ");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+						} catch (IOException e) {
+							e.printStackTrace();
+							response.setServiceError(e.getMessage());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							apiLogInfo.setLogLevel("ERROR");
+						}
+
+						dtoList.add(photoDTO);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+
+					apiLogInfo.setApiResponse("Get all event photos for home");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Event photo list is empty.");
+
+				apiLogInfo.setApiResponse("Event photo list is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 
 	public ServiceResponse deleteEventPhoto(EventPhotoDTO eventPhotoDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -319,7 +401,7 @@ public class ImageService {
 		return response;
 	}
 
-	public ServiceResponse uploadEmployeeDocument(List<MultipartFile> images, Long uploadedBy, Long employeementId,
+	public ServiceResponse uploadEmployeeDocument(MultipartFile image, Long uploadedBy, Long employeementId,
 			Long empId) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -341,58 +423,41 @@ public class ImageService {
 
 //			if (employeeObject.isPresent()) {
 
-			if (!images.isEmpty()) {
+			if (image != null) {
 				String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + "Documents"
 						+ File.separator + "Draft" + File.separator + employeementId)).toString();
+				
+				byte[] bytes = image.getBytes();
+				String extension = FilenameUtils.getExtension(image.getOriginalFilename());
+				Path path = Paths.get(newPath + File.separator + image.getOriginalFilename());
 
-				for (MultipartFile image : images) {
-					byte[] bytes = image.getBytes();
-					String extension = FilenameUtils.getExtension(image.getOriginalFilename());
-					Path path = Paths.get(newPath + File.separator + image.getOriginalFilename());
+				System.out.println("path : " + path);
 
-					System.out.println("path : " + path);
+				Files.write(path, bytes);
 
-					Files.write(path, bytes);
+				File savedFile = new File(path.toString());
 
-					File savedFile = new File(path.toString());
-
-					if (savedFile.exists()) {
-						savedFiles.add(savedFile);
-
-						apiLogInfo.setApiResponse("Image File save.");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					}
-				}
-
-				if (images.size() == savedFiles.size()) {
+				if (savedFile.exists()) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("image Uploaded.");
-
+					
 					apiLogInfo.setApiResponse("image Uploaded.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-				} else {
-					for (File image : savedFiles) {
-						image.delete();
-					}
-					response.setServiceResponse(errorMsg + "Upload Image Failed !!");
+				}else {
+					response.setServiceResponse("Upload Image Failed !!");
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 
 					apiLogInfo.setApiResponse("Upload Image Failed !!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
+
 			} else {
-				response.setServiceResponse("uploaded images Not Found !!");
+				response.setServiceResponse("uploaded image Not Found !!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 
-				apiLogInfo.setApiResponse("uploaded images Not Found !!");
+				apiLogInfo.setApiResponse("uploaded image Not Found !!");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-
-//			} else {
-//				response.setServiceResponse("User Not Found !!");
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -13,14 +13,17 @@ import { first } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Query } from 'src/app/models/query';
 import { enableAppreciation } from 'src/app/models/enableAppreciation';
-import * as moment from 'moment';	
+import * as moment from 'moment';
+import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
+import { DepartmentService } from 'src/app/services/department.service';
 
 
 
-class FilterData{
-  title:any;
-  columns:any;
-  queryList:any;
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
 }
 
 
@@ -32,48 +35,53 @@ class FilterData{
 })
 export class PortalConfigComponent implements OnInit {
 
-  feature="Portal Config";
-  currentUser:User;
-  userMapping:any = {};
+  feature = "Portal Config";
+  currentUser: User;
+  userMapping: any = {};
   allEmployeeList: any;
-  allAppreciationEvent:any;
-  data:any;
-  appByCategory:any;
+  allAppreciationEvent: any;
+  data: any;
+  appByCategory: any;
 
   //flag	
-  portalConfig: boolean = false;	
-  appreciationConfig: boolean = false;	
-  viewEventConfig: boolean = false;	
-  isTable : boolean = false;	
-  isCreation : boolean = false;	
-  viewAppreciationForm : boolean = false;	
-  isAppreciationTable : boolean = false;	
-  isUpdation : boolean = false;	
-  fromDate:any;	
-  toDate:any;
+  portalConfig: boolean = false;
+  appreciationConfig: boolean = false;
+  viewEventConfig: boolean = false;
+  isTable: boolean = false;
+  isCreation: boolean = false;
+  viewAppreciationForm: boolean = false;
+  isAppreciationTable: boolean = false;
+  isUpdation: boolean = false;
+  fromDate: any;
+  toDate: any;
 
-  alertMessage:any;
-  @ViewChild('alert_message') alertTemplate:TemplateRef<any>;
+  alertMessage: any;
+  @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
   modalRef: BsModalRef = new BsModalRef();
 
-  portalObj:Portal = new Portal();
+  portalObj: Portal = new Portal();
 
-  portalConfigList:any[] = [];
- // appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
- appreciationColumns:any[] = ['Department'];
-  queryList:any[] = [];
-  filterData:any = new FilterData(); 
-  display=null;
+  portalConfigList: any[] = [];
+  // appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
+  appreciationColumns: any[] = ['Department'];
+  queryList: any[] = [];
+  filterData: any = new FilterData();
+  display = null;
   appreciationObj: enableAppreciation = new enableAppreciation();
-  all:any;
-  enableAppreciationList:any[] = [];
+  all: any;
+  enableAppreciationList: any[] = [];
+
+  allDeptList: any[] = [];
+  employeeList: any[] = [];
 
   constructor(
-    private portalService:PortalService,
-    private validationService:ValidationService,
+    private portalService: PortalService,
+    private validationService: ValidationService,
     private modalService: BsModalService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
+    private locationStrategy: LocationStrategy,
+    private departmentService: DepartmentService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -87,50 +95,62 @@ export class PortalConfigComponent implements OnInit {
     console.log(this.feature, " : ", this.userMapping);
     this.getAllEvent();
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton() {
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(() => {
+      history.pushState(null, null, location.href);
+    })
   }
 
-  reset(){
+  reset() {
     this.appreciationObj = new enableAppreciation();
-    this.appreciationObj.fromDate=null;
-    this.appreciationObj.toDate=null;
-    this.appreciationObj.appreciationEventName=null;
+    this.appreciationObj.fromDate = null;
+    this.appreciationObj.toDate = null;
+    this.appreciationObj.appreciationEventName = null;
     this.appreciationObj.appreciationEventType = "";
-    this.appreciationObj.appreciationEventName="";	
-    this.appreciationObj.appreciateType="";
-   
-   }
+    this.appreciationObj.appreciationEventName = "";
+    this.appreciationObj.appreciateType = "";
+
+  }
 
   sectionViewInit() {
-    if(this.userMapping.update_portal_global_configuration){
+    if (this.userMapping.update_portal_global_configuration) {
       this.getAllPortalConfig();
     }
-    else if(this.userMapping.appreciation_configuration){
-       this.enableAppreciationOnclick();
+    else if (this.userMapping.appreciation_configuration) {
+      this.enableAppreciationOnclick();
     }
-    else if(this.userMapping.appreciation_configuration){	
-      this.viewAppreciationEventOnClick();	
+    else if (this.userMapping.appreciation_configuration) {
+      this.viewAppreciationEventOnClick();
     }
-    else if(this.userMapping.view_employees_appreciation) {   
-       this.viewAllAppreciation();
+    else if (this.userMapping.view_employees_appreciation) {
+      this.viewAllAppreciation();
     }
   }
-  getAllEvent(){
-   this.allAppreciationEvent=[];
+  getAllEvent() {
+    this.allAppreciationEvent = [];
     this.portalService.getAllEvent().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allAppreciationEvent = response.serviceResponse; 
+        this.allAppreciationEvent = response.serviceResponse;
+        this.allAppreciationEvent.forEach(event => {
+          // event.fromDate = (event.fromDate)? moment(event.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          // event.toDate = (event.toDate)? moment(event.toDate).format(AppComponent.DATE_FORMAT) : null;
+          event.createdOn = (event.createdOn) ? moment(event.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         console.log("allEventList : ", this.allAppreciationEvent)
       } else {
-       //this.openAlertMod(this.alertTemplate, response.serviceResponse)
-      console.log("allEventList : ", this.allAppreciationEvent);
+        //this.openAlertMod(this.alertTemplate, response.serviceResponse)
+        console.log("allEventList : ", this.allAppreciationEvent);
 
       }
     });
 
   }
 
-  onDateChange(template:TemplateRef<any>){
+  onDateChange(template: TemplateRef<any>) {
     if (this.appreciationObj.toDate < this.appreciationObj.fromDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.fromDate)) {
         this.alertMessage = "Please enter from Date !!"
@@ -147,15 +167,15 @@ export class PortalConfigComponent implements OnInit {
       // this.appreciationObj.toDate = ''
       this.alertMessage = "From Date should be less Than To Date !!"
       this.openAlertMod(template, this.alertMessage);
-    this.appreciationObj.fromDate = ''
-      
+      this.appreciationObj.fromDate = ''
+
     } else {
-          this.allEmployeeList = [];
+      this.allEmployeeList = [];
     }
   }
 
-  onToDateChange(template:TemplateRef<any>){
-    if(this.appreciationObj.toDate > this.appreciationObj.fromDate){
+  onToDateChange(template: TemplateRef<any>) {
+    if (this.appreciationObj.toDate > this.appreciationObj.fromDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.appreciationObj.fromDate)) {
         this.alertMessage = "Please enter From Date !!"
         this.openAlertMod(template, this.alertMessage);
@@ -168,8 +188,8 @@ export class PortalConfigComponent implements OnInit {
         return false;
       }
 
-     
-    }else {
+
+    } else {
       this.alertMessage = "To Date should be Greater Than From Date !!"
       this.openAlertMod(template, this.alertMessage);
       this.appreciationObj.toDate = ''
@@ -177,7 +197,7 @@ export class PortalConfigComponent implements OnInit {
     }
   }
 
-  OnCheckEventName(template:TemplateRef<any>){
+  OnCheckEventName(template: TemplateRef<any>) {
     console.log("here in checkPoint event name")
 
     this.portalService.OnCheckEventName(this.appreciationObj).pipe(first()).subscribe((response: any) => {
@@ -188,20 +208,22 @@ export class PortalConfigComponent implements OnInit {
     });
 
   }
-  
-  getAllPortalConfig(){
-    this.appreciationObj.fromDate =''
-    this.appreciationObj.toDate =''
+
+  getAllPortalConfig() {
+    this.appreciationObj.fromDate = ''
+    this.appreciationObj.toDate = ''
     this.portalConfig = true;
-    this.appreciationConfig =false;
-     this.isTable = false;
-     this.viewAppreciationForm = false;
-     this.isAppreciationTable = false;
-     this.viewEventConfig= false;	
-     this.isTable = false;	
-     this.isUpdation = false;
+    this.appreciationConfig = false;
+    this.isTable = false;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.viewEventConfig = false;
+    this.isTable = false;
+    this.isUpdation = false;
 
     this.getAllPortalConfigData();
+    this.getAllDepartmentList();
+    this.getEmployeeList();
   }
   getAllPortalConfigData() {
 
@@ -210,28 +232,40 @@ export class PortalConfigComponent implements OnInit {
         this.portalObj = Object.assign({}, response.serviceResponse);
         this.portalConfigList = response.serviceResponse;
 
-        console.log(this.portalConfigList,  "   :  portalConfigList");
+        console.log(this.portalConfigList, "   :  portalConfigList");
+        console.log(this.portalObj, "   :  portalObj");
 
-        for(let portal of this.portalConfigList){
-          if(portal.configName == 'Probation Period'){
+        for (let portal of this.portalConfigList) {
+          if (portal.configName == 'Probation Period') {
             this.portalObj.probationPeriod = portal.configPeriod;
             this.portalObj.probationMailTrigger = portal.mailTrigger;
           }
-          if(portal.configName == 'Notice Period'){
+          if (portal.configName == 'Notice Period') {
             this.portalObj.noticePeriod = portal.configPeriod;
             this.portalObj.noticeMailTrigger = portal.mailTrigger;
           }
-          if(portal.configName == 'OTRS Link'){
+          if (portal.configName == 'OTRS Link') {
             this.portalObj.otrsLink = portal.configValue;
           }
-          if(portal.configName == 'SNIPIT Link'){
+          if (portal.configName == 'SNIPIT Link') {
             this.portalObj.snipitLink = portal.configValue;
           }
-          if(portal.configName == 'DSR Download Path'){
+          if (portal.configName == 'DSR Download Path') {
             this.portalObj.dsrDownloadPath = portal.configValue;
           }
-          if(portal.configName == 'DSR Day'){
+          if (portal.configName == 'DSR Day') {
             this.portalObj.dsrGenerateDay = portal.configValue;
+          }
+          if (portal.configName == 'Leave Approval Escalation (Level 1)') {
+            this.portalObj.level1MinNoOfDays = portal.configPeriod;
+            this.portalObj.level1ApprovalTo = portal.configValue;
+          }
+          if (portal.configName == 'Leave Approval Escalation (Level 2)') {
+            this.portalObj.level2MinNoOfDays = portal.configPeriod;
+            this.portalObj.level2ApprovalTo = JSON.parse(portal.configValue);
+          }
+          if (portal.configName == 'Leave week-off/holiday exclusion') {
+            this.portalObj.weekOffExcludedDepartmentList = JSON.parse(portal.configValue);
           }
         }
       } else {
@@ -239,53 +273,56 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
-  enableAppreciationOnclick(){
-    this.appreciationObj.fromDate =''
-    this.appreciationObj.toDate =''
+  enableAppreciationOnclick() {
+    this.appreciationObj.fromDate = ''
+    this.appreciationObj.toDate = ''
     this.appreciationObj.appreciationEventName = ''
     this.appreciationObj.appreciationEventType = ''
     this.portalConfig = false;
-    this.appreciationConfig=true;
+    this.appreciationConfig = true;
     this.viewAppreciationForm = false;
     this.isTable = false;
     this.fromDate = null;
     this.toDate = null;
     this.isAppreciationTable = false;
-    this.isCreation = true;	
-    this.viewEventConfig= false;	
-    this.isUpdation = false;	
+    this.isCreation = true;
+    this.viewEventConfig = false;
+    this.isUpdation = false;
     this.reset();
 
   }
-  getAllEmployees(template:TemplateRef<any>){
+  getAllEmployees(template: TemplateRef<any>) {
     this.portalService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allEmployeeList = response.serviceResponse; 
+        this.allEmployeeList = response.serviceResponse;
         this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-        console.log("allEmployeeList : ", this.allEmployeeList)
+        this.allEmployeeList.forEach((employee) => {
+          employee.employeementId = "A-".concat(employee.employeementId)
+        });
+        console.log("allEmployeeList : ", this.allEmployeeList);
       } else {
-        this.openAlertMod(template ,response.serviceResponse)
+        this.openAlertMod(template, response.serviceResponse)
       }
     });
   }
-  viewAllAppreciation(){
+  viewAllAppreciation() {
     this.appreciationObj.appreciateType = '';
     this.appreciationObj.appreciationEventId = ''
-    this.appreciationObj.fromDate =''
-    this.appreciationObj.toDate =''
+    this.appreciationObj.fromDate = ''
+    this.appreciationObj.toDate = ''
     this.data = ''
     this.portalConfig = false;
-    this.appreciationConfig=false;
+    this.appreciationConfig = false;
     this.viewAppreciationForm = true;
     this.isAppreciationTable = false;
     this.isTable = false;
-    this.viewEventConfig= false;	
-    this.isCreation = false;	
+    this.viewEventConfig = false;
+    this.isCreation = false;
     this.isUpdation = false;
 
   }
-  
-  changeEvent(template: TemplateRef<any>, columns:any[], title:any,value:string){
+
+  changeEvent(template: TemplateRef<any>, columns: any[], title: any, value: string) {
     if (value == "all") {
       this.isTable = true;
       this.allEmployeeList = [];
@@ -294,10 +331,10 @@ export class PortalConfigComponent implements OnInit {
       this.isTable = true;
       this.openFilterModal(template, columns, title);
     }
-   this.getAllEmployees(template);
+    this.getAllEmployees(template);
   }
 
-  updatePortalGlobalConfiguration(portalObj,template: TemplateRef<any>){
+  updatePortalGlobalConfiguration(portalObj, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.probationPeriod)) {
       this.alertMessage = "Please enter Probation Period !!"
@@ -323,7 +360,7 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter OTRS Link !!"
       this.openAlertMod(template, this.alertMessage);
       return;
-    }else if(this.validationService.validateUrl(portalObj.otrsLink) == false){
+    } else if (this.validationService.validateUrl(portalObj.otrsLink) == false) {
       this.alertMessage = "Please valid OTRS Link !!"
       this.openAlertMod(template, this.alertMessage);
       return;
@@ -332,7 +369,7 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter SNIPIT Link !!"
       this.openAlertMod(template, this.alertMessage);
       return;
-    }else if(this.validationService.validateUrl(portalObj.snipitLink) == false){
+    } else if (this.validationService.validateUrl(portalObj.snipitLink) == false) {
       this.alertMessage = "Please valid SNIPIT Link !!"
       this.openAlertMod(template, this.alertMessage);
       return;
@@ -346,67 +383,95 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter DSR Generation Day !!"
       this.openAlertMod(template, this.alertMessage);
       return;
-    }else if(!this.validationService.validateMonthDays(portalObj.dsrGenerateDay)){
+    } else if (!this.validationService.validateMonthDays(portalObj.dsrGenerateDay)) {
       this.alertMessage = "Please enter valid day !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
 
-    let tempArray = this.portalConfigList;    
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level1MinNoOfDays)) {
+      this.alertMessage = "Please Leave Approval Escalation (Level 1) : Min. No. of Days !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level1ApprovalTo)) {
+      this.alertMessage = "Please select Leave Approval Escalation (Level 1) : Approval To !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
 
-    tempArray.forEach((portalConfig,index)=> {
-      
-      if(index == 0)
-      {       
-        this.portalConfigList[0].configPeriod = this.portalObj.probationPeriod;
-        this.portalConfigList[0].mailTrigger = this.portalObj.probationMailTrigger;
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level2MinNoOfDays)) {
+      this.alertMessage = "Please enter Leave Approval Escalation (Level 2) : Min. No. of Days !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level2ApprovalTo)) {
+      this.alertMessage = "Please select Leave Approval Escalation (Level 2) : Approval To !!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+
+
+
+    let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));
+
+    tempArray.forEach((portalConfig, index) => {
+
+      if (index == 0) {
+        portalConfig.configPeriod = portalObj.probationPeriod;
+        portalConfig.mailTrigger = portalObj.probationMailTrigger;
       }
-      else if(index == 1)
-      {
-        this.portalConfigList[1].configPeriod = this.portalObj.noticePeriod;
-        this.portalConfigList[1].mailTrigger = this.portalObj.noticeMailTrigger;
-      }else if(index == 2)
-      {
-        this.portalConfigList[2].configValue = this.portalObj.otrsLink;
-      }else if(index == 3)
-      {
-        this.portalConfigList[3].configValue = this.portalObj.snipitLink;
-      }else if(index == 4)
-      {
-        this.portalConfigList[4].configValue = this.portalObj.dsrDownloadPath;
-      }else if(index == 5)
-      {
-        this.portalConfigList[5].configValue = this.portalObj.dsrGenerateDay;
+      else if (index == 1) {
+        portalConfig.configPeriod = portalObj.noticePeriod;
+        portalConfig.mailTrigger = portalObj.noticeMailTrigger;
+      } else if (index == 2) {
+        portalConfig.configValue = portalObj.otrsLink;
+      } else if (index == 3) {
+        portalConfig.configValue = portalObj.snipitLink;
+      } else if (index == 4) {
+        portalConfig.configValue = portalObj.dsrDownloadPath;
+      } else if (index == 5) {
+        portalConfig.configValue = portalObj.dsrGenerateDay;
+      } else if (index == 6) {
+        portalConfig.configPeriod = portalObj.level1MinNoOfDays
+        portalConfig.configValue = portalObj.level1ApprovalTo;
+      } else if (index == 7) {
+        portalConfig.configPeriod = portalObj.level2MinNoOfDays
+        portalConfig.configValue = portalObj.level2ApprovalTo;
+      } else if (index == 8) {
+        portalObj.weekOffExcludedDepartmentList = JSON.stringify(portalObj.weekOffExcludedDepartmentList);
+        portalConfig.configValue = portalObj.weekOffExcludedDepartmentList;
       }
-      
+
     })
-        this.portalObj.allPortalConfigData = this.portalConfigList;
+    portalObj.allPortalConfigData = tempArray;
 
-         this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
-           if (response.serviceStatus == "Success") {
-             this.openAlertMod(template, response.serviceResponse);
-           }else{
-             this.openAlertMod(template, response.serviceResponse);
-           }
-         });
-  }
-
-
-  generatePerviousMonthDSR(template: TemplateRef<any>){
-    this.portalService.generatePerviousMonthDSR().pipe(first()).subscribe((response: any) => {
+    this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-      }else{
+        this.getAllPortalConfigData();
+      } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
-  
+
+
+  generatePerviousMonthDSR(template: TemplateRef<any>) {
+    this.portalService.generatePerviousMonthDSR().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   /* Filter */
-  openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
+  openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
     console.log("columns : ", columns);
-    
-    this.filterData.title  = title;
+
+    this.filterData.title = title;
     this.filterData.columns = columns;
     this.filterData.queryList = JSON.stringify(this.queryList);
 
@@ -414,41 +479,41 @@ export class PortalConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-  onFilterSubmit(queryList:any , template:TemplateRef<any>){
+  onFilterSubmit(queryList: any, template: TemplateRef<any>) {
     console.log("queryList : ", queryList);
     this.queryList = queryList;
     this.cancelRequest();
-    
-    if(this.filterData.title == 'Filter Appreciation'){
-      this.getCustomEmployeeList(queryList,template);
+
+    if (this.filterData.title == 'Filter Appreciation') {
+      this.getCustomEmployeeList(queryList, template);
     }
   }
 
-  
-  getCustomEmployeeList(queryObjList:any , template : TemplateRef<any>) {
+
+  getCustomEmployeeList(queryObjList: any, template: TemplateRef<any>) {
     this.allEmployeeList = [];
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    if(queryObjList == ''){
+    if (queryObjList == '') {
       this.getAllEmployees(template);
 
-    }else {
+    } else {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
-          console.log("response" +response);
+          console.log("response" + response);
 
-          this.allEmployeeList = this.allEmployeeList.filter(x =>x.employmentstatus != 'InActive');
+          this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
           console.log(this.allEmployeeList, "   this.allEmployeeList");
           this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-          index === self.findIndex((t) => (
-            t.employeementId === value.employeementId
-          ))
-        )
+            index === self.findIndex((t) => (
+              t.employeementId === value.employeementId
+            ))
+          )
 
-          if(this.allEmployeeList.length != 0){
+          if (this.allEmployeeList.length != 0) {
             this.openAlertMod(template, "Employee Record found")
-          }else{
+          } else {
             this.openAlertMod(template, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
@@ -456,7 +521,7 @@ export class PortalConfigComponent implements OnInit {
           });
           console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
-          this.openAlertMod(template,response.serviceResponse)
+          this.openAlertMod(template, response.serviceResponse)
         }
       });
     }
@@ -475,11 +540,11 @@ export class PortalConfigComponent implements OnInit {
       return false;
     }
 
-    if(!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventName)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventName)) {
       this.alertMessage = "Event Name field should not be empty!!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else  if(!this.validationService.validateAlphaWithSpaceInbetween(appreciationObj.appreciationEventName)) {
+    } else if (!this.validationService.validateAlphaWithSpaceInbetween(appreciationObj.appreciationEventName)) {
       this.alertMessage = "Please Enter Valid Event Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -487,35 +552,35 @@ export class PortalConfigComponent implements OnInit {
     return true;
   }
 
-  	
-  fromDateFilter = (d: Date)=>{	
-    const dateFormat = 'YYYY-MM-DD';	
-    const currentDate = new Date();	
-    const DAY_IN_MS = 24 * 60 * 60 * 1000;	
-    const BACKDATED_LEAVE_PERIOD = 0;	
-    const FUTUREDATED_LEAVE_PERIOD = 365;	
-    const time=d?.getTime();	
-    let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));	
-    let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));	
-      
-    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)));	
-    
-}	
-toDateFilter = (d: Date)=>{	
-  const dateFormat = 'YYYY-MM-DD';	
-  const currentDate = new Date();	
-  const DAY_IN_MS = 24 * 60 * 60 * 1000;	
-  const BACKDATED_LEAVE_PERIOD = 0;	
-  const FUTUREDATED_LEAVE_PERIOD = 365;	
-  const time=d?.getTime();	
-  let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));	
-  let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));	
-    
-  return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && (moment(d).format(dateFormat) >= moment(this.appreciationObj.fromDate).format(dateFormat)));	
-  
-}
 
-  enableAppreciation(template: TemplateRef<any>){
+  fromDateFilter = (d: Date) => {
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const BACKDATED_LEAVE_PERIOD = 0;
+    const FUTUREDATED_LEAVE_PERIOD = 365;
+    const time = d?.getTime();
+    let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
+    let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+
+    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)));
+
+  }
+  toDateFilter = (d: Date) => {
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const BACKDATED_LEAVE_PERIOD = 0;
+    const FUTUREDATED_LEAVE_PERIOD = 365;
+    const time = d?.getTime();
+    let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
+    let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+
+    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && (moment(d).format(dateFormat) >= moment(this.appreciationObj.fromDate).format(dateFormat)));
+
+  }
+
+  enableAppreciation(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateAppreciation(this.appreciationObj, template)
     if (!inputValidated) return;
@@ -524,8 +589,8 @@ toDateFilter = (d: Date)=>{
     this.enableAppreciationList = this.allEmployeeList.map(employee => {
       return {
         // employeementId : employee.employeementId,
-        empId : employee.empId,
-        isAppreciationEnable : true
+        empId: employee.empId,
+        isAppreciationEnable: true
       }
     });
 
@@ -537,71 +602,74 @@ toDateFilter = (d: Date)=>{
     this.appreciationObj.enableAppreciationList = this.enableAppreciationList;
     console.log("enableAppreciation : ", this.appreciationObj)
 
-    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <=this.appreciationObj.toDate) && (this.appreciationObj.fromDate<= x.toDate)) ); 
-    if(checkEventDate != undefined) {
-    this.openAlertMod(template,"Event is already exist on this date"); 
-    this.appreciationObj.fromDate=[];
-    this.appreciationObj.toDate = [];
-    this.allEmployeeList = []
-    this.appreciationObj.appreciationEventName = ''
-    this.appreciationObj.appreciationEventType = ''
-    this.isTable = false
+    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
+    if (checkEventDate != undefined) {
+      this.openAlertMod(template, "Event is already exist on this date");
+      this.appreciationObj.fromDate = [];
+      this.appreciationObj.toDate = [];
+      this.allEmployeeList = []
+      this.appreciationObj.appreciationEventName = ''
+      this.appreciationObj.appreciationEventType = ''
+      this.isTable = false
     }
-    else{
-    this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.all = response.serviceResponse;
-        console.log("appreciation : ", this.all)
-        this.openAlertMod(template, response.serviceResponse); 
-        this.viewAppreciationEventOnClick();
-      } else {
-        this.openAlertMod(template, response.serviceResponse); 
-      }
-    });
-  }
+    else {
+      this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.all = response.serviceResponse;
+          console.log("appreciation : ", this.all)
+          this.openAlertMod(template, response.serviceResponse);
+          this.viewAppreciationEventOnClick();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
   }
 
   disableMannualDateInput() {
     return false;
   }
-  
-  viewAppreciationsOnSubmit(appreciationObj: enableAppreciation,template: TemplateRef<any>){
+
+  viewAppreciationsOnSubmit(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
     this.portalConfig = false;
-    this.appreciationConfig=false;
+    this.appreciationConfig = false;
     this.viewAppreciationForm = false;
     // this.isAppreciationTable = true;
     this.isTable = false;
-   
-    this.isAppreciationTable = true;	
-    this.viewEventConfig= false;	
-    this.isCreation = false;	
-    this.isUpdation = false;	
-    this.viewAppreciations(appreciationObj,template);
+
+    this.isAppreciationTable = true;
+    this.viewEventConfig = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.viewAppreciations(appreciationObj, template);
 
 
   }
 
-  viewAppreciations(appreciationObj: enableAppreciation,template: TemplateRef<any>){
+  viewAppreciations(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
 
-    this.appByCategory = [];	
+    this.appByCategory = [];
     this.appreciationObj.appreciationEventId = this.appreciationObj.appreciationEventId;
     this.appreciationObj.appreciateType = this.appreciationObj.appreciateType;
 
     console.log(appreciationObj, "appreciationObj");
 
-    let inputValidated: boolean = this.validateViewAppreciation(appreciationObj,template)
+    let inputValidated: boolean = this.validateViewAppreciation(appreciationObj, template)
     if (!inputValidated) return;
     console.log(appreciationObj, "appreciationObj");
-    
+
     this.portalService.viewAppreciations(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.appByCategory = response.serviceResponse;
+        this.appByCategory.forEach(appr => {
+          appr.appreciationDate = (appr.appreciationDate) ? moment(appr.appreciationDate).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
         //this.reset();       
       } else {
-       // this.openAlertMod(template, response.serviceResponse)
-       console.error(response.serviceResponse)	;
+        // this.openAlertMod(template, response.serviceResponse)
+        console.error(response.serviceResponse);
       }
       this.isAppreciationTable = true;
     });
@@ -624,107 +692,143 @@ toDateFilter = (d: Date)=>{
   }
 
 
-  viewAppreciationEventOnClick(){	
-    this.portalConfig = false;	
-    this.appreciationConfig=false;	
-    this.viewAppreciationForm = false;	
-    this.isAppreciationTable = false;	
-    this.isTable = false;	
-    this.viewEventConfig= true;	
-    this.isCreation = false;	
-    this.isUpdation = false;	
+  viewAppreciationEventOnClick() {
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+    this.viewEventConfig = true;
+    this.isCreation = false;
+    this.isUpdation = false;
     this.getAllEvent();
 
-  }	
-  validateEnableAppreciationObj(appreciationObj: enableAppreciation, template: TemplateRef<any>) {	
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.fromDate)) {	
-      this.alertMessage = "Please enter From Date !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
-    }	
-    if (!this.validationService.validateAlphaWithSpace(appreciationObj.appreciationEventName)) {	
-      this.alertMessage = "Please enter Valid Event Name!!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
-    }	
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.toDate)) {	
-      this.alertMessage = "Please select To Date !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
-    }	
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventType)) {	
-      this.alertMessage = "Please select Employees  !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
-    }	
-    return true;	
-  }	
-  onUpdateAppreciationEvent(template: TemplateRef<any>){	
+  }
+  validateEnableAppreciationObj(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.fromDate)) {
+      this.alertMessage = "Please enter From Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateAlphaWithSpace(appreciationObj.appreciationEventName)) {
+      this.alertMessage = "Please enter Valid Event Name!!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.toDate)) {
+      this.alertMessage = "Please select To Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventType)) {
+      this.alertMessage = "Please select Employees  !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+  onUpdateAppreciationEvent(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
-    let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)	
-    if (!inputValidated) return;	
+    let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)
+    if (!inputValidated) return;
 
-    this.enableAppreciationList = this.allEmployeeList.map(employee => {	
-      return {	
-        empId : employee.empId,	
-        isAppreciationEnable : true	
-      }	
-    });	
+    this.enableAppreciationList = this.allEmployeeList.map(employee => {
+      return {
+        empId: employee.empId,
+        isAppreciationEnable: true
+      }
+    });
 
 
     this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
     this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
     this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
-    this.appreciationObj.enableAppreciationList = this.enableAppreciationList;    console.log("updateAppreciation : ", this.appreciationObj)
+    this.appreciationObj.enableAppreciationList = this.enableAppreciationList; console.log("updateAppreciation : ", this.appreciationObj)
 
-  
-    this.appreciationObj.updatedBy = this.currentUser.empId;;	
-    console.log("Update dept : ", this.appreciationObj);	
-    this.allAppreciationEvent =  this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
-    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <=this.appreciationObj.toDate) && (this.appreciationObj.fromDate<= x.toDate)) ); 
-    if(checkEventDate != undefined) {
-    this.openAlertMod(template,"Event is already exist on this date"); 
-    }else{
-    this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
-        this.openAlertMod(template, response.serviceResponse);	
-        this.reset();	
-        this.viewAppreciationEventOnClick()
-      } else {	
-        this.openAlertMod(template, response.serviceResponse);	
-        this.reset();	
-      }	
+
+    this.appreciationObj.updatedBy = this.currentUser.empId;;
+    console.log("Update dept : ", this.appreciationObj);
+    this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
+    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
+    if (checkEventDate != undefined) {
+      this.openAlertMod(template, "Event is already exist on this date");
+    } else {
+      this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.reset();
+          this.viewAppreciationEventOnClick()
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+          this.reset();
+        }
+      });
+    }
+  }
+  showUpdateForm(appreciationEvent: enableAppreciation) {
+    this.portalConfig = false;
+    this.appreciationConfig = true;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+    this.viewEventConfig = false;
+    this.isCreation = false;
+    this.isUpdation = true;
+    this.appreciationObj = JSON.parse(JSON.stringify(appreciationEvent));
+    this.appreciationObj.appreciationEventType = this.appreciationObj.appreciationEventType
+    // this.appreciationObj.fromDate = new Date(moment(this.appreciationObj.fromDate).format('DD-MM-YYYY'));
+    // this.appreciationObj.toDate = new Date(moment(this.appreciationObj.toDate).format('DD-MM-YYYY'));
+    console.log("this.appreciationObj : ", this.appreciationObj)
+  }
+  openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.appreciationObj = appreciationEvent;
+    console.log(this.appreciationObj);
+  }
+  onDeleteAppreciationEvent(template: TemplateRef<any>) {
+    this.cancelRequest();
+    // this.appreciationObj.createdOn = (this.appreciationObj.createdOn)? moment(this.appreciationObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+    this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getAllEvent();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getAllEvent();
+      }
     });
-  }	
   }
-  showUpdateForm(appreciationEvent: enableAppreciation) {	
-    this.portalConfig = false;	
-    this.appreciationConfig=true;	
-    this.viewAppreciationForm = false;	
-    this.isAppreciationTable = false;	
-    this.isTable = false;	
-    this.viewEventConfig= false;	
-    this.isCreation = false;	
-    this.isUpdation = true;	
-    this.appreciationObj = Object.assign({}, appreciationEvent)	
+
+
+  getAllDepartmentList() {
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
-  openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {	
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
-    this.appreciationObj = appreciationEvent;	
-    console.log(this.appreciationObj);	
-  }	
-  onDeleteAppreciationEvent(template: TemplateRef<any>) {	
-    this.cancelRequest();	
-    this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
-        this.openAlertMod(template, response.serviceResponse);	
-        this.getAllEvent();	
-      } else {	
-        this.openAlertMod(template, response.serviceResponse);	
-        this.getAllEvent();	
-      }	
-    });	
-  }	
+
+  getEmployeeList(employee?: Employee) {
+    this.employeeList = [];
+    let _employeeList = [];
+
+    console.log("Skip employee : ", employee)
+
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        _employeeList = response.serviceResponse;
+
+        this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+        console.log("employeeList : ", this.employeeList)
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
   //modal
 
@@ -741,85 +845,116 @@ toDateFilter = (d: Date)=>{
   handlePageChange(event) {
     this.page = event;
   }
-  sortData(sort:Sort){	
-    console.log(sort);	
-    	
-    const data=this.allEmployeeList;	
-   	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.allEmployeeList=data;	
-      return;	
-    }	
-    else {	
-      this.allEmployeeList=data.sort(	
-        (a,b)=>{	
-          const isAsc =sort.direction==='asc';	
-          switch(sort.active){	
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'empId':	
-              return compare(a.empId.toLowerCase() , b.empId.toLowerCase() , isAsc)	
-              case 'name':	
-                return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
-                case 'email':	
-                  return compare(a.email.toLowerCase() , b.email.toLowerCase() , isAsc)	
-                  case 'employmentstatus':	
-                  return compare(a.employmentstatus.toLowerCase() , b.employmentstatus.toLowerCase() , isAsc)
-                  case 'dateOfJoining':	
-                  return compare(a.dateOfJoining.toLowerCase() , b.dateOfJoining.toLowerCase() , isAsc)
-                default:	
-                 return 0;	
-          }	
-        }	
-      )	
-    }	
-    	
-    	
-  }	
+  sortData(sort: Sort) {
+    console.log(sort);
 
-  sortViewAppreciationData(sort:Sort){	
-    console.log(sort);	
-    	
-    const data=this.appByCategory;	
-   	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.appByCategory=data;	
-      return;	
-    }	
-    else {	
-      this.appByCategory=data.sort(	
-        (a,b)=>{	
-          const isAsc =sort.direction==='asc';	
-          switch(sort.active){	
+    const data = this.allEmployeeList;
+
+    if (!sort.active || sort.direction === '') {
+      this.allEmployeeList = data;
+      return;
+    }
+    else {
+      this.allEmployeeList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
             // case 'i':	
             // return compare(a.index , b.index , isAsc)	
-            case 'appreciateType':	
-              return compare(a.appreciateType.toLowerCase() , b.appreciateType.toLowerCase() , isAsc)	
-              case 'appreciationToName':	
-                return compare(a.appreciationToName.toLowerCase() , b.appreciationToName.toLowerCase() , isAsc)	
-                case 'appreciationByName':	
-                  return compare(a.appreciationByName.toLowerCase() , b.appreciationByName.toLowerCase() , isAsc)	
-                  case 'appreciationDate':	
-                  return compare(a.appreciationDate.toLowerCase() , b.appreciationDate.toLowerCase() , isAsc)
-                  case 'managerName':	
-                  return compare(a.managerName.toLowerCase() , b.managerName.toLowerCase() , isAsc)
-                  case 'reason':	
-                  return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)
-                default:	
-                 return 0;	
-          }	
-        }	
-      )	
-    }	
-    	
-    	
-  }	
+            case 'empId':
+              return compare(a.empId, b.empId, isAsc)
+            case 'name':
+              return compare(a.name.toLowerCase(), b.name.toLowerCase(), isAsc)
+            case 'email':
+              return compare(a.email.toLowerCase(), b.email.toLowerCase(), isAsc)
+            case 'employmentstatus':
+              return compare(a.employmentstatus.toLowerCase(), b.employmentstatus.toLowerCase(), isAsc)
+            case 'dateOfJoining':
+              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+
+  }
+  // allAppreciationEvent
+  sortAppreciationEventHistoryData(sort: Sort) {
+    console.log(sort);
+
+    const data = this.allAppreciationEvent;
+
+    if (!sort.active || sort.direction === '') {
+      this.allAppreciationEvent = data;
+      return;
+    }
+    else {
+      this.allAppreciationEvent = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'appreciationEventName':
+              return compare(a.appreciationEventName.toLowerCase(), b.appreciationEventName.toLowerCase(), isAsc)
+            case 'fromDate':
+              return compare(a.fromDate, b.fromDate, isAsc)
+            case 'toDate':
+              return compare(a.toDate, b.toDate, isAsc)
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+  }
+
+  sortViewAppreciationData(sort: Sort) {
+    console.log(sort);
+
+    const data = this.appByCategory;
+
+    if (!sort.active || sort.direction === '') {
+      this.appByCategory = data;
+      return;
+    }
+    else {
+      this.appByCategory = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'appreciateType':
+              return compare(a.appreciateType.toLowerCase(), b.appreciateType.toLowerCase(), isAsc)
+            case 'appreciationToName':
+              return compare(a.appreciationToName.toLowerCase(), b.appreciationToName.toLowerCase(), isAsc)
+            case 'appreciationByName':
+              return compare(a.appreciationByName.toLowerCase(), b.appreciationByName.toLowerCase(), isAsc)
+            case 'appreciationDate':
+              return compare(new Date(a.appreciationDate).getTime(), new Date(b.appreciationDate).getTime(), isAsc);
+            case 'managerName':
+              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc)
+            case 'reason':
+              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+
+  }
 
 }
 
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

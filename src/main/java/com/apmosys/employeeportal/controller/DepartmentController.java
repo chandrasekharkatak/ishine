@@ -58,5 +58,16 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.changeDepartmentJobRoleMapping(departmentDTO);
 		return response;
 	}
+	
+	/*
+	 API for PoPortal
+	 */
+	
+	@RequestMapping(value = "/getAllDepartmentInfo", method = RequestMethod.GET)
+	public ServiceResponse employeeInfo() {
+
+		ServiceResponse response = departmentService.getAllDepartmentInfo();
+		return response;
+	}
 
 }

@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Getter
 @Setter
+@Getter
 @ToString
 public class EmployeeDTO {
 
@@ -161,7 +161,18 @@ public class EmployeeDTO {
 	private Integer reporteeCount;
 	private String hierarchyType;
 //	private String eventCreatedOn;
-	
+	private List<AssetDTO> deptHeadConsentList;
 	private Double profileCompletedPercent;
+		
+	private Long hodId;
+	private String hodName;
+	private String hodEmail;
+	private String updatedByName;
+	private String createdByName;
+	
+	private String isTimesheetLockCheckEnable;
+	private String timesheetLockUpdatedOn;
+	private Integer timesheetBackDatedDays;
+	private Integer compOffLockDays;
 
 }

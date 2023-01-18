@@ -1,8 +1,9 @@
 export class Query{
     column:string;
     operator:string;
-    value:string;
+    value:any;
     conjunction:string="";
 
     queryList:any;
+    queryList1:any=[];
 }

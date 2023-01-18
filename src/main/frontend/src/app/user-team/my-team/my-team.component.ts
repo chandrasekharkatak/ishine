@@ -13,6 +13,9 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Sort } from '@angular/material/sort';
 import { HierarchyUser } from 'src/app/models/hierarchyUser';
+import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-my-team',
@@ -72,6 +75,11 @@ export class MyTeamComponent implements OnInit {
   
   nodes: any = [];
 
+  isLeaveHistoryOfDepartment:boolean = false;
+  departmentLeaveHistoryList:any[] = [];
+
+  isActionEnabled:boolean = false;
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -80,6 +88,7 @@ export class MyTeamComponent implements OnInit {
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     public validationService:ValidationService,
+    private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -91,9 +100,14 @@ export class MyTeamComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-    
-
     this.sectionViewInit();    
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {
@@ -140,6 +154,11 @@ export class MyTeamComponent implements OnInit {
     this.data=''
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
+    this.isLeaveHistoryOfDepartment = false;
+    this.fromDate = null;
+    this.toDate = null;
+    this.teamViewLeaveHistoryList = [];
+    this.departmentLeaveHistoryList = [];
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
@@ -154,6 +173,7 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
+    this.isLeaveHistoryOfDepartment = false;
   }
 
   viewCompOffHistory() {
@@ -164,6 +184,7 @@ export class MyTeamComponent implements OnInit {
     this.teamViewCompOffHistoryList = [];
     this.page=1;
     this.data='';
+    this.isLeaveHistoryOfDepartment = false;
   }
 
   viewTeamRequest() {
@@ -237,36 +258,43 @@ export class MyTeamComponent implements OnInit {
   getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
     
-    if(this.toDate){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
-        this.alertMessage = "Please enter Start Date !!"
-        alert(this.alertMessage);
-        //this.openAlertMod(this.alertTemplate, this.alertMessage);
-        return false;
+    if(this.isLeaveHistoryOfDepartment == false){
+      if(this.toDate){
+        if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
+          this.alertMessage = "Please enter Start Date !!"
+          alert(this.alertMessage);
+          //this.openAlertMod(this.alertTemplate, this.alertMessage);
+          return false;
+        }
+    
+        if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
+          this.alertMessage = "Please enter End Date !!"
+          alert(this.alertMessage);
+          //this.openAlertMod(this.alertTemplate, this.alertMessage);
+          return false;
+        }
+      }else{
+        return;
       }
   
-      if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
-        this.alertMessage = "Please enter End Date !!"
-        alert(this.alertMessage);
-        //this.openAlertMod(this.alertTemplate, this.alertMessage);
-        return false;
-      }
-    }else{
-      return;
+      let leaveObj = new Leave();
+      leaveObj.fromDate = this.fromDate;
+      leaveObj.toDate = this.toDate;
+      leaveObj.empId = this.currentUser.empId;
+      this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamViewLeaveHistoryList = response.serviceResponse;
+          this.teamViewLeaveHistoryList.forEach(leaveHistory => {
+            leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
+            leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
+            leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+          });
+          console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
     }
-
-    let leaveObj = new Leave();
-    leaveObj.fromDate = this.fromDate;
-    leaveObj.toDate = this.toDate;
-    leaveObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamViewLeaveHistoryList = response.serviceResponse;
-        console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
   }
 
   getAllTeamCompOffHistoryView(template?: TemplateRef<any>) {
@@ -300,6 +328,11 @@ export class MyTeamComponent implements OnInit {
     this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewCompOffHistoryList = response.serviceResponse;
+        this.teamViewCompOffHistoryList.forEach(compOffHistory => {
+          compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+        });
         console.log("teamViewCompOffHistory : ", this.teamViewCompOffHistoryList);
       } else {
         console.error(response.serviceResponse);
@@ -319,6 +352,11 @@ export class MyTeamComponent implements OnInit {
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
+        this.leaveApplicationList.forEach(leaveApp => {
+          leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null,
+          leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+        });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
@@ -330,6 +368,8 @@ export class MyTeamComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    leaveApplication.approverEmail = this.currentUser.email;	
+
     console.log("leaveApplication : ", leaveApplication);
 
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
@@ -364,6 +404,10 @@ export class MyTeamComponent implements OnInit {
     this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
+        this.allCompOffApplications.forEach(compOffApp => {
+          compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
+        });
         console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
@@ -510,6 +554,7 @@ export class MyTeamComponent implements OnInit {
          
           if(temp != undefined) x.isHierarchy = true;          
        }
+
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }
@@ -639,6 +684,62 @@ export class MyTeamComponent implements OnInit {
     this.myTeamHierarchyChart(employeeObj);
   }
 
+  toggleLeaveHistoryView(event){
+    if(event.target.checked){
+      this.isLeaveHistoryOfDepartment = true;
+      this.getDepartmentLeaveHistory();
+    }else{
+      this.isLeaveHistoryOfDepartment = false;
+      this.viewTeamLeaveHistory();
+    }
+  }
+
+  getDepartmentLeaveHistory(){
+    this.teamViewLeaveHistoryList = [];
+    this.departmentLeaveHistoryList = [];
+
+    if(this.isLeaveHistoryOfDepartment == true && this.fromDate != null && this.toDate != null){
+      let leaveObj = new Leave();
+      leaveObj.fromDate = this.fromDate;
+      leaveObj.toDate = this.toDate;
+      leaveObj.deptId = this.currentUser.departmentId;
+      this.teamViewService.getDepartmentLeaveHistory(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.departmentLeaveHistoryList = response.serviceResponse;
+          this.teamViewLeaveHistoryList = response.serviceResponse;
+          console.log("departmentLeaveHistoryList : ", this.departmentLeaveHistoryList);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
+  }
+
+  onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
+    let employee = Object.assign({}, employeeObj);
+    employee.isTimesheetLockCheckEnable = status;
+    employee.updatedBy = this.currentUser.empId;
+
+    if(employee.employeementId.startsWith('A-')){
+      employee.employeementId  = employee.employeementId.substring(2);
+    }else {
+      employee.employeementId  = employee.employeementId
+    }
+
+    console.log("updateTimesheetLockCheck : ", employee);
+    this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        let employeeObj = new Employee();
+        employeeObj.empId = this.currentUser.empId;
+        employeeObj.managerId = this.currentUser.managerId;
+        this.myTeamHierarchy(employeeObj);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -729,6 +830,8 @@ export class MyTeamComponent implements OnInit {
                            return compare(a.reason , b.reason , isAsc)	
                             case 'leaveType':	
                              return compare(a.leaveType , b.leaveType , isAsc)	
+                             case 'remark':	
+                             return compare(a.remark , b.remark , isAsc)	
           default :	
           return 0;	
         }	
@@ -794,6 +897,8 @@ export class MyTeamComponent implements OnInit {
       (a , b)=>{	
         const isAsc=sort.direction==='asc';	
         switch(sort.active){	
+          case 'employeeName':	
+          return compare(a.employeeName , b.employeeName , isAsc)	
           case 'leaveType':	
             return compare(a.leaveType , b.leaveType , isAsc)	
             case 'fromDate':	
@@ -914,6 +1019,7 @@ export class MyTeamComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList =  this.bulkTeamLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveObj.approverEmail = this.currentUser.email;	
     leaveObj.leaveStatusId = 2;
    
     this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -944,6 +1050,8 @@ export class MyTeamComponent implements OnInit {
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
     leaveObj.rejectReason = this.leaveObj.rejectReason
+    leaveObj.approverEmail = this.currentUser.email;	
+
     console.log(" .. ",leaveObj)
     this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -985,7 +1093,6 @@ export class MyTeamComponent implements OnInit {
       }
     });
   }
-  
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

@@ -1,7 +1,11 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { EventPhoto } from 'src/app/models/EventPhoto';
 import { Feature } from 'src/app/models/feature';
 import { NotificationMessage } from 'src/app/models/notification';
@@ -49,6 +53,7 @@ export class HomeConfigComponent implements OnInit {
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
+    private locationStrategy: LocationStrategy
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
@@ -62,6 +67,13 @@ export class HomeConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {
@@ -185,6 +197,9 @@ export class HomeConfigComponent implements OnInit {
     this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages =  response.serviceResponse;
+        this.eventImages.forEach(img => {
+          img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
         console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);
@@ -270,4 +285,46 @@ export class HomeConfigComponent implements OnInit {
     this.page = event;
   }
 
-}
+  sortEventPhotos(sort:Sort){
+   
+      console.log(sort);  	
+         let data=this.eventImages;	
+         console.log("event Photos :" , this.eventImages );	
+           
+           if(!sort.active || sort.direction ===''){	
+            this.eventImages=data;	
+           return;	
+          }	
+           else {	
+            this.eventImages=data.sort(	
+               (a , b )=>{	
+                 const isAsc=sort.direction==='asc';	
+                 switch(sort.active){	
+                 
+                     case 'imageName':	
+                       return compare(a.imageName.toLowerCase() , b.imageName.toLowerCase() , isAsc);	
+  
+                       case 'eventName':	
+                       return compare(a.eventName.toLowerCase() , b.eventName.toLowerCase() , isAsc);	
+  
+                         case 'createdOn':	    
+                         return  compare(new Date(a.createdOn).getTime() ,  new Date(b.createdOn).getTime(), isAsc);	
+            
+                         case 'createdByName':	    
+                         return  compare(a.createdByName.toLowerCase() ,  b.createdByName.toLowerCase(), isAsc);	
+  
+                                               
+                     default:	
+                       return 0; 	
+                   }	
+               }	
+             )	
+           }	
+         }	
+  }
+
+  function compare(a: number | string, b: number | string, isAsc: boolean) {	
+    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+  }
+  
+

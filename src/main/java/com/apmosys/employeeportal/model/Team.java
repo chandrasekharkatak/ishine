@@ -32,6 +32,7 @@ public class Team {
 	private String isActive;
 	private Long poTeamId;
 	private String description;
+	private String deptIds;
  
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

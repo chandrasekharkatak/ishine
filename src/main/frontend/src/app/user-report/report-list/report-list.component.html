@@ -37,22 +37,22 @@
       <div class="col-md-12">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveReportInfo'"
           [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
-          <table class="table table-responsive" id="leaveReportInfo">
+          <table class="table table-responsive" matSort (matSortChange)="sortLeaveReportList($event)" id="leaveReportInfo">
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
-                <th scope="col" class="info-label wide-col">Employee Id</th>
-                <th scope="col" class="info-label wide-col">Full Name</th>
-                <th scope="col" class="info-label wide-col">Leave Type</th>
-                <th scope="col" class="info-label wide-col">From Date</th>
-                <th scope="col" class="info-label wide-col">To Date</th>
-                <th scope="col" class="info-label wide-col">No. of Days</th>
-                <th scope="col" class="info-label wide-col">Reason</th>
-                <th scope="col" class="info-label wide-col">Status</th>
-                <th scope="col" class="info-label wide-col">Manager Name</th>
-                <th scope="col" class="info-label wide-col">Department</th>
-                <th scope="col" class="info-label wide-col">Created On</th>
-                <th scope="col" class="info-label wide-col">Updated On</th>
-                <th scope="col" class="info-label wide-col">Updated By</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeeName">Full Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="leaveType">Leave Type</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="fromDate">From Date</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="toDate">To Date</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="noOfDays">No. of Days</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="reason">Reason</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="status">Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="managerName">Manager Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="createdOn">Created On</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn">Updated On</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="leaveStatusUpdatedByName">Updated By</th>
               </tr>
             </thead>
             <tbody>
@@ -64,8 +64,8 @@
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
-                <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
-                <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
+                <td>{{leave.fromDate}}</td>
+                <td>{{leave.toDate}}</td>
                 <td>{{leave.noOfDays}}</td>
                 <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
@@ -119,19 +119,22 @@
       <div class="col-md-12">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
           [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
-          <table class="table table-responsive" id="timesheetReportInfo">
+          <table class="table table-responsive" matSort (matSortChange)="sortTimesheetReportList($event)" id="timesheetReportInfo">
             <thead class="thead-light" id="timesheetReportTHead">
               <tr id="timesheetReportTHeadTr">
-                <th scope="col" class="info-label">Employee Id</th>
-                <th scope="col" class="info-label">Full Name</th>
-                <th scope="col" class="info-label">Date</th>
-                <th scope="col" class="info-label">Day Type</th>
-                <th scope="col" colspan="4" class="info-label">Description</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label wide-col">Total Working Hours</th>
-                <th scope="col" class="info-label">Created On</th>
-                <th scope="col" class="info-label">Updated On</th>
-                <th scope="col" class="info-label">Updated By</th>
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Full Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
+                <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="totalWorkingHours">Total Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="officeInTime">Office In Time</th>
+                <th scope="col" class="info-label" mat-sort-header="officeOutTime">Office Out Time</th>
+                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName">Updated By</th>
               </tr>
             </thead>
             <tbody>
@@ -142,11 +145,14 @@
                 *ngFor="let timesheet of allTimesheetApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
+                <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td colspan="4">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.totalWorkingHours}}</td>
+                <td>{{timesheet.officeInTime}}</td>
+                <td>{{timesheet.officeOutTime}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
                 <td>{{timesheet.createdOn}}</td>
                 <td>{{timesheet.updatedOn}}</td>
                 <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
@@ -195,58 +201,61 @@
         <div class="col-md-12">
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'" [tableTHeadId]="'employeeReportInfoTHead'"
           [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table table-responsive">	
+          <table class="table table-responsive" matSort (matSortChange)="sortEmployeeReportList($event)">	
             <thead class="thead-light">	
               <tr>	
-                <th scope="col" class="info-label wide-col">Employee Id</th>
-                <th scope="col" class="info-label wide-col">Full Name</th>
-                <th scope="col" class="info-label wide-col">Department</th>
-                <th scope="col" class="info-label wide-col">Job Role</th>
-                <th scope="col" class="info-label ">Manager</th>
-                <th scope="col" class="info-label wide-col">Mobile Number</th>	
-                <th scope="col" class="info-label wide-col">Email Id</th>	
-                <th scope="col" class="info-label wide-col">Employment Status</th>	
-                <th scope="col" class="info-label wide-col">Date of Joining</th>
-                <th scope="col" class="info-label wide-col">Aadhar Card</th>
-                <th scope="col" class="info-label wide-col">About Me</th>	
-                <th scope="col" class="info-label ">Address</th>	
-                <th scope="col" class="info-label wide-col">Permanent Address</th>	
-                <th scope="col" class="info-label ">City</th>	
-                <th scope="col" class="info-label wide-col">Blood Group</th>	
-                <th scope="col" class="info-label wide-col">Date of Birth</th>	
-                <th scope="col" class="info-label ">Gender</th>	
-                <th scope="col" class="info-label wide-col">Father Name</th>
-                <th scope="col" class="info-label wide-col">Pan Number</th>	
-                <th scope="col" class="info-label wide-col">Place of Birth</th>	
-                <th scope="col" class="info-label wide-col">Work Location</th>	
-                <th scope="col" class="info-label wide-col">Probation Period</th>	
-                <th scope="col" class="info-label wide-col">Notice Period</th>	
-                <th scope="col" class="info-label ">Country</th>	
-                <th scope="col" class="info-label wide-col">Experience</th>
-                <th scope="col" class="info-label wide-col">Emergency Contact Number</th>	
-                <th scope="col" class="info-label wide-col">Emergency Contact Person</th>	
-                <th scope="col" class="info-label wide-col">Landline</th>	
-                <th scope="col" class="info-label wide-col">Marital Status</th>	
-                <th scope="col" class="info-label wide-col">Mother Tongue</th>	
-                <th scope="col" class="info-label wide-col">Alternate Mobile Number</th>
-                <th scope="col" class="info-label ">Pincode</th>	
-                <th scope="col" class="info-label wide-col">Relation</th>	
-                <th scope="col" class="info-label ">State</th>	
-                <th scope="col" class="info-label wide-col">View On Organisation</th>	
-                <th scope="col" class="info-label wide-col">Passport Number</th>	
-                <th scope="col" class="info-label wide-col">Bank Account Number</th>	
-                <th scope="col" class="info-label wide-col">Bank IFSC Code</th>	
-                <th scope="col" class="info-label wide-col">Bank Name</th>	
-                <th scope="col" class="info-label wide-col">PF Account Number</th>	
-                <th scope="col" class="info-label wide-col">Previous PF Account Number</th>	
-                <th scope="col" class="info-label ">UAN</th>	
-                <th scope="col" class="info-label wide-col">ESIC Number</th>	
-                <th scope="col" class="info-label wide-col">Graduation Type</th>	
-                <th scope="col" class="info-label wide-col">Pursuing</th>	
-                <th scope="col" class="info-label wide-col">Passing Grade</th>	
-                <th scope="col" class="info-label wide-col">Year of Passing</th>	
-                <th scope="col" class="info-label wide-col">Created By</th>	
-                <th scope="col" class="info-label wide-col">Created On</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="name">Full Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName">Job Role</th>
+                <th scope="col" class="info-label " mat-sort-header="managerName">Manager</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo">Mobile Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="email">Email Id</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus">Employment Status</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining">Date of Joining</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="aadhar">Aadhar Card</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="aboutMe">About Me</th>	
+                <th scope="col" class="info-label" mat-sort-header="address">Address</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="permanentAddress">Permanent Address</th>	
+                <th scope="col" class="info-label " mat-sort-header="city">City</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bloodGroup">Blood Group</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="dateOfBirth">Date of Birth</th>	
+                <th scope="col" class="info-label" mat-sort-header="gender">Gender</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="fatherName">Father Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="panNumber">Pan Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="placeOfBirth">Place of Birth</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="workLocation">Work Location</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="probationPeriod">Probation Period</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="noticePeriod">Notice Period</th>	
+                <th scope="col" class="info-label" mat-sort-header="country">Country</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience">Experience</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="emergencyContactMobile">Emergency Contact Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="emergencyContactPerson">Emergency Contact Person</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="landline">Landline</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="maritalStatus">Marital Status</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="motherTongue">Mother Tongue</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="alternateMobileNo">Alternate Mobile Number</th>
+                <th scope="col" class="info-label" mat-sort-header="pincode">Pincode</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="relation">Relation</th>	
+                <th scope="col" class="info-label" mat-sort-header="state">State</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="viewsOnOrganisation">View On Organisation</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="passportNumber">Passport Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bankAccountNo">Bank Account Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bankIFSCCode">Bank IFSC Code</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bankName">Bank Name</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="pfAccountNumber">PF Account Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="previousPfAccountNumber">Previous PF Account Number</th>	
+                <th scope="col" class="info-label" mat-sort-header="uan">UAN</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="esicNumber">ESIC Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="graduationType">Graduation Type</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="pursuing">Pursuing</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="passingGrade">Passing Grade</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="yearOfPassing">Year of Passing</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn">Updated on</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="updatedByName">Updated By</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="createdByName">Created By</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="createdOn">Created On</th>
+                <th scope="col" class="info-label wide-col">Profile completion Percentage</th>
               </tr>
             </thead>
             <tbody>
@@ -262,14 +271,14 @@
                 <td>{{employee.mobileNo}}</td>
                 <td>{{employee.email}}</td>
                 <td>{{employee.employmentstatus}}</td>
-                <td>{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</td>
+                <td>{{employee.dateOfJoining}}</td>
                 <td>{{employee.aadhar}}</td>
                 <td>{{employee.aboutMe}}</td>
                 <td>{{employee.address}}</td>
                 <td>{{employee.permanentAddress}}</td>
                 <td>{{employee.city}}</td>
                 <td>{{employee.bloodGroup}}</td>
-                <td>{{employee.dateOfBirth | date:'dd-MM-yyyy'}}</td>
+                <td>{{employee.dateOfBirth}}</td>
                 <td>{{employee.gender}}</td>
                 <td>{{employee.fatherName}}</td>
     
@@ -304,8 +313,15 @@
                 <td>{{employee.pursuing}}</td>
                 <td>{{employee.passingGrade}}</td>
                 <td>{{employee.yearOfPassing}}</td>
-                <td>{{employee.createdBy}}</td>
-                <td>{{employee.createdOn | date:'dd-MM-yyyy'}}</td>
+                <td>{{employee.updatedOn}}</td>
+                <td>{{employee.updatedByName}}</td>
+                <td>{{employee.createdByName}}</td>
+                <td>{{employee.createdOn}}</td>
+                <td>
+                  <div class="progress profileCompleted">
+                    <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="employee.profileCompletedPercent" aria-valuemin="0" aria-valuemax="100">{{employee.profileCompletedPercent}}</div>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -385,14 +401,15 @@
                 </th>
               </ng-container>
             </tr>
-            <tr>
+            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
+              (cdkDragReleased)="release = true" (cdkDropListDropped)="dropInsideCol($event)">
               <ng-container *ngFor="let column of finalColumns, let i = index">
                 <ng-container *ngIf="!column.department">
                   <th></th>
                 </ng-container>
         
                 <ng-container *ngFor="let subColumn of column.department">
-                  <th>
+                  <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
                     {{subColumn.header}}
                   </th>
                 </ng-container>
@@ -402,7 +419,23 @@
           <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
             <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
               (cdkDragReleased)="onDragRelease($event)" *ngFor="let element of paginateData">
-              <ng-container *ngFor="let cell of columns; let i = index">
+
+                <ng-container *ngFor="let cell of finalColumns; let i = index">
+                  <ng-container *ngIf="i == 0">
+                    <td *ngFor="let x of cell.department">{{ element[x.field] }}</td>
+                  </ng-container>
+                  <ng-container *ngIf="i != 0">
+                    <td *ngFor="let x of cell.department">
+                      <label class="cell-checkbox">
+                        <input type="checkbox" [(ngModel)]="element[x.field]"
+                        (change)="selectCellCheckbox(x.field,element[x.field], element.subfeatureId)" />
+                        <span class="primary"></span>
+                    </label>
+                    </td>
+                  </ng-container>
+                </ng-container>
+                
+              <!-- <ng-container *ngFor="let cell of columns; let i = index">
                 <ng-container *ngIf="i == 0">
                   <td>{{ element[cell.field] }}</td>
                 </ng-container>
@@ -410,7 +443,7 @@
                   <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
                       (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
                 </ng-container>
-              </ng-container>
+              </ng-container> -->
               <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
                 [style.width]="pos?.width">
                 <table>
@@ -425,7 +458,7 @@
         </table>
       </div>
       <button type="button" class="btn btn-sm btn-outline-primary mt-2" [hidden]="paginateData.length == 0"
-        (click)="updateJobRoleSubFeatureMapping(alert_message)">Updated Role ACL</button>
+        (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
     </div>
 </div>
 <!-- end :: ACL (access control list) -->

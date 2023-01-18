@@ -1,9 +1,10 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { Leave } from 'src/app/models/leave';
 import { User } from 'src/app/models/user';
@@ -48,7 +49,9 @@ export class CompOffComponent implements OnInit {
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
-    private datePipe: DatePipe,) {
+    private datePipe: DatePipe,
+    private locationStrategy: LocationStrategy
+    ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -62,6 +65,13 @@ export class CompOffComponent implements OnInit {
 
     this.sectionViewInit();
     this.getAllCompOffReasons();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -148,7 +158,12 @@ export class CompOffComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
-      const BACKDATED_LEAVE_PERIOD = 31;
+      let BACKDATED_LEAVE_PERIOD = 31;
+
+      if(this.currentUser.compOffLockDays){
+        BACKDATED_LEAVE_PERIOD = this.currentUser.compOffLockDays;
+      }
+
       // const FUTUREDATED_LEAVE_PERIOD = 180;
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime());
@@ -230,8 +245,13 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
       this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
+      this.compOffObj.managerEmail = this.currentUser.managerEmail;
+      this.compOffObj.managerName = this.currentUser.managerName;
       this.compOffObj.createdBy = this.currentUser.empId;
       this.compOffObj.managerId = this.currentUser.managerId; 
+      this.compOffObj.employeementId = this.currentUser.employeementId;
+      this.compOffObj.email = this.currentUser.email;
+      this.compOffObj.employeeName = this.currentUser.name;
   
       console.log("Apply Comp off : ", this.compOffObj);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
@@ -268,6 +288,10 @@ export class CompOffComponent implements OnInit {
       this.leaveService.getAllCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allCompOffRequests = response.serviceResponse;
+          this.allCompOffRequests.forEach(compOff => {
+            compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
+          });
           console.log("allCompOffRequests : ", this.allCompOffRequests);
         } else {
           console.error(response.serviceResponse);
@@ -283,6 +307,10 @@ export class CompOffComponent implements OnInit {
       this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allCompOffApplications = response.serviceResponse;
+          this.allCompOffApplications.forEach(compOff => {
+            compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
+          });
           console.log("allCompOffApplications : ", this.allCompOffApplications);
         } else {
           console.error(response.serviceResponse);

@@ -41,5 +41,8 @@ public class Project {
 	private Long poProjectId;
 	private String active;
 	private String syncProject;
+	private Long createdBy;
+	private Long updatedBy;
+	private LocalDateTime updatedOn;
 
 }

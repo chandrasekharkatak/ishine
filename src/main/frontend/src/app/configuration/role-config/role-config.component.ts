@@ -13,6 +13,9 @@ import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-role-config',
@@ -68,7 +71,8 @@ export class RoleConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private subfeatureService: SubfeatureService,
     private authenticationService: AuthenticationService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -86,6 +90,13 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.departmentId = '';
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {
@@ -322,7 +333,12 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
+        this.allJobRoleList.forEach(role => {
+          role.createdOn = (role.createdOn)? moment(role.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          role.updatedOn = (role.updatedOn)? moment(role.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         this.filterAllJobRoleList = this.allJobRoleList;
+
       } else {
         console.error(response.serviceResponse)
       }
@@ -449,9 +465,9 @@ export class RoleConfigComponent implements OnInit {
           "Employee Role":x.employeeRole,
           "Department": x.departmentName,
           "Created by": x.createdBy,
-          "Created on": x.createdOn,
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Updated by": x.updatedBy,
-          "Updated on": x.updatedOn
+          "Updated on": (x.updatedOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
@@ -495,7 +511,7 @@ export class RoleConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort:Sort){	
+  sortroleData(sort:Sort){	
     console.log(sort);	
       
     const data=this.filterAllJobRoleList;	
@@ -510,14 +526,16 @@ export class RoleConfigComponent implements OnInit {
           switch(sort.active){	
             case 'name':	
               return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
-              case 'departmentName':	
+              case 'employeeRole':	
+                return compare(a.employeeRole.toLowerCase() , b.employeeRole.toLowerCase() , isAsc)
+                case 'departmentName':	
                 return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
                 case 'createdBy':	
                   return compare(a.createdBy.toLowerCase() , b.createdBy.toLowerCase() ,isAsc)	
                   case 'createdOn':	
                     return compare(a.createdOn , b.createdOn , isAsc)	
                     case 'updatedByName':	
-                      return compare(a.updatedByName.toLowerCase() , b.updatedByName.toLowerCase() ,isAsc)	
+                      return compare(a.updatedByName , b.updatedByName ,isAsc)	
                       case 'updatedOn':	
                         return compare(a.updatedOn , b.updatedOn , isAsc)	
               default:	

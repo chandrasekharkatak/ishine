@@ -51,6 +51,7 @@ export class Leave{
 
 	updatedBy:any;
 	updatedOn:any;
+	updatedByName: any;
 
 	leaveAppliedFor:any;
 	fromDateDayType:any;
@@ -92,4 +93,13 @@ export class Leave{
 	approvedApplicationsCount:any = 0;
 	pendingApplicationsCount:any = 0;
 	rejectedApplicationsCount:any = 0;
+
+	deptId:any;
+	approverName:any;
+	approverEmail:any;
+
+	name:any;
+	checkDate:any;
+	managerEmail:any;
+	
 }

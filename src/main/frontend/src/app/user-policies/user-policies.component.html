@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row" style="margin-top: 50px;">
   <div class="col-md-12">
     <div class="card">
       <div class="card-body">
@@ -40,7 +40,7 @@
                         <td>{{doc.fileName}}</td>
                         <td>{{doc.policyName}}</td>
                         <td>{{doc.createdByName}}</td>
-                        <td>{{doc.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                        <td>{{doc.createdOn}}</td>
                         <td>
                           <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> &nbsp;
                           <button  class="btn btn-sm btn-outline-primary" *ngIf="doc.readEnabled == 'true'&& !doc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, doc)" >Mark As Read</button> 

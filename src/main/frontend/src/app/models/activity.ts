@@ -21,4 +21,8 @@ export class Activity{
 	createdBy: any;	
 	updatedOn: any;	
 	updatedBy: any;
+
+    employeeRole:any;
+    departmentList:any;
+    deptId:any;
 }

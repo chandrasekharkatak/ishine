@@ -53,3 +53,16 @@
 .column-md{
     min-width: 150px;
 }
+
+.cell-checkbox {
+    background-color: #fff;
+    height: 30px;
+    margin: 0 .25em;
+    width: 30px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.highlight {
+    background-color: rgb(171, 193, 253);
+}

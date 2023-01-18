@@ -137,7 +137,7 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'roleInfo'" [tableTHeadId]="'roleInfoTHead'"
                     [tableTHeadTrId]="'roleInfoTHeadTr'">
-                    <table class="table table-responsive" id="roleInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table table-responsive" id="roleInfo" matSort (matSortChange)="sortroleData($event)">
                         <thead class="thead-light" id="roleInfoTHead">
                             <tr id="roleInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
@@ -163,9 +163,9 @@
                                 <td>{{jobRole.employeeRole}}</td>
                                 <td>{{jobRole.departmentName}}</td>
                                 <td>{{jobRole.createdBy}}</td>
-                                <td>{{jobRole.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{jobRole.createdOn}}</td>
                                 <td>{{jobRole.updatedByName}}</td>
-                                <td>{{jobRole.updatedOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{jobRole.updatedOn}}</td>
                                 <td
                                     *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role">
                                     <button *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping"

@@ -147,4 +147,8 @@ public class Employee {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'False'")
 	private String isAppreciationEnable; //added for appreciation by suchi
 	
+	@Column(columnDefinition = "varchar(10) DEFAULT 'true'")
+	private String isTimesheetLockCheckEnable;
+	
+	private LocalDate timesheetLockUpdatedOn;
 }

@@ -71,6 +71,20 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getMappedActivityPreview", method = RequestMethod.POST)
+	public ServiceResponse getMappedActivityPreview(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.getMappedActivityPreview(teamDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getMappedActivityInUpdateTeam", method = RequestMethod.POST)
+	public ServiceResponse getMappedActivityInUpdateTeam(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.getMappedActivityInUpdateTeam(teamDTO);
+		return response;
+	}
+	
 //	MyTeam Contoller
 	
 	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)
@@ -106,6 +120,13 @@ public class TeamsController {
 		
 		ServiceResponse response = teamsService.checkTeamName(teamdto);
 		return response;
+	}
+	
+	@RequestMapping(value="/getDepartmentLeaveHistory" , method = RequestMethod.POST)
+	public ServiceResponse getDepartmentLeaveHistory(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getDepartmentLeaveHistory(leaveDTO);	
+		return response; 
 	}
 	
 	/*
@@ -204,6 +225,20 @@ public class TeamsController {
 		for (ProjectDTO project : projectDTO) {
 			response = teamsService.setPoProjectIdAndDepartment(project);
 		}
+		return response;
+	}
+	
+	@RequestMapping(value="/addDeptIdsInActivities" , method = RequestMethod.GET)
+	public ServiceResponse addDeptIdsInActivities() {
+		
+		ServiceResponse response = teamsService.addDeptIdsInActivities();
+		return response;
+	}
+	
+	@RequestMapping(value="/addProjectDepartmentMapping" , method = RequestMethod.GET)
+	public ServiceResponse addProjectDepartmentMapping() {
+		
+		ServiceResponse response = teamsService.addProjectDepartmentMapping();
 		return response;
 	}
 }

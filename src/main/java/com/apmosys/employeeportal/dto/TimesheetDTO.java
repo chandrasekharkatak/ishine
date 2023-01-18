@@ -61,6 +61,8 @@ public class TimesheetDTO {
 	private String legend;
 	private String rejectReason;
 	private List<CustomFilterDTO> queryList;
+	private List<CustomFilterDTO> queryList1;
+
 	private String employmentstatus;
 	private List<TimesheetDTO> bulkApprovedList;
 	private List<TimesheetDTO> bulkRejectList;
@@ -75,4 +77,6 @@ public class TimesheetDTO {
 	private String officeInTime;
 	private String officeOutTime;
 	private String totalWorkingOfficeHours; //<-- totalWorkingHours in Timesheet Model
+	private String isNightShift;
+	private String managerEmail;
 }

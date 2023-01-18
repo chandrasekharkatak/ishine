@@ -17,7 +17,19 @@ import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -32,6 +44,27 @@ public class CustomFilterService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeService employeeService;
+	
+	@Autowired
+	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
+	
+	@Autowired
+	ClientsRepository clientsRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
 
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
 			StringBuilder query = new StringBuilder("");
@@ -122,6 +155,11 @@ public class CustomFilterService {
 						query = query.append(" d.name ").append(dto.getOperator() + " '")
 								.append(dto.getValue() + "' ").append(dto.getConjunction());
 						break;
+					}
+					case "Employment Status": {	
+						query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")	
+								.append(dto.getValue() + "' ").append(dto.getConjunction());	
+						break;	
 					}
 					default:
 						break;
@@ -421,13 +459,15 @@ public class CustomFilterService {
 						+ "e.views_on_organisation, e.year_of_passing,\n"
 						+ "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name \n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName \n"
 						+ "FROM employee e \n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
+						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q);
@@ -525,6 +565,14 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);	
+					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
+					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
+					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
+					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+					
+					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+					
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -622,6 +670,16 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Department": {	
+					query = query.append(" d.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Employment Status": {	
+					query = query.append(" e1.employmentstatus ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}
 				default:
 					break;
 				}
@@ -634,13 +692,15 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {
-				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, "
-						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name "
-						+ "FROM employee_timesheets et "
-						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id "
-						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id "
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
+						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours \n"
+						+ "FROM employee_timesheets et \n"
+						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
+						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
+						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"	
+						+ "LEFT JOIN department d on jr.dept_id = d.dept_id \n"
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q);
@@ -685,6 +745,9 @@ public class CustomFilterService {
 					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					timesheetDto.setOfficeInTime(object[13] != null ? object[13].toString() : null);
+					timesheetDto.setOfficeOutTime(object[14] != null ? object[14].toString() : null);
+					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -782,14 +845,71 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Department": {	
+					query = query.append(" d.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}
 				default:
 					break;
 				}
 			}
 			return query;
      }
+	public StringBuilder createQueryForTimesheetSummaryChart1(List<CustomFilterDTO> queryList) {	
+		StringBuilder query = new StringBuilder("");	
+			
+			for(CustomFilterDTO dto: queryList) {	
+				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {	
+					dto.setValue("%"+dto.getValue()+"%");	
+				}	
+					
+				switch (dto.getColumn()) {	
+				case "Employee Id": {	
+					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Full Name": {	
+					query = query.append(" e.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+
+				case "Team Name": {	
+					query = query.append(" t.team_name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Project Name": {	
+					query = query.append(" p.project_name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Client Name": {	
+					query = query.append(" p.client_name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
 	
-	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery, List<CustomFilterDTO> queryList) {
+				case "Updated By": {	
+					query = query.append(" e2.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				case "Department": {	
+					query = query.append(" d.name ").append(dto.getOperator() + " '")	
+							.append(dto.getValue() + "' ").append(dto.getConjunction());	
+					break;	
+				}	
+				default:	
+					break;	
+				}	
+			}	
+			return query;	
+     }	
+	
+	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery,String customQuery1, List<CustomFilterDTO> queryList) {
 		ServiceResponse response = new ServiceResponse();
 		
 			Session session = entityManager.unwrap(Session.class);
@@ -806,13 +926,16 @@ public class CustomFilterService {
 			}
 			
 			try {
+									
 				String q1="SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets et "
 						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
 						+ "WHERE date between '"+fromDate+"' and '"+toDate+"' "
 						+ " group by e.emp_id";
+				Query query1 = session.createSQLQuery(q1);
+				List<Object[]> timesheetList = query1.getResultList();
 				
-				System.out.println(q1);
 				
+
 				String q2="SELECT et.status,e.employeement_id,e.name,d.name dept,e.email,e.mobile_no,date,total_time working_hours, "
 						+ "et.day_type, e2.name manager, t.team_name,p.project_name,p.client_name "
 						+ "FROM employee_timesheets et "
@@ -825,24 +948,68 @@ public class CustomFilterService {
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				System.out.println(q2);
-				
-				Query query1 = session.createSQLQuery(q1);
 				Query query2 = session.createSQLQuery(q2);
-				
-				
-				List<Object[]> timesheetList = query1.getResultList();
-
-				List<Object[]> employeeList = employeeRepository.getAllEmployees();
-
 				List<Object[]> filledTimesheetList = query2.getResultList();
+				
 				
 				LocalDate startDate = LocalDate.parse(fromDate);
 				LocalDate endDate = LocalDate.parse(toDate);
 				Long pendingEOdNumber = ChronoUnit.DAYS.between(startDate, endDate);
 
 				List<TimesheetDTO> dtoList = new ArrayList<>();
+				
+				if(timesheetList != null) {
+				if(!customQuery1.equalsIgnoreCase("")) {
+				String empId = " SELECT distinct(e.emp_id),e.employeement_id,e.name,d.name as dept,e.email,e.mobile_no, e2.name as managerName,e.employmentstatus " 
+						+ " FROM employee_timesheets et "
+						+ " INNER JOIN employee e ON e.emp_id = et.emp_id "
+						+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+						+ " INNER JOIN department d ON d.dept_id = jr.dept_id " 
+						+ " INNER JOIN employee e2 on e2.emp_id = e.manager_id "
+						+ " LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
+						+ " LEFT JOIN teams t on t.team_id = etm.team_id "
+						+ " LEFT JOIN projects p on p.project_id = t.project_id "
+						+ "where e.employmentstatus not like 'InActive' and "  +customQuery1;
+				
+				Query EmployeeId = session.createSQLQuery(empId);
+				List<Object[]> employeeList= EmployeeId.getResultList();
+				
+				employeeList.forEach((employee) -> {
+					TimesheetDTO dto = new TimesheetDTO();
 
-				if (timesheetList != null) {
+					dto.setEmployeementId(employee[1] != null ? Long.parseLong(employee[1].toString()) : null);
+					dto.setEmployeeName(employee[2] != null ? employee[2].toString() : null);
+					dto.setDepartmentName(employee[3] != null ? employee[3].toString() : null);
+					dto.setEmail(employee[4] != null ? employee[4].toString() : null);
+					dto.setMobileNo(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
+					dto.setManagerName(employee[6] != null ? employee[6].toString() : null);
+					dto.setEmpId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+					dto.setPendingEodCount(pendingEOdNumber);
+					dto.setLegend("Pending By User");
+					dto.setEmploymentstatus(employee[7] != null ? employee[7].toString() : null);
+
+					timesheetList.forEach((timesheet) -> {
+
+						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+						Long employeeEmpId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
+
+						if (timesheetEmpId.equals(employeeEmpId)) {
+
+							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+
+							Long pendingEodCount = pendingEOdNumber - filledEodCount;
+
+							dto.setPendingEodCount(pendingEodCount);
+
+						}
+
+					});
+					dtoList.add(dto);
+				});
+
+				}else {
+					List<Object[]> employeeList = employeeRepository.getAllEmployees();
+					
 					employeeList.forEach((employee) -> {
 						TimesheetDTO dto = new TimesheetDTO();
 
@@ -876,6 +1043,8 @@ public class CustomFilterService {
 						dtoList.add(dto);
 					});
 
+				}
+				
 					if (filledTimesheetList != null) {
 						filledTimesheetList.forEach((filledTimesheet) -> {
 							TimesheetDTO dto = new TimesheetDTO();
@@ -901,7 +1070,7 @@ public class CustomFilterService {
 					response.setServiceResponse("Timesheet not found. Kindly check date range.");
 				}
 				
-			}catch(Exception e) {
+				}catch(Exception e) {
 				e.printStackTrace();
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 				response.setServiceResponse("Something Went Wrong.");
@@ -914,12 +1083,16 @@ public class CustomFilterService {
 		return response;
 	}
 
+
 	public ServiceResponse customQueryForTimesheetSummaryChart(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
 			StringBuilder subQuery = createQueryForTimesheetSummaryChart(timesheetDTO.getQueryList());
-			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(), timesheetDTO.getQueryList());
+			
+			StringBuilder subQuery1 = createQueryForTimesheetSummaryChart1(timesheetDTO.getQueryList1());
+
+			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(),subQuery1.toString(), timesheetDTO.getQueryList());
 			
 			if(timesheetSummaryLeaveResposne.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1054,6 +1227,222 @@ public class CustomFilterService {
 			
 		}catch(Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getValueOptionData(CustomFilterDTO customFilterDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			
+			switch (customFilterDTO.getColumn()) {
+			case "Employee Id": {
+				if(!allEmployeeList.isEmpty()){
+					allEmployeeList.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object[0] != null ? object[0].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+			case "Full Name": {
+				if(!allEmployeeList.isEmpty()){
+					allEmployeeList.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object[29] != null ? object[29].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+			case "Leave Type": {
+				List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+				if(!leaveType.isEmpty()){
+					leaveType.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getLeaveType());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+			case "Team Name": {
+				List<Team> teamObj = teamRepository.findAll();
+				if(!teamObj.isEmpty()){
+					teamObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getTeamName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Project Name": {
+            	List<Project> projectObj = projectRepository.findAll();
+            	if(!projectObj.isEmpty()){
+            		projectObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getProjectName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Client Name": {
+				List<Client> clientObj = clientsRepository.findAll();
+				if(!clientObj.isEmpty()){
+					clientObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getClientName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Department": {
+				List<Department> departmentObj = departmentRepository.findAll();
+				if(!departmentObj.isEmpty()){
+					departmentObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            // timesheet / leave status
+            case "Status": {
+            	String[] status = new String[]{"Pending", "Approved", "Rejected"};
+            	for(String object: status) {
+            		EmployeeDTO dto = new EmployeeDTO();
+					dto.setName(object);
+					dtoList.add(dto);
+            	}
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				break;
+			}
+            case "Manager Name": {
+            	 List<Object[]> empObj = employeeRepository.getAllManagers();
+            	 if(!empObj.isEmpty()){
+            		 empObj.forEach((object) -> {
+ 						EmployeeDTO dto = new EmployeeDTO();
+ 						dto.setName(object[1] != null ? object[1].toString() : null);
+ 						dtoList.add(dto);
+ 					});
+ 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+ 					response.setServiceResponse(dtoList);
+ 				}
+				break;
+			}
+            case "Job Role": {
+				List<JobRole> jobRoleObj = jobRoleRepository.findAll();
+				if(!jobRoleObj.isEmpty()){
+					jobRoleObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Manager": {
+				List<Object[]> empObj = employeeRepository.getAllManagers();
+				if (!empObj.isEmpty()) {
+					empObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object[1] != null ? object[1].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Employment Status": {
+            	String[] status = new String[]{"Probation", "Confirmed", "Resigned", "InActive"};
+            	for(String object: status) {
+            		EmployeeDTO dto = new EmployeeDTO();
+					dto.setName(object);
+					dtoList.add(dto);
+            	}
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				break;
+			}
+            case "Gender": {
+            	String[] status = new String[]{"male", "female", "other"};
+            	for(String object: status) {
+            		EmployeeDTO dto = new EmployeeDTO();
+					dto.setName(object);
+					dtoList.add(dto);
+            	}
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				break;
+			}
+            case "Day Type": {
+            	String[] status = new String[]{"Working", "Holiday", "Non-working"};
+            	for(String object: status) {
+            		EmployeeDTO dto = new EmployeeDTO();
+					dto.setName(object);
+					dtoList.add(dto);
+            	}
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				break;
+			}
+            case "Work Location": {
+            	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
+            	                                "Haryana","Himachal Pradesh","Jammu & Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
+            	                                "Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"};
+            	for(String object: state) {
+            		EmployeeDTO dto = new EmployeeDTO();
+					dto.setName(object);
+					dtoList.add(dto);
+            	}
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+            }
+            case "State": {
+            	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
+            	                                "Haryana","Himachal Pradesh","Jammu & Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
+            	                                "Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"};
+            	for(String object: state) {
+            		EmployeeDTO dto = new EmployeeDTO();
+					dto.setName(object);
+					dtoList.add(dto);
+            	}
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+            }
+			default:
+				break;
+			}
+		}catch(Exception e) {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());

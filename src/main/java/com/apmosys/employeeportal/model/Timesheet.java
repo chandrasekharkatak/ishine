@@ -52,6 +52,7 @@ public class Timesheet {
 	private String totalWorkingHours; // FROM IN-OUT Time
 	
 	private Long timesheetStatusUpdatedBy;
+	private String isNightShift;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

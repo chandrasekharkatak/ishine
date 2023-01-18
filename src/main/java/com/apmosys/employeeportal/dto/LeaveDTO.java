@@ -106,4 +106,13 @@ public class LeaveDTO {
 	private Long leaveRevokeStatusUpdatedBy;
 	
 	private String remark;
+	private String managerEmail;
+	private Float fromDateDayType;
+	private Float toDateDayType;
+	
+	private Long deptId;
+	private String approverName;
+	private String approverEmail;
+	private String name;
+	private String updatedByName;
 }

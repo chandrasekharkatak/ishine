@@ -1,9 +1,17 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Query } from 'src/app/models/query';
+import { LeaveService } from 'src/app/services/leave.service';
+import { first } from 'rxjs/operators';
 
 class Operator{
   name:string;
   symbol:string;
+}
+
+class storedData{
+  filterName:any;
+  queryList:any;
+  columnData:any;
 }
 
 @Component({
@@ -13,18 +21,24 @@ class Operator{
 })
 export class CustomFilterComponent implements OnInit {
 
+  
   columnList:any[]=[]
   operatorList:Operator[]=[{name:"Equal",symbol:"="},{name:"Contains",symbol:"like"},{name:"Less than",symbol:"<"},
   {name:"Greator Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greator or equal",symbol:">="},
   {name:" Not Equal",symbol:"!="}];
   conjunctionList:Operator[]=[{name:"AND",symbol:"AND"},{name:"OR",symbol:"OR"}];
-
+  
   queryList:Query[]=[new Query()];
   invalidForm: boolean;
+  valueOptionList = [];
+  keyword = "name";
+  storedFilterData:storedData[] = [new storedData()];
 
   @Input() data: any;
   @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
-  constructor() { }
+  constructor(
+    private leaveService : LeaveService,
+  ) { }
 
   ngOnInit(): void {
     this.columnList = this.data.columns;
@@ -37,6 +51,40 @@ export class CustomFilterComponent implements OnInit {
     this.queryList.splice(i+1,0,new Query());
   }
 
+  selectEvent(value:any){
+    console.log(value, " : value");
+  }
+
+  onChangeSearch(a){
+    console.log(a, " : a");
+  }
+
+  valueFocus(columnName){
+    if(this.queryList.length != 0 && columnName != undefined && columnName != null){
+      this.getValueOptionData(columnName);
+    }
+  }
+
+  getValueOptionData(column:any){
+    this.valueOptionList = [];
+
+    let queryObj = new Query();
+    queryObj.column = column;
+    this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {        
+        this.valueOptionList = response.serviceResponse;
+        if(column == 'Employee Id'){
+          this.valueOptionList.forEach((x) => {
+            x.name = "A-".concat(x.name);
+          });
+        }
+        console.log(this.valueOptionList , ":this.valueOptionList ");
+      } else {
+        console.log(response.serviceResponse, " : response.serviceResponse");
+      }
+    }); 
+  }
+
   removeFilter(i){
     this.queryList.splice(i,1);
   }
@@ -44,11 +92,33 @@ export class CustomFilterComponent implements OnInit {
     if(this.validateData()){
       if(this.queryList[0].column==null){
         console.log("this.queryList : ",this.queryList);
-        this.filterSubmitted.emit([]);
+        let arrayToBeEmitted = [[],this.data.title];
+        this.filterSubmitted.emit(arrayToBeEmitted);
       }
       else{
         console.log("this.queryList : ",this.queryList);
-        this.filterSubmitted.emit(this.queryList);
+        this.queryList.forEach((obj) => {
+          if(typeof obj.value === 'object'){
+            obj.value = obj.value.name;
+          }
+        });
+
+        this.storedFilterData.forEach((data) => {
+          if(data.filterName == this.data.title){
+            data.queryList = this.queryList;
+          }else{
+            let storedDataObj = new storedData();
+            storedDataObj.filterName = this.data.title;
+            storedDataObj.queryList = this.queryList;
+
+            this.storedFilterData.push(storedDataObj);
+          }
+        });
+
+        console.log(this.storedFilterData, " : this.storedFilterData");
+        
+        let arrayToBeEmitted = [this.queryList,this.storedFilterData];
+        this.filterSubmitted.emit(arrayToBeEmitted);
       }
       
     };

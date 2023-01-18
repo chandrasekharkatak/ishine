@@ -27,23 +27,27 @@ public class ActivityTemplateService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<ActivityTemplate> dtoList = new ArrayList<ActivityTemplate>();
-			
 			activityTemplateDTO.getTemplateActivityList().forEach((object) -> {
-				ActivityTemplate activity = new ActivityTemplate();
-				
-				activity.setDeptId(activityTemplateDTO.getDeptId());
-				activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
-				activity.setTemplateActivity(object.getActivity());
-				dtoList.add(activity);
+				ActivityTemplate checkActivityName=activityTemplateRepository
+						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
+			
+				if(checkActivityName == null) {
+					ActivityTemplate activity = new ActivityTemplate();
+					
+					activity.setDeptId(activityTemplateDTO.getDeptId());
+					activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
+					activity.setTemplateActivity(object.getActivity());
+					dtoList.add(activity);
+				}
 			});
 			List<ActivityTemplate> dbResponse = activityTemplateRepository.saveAll(dtoList);
 			
 			if(!dbResponse.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activities created successfully.");
+				response.setServiceResponse("Activity template created successfully.");
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Failed to create activity");
+				response.setServiceResponse("Activity already exist.");
 			}
 			
 		}catch(Exception e) {
@@ -166,10 +170,10 @@ public class ActivityTemplateService {
 			
 			if(activityDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activity Template updated successfully.");
+				response.setServiceResponse("Activity template updated successfully.");
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activity Template updation failed.");
+				response.setServiceResponse("Activity template updation failed.");
 			}
 			
 		}catch(Exception e) {

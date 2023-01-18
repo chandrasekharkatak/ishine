@@ -35,15 +35,27 @@ public class ActivitiesService {
 	public ServiceResponse createActivity(ActivityDTO activityDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			
+			List<Activity> dtoList = new ArrayList<Activity>();
+			
+			// Multiple department
+			StringBuilder department = new StringBuilder("");
+			for(String deptId: activityDTO.getDepartmentList()) {
+				department.append(deptId).append(",");
+			}
+			
+				Activity newActivity = new Activity();
+				
+				newActivity.setActivity(activityDTO.getActivity());
+				newActivity.setEta(activityDTO.getEta());
+				newActivity.setTeamId(activityDTO.getTeamId());
+				newActivity.setEmployeeRole(activityDTO.getEmployeeRole());
+				newActivity.setDeptIds(department.toString());
+				newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
+				
+				dtoList.add(newActivity);
 
-			Activity newActivity = new Activity();
-
-			newActivity.setActivity(activityDTO.getActivity());
-			newActivity.setEta(activityDTO.getEta());
-			newActivity.setTeamId(activityDTO.getTeamId());
-			newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
-
-			Activity newActivityCreated = activitiesRepository.save(newActivity);
+			List<Activity> newActivityCreated = activitiesRepository.saveAll(dtoList);
 
 			Optional.ofNullable(newActivityCreated).ifPresentOrElse((activity) -> {
 
@@ -76,6 +88,7 @@ public class ActivitiesService {
 				existingActivity.setActivity(activityDTO.getActivity());
 				existingActivity.setEta(activityDTO.getEta());
 				existingActivity.setTeamId(activityDTO.getTeamId());
+				existingActivity.setEmployeeRole(activityDTO.getEmployeeRole());
 				existingActivity.getCommonProperty().setUpdatedBy(activityDTO.getUpdatedBy());
 				existingActivity.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
@@ -135,6 +148,8 @@ public class ActivitiesService {
 						dto.setEta(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 						dto.setCreatedByName(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedOn(object[9] != null ? object[9].toString() : null);
+						dto.setEmployeeRole(object[10] != null ? object[10].toString() : null);
+						dto.setDepartmentList(object[11] != null ? object[11].toString().split(",") : null);
 
 						dtoList.add(dto);
 					});

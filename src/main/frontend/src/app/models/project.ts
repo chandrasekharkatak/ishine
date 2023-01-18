@@ -14,4 +14,10 @@ export class Project{
 	deptId:any;
 	active:any;
 	syncProject:any;
+	createdByName: any;
+	empId: any;
+	createdOn: any;
+	createdBy: any;
+	updatedBy:any;
+	updatedByName: any;
 }

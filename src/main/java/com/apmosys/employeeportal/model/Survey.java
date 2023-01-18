@@ -41,5 +41,7 @@ public class Survey {
 	private LocalDateTime updatedOn;	
 		
 	private Long updatedBy;
+	
+	private String type;
 
 }

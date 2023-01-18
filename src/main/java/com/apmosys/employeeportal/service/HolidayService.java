@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -61,6 +62,8 @@ public class HolidayService {
 			     newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 			     newHoliday.setState(holidayDTO.getState());
 			     newHoliday.setHolidayType(holidayDTO.getHolidayType());
+//			     newHoliday.setCreatedOn(Timestamp.valueOf(stringToDateTimeParser.getCurrentDateTime()));
+			     newHoliday.setCreatedBy(holidayDTO.getCreatedBy());
 
 			     Holiday newHolidayCreated = holidayRepository.save(newHoliday);
 
@@ -116,6 +119,8 @@ public class HolidayService {
 				holiday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
 				holiday.setState(holidayDTO.getState());
 				holiday.setHolidayType(holidayDTO.getHolidayType());
+				holiday.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				holiday.setUpdatedBy(Integer.parseInt(holidayDTO.getUpdatedBy()));
 				Holiday dbResponse = holidayRepository.save(holiday);
 
 				if (dbResponse != null) {
@@ -202,7 +207,7 @@ public class HolidayService {
 	public ServiceResponse getAllHolidays() {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<Holiday> list = holidayRepository.findAll();
+			List<Object[]> list = holidayRepository.getAllHolidaysList();
 
 			List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
 
@@ -210,18 +215,23 @@ public class HolidayService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Holiday list is empty.");
 			} else {
-				list.forEach((holiday) -> {
+				list.forEach((object) -> {
 
 					HolidayDTO dto = new HolidayDTO();
-					dto.setHolidayId(holiday.getHolidayId());
-					dto.setDateOfHoliday(holiday.getDateOfHoliday().toString());
-					dto.setOccasion(holiday.getOccasion());
-					dto.setDayOfTheWeek(holiday.getDayOfTheWeek());
-					dto.setOptionalHoliday(holiday.getOptionalHoliday());
-					dto.setState(holiday.getState());
-					dto.setHolidayType(holiday.getHolidayType());
+					dto.setHolidayId(object[0] != null ? Short.valueOf(object[0].toString()) : null);
+					dto.setOccasion(object[1] != null ? object[1].toString() : null);
+					dto.setDayOfTheWeek(object[2] != null ? object[2].toString() : null);
+					dto.setDateOfHoliday(object[3] != null ? object[3].toString() : null);
+					dto.setHolidayType(object[4] != null ? object[4].toString() : null);
+					dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+					dto.setCreatedbyName(object[6] != null ? object[6].toString() : null);
+					dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
+					dto.setUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dto.setCreatedBy(object[9] != null ? Integer.parseInt(object[9].toString()) : null);
+					dto.setState(object[10] != null ? object[10].toString() : null);
+					
 					dtoList.add(dto);
-				});
+				});      
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 			}

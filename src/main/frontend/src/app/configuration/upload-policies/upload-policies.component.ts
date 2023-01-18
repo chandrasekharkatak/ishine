@@ -10,6 +10,9 @@ import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { saveAs } from "file-saver";
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 
 
@@ -56,6 +59,7 @@ export class UploadPoliciesComponent implements OnInit {
   private modalService: BsModalService,
   private authenticationService: AuthenticationService,
   private notificationService: NotificationService,
+  private locationStrategy: LocationStrategy
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -68,7 +72,15 @@ export class UploadPoliciesComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
     this.sectionViewInit();
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
+
 
   sectionViewInit() {
     if(this.userMapping.upload_policy){
@@ -175,6 +187,9 @@ export class UploadPoliciesComponent implements OnInit {
     this.uploadPoliciesService.getAllDocument().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.document =  response.serviceResponse;
+        this.document.forEach(doc => {
+          doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);

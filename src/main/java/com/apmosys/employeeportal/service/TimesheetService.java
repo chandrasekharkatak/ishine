@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -203,13 +204,19 @@ public class TimesheetService {
 					List<ActivityDTO> dtoList = new ArrayList<ActivityDTO>();
 
 					list.forEach((object) -> {
+						String[] employeeRoleInTeam = (object[4] != null ? object[4].toString() : null).split(",");
+						boolean contains = Arrays.stream(employeeRoleInTeam).anyMatch((object[3] != null ? object[3].toString() : null)::equals);
 
-						ActivityDTO dto = new ActivityDTO();
+						if(contains) {
+							ActivityDTO dto = new ActivityDTO();
 
-						dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setActivity(object[1] != null ? object[1].toString() : null);
-						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dtoList.add(dto);
+							dto.setActivityId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+							dto.setActivity(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dto.setDepartmentList(object[5] != null ? object[5].toString().split(",") : null);
+//							dto.setDeptIds(object[5] != null ? object[5].toString() : null);
+							dtoList.add(dto);
+						}
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -262,9 +269,10 @@ public class TimesheetService {
 			newTimesheet.setEmpId(timesheetDTO.getEmpId());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
-			if (timesheetDTO.getDayType().equals("Holiday")) {
+			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
 				newTimesheet.setDescription(timesheetDTO.getDescription());
 				newTimesheet.setTotalTime((float)0);
+				newTimesheet.setTotalWorkingHours("0");
 			} else {
 				
 				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);
@@ -286,11 +294,12 @@ public class TimesheetService {
 				newTimesheet.setDescription(description);
 			}
 			newTimesheet.setStatus("Pending");
+			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
-			if (!timesheetDTO.getDayType().equals("Holiday")) {				
+			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
 					
 					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
@@ -418,6 +427,7 @@ public class TimesheetService {
 						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						
 						dtoList.add(dto);
 					});
@@ -499,6 +509,7 @@ public class TimesheetService {
 						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -634,7 +645,7 @@ public class TimesheetService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No timesheets found. List is empty.");
 					
-					apiLogInfo.setApiResponse("Appreciation not Enabled");			
+					apiLogInfo.setApiResponse("No timesheets found. List is empty.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
@@ -653,6 +664,10 @@ public class TimesheetService {
 						dto.setEmployeementId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 						dto.setTotalTime(object[9] != null ? Float.parseFloat(object[9].toString()) : null);
 						dto.setEmail(object[10] != null ? object[10].toString() : null);
+						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -768,10 +783,28 @@ public class TimesheetService {
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 						try {
-							mailService.sendMail(timesheetDTO.getEmail(),
-									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
-									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
-									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
+//							mailService.sendMail(timesheetDTO.getEmail(),
+//									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
+//									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
+//									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
+							
+							mailService.sendMailWithCC(timesheetDTO.getEmail(), timesheetDTO.getManagerEmail(), "Regarding Timesheet Request Rejection", 
+									"Dear "+ timesheetDTO.getEmployeeName()+","+
+							"<br> "
+							+" &nbsp;"+" &nbsp;"+" "+"Your timesheet application has been rejected by "+ timesheetDTO.getManagerName() +"."+
+							"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+							"<br>"+
+							"EmpID :"+" "+ timesheetDTO.getEmployeementId()+
+							"<br>"+
+							"Name :"+" "+ timesheetDTO.getEmployeeName()+
+							"<br>"+
+							" Date :"+" "+ timesheetDTO.getDate() +
+							"<br>"+
+							" Day Type : "+" "+ timesheetDTO.getDayType() 
+							+"<br>"+
+							"Total Working Hours :"+" "+timesheetDTO.getTotalWorkingOfficeHours()+" "+"(hrs)"+
+							"<br>"+
+							"Rejection reason :"+" "+timesheetDTO.getRejectReason());
 							
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -838,6 +871,7 @@ public class TimesheetService {
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
 				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+				existingTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 				/*
 				 * Only pending/rejected timesheet can be updated by employee. So even if
 				 * employee is updating pending timesheet or rejected timesheet the status
@@ -850,10 +884,13 @@ public class TimesheetService {
 				existingTimesheet.setStatus("Pending");
 				existingTimesheet.setTotalTime((float) 0);
 
-				if (timesheetDTO.getDayType().equals("Holiday")) {
+				if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
 					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
 					existingTimesheet.setDescription(timesheetDTO.getDescription());
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
+					existingTimesheet.setOfficeInTime(null);
+					existingTimesheet.setOfficeOutTime(null);
+					existingTimesheet.setTotalWorkingHours("0");
 
 				} else {
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
@@ -1004,6 +1041,10 @@ public class TimesheetService {
 						dto.setTotalTime(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 						dto.setRemarks(object[9] != null ? object[9].toString() : null);
 						dto.setEmployeementId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dtoList.add(dto);
 					});
 

@@ -62,14 +62,16 @@
                             <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Working">Working</option>
-                                <option value="Holiday">Holiday</option>
+                                <option value="Public Holiday">Public Holiday</option>
+                                <option value="Week Off">Week Off</option>
+                                <option value="Leave">Leave</option>
                                 <option value="Non-working">Working on non-working day</option>
                             </select>
                         </div>
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -88,7 +90,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -100,7 +102,7 @@
                 </div>
             </div>
             <!-- IN/OUT Time-->
-            <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row">
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group input-wrapper">
@@ -117,7 +119,7 @@
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
                             <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
                             (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter">
-                            <owl-date-time class="picker" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
+                            <owl-date-time class="picker" [startAt]="timesheetObj.officeInTime" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
                         </div>
                     </div>
                 </div>
@@ -129,9 +131,17 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Night Shift</label>
+                            <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox"/>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- Add & Update Activities -->
-            <div *ngIf="timesheetObj.dayType != 'Holiday'" class="container-fluid px-0">
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="container-fluid px-0">
                 <div class="row ml-1 mt-5">
                     <h3>Activities</h3>
                 </div>
@@ -234,7 +244,7 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Time
-                                            <small>(Hrs)</small></label>
+                                            <small>(hrs)</small></label>
                                         <input type="number" step="any" class="form-control" autocomplete="none" 
                                             [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)" (keypress)="omit_special_char($event)">
                                             <small class="errorMsg text-danger"></small>
@@ -288,7 +298,8 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
+            <!-- For Self -->
+            <div *ngIf="isSelfTimesheets" class="col-md-4">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
@@ -298,7 +309,7 @@
                     </div>
                 </div>
             </div>
-            <!-- For Self -->
+            
             <div *ngIf="isSelfTimesheets" class="col-md-4">
                 <div class="info-wrapper">
                     <div class="form-group">
@@ -310,6 +321,17 @@
                 </div>
             </div>
             <!-- For Team -->
+            <div *ngIf="isTeamTimesheets" class="col-md-4">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                        <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
+                            [(ngModel)]="startDate" (change)="getMyTeamTimesheets(alert_message)"
+                            (keydown)="disableMannualDateInput()">
+                    </div>
+                </div>
+            </div>
+
             <div *ngIf="isTeamTimesheets" class="col-md-4">
                 <div class="info-wrapper">
                     <div class="form-group">
@@ -333,19 +355,19 @@
                         <thead class="thead-light" id="myTimesheetInfoTHead">
                             <tr id="myTimesheetInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md">Name</th>
+                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md" mat-sort-header="employeeName">Name</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="date">Date</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="dayType">Day Type</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="officeInTime">In Time</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime">Out Time</th>
                                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Working Hours</th>
-                                <th scope="col" colspan="4" class="info-label column-md">Timesheet Details</th>
-                                <th scope="col" colspan="info-label" class="info-label">Total Activity Time</th>
+                                <th scope="col" colspan="4" class="info-label column-md" mat-sort-header="description">Activity</th>
+                                <th scope="col" colspan="info-label" class="info-label" mat-sort-header="totalTime">Total Activity Time</th>
                                 <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label"
-                                    mat-sort-header="createdByName column-md">Applied By</th>
+                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md" mat-sort-header="createdByName">Applied By</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="createdOn">Applied On</th>
-                                <th scope="col" class="info-label column-md">Remarks</th>
+                                <th scope="col" class="info-label column-md">Shift</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="remarks">Remarks</th>
                                 <th scope="col" class="info-label column-md">Actions</th>
                             </tr>
                         </thead>
@@ -354,19 +376,20 @@
                                 <th colspan="16" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
-                                <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
+                                <td>{{timesheet.date}}</td>
                                 <td>{{timesheet.dayType}}</td>
-                                <td>{{timesheet.officeInTime | date:'dd-MM-yyyy HH:mm'}}</td>
-                                <td>{{timesheet.officeOutTime | date:'dd-MM-yyyy HH:mm'}}</td>
+                                <td>{{timesheet.officeInTime}}</td>
+                                <td>{{timesheet.officeOutTime}}</td>
                                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
                                 <td colspan="4" [innerHTML]="timesheet.description"></td>
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.status}}</td>
                                 <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
-                                <td>{{timesheet.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{timesheet.createdOn}}</td>
+                                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"
@@ -374,7 +397,7 @@
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
                                         (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
                                     <button
-                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday'))"
+                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
                                         class="btn btn-sm btn-outline-primary mb3" type="submit"
                                         (click)="showUpdateTimesheetForm(timesheet)"><em
                                             class="fa fa-edit"></em></button>
@@ -441,6 +464,14 @@
     </div>
 </ng-template>
 
+<ng-template #night_shift_template>
+    <div class="modal-body text-center">
+        <p>Do you have required permission for night shift from your manager?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();this.timesheetObj.isNightShift = true">Yes,proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();this.timesheetObj.isNightShift = false">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
 <ng-template #alert_message>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
@@ -474,7 +505,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+        <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
             <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
@@ -485,23 +516,23 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
-            <table class="table timesheet-table">
+        <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
+            <table class="table timesheet-table" matSort (matSortChange)="sortMyTimesheetView($event)" >
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
-                        <th scope="col" class="info-label">Client Name</th>
-                        <th scope="col" class="info-label">Client Location</th>
-                        <th scope="col" class="info-label">Project Name</th>
-                        <th scope="col" class="info-label">Team Name</th>
-                        <th scope="col" class="info-label">Activity</th>
-                        <th scope="col" colspan="4" class="info-label">Description</th>
-                        <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+                        <th scope="col" class="info-label" mat-sort-header="clientName">Client Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="clientLocation">Client Location</th>
+                        <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="teamName">Team Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="activity">Activity</th>
+                        <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="completionTime">Time<small>(Hrs)</small></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
-                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                        <th colspan="10" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
                         *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">

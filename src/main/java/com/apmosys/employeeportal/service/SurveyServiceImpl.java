@@ -128,6 +128,7 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
 						dto.setUpdatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
+						dto.setType(object[8] != null ? object[8].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -471,7 +472,8 @@ public class SurveyServiceImpl implements SurveyService {
 				Survey survey = surveyObject.get();
 
 				// Survey with Active(true) and Completed(Completed) status cannot be updated.
-				if (survey.getIsActive().equals("false")) {
+				// Survey with Active(true), but with Type(exit) can be updated.
+				if (survey.getIsActive().equals("false") || survey.getType().equals("exit")) {
 
 					survey.setUpdatedBy(surveyDTO.getUpdatedBy());
 					survey.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());

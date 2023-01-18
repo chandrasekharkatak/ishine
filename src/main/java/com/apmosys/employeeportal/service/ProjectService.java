@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -15,6 +17,8 @@ import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.model.Activity;
+import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
@@ -23,6 +27,8 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.repository.ActivitiesRepository;
+import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -66,6 +72,12 @@ public class ProjectService {
 	
 	@Autowired
 	private ValidationService validationService;
+	
+	@Autowired
+	ActivityTemplateRepository activityTemplateRepository;
+	
+	@Autowired
+	ActivitiesRepository activitiesRepository;
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
@@ -122,7 +134,10 @@ public class ProjectService {
 					projectDto.setDepartmentName(object[4] != null ? object[4].toString() : null);
 					projectDto.setClientName(object[5] != null ? object[5].toString() : null);
 					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
-					
+					projectDto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+					projectDto.setCreatedOn(Timestamp.valueOf(object[10] != null ? object[10].toString() : null));
+					projectDto.setUpdatedOn(object[11] != null ? object[11].toString() : null);
+					projectDto.setUpdatedByName(object[12] != null ? object[12].toString() : null);
 					dtoList.add(projectDto);
 				});
 				
@@ -153,6 +168,7 @@ public class ProjectService {
 			projectObj.setState(poProjectSyncDTO.getState());
 			projectObj.setActive("true");
 			projectObj.setSyncProject(poProjectSyncDTO.getSyncProject());
+			projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
 			Project projectDbResponse =  projectRepository.save(projectObj);
 			
 			if(projectDbResponse != null) {
@@ -243,6 +259,8 @@ public class ProjectService {
 				project.setState(poProjectSyncDTO.getState());
 				project.setActive("true");
 				project.setSyncProject(poProjectSyncDTO.getSyncProject());
+				project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				project.setUpdatedBy(Long.parseLong(poProjectSyncDTO.getUpdatedBy()));
 				Project projectDbResponse =  projectRepository.save(project);
 				
 				if(projectDbResponse != null) {
@@ -279,12 +297,23 @@ public class ProjectService {
 			
 			Optional<Project> projectObj = projectRepository.findById(poProjectSyncDto.getProjectId());
 			if (projectObj.isPresent()) {
-				Project departmentToBeDeleted = projectObj.get();
-				departmentToBeDeleted.setActive("false");
-				departmentToBeDeleted.setSyncProject("false");
-				Project dbResponse =  projectRepository.save(departmentToBeDeleted);
+				Project projectToBeDeleted = projectObj.get();
+				projectToBeDeleted.setActive("false");
+				projectToBeDeleted.setSyncProject("false");
+				projectToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				Project dbResponse =  projectRepository.save(projectToBeDeleted);
 				
 				if(dbResponse != null) {
+					//In-Activate Team related to project
+					List<Team> teamList = teamRepository.findByProjectId(dbResponse.getProjectId());
+					
+					if(!teamList.isEmpty()) {
+						teamList.forEach((teamToBeDeleted) -> {
+							teamToBeDeleted.setIsActive("N");
+							teamRepository.save(teamToBeDeleted);
+						});	
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project deleted.");
 				}else {
@@ -311,13 +340,15 @@ public class ProjectService {
 	
 	public Employee getEmployeeByEmployeementId(String employeementId) {
 		Long employmentId = null;
-		Employee employeeObj;
-		if(employeementId.contains("A-")) {
-			employmentId = Long.parseLong(employeementId.split("-")[1]);
-			employeeObj = employeeRepository.findByEmployeementId(employmentId);
-		}else {
-			employmentId = Long.parseLong(employeementId);
-			employeeObj = employeeRepository.findByEmployeementId(employmentId);
+		Employee employeeObj = null;
+		if(employeementId != null && employeementId != "") {
+			if(employeementId.contains("A-")) {
+				employmentId = Long.parseLong(employeementId.split("-")[1]);
+				employeeObj = employeeRepository.findByEmployeementId(employmentId);
+			}else {
+				employmentId = Long.parseLong(employeementId);
+				employeeObj = employeeRepository.findByEmployeementId(employmentId);
+			}
 		}
 		return employeeObj;
 	}
@@ -386,6 +417,13 @@ public class ProjectService {
 						}
 					}
 				}
+				Long duplicateClientLocation = Arrays.stream(poProjectSyncDTO.getClientLocation()).distinct().count();
+				if(duplicateClientLocation < poProjectSyncDTO.getClientLocation().length) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Client Locations are duplicate.");
+					return response;
+				}
+				
 				if(poProjectSyncDTO.getStatus() == null || poProjectSyncDTO.getStatus() == "") {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Please provide project status.");
@@ -415,6 +453,12 @@ public class ProjectService {
 						}
 					}
 				}
+				Long duplicateDepartment = Arrays.stream(poProjectSyncDTO.getDepartmentList()).distinct().count();
+				if(duplicateDepartment < poProjectSyncDTO.getDepartmentList().length) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Department name are duplicate.");
+					return response;
+				}
 				
 				if(poProjectSyncDTO.getTeamList() == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -427,6 +471,7 @@ public class ProjectService {
 				}else if(!poProjectSyncDTO.getTeamList().isEmpty()) {
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
 						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
+						String teamMemberDepartment = null;
 						if(team.getPoTeamId() == null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Please provide PoTeam Id.");
@@ -441,6 +486,22 @@ public class ProjectService {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Please provide team name.");
 							return response;
+						}
+						
+						if(team.getDepartmentList().length == 0) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Please provide departments for " + team.getTeamName());
+							return response;
+						}else if(team.getDepartmentList().length != 0) {
+							//check if department present
+							for(String department: team.getDepartmentList()) {
+								Department deptObj = departmentRepository.findByName(department);
+								if(deptObj == null) {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Department does not exists : " + team.getTeamName());
+									return response;
+								}
+							}
 						}
 						if(team.getTeamMemberList() == null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -461,9 +522,43 @@ public class ProjectService {
 									response.setServiceResponse("No user found with EmpId : " + teamMember + " exist in " + team.getTeamName());
 									return response;
 								}
+								//check if teamMember are from given department department
+								List<Object[]> departmentObj = employeeRepository.getDepartmentByEmployeementId(Long.parseLong(teamMember.split("-")[1]));
+								if(departmentObj != null) {
+									String departmentName = null;
+									for(Object[] object: departmentObj) {
+										departmentName = object[1] != null ? object[1].toString() : null;
+									}
+									if(!Arrays.asList(team.getDepartmentList()).contains(departmentName)) {
+										response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+										response.setServiceResponse("Team member(s) should be from department mentioned in departmentList : " + team.getTeamName());
+										return response;
+									}
+//									if(teamMemberDepartment != null) {
+//										if(!departmentName.equals(teamMemberDepartment)) {
+//											response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//											response.setServiceResponse("Team member(s) should be from same department " + team.getTeamName());
+//											return response;
+//										}
+//									}else {
+//										teamMemberDepartment = departmentName;
+//									}
+								}
+							}
+							Long duplicateTeamMember = Arrays.stream(team.getTeamMemberList()).distinct().count();
+							if(duplicateTeamMember < team.getTeamMemberList().length) {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Team member(s) are duplicate.");
+								return response;
 							}
 						}
 					}
+				}
+				long duplicatePoTeamId = poProjectSyncDTO.getTeamList().stream().map(p -> p.getPoTeamId()).distinct().count();
+				if(duplicatePoTeamId < poProjectSyncDTO.getTeamList().size()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("PoTeam Id is duplicate in TeamList.");
+					return response;
 				}
 				
 				Project project = projectRepository.findByPoProjectId(poProjectSyncDTO.getPoProjectId());
@@ -485,9 +580,18 @@ public class ProjectService {
 						}
 					}
 				}
+				
 				if(project != null) {
 					//validate
-					
+					if(poProjectSyncDTO.getUpdatedBy() == null || poProjectSyncDTO.getUpdatedBy() == "") {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Please provide Updated By : " + poProjectSyncDTO.getProjectName());
+						return response;
+					}else if(!validationService.validateEmploymentId(Long.parseLong(poProjectSyncDTO.getUpdatedBy().split("-")[1]))) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No user found with EmpId : " + poProjectSyncDTO.getUpdatedBy());
+						return response;
+					}
 					if(validationService.validateProjectName(poProjectSyncDTO.getProjectName()) && !project.getProjectName().equals(poProjectSyncDTO.getProjectName())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Project name already exist : " + poProjectSyncDTO.getProjectName());
@@ -505,18 +609,21 @@ public class ProjectService {
 					}
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
 						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
-						Team teamExists = teamRepository.findByTeamName(team.getTeamName());
-						if(teamExists != null && !project.getProjectId().equals(teamExists.getProjectId())) {
+						Team teamExists = teamRepository.findByTeamNameAndProjectId(team.getTeamName(), project.getProjectId());
+						if(teamExists != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Team name already exist : " + poProjectSyncDTO.getProjectName());
+							response.setServiceResponse("Team name already exist : " + team.getTeamName());
 							return response;
 						}
 					}
+					Employee updatedByObj = getEmployeeByEmployeementId(poProjectSyncDTO.getUpdatedBy());
 					
 					//update project info
 					project.setProjectName(poProjectSyncDTO.getProjectName());
 					project.setProjectManagerId(managerObj.getEmpId());
 					project.setState(poProjectSyncDTO.getState());
+					project.setUpdatedBy(updatedByObj.getEmpId());
+					project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 					if(poProjectSyncDTO.getStatus().equals("Completed")) {
 						project.setActive("false");
 						project.setSyncProject("false");
@@ -561,17 +668,46 @@ public class ProjectService {
 							if(object.getPoTeamLeadId() != null && object.getPoTeamLeadId() != "") {
 								teamLeadObj = getEmployeeByEmployeementId(object.getPoTeamLeadId());
 							}
+//							Long deptId = null;
+//							Long hodId = null;
+//							List<Object[]> departmentObj = employeeRepository.getDepartmentByEmployeementId(Long.parseLong(object.getTeamMemberList()[0].split("-")[1]));
+//							if(departmentObj != null) {
+//								for(Object[] deptObj: departmentObj) {
+//									deptId = deptObj[3] != null ? Long.parseLong(deptObj[3].toString()) : null;
+//									hodId = deptObj[4] != null ? Long.parseLong(deptObj[4].toString()) : null;
+//								}
+//							}
+							StringBuilder deptList = new StringBuilder("");
+							for(String department: object.getDepartmentList()) {
+								Department deptObj = departmentRepository.findByName(department);
+								if(deptObj != null) {
+									deptList.append(deptObj.getDeptId()).append(",");
+								}
+							}
+							Employee teamUpdatedByObj = getEmployeeByEmployeementId(object.getUpdatedBy());
 							if(teamObj != null) {
 								teamObj.setTeamName(object.getTeamName());
 								teamObj.setTeamLeadId(teamLeadObj !=null ? teamLeadObj.getEmpId() : null);
 								teamObj.setDescription(object.getDescription());
 								teamObj.setTeamLeadName(teamLeadObj !=null ? teamLeadObj.getName() : null);
+								teamObj.setDeptIds(deptList.toString());
+								teamObj.getCommonProperty().setUpdatedBy(teamUpdatedByObj !=null ? teamUpdatedByObj.getEmpId() : null);
+								teamObj.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 								Team teamDbResponse = teamRepository.save(teamObj);
 								
 								if(teamDbResponse != null) {
 									//update employee team mapping : adding new member, in-active removed member
 									List<Long> teamMemberList = new ArrayList<Long>();
-									for (String memberObj : object.getTeamMemberList()) {
+									List<String> newTeamMemberList = new ArrayList<String>(Arrays.asList(object.getTeamMemberList()));
+									//Adding projectManager, HOD, teamLead in teamMemberList
+									newTeamMemberList.add(poProjectSyncDTO.getPoProjectManagerId());
+									newTeamMemberList.add(object.getPoTeamLeadId());
+									for(String department: object.getDepartmentList()) {
+										Department deptObj = departmentRepository.findByName(department);
+										Employee emp = employeeRepository.findByEmpId(deptObj.getHodId());
+										newTeamMemberList.add(emp.getEmployeementId().toString());
+									}
+									for (String memberObj : newTeamMemberList) {
 										Employee teamMemberObj = getEmployeeByEmployeementId(memberObj);
 										teamMemberList.add(teamMemberObj.getEmpId());
 										List<EmployeeTeamMap> teamMappingObj = employeeTeamMapRepository.
@@ -582,15 +718,17 @@ public class ProjectService {
 											empTeamMap.setEmpId(teamMemberObj.getEmpId());
 											empTeamMap.setTeamId(teamDbResponse.getTeamId());
 											empTeamMap.setActive(1l);
+											empTeamMap.setEmployeeRole("Employee");
 											EmployeeTeamMap teamMapDbResponse = employeeTeamMapRepository.save(empTeamMap);
 										}
 							        }
-									// In-Active removed team member
+									// In-Active/removed team member
 									List<EmployeeTeamMap> alreadyExistMember = employeeTeamMapRepository.
 											findByEmpIdNotInAndTeamId(teamMemberList, teamDbResponse.getTeamId());
 									if(alreadyExistMember != null) {
 										List<EmployeeTeamMap> inActiveMember = new ArrayList<EmployeeTeamMap>();
 										alreadyExistMember.forEach((member) -> {
+											
 											member.setActive(0l);
 											member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 											inActiveMember.add(member);
@@ -604,6 +742,7 @@ public class ProjectService {
 									response.setServiceResponse("Team updation failed.");
 								}
 							}else {
+								Employee teamCreatedByObj = getEmployeeByEmployeementId(object.getCreatedBy());
 								//create Team
 								
 								Team newTeamObj = new Team();
@@ -614,21 +753,114 @@ public class ProjectService {
 								newTeamObj.setTeamName(object.getTeamName());
 								newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 								newTeamObj.setDescription(object.getDescription());
-								newTeamObj.getCommonProperty().setCreatedBy(4l);
+								newTeamObj.setDeptIds(deptList.toString());
+								newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj != null ? teamCreatedByObj.getEmpId() : null);
 								Team teamDbResponse = teamRepository.save(newTeamObj);
+								
+								List<EmployeeTeamMap> teamMemberDbResponse = null;
 								if(teamDbResponse != null) {
+									List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
+									// Add teamLead
+									EmployeeTeamMap defaultMemberMap = new EmployeeTeamMap();
+									defaultMemberMap.setActive(1l);
+									defaultMemberMap.setEmpId(teamLeadObj != null ? teamLeadObj.getEmpId() : null);
+									defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
+									defaultMemberMap.setEmployeeRole("TeamLead");
+									mapList.add(defaultMemberMap);
+									
+									// Add Project Manager
+									defaultMemberMap = new EmployeeTeamMap();
+									defaultMemberMap.setActive(1l);
+									defaultMemberMap.setEmpId(managerObj.getEmpId());
+									defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
+									defaultMemberMap.setEmployeeRole("Manager");
+									mapList.add(defaultMemberMap);
+									
+									List<Long> deptIds = new ArrayList<>();
+									// Add HOD of selected Department
+									for(String department: object.getDepartmentList()) {
+										Department deptObj = departmentRepository.findByName(department);
+										deptIds.add(deptObj.getDeptId());
+										if(deptObj != null) {
+											defaultMemberMap = new EmployeeTeamMap();
+											defaultMemberMap.setActive(1l);
+											defaultMemberMap.setEmpId(deptObj.getHodId());
+											defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
+											defaultMemberMap.setEmployeeRole("HOD");
+											mapList.add(defaultMemberMap);
+										}
+									}
+									
 									// Add team member in team
+									List<Department> deptsObj = departmentRepository.findByDeptIdIn(deptIds);
 									for(String teamMember: object.getTeamMemberList()) {
 										Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
 										EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-										newEmpTeamMap.setActive(1l);
-										newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
-										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-										EmployeeTeamMap teamMemberDbResponse = employeeTeamMapRepository.save(newEmpTeamMap);
+										
+										// check if HOD, Manager, TeamLead already added
+										if(( (teamLeadObj.getEmpId() == null) || (teamLeadObj.getEmpId() != null && !teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId())) ) && 
+												!managerObj.getEmpId().equals(teamMemberObj.getEmpId())
+												&& ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
+														!deptsObj.stream().anyMatch(o -> teamMemberObj.getEmpId().equals(o.getHodId()))) )) {
+											
+											newEmpTeamMap.setActive(1l);
+											newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
+											newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+											newEmpTeamMap.setEmployeeRole("Employee");
+											mapList.add(newEmpTeamMap);
+										}	
+									}
+									teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
+									
+									// Add team member in team
+//									for(String teamMember: object.getTeamMemberList()) {
+//										Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
+//										EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
+//										
+//										if(!teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
+//												!managerObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
+//												!hodId.equals(teamMemberObj.getEmpId())) {
+//											
+//											newEmpTeamMap.setActive(1l);
+//											newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
+//											newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+//											newEmpTeamMap.setEmployeeRole("Employee");
+//											mapList.add(newEmpTeamMap);
+//										}
+//									}
+//									teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
+								}
+								Activity newActivityCreated = null;
+								if(!teamMemberDbResponse.isEmpty()) {
+									//Add default activities mapping
+									for(String department: object.getDepartmentList()) {
+										Department deptObj = departmentRepository.findByName(department);
+										if(deptObj != null) {
+											List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptObj.getDeptId());
+											if(!activityTemplate.isEmpty()) {
+												
+												for(ActivityTemplate activityObject: activityTemplate) {
+													Activity newActivity = new Activity();
+
+													newActivity.setActivity(activityObject.getTemplateActivity());
+													newActivity.setTeamId(teamDbResponse.getTeamId());
+													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+													newActivity.setDeptIds(activityObject.getDeptId().toString());
+													newActivity.getCommonProperty().setCreatedBy(4l);
+
+													newActivityCreated = activitiesRepository.save(newActivity);
+												}
+											}
+										}
 									}
 								}
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Project updated & new Team created Successfully.");
+								if(newActivityCreated != null) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Project updated & new Team created Successfully.");
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Project updated & new Team created Successfully, but default activitis are not mapped.");
+								}
 							}
 						});
 					}else {
@@ -638,6 +870,16 @@ public class ProjectService {
 				}else {
 					
 					//validation
+					if(poProjectSyncDTO.getCreatedBy() == null || poProjectSyncDTO.getCreatedBy() == "") {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Please provide Created By : " + poProjectSyncDTO.getProjectName());
+						return response;
+					}
+					if(!validationService.validateEmploymentId(Long.parseLong(poProjectSyncDTO.getCreatedBy().split("-")[1]))) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No user found with EmpId : " + poProjectSyncDTO.getCreatedBy());
+						return response;
+					}
 					if(validationService.validateProjectName(poProjectSyncDTO.getProjectName())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Project name already exist : " + poProjectSyncDTO.getProjectName());
@@ -645,10 +887,15 @@ public class ProjectService {
 					}
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
 						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
-						Team teamExists = teamRepository.findByTeamName(team.getTeamName());
+						Team teamExists = teamRepository.findByPoTeamId(team.getPoTeamId());
 						if(teamExists != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Team name already exist : " + poProjectSyncDTO.getProjectName());
+							response.setServiceResponse("PoTeam ID already exists : " + poProjectSyncDTO.getProjectName());
+							return response;
+						}
+						if(!validationService.validateEmploymentId(Long.parseLong(team.getCreatedBy().split("-")[1]))) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("No user found with EmpId : " + team.getCreatedBy());
 							return response;
 						}
 					}
@@ -663,23 +910,26 @@ public class ProjectService {
 						clientDbresponse = clientsRepository.save(clientobj);
 						if(clientDbresponse != null) {
 							clientId = clientDbresponse.getClientId();
+							List<ClientLocation> clientLocations = new ArrayList<ClientLocation>();
 							//default location : WFH
 							ClientLocation clientLocationObj = new ClientLocation();
 							clientLocationObj.setClientId(clientDbresponse.getClientId());
 							clientLocationObj.setClientLocation("WFH");
-							ClientLocation clientLocationDbResponse = clientLocationRepository.save(clientLocationObj);
+							clientLocations.add(clientLocationObj);
 							// add client location
 							for(String location: poProjectSyncDTO.getClientLocation()) {
 								ClientLocation locationObj = new ClientLocation();
 								locationObj.setClientId(clientDbresponse.getClientId());
 								locationObj.setClientLocation(location);
-								ClientLocation locationDbResponse = clientLocationRepository.save(locationObj);
+								clientLocations.add(locationObj);
 							}
+							List<ClientLocation> locationDbResponse = clientLocationRepository.saveAll(clientLocations);
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Unable to create new client.");
 						}
 					}
+					Employee createdByObj = getEmployeeByEmployeementId(poProjectSyncDTO.getCreatedBy());
 					
 					// create new project
 					Project projectObj = new Project();
@@ -690,6 +940,7 @@ public class ProjectService {
 					projectObj.setState(poProjectSyncDTO.getState());
 					projectObj.setActive("true");
 					projectObj.setSyncProject("true");
+					projectObj.setCreatedBy(createdByObj.getEmpId());
 					Project projectDbResponse =  projectRepository.save(projectObj);
 					
 					// Add department mapping
@@ -707,7 +958,25 @@ public class ProjectService {
 							if(teamObj.getPoTeamLeadId() != null && teamObj.getPoTeamLeadId() != "") {
 								teamLeadObj = getEmployeeByEmployeementId(teamObj.getPoTeamLeadId());
 							}
+//							Long deptId = null;
+//							Long hodId = null;
+//							List<Object[]> departmentObj = employeeRepository.getDepartmentByEmployeementId(Long.parseLong(teamObj.getTeamMemberList()[0].split("-")[1]));
+//							if(departmentObj != null) {
+//								for(Object[] deptObj: departmentObj) {
+//									deptId = deptObj[3] != null ? Long.parseLong(deptObj[3].toString()) : null;
+//									hodId = deptObj[4] != null ? Long.parseLong(deptObj[4].toString()) : null;
+//								}
+//							}
 							// create new team
+							StringBuilder deptList = new StringBuilder("");
+							for(String department: teamObj.getDepartmentList()) {
+								Department deptObj = departmentRepository.findByName(department);
+								if(deptObj != null) {
+									deptList.append(deptObj.getDeptId()).append(",");
+								}
+							}
+							Employee teamCreatedByObj = getEmployeeByEmployeementId(teamObj.getCreatedBy());
+							
 							Team newTeamObj = new Team();
 							newTeamObj.setIsActive("Y");
 							newTeamObj.setPoTeamId(teamObj.getPoTeamId());
@@ -716,20 +985,95 @@ public class ProjectService {
 							newTeamObj.setTeamName(teamObj.getTeamName());
 							newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 							newTeamObj.setDescription(teamObj.getDescription());
-							newTeamObj.getCommonProperty().setCreatedBy(4l);
+							newTeamObj.setDeptIds(deptList.toString());
+							newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj.getEmpId());
 							Team teamDbResponse = teamRepository.save(newTeamObj);
 							if(teamDbResponse != null) {
+								List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
+								
+								// Add teamLead
+								EmployeeTeamMap defaultMemberMap = new EmployeeTeamMap();
+								defaultMemberMap.setActive(1l);
+								defaultMemberMap.setEmpId(teamLeadObj != null ? teamLeadObj.getEmpId() : null);
+								defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
+								defaultMemberMap.setEmployeeRole("TeamLead");
+								mapList.add(defaultMemberMap);
+								
+								// Add Project Manager
+								defaultMemberMap = new EmployeeTeamMap();
+								defaultMemberMap.setActive(1l);
+								defaultMemberMap.setEmpId(managerObj.getEmpId());
+								defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
+								defaultMemberMap.setEmployeeRole("Manager");
+								mapList.add(defaultMemberMap);
+								
+								List<Long> deptIds = new ArrayList<>();
+								// Add HOD of selected Department
+								for(String department: teamObj.getDepartmentList()) {
+									Department deptObj = departmentRepository.findByName(department);
+									deptIds.add(deptObj.getDeptId());
+									if(deptObj != null) {
+										defaultMemberMap = new EmployeeTeamMap();
+										defaultMemberMap.setActive(1l);
+										defaultMemberMap.setEmpId(deptObj.getHodId());
+										defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
+										defaultMemberMap.setEmployeeRole("HOD");
+										mapList.add(defaultMemberMap);
+									}
+								}
+								
 								// Add team member in team
+								List<Department> deptsObj = departmentRepository.findByDeptIdIn(deptIds);
 								for(String teamMember: teamObj.getTeamMemberList()) {
 									Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
 									EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-									newEmpTeamMap.setActive(1l);
-									newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
-									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-									EmployeeTeamMap teamMemberDbResponse = employeeTeamMapRepository.save(newEmpTeamMap);
+									
+									// check if HOD, Manager, TeamLead already added
+									if(( (teamLeadObj.getEmpId() == null) || (teamLeadObj.getEmpId() != null && !teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId())) ) && 
+											!managerObj.getEmpId().equals(teamMemberObj.getEmpId())
+											&& ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
+													!deptsObj.stream().anyMatch(o -> teamMemberObj.getEmpId().equals(o.getHodId()))) )) {
+										
+										newEmpTeamMap.setActive(1l);
+										newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
+										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+										newEmpTeamMap.setEmployeeRole("Employee");
+										mapList.add(newEmpTeamMap);
+									}	
 								}
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Project & Team created successfully.");
+								List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
+								
+								// Add default activity
+								Activity newActivityCreated = null;
+								if(!teamMemberDbResponse.isEmpty()) {
+									for(String department: teamObj.getDepartmentList()) {
+										Department deptObj = departmentRepository.findByName(department);
+										if(deptObj != null) {
+											List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptObj.getDeptId());
+											if(!activityTemplate.isEmpty()) {
+												
+												for(ActivityTemplate activityObject: activityTemplate) {
+													Activity newActivity = new Activity();
+
+													newActivity.setActivity(activityObject.getTemplateActivity());
+													newActivity.setTeamId(teamDbResponse.getTeamId());
+													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+													newActivity.setDeptIds(activityObject.getDeptId().toString());
+													newActivity.getCommonProperty().setCreatedBy(4l);
+
+													newActivityCreated = activitiesRepository.save(newActivity);
+												}
+											}
+										}
+									}
+								}
+								if(newActivityCreated != null) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Project & Team created successfully.");
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Project & Team created successfully, but default activities are not mapped");
+								}
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Unable to create new team.");
@@ -782,4 +1126,26 @@ public class ProjectService {
 		return response;
 	}
 
+	public ServiceResponse checkProjectName(ProjectDTO projectDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Project checkProjectName = projectRepository.findByProjectName(projectDto.getProjectName());
+			
+			if(checkProjectName != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Name already exist.");
+				System.out.println(" Project  exist"+checkProjectName);
+			}else if(checkProjectName == null){
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

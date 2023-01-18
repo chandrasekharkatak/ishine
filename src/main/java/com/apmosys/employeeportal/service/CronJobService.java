@@ -19,6 +19,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -29,14 +30,18 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +49,8 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
+import com.apmosys.employeeportal.model.CompOffLeave;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -55,6 +62,8 @@ import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -71,6 +80,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
+@EnableAsync
 public class CronJobService {
 
 	@Autowired
@@ -116,6 +126,12 @@ public class CronJobService {
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
 	
 	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
+	
+	@Autowired
 	MailService mailService;
 
 	@Value("${po.db.url}")
@@ -129,6 +145,10 @@ public class CronJobService {
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
+	
+	@Value("${timesheet.reconcile.days}")
+	private Long timesheetReconcileDays;
+	
 	
 //	0 0 0 * * * for every midnight
 //	*/20 * * * * *  for every 20 secs
@@ -326,49 +346,109 @@ public class CronJobService {
 	}
 	
 	// 0 1 1 ? * * - At 01:01:00am every day
-	
 	@Scheduled(cron = "0 1 1 ? * *")
 	public void LeaveExpirationCronJob() {
-		
-		short leaveTypeMasterId = 0;
 		try {
-		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-		     
-		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+//		     
+//		          for(LeaveTypeMaster ltm :leaveType) {
+//			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//			
+//			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//			      
+//			          for(LeavePolicyMaster lpm : leavePolicy) {
+//				         if(lpm.getExpirationPeriod().equals("Yes")) {
+//				        	 
+//				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
+//				     	     Timestamp createdOnDate = lpm.getCreatedOn();
+//				     	     
+//				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
+//				   
+//				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+//				    		 String expiration = f.format(expirationDate);
+//				    		 System.out.println(expiration);
+//				     	     
+//				     	     LocalDateTime dateTime = LocalDateTime.now();
+//				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
+//				             System.out.println(todayDate);
+//					         
+//				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//					
+//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
+//						   
+//						              if(expiration.equals(todayDate)) {
+//						            	  float newBalance = 0;
+//						            	  elm.setBalance(newBalance);
+//							              employeeLeavesMapRepository.save(elm);
+//							              break;
+//						              }
+//					              }
+//				          }
+//			           }
+//		            }
 			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+			
+			
+			LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
+			
+			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
 			      
 			          for(LeavePolicyMaster lpm : leavePolicy) {
 				         if(lpm.getExpirationPeriod().equals("Yes")) {
-				        	 
 				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
-				     	     Timestamp createdOnDate = lpm.getCreatedOn();
-				     	     
-				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
-				   
-				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-				    		 String expiration = f.format(expirationDate);
-				    		 System.out.println(expiration);
-				     	     
-				     	     LocalDateTime dateTime = LocalDateTime.now();
-				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
-				             System.out.println(todayDate);
-					         
-				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						   
-						              if(expiration.equals(todayDate)) {
-						            	  float newBalance = 0;
-						            	  elm.setBalance(newBalance);
-							              employeeLeavesMapRepository.save(elm);
-							              break;
-						              }
-					              }
+				        	 
+				        	 List<Employee> employeeObj = employeeRepository.findByEmploymentstatus(lpm.getEmploymentStatus());
+				        	 
+				        	 if(!employeeObj.isEmpty()) {
+				        		 employeeObj.forEach((object) -> {
+				        			 //Get employee leave balance
+				        			 EmployeeLeavesMap empLeaveMapObj = employeeLeavesMapRepository
+				        					 .findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), leaveType.getLeaveTypeMasterId());
+				        			 
+				        			 //Get CompOff leave applications
+				        			 Timestamp perv45Day = Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay());
+				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(object.getEmpId(), (short)2, perv45Day);
+				        			 if(!compOffLeaveObj.isEmpty()) {
+				        				 compOffLeaveObj.forEach((compOffObj) -> {
+				        					 
+				        					 if(compOffObj.getUpdatedOn() != null) {
+				        						 compOffObj.setApproverDate(compOffObj.getUpdatedOn().toLocalDate());
+					        					 compOffLeaveRepository.save(compOffObj); 
+				        					 }
+				        					 
+				        					 LocalDate expirationDate = compOffObj.getUpdatedOn().toLocalDate().plusDays(expirationPeriod);
+				        					 LocalDate dateToday = LocalDate.now();
+				        					 if(expirationDate.equals(dateToday)) {
+				        						 Float pervBalance = empLeaveMapObj.getBalance();
+				        						 Float newBalance = pervBalance - compOffObj.getNoOfDays();
+				        						 
+				        						 empLeaveMapObj.setBalance(newBalance);
+				        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
+				        						 
+				        						 if(dbResposne != null) {
+				        							 
+				        							 LeaveBalanceLog log = new LeaveBalanceLog();
+
+														log.setBalance(newBalance);
+														log.setEmpId(object.getEmpId());
+														log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+														log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
+																Float.toString(compOffObj.getNoOfDays())));
+														log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+
+														leaveBalanceLogRepository.save(log);
+				        							 
+				        							 System.out.println("CompOff balance updated successfully");
+				        						 }else {
+				        							 System.out.println("CompOff balance updation failed");
+				        						 }
+				        					  }
+				        				 });
+				        			 }
+				        		 });
+				        	 }
 				          }
 			           }
-		            }
 		   }catch(Exception e) {
 			e.printStackTrace();
 		   }
@@ -490,9 +570,11 @@ public class CronJobService {
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
 										newTimesheet.setDescription("WeekOff : Saturday");
 										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalWorkingHours("0");
 									}else{
 										newTimesheet.setDescription("WeekOff : Sunday");
 										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalWorkingHours("0");
 									}
 									newTimesheet.setEmpId(empId);
 									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
@@ -869,6 +951,415 @@ public class CronJobService {
 						e.printStackTrace();
 					}
 				}
+			}
+		}
+		
+		@Async
+		@Scheduled(cron = "0 0 9 ? * *")
+		public void resignationMailConsent() {
+			try {
+				List<Object[]> employeeObj = employeeRepository.getEmployeeByDateOfRelieving();
+				
+				if(!employeeObj.isEmpty()) {
+					employeeObj.forEach((object) -> {
+						//send mail to manager
+						Long empId = object[1] != null ? Long.parseLong(object[1].toString()) : null;
+						String managerEmail = object[3] != null ? object[3].toString() : null;
+						String managerName = object[4] != null ? object[4].toString() : null;
+						String empName = object[5] != null ? object[5].toString() : null;
+						String dateOfResign = object[6] != null ? object[6].toString() : null;
+						String dateOfRelieving = object[7] != null ? object[7].toString() : null;
+						String department = object[8] != null ? object[8].toString() : null;
+						try {
+							mailService.sendMail(managerEmail, "Asset Consent", 
+									"Dear " + managerName + ",<br><br>"
+									+ "Please provide asset consent of " + empName + "<br>"
+									+ "<br><br>"
+									+ "Employee Info :<br>"
+									+ "EmpId: " + empId +"<br>"
+									+ "Name : " + empName + "<br>"
+									+ "Department : " + department + "<br>"
+									+ "Manager : " + managerName +"<br>"
+									+ "Date Of resignation : " + dateOfResign + "<br>"
+									+ "Date of relieving : " + dateOfRelieving + "<br>"
+									+ "<br>"
+									+ "Link :  http://localhost:4200/#/user-exit/" +empId);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						//send mail to HR,IT,Admin,Accounts department head
+						List<Object[]> emailList = employeeRepository.getEmailForMailConsent();
+						
+						emailList.forEach((mailObj) -> {
+							String mailAddress = object[4] != null ? object[4].toString() : null;
+							String name = object[3] != null ? object[3].toString() : null;
+							try {
+								mailService.sendMail(mailAddress, "Asset Consent", 
+										"Dear " + name + ",<br><br>"
+										+ "Please provide asset consent of " + empName + "<br>"
+										+ "<br><br>"
+										+ "Employee Info :<br>"
+										+ "EmpId: " + empId +"<br>"
+										+ "Name : " + empName + "<br>"
+										+ "Department : " + department + "<br>"
+										+ "Manager : " + managerName +"<br>"
+										+ "Date Of resignation : " + dateOfResign + "<br>"
+										+ "Date of relieving : " + dateOfRelieving + "<br>"
+										+ "<br>"
+										+ "Link :  http://localhost:4200/#/user-exit/" +empId);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						});
+					});
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// 0 0 10 ? * MON - At 10:00:00am, on every Monday, every month
+		// 0 0/2 * ? * *
+		@Async
+		@Scheduled(cron = "0 0 10 ? * MON")
+		public void timesheetDefaulterWeeklyMail() {
+			try {
+				List<Department> allDepartment = departmentRepository.findAll();
+				if(!allDepartment.isEmpty()) {
+					
+					StringBuilder defaulterMail = new StringBuilder();
+					allDepartment.forEach((object) -> {
+						
+						int currentYear = LocalDate.now().getYear();
+						int currentMonth = LocalDate.now().getMonthValue();
+						
+						LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+						LocalDate end = LocalDate.now().minusDays(1);
+						
+						Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+
+						List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
+						List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(object.getDeptId());
+
+						List<TimesheetDTO> dtoList = new ArrayList<>();
+						String hodMail = null;
+						
+						if (timesheetList != null) {
+							for(Object[] employee: employeeList) {
+								TimesheetDTO dto = new TimesheetDTO();
+								
+								defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
+								defaulterMail.append(",");
+
+								dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+								dto.setEmployeeName(employee[1] != null ? employee[1].toString() : null);
+								dto.setDepartmentName(employee[2] != null ? employee[2].toString() : null);
+								dto.setEmail(employee[3] != null ? employee[3].toString() : null);
+								dto.setManagerName(employee[4] != null ? employee[4].toString() : null);
+								dto.setEmpId(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
+								dto.setPendingEodCount(period);
+								dto.setEmploymentstatus(employee[6] != null ? employee[6].toString() : null);
+								hodMail = employee[7] != null ? employee[7].toString() : null;
+
+								timesheetList.forEach((timesheet) -> {
+
+									Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+									Long employeeEmpId = employee[5] != null ? Long.parseLong(employee[5].toString()) : null;
+
+									if (timesheetEmpId.equals(employeeEmpId)) {
+										Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+										Long pendingEodCount = period - filledEodCount;
+
+										dto.setPendingEodCount(pendingEodCount);
+									}
+								});
+								dtoList.add(dto);
+							}
+						}
+						//Filter 0 pending EOD counts
+						
+						dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
+								
+						//Mail timesheet defaulter list to: user cc: HR, HOD	
+						
+						StringBuilder html = new StringBuilder();
+						html.append("<html>\n" +
+					            "  <head>\n" +
+					            "    <style>\n" +
+					            "      table, th, td {\n" +
+					            "        border: 1px solid black;\n" +
+					            "      }\n" +
+					            "      table {\n" +
+					            "        border-collapse: collapse;\n" +
+					            "      }\n" +
+					            "    </style>\n" +
+					            "  </head>\n" +
+					            "  <body>\n" +
+					            "    <table>\n" +
+					            "      <tr>\n" +
+					            "        <th>Emp ID</th>\n" +
+					            "        <th>Name</th>\n" +
+					            "        <th>Email</th>\n" +
+					            "        <th>Manager Name</th>\n" +
+					            "        <th>Expected Timesheet Count</th>\n" +
+					            "        <th>Filled Timesheet Count</th>\n" +
+					            "        <th>Deaprtment</th>\n" +
+					            "      </tr>\n");
+						// add rows to the table
+						for(TimesheetDTO timesheet: dtoList) {
+							Long filledEOD = period - timesheet.getPendingEodCount();
+							html.append("      <tr>\n");
+							  // add cells to the row
+							  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
+							  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
+							  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
+							  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
+							  html.append("        <td>" + period + "</td>\n");
+							  html.append("        <td>" + filledEOD + "</td>\n");
+							  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
+							  html.append("      </tr>\n");
+						}
+						
+						html.append("    </table>\n" +
+						            "  </body>\n" +
+						            "</html>");
+						
+						try {
+							mailService.sendMailWithCC(defaulterMail.toString(),
+									hodMail+","+hrMailAddress,
+									"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
+									"Dear IShine Members, <br><br>"
+                                  + "This is to bring it to your attention that you are in the defaulters list."
+                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
+                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
+								  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
+								  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
+								  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+								  +	html.toString());
+						} catch (MessagingException e) {
+							e.printStackTrace();
+						}
+					});
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+//		*/20 * * * * *  for every 20 secs
+//      @Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM		
+		@Async
+		@Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM	
+		public void timesheetCheckEnable() {
+
+			try {
+				LocalDate dateToday = LocalDate.now();
+				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+				List<EmployeeDTO> listDTO = new ArrayList<EmployeeDTO>();
+				
+				if(!employeeList.isEmpty()) {
+					for(Object[] object: employeeList) {
+						EmployeeDTO empdto = new EmployeeDTO();
+						empdto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						empdto.setName(object[2] != null ? object[2].toString() : null);
+						empdto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+						empdto.setIsTimesheetLockCheckEnable(object[4] != null ? object[4].toString() : null);
+						empdto.setTimesheetLockUpdatedOn(object[5] != null ? object[5].toString() : null);
+						
+						listDTO.add(empdto);
+					}
+				}
+				
+				if(!listDTO.isEmpty()) {
+					listDTO.forEach((employeeDTO) -> {
+						
+						if(employeeDTO.getTimesheetLockUpdatedOn() != null) {
+							DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+							
+							LocalDate lastUpdatedDate = LocalDate.parse(employeeDTO.getTimesheetLockUpdatedOn(), format);			
+							long elapsedDays = ChronoUnit.DAYS.between(lastUpdatedDate, dateToday);
+							
+							System.out.println("today : "+ dateToday + " lastUpdatedDate : "+ lastUpdatedDate);
+							System.out.println("elapsedDays for "+ employeeDTO.getEmpId() + " : "+  elapsedDays);
+							
+							if(elapsedDays >= timesheetReconcileDays && employeeDTO.getIsTimesheetLockCheckEnable().equals("false")) {
+								Optional<Employee> emp = employeeRepository.findById(employeeDTO.getEmpId());
+								if(emp.isPresent()) {
+									Employee employeeObj = emp.get();								
+									employeeObj.setIsTimesheetLockCheckEnable("true");
+									employeeObj.setTimesheetLockUpdatedOn(LocalDate.now());
+									
+									employeeRepository.save(employeeObj);
+								}
+							}
+						}
+					});
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Async
+		@Scheduled(cron = "0 0 10 ? * MON")
+		public void allEmployeeDsrReport() {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				
+				int currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
+				
+				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				LocalDate currentDate = LocalDate.now().minusDays(1);
+					
+//					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
+					Path path = Files.createDirectories(Paths.get("/home/apmosys/Downloads" + File.separator + "monthlyDSR"));
+					var f = new File(path + File.separator + "hii" + ".xlsx");
+//					var f = new File(fileName);
+						
+				        try (var fos = new FileOutputStream(f)) {
+				        	
+				        	 var wb = new Workbook(fos, "Application", "1.0");
+					            Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+					            
+					            ws.value(0, 0, "EmpId");
+					            ws.value(0, 1, "Emp Name");
+					            ws.value(0, 2, "Date");
+					            ws.value(0, 3, "Day Type");
+					            ws.value(0, 4, "In-Time");
+					            ws.value(0, 5, "Out-Time");
+					            ws.value(0, 6, "Total Working Hours");
+					            ws.value(0, 7, "Client");
+					            ws.value(0, 8, "Client Location");
+					            ws.value(0, 9, "Project");
+					            ws.value(0, 10, "Activity");
+					            ws.value(0, 11, "Total Activity Time");
+					            ws.value(0, 12, "Shift");
+					            ws.value(0, 13, "Description");
+					            ws.value(0, 14, "Status");
+					            
+					            int rowNum = 1;
+
+				        	List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+							for(Object[] empObj : employeeList) {
+								
+								Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+								String empName = empObj[2] != null ? empObj[2].toString() : null;
+								Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
+								
+								System.out.println("Emp ID :" + empId);
+								System.out.println("Employment ID :" + employeementId);
+								
+								List<Timesheet> monthlyTimesheet = timesheetsRepository.
+										findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+				 
+						
+				        
+						if(!monthlyTimesheet.isEmpty()){
+							for(Timesheet timesheetObj: monthlyTimesheet) {
+								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+								
+								String perviousProject = "";
+								String perviousDate = "";
+								String perviousClientName = "";
+								String perviousClientLocation = "";
+								
+								if(!objectList.isEmpty()) {
+									for(Object[] object : objectList) {
+										
+										String activity = object[1] != null ? object[1].toString() : null;
+										String project = object[5] != null ? object[5].toString() : null;
+										String clientName = object[6] != null ? object[6].toString() : null;
+										String clientLocation = object[7] != null ? object[7].toString() : null;
+										
+										ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+										ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+										ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+										
+										if(timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 0, rowNum, 0).merge();
+											ws.range(rowNum - 1, 1, rowNum, 1).merge();
+											ws.range(rowNum - 1, 2, rowNum, 2).merge();
+											ws.range(rowNum - 1, 3, rowNum, 3).merge();
+											ws.range(rowNum - 1, 4, rowNum, 4).merge();
+											ws.range(rowNum - 1, 5, rowNum, 5).merge();
+											ws.range(rowNum - 1, 6, rowNum, 6).merge();
+											ws.range(rowNum - 1, 11, rowNum, 11).merge();
+											ws.range(rowNum - 1, 12, rowNum, 12).merge();
+											ws.range(rowNum - 1, 14, rowNum, 14).merge();
+										}else {
+											ws.value(rowNum, 0, "A-"+employeementId);
+											ws.value(rowNum, 1, empName);
+											ws.value(rowNum, 2, timesheetObj.getDate());
+											ws.value(rowNum, 3, timesheetObj.getDayType());
+											ws.value(rowNum, 4, timesheetObj.getOfficeInTime());
+											ws.value(rowNum, 5, timesheetObj.getOfficeOutTime());
+											ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
+											ws.value(rowNum, 11, timesheetObj.getTotalTime());
+											ws.value(rowNum, 12, timesheetObj.getIsNightShift());
+											ws.value(rowNum, 14, timesheetObj.getStatus());
+										}
+										if(clientName.equals(perviousClientName) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 7, rowNum, 7).merge();
+										}else {
+											ws.value(rowNum, 7, clientName);
+										}
+										if(clientLocation.equals(perviousClientLocation) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 8, rowNum, 8).merge();
+										}else {
+											ws.value(rowNum, 8, clientLocation);
+										}
+										if(project.equals(perviousProject) && timesheetObj.getDate().toString().equals(perviousDate)) {
+											ws.range(rowNum - 1, 9, rowNum, 9).merge();
+										}else {
+											ws.value(rowNum, 9, project);
+										}
+										if(!objectList.isEmpty()) {
+											ws.value(rowNum, 10, activity);
+										}else {
+											ws.value(rowNum, 10, timesheetObj.getDescription());
+										}
+										
+										
+										rowNum++;
+										perviousProject = project;
+										perviousDate = timesheetObj.getDate().toString();
+										perviousClientName = clientName;
+										perviousClientLocation = clientLocation;
+									}
+								}else {
+									
+									// Fill data of weekoff & leave
+									ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+									ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+									ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+									
+									ws.value(rowNum, 0, "A-"+employeementId);
+									ws.value(rowNum, 1, empName);
+									ws.value(rowNum, 2, timesheetObj.getDate());
+									ws.value(rowNum, 3, timesheetObj.getDayType());
+									ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
+									ws.value(rowNum, 13, timesheetObj.getDescription());
+									ws.value(rowNum, 14, timesheetObj.getStatus());
+									
+									rowNum++;
+									
+									System.out.println("Activity List is empty");
+								}
+							}
+						}
+			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("DSR Generated Successfully.");
+				      }
+						wb.finish();
+				    }
+			}catch(Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
 			}
 		}
 }	

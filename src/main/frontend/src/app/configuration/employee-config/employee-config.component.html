@@ -78,7 +78,7 @@
                                                 (blur)="validateBirthDate(alert_message)"> -->
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOB" #input (click)="DOBPicker.open()" [matDatepicker]="DOBPicker" (keydown)="disableMannualDateInput()"
-                                                    [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)">
+                                                    [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" autocomplete="off">
                                                     <mat-datepicker-toggle  matSuffix [for]="DOBPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DOBPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
@@ -454,7 +454,7 @@
                                                 <!-- <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()"> -->
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOJ" #input (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
-                                                      [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining">
+                                                      [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DOJPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
@@ -469,8 +469,8 @@
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Probation">Probation</option>
                                                     <option value="Confirmed">Confirmed</option>
-                                                    <option value="Resigned">Resigned</option>
-                                                    <option value="InActive">In-Active</option>
+                                                    <option *ngIf="isUpdation" value="Resigned">Resigned</option>
+                                                    <option *ngIf="isUpdation" value="InActive">In-Active</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -487,21 +487,32 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Notice Period</label>
-                                                <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod">
+                                                <input type="number" class="form-control"(keypress)="omit_character($event)" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod">
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'Resigned'">
-                                        <div class="info-wrapper">
+                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">                                        <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign">
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">	
+                                        <div class="info-wrapper">	
+                                            <div class="form-group">	
+                                                <label class="info-label">Date Of Releiving</label>	
+                                                <div class="d-flex">	
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
+                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>	
+                                                </div>	
+                                                <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false" ></mat-datepicker>	
+                                            </div>	
+                                        </div>	
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
@@ -552,7 +563,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Total Experience</label>
-                                                <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
+                                                <input type="number" class="form-control" maxlength="2" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
                                             </div>
                                         </div>
                                     </div>
@@ -771,7 +782,7 @@
             </div>
 
             <!-- For Employee Profile Update Table -->
-            <div class="form-group d-flex flex-row ml-auto col-md-3" *ngIf="isDraftTable">
+            <div class="col-md-3 offset-9 mb-2" *ngIf="isDraftTable">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div>
 
@@ -805,9 +816,15 @@
                                 <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
-                                <th scope="col" class="info-label">Employment Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="employmentstatus">Employment Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName">Manager Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="departmentName">Department Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>
                                 <th scope="col" class="info-label" *ngIf="dateOfReleivingshow" mat-sort-header="dateOfRelieving" > Date of Releiving</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn"> Created On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdByName"> Created by</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn"> Updated On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedByName"> Updated by</th>
 
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
@@ -816,7 +833,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="allEmployeeList.length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                                <th colspan="12" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
                                 *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: items, currentPage: page }, let i = index">
@@ -826,29 +843,41 @@
                                 <td>{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
-                                <td>{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</td>
-                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving | date:'dd-MM-yyyy'}}</td>
+                                <td>{{employee.managerName}}</td>
+                                <td>{{employee.departmentName}}</td>
+                                <td>{{employee.dateOfJoining}}</td>
+                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving}}</td>
+                                <td *ngIf="isTable">{{employee.createdOn}}</td>
+                                <td *ngIf="isTable">{{employee.createdByName}}</td>
+                                <td *ngIf="isTable">{{employee.updatedOn}}</td>
+                                <td *ngIf="isTable">{{employee.updatedByName}}</td>
 
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
                                     *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-danger" type="submit"
+                                        class="btn btn-sm btn-outline-danger mb-1" type="submit"
                                         (click)="openDeleteEmployee(delete_template,employee)"><em
                                             class="fa fa-trash"></em></button>&nbsp;
                                     <button type="submit"
                                         (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
-                                        class="btn btn-sm btn-outline-primary"><i class="fa fa-info-circle"
+                                        class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
                                             aria-hidden="true"></i></button>&nbsp;
                                     <button
                                         *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)"
-                                        class="btn btn-sm btn-outline-primary" type="submit"
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
                                         (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
+                                    <button *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
+                                        class="btn btn-sm btn-primary mb-1" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
+                                    <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
                                 </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
@@ -889,23 +918,23 @@
             <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">	
         </div>
         <div class="container history-table">
-            <table class="table history-table">
+            <table class="table history-table" >
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" >Sr No.</th>
                     <!-- <th scope="col" class="info-label">Employee Id</th> -->
                     <!-- <th scope="col" class="info-label">Employee Name</th>  -->
-                    <th scope="col" class="info-label ">Team Name</th>
-                    <th scope="col" class="info-label ">Project Name</th>
-                    <th scope="col" class="info-label ">Start Date</th>
-                    <th scope="col" class="info-label ">End Date</th>
-                    <th scope="col" class="info-label ">Team Lead Name</th>
-                    <th scope="col" class="info-label ">Date Of Joining</th>
-                    <th scope="col" class="info-label " *ngIf="employeeObj.employmentstatus == 'InActive'">Date Of Resign</th>
+                    <th scope="col" class="info-label" >Team Name</th>
+                    <th scope="col" class="info-label" >Project Name</th>
+                    <th scope="col" class="info-label" >Start Date</th>
+                    <th scope="col" class="info-label" >End Date</th>
+                    <th scope="col" class="info-label" >Team Lead Name</th>
+                    <!-- <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date Of Joining</th> -->
+                    <!-- <th scope="col" class="info-label" *ngIf="employeeObj.employmentstatus == 'InActive'" mat-sort-header="dateOfResign">Date Of Resign</th> -->
                     <!-- <th scope="col" class="info-label ">Role</th> -->
-                    <th scope="col" class="info-label ">Designation</th>
-                    <th scope="col" class="info-label ">Client Location</th>
-                    <th scope="col" class="info-label ">Client Name</th>
+                    <th scope="col" class="info-label" >Designation</th>
+                    <th scope="col" class="info-label" >Client Location</th>
+                    <th scope="col" class="info-label" >Client Name</th>
                     
                  </tr>
                 </thead>
@@ -923,8 +952,8 @@
                     <td>{{empHistory.startDate | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                     <td>{{empHistory.updatedOn | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                     <td>{{empHistory.teamLeadName}}</td>
-                    <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td>
-                    <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td>
+                    <!-- <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td> -->
+                    <!-- <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td> -->
                     <!-- <td>{{empHistory.role}}</td> -->
                     <td>{{empHistory.jobRoleName}}</td>
                     <td>{{empHistory.clientLocation}}</td>
@@ -998,7 +1027,7 @@
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.remarks"> </textarea><br>
         <button type="button" class="btn btn-success" (click)="cancelRequest();rejectDraftEmployeeApplication(alert_message)" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelDraftRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 
@@ -1079,7 +1108,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">mother's Name</p>
+                                                <p class="info-label">Mother's Name</p>
                                                 <p class="info-text">{{previewObj.mothersName}}</p>
                                             </div>
                                         </div>
@@ -1097,7 +1126,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Martial Status</p>
+                                                <p class="info-label">Marital Status</p>
                                                 <p class="info-text">{{previewObj.maritalStatus}}</p>
                                             </div>
                                         </div>
@@ -1583,7 +1612,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">mother's Name</p>
+                                                <p class="info-label">Mother's Name</p>
                                                 <p class="info-text">{{previewEmployeeObj.mothersName}}</p>
                                             </div>
                                         </div>
@@ -1601,7 +1630,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Martial Status</p>
+                                                <p class="info-label">Marital Status</p>
                                                 <p class="info-text">{{previewEmployeeObj.maritalStatus}}</p>
                                             </div>
                                         </div>

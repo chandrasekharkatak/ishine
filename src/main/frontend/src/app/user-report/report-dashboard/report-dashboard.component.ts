@@ -11,6 +11,8 @@ import { Query } from 'src/app/models/query';
 import * as moment from 'moment';
 import { Leave } from 'src/app/models/leave';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
 
 HC_exportData(HighCharts);
 
@@ -57,6 +59,8 @@ export class ReportDashboardComponent implements OnInit {
 
   modalTitle:any;
   modalSummaryList:any[] = [];
+  countByLegend:any[] = [];	
+  storedDataList:any[] = [];
 
   zeroToFive:any;
   fiveToEight:any;
@@ -78,7 +82,7 @@ export class ReportDashboardComponent implements OnInit {
   filterData:any = new FilterData();
   queryList:any[] = [];
   leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
+  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
   constructor(
@@ -86,11 +90,19 @@ export class ReportDashboardComponent implements OnInit {
     private timesheetService : TimesheetService,
     private modalService: BsModalService,
     private employeeService: EmployeeService,
-    private exportExcelService: ExportExcelService
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { }
 
   ngOnInit(): void {
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -133,9 +145,11 @@ export class ReportDashboardComponent implements OnInit {
         this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
         this.allResignEmployee.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
-          // employee.dateOfResign = moment((employee.dateOfResign).format(this.dateFormat));
-          employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
-        
+          employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
+          
+          employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
+          employee.dateOfRelieving = (employee.dateOfRelieving)? moment(employee.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+
         });
 
         console.log("allResignEmployee : ", this.allResignEmployee)
@@ -150,7 +164,7 @@ export class ReportDashboardComponent implements OnInit {
     this.leaveSumarryList = [];
     this.queryList=[];
     let leaveObj= new Leave();
-
+    console.log(leaveObj);
      leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
      leaveObj.endDate = moment().format(this.dateFormat);
 
@@ -489,6 +503,23 @@ export class ReportDashboardComponent implements OnInit {
         return;
       }
 
+      let _tempQueryList = JSON.parse(JSON.stringify(queryObj.queryList));	
+      console.log(_tempQueryList, "_tempQueryList");	
+      let _filteredQueryList = _tempQueryList.filter((query)=> {	
+        if(query.column == 'Employee Id' || query.column == 'Department' || query.column == 'Full Name' || query.column == 'Team Name' || query.column == 'Project Name' || query.column == 'Client Name'){	
+          return Object.assign({}, query);	
+        }	
+      });	
+        	
+      _filteredQueryList.forEach((query:Query, index, queries) => {	
+        if(index == (queries.length-1)){	
+          query.conjunction = "";	
+        }	
+      });	
+      queryObj.queryList1 = _filteredQueryList;	
+      console.log( queryObj.queryList1," queryObj.queryList1");	
+      console.log(queryObj.queryList, "queryObj.queryList")	
+      
       this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.timsheetSummaryList = response.serviceResponse;
@@ -941,6 +972,60 @@ export class ReportDashboardComponent implements OnInit {
         })
         console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
+  
+  
+         /*
+          Chart Data for - Employee KYC by Department
+       */
+        console.log("departmentList : ", departmentList);
+        const CHECK_PERCENT = 50.00;
+        let kycChartData = [{
+          name: 'Pending',
+          data: [],
+          stack: 'base'
+        }, {
+          name: 'Completed',
+          data: [],
+          stack: 'base'
+        }];
+
+        let departmentCategories = employeeByDepartment.map(dept => {
+          return [dept.departmentName]
+        });
+
+        let departmentKycData = Object.entries(departmentList).map(entry => {
+          console.log("entry : ", entry);
+          const name = entry[0];
+          const employeeList:any = entry[1];          
+
+          let pendingCount = 0;
+          let completedCount = 0;
+
+          employeeList.forEach(employee => {
+            if(employee.profileCompletedPercent > CHECK_PERCENT){
+              completedCount++;
+            }else{
+              pendingCount++;
+            }
+          });
+
+          return {
+            pending : pendingCount,
+            completed : completedCount,
+            departmentName : name
+          }
+        });
+
+        console.log("departmentKycData : ", departmentKycData);
+        departmentKycData.forEach(dept => {
+          kycChartData[0].data.push(dept.pending);
+          kycChartData[1].data.push(dept.completed);
+        });
+
+        console.log("kycChartData : ", kycChartData);
+
+        this.renderStackBarChart('Employee KYC Summary','employeeKycSummary',kycChartData,departmentCategories,'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
+        
   }
 
   groupBy(objectArray, property) {
@@ -1323,6 +1408,86 @@ export class ReportDashboardComponent implements OnInit {
   });
   }
 
+  renderStackBarChart(chartName:any, chartId:any, chartData:any, categories:any, labelName:any, openMod:any){
+
+    let colors = ['#ED561B','#64E572'];
+
+    HighCharts.chart(chartId, {
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: chartName,
+        style:{	
+          fontWeight: 'bold',	
+          color:'#000000'	
+        }
+      },
+      xAxis: {
+        categories: categories,
+        labels: {	
+          overflow: 'justify',	
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',
+            fontSize:'12'	
+          }	
+        },
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'No. Of Employees',
+          align: 'high',
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+          }
+        },
+        labels: {
+          overflow: 'justify',
+          style:{	
+            fontWeight: 'bold',	
+            color:'#000000',	
+            fontSize:'12'
+          }
+        },
+        tickInterval: 50,
+        endOnTick: false
+      },
+      plotOptions: {
+        series: {
+          cursor: 'pointer',
+          point: {
+            events: {
+              click: function(event) {
+                let category = event.point.category[0]
+                let series = event.point.series.name;
+
+                openMod(category, series);
+              }
+            },
+          },
+        },
+         column: {
+            stacking: 'normal',
+            dataLabels: {
+              enabled: true,
+            },
+            showInLegend: true
+        },
+      },
+      credits: {
+        enabled: false,
+      },
+      legend: {
+        enabled: false
+      },
+      series: chartData,
+      colors : colors
+    });
+  }
+
   renderPlaceholderChart(chartName:any, chartId:any){
     HighCharts.chart(chartId, {
       credits: {
@@ -1378,14 +1543,16 @@ export class ReportDashboardComponent implements OnInit {
     /* Filter */
     openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
       console.log("columns : ", columns);
+      this.queryList = [];
+      let dateFormat = 'DD-MM-YYYY';
       
       this.filterData.title  = title;
       this.filterData.columns = columns;
 
       if(this.filterData.title == 'Filter Timesheet Summary' || this.filterData.title == 'Filter Leave Trend Chart'){
 
-        let fromDate = moment().subtract(8, 'd').format(this.dateFormat);
-        let toDate = moment().format(this.dateFormat);
+        let fromDate = moment().subtract(8, 'd').format(dateFormat);
+        let toDate = moment().format(dateFormat);
 
         this.queryList = [
           { column: "From Date", operator: ">=", value: fromDate, conjunction: "AND" },
@@ -1393,28 +1560,82 @@ export class ReportDashboardComponent implements OnInit {
         ];
       }
 
+      this.storedDataList.forEach((data) => {
+        if(data.filterName == title){
+          data.queryList.forEach((queryObj) => {
+            if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
+              queryObj.value = "A-".concat(queryObj.value);
+            }
+            if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
+              queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
+            } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
+              queryObj.value = (queryObj.value) ? moment(queryObj.value).format('DD-MM-YYYY HH:mm:ss') : '';
+            }
+          });
+          this.queryList = data.queryList;
+        }
+      });
+
       this.filterData.queryList = JSON.stringify(this.queryList);
   
       console.log("filterData : ", this.filterData);
-      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
   
-    onFilterSubmit(queryList:any , template:TemplateRef<any>){
-      console.log("queryList : ", queryList);
-      this.queryList = queryList;
-      this.cancelRequest();
+    onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
+      if (emittedArray[0].length != 0) {
+        console.log("queryList : ", emittedArray[0]);
+        this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
+        this.cancelRequest();
 
-      if(this.filterData.title == 'Filter Employee Report'){
-        this.getCustomEmployeesList(queryList,template);
-      }
-      if(this.filterData.title == 'Filter Leave Summary'){
-        this.getCustomLeaveReport(queryList,template);
-      }
-      if(this.filterData.title == 'Filter Leave Trend Chart'){
-        this.getCustomLeaveTrendAnalysisReport(queryList,template);
-      }
-      if(this.filterData.title == 'Filter Timesheet Summary'){
-        this.getCustomTimesheetReport(queryList,template);
+        emittedArray[1].forEach((object) => {
+          if (Object.keys(object).length !== 0) {
+            this.storedDataList.push(object);
+          }
+        });
+
+        emittedArray[0].forEach(query => {
+          if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
+            query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD') : '';
+          } else if (query.column == 'Created On' || query.column == 'Updated On') {
+            query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
+          }
+
+          if (query.column == 'Employee Id') {
+            query.value = query.value.split("-")[1];
+          }
+        });
+
+        console.log("updated queryList : ", emittedArray[0]);
+
+        if (this.filterData.title == 'Filter Employee Report') {
+          this.getCustomEmployeesList(emittedArray[0], template);
+        }
+        if (this.filterData.title == 'Filter Leave Summary') {
+          this.getCustomLeaveReport(emittedArray[0], template);
+        }
+        if (this.filterData.title == 'Filter Leave Trend Chart') {
+          this.getCustomLeaveTrendAnalysisReport(emittedArray[0], template);
+        }
+        if (this.filterData.title == 'Filter Timesheet Summary') {
+          this.getCustomTimesheetReport(emittedArray[0], template);
+        }
+      }else{
+        let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
+        this.storedDataList.splice(clearedFilter);
+
+        if (emittedArray[1] == 'Filter Employee Report') {
+          this.getAllEmployeeList();
+        }
+        if (emittedArray[1] == 'Filter Leave Summary') {
+          this.get8DaysLeaveReport();
+        }
+        if (emittedArray[1] == 'Filter Leave Trend Chart') {
+          this.getLeaveTrendAnalysisReport();
+        }
+        if (emittedArray[1] == 'Filter Timesheet Summary') {
+          this.get9DayTimesheetReport();
+        }
       }
     }
 
@@ -1426,8 +1647,8 @@ export class ReportDashboardComponent implements OnInit {
         "Emp ID": "A-".concat(x.employeementId),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "From Date": x.fromDate,
-        "To Date": x.toDate,
+        "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
+        "To Date": (x.toDate)? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,
         "Status": x.status
       })
     )
@@ -1440,7 +1661,7 @@ export class ReportDashboardComponent implements OnInit {
         "Emp ID": "A-".concat(x.employeementId),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
-        "Timesheet Date":x.date,
+        "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
         "Day Type":x.dayType,
         "Email Id": x.email,
         "Manager Name": x.managerName,
@@ -1462,7 +1683,7 @@ export class ReportDashboardComponent implements OnInit {
         "Email Id": x.email,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
-        "Timesheet Date":x.date,
+        "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
         "Day Type": x.dayType,
         "Total Working Hours": x.totalWorkingHours
       })
@@ -1477,7 +1698,7 @@ export class ReportDashboardComponent implements OnInit {
         "Name":x.name,
         "Department Name": x.departmentName,
         "Email Id": x.email,
-        "Date Of Joining" : x.dateOfJoining,
+        "Date Of Joining" : (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
         "Manager Name": x.managerName,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
@@ -1498,7 +1719,7 @@ export class ReportDashboardComponent implements OnInit {
         "Client Name":x.clientName,
         "Team Name":x.teamName,
         "Client Location":x.managerName,
-        "Working Date":x.date
+        "Working Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -1512,8 +1733,8 @@ export class ReportDashboardComponent implements OnInit {
         "Emp ID": x.employeementId,
         "Employee Name":x.name,
         "Department":x.departmentName,
-        "Date Of Resign":x.dateOfResign,
-        "Date Of Relieving":x.dateOfRelieving,
+        "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
+        "Date Of Relieving":(x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
         "Reporting To":x.managerName
       })
     )
@@ -1595,10 +1816,32 @@ export class ReportDashboardComponent implements OnInit {
   openTimesheetSummaryTableModel(legendName:any){
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
+    this.countByLegend = [];
+
     this.data = ''
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
+      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")	
+      	console.log(this.countByLegend);
+      this.modalSummaryList.forEach(x=>{	
+        if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){	
+          this.countByLegend.push({	
+            employeementId : x.employeementId,	
+            employeeName : x.employeeName,	
+            departmentName : x.departmentName,	
+            email : x.email,	
+            mobileNo : x.mobileNo,	
+            managerName : x.managerName,	
+            pendingEodCount : x.pendingEodCount,	
+            legend : x.legend,	
+            count : this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length	
+          });	
+        }	
+      });	
+      console.log(this.countByLegend,"Data");	
+      this.modalSummaryList = this.countByLegend;	
+
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
       if(legendName == 'Pending By User'){
         this.isPendingByUser = true;
@@ -1679,6 +1922,9 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = "Employee(s) in "+pointName;
       this.modalSummaryList = modalTableList.filter(x => x.departmentName == pointName);
+      this.modalSummaryList.forEach((dept)=>{
+        dept.dateOfJoining = (dept.dateOfJoining)? moment(dept.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+      })
       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
@@ -1772,6 +2018,22 @@ export class ReportDashboardComponent implements OnInit {
       this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
   }
 
+  openDepartmentWiseEmployeeKycModalTable(deptName:any, status:any){
+    const CHECK_PERCENT = 50.00;
+    this.data = ''
+    this.modalSummaryList = [];
+
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+      this.page=1;
+      this.modalTitle = "Employee(s) with KYC "+status;
+      if(status == "Pending"){
+        this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent < CHECK_PERCENT);
+      }else{
+        this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent > CHECK_PERCENT);
+      }
+      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+  }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -1815,9 +2077,178 @@ export class ReportDashboardComponent implements OnInit {
           }	
         }	
       )	
+    }	    	
+  }	
+
+  // sortDashboardModal($event)
+  sortDashboardModal(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
     }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'fromDate':	
+                    return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc)	
+                    case 'toDate':	
+                    return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc)	
+                    case 'status':	
+                    return compare(a.status , b.status , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
+  }	
+  // sortTimesheetDashboard($event)
+  sortTimesheetDashboard(sort:Sort){	
+    console.log(sort);	
     	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
+    }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'email':	
+                    return compare(a.email , b.email , isAsc)	
+                    case 'mobileNo':	
+                    return compare(a.mobileNo , b.mobileNo , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                    case 'pendingEodCount':	
+                    return compare(a.pendingEodCount , b.pendingEodCount , isAsc)	
+                    case 'legend':	
+                    return compare(a.legend , b.legend , isAsc)	
+                    case 'count':	
+                    return compare(a.count , b.count , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
+  }	
+  // sort7DaysEODModal($event)
+  sort7DaysEODModal(sort:Sort){	
+    console.log(sort);	
     	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
+    }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'employeeName':	
+                return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'email':	
+                    return compare(a.email , b.email , isAsc)	
+                    case 'mobileNo':	
+                    return compare(a.mobileNo , b.mobileNo , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                    case 'date':	
+                    return compare(new Date(a.date).getTime(), new Date(b.date).getTime(), isAsc)	
+                    case 'dayType':	
+                    return compare(a.dayType , b.dayType , isAsc)	
+                    case 'totalWorkingHours':	
+                    return compare(a.totalWorkingHours , b.totalWorkingHours , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
+  }	
+  // sortEmployeeDashboard($event)
+  sortEmployeeDashboard(sort:Sort){	
+    console.log(sort);	
+    	
+    const data=this.modalSummaryList;	
+   	
+    if(!sort.active || sort.direction==='')	
+    {	
+      this.modalSummaryList=data;	
+      return;	
+    }	
+    else {	
+      this.modalSummaryList=data.sort(	
+        (a,b)=>{	
+          const isAsc =sort.direction==='asc';	
+          switch(sort.active){	
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'employeementId':	
+              return compare(a.employeementId , b.employeementId , isAsc)	
+              case 'name':	
+                return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
+                case 'departmentName':	
+                  return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
+                  case 'email':	
+                    return compare(a.email , b.email , isAsc)	
+                    case 'mobileNo':	
+                    return compare(a.mobileNo , b.mobileNo , isAsc)	
+                    case 'managerName':	
+                    return compare(a.managerName , b.managerName , isAsc)	
+                    case 'dateOfJoining':	
+                    return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc)	
+                    case 'employmentstatus':	
+                    return compare(a.employmentstatus , b.employmentstatus , isAsc)	
+                    case 'totalExperience':	
+                    return compare(a.totalExperience , b.totalExperience , isAsc)	
+                    case 'gender':	
+                    return compare(a.gender , b.gender , isAsc)	
+                    case 'age':	
+                    return compare(a.age , b.age , isAsc)	
+                default:	
+                 return 0;	
+          }	
+        }	
+      )	
+    }	    	
   }	
 
 }

@@ -61,6 +61,9 @@ public class DraftEmployeeService {
 	@Autowired
 	private MailService mailService;
 
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
 	@Autowired
 	private EmployeeRepository employeeRepository;
 
@@ -375,16 +378,18 @@ public class DraftEmployeeService {
 
 				File directoryPath = new File(imageFileLocation + File.separator + "Documents" + File.separator
 						+ "Draft" + File.separator + employeedto.getEmployeementId());
-				String[] contents = directoryPath.list();
+				if(directoryPath.exists()) {
+					String[] contents = directoryPath.list();
+					
+					for (EmployeeDocument document : documentList) {
 
-				for (EmployeeDocument document : documentList) {
+						for (int i = 0; i < contents.length; i++) {
+							if (contents[i].equals(document.getDocumentName())) {
+								File file = new File(directoryPath.getAbsolutePath() + File.separator + contents[i]);
+								file.delete();
+							}
 
-					for (int i = 0; i < contents.length; i++) {
-						if (contents[i].equals(document.getDocumentName())) {
-							File file = new File(directoryPath.getAbsolutePath() + File.separator + contents[i]);
-							file.delete();
 						}
-
 					}
 				}
 
@@ -478,8 +483,8 @@ public class DraftEmployeeService {
 				employee.setPursuing(employeedto.getPursuing());
 				employee.setYearOfPassing(employeedto.getYearOfPassing());
 				employee.setPassingGrade(employeedto.getPassingGrade());
-				employee.setAboutMe("Add about yourself.");
-				employee.setViewsOnOrganisation("Add your views.");
+				employee.setAboutMe(employeedto.getAboutMe());
+				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setJobRoleId(employeedto.getJobRoleId());
 				employee.setExperience(employeedto.getExperience());
 				employee.setRole(employeedto.getRole());
@@ -689,6 +694,8 @@ public class DraftEmployeeService {
 							object[4] != null ? stringToDateTimeParser.formatDateToString(object[4].toString()) : null);
 					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 					empDTO.setUpdateApplicationStatus(object[6] != null ? object[6].toString() : null);
+					empDTO.setManagerName(object[7] != null ? object[7].toString() : null);
+					empDTO.setDepartmentName(object[8] != null ? object[8].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -896,9 +903,11 @@ public class DraftEmployeeService {
 				logsRepository.save(log);
 
 				// trigger mail to employee
-				mailService.sendMail(draftEmployee.getEmail(), "Regarding employee profile creation",
-						"Your profile verification has failed.Kindly resubmit details on IShine portal. <br>Remarks:<br> "
-								+ employeedto.getRemarks());
+				mailService.sendMail(employeedto.getEmail()+","+hrMailAddress, "Regarding Employee KYC Updation Request Rejection", 
+						"Dear"+" "+employeedto.getName()+","
+						+"<br>"+" &nbsp;"+" &nbsp;"+"Your profile verification has been rejected, Kindly re-submit your details on iShine Portal. "
+								+"<br>"+"<br>"
+						+"<b>"+"Rejection reason : "+ employeedto.getRemarks());
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Draft Employee Application Rejected");
@@ -1040,11 +1049,11 @@ public class DraftEmployeeService {
 					 */
 
 					List<EmployeeDocument> documentList = employeeDocumentRepository
-							.findByEmpId(employeedto.getDraftEmpId());
+							.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(), "true");
 					List<EmployeeCertificate> certificationsList = employeeCertificateRepository
-							.findByEmpId(employeedto.getDraftEmpId());
+							.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(),"true");
 					List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository
-							.findByEmpId(employeedto.getDraftEmpId());
+							.findByEmpIdAndIsDraft(employeedto.getDraftEmpId(),"true");
 
 					if (documentList != null) {
 
@@ -1104,6 +1113,11 @@ public class DraftEmployeeService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee profile approved.");
+					
+					mailService.sendMail(employeedto.getEmail()+","+hrMailAddress, "Regarding Employee KYC Updation Request Approval", 
+							"Dear"+" "+employeedto.getName()+","
+							+"<br>"+" &nbsp;"+" &nbsp;"+"Your profile verification has been approved, Thanks for sharing your details with iShine Portal. ");
+						
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee profile updation failed.");

@@ -9,6 +9,9 @@ import { Sort } from '@angular/material/sort';
 import { UploadPolicy } from 'src/app/models/UploadPolicy';
 
 import { Feature } from 'src/app/models/feature';
+import { LocationStrategy } from '@angular/common';
+import * as moment from 'moment';
+import { AppComponent } from '../app.component';
 
 
 
@@ -26,7 +29,7 @@ export class UserPoliciesComponent implements OnInit {
   constructor(private policiesService : PoliciesService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
-
+    private locationStrategy: LocationStrategy
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -42,15 +45,23 @@ export class UserPoliciesComponent implements OnInit {
   ngOnInit(): void {
 
     this.getAllDocuments();
+    this.preventBackButton();
   }
-
-
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
   getAllDocuments(){
     this.data='';
     this.document = [];
     this.policiesService.getAllDocument().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.document =  response.serviceResponse;
+        this.document.forEach(doc => {
+          doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         this.getAllReadPolicies();
         console.log("DocumentList xyz: ", this.document);
       } else {

@@ -20,6 +20,13 @@ export class AppComponent {
   screenWidth = 0;
   currentUser:User = new User();
 
+  static DATE_FORMAT = 'DD-MM-YYYY';
+  static DATETIME_FORMAT = 'DD-MM-YYYY HH:mm:ss';
+  static LOCAL_DATE_FORMAT = 'YYYY-DD-MM';
+  static LOCAL_DATETIME_FORMAT = 'YYYY-DD-MM HH:mm:ss';
+  static DB_DATE_FORMAT = 'YYYY-MM-DD';
+  static DB_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+
   constructor(
     private authenticationService: AuthenticationService,
     private router : Router

@@ -8,6 +8,13 @@ import { Project } from 'src/app/models/project';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ValidationService } from 'src/app/services/validation.service';
 import { Department } from 'src/app/models/department';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { LocationStrategy } from '@angular/common';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-project-config',
@@ -20,6 +27,7 @@ export class ProjectConfigComponent implements OnInit {
   projectObj: Project = new Project();
 
   isCreateForm:boolean = false;
+  isUpdateForm:boolean = false;
   isTable:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
@@ -35,6 +43,8 @@ export class ProjectConfigComponent implements OnInit {
 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
+
+  currentUser: User;
 
   allStates: any[] = [
     "Andaman & Nicobar Islands",
@@ -83,10 +93,20 @@ export class ProjectConfigComponent implements OnInit {
     private projectService: ProjectService,
     private modalService: BsModalService,
     public validationService: ValidationService,
-  ) { }
+    private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy,
+    private authenticationService:AuthenticationService
+  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -103,18 +123,20 @@ export class ProjectConfigComponent implements OnInit {
   showCreateForm(){
     this.isCreateForm = true;
     this.isCreation = true;
+    this.isUpdateForm = false;
 
     this.isTable = false;
     this.projectObj = new Project();
     this.getAllDepartmentList();
     this.getManagerList();
     this.getAllClientList();
+    this.projectObj.clientId = '';
   }
 
   showUpdateForm(project:Project){
     this.isUpdation = true;
-
-    this.isCreateForm = true;
+    this.isUpdateForm = true;
+    this.isCreateForm = false;
     this.isCreation = false;
     this.isTable = false;
     this.getAllDepartmentList();
@@ -130,14 +152,13 @@ export class ProjectConfigComponent implements OnInit {
       if(response.serviceStatus == "Success") {
         this.projectObj = Object.assign({}, response.serviceResponse)[0];
         this.getClientLocationList(this.projectObj.clientId);
+        this.projectObj.clientLocationId = '';
         if(this.projectObj.syncProject == "true"){
           this.projectObj.syncProject = true;
         }else{
           this.projectObj.syncProject = false;
         }
-
         console.log(this.projectObj, " this.projectObj");
-
         //client Location
         // if (this.projectObj.allClientLocationList == undefined || this.projectObj.allClientLocationList == 0) {
         //   this.addInputClientLocationField();
@@ -146,9 +167,6 @@ export class ProjectConfigComponent implements OnInit {
         // }
         // console.log(this.projectObj.allClientLocationList, " : this.projectObj.allClientLocationList");
         this.projectObj.departmentName = this.projectObj.departmentList;
-        
-        
-        
       }else {
         console.log(response.serviceResponse);
       }
@@ -159,8 +177,10 @@ export class ProjectConfigComponent implements OnInit {
     this.isTable = true;
     this.page = 1;
     
+    this.isUpdateForm = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.isUpdation = false;
     this.getAllProjects();
   }
 
@@ -259,18 +279,24 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   getAllProjects(){
+    this.data = ''
     this.allProjects = [];
 
     this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjects = response.serviceResponse;
+        this.allProjects.forEach(project =>{
+        project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        project.updatedOn = (project.updatedOn)? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
 
         //remove duplicate clients
         this.allProjects = this.allProjects.filter((value, index, self) =>
           index === self.findIndex((t) => (
             t.projectId === value.projectId
           ))
-        )
+        );
+
 
         console.log(this.allProjects, " : this.allProjects");
       } else {
@@ -308,6 +334,33 @@ export class ProjectConfigComponent implements OnInit {
     return true;
   }
 
+  checkProjectName(template:TemplateRef<any>){
+    let projectObj = new Project();
+    projectObj.projectName = this.projectObj.projectName?.trim();
+
+    if(projectObj.projectName.length >= 5){
+      if (!this.validationService.validateProjectName(projectObj.projectName)) {
+        this.alertMessage = "Please enter valid Project Name !!"
+        // this.projectObj.projectName = ''
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+    }else{
+      this.alertMessage = "Please enter more than 4 letters in Project Name !!"
+      // this.projectObj.projectName = ''
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    console.log("---_________  ",this.projectObj);
+    this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Fail"){
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+
+  }
+
   createProject(template: TemplateRef<any>){
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
     if (!inputValidated) return;
@@ -317,15 +370,27 @@ export class ProjectConfigComponent implements OnInit {
     //   return location['clientLocationId'];
     // });
     this.projectObj.departmentName = null;
+    this.projectObj.projectName = this.projectObj.projectName?.trim();
+    this.projectObj.createdBy = this.currentUser.empId;
+    console.log("     :   ",this.projectObj);
     
-    this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus == "Success") {
+    this.projectService.checkProjectName(this.projectObj).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Fail"){
+        this.projectObj.departmentName = this.projectObj.departmentList;
         this.openAlertMod(template, response.serviceResponse);
-        this.showTable();
       }else {
-        this.openAlertMod(template, response.serviceResponse);
+        this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
+          if(response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+            this.showTable();
+          }else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
       }
-    });
+    })
+
+   
   }
 
   updateProject(template: TemplateRef<any>){
@@ -334,6 +399,9 @@ export class ProjectConfigComponent implements OnInit {
 
     this.projectObj.departmentList = this.projectObj.departmentName;
     this.projectObj.departmentName = null;
+
+    this.projectObj.updatedBy = this.currentUser.empId;
+    console.log(" this project obj   :   ",this.projectObj)
 
     this.projectService.updateProject(this.projectObj).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success") {
@@ -357,8 +425,22 @@ export class ProjectConfigComponent implements OnInit {
     });
   }
 
+  name = "projectList.xlsx"
   exportToExcel(){
-
+    this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjects = response.serviceResponse;
+      }
+      const onlySpecificDataArr = this.allProjects.map(
+        x => ({
+          "Project Name": x.projectName,
+          "Project Manager": x.employeeName,
+          "Client Name": x.clientName,
+          "State": x.state
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+    });
   }
 
   //pagination
@@ -376,5 +458,52 @@ export class ProjectConfigComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  sortProjectList(sort: Sort) {
+    console.log(sort);
+
+    const data = this.allProjects;
+
+    if (!sort.active || sort.direction === '') {
+      this.allProjects = data;
+      return;
+    }
+    else {
+      this.allProjects = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'projectName':
+              return compare(a.projectName.toLowerCase(), b.projectName.toLowerCase(), isAsc)
+            case 'employeeName':
+              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc)
+            case 'clientName':
+              return compare(a.clientName.toLowerCase(), b.clientName.toLowerCase(), isAsc)
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'createdByName':
+              return compare(a.createdByName, b.createdByName, isAsc)
+              case 'updatedOn':
+              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
+            case 'updatedByName':
+              return compare(a.updatedByName, b.updatedByName, isAsc)
+            case 'state':
+              return compare(a.state.toLowerCase(), b.state.toLowerCase(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+
+
+  }
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

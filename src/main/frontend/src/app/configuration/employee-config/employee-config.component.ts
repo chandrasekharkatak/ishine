@@ -3,7 +3,7 @@ import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { first } from 'rxjs/operators';
-import { DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
@@ -20,6 +20,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { Document } from 'src/app/models/document';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-employee-config',
@@ -111,7 +112,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
-
+  
   constructor(
     private employeeService: EmployeeService,
     public validationService: ValidationService,
@@ -124,7 +125,8 @@ export class EmployeeConfigComponent implements OnInit {
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
     private portalService:PortalService,
-    private utilityService:UtilityService) {
+    private utilityService:UtilityService,
+    private locationStrategy:LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -146,7 +148,15 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.maritalStatus = '';
     // this.employeeObj.managerId = '';
     this.setYearOfPassingList();
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
+
 
   ngAfterViewInit() {
 
@@ -466,7 +476,7 @@ export class EmployeeConfigComponent implements OnInit {
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
     // }
-
+    employeeObj.name = this.employeeObj.name?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)) {
       this.alertMessage = "Please enter Full Name !!";
       this.openAlertMod(template, this.alertMessage);
@@ -671,6 +681,14 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    } if (employeeObj.noticePeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNoticePeriod(employeeObj.noticePeriod)) {
+      this.alertMessage = "Please enter valid notice period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.managerId)) {
@@ -711,7 +729,11 @@ export class EmployeeConfigComponent implements OnInit {
           this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"	
           this.openAlertMod(template, this.alertMessage);	
           return false;	
-        }	
+        }	 if (employeeObj.totalExperience > 60) {
+          this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        } 
       	
     }
 
@@ -852,6 +874,15 @@ export class EmployeeConfigComponent implements OnInit {
     return true;
   }
 
+  omit_character(event){	
+    var k;	
+    k = event.charCode;	
+    if((k == 45) || (k == 69) || (k == 101 ))	
+    {	
+      return (false);	
+    }	
+    return (true);	
+  }
 
   fieldRestictCharacter(event){
     var k;
@@ -909,6 +940,14 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("Create Employe : ", this.employeeObj);
    let employee = Object.assign({},this.employeeObj)
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
+    }
+
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
@@ -955,16 +994,22 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
         this.employeeObj.secondaryEmail = '';
       }
-    } else{
-      this.openAlertMod(template, "Please enter email !!");
-      this.employeeObj.secondaryEmail = '';
-    }
-    
+    }     
   }
 
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.employeeObj.employeementId?.substring(2)
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
     if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
       this.alertMessage = "Please enter Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
@@ -975,7 +1020,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-     
+  }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1027,7 +1072,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
     this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
-   
+
+    if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){	
+      this.employeeObj.dateOfResign = null;	
+      this.employeeObj.dateOfRelieving= null; 	
+    }
 
     this.allCertificationList.forEach(certificaiton => {
       console.log("All certificaiton : ", this.allCertificationList);
@@ -1055,7 +1104,15 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("Update Employe : ", this.employeeObj);
 
     let employee = Object.assign({}, this.employeeObj);
-    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
+    employee.updatedBy = this.currentUser.empId;
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
+    }
+    
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1129,6 +1186,10 @@ export class EmployeeConfigComponent implements OnInit {
         console.log("allEmployeeList : ", this.allEmployeeList)
         this.allEmployeeList.forEach(employeeObj => {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn)? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn)? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
@@ -1168,7 +1229,8 @@ export class EmployeeConfigComponent implements OnInit {
           "Full Name": x.name,		
           "EmailId": x.email,		
           "Employment Status": x.employmentstatus,		
-          "Date of Joining": x.dateOfJoining,
+          "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,
@@ -1176,7 +1238,7 @@ export class EmployeeConfigComponent implements OnInit {
           "Permanent Address":x.permanentAddress,
           "City":x.city,
           "Blood Group":x.bloodGroup,
-          "Date Of Birth":x.dateOfBirth,
+          "Date Of Birth":(x.dateOfBirth)? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
           "Gender":x.gender,
           "Father Name":x.fatherName,
           "Mobile No":x.mobileNo,
@@ -1209,7 +1271,9 @@ export class EmployeeConfigComponent implements OnInit {
           "Passing Grade":x.passingGrade,
           "Year Of Passing":x.yearOfPassing,
           "Created By":x.createdBy,
-          "Created On":x.createdOn 
+          "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+          "Manager Name": x.managerName,
+          "Designation":x.jobRoleName,
 
         })
       )
@@ -1311,6 +1375,8 @@ export class EmployeeConfigComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         for(let x of this.allEmployeeList){
           x.employeementId = "A-".concat(x.employeementId)
+          x.dateOfJoining = (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          x.dateOfRelieving = (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
@@ -1408,6 +1474,9 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
+    this.employeeObj.name = this.currentUser.name;
+    this.employeeObj.email = this.currentUser.email;
+    console.log(" reject KYC :  ",this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1427,7 +1496,9 @@ export class EmployeeConfigComponent implements OnInit {
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }  
-
+    this.employeeObj.name = this.currentUser.name;
+    this.employeeObj.email = this.currentUser.email;
+    console.log("  anurag :  ",this.employeeObj);
     this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1536,6 +1607,46 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  updateNoticePeriod(employeeObj: Employee){	
+    const dateFormat = 'YYYY-MM-DD';	
+    console.log(employeeObj,"employeeObj");	
+    this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfRelieving).format(dateFormat);	
+    console.log(this.employeeObj.dateOfRelieving);	
+    const diff =  Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));		
+    this.employeeObj.noticePeriod = diff;	
+    console.log(diff, "diffDaysdiffDays")	
+  }
+  	
+  estimateDateOfReleiving(employeeObj: Employee){	
+    const dateFormat = 'YYYY-MM-DD';	
+    console.log(employeeObj,"employeeObj");	
+    let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
+    this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
+    console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
+  }	
+
+  onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
+    let employee = Object.assign({}, employeeObj);
+    employee.isTimesheetLockCheckEnable = status;
+    employee.updatedBy = this.currentUser.empId;
+
+    if(employee.employeementId.startsWith('A-')){
+      employee.employeementId  = employee.employeementId.substring(2);
+    }else {
+      employee.employeementId  = employee.employeementId
+    }
+
+    console.log("updateTimesheetLockCheck : ", employee);
+    this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getAllEmployeeList();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -1570,6 +1681,12 @@ export class EmployeeConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  cancelDraftRequest() {
+    this.employeeObj.remarks = ''
+    this.modalRef.hide();
+  }
+
+
   //pagination 	
   page = 1;
   handlePageChange(event) {
@@ -1587,41 +1704,6 @@ export class EmployeeConfigComponent implements OnInit {
   onPage(){
     this.page=1;
   }
-
-  // implementing sorting functionality by anurag
-  
-  sortData(sort: Sort){	
-    console.log(sort);  	
-       let data=this.allEmployeeList;	
-       console.log("anurag :" , this.allEmployeeList );	
-         
-         if(!sort.active || sort.direction ===''){	
-          this.allEmployeeList=data;	
-         return;	
-        }	
-         else {	
-          this.allEmployeeList=data.sort(	
-             (a , b )=>{	
-               const isAsc=sort.direction==='asc';	
-               switch(sort.active){	
-                  case 'employeementId':	
-                    return compare(a.employeementId, b.employeementId, isAsc); 	
-        
-                   case 'name':	
-                     return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc);	
-                   
-                    case 'email':	
-                      return compare(a.email , b.email , isAsc);	
-                      case 'dateOfJoining':	
-                          
-                        return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
-                   default:	
-                     return 0; 	
-                 }	
-             }	
-           )	
-         }	
-       }	
        // implement Enable Account facilities by anurag
 
       forEnableAccount(template: TemplateRef<any>, employee: any) {
@@ -1663,7 +1745,123 @@ export class EmployeeConfigComponent implements OnInit {
         console.error(response.serviceResponse);
       }
      });
-   }        
+   }    
+   
+    // implementing sorting functionality by anurag
+  
+  sortData(sort: Sort){	
+    console.log(sort);  	
+       let data=this.allEmployeeList;	
+       console.log("anurag :" , this.allEmployeeList );	
+         
+         if(!sort.active || sort.direction ===''){	
+          this.allEmployeeList=data;	
+         return;	
+        }	
+         else {	
+          this.allEmployeeList=data.sort(	
+             (a , b )=>{	
+               const isAsc=sort.direction==='asc';	
+               switch(sort.active){	
+                  case 'employeementId':	
+                    return compare(a.employeementId, b.employeementId, isAsc); 	
+        
+                   case 'name':	
+                     return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc);	
+
+                     case 'email':	
+                      return compare(a.email , b.email , isAsc);	
+
+                     case 'employmentstatus':	
+                     return compare(a.employmentstatus.toLowerCase() , b.employmentstatus.toLowerCase() , isAsc);	
+
+                     case 'managerName':	
+                     return compare(a.managerName.toLowerCase() , b.managerName.toLowerCase() , isAsc);	
+
+                     case 'departmentName':	
+                     return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc);	
+                   
+                     case 'dateOfJoining':	    
+                       return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
+                    
+                       case 'dateOfRelieving':	    
+                       return  compare(new Date(a.dateOfRelieving).getTime() ,  new Date(b.dateOfRelieving).getTime(), isAsc);	
+
+                       case 'createdOn':	    
+                       return  compare(new Date(a.createdOn).getTime() ,  new Date(b.createdOn).getTime(), isAsc);	
+          
+                       case 'createdByName':	    
+                       return  compare(a.createdByName.toLowerCase() ,  b.createdByName.toLowerCase(), isAsc);	
+
+                       case 'updatedOn':	    
+                       return  compare(new Date(a.updatedOn).getTime() ,  new Date(b.updatedOn).getTime(), isAsc);	
+
+                       case 'updatedByName':	    
+                       return  compare(a.updatedByName.toLowerCase() ,  b.updatedByName.toLowerCase(), isAsc);	
+
+                      
+                   default:	
+                     return 0; 	
+                 }	
+             }	
+           )	
+         }	
+       }	
+
+      //  sortHistoryTable(sort: Sort){	
+      //   console.log(sort);  	
+      //      let data=this.employeeWorkingHistory;	
+      //      console.log("anurag :" , this.employeeWorkingHistory );	
+             
+      //        if(!sort.active || sort.direction ===''){	
+      //         this.employeeWorkingHistory=data;	
+      //        return;	
+      //       }	
+      //        else {	
+      //         this.employeeWorkingHistory=data.sort(	
+      //            (a , b )=>{	
+      //              const isAsc=sort.direction==='asc';	
+      //              switch(sort.active){	
+
+      //                 case 'teamName':	
+      //                   return compare(a.teamName.toLowerCase(), b.teamName.toLowerCase(), isAsc); 	
+            
+      //                  case 'projectName':	
+      //                    return compare(a.projectName.toLowerCase() , b.projectName.toLowerCase() , isAsc);	
+    
+      //                    case 'startDate':	    
+      //                    return  compare(new Date(a.startDate).getTime() ,  new Date(b.startDate).getTime(), isAsc);
+                         
+      //                    case 'updatedOn':	    
+      //                    return  compare(new Date(a.updatedOn).getTime() ,  new Date(b.updatedOn).getTime(), isAsc);
+
+      //                    case 'teamLeadName':	
+      //                     return compare(a.teamLeadName , b.teamLeadName , isAsc);	
+    
+      //                     // case 'dateOfJoining':	    
+      //                     //   return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
+                         
+      //                     //   case 'dateOfRelieving':	    
+      //                     //   return  compare(new Date(a.dateOfRelieving).getTime() ,  new Date(b.dateOfRelieving).getTime(), isAsc);	
+     
+      //                    case 'jobRoleName':	
+      //                    return compare(a.jobRoleName.toLowerCase() , b.jobRoleName.toLowerCase() , isAsc);	
+    
+      //                    case 'clientLocation':	
+      //                    return compare(a.clientLocation.toLowerCase() , b.clientLocation.toLowerCase() , isAsc);	
+    
+      //                    case 'clientName':	
+      //                    return compare(a.clientName.toLowerCase() , b.clientName.toLowerCase() , isAsc);	
+                          
+      //                  default:	
+      //                    return 0; 	
+      //                }	
+      //            }	
+      //          )	
+      //        }	
+      //      }	
+
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

@@ -134,14 +134,14 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyInfo'" [tableTHeadId]="'surveyInfoTHead'"
                 [tableTHeadTrId]="'surveyInfoTHeadTr'">
-                <table class="table">
+                <table class="table" matSort (matSortChange)="sortSurvey($event)">
                     <thead class="thead-light">
                       <tr>
-                        <th scope="col" class="info-label">Survey Name</th>
-                        <th scope="col" class="info-label">Description</th>
-                        <th scope="col" class="info-label">Status</th>
-                        <th scope="col" class="info-label">Created by</th>
-                        <th scope="col" class="info-label">Created on</th>
+                        <th scope="col" class="info-label" mat-sort-header="surveyName">Survey Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="description">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="isActive">Status</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>
@@ -154,15 +154,15 @@
                         <td>{{survey.description}}</td>
                         <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
                         <td>{{survey.createdByName}}</td>
-                        <td>{{survey.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                        <td>{{survey.createdOn}}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
                             
-                            <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
+                            <button *ngIf="survey.isActive == 'false' || survey.type == 'exit'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
                             
-                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
+                            <button *ngIf="survey.isActive == 'true' && survey.type != 'exit'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
                         </td>
                       </tr>

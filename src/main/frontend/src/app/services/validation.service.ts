@@ -119,7 +119,7 @@ export class ValidationService {
   //^[1-9][0-9]?$ 
   validateExperiencedNumber(text: string): boolean {
 
-    const regex = /^[0-9]{0,2}(\.([1-9]|1[0-1]))?$/;
+    const regex = /^[0-9]{0,2}(\.([1-9]|1[0-1]){0,2})?$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -194,6 +194,77 @@ export class ValidationService {
 
   }
 
+  validateViewsOnOrganisation(text: string): boolean {
+
+    const regex = /^[a-zA-Z.,& ]+$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  //   /^[ A-Za-z0-9()[]+-*/%]*$/
+
+  validateProjectName(text: string): boolean {
+
+    const regex = /^[ A-Za-z0-9()-\/_\/]*$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateActivityName(text: string): boolean {
+
+    const regex = /^[ A-Za-z0-9()-\/_\/]{3,}\w*$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateLoginRegex(text: string): boolean {
+
+    const regex = /^[0-9]*$/i
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+  // /^[A-Z@~`!@#$%^&*()_=+\\\\';:\"\\/?>.<,-]*$/i
+
   validateUppercaseAlpha(text: string): boolean {
 
     const regex = /^[A-Z]+$/;
@@ -261,6 +332,22 @@ export class ValidationService {
 
   validateAadharCardNumber(text: string): boolean {
     const regex = /^\d{12}$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
+
+  validateNoticePeriod(text: string): boolean {
+    const regex = /^[0-9]*$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

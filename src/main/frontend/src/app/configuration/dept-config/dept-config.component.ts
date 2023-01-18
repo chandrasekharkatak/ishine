@@ -14,6 +14,9 @@ import { HolidayService } from 'src/app/services/holiday.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-dept-config',
@@ -59,7 +62,8 @@ export class DeptConfigComponent implements OnInit {
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
     private holidayService: HolidayService,
-    private exportExcelService: ExportExcelService,) {
+    private exportExcelService: ExportExcelService,
+    private locationStrategy:LocationStrategy) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -74,6 +78,13 @@ export class DeptConfigComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit() {
@@ -245,6 +256,10 @@ export class DeptConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
+        this.allDeptList.forEach(dept => {
+          dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          dept.updatedOn = (dept.updatedOn)? moment(dept.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("allDeptList : ", this.allDeptList)
       } else {
         alert(response.serviceResponse)
@@ -300,7 +315,7 @@ export class DeptConfigComponent implements OnInit {
           "Department Name": x.name,
           "Head of Department": x.hodName,
           "Created by": x.createdByName,
-          "Created on": x.createdOn
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
@@ -356,6 +371,10 @@ export class DeptConfigComponent implements OnInit {
                   return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
                   case 'createdOn':	
                     return compare(a.createdOn , b.createdOn , isAsc)	
+                     case 'updatedOn':	
+                       return compare(a.updatedOn , b.updatedOn , isAsc)	
+                        case 'updatedByName':	
+                         return compare(a.updatedByName , b.updatedByName , isAsc)	
                 default:	
                  return 0;	
           }	

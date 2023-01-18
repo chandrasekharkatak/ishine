@@ -75,6 +75,8 @@
                                 <th scope="col" class="info-label" mat-sort-header="hodName">Head of Department</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>
                                 <th *ngIf="userMapping.update_department || userMapping.delete_department" scope="col"
                                     class="info-label">Actions</th>
                             </tr>
@@ -89,7 +91,9 @@
                                 <td>{{dept.name}}</td>
                                 <td>{{dept.hodName}}</td>
                                 <td>{{dept.createdByName}}</td>
-                                <td>{{dept.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                                <td>{{dept.createdOn}}</td>
+                                <td>{{dept.updatedOn}}</td>
+                                <td>{{dept.updatedByName}}</td>
                                 <td *ngIf="userMapping.update_department || userMapping.delete_department">
                                     <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary"
                                         type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;

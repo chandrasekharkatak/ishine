@@ -22,7 +22,7 @@
                     <!-- <button *ngIf="document.uploadStatus == 'Completed'" class="btn btn-sm btn-outline-primary" type="submit" >Preview</button> -->
                 </td>
                 <td colspan="3">
-                    <img *ngIf="document.uploadStatus == 'Completed'" class="d-inline-block" id="docPreview{{i+1}}" alt="Document Preview"
+                    <img *ngIf="document.uploadStatus == 'Uploading' || document.uploadStatus == 'Completed'" class="d-inline-block" id="docPreview{{i+1}}" alt="Document Preview"
                     style="width: 300px;" />
                 </td>
             </tr>

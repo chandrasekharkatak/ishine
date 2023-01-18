@@ -31,6 +31,11 @@ public class Activity {
 	
 	private Float eta;
 	
+	private String employeeRole;
+	
+//	private Long deptId;
+	private String deptIds;
+	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	

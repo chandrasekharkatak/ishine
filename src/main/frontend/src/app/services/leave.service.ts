@@ -175,6 +175,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForLeaveReport`, queryObj);
   }
 
+  getValueOptionData(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `api/getValueOptionData`, queryObj);
+  }
+
   /* Report Dashboard */
   getLast8DaysLeaveReport(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}` + `api/getLast8DaysLeaveReport`, leaveObj);

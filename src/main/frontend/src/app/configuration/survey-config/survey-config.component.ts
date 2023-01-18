@@ -1,6 +1,10 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { SurveyOption } from 'src/app/models/sureyOption';
 import { Survey } from 'src/app/models/survey';
@@ -62,6 +66,7 @@ export class SurveyConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private surveyService : SurveyService,
     private exportExcelService: ExportExcelService,
+    private locationStrategy: LocationStrategy
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -80,7 +85,13 @@ export class SurveyConfigComponent implements OnInit {
     this.sectionViewInit();
 
     console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
-    
+    this.preventBackButton();
+  }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
   }
 
   sectionViewInit(){
@@ -305,6 +316,9 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
+       this.allSurveyList.forEach(survey => {
+         survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+       });
        console.log("this.allSurveyList : ", this.allSurveyList); 
       }else{
         console.error(response.serviceResponse);
@@ -569,7 +583,7 @@ export class SurveyConfigComponent implements OnInit {
       console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return [response.employeementId, response.name]
+        return ["A-".concat(response.employeementId), response.name]
         // return { 
         //   name: response.name,
         //   employeementId : response.employeementId 
@@ -579,9 +593,9 @@ export class SurveyConfigComponent implements OnInit {
       console.log("employees : ", employees);
       
       employees.forEach(employee => {
-        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0]);
-        employeeResponse.forEach((response:SurveyQuestion, index) => {
-          employee.push(response.response);
+        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0].substring(2));
+        employeeResponse.forEach((surveyResponse:SurveyQuestion, index) => {
+          employee.push(surveyResponse.response);
           // employee.push(response.question, response.response);
 
           // employee[`question${index+1}`] = response.question;
@@ -645,4 +659,46 @@ export class SurveyConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
+
+  // sortSurvey()
+  sortSurvey(sort: Sort) {
+    console.log(sort);
+
+    const data = this.allSurveyList;
+
+    if (!sort.active || sort.direction === '') {
+      this.allSurveyList = data;
+      return;
+    }
+    else {
+      this.allSurveyList = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            // case 'i':	
+            // return compare(a.index , b.index , isAsc)	
+            case 'surveyName':
+              return compare(a.surveyName.toLowerCase(), b.surveyName.toLowerCase(), isAsc)
+            case 'description':
+              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc)
+            case 'isActive':
+              return compare(a.isActive.toLowerCase(), b.isActive.toLowerCase(), isAsc)
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'createdByName':
+              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+
 }

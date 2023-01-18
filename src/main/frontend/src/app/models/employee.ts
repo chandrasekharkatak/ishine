@@ -139,5 +139,15 @@ export class Employee{
 
 	reporteeCount:any;
 	hierarchyType:any;
+
+	deptHeadConsentList:any;
+	consentMailLink:any;
 	profileCompletedPercent:any;
+	updatedByName:any;
+	createdByName: any;
+
+	isTimesheetLockCheckEnable:any;
+	timesheetLockUpdatedOn:any;
+	timesheetBackDatedDays:any;
+	compOffLockDays:any;
 }

@@ -85,5 +85,16 @@ public class JobRoleController {
     	ServiceResponse response = jobRoleService.updateJobRoleSubFeatureMapping(jobRoleDTO);
     	return response;
     }
+	
+	/*
+	 PoPortal API : jobRole Info
+	 */
+	
+	@RequestMapping(value="/getAllJobRoleInfo", method = RequestMethod.GET)
+    public ServiceResponse allDepartmentInfo() {
+		
+    	ServiceResponse response = jobRoleService.getAllJobRoleInfo();
+    	return response;
+    }
 
 }

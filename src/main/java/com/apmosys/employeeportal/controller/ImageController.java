@@ -37,6 +37,13 @@ public class ImageController {
 		return serviceResponse;
 	}
 	
+	@RequestMapping(value = "/getAllEventPhotosForHome", method = RequestMethod.GET)
+	public ServiceResponse getAllEventPhotosForHome() {
+
+		ServiceResponse response = imageService.getAllEventPhotosForHome();
+		return response;
+	}
+	
 	@RequestMapping(value = "/getAllEventPhotos", method = RequestMethod.GET)
 	public ServiceResponse getAllEventPhotos() {
 
@@ -52,7 +59,7 @@ public class ImageController {
 	}
 	
 	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)
-	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")List<MultipartFile> images,
+	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")MultipartFile images,
 			@RequestParam("uploadedBy")Long uploadedBy, @RequestParam("employeementId")Long employeementId,
 			@RequestParam("empId")Long empId) {		
 		

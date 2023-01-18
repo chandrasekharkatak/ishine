@@ -7,6 +7,7 @@ import { Employee } from '../models/employee';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { enableAppreciation } from '../models/enableAppreciation';
+import { LocationStrategy } from '@angular/common';
 
 //import { Appreciation } from 'src/app/models/Appreciation';
 
@@ -40,6 +41,7 @@ export class UserAppreciationComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
     private validationService: ValidationService,
+    private locationStrategy: LocationStrategy
     ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -49,8 +51,15 @@ export class UserAppreciationComponent implements OnInit {
     this.employeeObj.appreciateType = 'You are my Star';	 
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
     this.getAppreciateEmployeeByCurrentUser();
-
+    this.preventBackButton();
   }
+  preventBackButton(){
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(()=>{
+      history.pushState(null, null, location.href);
+    })
+  }
+
   reset(){
    this.employeeObj = new Employee();
    this.employeeObj.empId='';

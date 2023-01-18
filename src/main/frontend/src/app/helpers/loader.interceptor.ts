@@ -123,8 +123,18 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllEmployeesByRole`,
     `${this.baseUrl}` + `api/getAllMyTeamsByEmpId`,
     `${this.baseUrl}` + `api/getAllProjectListByProjectManagerId`,
+    `${this.baseUrl}` + `api/getAllProjects`,
+    `${this.baseUrl}` + `api/getActivityTemplate`,
+    `${this.baseUrl}` + `api/getAllEventPhotos`,
+    `${this.baseUrl}`+`api/findEmployeeWorkingHistory`,
+    `${this.baseUrl}` + `api/customTimesheetApplicationReport`,
 
+    `${this.baseUrl}` + `api/getMappedActivityPreview`,
+    `${this.baseUrl}` + `api/getMappedActivityInUpdateTeam`,
 
+    `${this.baseUrl}` + `api/updateTimesheetLockCheck`,
+    `${this.baseUrl}` + `api/revokeApprovedLeaveApplication`,
+    `${this.baseUrl}` + `api/updateRevokeLeaveStatus`,
   ]
 
   constructor(private loaderService: LoaderService) { }

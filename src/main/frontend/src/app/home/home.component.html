@@ -1,13 +1,13 @@
 <div class="home-container">
     <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
         <ul class="navbar-nav">
-            <!-- <li class="nav-item pt-1 mr-2">
+            <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
-                    <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100"></div>
-                    <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{profileCompletedPercentage}}</small>
+                    <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100" title="{{profileCompletedPercentage}}">{{profileCompletedPercentage}}</div>
+                    <!-- <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{profileCompletedPercentage}}</small> -->
                   </div>
-            </li> -->
+            </li>
             <li class="nav-item">
                 <a class="nav-link nav-text" (click)="openNotificationMod(notification_template)">
                     <i class="fa-solid fa-bullhorn"></i>
@@ -185,7 +185,7 @@
                         <tbody>
                           <tr *ngFor="let timesheet of timesheetDetails; let i = index">
                             <th scope="row">{{i+1}}</th>
-                            <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
+                            <td>{{timesheet.date}}</td>
                             <td>{{timesheet.weekDayName}}</td>
                             <td>{{timesheet.dayType}}</td>
                             <td>{{timesheet.status}}</td>
@@ -269,7 +269,7 @@
           </div>
         </div>
       </div>
-      <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+      <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
         <div class="col-md-4 mb-0">
             <div class="info-wrapper">
                 <div class="form-group">
@@ -279,13 +279,14 @@
             </div>
         </div>
       </div>
-      <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+      <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
        
         <table class="table timesheet-details-table">
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label">Project Name</th>
+                <th scope="col" class="info-label">Team Name</th>
                 <th scope="col" class="info-label">Activity</th>
                 <th scope="col" colspan="4" class="info-label">Description</th>
                 <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
@@ -295,9 +296,10 @@
               <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities |filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{activity.projectName}}</td>
+                <td>{{activity.teamName}}</td>
                 <td>{{activity.activity}}</td>
                 <td colspan="4">{{activity.description}}</td>
                 <td>{{activity.completionTime}}</td>
@@ -350,9 +352,9 @@
     </div>
 
     <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success" type="submit" (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
+        <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
             Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
     </div>
    
    
@@ -376,20 +378,20 @@
     <div class="modal-body ">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
             [tableTHeadTrId]="'leaveApplicationTHeadTr'">
-            <table class="table leaveApplication-table" id="leaveApplication">
+            <table class="table leaveApplication-table" matSort (matSortChange)="sortHomeLeave($event)" id="leaveApplication">
             <thead class="thead-light text-center" id="leaveApplicationTHead">
               <tr id="leaveApplicationTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Leave Type</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Status</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied On</th>
-                <th scope="col" class="info-label">Reason</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
+                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
+                <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+                <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+                <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
+                <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
                 <!-- <th scope="col" class="info-label">Comments</th> -->
                 <th scope="col" class="info-label">Actions</th>
               </tr>
@@ -403,16 +405,16 @@
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate | date:'dd-MM-yyyy'}}</td>
-                    <td>{{leaveApplication.toDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{leaveApplication.fromDate}}</td>
+                    <td>{{leaveApplication.toDate }}</td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
                     <td>{{leaveApplication.createdByName}}</td>
-                    <td>{{leaveApplication.createdOn | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                    <td>{{leaveApplication.createdOn}}</td>
                     <td>{{leaveApplication.reason}}</td>
                     <!-- <td>{{leaveApplication.description}}</td> -->
                     <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(leave_success, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
                         <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
@@ -441,17 +443,17 @@
     <div class="modal-body">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'" [tableTHeadId]="'compOffApplicationTHead'"
         [tableTHeadTrId]="'compOffApplicationTHeadTr'">
-        <table class="table compOffApplication-table" id="compOffApplication">
+        <table class="table compOffApplication-table" matSort (matSortChange)="sortHomeCompOff($event)" id="compOffApplication">
             <thead class="thead-light" id="compOffApplicationTHead">
               <tr id="compOffApplicationTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied For</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Duration</th>
-                <th scope="col" class="info-label">Description</th>
-                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
+                <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>
+                <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
+                <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
+                <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
+                <th scope="col" class="info-label" mat-sort-header="description">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                 <th scope="col" class="info-label">Actions</th>
              </tr>
             </thead>
@@ -463,8 +465,8 @@
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
-                    <td>{{compOffApp.fromDate | date:'dd-MM-yyyy'}}</td>
-                    <td>{{compOffApp.toDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{compOffApp.fromDate}}</td>
+                    <td>{{compOffApp.toDate}}</td>
                     <td>{{compOffApp.noOfDays}}</td>
                     <td>{{compOffApp.description}}</td>
                     <td>{{compOffApp.status}}</td>
@@ -492,8 +494,8 @@
         </button>
     </div>
     <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success" type="submit" (click)="cancelRequest();onBulkApproval(timesheet_success)">Bulk Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="OnBulkReject(timesheet_reject)">Bulk Reject</button>
+        <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
       </div>
       <div class="form-group d-flex justify-content-between">
         <div class="form-inline col-md-3">
@@ -514,17 +516,21 @@
     <div class="modal-body">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'" [tableTHeadId]="'timesheetRequestTHead'"
         [tableTHeadTrId]="'timesheetRequestTHeadTr'">
-        <table class="table teams-request-table" id="timesheetRequest">
+        <table class="table teams-request-table" matSort (matSortChange)="sortHomeTimesheet($event)" id="timesheetRequest">
             <thead class="thead-light" id="timesheetRequestTHead">
               <tr id="timesheetRequestTHeadTr">
                 <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Employee Id</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Date</th>
-                <th scope="col" class="info-label">Day Type</th>
-                <th scope="col" colspan="4" class="info-label">Timesheet Details</th>
-                <th scope="col" class="info-label">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
+                <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Activity</th>
+                <th scope="col" class="info-label" mat-sort-header="officeInTime">Office In Time</th>
+                <th scope="col" class="info-label" mat-sort-header="officeOutTime">Office Out Time</th>
+                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
+                <th scope="col" class="info-label">Shift</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                 <th scope="col" class="info-label">Actions</th>
               </tr>
             </thead>
@@ -532,14 +538,18 @@
               <tr *ngIf="allTeamTimesheetRequests.length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                 <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                 <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date | date:'dd-MM-yyyy'}}</td>
+                <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td colspan="4" [innerHTML]="timesheet.description"></td>
+                <td>{{timesheet.officeInTime}}</td>
+                <td>{{timesheet.officeOutTime}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
@@ -592,7 +602,7 @@
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
         <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(leave_success)">Reject</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
     </div>
   </ng-template>
@@ -652,4 +662,23 @@
         <p>{{notificationObj.notificationMessage}}</p>
     </div>
 </ng-template>
+
+<!-- Night shift confirmation template -->
+<ng-template #night_shift_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
+        <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary" (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift Request(s)</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #night_shift_reject_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
+        <button type="button" class="btn btn-outline-success" (click)="OnBulkReject(timesheet_reject)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift Request(s)</button>&nbsp;
+    </div>
+  </ng-template>
   

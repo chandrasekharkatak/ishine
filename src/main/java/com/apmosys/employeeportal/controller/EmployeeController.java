@@ -122,6 +122,13 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployeesByDepartmentIds(employeedto);
 		return response;
 	}
+	
+//	@RequestMapping(value = "/getAllEmployeesByDepartmentId", method = RequestMethod.POST)
+//	public ServiceResponse getAllEmployeesByDepartmentId(@RequestBody EmployeeDTO employeedto) {
+//
+//		ServiceResponse response = employeeService.getAllEmployeesByDepartmentId(employeedto);
+//		return response;
+//	}
 
 	@RequestMapping(value = "/updateEmployeePassword", method = RequestMethod.POST)
 	public ServiceResponse updatePassword(@RequestBody EmployeeDTO employeedto) {
@@ -230,6 +237,18 @@ public class EmployeeController {
 		ServiceResponse response=employeeService.getEmployeeProfileCompletion(employeeDto);
 		return response;
 	}
+	
+	@RequestMapping(value ="/updateTimesheetLockCheck" , method = RequestMethod.POST)
+	public ServiceResponse updateTimesheetLockCheck(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response=employeeService.updateTimesheetLockCheck(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getEmployeeBasicInfo", method = RequestMethod.POST)
+	public ServiceResponse getEmployeeBasicInfo(@RequestBody EmployeeDTO employeedto) {
+		ServiceResponse response= employeeService.getEmployeeBasicInfo(employeedto);
+		return response;
+	}
 
 	/*
 	 Old Employee Portal Password Encryption - part of data migration.
@@ -270,6 +289,26 @@ public class EmployeeController {
 
 		ServiceResponse response = employeeService.addDemographicsInfo(employeedto);
 		return response;
+	}
+	
+	/*
+	 API for PoPortal
+	 */
+	
+	@RequestMapping(value = "/getAllEmployeeInfo", method = RequestMethod.GET)
+	public ServiceResponse employeeInfo() {
+
+		ServiceResponse response = employeeService.getAllEmployeeInfo();
+		return response;
+	}
+	
+	@RequestMapping(value = "/updateLeaveBalanceList", method = RequestMethod.POST, consumes = "application/json")	
+	public ServiceResponse updateLeaveBalanceList(@RequestBody EmployeeDTO[] employeeDTO) {	
+		ServiceResponse response = null;	
+		for (EmployeeDTO employeedto : employeeDTO) {	
+			response = employeeService.updateLeaveBalanceList(employeedto);	
+		}	
+		return response;	
 	}
 
 }
