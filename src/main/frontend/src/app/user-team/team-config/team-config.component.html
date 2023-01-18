@@ -383,12 +383,26 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId"
+                            <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true"
+                                  [multiple]="false"
+                                  [(ngModel)]="activityObj.projectId"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId"
                                 (change)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true;">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let project of employeeSpecificProjectList"
                                     value="{{project.projectId}}">{{project.projectName}}</option>
-                            </select>
+                            </select> -->
                         </div>
                     </div>
                 </div>
@@ -493,11 +507,25 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
+                        <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getAllTeamsByProjectId(selectedProject); isDisabled = true"
+                                  [multiple]="false"
+                                  [(ngModel)]="selectedProject"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                        <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let project of employeeSpecificProjectList" value="{{project.projectId}}">{{project.projectName}}</option>
     
-                        </select>
+                        </select> -->
                     </div>
                 </div>
             </div>

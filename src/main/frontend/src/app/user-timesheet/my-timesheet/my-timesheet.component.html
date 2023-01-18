@@ -152,13 +152,29 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                                        <select class="form-control" aria-hidden="true"
+                                        <mat-select 
+                                            ngxMatSelect 
+                                            class="form-control"
+                                            #clientName="ngxMatSelect"
+                                            [displayMember]="'clientName'"
+                                            [valueMember]="'clientId'"
+                                            [source]="clientList"
+                                            [useInfiniteScroll]="true"
+                                            (selectionChange)="getClientLocationList(activityObj)"
+                                            (closed)="validateClientName($event,activityObj.clientId)"
+                                            [multiple]="false"
+                                            [(ngModel)]="activityObj.clientId">
+                                            <mat-option [value]="client.clientId" *ngFor="let client of clientName.filteredSource">
+                                                {{client.clientName}}
+                                            </mat-option>
+                                        </mat-select>
+                                        <!-- <select class="form-control" aria-hidden="true"
                                             [(ngModel)]="activityObj.clientId" (blur)="validateClientName($event,activityObj.clientId)"
                                             (change)="getClientLocationList(activityObj);" >
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let client of clientList" value="{{client.clientId}}" >
                                                 {{client.clientName}}</option>
-                                        </select>
+                                        </select> -->
                                         <small class="errorMsg text-danger"></small>
 
                                     </div>
@@ -169,14 +185,58 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Client
                                             Location</label>
-                                        <select class="form-control" aria-hidden="true"
+                                            <mat-select ngxMatSelect 
+                                                class="form-control"
+                                                #clientLocation="ngxMatSelect" 
+                                                [displayMember]="'clientName'"
+                                                [valueMember]="'clientId'" 
+                                                [source]="activityObj.clientLocationList" 
+                                                [useInfiniteScroll]="true"
+                                                (selectionChange)="getProjectList(activityObj)"
+                                                (closed)="validateClientLocation($event,activityObj.clientLocationId)"
+                                                [multiple]="false" 
+                                                [(ngModel)]="activityObj.clientLocationId">
+                                                <mat-option [value]="clientLocation.clientLocationId" *ngFor="let clientLocation of clientLocation.filteredSource">
+                                                    {{clientLocation.clientLocation}}
+                                                </mat-option>
+                                            </mat-select>
+                                        <!-- <select class="form-control" aria-hidden="true"
                                             [(ngModel)]="activityObj.clientLocationId" (blur)="validateClientLocation($event,activityObj.clientLocationId)"
                                             (change)="getProjectList(activityObj);">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let clientLocation of activityObj.clientLocationList"
                                                 value="{{clientLocation.clientLocationId}}">
                                                 {{clientLocation.clientLocation}}</option>
-                                        </select>
+                                        </select> -->
+                                        <small class="errorMsg text-danger"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Team Name</label>
+                                            <mat-select ngxMatSelect 
+                                                class="form-control"
+                                                #teamName="ngxMatSelect" 
+                                                [displayMember]="'projectName | teamName'"
+                                                [valueMember]="'teamId'"
+                                                [source]="activityObj.projectList" 
+                                                [useInfiniteScroll]="true"
+                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)"
+                                                [multiple]="false" 
+                                                [(ngModel)]="activityObj.teamId">
+                                                <mat-option [value]="project.teamId" *ngFor="let project of teamName.filteredSource">
+                                                    {{project.projectName}} | {{project.teamName}}
+                                                </mat-option>
+                                            </mat-select>
+                                        <!-- <select class="form-control" aria-hidden="true"
+                                            [(ngModel)]="activityObj.teamId" 
+                                            (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let project of activityObj.projectList"
+                                                value="{{project.teamId}}">{{project.projectName}} | {{project.teamName}}</option>
+                                        </select> -->
                                         <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
@@ -199,10 +259,24 @@
                                 </div>
                             </div> -->
 
-                            <div class="col-md-3 mb-0">
+                            <!-- <div class="col-md-3 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Team Name</label>
+                                            <mat-select ngxMatSelect 
+                                                class="form-control"
+                                                #teamName="ngxMatSelect" 
+                                                [displayMember]="'projectName | teamName'"
+                                                [valueMember]="'teamId'"
+                                                [source]="activityObj.projectList" 
+                                                [useInfiniteScroll]="true"
+                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)"
+                                                [multiple]="false" 
+                                                [(ngModel)]="activityObj.teamId">
+                                                <mat-option [value]="project.teamId" *ngFor="let project of teamName.filteredSource">
+                                                    {{project.projectName}} | {{project.teamName}}
+                                                </mat-option>
+                                            </mat-select>
                                         <select class="form-control" aria-hidden="true"
                                             [(ngModel)]="activityObj.teamId" 
                                             (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
@@ -213,7 +287,7 @@
                                         <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="col-md-3 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
