@@ -61,6 +61,11 @@ export class LoginComponent implements OnInit{
 
   @ViewChild('reLogin_template') reLoginTemplate: TemplateRef<any>;
 
+  // For session timeout check
+  feature = "Role Config";
+  userMapping: any = {};
+  currentUser: User;
+
   constructor(
     private validationService:ValidationService,
     private datePipe: DatePipe,
@@ -73,7 +78,9 @@ export class LoginComponent implements OnInit{
     private bodyComponent:BodyComponent,
     private logService:LogService,
     private authGaurd:AuthGuard
-  ) { }
+  ) { 
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
 
   
@@ -233,7 +240,6 @@ export class LoginComponent implements OnInit{
       this.enableAppreciation = responseObj[7];	
       console.log("enableAppreciation",enableAppreciation);	
       console.log("checking"+sessionStorage.maxFileSize);
-      this.timeSession();
       this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
 
       let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
@@ -273,6 +279,7 @@ export class LoginComponent implements OnInit{
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));
       this.logService.updateLogInfo(log);
+      this.timeSession();
 
       if(this.authGaurd.exitEmployeeId != null){
         this.router.navigate(['/user-exit', this.authGaurd.exitEmployeeId]);
@@ -295,12 +302,20 @@ export class LoginComponent implements OnInit{
 
    
   timeSession(){
-    this.bnIdle.startWatching(this.authenticationService.sessionTimeout).subscribe((isTimedOut: boolean) => {
-      if (isTimedOut) {
-       this.bodyComponent.userLogout();
-        console.log('session expired');
-      }
+    // Dynamic Subfeature Flags 
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
+    
+    if(this.userMapping.user_session_timeout){
+      this.bnIdle.startWatching(this.authenticationService.sessionTimeout).subscribe((isTimedOut: boolean) => {
+        if (isTimedOut) {
+         this.bodyComponent.userLogout();
+          console.log('session expired');
+        }
+      }); 
+    }
   }
 
   onSendOTP(){
