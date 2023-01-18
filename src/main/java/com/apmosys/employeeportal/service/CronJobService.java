@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.Period;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -38,6 +40,9 @@ import javax.mail.internet.AddressException;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
+import org.dhatim.fastexcel.reader.ReadableWorkbook;
+import org.dhatim.fastexcel.reader.Row;
+import org.dhatim.fastexcel.reader.Sheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -148,6 +153,9 @@ public class CronJobService {
 	
 	@Value("${timesheet.reconcile.days}")
 	private Long timesheetReconcileDays;
+	
+	@Value("${finance.mail}")
+	private String financeMail;
 	
 	
 //	0 0 0 * * * for every midnight
@@ -1031,114 +1039,116 @@ public class CronJobService {
 					StringBuilder defaulterMail = new StringBuilder();
 					allDepartment.forEach((object) -> {
 						
-						int currentYear = LocalDate.now().getYear();
-						int currentMonth = LocalDate.now().getMonthValue();
-						
-						LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
-						LocalDate end = LocalDate.now().minusDays(1);
-						
-						Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+						if(!object.getName().equals("Super Admin")) {
+							int currentYear = LocalDate.now().getYear();
+							int currentMonth = LocalDate.now().getMonthValue();
+							
+							LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+							LocalDate end = LocalDate.now().minusDays(1);
+							
+							Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 
-						List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
-						List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(object.getDeptId());
+							List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
+							List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(object.getDeptId());
 
-						List<TimesheetDTO> dtoList = new ArrayList<>();
-						String hodMail = null;
-						
-						if (timesheetList != null) {
-							for(Object[] employee: employeeList) {
-								TimesheetDTO dto = new TimesheetDTO();
-								
-								defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
-								defaulterMail.append(",");
+							List<TimesheetDTO> dtoList = new ArrayList<>();
+							String hodMail = null;
+							
+							if (timesheetList != null) {
+								for(Object[] employee: employeeList) {
+									TimesheetDTO dto = new TimesheetDTO();
+									
+									defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
+									defaulterMail.append(",");
 
-								dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
-								dto.setEmployeeName(employee[1] != null ? employee[1].toString() : null);
-								dto.setDepartmentName(employee[2] != null ? employee[2].toString() : null);
-								dto.setEmail(employee[3] != null ? employee[3].toString() : null);
-								dto.setManagerName(employee[4] != null ? employee[4].toString() : null);
-								dto.setEmpId(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
-								dto.setPendingEodCount(period);
-								dto.setEmploymentstatus(employee[6] != null ? employee[6].toString() : null);
-								hodMail = employee[7] != null ? employee[7].toString() : null;
+									dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+									dto.setEmployeeName(employee[1] != null ? employee[1].toString() : null);
+									dto.setDepartmentName(employee[2] != null ? employee[2].toString() : null);
+									dto.setEmail(employee[3] != null ? employee[3].toString() : null);
+									dto.setManagerName(employee[4] != null ? employee[4].toString() : null);
+									dto.setEmpId(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
+									dto.setPendingEodCount(period);
+									dto.setEmploymentstatus(employee[6] != null ? employee[6].toString() : null);
+									hodMail = employee[7] != null ? employee[7].toString() : null;
 
-								timesheetList.forEach((timesheet) -> {
+									timesheetList.forEach((timesheet) -> {
 
-									Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
-									Long employeeEmpId = employee[5] != null ? Long.parseLong(employee[5].toString()) : null;
+										Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+										Long employeeEmpId = employee[5] != null ? Long.parseLong(employee[5].toString()) : null;
 
-									if (timesheetEmpId.equals(employeeEmpId)) {
-										Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
-										Long pendingEodCount = period - filledEodCount;
+										if (timesheetEmpId.equals(employeeEmpId)) {
+											Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+											Long pendingEodCount = period - filledEodCount;
 
-										dto.setPendingEodCount(pendingEodCount);
-									}
-								});
-								dtoList.add(dto);
+											dto.setPendingEodCount(pendingEodCount);
+										}
+									});
+									dtoList.add(dto);
+								}
 							}
-						}
-						//Filter 0 pending EOD counts
-						
-						dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
-								
-						//Mail timesheet defaulter list to: user cc: HR, HOD	
-						
-						StringBuilder html = new StringBuilder();
-						html.append("<html>\n" +
-					            "  <head>\n" +
-					            "    <style>\n" +
-					            "      table, th, td {\n" +
-					            "        border: 1px solid black;\n" +
-					            "      }\n" +
-					            "      table {\n" +
-					            "        border-collapse: collapse;\n" +
-					            "      }\n" +
-					            "    </style>\n" +
-					            "  </head>\n" +
-					            "  <body>\n" +
-					            "    <table>\n" +
-					            "      <tr>\n" +
-					            "        <th>Emp ID</th>\n" +
-					            "        <th>Name</th>\n" +
-					            "        <th>Email</th>\n" +
-					            "        <th>Manager Name</th>\n" +
-					            "        <th>Expected Timesheet Count</th>\n" +
-					            "        <th>Filled Timesheet Count</th>\n" +
-					            "        <th>Deaprtment</th>\n" +
-					            "      </tr>\n");
-						// add rows to the table
-						for(TimesheetDTO timesheet: dtoList) {
-							Long filledEOD = period - timesheet.getPendingEodCount();
-							html.append("      <tr>\n");
-							  // add cells to the row
-							  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
-							  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
-							  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
-							  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
-							  html.append("        <td>" + period + "</td>\n");
-							  html.append("        <td>" + filledEOD + "</td>\n");
-							  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
-							  html.append("      </tr>\n");
-						}
-						
-						html.append("    </table>\n" +
-						            "  </body>\n" +
-						            "</html>");
-						
-						try {
-							mailService.sendMailWithCC(defaulterMail.toString(),
-									hodMail+","+hrMailAddress,
-									"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
-									"Dear IShine Members, <br><br>"
-                                  + "This is to bring it to your attention that you are in the defaulters list."
-                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
-                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
-								  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
-								  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
-								  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
-								  +	html.toString());
-						} catch (MessagingException e) {
-							e.printStackTrace();
+							//Filter 0 pending EOD counts
+							
+							dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
+									
+							//Mail timesheet defaulter list to: user cc: HR, HOD	
+							
+							StringBuilder html = new StringBuilder();
+							html.append("<html>\n" +
+						            "  <head>\n" +
+						            "    <style>\n" +
+						            "      table, th, td {\n" +
+						            "        border: 1px solid black;\n" +
+						            "      }\n" +
+						            "      table {\n" +
+						            "        border-collapse: collapse;\n" +
+						            "      }\n" +
+						            "    </style>\n" +
+						            "  </head>\n" +
+						            "  <body>\n" +
+						            "    <table>\n" +
+						            "      <tr>\n" +
+						            "        <th>Emp ID</th>\n" +
+						            "        <th>Name</th>\n" +
+						            "        <th>Email</th>\n" +
+						            "        <th>Manager Name</th>\n" +
+						            "        <th>Expected Timesheet Count</th>\n" +
+						            "        <th>Filled Timesheet Count</th>\n" +
+						            "        <th>Deaprtment</th>\n" +
+						            "      </tr>\n");
+							// add rows to the table
+							for(TimesheetDTO timesheet: dtoList) {
+								Long filledEOD = period - timesheet.getPendingEodCount();
+								html.append("      <tr>\n");
+								  // add cells to the row
+								  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
+								  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
+								  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
+								  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
+								  html.append("        <td>" + period + "</td>\n");
+								  html.append("        <td>" + filledEOD + "</td>\n");
+								  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
+								  html.append("      </tr>\n");
+							}
+							
+							html.append("    </table>\n" +
+							            "  </body>\n" +
+							            "</html>");
+							
+							try {
+								mailService.sendMailWithCC(defaulterMail.toString(),
+										hodMail+","+hrMailAddress,
+										"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
+										"Dear IShine Members, <br><br>"
+	                                  + "This is to bring it to your attention that you are in the defaulters list."
+	                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
+	                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
+									  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
+									  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
+									  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+									  +	html.toString());
+							} catch (MessagingException e) {
+								e.printStackTrace();
+							}
 						}
 					});
 				}
@@ -1204,162 +1214,172 @@ public class CronJobService {
 		
 		@Async
 		@Scheduled(cron = "0 0 10 ? * MON")
-		public void allEmployeeDsrReport() {
+		public void weeklyAllEmployeeDsrReport() {
+			try {
+				TimesheetDTO timesheetDto = new TimesheetDTO();
+				timesheetDto.setIsCron("true");
+				
+				ServiceResponse response = allEmployeeDsrReport(timesheetDto);
+				
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto) {
 			ServiceResponse response = new ServiceResponse();
 			try {
 				
-				int currentYear = LocalDate.now().getYear();
-				int currentMonth = LocalDate.now().getMonthValue();
+				// Create Excel
+				LocalDate firstOfMonth = null;
+				LocalDate currentDate = null;
+				String subject = null;
 				
-				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
-				LocalDate currentDate = LocalDate.now().minusDays(1);
+				if(timesheetdto.getIsCron().equals("true")) {
+					int currentYear = LocalDate.now().getYear();
+					int currentMonth = LocalDate.now().getMonthValue();
 					
-//					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
-					Path path = Files.createDirectories(Paths.get("/home/apmosys/Downloads" + File.separator + "monthlyDSR"));
-					var f = new File(path + File.separator + "hii" + ".xlsx");
-//					var f = new File(fileName);
+					firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+					currentDate = LocalDate.now().minusDays(1);
+					subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
+					
+				}else if(timesheetdto.getIsCron().equals("false")) {
+					int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
+					
+					firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
+					currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
+					subject = "All Employee's DSR report of month : "+timesheetdto.getMonth();
+				}
+					
+					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
+					var file = new File(fileName);
 						
-				        try (var fos = new FileOutputStream(f)) {
-				        	
-				        	 var wb = new Workbook(fos, "Application", "1.0");
-					            Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
-					            
-					            ws.value(0, 0, "EmpId");
-					            ws.value(0, 1, "Emp Name");
-					            ws.value(0, 2, "Date");
-					            ws.value(0, 3, "Day Type");
-					            ws.value(0, 4, "In-Time");
-					            ws.value(0, 5, "Out-Time");
-					            ws.value(0, 6, "Total Working Hours");
-					            ws.value(0, 7, "Client");
-					            ws.value(0, 8, "Client Location");
-					            ws.value(0, 9, "Project");
-					            ws.value(0, 10, "Activity");
-					            ws.value(0, 11, "Total Activity Time");
-					            ws.value(0, 12, "Shift");
-					            ws.value(0, 13, "Description");
-					            ws.value(0, 14, "Status");
-					            
-					            int rowNum = 1;
+					try (var fos = new FileOutputStream(file)) {
 
-				        	List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
-							for(Object[] empObj : employeeList) {
-								
-								Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
-								String empName = empObj[2] != null ? empObj[2].toString() : null;
-								Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
-								
-								System.out.println("Emp ID :" + empId);
-								System.out.println("Employment ID :" + employeementId);
-								
-								List<Timesheet> monthlyTimesheet = timesheetsRepository.
-										findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
-				 
-						
-				        
-						if(!monthlyTimesheet.isEmpty()){
-							for(Timesheet timesheetObj: monthlyTimesheet) {
-								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
-								
-								String perviousProject = "";
-								String perviousDate = "";
-								String perviousClientName = "";
-								String perviousClientLocation = "";
-								
-								if(!objectList.isEmpty()) {
-									for(Object[] object : objectList) {
-										
-										String activity = object[1] != null ? object[1].toString() : null;
-										String project = object[5] != null ? object[5].toString() : null;
-										String clientName = object[6] != null ? object[6].toString() : null;
-										String clientLocation = object[7] != null ? object[7].toString() : null;
-										
-										ws.style(rowNum, 2).format("dd-MM-yyyy").set();
-										ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
-										ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
-										
-										if(timesheetObj.getDate().toString().equals(perviousDate)) {
-											ws.range(rowNum - 1, 0, rowNum, 0).merge();
-											ws.range(rowNum - 1, 1, rowNum, 1).merge();
-											ws.range(rowNum - 1, 2, rowNum, 2).merge();
-											ws.range(rowNum - 1, 3, rowNum, 3).merge();
-											ws.range(rowNum - 1, 4, rowNum, 4).merge();
-											ws.range(rowNum - 1, 5, rowNum, 5).merge();
-											ws.range(rowNum - 1, 6, rowNum, 6).merge();
-											ws.range(rowNum - 1, 11, rowNum, 11).merge();
-											ws.range(rowNum - 1, 12, rowNum, 12).merge();
-											ws.range(rowNum - 1, 14, rowNum, 14).merge();
-										}else {
-											ws.value(rowNum, 0, "A-"+employeementId);
+						var wb = new Workbook(fos, "Application", "1.0");
+						Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+
+						ws.value(0, 0, "EmpId");
+						ws.value(0, 1, "Emp Name");
+						ws.value(0, 2, "Date");
+						ws.value(0, 3, "Day Type");
+						ws.value(0, 4, "In-Time");
+						ws.value(0, 5, "Out-Time");
+						ws.value(0, 6, "Total Working Hours");
+						ws.value(0, 7, "Client");
+						ws.value(0, 8, "Client Location");
+						ws.value(0, 9, "Project");
+						ws.value(0, 10, "Activity");
+						ws.value(0, 11, "Total Activity Time");
+						ws.value(0, 12, "Shift");
+						ws.value(0, 13, "Description");
+						ws.value(0, 14, "Status");
+
+						int rowNum = 1;
+
+						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+						for (Object[] empObj : employeeList) {
+
+							Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+							String empName = empObj[2] != null ? empObj[2].toString() : null;
+							Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
+
+							System.out.println("Emp ID :" + empId);
+							System.out.println("Employment ID :" + employeementId);
+
+							List<Timesheet> monthlyTimesheet = timesheetsRepository
+									.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+
+							if (!monthlyTimesheet.isEmpty()) {
+								for (Timesheet timesheetObj : monthlyTimesheet) {
+									List<Object[]> objectList = timesheetActivityMapRepository
+											.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+
+									if (!objectList.isEmpty()) {
+										for (Object[] object : objectList) {
+
+											String activity = object[1] != null ? object[1].toString() : null;
+											String project = object[5] != null ? object[5].toString() : null;
+											String clientName = object[6] != null ? object[6].toString() : null;
+											String clientLocation = object[7] != null ? object[7].toString() : null;
+
+											ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+											ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+											ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+											
+											ws.value(rowNum, 0, "A-" + employeementId);
 											ws.value(rowNum, 1, empName);
 											ws.value(rowNum, 2, timesheetObj.getDate());
 											ws.value(rowNum, 3, timesheetObj.getDayType());
 											ws.value(rowNum, 4, timesheetObj.getOfficeInTime());
 											ws.value(rowNum, 5, timesheetObj.getOfficeOutTime());
 											ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
-											ws.value(rowNum, 11, timesheetObj.getTotalTime());
-											ws.value(rowNum, 12, timesheetObj.getIsNightShift());
-											ws.value(rowNum, 14, timesheetObj.getStatus());
-										}
-										if(clientName.equals(perviousClientName) && timesheetObj.getDate().toString().equals(perviousDate)) {
-											ws.range(rowNum - 1, 7, rowNum, 7).merge();
-										}else {
 											ws.value(rowNum, 7, clientName);
-										}
-										if(clientLocation.equals(perviousClientLocation) && timesheetObj.getDate().toString().equals(perviousDate)) {
-											ws.range(rowNum - 1, 8, rowNum, 8).merge();
-										}else {
 											ws.value(rowNum, 8, clientLocation);
-										}
-										if(project.equals(perviousProject) && timesheetObj.getDate().toString().equals(perviousDate)) {
-											ws.range(rowNum - 1, 9, rowNum, 9).merge();
-										}else {
 											ws.value(rowNum, 9, project);
+											if (!objectList.isEmpty()) {
+												ws.value(rowNum, 10, activity);
+											} else {
+												ws.value(rowNum, 10, timesheetObj.getDescription());
+											}
+											ws.value(rowNum, 11, timesheetObj.getTotalTime());
+											ws.value(rowNum, 12, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
+											ws.value(rowNum, 14, timesheetObj.getStatus());
+
+											rowNum++;
 										}
-										if(!objectList.isEmpty()) {
-											ws.value(rowNum, 10, activity);
-										}else {
-											ws.value(rowNum, 10, timesheetObj.getDescription());
-										}
-										
-										
+									} else {
+
+										// Fill data of weekoff & leave
+										ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+										ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+										ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+
+										ws.value(rowNum, 0, "A-" + employeementId);
+										ws.value(rowNum, 1, empName);
+										ws.value(rowNum, 2, timesheetObj.getDate());
+										ws.value(rowNum, 3, timesheetObj.getDayType());
+										ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
+										ws.value(rowNum, 13, timesheetObj.getDescription());
+										ws.value(rowNum, 14, timesheetObj.getStatus());
+
 										rowNum++;
-										perviousProject = project;
-										perviousDate = timesheetObj.getDate().toString();
-										perviousClientName = clientName;
-										perviousClientLocation = clientLocation;
+
+										System.out.println("Activity List is empty");
 									}
-								}else {
-									
-									// Fill data of weekoff & leave
-									ws.style(rowNum, 2).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
-									
-									ws.value(rowNum, 0, "A-"+employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, timesheetObj.getDate());
-									ws.value(rowNum, 3, timesheetObj.getDayType());
-									ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
-									ws.value(rowNum, 13, timesheetObj.getDescription());
-									ws.value(rowNum, 14, timesheetObj.getStatus());
-									
-									rowNum++;
-									
-									System.out.println("Activity List is empty");
 								}
 							}
 						}
-			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("DSR Generated Successfully.");
-				      }
 						wb.finish();
-				    }
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+					
+					// Send mail
+					
+					 boolean mailSent = mailService.sendMailWithAttachment(financeMail,
+							 hrMailAddress,
+							 subject,
+							 "Dear Team, <br><br>"
+	                       + "Please find " + subject + "attached below.",
+	                       file);
+					
+					 if(mailSent) {
+						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						 response.setServiceResponse("All Employee's DSR report sent on mail successfully.");
+					 }else {
+						 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						 response.setServiceResponse("Unable to sent Mail.");
+					 }
+					
 			}catch(Exception e) {
 				e.printStackTrace();
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 				response.setServiceResponse("Something Went Wrong.");
 				response.setServiceError(e.getMessage());
 			}
+			return response;
 		}
+		
 }	

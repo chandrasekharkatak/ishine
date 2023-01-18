@@ -17,6 +17,7 @@ import * as moment from 'moment';
 import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import { DepartmentService } from 'src/app/services/department.service';
+import { Timesheet } from 'src/app/models/timesheet';
 
 
 
@@ -60,6 +61,7 @@ export class PortalConfigComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
 
   portalObj: Portal = new Portal();
+  timesheetObj: Timesheet = new Timesheet();
 
   portalConfigList: any[] = [];
   // appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
@@ -73,6 +75,12 @@ export class PortalConfigComponent implements OnInit {
 
   allDeptList: any[] = [];
   employeeList: any[] = [];
+
+  allMonth: any[] = [
+    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+  ]
+
+  year: any[] = [];
 
   constructor(
     private portalService: PortalService,
@@ -93,6 +101,7 @@ export class PortalConfigComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, " : ", this.userMapping);
+    this.getYear();
     this.getAllEvent();
     this.sectionViewInit();
     this.preventBackButton();
@@ -459,6 +468,37 @@ export class PortalConfigComponent implements OnInit {
 
   generatePerviousMonthDSR(template: TemplateRef<any>) {
     this.portalService.generatePerviousMonthDSR().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getYear(){
+    this.year = [];
+    let currentYear = new Date().getFullYear();
+    this.year.push(currentYear);
+    this.year.push(currentYear -1);
+    this.year.push(currentYear -2);
+  }
+
+  generateAllEmployeeDSR(template: TemplateRef<any>){
+    if (!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.month)) {
+      this.alertMessage = "Please Select Month !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.year)) {
+      this.alertMessage = "Please Select Year !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.timesheetObj.isCron = false;
+    this.portalService.generateAllEmployeeDSR(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {

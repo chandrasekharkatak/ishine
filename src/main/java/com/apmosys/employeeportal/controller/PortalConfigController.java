@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.PortalConfigService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -32,6 +33,18 @@ public class PortalConfigController {
 	@RequestMapping(value="/generatePerviousMonthDSR", method = RequestMethod.GET)
 	public ServiceResponse generatePerviousMonthDSR() {
 		ServiceResponse response = portalConfigService.generatePerviousMonthDSR();
+		return response;
+	}
+	
+	@RequestMapping(value="/generateAllEmployeeDSR", method = RequestMethod.POST)
+	public ServiceResponse generateAllEmployeeDSR(@RequestBody TimesheetDTO timesheetDTO) {
+		ServiceResponse response = portalConfigService.generateAllEmployeeDSR(timesheetDTO);
+		return response;
+	}
+	
+	@RequestMapping(value="/segregatedDeptEodDefaulter", method = RequestMethod.GET)
+	public ServiceResponse segregatedDeptEodDefaulter() {
+		ServiceResponse response = portalConfigService.segregatedDeptEodDefaulter();
 		return response;
 	}
 	
