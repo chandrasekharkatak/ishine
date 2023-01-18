@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, takeUntil } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
@@ -107,6 +108,7 @@ export class TeamConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private projectService: ProjectService,
     private teamService: TeamService,
+    private router: Router,
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
@@ -1153,6 +1155,10 @@ export class TeamConfigComponent implements OnInit {
   }
 
   // Activity template :: end
+
+  navigateToUpdateActivityPage(){
+
+  }
 
   // download excel
 

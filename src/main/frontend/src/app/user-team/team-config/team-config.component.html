@@ -2,7 +2,6 @@
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_team" [ngClass]="{'active' : isTeamForm && isCreation}" (click)="showCreateTeamForm()">Add New Team</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate && isActivityCreate}" (click)="showActivityTemplate()">Activity Template</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activity_template" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
@@ -490,7 +489,7 @@
         </div>
         
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
@@ -502,7 +501,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
@@ -512,6 +511,9 @@
                           </select>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-3 mt-4 pt-2 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()"><em class="fa-solid fa-plus"></em>Add New Activity</button>
             </div>
             <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
@@ -738,6 +740,7 @@
                     <th scope="col" class="info-label">Sr No.</th>
                     <th scope="col" class="info-label">Actvity</th>
                     <th scope="col" class="info-label">Employee Role</th>
+                    <th *ngIf="isUpdation" scope="col" class="info-label">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -749,6 +752,9 @@
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{emp.activity}}</td>
                     <td>{{emp.employeeRole}}</td>
+                    <td *ngIf="isUpdation">
+                        <button class="btn btn-sm btn-outline-primary" (click)="navigateToUpdateActivityPage()" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
+                    </td>
                 </tr>
             </tbody>
         </table>

@@ -135,6 +135,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateTimesheetLockCheck`,
     `${this.baseUrl}` + `api/revokeApprovedLeaveApplication`,
     `${this.baseUrl}` + `api/updateRevokeLeaveStatus`,
+    `${this.baseUrl}` + `api/generateAllEmployeeDSR`,
   ]
 
   constructor(private loaderService: LoaderService) { }
