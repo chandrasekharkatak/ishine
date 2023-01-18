@@ -239,62 +239,64 @@ public class EmployeeLeaveService {
 				System.out.println(leaveDTO.getFromDate());
 				System.out.println(leaveDTO.getToDate());
 
-				
-				LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
-				LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
+				// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
+				if(leaveDTO.getNoOfDays() > 0.5) {
+					LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
+					LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
 
-				long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
-				
-			    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
-			    if(!empTimeSheet.isEmpty()) {
-			    empTimeSheet.forEach((timesheet)->{
-			    	
-			    	List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository.getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
-			    	
-			    	timesheetactivities.forEach((timesheetactivity)->{
-			    		
-			    		timesheetActivityRepository.deleteById(timesheetactivity.getTimesheetActivityMapId());
-
-			    	});
-			    	
-			    	timesheetsRepository.deleteById(timesheet.getTimesheetId());
-			    });
-			    }
-			    //after timesheet deletion
-			    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
-
-				if((elapsedDays == 0)) {
-					Timesheet newTimesheet = new Timesheet();
+					long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
 					
-					newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
-					newTimesheet.setDate(fromDate);
-					newTimesheet.setDayType("Holiday");
-					newTimesheet.setDescription("On leave");
-					newTimesheet.setEmpId(leaveDTO.getEmpId());
-					newTimesheet.setStatus("Approved");
+				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
+				    if(!empTimeSheet.isEmpty()) {
+				    empTimeSheet.forEach((timesheet)->{
+				    	
+				    	List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository.getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
+				    	
+				    	timesheetactivities.forEach((timesheetactivity)->{
+				    		
+				    		timesheetActivityRepository.deleteById(timesheetactivity.getTimesheetActivityMapId());
 
-					timesheetsRepository.save(newTimesheet);
-				}
-				if((elapsedDays != 0)) {
-					LocalDate tempDateToday = fromDate;
+				    	});
+				    	
+				    	timesheetsRepository.deleteById(timesheet.getTimesheetId());
+				    });
+				    }
+				    //after timesheet deletion
+				    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 
-					while(tempDateToday.compareTo(toDate) != 1) {
-						
+					if((elapsedDays == 0)) {
 						Timesheet newTimesheet = new Timesheet();
-
-
+						
 						newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
-						newTimesheet.setDate(tempDateToday);
-						newTimesheet.setDayType("Holiday");
+						newTimesheet.setDate(fromDate);
+						newTimesheet.setDayType("Leave");
 						newTimesheet.setDescription("On leave");
 						newTimesheet.setEmpId(leaveDTO.getEmpId());
 						newTimesheet.setStatus("Approved");
 
 						timesheetsRepository.save(newTimesheet);
-						
-						tempDateToday = tempDateToday.plusDays(1);
+					}
+					if((elapsedDays != 0)) {
+						LocalDate tempDateToday = fromDate;
 
-						
+						while(tempDateToday.compareTo(toDate) != 1) {
+							
+							Timesheet newTimesheet = new Timesheet();
+
+
+							newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
+							newTimesheet.setDate(tempDateToday);
+							newTimesheet.setDayType("Leave");
+							newTimesheet.setDescription("On leave");
+							newTimesheet.setEmpId(leaveDTO.getEmpId());
+							newTimesheet.setStatus("Approved");
+
+							timesheetsRepository.save(newTimesheet);
+							
+							tempDateToday = tempDateToday.plusDays(1);
+
+							
+						}
 					}
 				}
 				
