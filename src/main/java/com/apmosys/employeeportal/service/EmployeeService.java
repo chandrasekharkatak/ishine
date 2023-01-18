@@ -343,6 +343,7 @@ public class EmployeeService {
 			employee.setChild2(employeedto.getChild2());
 			employee.setChild3(employeedto.getChild3());
 			employee.setBillable(employeedto.getBillable());
+			employee.setIsTimesheetLockCheckEnable("true");
 
 			Employee newEmployee = employeeRepository.save(employee);
 

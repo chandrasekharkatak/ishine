@@ -96,6 +96,7 @@
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group leave_day" >
+                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                             <select class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>
@@ -123,6 +124,7 @@
                 <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group leave_day" >
+                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                             <select class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value=0.5>Half Day</option>

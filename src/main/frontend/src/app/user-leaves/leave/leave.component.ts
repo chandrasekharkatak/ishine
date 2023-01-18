@@ -483,9 +483,19 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.fromDateDayType)){
+      this.alertMessage = "Please select from day type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDate)){
       this.alertMessage = "Please select To Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDateDayType)){
+      this.alertMessage = "Please select to day type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -641,11 +651,22 @@ export class LeaveComponent implements OnInit {
     let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
     
-    if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+    if(this.leaveObj.leaveAppliedFor == 'self'){
+      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      }else{
+        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      }
     }else{
-      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      }else{
+        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+      }
     }
+
+    
   }
 
   holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
@@ -654,11 +675,22 @@ export class LeaveComponent implements OnInit {
       const time = cellDate.getTime()
       
       // Highlight the holidays.
-      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-        return '';
+      if(this.leaveObj.leaveAppliedFor == 'self'){
+        if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+          return '';
+        }else{
+          return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
+        }
       }else{
-        return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
+        let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+        if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+          return '';
+        }else{
+          return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
+        }
       }
+
+      
     }
     return '';
   }
@@ -675,11 +707,21 @@ export class LeaveComponent implements OnInit {
       return false;
     }
     let checkDate = this.leaveObj.fromDate;
-    if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-      return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+
+    if(this.leaveObj.leaveAppliedFor == 'self'){
+      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      }else{
+        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      } 
     }else{
-      return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
-    }   
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      }else{
+        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      } 
+    }  
   }
 
   setMinToDate(template: TemplateRef<any>){
@@ -714,37 +756,73 @@ export class LeaveComponent implements OnInit {
       }	
     }	
 
-    if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-      if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
-        this.leaveObj.toDateDayType = 0;		
-      }	
-      
-      const START_DAY_COUNT = 1;	
-      const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
-      this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);	
+    if(this.leaveObj.leaveAppliedFor == 'self'){
+      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+        if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
+          this.leaveObj.toDateDayType = 0;		
+        }	
+        
+        const START_DAY_COUNT = 1;	
+        const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);	
+      }else{
+        // get Holiday Count 	
+        let getHolidayCountObj = new Leave();	
+        getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)	
+        getHolidayCountObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)	
+        
+        //const holidayWeekOffCount = 0;	
+        let response:any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise(); 	
+        if (response.serviceStatus == "Success") {	
+          this.holidayWeekOffList = response.serviceResponse;	
+          this.holidayWeekOffCount = this.holidayWeekOffList.length;	
+        } else {	
+          console.log(response.serviceResponse);	
+          this.holidayWeekOffCount = 0;	
+        }	
+  
+        if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
+          this.leaveObj.toDateDayType = 0;		
+        }	
+        
+        const START_DAY_COUNT = 1;	
+        const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType)-this.holidayWeekOffCount;	
+      }
     }else{
-      // get Holiday Count 	
-      let getHolidayCountObj = new Leave();	
-      getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)	
-      getHolidayCountObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)	
-      
-      //const holidayWeekOffCount = 0;	
-      let response:any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise(); 	
-      if (response.serviceStatus == "Success") {	
-        this.holidayWeekOffList = response.serviceResponse;	
-        this.holidayWeekOffCount = this.holidayWeekOffList.length;	
-      } else {	
-        console.log(response.serviceResponse);	
-        this.holidayWeekOffCount = 0;	
-      }	
-
-      if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
-        this.leaveObj.toDateDayType = 0;		
-      }	
-      
-      const START_DAY_COUNT = 1;	
-      const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
-      this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType)-this.holidayWeekOffCount;	
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+        if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
+          this.leaveObj.toDateDayType = 0;		
+        }	
+        
+        const START_DAY_COUNT = 1;	
+        const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);	
+      }else{
+        // get Holiday Count 	
+        let getHolidayCountObj = new Leave();	
+        getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)	
+        getHolidayCountObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)	
+        
+        //const holidayWeekOffCount = 0;	
+        let response:any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise(); 	
+        if (response.serviceStatus == "Success") {	
+          this.holidayWeekOffList = response.serviceResponse;	
+          this.holidayWeekOffCount = this.holidayWeekOffList.length;	
+        } else {	
+          console.log(response.serviceResponse);	
+          this.holidayWeekOffCount = 0;	
+        }	
+  
+        if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
+          this.leaveObj.toDateDayType = 0;		
+        }	
+        
+        const START_DAY_COUNT = 1;	
+        const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType)-this.holidayWeekOffCount;	
+      }
     }
   }	
   getHolidayWeekOffSize(){	
@@ -793,11 +871,11 @@ export class LeaveComponent implements OnInit {
             if(this.leaveObj.empId == teamMember.hodId){
               this.leaveObj.managerId = teamMember.managerId;
               this.leaveObj.approverName = teamMember.managerName;
-              this.leaveObj.approverEmail = this.currentUser.managerEmail
+              this.leaveObj.approverEmail = teamMember.managerEmail
             }else{
-              this.leaveObj.managerId = this.currentUser.hodId;
-              this.leaveObj.approverName = this.currentUser.hodName
-              this.leaveObj.approverEmail = this.currentUser.hodEmail
+              this.leaveObj.managerId = teamMember.hodId;
+              this.leaveObj.approverName = teamMember.hodName
+              this.leaveObj.approverEmail = teamMember.hodEmail
             }
           }
         }else {
@@ -814,18 +892,34 @@ export class LeaveComponent implements OnInit {
         }
       }else if(this.leaveObj.noOfDays >= this.level2MinNoOfDays){
           if(this.leaveObj.empId == this.level2ApprovalTo){
-            this.leaveObj.managerId = this.currentUser.managerId;
-            this.leaveObj.approverName = this.currentUser.managerName
-            this.leaveObj.approverEmail = this.currentUser.managerEmail
+            if(this.leaveObj.leaveAppliedFor == 'self'){
+              this.leaveObj.managerId = this.currentUser.managerId;
+              this.leaveObj.approverName = this.currentUser.managerName
+              this.leaveObj.approverEmail = this.currentUser.managerEmail
+            }else{
+              let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+              this.leaveObj.managerId = teamMember.managerId;
+              this.leaveObj.approverName = teamMember.managerName;
+              this.leaveObj.approverEmail = teamMember.managerEmail
+            }
           }else{
             this.leaveObj.managerId = this.level2ApprovalTo;
             this.leaveObj.approverName = this.level2ApproverName;
             this.leaveObj.approverEmail = this.level2ApproverEmail;
           }
       }else{
-        this.leaveObj.managerId = this.currentUser.managerId;
-        this.leaveObj.approverName = this.currentUser.managerName
-        this.leaveObj.approverEmail = this.currentUser.managerEmail
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          this.leaveObj.managerId = this.currentUser.managerId;
+          this.leaveObj.approverName = this.currentUser.managerName
+          this.leaveObj.approverEmail = this.currentUser.managerEmail
+        }else{
+          let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+          console.log("teamMember Leave for min 2 days : ", teamMember);
+          
+          this.leaveObj.managerId = teamMember.managerId;
+          this.leaveObj.approverName = teamMember.managerName;
+          this.leaveObj.approverEmail = teamMember.managerEmail
+        }
       }
 
       // this.leaveObj.empId = this.currentUser.empId; //! this empId will set in getLeaveMetadata()

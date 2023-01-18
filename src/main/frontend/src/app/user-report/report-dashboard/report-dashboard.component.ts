@@ -1544,14 +1544,15 @@ export class ReportDashboardComponent implements OnInit {
     openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
       console.log("columns : ", columns);
       this.queryList = [];
+      let dateFormat = 'DD-MM-YYYY';
       
       this.filterData.title  = title;
       this.filterData.columns = columns;
 
       if(this.filterData.title == 'Filter Timesheet Summary' || this.filterData.title == 'Filter Leave Trend Chart'){
 
-        let fromDate = moment().subtract(8, 'd').format(this.dateFormat);
-        let toDate = moment().format(this.dateFormat);
+        let fromDate = moment().subtract(8, 'd').format(dateFormat);
+        let toDate = moment().format(dateFormat);
 
         this.queryList = [
           { column: "From Date", operator: ">=", value: fromDate, conjunction: "AND" },
@@ -1564,6 +1565,11 @@ export class ReportDashboardComponent implements OnInit {
           data.queryList.forEach((queryObj) => {
             if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
               queryObj.value = "A-".concat(queryObj.value);
+            }
+            if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
+              queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
+            } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
+              queryObj.value = (queryObj.value) ? moment(queryObj.value).format('DD-MM-YYYY HH:mm:ss') : '';
             }
           });
           this.queryList = data.queryList;
