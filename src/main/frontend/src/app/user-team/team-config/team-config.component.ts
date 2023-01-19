@@ -240,6 +240,7 @@ export class TeamConfigComponent implements OnInit {
     this.reset();
     this.getAllDepartmentList();
     this.getAllProjectsByEmpId();
+    this.getAllProjectListByProjectManagerId();
   }
 
   showViewActivities() {
@@ -261,6 +262,7 @@ export class TeamConfigComponent implements OnInit {
     this.allActivityList = [];
 
     this.getAllProjectsByEmpId();
+    this.getAllProjectListByProjectManagerId();
   }
 
   showUpdateActivityForm(activityObj: Activity) {
@@ -279,6 +281,7 @@ export class TeamConfigComponent implements OnInit {
     this.activityObj = Object.assign({}, activityObj);
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
     this.getDepartmentByTeam(this.activityObj.teamId);
+    this.getAllProjectListByProjectManagerId();
   }
 
   showActivityTemplate(){
