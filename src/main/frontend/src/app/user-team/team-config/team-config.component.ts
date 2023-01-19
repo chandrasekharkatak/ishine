@@ -61,6 +61,7 @@ export class TeamConfigComponent implements OnInit {
 
   //Obj 
   teamObj: Team = new Team();
+  storedTeamObj: Team = new Team();
   activityTemplateObj: Team = new Team();
   allTeamMembers: any[] = [];
   allTeamsList: any[] = [];
@@ -97,6 +98,7 @@ export class TeamConfigComponent implements OnInit {
   selectedTeam: any = '';
   excelName = '';
   tableElement = '';
+  isGoToTeamButton:boolean = false;
 
   filterStatus:any = '';
 
@@ -161,6 +163,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityCreate = false;
     this.isActivityUpdate = false;
     this.isActivityTemplateTable = false;
+    this.isGoToTeamButton = false;
 
     this.reset();
     this.getAllProjectListByProjectManagerId();
@@ -184,6 +187,7 @@ export class TeamConfigComponent implements OnInit {
     this.page = 1;
     this.data = '';
     this.filterStatus= '';
+    this.isGoToTeamButton = false;
 
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
@@ -203,8 +207,9 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityCreate = false;
     this.isActivityUpdate = false;
     this.isActivityTemplateTable = false;
+    this.isGoToTeamButton = false;
 
-    this.teamObj.departmentList = [];
+    // this.teamObj.departmentList = [];
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
     this.teamObj.departmentList = this.teamObj.departmentList?.map(x=>+x);
@@ -291,6 +296,7 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.isGoToTeamButton = false;
     this.allTemplateActivityList = [];
 
     this.teamObj = new Team();
@@ -320,6 +326,7 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.isGoToTeamButton = false;
     this.templateActivityList = [];
     this.allTemplateActivityList = [];
   }
@@ -339,6 +346,7 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.isGoToTeamButton = false;
     this.allTemplateActivityList = [];
     this.reset();
 
@@ -1156,8 +1164,23 @@ export class TeamConfigComponent implements OnInit {
 
   // Activity template :: end
 
-  navigateToUpdateActivityPage(){
+  navigateToUpdateActivityPage(teamId:any){
+    this.cancelRequest();
+    this.isGoToTeamButton = true;
+    this.isActivityTable = true;
 
+    this.isUpdation = false;
+    this.isTeamForm = false;
+
+    this.selectedProject = this.storedTeamObj.projectId;
+    this.selectedTeam = teamId;
+
+    this.getAllTeamsByProjectId(this.selectedProject);
+    this.getAllActivitiesByProjectIdAndTeamId(this.selectedProject, this.selectedTeam);
+  }
+
+  goToUpdateTeamPage(){
+    this.showUpdateTeamForm(this.storedTeamObj);
   }
 
   // download excel
@@ -1234,7 +1257,10 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  openActivityPreviewModal(template: TemplateRef<any>,) {
+  openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {
+    this.storedTeamObj = teamObj;
+    console.log(this.storedTeamObj, " this.storedTeamObj");
+    
     this.modalRef = this.modalService.show(template);
   }
 

@@ -148,7 +148,7 @@
                                 <i class="fa fa-trash" aria-hidden="true"></i></button>
                         </div>
                         <div class="m-0">
-                            <button type="button" title="Activity Preview" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview)">
+                            <button type="button" title="Activity Preview" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview,teamObj)">
                                 <i class="fa-solid fa-circle-info fa-lg"></i></button>
                         </div>
                     </div>
@@ -233,7 +233,7 @@
                         [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="m-0">
-                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview)"
+                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview,teamObj)"
                             [disabled]="!newteamMember.employeeRole"><i class="fa-solid fa-circle-info fa-lg"></i></button>
                     </div>
                 </div>
@@ -489,6 +489,7 @@
                 </div>
             </div>
         </div>
+        <button type="button" *ngIf="isGoToTeamButton" class="btn btn-sm btn-primary go-to-team ml-auto" (click)="goToUpdateTeamPage()"><i class="fa-solid fa-arrow-left"></i> Go To Update Team</button>
     </div>
 </div>
 <!-- end :: create & update Activity -->
@@ -584,7 +585,8 @@
                 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
-    </div>      
+    </div>
+    <button type="button" *ngIf="isGoToTeamButton" class="btn btn-sm btn-primary go-to-team ml-auto" (click)="goToUpdateTeamPage()"><i class="fa-solid fa-arrow-left"></i> Go To Update Team</button>
 </div>
 <!-- end :: View Activities -->
 
@@ -781,7 +783,7 @@
                     <td>{{emp.activity}}</td>
                     <td>{{emp.employeeRole}}</td>
                     <td *ngIf="isUpdation">
-                        <button class="btn btn-sm btn-outline-primary" (click)="navigateToUpdateActivityPage()" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
+                        <button class="btn btn-sm btn-outline-primary" (click)="navigateToUpdateActivityPage(emp.teamId)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
                     </td>
                 </tr>
             </tbody>
