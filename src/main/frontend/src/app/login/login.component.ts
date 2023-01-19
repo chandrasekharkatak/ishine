@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit{
   @ViewChild('reLogin_template') reLoginTemplate: TemplateRef<any>;
 
   // For session timeout check
-  feature = "Role Config";
+  feature = "Profile";
   userMapping: any = {};
   currentUser: User;
 
@@ -307,6 +307,8 @@ export class LoginComponent implements OnInit{
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
+
+    // console.log("================== user session timeout : ", this.userMapping.user_session_timeout, " ==================");
     
     if(this.userMapping.user_session_timeout){
       this.bnIdle.startWatching(this.authenticationService.sessionTimeout).subscribe((isTimedOut: boolean) => {
