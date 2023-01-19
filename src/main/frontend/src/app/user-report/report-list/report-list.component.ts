@@ -609,6 +609,12 @@ export class ReportListComponent implements OnInit {
           if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
             queryObj.value = "A-".concat(queryObj.value);
           }
+
+          if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
+            queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
+          } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
+            queryObj.value = (queryObj.value) ? moment(queryObj.value).format('DD-MM-YYYY HH:mm:ss') : '';
+          }
         });
         this.queryList = data.queryList;
       }
@@ -639,12 +645,12 @@ export class ReportListComponent implements OnInit {
 
       emittedArray[0].forEach(query => {
         if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
-          console.log(query.value, " : query.value");
-          
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD') : '';
         } else if (query.column == 'Created On' || query.column == 'Updated On') {
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
-        } if (query.column == 'Employee Id') {
+        }
+        
+        if (query.column == 'Employee Id') {
           query.value = query.value.split("-")[1];
         }
       });
