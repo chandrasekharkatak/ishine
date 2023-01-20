@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,4 +27,8 @@ public class ClientLocation {
 	private String clientLocation;
 	
 	private Integer clientId;
+	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+	private Timestamp createdOn;
+	
 }
