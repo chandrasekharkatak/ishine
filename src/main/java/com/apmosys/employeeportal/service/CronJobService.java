@@ -1035,11 +1035,10 @@ public class CronJobService {
 			try {
 				List<Department> allDepartment = departmentRepository.findAll();
 				if(!allDepartment.isEmpty()) {
-					
-					StringBuilder defaulterMail = new StringBuilder();
 					allDepartment.forEach((object) -> {
+						StringBuilder defaulterMail = new StringBuilder();
 						
-						if(!object.getName().equals("Super Admin")) {
+						if(!object.getName().equals("Super Admin") && !object.getName().equals("Director") && !object.getName().equals("unKnown Department")) {
 							int currentYear = LocalDate.now().getYear();
 							int currentMonth = LocalDate.now().getMonthValue();
 							
@@ -1054,12 +1053,9 @@ public class CronJobService {
 							List<TimesheetDTO> dtoList = new ArrayList<>();
 							String hodMail = null;
 							
-							if (timesheetList != null) {
+							if (!timesheetList.isEmpty()){
 								for(Object[] employee: employeeList) {
 									TimesheetDTO dto = new TimesheetDTO();
-									
-									defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
-									defaulterMail.append(",");
 
 									dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
 									dto.setEmployeeName(employee[1] != null ? employee[1].toString() : null);
@@ -1083,6 +1079,11 @@ public class CronJobService {
 											dto.setPendingEodCount(pendingEodCount);
 										}
 									});
+									
+									if(dto.getPendingEodCount() > 0) {
+										defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
+										defaulterMail.append(",");
+									}
 									dtoList.add(dto);
 								}
 							}
@@ -1091,63 +1092,96 @@ public class CronJobService {
 							dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
 									
 							//Mail timesheet defaulter list to: user cc: HR, HOD	
-							
-							StringBuilder html = new StringBuilder();
-							html.append("<html>\n" +
-						            "  <head>\n" +
-						            "    <style>\n" +
-						            "      table, th, td {\n" +
-						            "        border: 1px solid black;\n" +
-						            "      }\n" +
-						            "      table {\n" +
-						            "        border-collapse: collapse;\n" +
-						            "      }\n" +
-						            "    </style>\n" +
-						            "  </head>\n" +
-						            "  <body>\n" +
-						            "    <table>\n" +
-						            "      <tr>\n" +
-						            "        <th>Emp ID</th>\n" +
-						            "        <th>Name</th>\n" +
-						            "        <th>Email</th>\n" +
-						            "        <th>Manager Name</th>\n" +
-						            "        <th>Expected Timesheet Count</th>\n" +
-						            "        <th>Filled Timesheet Count</th>\n" +
-						            "        <th>Deaprtment</th>\n" +
-						            "      </tr>\n");
-							// add rows to the table
-							for(TimesheetDTO timesheet: dtoList) {
-								Long filledEOD = period - timesheet.getPendingEodCount();
-								html.append("      <tr>\n");
-								  // add cells to the row
-								  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
-								  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
-								  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
-								  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
-								  html.append("        <td>" + period + "</td>\n");
-								  html.append("        <td>" + filledEOD + "</td>\n");
-								  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
-								  html.append("      </tr>\n");
-							}
-							
-							html.append("    </table>\n" +
-							            "  </body>\n" +
-							            "</html>");
-							
-							try {
-								mailService.sendMailWithCC(defaulterMail.toString(),
-										hodMail+","+hrMailAddress,
-										"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
-										"Dear IShine Members, <br><br>"
-	                                  + "This is to bring it to your attention that you are in the defaulters list."
-	                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
-	                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
-									  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
-									  + " from 15th January onwards if it remains unfilled for consecutive 3 days. <br><br>"
-									  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
-									  +	html.toString());
-							} catch (MessagingException e) {
-								e.printStackTrace();
+							if(!dtoList.isEmpty()) {
+								
+								StringBuilder html = new StringBuilder();
+								html.append("<html>\n" +
+							            "  <head>\n" +
+							            "    <style>\n" +
+							            "      table, th, td {\n" +
+							            "        border: 1px solid black;\n" +
+							            "      }\n" +
+							            "      table {\n" +
+							            "        border-collapse: collapse;\n" +
+							            "      }\n" +
+							            "    </style>\n" +
+							            "  </head>\n" +
+							            "  <body>\n" +
+							            "    <table>\n" +
+							            "      <tr>\n" +
+							            "        <th>Emp ID</th>\n" +
+							            "        <th>Name</th>\n" +
+							            "        <th>Email</th>\n" +
+							            "        <th>Manager Name</th>\n" +
+							            "        <th>Expected Timesheet Count</th>\n" +
+							            "        <th>Filled Timesheet Count</th>\n" +
+							            "        <th>Deaprtment</th>\n" +
+							            "      </tr>\n");
+								// add rows to the table
+								for(TimesheetDTO timesheet: dtoList) {
+									Long filledEOD = period - timesheet.getPendingEodCount();
+									html.append("      <tr>\n");
+									  // add cells to the row
+									  html.append("        <td>" + "A-"+timesheet.getEmployeementId() + "</td>\n");
+									  html.append("        <td>" + timesheet.getEmployeeName() + "</td>\n");
+									  html.append("        <td>" + timesheet.getEmail() + "</td>\n");
+									  html.append("        <td>" + timesheet.getManagerName() + "</td>\n");
+									  html.append("        <td>" + period + "</td>\n");
+									  html.append("        <td>" + filledEOD + "</td>\n");
+									  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
+									  html.append("      </tr>\n");
+								}
+								
+								html.append("    </table>\n" +
+								            "  </body>\n" +
+								            "</html>");
+								
+								try {
+//									mailService.sendMailWithCC(defaulterMail.toString(),
+//											hodMail+","+hrMailAddress,
+//											"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
+//											"Dear IShine Members, <br><br>"
+//		                                  + "This is to bring it to your attention that you are in the defaulters list."
+//		                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
+//		                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
+//										  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
+//										  + " from 23rd January onwards if it remains unfilled for consecutive 3 days. <br><br>"
+//										  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+//										  +	html.toString());
+									
+									mailService.sendMailWithCC(hodMail,
+											hrMailAddress,
+											"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
+											"Dear IShine Members, <br><br>"
+		                                  + "This is to bring it to your attention that you are in the defaulters list."
+		                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
+		                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
+										  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
+										  + " from 23rd January onwards if it remains unfilled for consecutive 3 days. <br><br>"
+										  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+										  +	html.toString());
+								} catch (MessagingException e) {
+									System.out.println(object.getName() + " dept name \n\n\n");
+									e.printStackTrace();
+								}
+								
+								String[] emailId = defaulterMail.toString().split(",");
+								for (String email : emailId) {
+									try {
+										mailService.sendMail(email,
+												"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
+												"Dear IShine Members, <br><br>"
+										      + "This is to bring it to your attention that you are in the defaulters list."
+										      + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
+										      + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
+											  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
+											  + " from 23rd January onwards if it remains unfilled for consecutive 3 days. <br><br>"
+											  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+											  +	html.toString());
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
 							}
 						}
 					});
@@ -1324,7 +1358,11 @@ public class CronJobService {
 												ws.value(rowNum, 10, timesheetObj.getDescription());
 											}
 											ws.value(rowNum, 11, timesheetObj.getTotalTime());
-											ws.value(rowNum, 12, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
+											if(timesheetObj.getIsNightShift() == null) {
+												ws.value(rowNum, 12, "Regular Shift");
+											}else {
+												ws.value(rowNum, 12, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
+											}
 											ws.value(rowNum, 14, timesheetObj.getStatus());
 
 											rowNum++;
@@ -1362,7 +1400,7 @@ public class CronJobService {
 							 hrMailAddress,
 							 subject,
 							 "Dear Team, <br><br>"
-	                       + "Please find " + subject + "attached below.",
+	                       + "Please find " + subject + " attached below.",
 	                       file);
 					
 					 if(mailSent) {

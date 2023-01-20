@@ -773,6 +773,7 @@ public class TeamsService {
 							
 							dto.setActivity(object.getActivity());
 							dto.setEmployeeRole(object.getEmployeeRole());
+							dto.setTeamId(object.getTeamId());
 							dtoList.add(dto);
 						}
 					}
