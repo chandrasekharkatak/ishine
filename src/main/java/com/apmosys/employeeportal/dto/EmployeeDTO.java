@@ -174,5 +174,7 @@ public class EmployeeDTO {
 	private String timesheetLockUpdatedOn;
 	private Integer timesheetBackDatedDays;
 	private Integer compOffLockDays;
+	private Integer leaveBackdatedLockDays;
+	private Integer leaveFuturedatedLockDays;
 
 }

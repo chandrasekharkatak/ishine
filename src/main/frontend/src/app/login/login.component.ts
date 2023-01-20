@@ -275,6 +275,8 @@ export class LoginComponent implements OnInit{
       this.user.isTimesheetLockCheckEnable = user.isTimesheetLockCheckEnable;
       this.user.timesheetBackDatedDays = user.timesheetBackDatedDays;
       this.user.compOffLockDays = user.compOffLockDays;
+      this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
+      this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

@@ -574,7 +574,7 @@ public class CronJobService {
 									
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
-									newTimesheet.setDayType("Holiday");
+									newTimesheet.setDayType("Week Off");
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
 										newTimesheet.setDescription("WeekOff : Saturday");
 										newTimesheet.setTotalTime((float)0);
