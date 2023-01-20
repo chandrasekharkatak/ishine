@@ -332,6 +332,7 @@ export class TeamConfigComponent implements OnInit {
     this.isGoToTeamButton = false;
     this.templateActivityList = [];
     this.allTemplateActivityList = [];
+    this.activityTemplateObj = new Team();
   }
 
   showUpdateActivityTemplateForm(activityTemplate: Team){
@@ -738,6 +739,7 @@ export class TeamConfigComponent implements OnInit {
 
   // Project Details 
   getAllProjectListByProjectManagerId() {
+    let isAllProjectAllowed = false;
     this.allProjectListByManagerId = [];
 
     let projectObj = new Project();
@@ -755,8 +757,12 @@ export class TeamConfigComponent implements OnInit {
           ))
         )
 
+        if(this.userMapping.allow_all_projects){
+          isAllProjectAllowed = this.userMapping.allow_all_projects;
+        }
+
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
-        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
+        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || isAllProjectAllowed){
           this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
         }else{

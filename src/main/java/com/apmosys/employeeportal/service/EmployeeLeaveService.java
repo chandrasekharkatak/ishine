@@ -267,7 +267,7 @@ public class EmployeeLeaveService {
 					if((elapsedDays == 0)) {
 						Timesheet newTimesheet = new Timesheet();
 						
-						newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
+						newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
 						newTimesheet.setDate(fromDate);
 						newTimesheet.setDayType("Leave");
 						newTimesheet.setDescription("On leave");
@@ -284,7 +284,7 @@ public class EmployeeLeaveService {
 							Timesheet newTimesheet = new Timesheet();
 
 
-							newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getEmpId());
+							newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
 							newTimesheet.setDate(tempDateToday);
 							newTimesheet.setDayType("Leave");
 							newTimesheet.setDescription("On leave");
