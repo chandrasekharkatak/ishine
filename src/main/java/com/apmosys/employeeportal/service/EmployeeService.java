@@ -424,7 +424,7 @@ public class EmployeeService {
 					}
 
 					mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
-							"Your account has been created. <br>Username: " + newEmployee.getSecondaryEmail()
+							"Your account has been created. <br>Username: " + newEmployee.getEmail()
 									+ "<br>Password: " + defaultPaswword);
 					mailService.sendMail(hod.getEmail(), "Regarding new employee",
 							newEmployee.getName() + " has been inducted in " + hod.getDepartmentName()

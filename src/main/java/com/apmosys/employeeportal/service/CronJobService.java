@@ -627,51 +627,51 @@ public class CronJobService {
 				
 			//	Timesheet filler for leave days
 				
-				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
-				
-				if(!employeeLeave.isEmpty()) {
-					
-					for(EmployeeLeave leaveObj: employeeLeave) {
-						Long empId = leaveObj.getEmpId();
-						Short approvedLeave = 2;
-						
-						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
-						
-						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
-							
-							Timesheet newTimesheet = new Timesheet();
-							
-							newTimesheet.getCommonProperty().setCreatedBy(empId);
-							newTimesheet.setDate(dateToday);
-							newTimesheet.setDayType("Holiday");
-							newTimesheet.setDescription("On leave");
-							newTimesheet.setEmpId(empId);
-							newTimesheet.setStatus("Approved");
-							
-							timesheetsRepository.save(newTimesheet);
-						}
-						
-						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
-							LocalDate tempDateToday = dateToday;
-							
-							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
-								
-								Timesheet newTimesheet = new Timesheet();
-								
-								newTimesheet.getCommonProperty().setCreatedBy(empId);
-								newTimesheet.setDate(tempDateToday);
-								newTimesheet.setDayType("Holiday");
-								newTimesheet.setDescription("On leave");
-								newTimesheet.setEmpId(empId);
-								newTimesheet.setStatus("Approved");
-								
-								timesheetsRepository.save(newTimesheet);
-								
-								tempDateToday = tempDateToday.plusDays(1);
-							}
-						}					
-					}
-				}
+//				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+//				
+//				if(!employeeLeave.isEmpty()) {
+//					
+//					for(EmployeeLeave leaveObj: employeeLeave) {
+//						Long empId = leaveObj.getEmpId();
+//						Short approvedLeave = 2;
+//						
+//						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+//						
+//						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+//							
+//							Timesheet newTimesheet = new Timesheet();
+//							
+//							newTimesheet.getCommonProperty().setCreatedBy(empId);
+//							newTimesheet.setDate(dateToday);
+//							newTimesheet.setDayType("Holiday");
+//							newTimesheet.setDescription("On leave");
+//							newTimesheet.setEmpId(empId);
+//							newTimesheet.setStatus("Approved");
+//							
+//							timesheetsRepository.save(newTimesheet);
+//						}
+//						
+//						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+//							LocalDate tempDateToday = dateToday;
+//							
+//							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+//								
+//								Timesheet newTimesheet = new Timesheet();
+//								
+//								newTimesheet.getCommonProperty().setCreatedBy(empId);
+//								newTimesheet.setDate(tempDateToday);
+//								newTimesheet.setDayType("Holiday");
+//								newTimesheet.setDescription("On leave");
+//								newTimesheet.setEmpId(empId);
+//								newTimesheet.setStatus("Approved");
+//								
+//								timesheetsRepository.save(newTimesheet);
+//								
+//								tempDateToday = tempDateToday.plusDays(1);
+//							}
+//						}					
+//					}
+//				}
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -684,6 +684,10 @@ public class CronJobService {
 			try {
 				
 				List<PortalConfig> portalConfigObj = portalConfigRepository.findAll();
+				List<EmployeeDTO> probationElapsedDays = new ArrayList<EmployeeDTO>();
+				List<EmployeeDTO> resignElapsedDays = new ArrayList<EmployeeDTO>();
+				
+				LocalDate dateToday = LocalDate.now();
 				Float probationMailTrigger = null;
 				Float noticePeriodMailTrigger = null;
 				
@@ -717,11 +721,13 @@ public class CronJobService {
 						LocalDate confirmationDate = stringToDateTimeParser.getDate(employeeData.getDateOfJoining(), "yyyy-MM-dd").plusDays(employeeData.getProbationPeriod());
 						LocalDate mailTriggerDate = confirmationDate.minusDays(probationMailTrigger.shortValue());
 						if(LocalDate.now().equals(mailTriggerDate)) {
-							mailService.sendMailWithCC(employeeData.getEmail(),hrMailAddress,"Regarding Probation Period","Employee with EmpId : A-"
-						                    + employeeData.getEmployeementId() + "<br> Name : " + employeeData.getName()
-						                    + "<br> will complete its probation period in " + probationMailTrigger.shortValue() + " days");
+							mailService.sendMailWithCC(employeeData.getEmail(),
+									hrMailAddress,
+									"Regarding Probation Period",
+									"Employee with EmpId : A-"+ employeeData.getEmployeementId() 
+						          + "<br> Name : " + employeeData.getName()
+						          + "<br> will complete its probation period in " + probationMailTrigger.shortValue() + " days");
 						}
-						
 					}
 					
 					if(employeeData.getDateOfResign() != null){
@@ -729,12 +735,146 @@ public class CronJobService {
 						LocalDate relievingDate = stringToDateTimeParser.getDate(employeeData.getDateOfResign(), "yyyy-MM-dd").plusDays(employeeData.getNoticePeriod());
 						LocalDate mailTriggerDate = relievingDate.minusDays(noticePeriodMailTrigger.shortValue());
 						if(LocalDate.now().equals(mailTriggerDate)) {
-							mailService.sendMailWithCC(employeeData.getEmail(),hrMailAddress,"Regarding Notice Period","Employee with EmpId : A-"
-						                    + employeeData.getEmployeementId() + "<br> Name : " + employeeData.getName()
-						                    + "<br> will complete its Notice period in " + noticePeriodMailTrigger.shortValue() + " days");
+							mailService.sendMailWithCC(employeeData.getEmail(),
+									hrMailAddress,
+									"Regarding Notice Period","Employee with EmpId : A-"+ employeeData.getEmployeementId() 
+									+ "<br> Name : " + employeeData.getName()
+						            + "<br> will complete its Notice period in " + noticePeriodMailTrigger.shortValue() + " days");
+						}
+					}
+				}
+				
+				// elapsedDays : Probation or Resigned
+				List<Object[]> elapsedEmpList = employeeRepository.getElapsedEmpInProbationAndNotice();
+				List<EmployeeDTO> elapseddtoList = new ArrayList<EmployeeDTO>();
+				if(!elapsedEmpList.isEmpty()){
+					elapsedEmpList.forEach((object) -> {
+						
+						EmployeeDTO empdto = new EmployeeDTO();
+						empdto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						empdto.setName(object[1] != null ? object[1].toString() : null);
+						empdto.setEmail(object[2] != null ? object[2].toString() : null);
+						empdto.setProbationPeriod(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+						empdto.setNoticePeriod(object[4] != null ? Short.parseShort(object[4].toString()) : null);
+						empdto.setDateOfJoining(object[5] != null ? object[5].toString() : null);
+						empdto.setDateOfResign(object[6] != null ? object[6].toString() : null);
+						empdto.setEmploymentstatus(object[7] != null ? object[7].toString() : null);
+						
+						elapseddtoList.add(empdto);
+					});
+				}
+				
+				if(!elapseddtoList.isEmpty()) {
+					elapseddtoList.forEach((employeeData) -> {
+						if(employeeData.getDateOfResign() == null) {
+							LocalDate confirmationDate = stringToDateTimeParser.getDate(employeeData.getDateOfJoining(), "yyyy-MM-dd").plusDays(employeeData.getProbationPeriod());
+							// elapsedDays reminder *15 days*
+							if(confirmationDate.isBefore(dateToday)) {
+								Long elapsedDays = ChronoUnit.DAYS.between(confirmationDate, dateToday);
+								
+								if(elapsedDays/15 == 1) {
+									probationElapsedDays.add(employeeData);
+								}							
+							}
 						}
 						
+						if(employeeData.getDateOfResign() != null){
+							LocalDate relievingDate = stringToDateTimeParser.getDate(employeeData.getDateOfResign(), "yyyy-MM-dd").plusDays(employeeData.getNoticePeriod());
+							// elapsedDays reminder *15 days*
+							if(relievingDate.isBefore(dateToday)) {
+								Long elapsedDays = ChronoUnit.DAYS.between(relievingDate, dateToday);
+								if(elapsedDays/15 == 1) {
+									resignElapsedDays.add(employeeData);
+								}							
+							}
+						}
+					});
+				}
+				
+				// Probation mail reminder
+				if(!probationElapsedDays.isEmpty()) {
+					
+					StringBuilder html = new StringBuilder();
+					html.append("<html>\n" +
+				            "  <head>\n" +
+				            "    <style>\n" +
+				            "      table, th, td {\n" +
+				            "        border: 1px solid black;\n" +
+				            "      }\n" +
+				            "      table {\n" +
+				            "        border-collapse: collapse;\n" +
+				            "      }\n" +
+				            "    </style>\n" +
+				            "  </head>\n" +
+				            "  <body>\n" +
+				            "    <table>\n" +
+				            "      <tr>\n" +
+				            "        <th>Emp ID</th>\n" +
+				            "        <th>Name</th>\n" +
+				            "        <th>Date Of Joining</th>\n" +
+				            "      </tr>\n");
+					// add rows to the table
+					for(EmployeeDTO emp: probationElapsedDays) {
+						html.append("      <tr>\n");
+						  // add cells to the row
+						  html.append("        <td>" + "A-"+emp.getEmployeementId() + "</td>\n");
+						  html.append("        <td>" + emp.getName() + "</td>\n");
+						  html.append("        <td>" + emp.getDateOfJoining() + "</td>\n");
+						  html.append("      </tr>\n");
 					}
+					html.append("    </table>\n" +
+					            "  </body>\n" +
+					            "</html>");
+					
+					mailService.sendMail(hrMailAddress,
+							"Regarding Employee's Probation Period",
+							"Dear team, <br><br>"
+	                      + "Following employee's has crossed there expected probation period confirmation date. <br><br>"
+						  + html.toString()
+							);
+				}
+				
+				//Resigned mail reminder
+                if(!resignElapsedDays.isEmpty()) {
+					
+					StringBuilder html = new StringBuilder();
+					html.append("<html>\n" +
+				            "  <head>\n" +
+				            "    <style>\n" +
+				            "      table, th, td {\n" +
+				            "        border: 1px solid black;\n" +
+				            "      }\n" +
+				            "      table {\n" +
+				            "        border-collapse: collapse;\n" +
+				            "      }\n" +
+				            "    </style>\n" +
+				            "  </head>\n" +
+				            "  <body>\n" +
+				            "    <table>\n" +
+				            "      <tr>\n" +
+				            "        <th>Emp ID</th>\n" +
+				            "        <th>Name</th>\n" +
+				            "        <th>Date Of Resign</th>\n" +
+				            "      </tr>\n");
+					// add rows to the table
+					for(EmployeeDTO emp: resignElapsedDays) {
+						html.append("      <tr>\n");
+						  // add cells to the row
+						  html.append("        <td>" + "A-"+emp.getEmployeementId() + "</td>\n");
+						  html.append("        <td>" + emp.getName() + "</td>\n");
+						  html.append("        <td>" + emp.getDateOfResign() + "</td>\n");
+						  html.append("      </tr>\n");
+					}
+					html.append("    </table>\n" +
+					            "  </body>\n" +
+					            "</html>");
+					
+					mailService.sendMail(hrMailAddress,
+							"Regarding Employee's Probation Period",
+							"Dear team, <br><br>"
+	                      + "Following employee's has crossed there expected relieving date. <br><br>"
+						  + html.toString()
+							);
 				}
 				
 			}catch(Exception e) {
@@ -1030,7 +1170,7 @@ public class CronJobService {
 		// 0 0 10 ? * MON - At 10:00:00am, on every Monday, every month
 		// 0 0/2 * ? * *
 		@Async
-		@Scheduled(cron = "0 0 10 ? * MON")
+		@Scheduled(cron="${timesheetDefaulter.time}")
 		public void timesheetDefaulterWeeklyMail() {
 			try {
 				List<Department> allDepartment = departmentRepository.findAll();
@@ -1080,7 +1220,7 @@ public class CronJobService {
 										}
 									});
 									
-									if(dto.getPendingEodCount() > 0) {
+									if(dto.getPendingEodCount() >= 3) {
 										defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
 										defaulterMail.append(",");
 									}
@@ -1089,7 +1229,7 @@ public class CronJobService {
 							}
 							//Filter 0 pending EOD counts
 							
-							dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() > 0).collect(Collectors.toList());
+							dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() >= 3).collect(Collectors.toList());
 									
 							//Mail timesheet defaulter list to: user cc: HR, HOD	
 							if(!dtoList.isEmpty()) {
@@ -1405,7 +1545,7 @@ public class CronJobService {
 					
 					 if(mailSent) {
 						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						 response.setServiceResponse("All Employee's DSR report sent on mail successfully.");
+						 response.setServiceResponse("All Employee's DSR report sent on mail to finance & HR department successfully.");
 					 }else {
 						 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						 response.setServiceResponse("Unable to sent Mail.");

@@ -144,4 +144,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByDepartmentId(Long deptId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getElapsedEmpInProbationAndNotice();
 }
