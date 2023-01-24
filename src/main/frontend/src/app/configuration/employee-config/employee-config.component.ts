@@ -146,7 +146,8 @@ export class EmployeeConfigComponent implements OnInit {
     //Deafult values for dropdown
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
-    // this.employeeObj.managerId = '';
+    this.employeeObj.reportingManagerId = '';
+    this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
   }
@@ -364,20 +365,6 @@ export class EmployeeConfigComponent implements OnInit {
         // Job Role
         if (this.employeeObj.departmentId) {
           this.getJobRolesByDept(this.employeeObj.departmentId, this.employeeObj.jobRoleId);
-        }
-
-        // Certifications
-        if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {
-          this.addInputCertificationField();
-        } else {
-          this.allCertificationList = this.employeeObj.certifications;
-        }
-
-        // Prev. Employment
-        if (this.employeeObj.previousEmploymentList == undefined || this.employeeObj.previousEmploymentList.length == 0) {
-          this.addInputPreviousEmployerField();
-        } else {
-          this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
         }
       } else {
         console.error(response.serviceResponse)
@@ -1077,28 +1064,6 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.dateOfResign = null;	
       this.employeeObj.dateOfRelieving= null; 	
     }
-
-    this.allCertificationList.forEach(certificaiton => {
-      console.log("All certificaiton : ", this.allCertificationList);
-      if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
-        certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
-        console.log("New certificaiton : ", certificaiton);
-        this.updatedCertificationList.push(certificaiton);
-      }
-    });
-
-    this.allPreviousEmployment.forEach(prevEmployer => {
-      console.log("All Prev Employer : ", this.allPreviousEmployment);
-      if ((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0) && (prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)) {
-        console.log("New Prev Employer : ", prevEmployer);
-        this.updatedPreviousEmployment.push(prevEmployer);
-      }
-    });
-
-    this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
-    this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
-    this.employeeObj.updatedCertifications = (this.updatedCertificationList.length === 0) ? null : this.updatedCertificationList;
-    this.employeeObj.updatedPreviousEmploymentList = (this.updatedPreviousEmployment.length === 0) ? null : this.updatedPreviousEmployment;
 
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);

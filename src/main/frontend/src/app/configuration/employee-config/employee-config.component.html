@@ -528,6 +528,29 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
+                                                <label class="info-label">Reporting Manager</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.reportingManagerId">
+                                                    <option selected="selected" value="" >Select</option>
+                                                    <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="employeeObj.reportingManagerId != null && employeeObj.reportingManagerId != ''" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Approvals To</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.approvalsTo">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Manager">Manager</option>
+                                                    <option value="Reporting Manager">Reporting Manager</option>
+                                                  </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Department</label>
                                                 <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId)">
                                                     <option selected="selected" value="" >Select</option>
@@ -1235,7 +1258,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Official Mobile No.</p>
+                                                <p class="info-label">Alternate Mobile No.</p>
                                                 <p class="info-text">{{previewObj.alternateMobileNo}}</p>
                                             </div>
                                         </div>
@@ -1369,6 +1392,13 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Manager</p>
                                                 <p class="info-text info-highlight">{{previewObj.managerName}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Reporting Manager</p>
+                                                <p class="info-text info-highlight">{{previewObj.reportingManagerName}}
                                                 </p>
                                             </div>
                                         </div>
@@ -1739,7 +1769,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Official Mobile No.</p>
+                                                <p class="info-label">Alternate Mobile No.</p>
                                                 <p class="info-text">{{previewEmployeeObj.alternateMobileNo}}</p>
                                             </div>
                                         </div>
@@ -1873,6 +1903,13 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Manager</p>
                                                 <p class="info-text info-highlight">{{previewEmployeeObj.managerName}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Reporting Manager</p>
+                                                <p class="info-text info-highlight">{{previewEmployeeObj.reportingManagerName}}
                                                 </p>
                                             </div>
                                         </div>

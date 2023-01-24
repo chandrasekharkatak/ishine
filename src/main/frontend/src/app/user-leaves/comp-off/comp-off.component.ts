@@ -246,13 +246,20 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
       this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
-      this.compOffObj.managerEmail = this.currentUser.managerEmail;
-      this.compOffObj.managerName = this.currentUser.managerName;
-      this.compOffObj.createdBy = this.currentUser.empId;
-      this.compOffObj.managerId = this.currentUser.managerId; 
+      this.compOffObj.createdBy = this.currentUser.empId; 
       this.compOffObj.employeementId = this.currentUser.employeementId;
       this.compOffObj.email = this.currentUser.email;
       this.compOffObj.employeeName = this.currentUser.name;
+
+      if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+        this.compOffObj.managerId = this.currentUser.reportingManagerId;
+        this.compOffObj.managerEmail = this.currentUser.reportingManagerEmail;
+        this.compOffObj.managerName = this.currentUser.reportingManagerName;
+      }else{
+        this.compOffObj.managerId = this.currentUser.managerId;
+        this.compOffObj.managerEmail = this.currentUser.managerEmail;
+        this.compOffObj.managerName = this.currentUser.managerName;
+      }
   
       console.log("Apply Comp off : ", this.compOffObj);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {

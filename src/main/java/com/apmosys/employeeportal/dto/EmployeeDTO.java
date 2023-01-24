@@ -175,4 +175,8 @@ public class EmployeeDTO {
 	private Integer timesheetBackDatedDays;
 	private Integer compOffLockDays;
 
+	private Long reportingManagerId;
+	private String approvalsTo;
+	private String reportingManagerName;
+	private String reportingManagerEmail;
 }
