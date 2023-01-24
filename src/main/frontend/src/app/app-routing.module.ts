@@ -44,6 +44,7 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
 import { UserExitComponent } from './user-exit/user-exit.component';
 import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
+import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -103,7 +104,7 @@ const routes: Routes = [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
-
+      { path: 'resource-management', component: ResourceManagementComponent, },
     ]
   },
   {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],

@@ -1,0 +1,194 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}" (click)="showViewProjects()">View Projects</button>
+    </div>
+</div>
+
+<!-- start :: View Projects -->
+<div class="row" *ngIf="isProjectTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">All Projects</h1>
+            </div>    
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mt-4 pt-2 mb-2 ml-auto">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+                    [tableTHeadTrId]="'projectInfoTHeadTr'">
+                    <table class="table table-responsive" id="projectInfo" matSort (matSortChange)="sortProject($event)">	
+                        <thead class="thead-light" id="projectInfoTHead">	
+                          <tr id="projectInfoTHeadTr">	
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="teamName">Project Manager</th>	
+                            <th scope="col" class="info-label" mat-sort-header="teamLeadName">Client</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn">State</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn">Status</th>
+                            <th scope="col" class="info-label">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allProjectList.length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr *ngFor="let project of allProjectList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                                <td>{{project.name}}</td>
+                                <td>{{project.projectManager}}</td>
+                                <td>{{project.clientName}}</td>
+                                <td>{{project.clientState}}</td>
+                                <td>{{project.status}}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showEditProjectForm(project)"><em class="fa fa-edit"></em></button>&nbsp;
+                                </td>
+                            </tr>
+                        </tbody>
+                      </table>
+                      <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                </div>
+            </div>  
+        </div>  
+    </div>
+</div>
+<!-- end :: View Projects -->
+
+<!-- Start :: Edit Project -->
+
+<div class="row" *ngIf="isEditProject">
+
+    <!-- Project Info -->
+
+    <div class="card col-md-12 px-0">
+        <div class="card-body">
+            <h5 class="card-name">Project Info</h5>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Project Name</label>
+                            <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.name">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                            <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.clientName">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <mat-select class="form-control" multiple [(ngModel)]="projectObj.department">
+                                <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                <mat-option *ngFor="let dept of filteredDeptList" disabled [value]="dept.name">{{dept.name}}</mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Project Manager</label>
+                            <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManager">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>State</label>
+                            <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.clientState">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+
+            <!-- Team Info -->
+
+            <h5 class="card-name">Teams</h5>
+            <div class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
+                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="teamObj.teamName">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #departmentSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'deptId'"
+                                  [source]="allDeptList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="true"
+                                  [(ngModel)]="teamObj.departmentList"
+                                  (selectionChange)="getAllEmployeesByRole();getAllEmployeesByDepartmentIds()"
+                                  >
+                                  <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
+                                    {{dept.name}}
+                                  </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Team Lead</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #selectTeamLead="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="teamLeadsList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="teamObj.teamLeadId"
+                                  [disabled]="!teamObj.departmentList"
+                                  >
+                                  <mat-option [value]="teamLead.empId" *ngFor="let teamLead of selectTeamLead.filteredSource">
+                                    {{teamLead.name}}
+                                  </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-0 mt-4 pt-1 d-flex">
+                    <div class="m-0">
+                        <button type="button" title="Add team member" class="btn btn-outline-primary mx-1"><i class="fa-solid fa-user-plus"></i></button>
+                    </div>
+                    <div class="m-0">
+                        <button type="button" title="Preview team member" class="btn btn-outline-primary mx-1"><i class="fa-solid fa-people-group"></i></button>
+                    </div>
+                    <div class="m-0">
+                        <button type="button" title="Add team" class="btn btn-outline-primary mx-1"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="m-0">
+                        <button type="button" title="Delete team" class="btn btn-outline-danger mx-1"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- end :: Edit Project -->
