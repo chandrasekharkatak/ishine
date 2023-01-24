@@ -773,6 +773,7 @@ public class TeamsService {
 							
 							dto.setActivity(object.getActivity());
 							dto.setEmployeeRole(object.getEmployeeRole());
+							dto.setTeamId(object.getTeamId());
 							dtoList.add(dto);
 						}
 					}
@@ -1465,35 +1466,35 @@ public class TeamsService {
 						});
 					}
 					//Add deptIds in teams
-					String departemntIds = String.join(",", deptIds);
-					teamOBj.setDeptIds(departemntIds);
-					Team teamDbResposnse = teamRepository.save(teamOBj);
-					
-					if(teamDbResposnse != null) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("deptIds added successfully in team table");
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("deptIds failed to add");
-					}
+//					String departemntIds = String.join(",", deptIds);
+//					teamOBj.setDeptIds(departemntIds);
+//					Team teamDbResposnse = teamRepository.save(teamOBj);
+//					
+//					if(teamDbResposnse != null) {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						response.setServiceResponse("deptIds added successfully in team table");
+//					}else {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//						response.setServiceResponse("deptIds failed to add");
+//					}
 					
 					// Get team activities to set deptIds
-//					List<Activity> teamActivity = activitiesRepository.findByTeamId(teamOBj.getTeamId());
-//					if(!teamActivity.isEmpty()) {
-//						teamActivity.forEach((activityObj) -> {
-//							String departemntIds = String.join(",", deptIds);
-//							activityObj.setDeptIds(departemntIds);
-//							Activity activityDbResponse = activitiesRepository.save(activityObj);
-//							
-//							if(activityDbResponse != null) {
-//								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//								response.setServiceResponse("deptIds added successfully in Activity table");
-//							}else {
-//								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//								response.setServiceResponse("deptIds failed to add");
-//							}
-//						});
-//					}
+					List<Activity> teamActivity = activitiesRepository.findByTeamId(teamOBj.getTeamId());
+					if(!teamActivity.isEmpty()) {
+						teamActivity.forEach((activityObj) -> {
+							String departemntIds = String.join(",", deptIds);
+							activityObj.setDeptIds(departemntIds);
+							Activity activityDbResponse = activitiesRepository.save(activityObj);
+							
+							if(activityDbResponse != null) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("deptIds added successfully in Activity table");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("deptIds failed to add");
+							}
+						});
+					}
 				});
 			}
 			
@@ -1539,6 +1540,40 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 		}
 		return null;
+	}
+
+	public ServiceResponse addProjectManager() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Project> allProject = projectRepository.findAll();
+			
+			if(!allProject.isEmpty()){
+				allProject.forEach(obj -> {
+					if(obj.getProjectManagerId() == null && (obj.getDepartmentName() != null)) {
+						Department dept = departmentRepository.findByName(obj.getDepartmentName());
+						
+						obj.setProjectManagerId(dept.getHodId());
+						Project dbResponse = projectRepository.save(obj);
+						
+						if(dbResponse != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Project manager added");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Failed to add project manager");
+						}
+					}
+				});
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
 
 }

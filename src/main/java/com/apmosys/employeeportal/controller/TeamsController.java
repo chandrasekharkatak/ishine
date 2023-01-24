@@ -241,4 +241,11 @@ public class TeamsController {
 		ServiceResponse response = teamsService.addProjectDepartmentMapping();
 		return response;
 	}
+	
+	@RequestMapping(value="/addProjectManager" , method = RequestMethod.GET)
+	public ServiceResponse addProjectManager() {
+		
+		ServiceResponse response = teamsService.addProjectManager();
+		return response;
+	}
 }

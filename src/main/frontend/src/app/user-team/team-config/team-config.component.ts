@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, takeUntil } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
@@ -60,6 +61,7 @@ export class TeamConfigComponent implements OnInit {
 
   //Obj 
   teamObj: Team = new Team();
+  storedTeamObj: Team = new Team();
   activityTemplateObj: Team = new Team();
   allTeamMembers: any[] = [];
   allTeamsList: any[] = [];
@@ -96,6 +98,7 @@ export class TeamConfigComponent implements OnInit {
   selectedTeam: any = '';
   excelName = '';
   tableElement = '';
+  isGoToTeamButton:boolean = false;
 
   filterStatus:any = '';
 
@@ -107,6 +110,7 @@ export class TeamConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private projectService: ProjectService,
     private teamService: TeamService,
+    private router: Router,
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
@@ -159,6 +163,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityCreate = false;
     this.isActivityUpdate = false;
     this.isActivityTemplateTable = false;
+    this.isGoToTeamButton = false;
 
     this.reset();
     this.getAllProjectListByProjectManagerId();
@@ -182,6 +187,7 @@ export class TeamConfigComponent implements OnInit {
     this.page = 1;
     this.data = '';
     this.filterStatus= '';
+    this.isGoToTeamButton = false;
 
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
@@ -201,8 +207,9 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityCreate = false;
     this.isActivityUpdate = false;
     this.isActivityTemplateTable = false;
+    this.isGoToTeamButton = false;
 
-    this.teamObj.departmentList = [];
+    // this.teamObj.departmentList = [];
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
     this.teamObj.departmentList = this.teamObj.departmentList?.map(x=>+x);
@@ -233,6 +240,7 @@ export class TeamConfigComponent implements OnInit {
     this.reset();
     this.getAllDepartmentList();
     this.getAllProjectsByEmpId();
+    this.getAllProjectListByProjectManagerId();
   }
 
   showViewActivities() {
@@ -254,6 +262,7 @@ export class TeamConfigComponent implements OnInit {
     this.allActivityList = [];
 
     this.getAllProjectsByEmpId();
+    this.getAllProjectListByProjectManagerId();
   }
 
   showUpdateActivityForm(activityObj: Activity) {
@@ -272,6 +281,7 @@ export class TeamConfigComponent implements OnInit {
     this.activityObj = Object.assign({}, activityObj);
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
     this.getDepartmentByTeam(this.activityObj.teamId);
+    this.getAllProjectListByProjectManagerId();
   }
 
   showActivityTemplate(){
@@ -289,6 +299,7 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.isGoToTeamButton = false;
     this.allTemplateActivityList = [];
 
     this.teamObj = new Team();
@@ -318,8 +329,10 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.isGoToTeamButton = false;
     this.templateActivityList = [];
     this.allTemplateActivityList = [];
+    this.activityTemplateObj = new Team();
   }
 
   showUpdateActivityTemplateForm(activityTemplate: Team){
@@ -337,6 +350,7 @@ export class TeamConfigComponent implements OnInit {
     this.isTeamTable = false;
     this.isActivityTable = false;
     this.isDisabled = false;
+    this.isGoToTeamButton = false;
     this.allTemplateActivityList = [];
     this.reset();
 
@@ -725,6 +739,7 @@ export class TeamConfigComponent implements OnInit {
 
   // Project Details 
   getAllProjectListByProjectManagerId() {
+    let isAllProjectAllowed = false;
     this.allProjectListByManagerId = [];
 
     let projectObj = new Project();
@@ -742,8 +757,12 @@ export class TeamConfigComponent implements OnInit {
           ))
         )
 
+        if(this.userMapping.allow_all_projects){
+          isAllProjectAllowed = this.userMapping.allow_all_projects;
+        }
+
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
-        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR'){
+        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || isAllProjectAllowed){
           this.allProjectListByManagerId = allProjectList;
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
         }else{
@@ -1154,6 +1173,25 @@ export class TeamConfigComponent implements OnInit {
 
   // Activity template :: end
 
+  navigateToUpdateActivityPage(teamId:any){
+    this.cancelRequest();
+    this.isGoToTeamButton = true;
+    this.isActivityTable = true;
+
+    this.isUpdation = false;
+    this.isTeamForm = false;
+
+    this.selectedProject = this.storedTeamObj.projectId;
+    this.selectedTeam = teamId;
+
+    this.getAllTeamsByProjectId(this.selectedProject);
+    this.getAllActivitiesByProjectIdAndTeamId(this.selectedProject, this.selectedTeam);
+  }
+
+  goToUpdateTeamPage(){
+    this.showUpdateTeamForm(this.storedTeamObj);
+  }
+
   // download excel
 
   exportToExcel(): void {
@@ -1228,7 +1266,10 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  openActivityPreviewModal(template: TemplateRef<any>,) {
+  openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {
+    this.storedTeamObj = teamObj;
+    console.log(this.storedTeamObj, " this.storedTeamObj");
+    
     this.modalRef = this.modalService.show(template);
   }
 

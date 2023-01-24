@@ -79,4 +79,11 @@ public class TimesheetDTO {
 	private String totalWorkingOfficeHours; //<-- totalWorkingHours in Timesheet Model
 	private String isNightShift;
 	private String managerEmail;
+	
+	private String isCron; //<-- for allEmployee DSR report cronJob
+	private Integer year;
+	private String month;
+	private Long actualEODCount;
+	private Long resourceCount;
+	private Long expectedEODCount;
 }
