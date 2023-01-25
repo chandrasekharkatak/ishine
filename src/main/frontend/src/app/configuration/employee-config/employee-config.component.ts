@@ -684,6 +684,14 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if(employeeObj.reportingManagerId){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.approvalsTo)) {
+        this.alertMessage = "Please select Approvals To !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.departmentId)) {
       this.alertMessage = "Please select Department !!"
       this.openAlertMod(template, this.alertMessage);
