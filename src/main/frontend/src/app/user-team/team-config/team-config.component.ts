@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, takeUntil } from 'rxjs/operators';
@@ -31,6 +31,9 @@ import { AppComponent } from 'src/app/app.component';
   styleUrls: ['./team-config.component.css']
 })
 export class TeamConfigComponent implements OnInit {
+
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 
   data: string;
   feature = "Team Config";
@@ -102,7 +105,9 @@ export class TeamConfigComponent implements OnInit {
 
   filterStatus:any = '';
 
-  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin']; 
+  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
+  
+  selectedDept:any;
 
   constructor(
     private validationService: ValidationService,
@@ -187,6 +192,7 @@ export class TeamConfigComponent implements OnInit {
     this.page = 1;
     this.data = '';
     this.filterStatus= '';
+    this.selectedDept = '';
     this.isGoToTeamButton = false;
 
     this.allTeamList = [];
@@ -208,6 +214,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityUpdate = false;
     this.isActivityTemplateTable = false;
     this.isGoToTeamButton = false;
+    this.selectedDept = '';
 
     // this.teamObj.departmentList = [];
     this.teamObj = Object.assign({}, teamObj);
@@ -238,6 +245,11 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTemplateTable = false;
 
     this.reset();
+    if(this.isGoToTeamButton == true){
+      this.activityObj.projectId = this.selectedProject;
+      this.activityObj.teamId = this.selectedTeam;
+      this.getDepartmentByTeam(this.selectedTeam);
+    }
     this.getAllDepartmentList();
     this.getAllProjectsByEmpId();
     this.getAllProjectListByProjectManagerId();
@@ -259,6 +271,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTemplateTable = false;
     this.page = 1;
     this.data = ''
+    this.selectedDept = '';
     this.allActivityList = [];
 
     this.getAllProjectsByEmpId();
@@ -277,6 +290,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityCreate = false;
     this.isActivityUpdate = false;
     this.isActivityTemplateTable = false;
+    this.selectedDept = '';
     
     this.activityObj = Object.assign({}, activityObj);
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
@@ -332,7 +346,6 @@ export class TeamConfigComponent implements OnInit {
     this.isGoToTeamButton = false;
     this.templateActivityList = [];
     this.allTemplateActivityList = [];
-    this.activityTemplateObj = new Team();
   }
 
   showUpdateActivityTemplateForm(activityTemplate: Team){
@@ -398,6 +411,7 @@ export class TeamConfigComponent implements OnInit {
     this.activityTemplateObj = new Team();
     this.newteamMember = new TeamMember();
     this.filterStatus= '';
+    this.selectedDept = '';
     // this.addInputTeamMemberField();
   }
 
@@ -928,7 +942,7 @@ export class TeamConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(activityObj.teamId)) {
-      this.alertMessage = "Please select Team Lead !!"
+      this.alertMessage = "Please select Team Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1094,6 +1108,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showActivityTemplateTable();
+        this.selectedDept = this.activityTemplateObj.deptId;
         this.getActivityTemplate(template);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -1102,13 +1117,16 @@ export class TeamConfigComponent implements OnInit {
   }
 
   getActivityTemplate(template: TemplateRef<any>){
-    if (!this.validationService.validateNullUndefinedEmptyString(this.activityTemplateObj.deptId)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.selectedDept)) {
       this.alertMessage = "Please select department !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    this.teamService.getActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
+    let teamObj = new Team();
+    teamObj.deptId = this.selectedDept;
+
+    this.teamService.getActivityTemplate(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.templateActivityList = response.serviceResponse;
 
@@ -1326,9 +1344,11 @@ export class TeamConfigComponent implements OnInit {
               return compare(a.activity.toLowerCase(), b.activity.toLowerCase(), isAsc)
             case 'eta':
               return compare(a.eta, b.eta, isAsc)
+            case 'employeeRole':
+              return compare(a.employeeRole.toLowerCase(), b.employeeRole.toLowerCase(), isAsc)
             case 'createdByName':
               return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-              case 'createdOn':	
+            case 'createdOn':	
               return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
             default:
               return 0;

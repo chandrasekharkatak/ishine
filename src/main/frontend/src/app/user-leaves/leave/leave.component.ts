@@ -459,6 +459,7 @@ export class LeaveComponent implements OnInit {
   }
 
   openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+      this.leaveObj.rejectReason = '';
       this.cancelRequest();
       this.leaveObj = leave;
       this.modalRef = this.modalService.show(template);
