@@ -1450,4 +1450,52 @@ public class CustomFilterService {
 		return response;
 	}
 	
+	
+	public ServiceResponse getCustomQueryData(CustomFilterDTO customFilterDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<Object[]> list = new ArrayList<Object[]>();
+		try {
+			
+			if(customFilterDTO.getCustomQuery() != null) {
+			
+				Session session = entityManager.unwrap(Session.class);
+				try {				
+					String q= customFilterDTO.getCustomQuery();
+
+					Query query = session.createSQLQuery(q);
+					System.out.println("\n\n query : "+ query);
+					System.out.println("\n\n Result Set : "+ query.getResultList());
+					list = query.getResultList();
+					
+				}catch(Exception e) {
+					e.printStackTrace();
+					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Something Went Wrong.");
+					response.setServiceError(e.getMessage());
+				}finally {
+					if(session!=null && session.isOpen()) {
+						session.close();
+					}
+				}
+
+				if (list != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(list);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Result set is empty.");
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Custom Query Not Found.");
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

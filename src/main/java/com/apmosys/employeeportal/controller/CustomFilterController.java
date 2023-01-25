@@ -64,4 +64,9 @@ public class CustomFilterController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getCustomQueryData", method = RequestMethod.POST)
+	public ServiceResponse getCustomQueryData(@RequestBody CustomFilterDTO customFilterDTO) {
+		ServiceResponse response = customFilterService.getCustomQueryData(customFilterDTO);
+		return response;
+	}
 }

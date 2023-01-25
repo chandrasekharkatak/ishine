@@ -19,7 +19,7 @@ import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { UtilityService } from 'src/app/services/utility.service';
-
+import * as XLSX from 'xlsx';
 class FilterData {
   title: any;
   columns: any;
@@ -52,6 +52,7 @@ export class ReportListComponent implements OnInit {
   isTimesheetReportTable: boolean = false;
   isEmployeeReportTable: boolean = false;
   isAccessControlListTable: boolean = false;
+  isCustomQueryForm: boolean = false;
 
   allEmployeeList: any[] = [];
 
@@ -92,6 +93,8 @@ export class ReportListComponent implements OnInit {
   release: boolean = true;
   finalColumns: any[] = [];
 
+  customQuery:any;
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -103,7 +106,7 @@ export class ReportListComponent implements OnInit {
     private validationService: ValidationService,
     private renderer2: Renderer2,
     private locationStrategy: LocationStrategy,
-    private utilityService: UtilityService
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -142,6 +145,7 @@ export class ReportListComponent implements OnInit {
     this.isTimesheetReportTable = false;
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
+    this.isCustomQueryForm = false;
 
     console.log(this.storedDataList, " : storeddatalist");
 
@@ -172,6 +176,7 @@ export class ReportListComponent implements OnInit {
     this.isLeaveReportTable = false;
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
+    this.isCustomQueryForm = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
@@ -198,6 +203,7 @@ export class ReportListComponent implements OnInit {
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isAccessControlListTable = false;
+    this.isCustomQueryForm = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -222,10 +228,22 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.isCustomQueryForm = false;
     this.data = '';
     this.columns = [];
     this.paginateData = [];
   }
+
+  showCustomQueryForm() {
+    this.isCustomQueryForm = true;
+    this.customQuery = null;
+
+    this.isAccessControlListTable = false;
+    this.isEmployeeReportTable = false;
+    this.isLeaveReportTable = false;
+    this.isTimesheetReportTable = false;
+  }
+
 
   // Leave Report 
   getAllLeaveApplicationsList() {
@@ -674,6 +692,47 @@ export class ReportListComponent implements OnInit {
     }
   }
 
+
+  // Custom Query Data 
+  getCustomQueryData(template: TemplateRef<any>) {
+    this.customQuery?.trim();
+    if(this.validationService.validateNullUndefinedEmptyString(this.customQuery)){
+      this.alertMessage = "Please enter custom query !!";
+      this.openAlertMod(template, this.alertMessage);
+    }
+
+    let queryObj = new Query();
+    queryObj.customQuery = this.customQuery;
+
+    this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let responseData = response.serviceResponse;
+        console.log("responseData : ", responseData);
+
+        if(responseData){
+          let exportData = responseData.map((dataArr) => {
+            let dataObj = {};
+            dataArr.forEach((data,index) => {
+              dataObj[index] = data;
+            });
+
+            return dataObj
+          });
+          
+          const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData, {skipHeader: true});
+          const book: XLSX.WorkBook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+          XLSX.writeFile(book, "CustomQueryData.xlsx");
+        }else{
+          this.alertMessage = "Please Enter Valid Query !!";
+          this.openAlertMod(template, this.alertMessage);
+        }
+
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
   //pagination 	
   page = 1;
