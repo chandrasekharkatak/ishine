@@ -370,12 +370,12 @@
   </div>  
 
     <div class="col-md-12">
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
-        [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'"
+      <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'"
+        [tableTHeadId]="'aclReportInfoTHead'" [tableTHeadTrId]="'aclReportInfoTHeadTr'"
         style="max-height: 65vh;">
-        <table class="table table-responsive table-bordered table-hover" id="table">
-          <thead>
-            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
+        <table class="table table-responsive table-bordered table-hover" id="aclReportInfo">
+          <thead id="aclReportInfoTHead">
+            <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
               (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
               <ng-container *ngFor="let column of finalColumns; let i = index">
                 <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true"
@@ -457,8 +457,15 @@
           </tbody>
         </table>
       </div>
-      <button type="button" class="btn btn-sm btn-outline-primary mt-2" [hidden]="paginateData.length == 0"
-        (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+      <div class="row" [hidden]="paginateData.length == 0">
+         <div class="col-md-12 d-flex justiy-content-center mt-2">
+          <button type="button" class="btn btn-sm btn-outline-primary"
+          (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2" (click)="exportToExcel()">
+            <em class="fa fa-file-arrow-down fa-2x"></em>
+          </button>
+         </div>
+      </div>
     </div>
 </div>
 <!-- end :: ACL (access control list) -->

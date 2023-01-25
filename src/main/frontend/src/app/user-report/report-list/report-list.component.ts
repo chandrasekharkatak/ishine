@@ -19,6 +19,7 @@ import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { UtilityService } from 'src/app/services/utility.service';
+import * as XLSX from 'xlsx';
 
 class FilterData {
   title: any;
@@ -790,19 +791,52 @@ export class ReportListComponent implements OnInit {
     }
 
     if (this.isAccessControlListTable == true) {
-      this.excelName = 'ACLReport.xlsx';
+      this.excelName = `${this.employeeRole}-ACLReport.xlsx`;
 
-      const onlySpecificDataArr = this.accessControlList.map(
-        x => ({
-          "Department Name": x.departmentName,
-          "Designation": x.jobRoleName,
-          "Employee Role": x.employeeRole,
-          "Tab Name": x.tabName,
-          "Feature Name": x.featureName,
-          "Sub-Feature Name": x.subFeatureName,
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      let columnsData = [];
+      let fieldData = [];
+      
+      this.finalColumns.map(column => {
+        let headers = column.department.map(field => field);
+        columnsData.push(...headers);
+      });
+
+      let columns = columnsData.map(column => column.field);
+      let departments = {};
+      let designations = {}; 
+      
+      columns.forEach(column => {
+        let data = columnsData.find(cd => cd.field == column);
+        if(data.department){
+          if(Object.values(departments).includes(data.department)){
+            departments[column] = "";
+          }else{
+            departments[column] = data.department;
+          }
+        }else{
+          departments[column] = "";
+        }
+
+        if(data){
+          designations[column] = data.header;
+        }
+      });
+
+      fieldData.push(departments, designations, ...this.paginateData);
+      
+      const onlySpecificDataArr = fieldData.map(response => {
+        let data = {};
+        columns.forEach((header, index) => {
+          data[index] = "" + response[header]
+        });
+        return data;
+      });
+
+      const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr, {skipHeader:true});
+      const book: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+
+      XLSX.writeFile(book, this.excelName);
     }
   }
 
