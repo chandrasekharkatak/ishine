@@ -1409,9 +1409,10 @@ public class CronJobService {
 				LocalDate firstOfMonth = null;
 				LocalDate currentDate = null;
 				String subject = null;
+				int currentYear = 0;
 				
 				if(timesheetdto.getIsCron().equals("true")) {
-					int currentYear = LocalDate.now().getYear();
+					currentYear = LocalDate.now().getYear();
 					int currentMonth = LocalDate.now().getMonthValue();
 					
 					firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
@@ -1423,7 +1424,7 @@ public class CronJobService {
 					
 					firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
 					currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
-					subject = "All Employee's DSR report of month : "+timesheetdto.getMonth();
+					subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
 				}
 					
 					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
