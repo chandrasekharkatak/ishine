@@ -115,6 +115,7 @@ const routes: Routes = [
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
+  {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
   {path:'user-exit', component: UserExitComponent, canActivate: [AuthGuard]},
   {path:'user-exit/:id', component: UserExitComponent, canActivate: [AuthGuard]},

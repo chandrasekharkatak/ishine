@@ -274,8 +274,16 @@ export class LoginComponent implements OnInit{
       sessionStorage.setItem('logInfo', JSON.stringify(log));
       this.logService.updateLogInfo(log);
 
-      if(this.authGaurd.exitEmployeeId != null){
-        this.router.navigate(['/user-exit', this.authGaurd.exitEmployeeId]);
+      if(this.authGaurd.id != null){
+        let url = this.authGaurd.currentUrl;
+        console.log(url, " : url");
+        
+        if(url.includes("user-survey")){
+          this.router.navigate(['/user-survey', this.authGaurd.id]);
+        }
+        if(url.includes("user-exit")){
+          this.router.navigate(['/user-exit', this.authGaurd.id]);
+        }
       }else{
         this.router.navigate(['/home']);
       }
