@@ -1438,17 +1438,18 @@ public class CronJobService {
 						ws.value(0, 1, "Emp Name");
 						ws.value(0, 2, "Date");
 						ws.value(0, 3, "Day Type");
-						ws.value(0, 4, "In-Time");
-						ws.value(0, 5, "Out-Time");
-						ws.value(0, 6, "Total Working Hours");
-						ws.value(0, 7, "Client");
-						ws.value(0, 8, "Client Location");
-						ws.value(0, 9, "Project");
-						ws.value(0, 10, "Activity");
-						ws.value(0, 11, "Total Activity Time");
-						ws.value(0, 12, "Shift");
-						ws.value(0, 13, "Description");
-						ws.value(0, 14, "Status");
+						ws.value(0, 4, "Leave Type");
+						ws.value(0, 5, "In-Time");
+						ws.value(0, 6, "Out-Time");
+						ws.value(0, 7, "Total Working Hours");
+						ws.value(0, 8, "Client");
+						ws.value(0, 9, "Client Location");
+						ws.value(0, 10, "Project");
+						ws.value(0, 11, "Activity");
+						ws.value(0, 12, "Total Activity Time");
+						ws.value(0, 13, "Shift");
+						ws.value(0, 14, "Description");
+						ws.value(0, 15, "Status");
 
 						int rowNum = 1;
 
@@ -1479,48 +1480,61 @@ public class CronJobService {
 											String clientLocation = object[7] != null ? object[7].toString() : null;
 
 											ws.style(rowNum, 2).format("dd-MM-yyyy").set();
-											ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
 											ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+											ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
 											
 											ws.value(rowNum, 0, "A-" + employeementId);
 											ws.value(rowNum, 1, empName);
 											ws.value(rowNum, 2, timesheetObj.getDate());
 											ws.value(rowNum, 3, timesheetObj.getDayType());
-											ws.value(rowNum, 4, timesheetObj.getOfficeInTime());
-											ws.value(rowNum, 5, timesheetObj.getOfficeOutTime());
-											ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
-											ws.value(rowNum, 7, clientName);
-											ws.value(rowNum, 8, clientLocation);
-											ws.value(rowNum, 9, project);
+											ws.value(rowNum, 5, timesheetObj.getOfficeInTime());
+											ws.value(rowNum, 6, timesheetObj.getOfficeOutTime());
+											ws.value(rowNum, 7, timesheetObj.getTotalWorkingHours());
+											ws.value(rowNum, 8, clientName);
+											ws.value(rowNum, 9, clientLocation);
+											ws.value(rowNum, 10, project);
 											if (!objectList.isEmpty()) {
-												ws.value(rowNum, 10, activity);
+												ws.value(rowNum, 11, activity);
 											} else {
-												ws.value(rowNum, 10, timesheetObj.getDescription());
+												ws.value(rowNum, 11, timesheetObj.getDescription());
 											}
-											ws.value(rowNum, 11, timesheetObj.getTotalTime());
+											ws.value(rowNum, 12, timesheetObj.getTotalTime());
 											if(timesheetObj.getIsNightShift() == null) {
-												ws.value(rowNum, 12, "Regular Shift");
+												ws.value(rowNum, 13, "Regular Shift");
 											}else {
-												ws.value(rowNum, 12, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
+												ws.value(rowNum, 13, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
 											}
-											ws.value(rowNum, 14, timesheetObj.getStatus());
+											ws.value(rowNum, 15, timesheetObj.getStatus());
 
 											rowNum++;
 										}
 									} else {
+										
+										//Get leave type
+										List<Object[]> empLeave = employeeLeaveRepository.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate());
+										
+										String leaveType = null;
+										String dayType = timesheetObj.getDayType();
+										if(!empLeave.isEmpty()) {
+											for(Object[] object: empLeave) {
+												leaveType = object[0] != null ? object[0].toString() : null;
+												dayType = "Leave";
+											}
+										}
 
 										// Fill data of weekoff & leave
 										ws.style(rowNum, 2).format("dd-MM-yyyy").set();
-										ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
 										ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
+										ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
 
 										ws.value(rowNum, 0, "A-" + employeementId);
 										ws.value(rowNum, 1, empName);
 										ws.value(rowNum, 2, timesheetObj.getDate());
-										ws.value(rowNum, 3, timesheetObj.getDayType());
-										ws.value(rowNum, 6, timesheetObj.getTotalWorkingHours());
-										ws.value(rowNum, 13, timesheetObj.getDescription());
-										ws.value(rowNum, 14, timesheetObj.getStatus());
+										ws.value(rowNum, 3, dayType);
+										ws.value(rowNum, 4, leaveType);
+										ws.value(rowNum, 7, timesheetObj.getTotalWorkingHours());
+										ws.value(rowNum, 14, timesheetObj.getDescription());
+										ws.value(rowNum, 15, timesheetObj.getStatus());
 
 										rowNum++;
 

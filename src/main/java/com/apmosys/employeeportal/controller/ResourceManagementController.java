@@ -17,10 +17,10 @@ public class ResourceManagementController {
 	@Autowired
 	ResourceManagementService resourceManagementService;
 
-	@RequestMapping(value = "/createDraftTeam", method = RequestMethod.POST)
+	@RequestMapping(value = "/createDraftProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse createDraftTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
-		ServiceResponse response = resourceManagementService.createDraftTeam(resourceManagementDTO);
+		ServiceResponse response = resourceManagementService.createDraftProjectInfo(resourceManagementDTO);
 		return response;
 	}
 	

@@ -59,4 +59,7 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	@Query(nativeQuery = true)
 	public List<Object[]> getDepartmentLeaveHistory(Long deptId, LocalDate fromDate, LocalDate toDate);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> findLeaveTypeFromEmpIdAndDate(Long empId, LocalDate date);
+
 }

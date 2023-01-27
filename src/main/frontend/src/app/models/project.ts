@@ -20,6 +20,7 @@ export class Project{
 	createdBy: any;
 	updatedBy:any;
 	updatedByName: any;
+	teamList: any[] = [];
 
 
 	//Project from Po

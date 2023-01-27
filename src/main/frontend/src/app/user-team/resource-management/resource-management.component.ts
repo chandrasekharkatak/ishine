@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
@@ -9,6 +9,9 @@ import { Team } from 'src/app/models/team';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Department } from 'src/app/models/department';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { TeamMember } from 'src/app/models/teamMember';
+import { ResourceManagementService } from 'src/app/services/resource-management.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -22,13 +25,20 @@ export class ResourceManagementComponent implements OnInit {
   feature = "Team Config";
   userMapping: any = {};
 
+  alertMessage: any;
+  modalRef: BsModalRef = new BsModalRef();
+
   projectObj:Project = new Project();
   teamObj:Team = new Team();
   employeeObj: Employee = new Employee();
+  newteamMember:TeamMember = new TeamMember();
 
   isProjectTable:boolean = false;
   isEditProject:boolean = false;
   isUpdation:boolean = false;
+  isHideButton:boolean = false;
+
+  currentTeam:any;
 
   allProjectList:any[] = [];
   allDeptList:any[] = [];
@@ -36,10 +46,16 @@ export class ResourceManagementComponent implements OnInit {
   teamLeadsList:any[] = [];
   employeeListByDept: Employee[] = [];
   allTeamMembers: any[] = [];
+  allTeamList: any[] = [];
+  updatedTeamList: any[] = [];
+
+  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
 
   constructor(
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
+    private modalService: BsModalService,
+    private resourceManagementService: ResourceManagementService,
   ) {}
 
 
@@ -69,9 +85,23 @@ export class ResourceManagementComponent implements OnInit {
   showEditProjectForm(project: any){
     this.isEditProject = true;
 
-    this.isProjectTable = false;
+    this.isProjectTable = true;
+    this.isHideButton = true;
+    
+    this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.getAllDepartmentList(project);
+
+    //Project Team List
+    if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
+      this.addInputTeamField();
+    } else {
+      this.allTeamList = this.projectObj.teamList;
+    }
+  }
+
+  closeEditProject(){
+    this.isHideButton = false;
   }
 
   getAllProjects(){
@@ -96,7 +126,7 @@ export class ResourceManagementComponent implements OnInit {
 
   // Team
 
-  getAllEmployeesByRole() {
+  getAllEmployeesByRole(departmentList:any) {
     this.teamLeadsList = [];
     let employeeList = [];
 
@@ -105,10 +135,10 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
         console.log("employeeList By Role : ", employeeList);
-        console.log("Department Selected : ", this.teamObj.departmentList);
+        console.log("Department Selected : ", departmentList);
 
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
-        this.teamLeadsList = employeeList.filter(x => this.teamObj.departmentList?.includes(x.departmentId));
+        this.teamLeadsList = employeeList.filter(x => departmentList?.includes(x.departmentId));
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
         console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
@@ -117,11 +147,11 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  getAllEmployeesByDepartmentIds() {
+  getAllEmployeesByDepartmentIds(departmentList:any) {
     this.employeeListByDept = [];
 
     let empObj = new Employee();
-    empObj.departmentList = this.teamObj.departmentList?.map(deptId => {
+    empObj.departmentList = departmentList?.map(deptId => {
        let dept =  new Department();
        dept.deptId = deptId;
        return dept;
@@ -155,6 +185,142 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
+  }
+
+  setTeamLead(teamLeadId){
+    let teamLead:any = [];
+    teamLead = this.teamLeadsList?.find(x => x.empId == teamLeadId);
+    if(teamLead){
+      this.allTeamList?.forEach((team:any) => {
+        if(team.teamName == this.currentTeam.teamName){
+          if(team.teamMemberList){
+            teamLead.isTeamLead = true;
+            team.teamMemberList = team.teamMemberList.filter(x => x.isTeamLead != true);
+            console.log(team.teamMemberList, " : team memeber list");
+            team.teamMemberList = [...team.teamMemberList, ...[teamLead]];
+          }else{
+            teamLead.isTeamLead = true;
+            team.teamMemberList = [teamLead];
+
+            console.log(team.teamMemberList, " : team memeber list ===");
+          }
+        }
+      });
+    }
+  }
+
+  addTeamMemberMapping(){
+    this.allTeamList?.forEach((team:any) => {
+      if(team.teamName == this.currentTeam.teamName){
+        if(team.teamMemberList){
+          if(this.allTeamMembers.length){
+            team.teamMemberList = [...team.teamMemberList,...this.allTeamMembers];
+          }else{
+            team.teamMemberList = [...team.teamMemberList];
+          }
+        }else{
+          team.teamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
+        }
+      }
+    });
+    this.cancelRequest();
+  }
+
+  createDraftProjectInfo(template: TemplateRef<any>){
+    this.projectObj.teamList = this.allTeamList;
+
+    this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template,response.serviceResponse);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  // Manage team & teamMemberList
+
+  addInputTeamField(){
+    let newTeamObj = new Team();
+    this.allTeamList.push(newTeamObj);
+    console.log(this.allTeamList, " : this.allTeamList");
+  }
+
+  removeInputTeamField(teamObj) {
+    this.allTeamList.forEach((value, index) => {
+      if (value == teamObj) {
+        this.updatedTeamList.push(value);
+        this.allTeamList.splice(index, 1);
+      }
+    });
+  }
+
+  addTeamMember(){
+    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
+    if(newTeamMember){
+      newTeamMember.employeeRole = this.newteamMember.employeeRole;
+      this.allTeamMembers.push(newTeamMember);
+    }
+    this.newteamMember = new TeamMember();
+  }
+
+  removeTeamMember(teamMember) {
+
+    this.teamObj.allTeamMemberList?.forEach((value, index) => {
+      if (value == teamMember) {
+        if (this.teamObj.updatedTeamMemberList[0]) {
+          this.teamObj.updatedTeamMemberList.push(value);
+        } else {
+          this.teamObj.updatedTeamMemberList = [];
+          this.teamObj.updatedTeamMemberList.push(value);
+        }
+        this.teamObj.allTeamMemberList.splice(index, 1);
+        let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
+        if (existingEmployee) existingEmployee.isSelected = false;
+      }
+    });
+  }
+
+  removeInputTeamMemberField(teamMember) {
+    this.allTeamMembers.forEach((value, index) => {
+      if (value == teamMember){
+        this.allTeamMembers.splice(index, 1);
+        let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
+        if (existingEmployee) existingEmployee.isSelected = false;
+      }
+    });
+    console.log("Updated Members : ", this.allTeamMembers);
+  }
+
+  // Modals
+
+  openTeamMemberModal(template: TemplateRef<any>, currentTeam){
+    this.allTeamMembers = [];
+    this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    this.getAllEmployeesByRole(currentTeam.departmentList);
+    this.allTeamList?.forEach((team:any) => {
+      if(team.teamName == currentTeam.teamName){
+        this.isUpdation = true;
+        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true);
+        if(teamLeadObj){
+          this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
+        }
+        this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
+      }
+    });
+    console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
+    
+    this.currentTeam = currentTeam;
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
   }
 
   //pagination 
