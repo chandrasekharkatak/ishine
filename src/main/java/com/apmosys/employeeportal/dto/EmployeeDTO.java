@@ -177,4 +177,8 @@ public class EmployeeDTO {
 	private Integer leaveBackdatedLockDays;
 	private Integer leaveFuturedatedLockDays;
 
+	private Long reportingManagerId;
+	private String approvalsTo;
+	private String reportingManagerName;
+	private String reportingManagerEmail;
 }

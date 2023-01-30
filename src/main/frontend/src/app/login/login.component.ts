@@ -277,6 +277,11 @@ export class LoginComponent implements OnInit{
       this.user.compOffLockDays = user.compOffLockDays;
       this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
       this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
+      this.user.reportingManagerId = user.reportingManagerId;
+      this.user.reportingManagerName = user.reportingManagerName;
+      this.user.reportingManagerEmail = user.reportingManagerEmail;
+      this.user.approvalsTo = user.approvalsTo;
+
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

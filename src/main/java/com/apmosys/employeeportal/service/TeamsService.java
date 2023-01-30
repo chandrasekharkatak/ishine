@@ -861,6 +861,10 @@ public class TeamsService {
 					dto.setHodEmail(object[12] != null ? object[12].toString() : null);
 					dto.setDepartmentId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[14] != null ? object[14].toString() : null);
+					dto.setReportingManagerId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
+					dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
+					dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
 					
 					dtoList.add(dto);
 					

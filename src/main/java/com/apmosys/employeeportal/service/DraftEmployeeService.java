@@ -134,6 +134,8 @@ public class DraftEmployeeService {
 			employee.setMothersName(employeedto.getMothersName());
 			employee.setSpouse(employeedto.getSpouse());
 			employee.setTotalExperience(employeedto.getTotalExperience());
+			employee.setReportingManagerId(employeedto.getReportingManagerId());
+			employee.setApprovalsTo(employeedto.getApprovalsTo());
 
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
@@ -291,7 +293,8 @@ public class DraftEmployeeService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-
+					empDTO.setReportingManagerName(object[60] != null ? object[60].toString() : null);
+					
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -788,6 +791,7 @@ public class DraftEmployeeService {
 					empDTO.setChild1(object[56] != null ? object[56].toString() : null);
 					empDTO.setChild2(object[57] != null ? object[57].toString() : null);
 					empDTO.setChild3(object[58] != null ? object[58].toString() : null);
+					empDTO.setReportingManagerName(object[59] != null ? object[59].toString() : null);
 
 //					if (object[42] != null) {
 //

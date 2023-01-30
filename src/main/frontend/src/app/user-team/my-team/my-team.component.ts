@@ -132,13 +132,9 @@ export class MyTeamComponent implements OnInit {
     this.isHierarchyChart = false;
 
     this.getAllManagers();
-    // this.getAllTeamView();    
+    this.getAllTeamView();    
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    employeeObj.managerId = this.currentUser.managerId;
-    this.myTeamHierarchy(employeeObj); 
   }
 
   viewTeamLeaveHistory() {

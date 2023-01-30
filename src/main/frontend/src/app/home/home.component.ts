@@ -153,7 +153,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.getAllNotifications();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
     if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
     if (this.userMapping.view_all_team_requests) {
       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
@@ -167,6 +166,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.countMyRejectedLeaveApplicationsByLeaveType();
     }
     if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
 
 
     if (this.currentUser.isNew == "true") {
