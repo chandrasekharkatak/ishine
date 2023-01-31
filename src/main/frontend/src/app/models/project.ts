@@ -29,4 +29,8 @@ export class Project{
 	clientState:any;
 	department:any;
 	projectManager:any;
+
+	//Team
+	teamName:any;
+	teamMemberList:any;
 }

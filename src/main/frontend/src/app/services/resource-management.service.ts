@@ -13,5 +13,13 @@ export class ResourceManagementService {
   createDraftProjectInfo(projectObj: Project) {
     return this.http.post(`${this.baseUrl}` + `api/createDraftProjectInfo`, projectObj);
   }
+
+  getTeamListByProjectName(projectObj: Project){
+    return this.http.post(`${this.baseUrl}` + `api/getTeamListByProjectName`, projectObj);
+  }
+
+  alreadyCreatedTeam(){
+    return this.http.get(`${this.baseUrl}` + `api/alreadyCreatedTeam`);
+  }
   
 }

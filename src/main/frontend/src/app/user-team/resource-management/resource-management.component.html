@@ -47,6 +47,7 @@
                                     <td>{{project.clientState}}</td>
                                     <td>{{project.status}}</td>
                                     <td>
+                                        <button class="btn btn-sm btn-outline-primary" *ngIf="project.isTeamCreated == true" (click)="openProjectPreviewModal(preview_team, project)" type="submit">Preview</button>&nbsp;
                                         <button class="btn btn-sm btn-outline-primary" *ngIf="!isHideButton" type="submit" (click)="showEditProjectForm(project);project.isEditProject = true"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-danger" *ngIf="project.name == projectObj.name && isHideButton" type="submit" (click)="closeEditProject();project.isEditProject = false"><i class="fa-solid fa-xmark"></i></button>&nbsp;
                                     </td>
@@ -145,7 +146,7 @@
                                                                     <button type="button" title="Add team member" class="btn btn-outline-primary mx-1" (click)="openTeamMemberModal(add_team_member, teamObj)"><i class="fa-solid fa-user-plus"></i></button>
                                                                 </div>
                                                                 <div class="m-0">
-                                                                    <button type="button" title="Preview team member" class="btn btn-outline-primary mx-1"><i class="fa-solid fa-people-group"></i></button>
+                                                                    <button type="button" title="Preview team member" class="btn btn-outline-primary mx-1" (click)="previewTeamModal(preview_team, teamObj)"><i class="fa-solid fa-people-group"></i></button>
                                                                 </div>
                                                                 <div class="m-0">
                                                                     <button type="button" title="Add team" class="btn btn-outline-primary mx-1" (click)="addInputTeamField()"><i class="fa fa-plus" aria-hidden="true"></i></button>
@@ -160,7 +161,7 @@
                                                 </div>
                                                 <div class="row mt-3">
                                                     <div class="col-md-12">
-                                                        <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3" (click)="createDraftProjectInfo(alert_message)">Create Team</button>
+                                                        <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3" (click)="createDraftProjectInfo(alert_message)">Set Team</button>
                                                         <!-- <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button> -->
                                                     </div>
                                                 </div>
@@ -332,5 +333,81 @@
             </div>
         </div>
 
+    </div>
+</ng-template>
+
+<ng-template #preview_team>
+    <div class="modal-body">
+        
+        <div class="row">
+            <!-- Project Info -->
+            <div class="card col-md-12 p-0">
+                <div class="card-header text-center text-uppercase">
+                    <strong>Team Preview</strong>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-name">Project Info</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label>Project Name</label>
+                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Client Name</label>
+                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.clientName">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label>Project Manager</label>
+                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManager">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label>State</label>
+                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.clientState">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h5 class="card-name">Team Info</h5>
+                    <ng-container *ngFor = "let team of previewTeamList; let i = index">
+                        <div class="row">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Team Name - {{i + 1}}</label>
+                                        <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="team.teamName">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h5 class="card-name">Team Member Info</h5>
+                        <ng-container *ngFor = "let member of team.teamMemberList;let i = index">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <p class="info-text">{{i + 1}} : {{member.name}}</p>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>

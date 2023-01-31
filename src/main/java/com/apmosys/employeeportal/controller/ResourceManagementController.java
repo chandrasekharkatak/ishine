@@ -18,9 +18,23 @@ public class ResourceManagementController {
 	ResourceManagementService resourceManagementService;
 
 	@RequestMapping(value = "/createDraftProjectInfo", method = RequestMethod.POST)
-	public ServiceResponse createDraftTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+	public ServiceResponse createDraftProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.createDraftProjectInfo(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getTeamListByProjectName", method = RequestMethod.POST)
+	public ServiceResponse getTeamListByProjectName(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getTeamListByProjectName(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/alreadyCreatedTeam", method = RequestMethod.GET)
+	public ServiceResponse alreadyCreatedTeam() {
+		
+		ServiceResponse response = resourceManagementService.alreadyCreatedTeam();
 		return response;
 	}
 	

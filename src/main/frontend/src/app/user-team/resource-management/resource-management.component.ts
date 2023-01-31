@@ -12,6 +12,7 @@ import { Department } from 'src/app/models/department';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TeamMember } from 'src/app/models/teamMember';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -48,6 +49,8 @@ export class ResourceManagementComponent implements OnInit {
   allTeamMembers: any[] = [];
   allTeamList: any[] = [];
   updatedTeamList: any[] = [];
+  teamCreatedProjectList: any[] = [];
+  previewTeamList: any[] = [];
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
 
@@ -56,7 +59,10 @@ export class ResourceManagementComponent implements OnInit {
     private employeeService: EmployeeService,
     private modalService: BsModalService,
     private resourceManagementService: ResourceManagementService,
-  ) {}
+    private authenticationService: AuthenticationService,
+  ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
 
   ngOnInit(): void {
@@ -79,7 +85,7 @@ export class ResourceManagementComponent implements OnInit {
     this.isProjectTable = true;
     
     this.isEditProject = false;
-    this.getAllProjects();
+    this.alreadyCreatedTeam();
   }
 
   showEditProjectForm(project: any){
@@ -91,13 +97,7 @@ export class ResourceManagementComponent implements OnInit {
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.getAllDepartmentList(project);
-
-    //Project Team List
-    if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-      this.addInputTeamField();
-    } else {
-      this.allTeamList = this.projectObj.teamList;
-    }
+    this.getTeamListByProjectName(project);
   }
 
   closeEditProject(){
@@ -106,7 +106,33 @@ export class ResourceManagementComponent implements OnInit {
 
   getAllProjects(){
     fetch('https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects').then(res => res.json()).then(data => {
-      this.allProjectList = data;
+      const _projectList = data;
+
+      if((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)){
+        _projectList.forEach((proj) => {
+          this.teamCreatedProjectList.forEach((projTeam) => {
+            if(proj.name == projTeam.name){
+              proj.isTeamCreated = true;
+            }
+          })
+        });
+      }
+
+      this.allProjectList = _projectList;
+      console.log(this.allProjectList, " : this.allProjectList");
+    });
+  }
+
+  alreadyCreatedTeam(){
+    this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.teamCreatedProjectList = response.serviceResponse;
+        this.getAllProjects();
+        console.log(this.teamCreatedProjectList, " this.teamCreatedProjectList");
+      } else {
+        this.getAllProjects();
+        console.error(response.serviceResponse);
+      }
     });
   }
 
@@ -212,6 +238,7 @@ export class ResourceManagementComponent implements OnInit {
   addTeamMemberMapping(){
     this.allTeamList?.forEach((team:any) => {
       if(team.teamName == this.currentTeam.teamName){
+        team.createdBy = this.currentUser.empId;
         if(team.teamMemberList){
           if(this.allTeamMembers.length){
             team.teamMemberList = [...team.teamMemberList,...this.allTeamMembers];
@@ -228,12 +255,44 @@ export class ResourceManagementComponent implements OnInit {
 
   createDraftProjectInfo(template: TemplateRef<any>){
     this.projectObj.teamList = this.allTeamList;
-
+    
+    console.log(this.projectObj, " : this.projectObj");
     this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template,response.serviceResponse);
       } else {
         console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getTeamListByProjectName(project:any){
+    this.previewTeamList = [];
+    this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectObj.teamList = response.serviceResponse;
+        this.projectObj.teamList.forEach((obj) =>{
+          obj.departmentList = obj.departmentList?.map(x=>+x);
+        });
+        console.log(this.projectObj.teamList, " this.projectObj.teamList");
+        this.previewTeamList = this.projectObj.teamList;
+
+        //Project Team List
+        if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
+          this.addInputTeamField();
+        } else {
+          this.allTeamList = this.projectObj.teamList;
+        }
+
+      } else {
+        console.error(response.serviceResponse);
+
+        //Project Team List
+        if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
+          this.addInputTeamField();
+        } else {
+          this.allTeamList = this.projectObj.teamList;
+        }
       }
     });
   }
@@ -301,7 +360,7 @@ export class ResourceManagementComponent implements OnInit {
     this.allTeamList?.forEach((team:any) => {
       if(team.teamName == currentTeam.teamName){
         this.isUpdation = true;
-        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true);
+        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true || x.isTeamLead == "true");
         if(teamLeadObj){
           this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
         }
@@ -321,6 +380,26 @@ export class ResourceManagementComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  previewTeamModal(template: TemplateRef<any>, teamObj:any){
+    this.previewTeamList = [];
+    this.allTeamList?.forEach((team:any) => {
+      if(team.teamName == teamObj.teamName){
+        this.previewTeamList = [team];
+      }
+    });
+    console.log(this.previewTeamList, " : this.previewTeamList");
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  openProjectPreviewModal(template: TemplateRef<any>, project:any){
+    this.previewTeamList = [];
+    this.projectObj = Object.assign({}, project);
+    this.getTeamListByProjectName(project);
+
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   //pagination 

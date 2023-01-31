@@ -45,3 +45,9 @@
 .card .card-name{
     color: #193d8a  !important;
 }
+
+.info-wrapper .info-text{
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--middle-grey);
+}
