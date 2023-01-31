@@ -249,6 +249,7 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.router.navigate(['/user-survey']);
         this.showSurveys();
       } else {
         this.openAlertMod(template, response.serviceResponse);
