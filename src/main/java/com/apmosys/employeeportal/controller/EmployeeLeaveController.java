@@ -227,5 +227,12 @@ public class EmployeeLeaveController {
 	}
 	
 	
+	/* Employee Leave Balance reconciliation */
+	@RequestMapping(value = "/setEmployeeLeaveEntitlement" ,method = RequestMethod.POST)
+	public ServiceResponse setEmployeeLeaveEntitlement(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.setEmployeeLeaveEntitlement(leaveDTO);
+		return response;
+	}
 
 }

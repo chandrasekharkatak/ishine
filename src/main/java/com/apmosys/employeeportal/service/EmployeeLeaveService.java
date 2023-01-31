@@ -1,11 +1,14 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -2309,4 +2312,137 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+
+	public ServiceResponse setEmployeeLeaveEntitlement(LeaveDTO leaveDTO) {
+
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/setEmployeeLeaveEntitlement");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("FROM DATE : " + leaveDTO.getFromDate() + ", TO DATE : " + leaveDTO.getToDate());
+
+		List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+		List<LeaveDTO> employeeBalanceList = new ArrayList<LeaveDTO>();
+		List<EmployeeLeavesMap> updatedBalanceList = new ArrayList<EmployeeLeavesMap>();
+		 
+		try {
+
+			List<Object[]> employees = employeeLeavesMapRepository.getEmployeesInProbation();
+
+			if (employees != null) {
+				
+				employees.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+					dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					dto.setEmploymentStatus(object[3] != null ? object[3].toString() : null);
+					dto.setDateOfJoining(object[4] != null ? object[4].toString() : null);
+					dto.setLeaveTypeMasterId(object[5] != null ? Short.parseShort(object[5].toString()) : null);
+					dto.setLeaveType(object[6] != null ? object[6].toString() : null);
+					dto.setEmployeeLeavesMapId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					dto.setBalance(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+
+					employeeBalanceList.add(dto);
+				});
+				
+				
+				System.out.println("employeeBalanceList : "+ employeeBalanceList);
+				
+				if(!employeeBalanceList.isEmpty()) {
+					DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					LocalDate checkDate = LocalDate.parse("2022-12-01" , format);
+					
+					employeeBalanceList.forEach((emp) -> {
+						LocalDate dateOfJoining = LocalDate.parse(emp.getDateOfJoining() , format);
+						Float newBalance = 0.0F;
+						
+						Period period = Period.between(dateOfJoining, checkDate);
+						long elapsedMonths = period.getMonths();
+						long elapsedDays = period.getDays();
+						double leavesForMonths = (double)(2.5*elapsedMonths);
+						double leavesForDays = (double)((2.5*elapsedDays)/30);
+						
+						if(leavesForDays != 0) {
+							BigDecimal BIG_O5 = new BigDecimal(0.5);
+
+						    BigDecimal bd = new BigDecimal( leavesForDays - Math.floor(leavesForDays));
+						    bd = bd.setScale(4,RoundingMode.HALF_DOWN);
+						    System.out.println("Decimal value " + bd.toString());
+						    
+						    if(bd.compareTo(BIG_O5) == 1) {
+						    	leavesForDays = Math.ceil(leavesForDays);
+						    }else if(bd.compareTo(BIG_O5) == 0){
+						    	leavesForDays = Math.floor(leavesForDays) + 0.5;
+						    }else {
+						    	leavesForDays = Math.floor(leavesForDays);
+						    }
+						}
+						
+						 System.out.println("\n============\n " + emp.getEmployeeName()+ " : "+ emp.getBalance() + " : "+ emp.getDateOfJoining());
+						 System.out.println("Leaves for " + elapsedMonths + " Months : "+ leavesForMonths + "\nLeaves for Days "+ elapsedDays + " Days : "+ leavesForDays);
+						 System.out.println("============\n");
+						 
+						// for Extra Days Leaves  
+//						newBalance =  (float) leavesForDays;
+//						emp.setCreditedBalance(newBalance);
+//						dtoList.add(emp);
+						
+						newBalance =  (float)(leavesForMonths + leavesForDays);
+						
+						Optional<EmployeeLeavesMap> empMap = employeeLeavesMapRepository.findById(emp.getEmployeeLeavesMapId());
+						if(!empMap.isEmpty()) {
+							EmployeeLeavesMap leaveMap = empMap.get();
+							float updatedBalance = leaveMap.getBalance() + newBalance;
+							leaveMap.setBalance(updatedBalance);
+							
+							updatedBalanceList.add(leaveMap);
+							
+							emp.setCreditedBalance(newBalance);
+							dtoList.add(emp);
+						}
+					});
+					
+					List<EmployeeLeavesMap> updatedList = employeeLeavesMapRepository.saveAll(updatedBalanceList);
+					
+					if(!updatedList.isEmpty()){
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						
+						apiLogInfo.setApiResponse(dtoList.size()+ " Leave Buckets Updated.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("failed to update Leave Buckets.");
+
+						apiLogInfo.setApiResponse("failed to update Leave Buckets.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employees not found.");
+
+				apiLogInfo.setApiResponse("Employees not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
 }
