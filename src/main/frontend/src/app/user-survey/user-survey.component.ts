@@ -1,6 +1,7 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
@@ -22,6 +23,8 @@ export class UserSurveyComponent implements OnInit {
   feature = "Survey";
   currentUser: User;
   userMapping: any = {};
+
+  currentSurveyId:any;
 
   //modal 
   alertMessage: any;
@@ -46,7 +49,9 @@ export class UserSurveyComponent implements OnInit {
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private surveyService: SurveyService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private route: ActivatedRoute,
+    private router : Router,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -58,6 +63,10 @@ export class UserSurveyComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
+
+    this.route.params.subscribe((params:Params) => {
+      this.currentSurveyId = params['id'];
+    });
 
     this.sectionViewInit();
 
@@ -100,7 +109,14 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyList = response.serviceResponse;
+
         this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit" && x.isActive == "true");
+        if(this.currentSurveyId != null){
+          let currentSurvey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
+          console.log(currentSurvey, " : currentSurvey");
+          this.onTakeSurvey(currentSurvey);
+        }
+        
         this.getAllAnsweredSurveys();
         console.log("this.allSurveyList : ", this.allSurveyList);
       } else {

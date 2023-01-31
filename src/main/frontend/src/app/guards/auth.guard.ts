@@ -9,7 +9,8 @@ import { AuthenticationService } from '../services/authentication.service';
 })
 export class AuthGuard implements CanActivate {
 
-  exitEmployeeId:any;
+  id:any;
+  currentUrl:any;
 
   constructor(
     private router: Router,
@@ -30,10 +31,11 @@ export class AuthGuard implements CanActivate {
         return true;
       }else{
 
-        let employeeId = route.params['id'];
+        let queryParamId = route.params['id'];
         let url: string = state.url;
-        if(employeeId != null && url != null){
-          this.exitEmployeeId = employeeId;
+        if(queryParamId != null && url != null){
+          this.id = queryParamId;
+          this.currentUrl = url;
         }
 
           this.router.navigate(['/login'], { queryParams: { }});

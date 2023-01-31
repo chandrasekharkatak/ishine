@@ -31,7 +31,7 @@
                                     <td>{{survey.description}}</td>
                                     <td>
                                         <button *ngIf="!survey.isAnswered" class="btn btn-sm btn-primary" type="submit"
-                                            (click)="onTakeSurvey(survey)"><em>Take Survey</em></button>
+                                        [routerLink]="['/user-survey/',survey.surveyId]" preserveQueryParams="true"><em>Take Survey</em></button>
                                         <button *ngIf="survey.isAnswered" class="btn btn-sm btn-outline-primary" type="submit"
                                             (click)="onViewMyResponse(survey)"><em>View Response</em></button>
                                     </td>
@@ -62,7 +62,7 @@
                     <button type="submit" class="btn btn-primary btn-sm mx-1"
                         (click)="onSubmit(alert_message)" [disabled]="!isSurveyLoaded">Submit</button>
                     <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
-                        (click)="showSurveys()" [disabled]="!isSurveyLoaded">Back</button>
+                    [routerLink]="['/user-survey']" [disabled]="!isSurveyLoaded">Back</button>
                 </div>
             </div>
         </div>

@@ -15,5 +15,5 @@ public class CustomFilterDTO {
 	String operator;
 	String value;
 	String conjunction;
-	
+	String customQuery;
 }
