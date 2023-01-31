@@ -1421,6 +1421,7 @@ public class CronJobService {
 					
 				}else if(timesheetdto.getIsCron().equals("false")) {
 					int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
+					currentYear = LocalDate.now().getYear();
 					
 					firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
 					currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
