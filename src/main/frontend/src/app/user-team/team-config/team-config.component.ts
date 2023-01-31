@@ -250,6 +250,11 @@ export class TeamConfigComponent implements OnInit {
       this.activityObj.teamId = this.selectedTeam;
       this.getDepartmentByTeam(this.selectedTeam);
     }
+    if(this.selectedProject != null && this.selectedTeam != null){
+      this.activityObj.projectId = this.selectedProject;
+      this.activityObj.teamId = this.selectedTeam;
+      this.getDepartmentByTeam(this.activityObj.teamId);
+    }
     this.getAllDepartmentList();
     this.getAllProjectsByEmpId();
     this.getAllProjectListByProjectManagerId();
