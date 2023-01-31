@@ -703,9 +703,10 @@ export class ReportListComponent implements OnInit {
   // Custom Query Data 
   getCustomQueryData(template: TemplateRef<any>) {
     this.customQuery?.trim();
-    if(this.validationService.validateNullUndefinedEmptyString(this.customQuery)){
+    if(!this.validationService.validateNullUndefinedEmptyString(this.customQuery)){
       this.alertMessage = "Please enter custom query !!";
       this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     let queryObj = new Query();
