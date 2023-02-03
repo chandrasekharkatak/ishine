@@ -267,10 +267,16 @@ export class CompOffComponent implements OnInit {
 
     onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
       // 1 = pending , 2 = Approved , 3= Rejected
-      compOffObj.leaveStatusId = updatedCompOffStatusId;
-      compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
-      console.log("Update Comp off : ", compOffObj);
-      this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
+      let compOff:Leave = new Leave();
+
+      compOff = Object.assign({},compOffObj);
+      compOff.leaveStatusId = updatedCompOffStatusId;
+      compOff.leaveStatusUpdatedBy = this.currentUser.empId
+      compOff.managerEmail = this.currentUser.email;
+      compOff.managerName = this.currentUser.name;
+      compOff.employeeName = compOff.createdByName;
+      console.log("Update Comp off : ", compOff);
+      this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
           this.getPendingCompOffRequestsByManagerId();

@@ -129,7 +129,7 @@ public class CompOffLeaveService {
 				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Comp-Off Request", 
 						"Dear "+ leaveDTO.getManagerName()+","+
 				"<br> "
-				+" &nbsp;"+" &nbsp;"+" "+"Comp-Off Request has been applied by "+ leaveDTO.getEmployeeName() +"for"+" "+leaveDTO.getNoOfDays() +" day(s)"+", Please take necessary action."+
+				+" &nbsp;"+" &nbsp;"+" "+"Comp-Off Request has been applied by "+ leaveDTO.getEmployeeName() +" for"+" "+leaveDTO.getNoOfDays() +" day(s)"+", Please take necessary action."+
 				"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
 				"<br>"+
 				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
@@ -140,7 +140,9 @@ public class CompOffLeaveService {
 				"<br>"+
 				" To Date : "+" "+ leaveDTO.getToDate() 
 				+"<br>"+
-				"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"+".");
+				"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"
+				+"<br>"+
+				"comp-Off Description :"+" "+leaveDTO.getDescription() + ".");
 				
 				
 				
@@ -202,7 +204,9 @@ public class CompOffLeaveService {
 					dto.setToDate(object[7] != null ? object[7].toString() : null);
 					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-
+					dto.setEmail(object[10] != null ? object[10].toString() : null) ;
+					dto.setEmployeementId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					
 					dtoList.add(dto);
 				});
 
@@ -342,9 +346,47 @@ public class CompOffLeaveService {
 					if(leaveDTO.getLeaveStatusId() == 2) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Compoff Request Approved");
+						
+						mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Approval", 
+								"Dear "+ leaveDTO.getEmployeeName()+","+
+						"<br> "
+						+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been approved by "+ leaveDTO.getManagerName() +"."+
+						"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
+						"<br>"+
+						"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+						"<br>"+
+						"Name :"+" "+ leaveDTO.getEmployeeName()+
+						"<br>"+
+						" From "+" "+ leaveDTO.getFromDate() +
+						"<br>"+
+						" To Date : "+" "+ leaveDTO.getToDate() 
+						+"<br>"+
+						"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"
+						+"<br>"+
+						"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+ ".");
+						
 					}else if(leaveDTO.getLeaveStatusId() == 3){
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Compoff Request Rejected");
+						
+						mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Rejection", 
+								"Dear "+ leaveDTO.getEmployeeName()+","+
+						"<br> "
+						+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been rejected by "+ leaveDTO.getManagerName() +"."+
+						"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
+						"<br>"+
+						"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+						"<br>"+
+						"Name :"+" "+ leaveDTO.getEmployeeName()+
+						"<br>"+
+						" From "+" "+ leaveDTO.getFromDate() +
+						"<br>"+
+						" To Date : "+" "+ leaveDTO.getToDate() 
+						+"<br>"+
+						"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"
+						+"<br>"+
+						"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+".");
+						
 					}
 //					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 //					response.setServiceResponse("Compoff leave status updated");
