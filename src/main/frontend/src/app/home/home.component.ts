@@ -331,8 +331,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
     this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
-    compOffObj.leaveStatusId = updatedCompOffStatusId;
-    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
+    let compOff:Leave = new Leave();
+
+    compOff = Object.assign({},compOffObj);
+    compOff.leaveStatusId = updatedCompOffStatusId;
+    compOff.leaveStatusUpdatedBy = this.currentUser.empId
+    compOff.managerEmail = this.currentUser.email;
+    compOff.managerName = this.currentUser.name;
+    compOff.employeeName = compOff.createdByName;
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1070,8 +1076,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
-    this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
   }
 
   openNotificationMod(template: TemplateRef<any>) {
