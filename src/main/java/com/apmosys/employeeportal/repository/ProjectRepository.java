@@ -29,5 +29,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public List<Project> findBySyncProject(String sync);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllMyProjectByEmpId(Long empId);
+
 
 }
