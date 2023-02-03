@@ -1148,4 +1148,41 @@ public class ProjectService {
 		}
 		return response;
 	}
+
+	public ServiceResponse getAllMyProjectByEmpId(ProjectDTO projectDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+            List<Object[]> projectList = projectRepository.getAllMyProjectByEmpId(projectDto.getEmpId());
+			
+			if(projectList != null) {
+				List<ProjectDTO> dtoList = new ArrayList<ProjectDTO>();
+				
+				projectList.forEach((object) -> {
+					ProjectDTO dto = new ProjectDTO();
+					
+					dto.setProjectId(object[0] != null ? Integer.valueOf(object[0].toString()) : null);
+					dto.setProjectName(object[1] != null ? object[1].toString() : null);
+					dto.setState(object[2] != null ? object[2].toString() : null);
+					dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+					
+					dtoList.add(dto);
+				});
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Projects found.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
 }
