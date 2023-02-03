@@ -1076,8 +1076,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
   openNotificationMod(template: TemplateRef<any>) {
