@@ -1,5 +1,12 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -11,6 +18,7 @@ import javax.persistence.PersistenceContext;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
@@ -65,7 +73,18 @@ public class CustomFilterService {
 	
 	@Autowired
 	JobRoleRepository jobRoleRepository;
+	
+	
+	@Value("${spring.datasource.url}")
+	private String dbURL;
+	
+	@Value("${spring.datasource.username}")
+	private String dbUsername;
+	
+	@Value("${spring.datasource.password}")
+	private String dbPassword;
 
+	
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
 			StringBuilder query = new StringBuilder("");
 			
@@ -1454,18 +1473,51 @@ public class CustomFilterService {
 	public ServiceResponse getCustomQueryData(CustomFilterDTO customFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 		List<Object[]> list = new ArrayList<Object[]>();
+		Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 		try {
 			
 			if(customFilterDTO.getCustomQuery() != null) {
 			
-				Session session = entityManager.unwrap(Session.class);
+//				Session session = entityManager.unwrap(Session.class);
 				try {				
 					String q= customFilterDTO.getCustomQuery();
-
-					Query query = session.createSQLQuery(q);
-					System.out.println("\n\n query : "+ query);
-					System.out.println("\n\n Result Set : "+ query.getResultList());
-					list = query.getResultList();
+//
+//					Query query = session.createSQLQuery(q);
+//					System.out.println("\n\n query : "+ query);
+//					System.out.println("\n\n Result Set : "+ query.getResultList());
+//					list = query.getResultList();
+					
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					con = DriverManager.getConnection(dbURL,dbUsername,dbPassword);
+					
+					stmt = con.createStatement();
+					rs = stmt.executeQuery(q);
+					ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+					
+					int columnsNumber = rsmd.getColumnCount();
+					System.out.println("column size  : " + columnsNumber);
+					
+					Object[] headers = new Object[columnsNumber];
+					
+					for (int i = 1; i <= columnsNumber; i++) {
+						headers[i-1] = rsmd.getColumnLabel(i);
+					}
+					
+					list.add(headers);
+					
+					while (rs.next()) {
+						Object[] dataArr = new Object[columnsNumber];
+						
+						for (int i = 1; i <= columnsNumber; i++) {
+							String data = rs.getString(i);
+							dataArr[i-1] = data;
+							
+						}
+						
+						list.add(dataArr);
+					}
 					
 				}catch(Exception e) {
 					e.printStackTrace();
@@ -1473,8 +1525,14 @@ public class CustomFilterService {
 					response.setServiceResponse("Something Went Wrong.");
 					response.setServiceError(e.getMessage());
 				}finally {
-					if(session!=null && session.isOpen()) {
-						session.close();
+					stmt.close();
+					rs.close();
+					
+					try {
+						if (con != null)
+							con.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
 					}
 				}
 

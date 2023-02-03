@@ -71,6 +71,12 @@ public class AuthenticationService {
 	@Value("${compoff.lock.days}")
 	private Integer compOffLockDays;
 	
+	@Value("${leave.backdated.lock.days}")
+	private Integer leaveBackdatedLockDays;
+
+	@Value("${leave.future.lock.days}")
+	private Integer leaveFutureLockDays;
+	
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
 
@@ -201,6 +207,8 @@ public class AuthenticationService {
 
 				currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
 				currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+				currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+				currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
 				
 				logInfo.setLoginTime(df.format(new Date()));
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());

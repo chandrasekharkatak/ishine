@@ -42,6 +42,7 @@ export class CompOffComponent implements OnInit {
   compOffObj:Leave = new Leave();
   compOffReasons:any[] = [];
   allCompOffRequests:any[] = [];
+  previousCompOffRequests:any[] = [];
   allCompOffApplications:any[] = [];
 
   constructor(
@@ -168,7 +169,7 @@ export class CompOffComponent implements OnInit {
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime());
       
-      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.allCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
+      return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
   
     toDateFilter = (d: Date)=>{
@@ -179,7 +180,7 @@ export class CompOffComponent implements OnInit {
       if(!this.compOffObj.fromDate){
         return false;
       }
-      return ((moment(d).format(dateFormat) >= moment(this.compOffObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.allCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat))) ? true : false;
+      return ((moment(d).format(dateFormat) >= moment(this.compOffObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat))) ? true : false;
     }
   
     setNoOfDays(template: TemplateRef<any>){
@@ -287,6 +288,7 @@ export class CompOffComponent implements OnInit {
       compOff.empId = this.currentUser.empId;
       this.leaveService.getAllCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
+          this.previousCompOffRequests = JSON.parse(JSON.stringify(response.serviceResponse)); 
           this.allCompOffRequests = response.serviceResponse;
           this.allCompOffRequests.forEach(compOff => {
             compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;

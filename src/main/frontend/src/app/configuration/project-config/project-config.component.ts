@@ -296,8 +296,7 @@ export class ProjectConfigComponent implements OnInit {
             t.projectId === value.projectId
           ))
         );
-
-
+        this.allProjects = this.allProjects.sort((a,b)=>a.createdOn-b.createdOn);
         console.log(this.allProjects, " : this.allProjects");
       } else {
         console.error(response.serviceResponse);
@@ -427,20 +426,19 @@ export class ProjectConfigComponent implements OnInit {
 
   name = "projectList.xlsx"
   exportToExcel(){
-    this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjects = response.serviceResponse;
-      }
-      const onlySpecificDataArr = this.allProjects.map(
-        x => ({
-          "Project Name": x.projectName,
-          "Project Manager": x.employeeName,
-          "Client Name": x.clientName,
-          "State": x.state
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-    });
+    const onlySpecificDataArr = this.allProjects.map(
+      x => ({
+        "Project Name": x.projectName,
+        "Project Manager": x.employeeName,
+        "Client Name": x.clientName,
+        "Created On": x.createdOn,
+        "Created by":x.createdByName,
+        "Updated on": x.updatedOn,
+        "Updated by":x.updatedByName,
+        "State": x.state
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name);
   }
 
   //pagination

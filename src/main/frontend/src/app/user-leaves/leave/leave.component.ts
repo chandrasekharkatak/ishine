@@ -459,6 +459,7 @@ export class LeaveComponent implements OnInit {
   }
 
   openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+      this.leaveObj.rejectReason = '';
       this.cancelRequest();
       this.leaveObj = leave;
       this.modalRef = this.modalService.show(template);
@@ -645,9 +646,17 @@ export class LeaveComponent implements OnInit {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
-    const BACKDATED_LEAVE_PERIOD = 30;
-    const FUTUREDATED_LEAVE_PERIOD = 180;
+    let BACKDATED_LEAVE_PERIOD = 30;
+    let FUTUREDATED_LEAVE_PERIOD = 180;
     const time=d?.getTime();
+
+    if(this.currentUser.leaveBackdatedLockDays){
+      BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
+    }
+    if(this.currentUser.leaveFuturedatedLockDays){
+      FUTUREDATED_LEAVE_PERIOD = this.currentUser.leaveFuturedatedLockDays;
+    }
+
     let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
     
@@ -699,8 +708,13 @@ export class LeaveComponent implements OnInit {
     const dateFormat = 'YYYY-MM-DD';
     const time = d?.getTime();
     const currentDate = new Date();
-    const FUTUREDATED_LEAVE_PERIOD = 180;
+    let FUTUREDATED_LEAVE_PERIOD = 180;
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    if(this.currentUser.leaveFuturedatedLockDays){
+      FUTUREDATED_LEAVE_PERIOD = this.currentUser.leaveFuturedatedLockDays;
+    }
+
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
     
     if(!this.leaveObj.fromDate){

@@ -222,9 +222,11 @@ export class HomeConfigComponent implements OnInit {
     if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
       this.alertMessage = "Please enter Notification Message !!"
       this.openAlertMod(template, this.alertMessage);
+      return false;
     }else if(this.notificationObj.notificationMessage.length > 5000){
       this.alertMessage = "Please enter Valid Notification Message, Use under 5000 characters !!"
       this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     this.notificationObj.updatedBy = this.currentUser.empId;

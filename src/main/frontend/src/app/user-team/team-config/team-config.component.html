@@ -2,7 +2,6 @@
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_team" [ngClass]="{'active' : isTeamForm && isCreation}" (click)="showCreateTeamForm()">Add New Team</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()">Add New Activity</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate && isActivityCreate}" (click)="showActivityTemplate()">Activity Template</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activity_template" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
@@ -149,7 +148,7 @@
                                 <i class="fa fa-trash" aria-hidden="true"></i></button>
                         </div>
                         <div class="m-0">
-                            <button type="button" title="Activity Preview" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview)">
+                            <button type="button" title="Activity Preview" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview,teamObj)">
                                 <i class="fa-solid fa-circle-info fa-lg"></i></button>
                         </div>
                     </div>
@@ -169,8 +168,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 d-flex">
-                        <div class="col-md-4 mb-0">
+                    <div class="d-flex">
+                        <div class="mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
@@ -234,7 +233,7 @@
                         [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="m-0">
-                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview)"
+                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview,teamObj)"
                             [disabled]="!newteamMember.employeeRole"><i class="fa-solid fa-circle-info fa-lg"></i></button>
                     </div>
                 </div>
@@ -384,12 +383,26 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId"
+                            <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true"
+                                  [multiple]="false"
+                                  [(ngModel)]="activityObj.projectId"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId"
                                 (change)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true;">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let project of employeeSpecificProjectList"
                                     value="{{project.projectId}}">{{project.projectName}}</option>
-                            </select>
+                            </select> -->
                         </div>
                     </div>
                 </div>
@@ -476,6 +489,7 @@
                 </div>
             </div>
         </div>
+        <button type="button" *ngIf="isGoToTeamButton" class="btn btn-sm btn-primary go-to-team ml-auto" (click)="goToUpdateTeamPage()"><i class="fa-solid fa-arrow-left"></i> Go To Update Team</button>
     </div>
 </div>
 <!-- end :: create & update Activity -->
@@ -490,19 +504,33 @@
         </div>
         
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
+                        <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getAllTeamsByProjectId(selectedProject); isDisabled = true"
+                                  [multiple]="false"
+                                  [(ngModel)]="selectedProject"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                        <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let project of employeeSpecificProjectList" value="{{project.projectId}}">{{project.projectName}}</option>
     
-                        </select>
+                        </select> -->
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
@@ -512,6 +540,9 @@
                           </select>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-3 mt-4 pt-2 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()"><em class="fa-solid fa-plus"></em>Add New Activity</button>
             </div>
             <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
@@ -527,6 +558,7 @@
                         <th scope="col" class="info-label">Sr No.</th>	
                         <th scope="col" class="info-label" mat-sort-header="activity">Activity</th>	
                         <th scope="col" class="info-label" mat-sort-header="eta">ETA</th>	
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole">Activity Role</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>	
                         <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
@@ -540,6 +572,7 @@
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
+                        <td>{{activity.employeeRole}}</td>
                         <td>{{activity.createdByName}}</td>
                         <td>{{activity.createdOn}}</td>
                         <td>
@@ -554,7 +587,8 @@
                 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
-    </div>      
+    </div>
+    <button type="button" *ngIf="isGoToTeamButton" class="btn btn-sm btn-primary go-to-team ml-auto" (click)="goToUpdateTeamPage()"><i class="fa-solid fa-arrow-left"></i> Go To Update Team</button>
 </div>
 <!-- end :: View Activities -->
 
@@ -638,7 +672,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Department</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.deptId" (change)="getActivityTemplate(alert_message)">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="getActivityTemplate(alert_message)">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                         </select>
@@ -738,6 +772,7 @@
                     <th scope="col" class="info-label">Sr No.</th>
                     <th scope="col" class="info-label">Actvity</th>
                     <th scope="col" class="info-label">Employee Role</th>
+                    <th *ngIf="isUpdation" scope="col" class="info-label">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -749,6 +784,9 @@
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{emp.activity}}</td>
                     <td>{{emp.employeeRole}}</td>
+                    <td *ngIf="isUpdation">
+                        <button class="btn btn-sm btn-outline-primary" (click)="navigateToUpdateActivityPage(emp.teamId)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
+                    </td>
                 </tr>
             </tbody>
         </table>

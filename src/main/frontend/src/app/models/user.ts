@@ -43,4 +43,6 @@ export class User{
     timesheetLockUpdatedOn:any;
 	timesheetBackDatedDays:any;
 	compOffLockDays:any;
+    leaveBackdatedLockDays:any;
+    leaveFuturedatedLockDays:any;
 }

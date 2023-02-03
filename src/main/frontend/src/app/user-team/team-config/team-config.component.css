@@ -100,3 +100,10 @@
 .persona-checkbox input:checked+.primary:after {
     border-color: var(--dark-cornflower-blue);
 }
+
+.go-to-team {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    opacity: 1;
+}

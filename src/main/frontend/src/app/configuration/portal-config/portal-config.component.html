@@ -72,30 +72,6 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label><span class="text-danger">*</span>DSR <small>(Folder path)</small></label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.dsrDownloadPath">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <!-- <label>DSR Generation Date</label>
-                            <input type="text" class="form-control" autocomplete="none" value="2nd Of Every Month" disabled> -->
-                            <label><span class="text-danger">*</span>DSR Generation Day <small>(Every Month)</small></label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.dsrGenerateDay">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0">
-                    <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="generatePerviousMonthDSR(alert_message)">Generate Pervious Month DSR</button>
-                </div>
-            </div>
-
             <!-- <hr>
             <div class="row">
                 <div class="col-md-12">
@@ -166,6 +142,71 @@
                     </div>
                 </div>
             </div>
+            <div class="alert alert-primary p-0 m-0" role="alert">
+                <p class="p-1 m-0">"Generate Pervious Month DSR" button will generate DSR for each employee in different excel report which will be saved on server.<small>*(Note : This will generate huge data kindly use sparingly)*</small></p>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>DSR <small>(Folder path)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.dsrDownloadPath">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <!-- <label>DSR Generation Date</label>
+                            <input type="text" class="form-control" autocomplete="none" value="2nd Of Every Month" disabled> -->
+                            <label><span class="text-danger">*</span>DSR Generation Day <small>(Every Month)</small></label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="portalObj.dsrGenerateDay">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="generatePerviousMonthDSR(alert_message)">Generate Pervious Month DSR</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Month</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.month">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let month of allMonth" value="{{month}}">{{month}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Year</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.year">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let y of year" value="{{y}}">{{y}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="generateAllEmployeeDSR(alert_message)">Mail All Employee's DSR report</button>
+                </div>
+            </div>
+            <!-- <div class="row">
+                <div class="col-md-5 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label>Download Department wise Segregated Timesheet Defaulter List</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <button type="button" class="btn btn-outline-primary btn-sm">Download</button>
+                </div>
+            </div> -->
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">Update Portal Global Configuration</button>

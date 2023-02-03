@@ -109,14 +109,14 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyList = response.serviceResponse;
-        this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit");
 
+        this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit" && x.isActive == "true");
         if(this.currentSurveyId != null){
           let currentSurvey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
           console.log(currentSurvey, " : currentSurvey");
           this.onTakeSurvey(currentSurvey);
         }
-
+        
         this.getAllAnsweredSurveys();
         console.log("this.allSurveyList : ", this.allSurveyList);
       } else {

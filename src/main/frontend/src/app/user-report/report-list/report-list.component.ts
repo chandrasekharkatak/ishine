@@ -20,6 +20,7 @@ import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { UtilityService } from 'src/app/services/utility.service';
 import * as XLSX from 'xlsx';
+
 class FilterData {
   title: any;
   columns: any;
@@ -627,6 +628,12 @@ export class ReportListComponent implements OnInit {
           if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
             queryObj.value = "A-".concat(queryObj.value);
           }
+
+          if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
+            queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
+          } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
+            queryObj.value = (queryObj.value) ? moment(queryObj.value).format('DD-MM-YYYY HH:mm:ss') : '';
+          }
         });
         this.queryList = data.queryList;
       }
@@ -657,12 +664,12 @@ export class ReportListComponent implements OnInit {
 
       emittedArray[0].forEach(query => {
         if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
-          console.log(query.value, " : query.value");
-          
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD') : '';
         } else if (query.column == 'Created On' || query.column == 'Updated On') {
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
-        } if (query.column == 'Employee Id') {
+        }
+        
+        if (query.column == 'Employee Id') {
           query.value = query.value.split("-")[1];
         }
       });
@@ -696,9 +703,10 @@ export class ReportListComponent implements OnInit {
   // Custom Query Data 
   getCustomQueryData(template: TemplateRef<any>) {
     this.customQuery?.trim();
-    if(this.validationService.validateNullUndefinedEmptyString(this.customQuery)){
+    if(!this.validationService.validateNullUndefinedEmptyString(this.customQuery)){
       this.alertMessage = "Please enter custom query !!";
       this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     let queryObj = new Query();
@@ -843,19 +851,52 @@ export class ReportListComponent implements OnInit {
     }
 
     if (this.isAccessControlListTable == true) {
-      this.excelName = 'ACLReport.xlsx';
+      this.excelName = `${this.employeeRole}-ACLReport.xlsx`;
 
-      const onlySpecificDataArr = this.accessControlList.map(
-        x => ({
-          "Department Name": x.departmentName,
-          "Designation": x.jobRoleName,
-          "Employee Role": x.employeeRole,
-          "Tab Name": x.tabName,
-          "Feature Name": x.featureName,
-          "Sub-Feature Name": x.subFeatureName,
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      let columnsData = [];
+      let fieldData = [];
+      
+      this.finalColumns.map(column => {
+        let headers = column.department.map(field => field);
+        columnsData.push(...headers);
+      });
+
+      let columns = columnsData.map(column => column.field);
+      let departments = {};
+      let designations = {}; 
+      
+      columns.forEach(column => {
+        let data = columnsData.find(cd => cd.field == column);
+        if(data.department){
+          if(Object.values(departments).includes(data.department)){
+            departments[column] = "";
+          }else{
+            departments[column] = data.department;
+          }
+        }else{
+          departments[column] = "";
+        }
+
+        if(data){
+          designations[column] = data.header;
+        }
+      });
+
+      fieldData.push(departments, designations, ...this.paginateData);
+      
+      const onlySpecificDataArr = fieldData.map(response => {
+        let data = {};
+        columns.forEach((header, index) => {
+          data[index] = "" + response[header]
+        });
+        return data;
+      });
+
+      const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr, {skipHeader:true});
+      const book: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+
+      XLSX.writeFile(book, this.excelName);
     }
   }
 

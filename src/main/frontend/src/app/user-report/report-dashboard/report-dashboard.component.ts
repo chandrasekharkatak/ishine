@@ -978,7 +978,7 @@ export class ReportDashboardComponent implements OnInit {
           Chart Data for - Employee KYC by Department
        */
         console.log("departmentList : ", departmentList);
-        const CHECK_PERCENT = 50.00;
+        const CHECK_PERCENT = 100.00;
         let kycChartData = [{
           name: 'Pending',
           data: [],
@@ -1002,7 +1002,7 @@ export class ReportDashboardComponent implements OnInit {
           let completedCount = 0;
 
           employeeList.forEach(employee => {
-            if(employee.profileCompletedPercent > CHECK_PERCENT){
+            if(employee.profileCompletedPercent == CHECK_PERCENT){
               completedCount++;
             }else{
               pendingCount++;
@@ -1481,7 +1481,7 @@ export class ReportDashboardComponent implements OnInit {
         enabled: false,
       },
       legend: {
-        enabled: false
+        enabled: true
       },
       series: chartData,
       colors : colors
