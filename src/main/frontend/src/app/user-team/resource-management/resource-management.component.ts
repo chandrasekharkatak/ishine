@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
@@ -21,6 +21,9 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 })
 export class ResourceManagementComponent implements OnInit {
 
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
+
   data: string;
   currentUser: User;
   feature = "Team Config";
@@ -38,6 +41,11 @@ export class ResourceManagementComponent implements OnInit {
   isEditProject:boolean = false;
   isUpdation:boolean = false;
   isHideButton:boolean = false;
+  isMyDepartmentProject:boolean = false;
+  isPendingProject:boolean = false;
+  allProjectTable:boolean = false;
+  isAllPendingProjectAllowed: boolean = false;
+  isHOD:boolean = false;
 
   currentTeam:any;
 
@@ -78,20 +86,32 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   sectionViewInit(){
+    if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin'){
+      this.isHOD = true;
+    }else{
+      this.isHOD = false;
+    }
+    if(this.currentUser.employeeRole == '' || this.currentUser.employeeRole == undefined || this.currentUser.employeeRole == null){
+      this.isHOD = false;
+    }
     this.showViewProjects();
   }
 
   showViewProjects(){
     this.isProjectTable = true;
+    this.allProjectTable = true;
     
+    this.isHideButton = false;
     this.isEditProject = false;
+    this.isMyDepartmentProject = false;
+    this.isPendingProject = false;
     this.alreadyCreatedTeam();
   }
 
   showEditProjectForm(project: any){
     this.isEditProject = true;
 
-    this.isProjectTable = true;
+    this.allProjectTable = true;
     this.isHideButton = true;
     
     this.allTeamList = [];
@@ -102,6 +122,30 @@ export class ResourceManagementComponent implements OnInit {
 
   closeEditProject(){
     this.isHideButton = false;
+  }
+
+  showDepartmentWiseProject(){
+    this.allProjectList = [];
+    this.isMyDepartmentProject = true;
+    this.allProjectTable = true;
+
+    this.isHideButton = false;
+    this.isEditProject = false;
+    this.isProjectTable = false;
+    this.isPendingProject = false;
+    this.alreadyCreatedTeam();
+  }
+
+  showPendingForApprovalProject(){
+    this.allProjectList = [];
+    this.isPendingProject = true;
+    this.allProjectTable = true;
+
+    this.isHideButton = false;
+    this.isEditProject = false;
+    this.isProjectTable = false;
+    this.isMyDepartmentProject = false;
+    this.alreadyCreatedTeam();
   }
 
   getAllProjects(){
@@ -118,8 +162,34 @@ export class ResourceManagementComponent implements OnInit {
         });
       }
 
-      this.allProjectList = _projectList;
-      console.log(this.allProjectList, " : this.allProjectList");
+      if(this.isMyDepartmentProject == true){
+        this.allProjectList = _projectList?.filter((proj) => proj.department?.includes(this.currentUser.departmentName));
+        
+      }else if(this.isPendingProject == true){
+        this.resourceManagementService.getPendingForApprovalProject().pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            const pendingProject = response.serviceResponse;
+
+            if(this.userMapping.allow_all_rmg_pending_project){
+              this.isAllPendingProjectAllowed = this.userMapping.allow_all_projects;
+            }
+
+            if(this.isAllPendingProjectAllowed){
+              this.allProjectList = pendingProject;
+            }else{
+              this.allProjectList = pendingProject.filter((proj) => proj.department?.includes(this.currentUser.departmentName));
+            }
+            console.log( this.allProjectList, " :  this.allProjectList");
+          } else {
+            this.allProjectList = [];
+            console.error(response.serviceResponse);
+          }
+        });
+
+      }else{
+        this.allProjectList = _projectList;
+        console.log(this.allProjectList, " all projects");
+      }
     });
   }
 
@@ -255,15 +325,37 @@ export class ResourceManagementComponent implements OnInit {
 
   createDraftProjectInfo(template: TemplateRef<any>){
     this.projectObj.teamList = this.allTeamList;
-    
-    console.log(this.projectObj, " : this.projectObj");
-    this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template,response.serviceResponse);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+
+    if (this.isHOD == true) {
+      this.projectObj.isHOD = true;
+      console.log(this.projectObj, " : this.projectObj");
+      this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }else{
+      this.projectObj.isHOD = false;
+      console.log(this.projectObj, " : this.projectObj");
+      this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template,response.serviceResponse);
+
+          this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.cancelRequest();
+              this.openAlertMod(template,response.serviceResponse);
+            } else {
+              console.error(response.serviceResponse);
+            }
+          });
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
   }
 
   getTeamListByProjectName(project:any){
@@ -297,6 +389,28 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+  onApproveProject(project:any) {
+    this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
+        this.showPendingForApprovalProject();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onRejectProject(project:any) {
+    this.resourceManagementService.rejectPendingProject(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
+        this.showPendingForApprovalProject();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   // Manage team & teamMemberList
 
   addInputTeamField(){
@@ -324,16 +438,13 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   removeTeamMember(teamMember) {
-
-    this.teamObj.allTeamMemberList?.forEach((value, index) => {
-      if (value == teamMember) {
-        if (this.teamObj.updatedTeamMemberList[0]) {
-          this.teamObj.updatedTeamMemberList.push(value);
-        } else {
-          this.teamObj.updatedTeamMemberList = [];
-          this.teamObj.updatedTeamMemberList.push(value);
-        }
-        this.teamObj.allTeamMemberList.splice(index, 1);
+    const currentTeam = this.currentTeam;
+    this.allTeamList?.forEach((team) => {
+      if (team.teamName == currentTeam.teamName) {
+        team.teamMemberList.splice(teamMember,1);
+        console.log(team.teamMemberList, " : team.teamMemberList");
+        
+        this.teamObj.allTeamMemberList.splice(teamMember, 1);
         let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
         if (existingEmployee) existingEmployee.isSelected = false;
       }
@@ -364,6 +475,9 @@ export class ResourceManagementComponent implements OnInit {
         if(teamLeadObj){
           this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
         }
+        console.log(teamLeadObj, " :teamLeadObj");
+        console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
+
         this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
       }
     });

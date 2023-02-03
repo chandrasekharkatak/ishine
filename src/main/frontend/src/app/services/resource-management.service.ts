@@ -21,5 +21,21 @@ export class ResourceManagementService {
   alreadyCreatedTeam(){
     return this.http.get(`${this.baseUrl}` + `api/alreadyCreatedTeam`);
   }
+
+  getPendingForApprovalProject(){
+    return this.http.get(`${this.baseUrl}` + `api/getPendingForApprovalProject`);
+  }
+
+  approvePendingProject(projectObj: Project){
+    return this.http.post(`${this.baseUrl}` + `api/approvePendingProject`, projectObj);
+  }
+
+  rejectPendingProject(projectObj: Project){
+    return this.http.post(`${this.baseUrl}` + `api/rejectPendingProject`, projectObj);
+  }
+
+  sendProjectApproval(projectObj: Project){
+    return this.http.post(`${this.baseUrl}` + `api/sendProjectApproval`, projectObj);
+  }
   
 }

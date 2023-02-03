@@ -27,6 +27,10 @@ public class ResourceManagementDTO {
 	private String clientLocation;
 	private String clientState;
 	private List<TeamDTO> teamList;
+	private String projectManagerName;
+	private String isDraftProject;
+	private String isTeamCreated;
+	private String isHOD;
 	
 	private Long createdBy;
 	private Long updatedBy;

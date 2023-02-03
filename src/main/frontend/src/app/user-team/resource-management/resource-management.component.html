@@ -1,11 +1,13 @@
-<!-- <div class="row mb-3">
+<div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}" (click)="showViewProjects()">View Projects</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isMyDepartmentProject}" (click)="showDepartmentWiseProject()">View My Department Projects</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isPendingProject}" (click)="showPendingForApprovalProject()">View Pending For Approval Projects</button>
     </div>
-</div> -->
+</div>
 
 <!-- start :: View Projects -->
-<div class="row" *ngIf="isProjectTable">
+<div class="row" *ngIf="allProjectTable">
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
@@ -30,7 +32,8 @@
                             <th scope="col" class="info-label" mat-sort-header="projectManager">Project Manager</th>	
                             <th scope="col" class="info-label" mat-sort-header="clientName">Client</th>
                             <th scope="col" class="info-label" mat-sort-header="clientState">State</th>
-                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                            <th scope="col" *ngIf="!isPendingProject" class="info-label" mat-sort-header="status">Status</th>
+                            <th scope="col" *ngIf="isPendingProject" class="info-label" mat-sort-header="status">Approval Status</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
                         </thead>
@@ -42,14 +45,17 @@
                                 <tr>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td>{{project.name}}</td>
-                                    <td>{{project.projectManager}}</td>
+                                    <td>{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.clientState}}</td>
-                                    <td>{{project.status}}</td>
+                                    <td *ngIf="!isPendingProject">{{project.status}}</td>
+                                    <td *ngIf="isPendingProject">{{project.isDraftProject == 'true' ? 'Pending For Approval' : project.isDraftProject == 'Rejected' ? 'Rejected' : "Null"}}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary" *ngIf="project.isTeamCreated == true" (click)="openProjectPreviewModal(preview_team, project)" type="submit">Preview</button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-primary" *ngIf="!isHideButton" type="submit" (click)="showEditProjectForm(project);project.isEditProject = true"><em class="fa fa-edit"></em></button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-danger" *ngIf="project.name == projectObj.name && isHideButton" type="submit" (click)="closeEditProject();project.isEditProject = false"><i class="fa-solid fa-xmark"></i></button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'" (click)="openProjectPreviewModal(preview_team, project)" type="submit">Preview</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton" type="submit" (click)="showEditProjectForm(project);project.isEditProject = true"><em class="fa fa-edit"></em></button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="project.name == projectObj.name && isHideButton" type="submit" (click)="closeEditProject();project.isEditProject = false"><i class="fa-solid fa-xmark"></i></button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-success mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="onApproveProject(project)" type="submit">Approve</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="onRejectProject(project)" type="submit">Reject</button>&nbsp;
                                     </td>
                                 </tr>
                                 <tr *ngIf="project.isEditProject">

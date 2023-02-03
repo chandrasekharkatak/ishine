@@ -21,6 +21,7 @@ export class Project{
 	updatedBy:any;
 	updatedByName: any;
 	teamList: any[] = [];
+	isHOD:any;
 
 
 	//Project from Po
