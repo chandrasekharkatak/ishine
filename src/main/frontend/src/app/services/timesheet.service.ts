@@ -80,6 +80,11 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForTimesheetSummaryChart`, queryObj);
   }
 
+  getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveTimesheetsWithoutLeaveApplication`, timesheetObj);
+  }
+
+
   /* Reports Dashboard */
   getLast9DaysTimesheetReport(){
     return this.http.get(`${this.baseUrl}` + `api/getLast9DaysTimesheetReport`);

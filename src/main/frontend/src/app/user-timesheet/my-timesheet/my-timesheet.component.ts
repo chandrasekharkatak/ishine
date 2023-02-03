@@ -1084,6 +1084,7 @@ export class MyTimesheetComponent implements OnInit {
           "Applied By": x.createdByName,
           "Applied On": x.createdOn,
           "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
+          "Leave Type": x.leaveType,
           "Remarks": x.remarks
         })
       )

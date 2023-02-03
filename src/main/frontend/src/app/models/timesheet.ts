@@ -59,6 +59,8 @@ export class Timesheet{
     managerEmail: any;
     managerName: any;
 
+    leaveType:any;
+
     isCron:any; //<-- for allEmployee DSR report cronJob
 	year:any;
 	month:any;

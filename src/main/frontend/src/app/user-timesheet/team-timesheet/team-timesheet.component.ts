@@ -269,6 +269,7 @@ export class TeamTimesheetComponent implements OnInit {
           "Office Out Time": x.officeOutTime,
           "Total Office Working Hours": x.totalWorkingOfficeHours,
           "Status": x.status,
+          "Leave Type": x.leaveType,
           "Remarks": x.remarks
         })
       )

@@ -273,6 +273,7 @@ public class EmployeeLeaveService {
 						newTimesheet.setDescription("On leave");
 						newTimesheet.setEmpId(leaveDTO.getEmpId());
 						newTimesheet.setStatus("Approved");
+						newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 
 						timesheetsRepository.save(newTimesheet);
 					}
@@ -281,20 +282,25 @@ public class EmployeeLeaveService {
 
 						while(tempDateToday.compareTo(toDate) != 1) {
 							
-							Timesheet newTimesheet = new Timesheet();
+							if(tempDateToday.isEqual(fromDate) && leaveDTO.getFromDateDayType() == 0.5) {
+								System.out.println("From Date is Half Day");
+							}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
+								System.out.println("To Date is Half Day");
+							}else {
+								Timesheet newTimesheet = new Timesheet();
 
+								newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
+								newTimesheet.setDate(tempDateToday);
+								newTimesheet.setDayType("Leave");
+								newTimesheet.setDescription("On leave");
+								newTimesheet.setEmpId(leaveDTO.getEmpId());
+								newTimesheet.setStatus("Approved");
+								newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 
-							newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
-							newTimesheet.setDate(tempDateToday);
-							newTimesheet.setDayType("Leave");
-							newTimesheet.setDescription("On leave");
-							newTimesheet.setEmpId(leaveDTO.getEmpId());
-							newTimesheet.setStatus("Approved");
-
-							timesheetsRepository.save(newTimesheet);
+								timesheetsRepository.save(newTimesheet);
+							}
 							
 							tempDateToday = tempDateToday.plusDays(1);
-
 							
 						}
 					}
