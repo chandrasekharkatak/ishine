@@ -728,10 +728,11 @@ export class MyTimesheetComponent implements OnInit {
     const key = "teamId";
     this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
-        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName }
+        project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
+        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam : project.displayTeam}
       }
     });
-    console.log("projectList :", this.projectList);
+    console.log("projectList with displayTeam:", this.projectList);
     this.setAllProjects(activityObj, this.projectList);
   }
 

@@ -64,4 +64,6 @@ export class Timesheet{
     isCron:any; //<-- for allEmployee DSR report cronJob
 	year:any;
 	month:any;
+
+    displayTeam:any;
 }
