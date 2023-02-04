@@ -164,3 +164,20 @@ input[type=number] {
 .picker{
     z-index: 1000 !important;
 }
+
+
+/* PREVENT SCROLLS ON MODAL */
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+body.viewport-lg {
+    position: absolute; 
+}
+
+body {
+    overflow-x: hidden;
+    overflow-y: auto !important;
+}
