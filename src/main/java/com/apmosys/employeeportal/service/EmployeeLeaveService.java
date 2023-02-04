@@ -389,11 +389,11 @@ public class EmployeeLeaveService {
 				apiLogInfo.setApiResponse("Leave Application Deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
-				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Leave Application Request Deletion", 
+				mailService.sendMailWithCC(leaveDTO.getManagerEmail(), leaveDTO.getEmail() +","+hrMailAddress, "Regarding Leave Application Request Deletion", 
 						"Dear "+ leaveDTO.getManagerName()+","+
 				"<br> "
 				+" &nbsp;"+" &nbsp;"+" "+"Pending leave application has been deleted by "+ leaveDTO.getEmployeeName() +"."+
-				"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+				"<br>"+"<br>"+"<b>"+"Leave Details :"+"<b>"+
 				"<br>"+
 				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
 				"<br>"+
