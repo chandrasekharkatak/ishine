@@ -1051,7 +1051,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
         "Name": x.employeeName,
         "Date": x.date,
         "Day Type": x.dayType,
-        "Timesheet Details": x.description,
+        "Activity": x.description?.replaceAll('<br>', ' \n'),
+        "Applied By": x.createdByName,
+        "Working Hours": x.totalTime,
+        "Office In Time": x.officeInTime,
+        "Office Out Time": x.officeOutTime,
+        "Total Office Working Hours": x.totalWorkingOfficeHours,
+        "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
         "Status": x.status
       })
     )
