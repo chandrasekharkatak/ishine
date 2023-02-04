@@ -58,5 +58,20 @@ public class CompOffLeaveController {
 		ServiceResponse response = compOffLeaveService.getAllCompOffRequestsByEmpId(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/updateCompOff" ,method = RequestMethod.POST)
+	public ServiceResponse updateCompOff(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = compOffLeaveService.updateCompOff(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/deleteCompOff" ,method = RequestMethod.POST)
+	public ServiceResponse deleteCompOff(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = compOffLeaveService.deleteCompOff(leaveDTO);
+		return response;
+	}
+
 
 }

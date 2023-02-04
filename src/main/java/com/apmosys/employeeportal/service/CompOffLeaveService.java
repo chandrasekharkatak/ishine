@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,9 +17,11 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.CompOffMaster;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -465,6 +469,135 @@ public class CompOffLeaveService {
 
 		return response;
 
+	}
+	
+	public ServiceResponse updateCompOff(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update CompOff");
+		apiLogInfo.setApiUrl("/api/updateCompOff");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + leaveDTO.getEmpId()+ "CompOffLeaveId : " +leaveDTO.getCompOffLeaveId()+ "noOfDays : " +(Float) leaveDTO.getNoOfDays());
+		try {
+
+			Optional<CompOffLeave> leaveObject = compOffLeaveRepository.findById(leaveDTO.getCompOffLeaveId());
+			
+			if (leaveObject.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("compoff request Not found.");
+			} else {
+				CompOffLeave leave = leaveObject.get();
+
+				leave.setReason(leaveDTO.getReasonId());
+				leave.setFromDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd"));
+				leave.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd"));
+				leave.setNoOfDays((Float) leaveDTO.getNoOfDays());
+				leave.setDescription(leaveDTO.getDescription());
+				
+				leave.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				leave.setUpdatedBy(Long.parseLong(leaveDTO.getUpdatedBy().toString()));
+
+				CompOffLeave leaveUpdated = compOffLeaveRepository.save(leave);
+
+				if (leaveUpdated != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Compoff Request Updated.");
+					
+					apiLogInfo.setApiResponse("Compoff Request Updated.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Compoff Request updation failed.");
+					
+					apiLogInfo.setApiResponse("Compoff Request updation failed.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+	
+	
+	@Transactional
+	public ServiceResponse deleteCompOff(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Delete CompOff");
+		apiLogInfo.setApiUrl("/api/deleteCompOff");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("CompOffLeaveId : " +leaveDTO.getCompOffLeaveId()+", NoOfDays : "+ leaveDTO.getNoOfDays());
+		
+		try {
+
+			Optional<CompOffLeave> leaveObject = compOffLeaveRepository.findById(leaveDTO.getCompOffLeaveId());
+
+			if (leaveObject.isPresent()) {
+
+				CompOffLeave leave = leaveObject.get();
+
+				compOffLeaveRepository.deleteById(leave.getCompOffLeaveId());
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("CompOff Request Deleted.");
+				
+				apiLogInfo.setApiResponse("CompOff Request Deleted.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+				mailService.sendMailWithCC(leaveDTO.getManagerEmail(), leaveDTO.getEmail()+","+hrMailAddress, "Regarding CompOff Request Deletion", 
+						"Dear "+ leaveDTO.getManagerName()+","+
+				"<br> "
+				+" &nbsp;"+" &nbsp;"+" "+"Pending CompOff application has been deleted by "+ leaveDTO.getEmployeeName() +"."+
+				"<br>"+"<br>"+"<b>"+"CompOff Details :"+"<b>"+
+				"<br>"+
+				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+				"<br>"+
+				"Name :"+" "+ leaveDTO.getEmployeeName()+
+				"<br>"+
+				" from "+" "+ leaveDTO.getFromDate() +
+				"<br>"+
+				" To Date : "+" "+ leaveDTO.getToDate() 
+				+"<br>"+
+				"No. Of Days :"+" "+leaveDTO.getNoOfDays()+" "+"day(s)"+
+				"<br>"+
+				"CompOff Description :"+" "+leaveDTO.getDescription()+".");
+				
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("CompOff Request Not Found.");
+				
+				apiLogInfo.setApiResponse("CompOff Request Not Found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 
 }
