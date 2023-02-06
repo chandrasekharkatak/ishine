@@ -974,6 +974,7 @@ public class TeamsService {
 		try {
 			
 			if(teamdto.getTeamId() != null) {
+				
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -982,7 +983,22 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+			}else if(teamdto.getProjectId() == null && teamdto.getTeamName() != null && teamdto.getProjectName() != null) {
+				
+				Project projectObj = projectRepository.findByProjectName(teamdto.getProjectName());
+				
+				if(projectObj != null) {
+					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), projectObj.getProjectId());
+					
+					if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
+						if(checkTeamNameByName != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Team Name already exist!");
+						}
+					}
+				}
 			}else {
+				
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -991,16 +1007,6 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 			}
-			
-			
-//			if(checkTeamNameByName==null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				}else if(checkTeamNameByName != null) {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Team Name already exist!");
-//				}
-			
-			
 			 
 		}catch (Exception e) {
 			e.printStackTrace();

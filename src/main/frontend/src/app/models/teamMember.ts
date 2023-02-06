@@ -4,4 +4,5 @@ export class TeamMember{
     empId:any;
     name:any;
     employeeRole:any;
+    isTeamLead:any;
 }

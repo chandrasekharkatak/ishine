@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import org.hibernate.query.NativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -31,6 +32,9 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllMyProjectByEmpId(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> findProjectByIsDraftProject();
 
 
 }

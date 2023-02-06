@@ -1614,7 +1614,7 @@ public class CronJobService {
 						ws.value(0, 11, "Client"); // comma seperated
 						ws.value(0, 12, "Project"); // comma seperated
 						ws.value(0, 13, "Status");
-
+						
 						int rowNum = 1;
 
 						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
@@ -1642,11 +1642,9 @@ public class CronJobService {
 									
 									if (!objectList.isEmpty()) {
 										for (Object[] object : objectList) {
-											
 											activity.append(object[1] != null ? object[1].toString() : null).append(",");
 											project.add(object[5] != null ? object[5].toString() : null);
 											clientName.add(object[6] != null ? object[6].toString() : null);
-											
 										}
 										
 										ws.style(rowNum, 3).format("dd-MM-yyyy").set();
@@ -1693,6 +1691,7 @@ public class CronJobService {
 										}
 
 										// Fill data of weekoff & leave
+
 										ws.style(rowNum, 3).format("dd-MM-yyyy").set();
 										ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
 										ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
