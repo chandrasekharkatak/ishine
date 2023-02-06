@@ -267,6 +267,7 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.isLeaveTimesheetReportTable = false;
   }
 
   disableMannualDateInput() {
