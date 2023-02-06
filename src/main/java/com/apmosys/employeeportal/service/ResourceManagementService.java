@@ -8,6 +8,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -83,12 +84,17 @@ public class ResourceManagementService {
 	
 	@Autowired
 	MailService mailService;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
 			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
+			
 			List<Long> allTeam = new ArrayList<>();
 			if(projectObj != null) {
 				
@@ -132,7 +138,7 @@ public class ResourceManagementService {
 						teamPresent.setTeamName(teamObj.getTeamName());
 						teamPresent.setTeamLeadName(teamLeadName);
 						teamPresent.setDeptIds(deptList.toString());
-						teamPresent.getCommonProperty().setUpdatedBy(teamObj.getEmpId());
+						teamPresent.getCommonProperty().setUpdatedBy(resourceManagementDTO.getCreatedBy());
 						
 						Team teamDbResponse = teamRepository.save(teamPresent);
 						
@@ -233,6 +239,7 @@ public class ResourceManagementService {
 								
 								alreadyExistTeam.forEach((team) -> {
 									team.setIsActive("N");
+									teamPresent.getCommonProperty().setUpdatedBy(resourceManagementDTO.getCreatedBy());
 									teamToBeRemoved.add(team);
 								});
 								List<Team> teamToBeRemoveResponse = teamRepository.saveAll(teamToBeRemoved);
@@ -244,11 +251,11 @@ public class ResourceManagementService {
 							//Send mail to RMG: if HOD has updated project/Team
 							if(resourceManagementDTO.getIsHOD().equals("true")) {
 								try {
-									mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+									mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 											"Regarding Resource managment",
 											"Dear RMG Team ,"+"<br>"
 											+"<br>"
-										    +"HOD has updated the project & team");
+										    +employeeObj.getName() +" has updated the project & team");
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
@@ -263,7 +270,7 @@ public class ResourceManagementService {
 						newTeamObj.setTeamName(teamObj.getTeamName());
 						newTeamObj.setTeamLeadName(teamLeadName);
 						newTeamObj.setDeptIds(deptList.toString());
-						newTeamObj.getCommonProperty().setCreatedBy(teamObj.getCreatedBy());
+						newTeamObj.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
 						Team teamDbResponse = teamRepository.save(newTeamObj);
 						
 						if(teamDbResponse != null) {
@@ -310,7 +317,7 @@ public class ResourceManagementService {
 												newActivity.setTeamId(teamDbResponse.getTeamId());
 												newActivity.setEmployeeRole(activityObject.getEmployeeRole());
 												newActivity.setDeptIds(activityObject.getDeptId().toString());
-												newActivity.getCommonProperty().setCreatedBy(4l);
+												newActivity.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
 
 												newActivityCreated = activitiesRepository.save(newActivity);
 											}
@@ -322,11 +329,11 @@ public class ResourceManagementService {
 								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
-										mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 												"Regarding Resource managment",
 												"Dear RMG Team ,"+"<br>"
 												+"<br>"
-											    +"HOD has updated the project & team");
+											    + employeeObj.getName() +" has updated the project By adding new Team");
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
@@ -338,11 +345,11 @@ public class ResourceManagementService {
 								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
-										mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 												"Regarding Resource managment",
 												"Dear RMG Team ,"+"<br>"
 												+"<br>"
-											    +"HOD has updated the project & team");
+												+ employeeObj.getName() +" has updated the project By adding new Team");
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
@@ -466,7 +473,7 @@ public class ResourceManagementService {
 						newTeamObj.setTeamName(teamObj.getTeamName());
 						newTeamObj.setTeamLeadName(teamLeadName);
 						newTeamObj.setDeptIds(deptList.toString());
-						newTeamObj.getCommonProperty().setCreatedBy(teamObj.getCreatedBy());
+						newTeamObj.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
 						Team teamDbResponse = teamRepository.save(newTeamObj);
 						
 						if(teamDbResponse != null) {
@@ -514,7 +521,7 @@ public class ResourceManagementService {
 												newActivity.setTeamId(teamDbResponse.getTeamId());
 												newActivity.setEmployeeRole(activityObject.getEmployeeRole());
 												newActivity.setDeptIds(activityObject.getDeptId().toString());
-												newActivity.getCommonProperty().setCreatedBy(4l);
+												newActivity.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
 
 												newActivityCreated = activitiesRepository.save(newActivity);
 											}
@@ -523,14 +530,14 @@ public class ResourceManagementService {
 							}
 							if(newActivityCreated != null) {
 								
-								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
+								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
-										mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 												"Regarding Resource managment",
 												"Dear RMG Team ,"+"<br>"
 												+"<br>"
-											    +"HOD has created the project & team");
+												+ employeeObj.getName() +" has created the project and Team");
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
@@ -541,13 +548,14 @@ public class ResourceManagementService {
 							}else {
 								
 								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
+								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
-										mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 												"Regarding Resource managment",
 												"Dear RMG Team ,"+"<br>"
 												+"<br>"
-											    +"HOD has created the project & team");
+												+ employeeObj.getName() +" has created the project and Team");
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
@@ -872,12 +880,27 @@ public class ResourceManagementService {
 				html.append("  </body>\n" +
 			            "</html>");
 				
-			mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
-					"Regarding Project Resource Management Application Request",
-					"Dear Manager ,"+"<br>"
-					+"<br>"+"Please take necessary actions : "
-					+"<br>"
-					+ html.toString());
+				List<String> mailList = new ArrayList<String>();
+				
+				for(String dept: resourceManagementDTO.getDepartment()) {
+					Department deptObj = departmentRepository.findByName(dept);	
+					
+					if(deptObj != null) {
+						Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
+						if(empObj != null) {
+							mailList.add(empObj.getEmail());
+						}
+					}
+				}
+				
+				if(!mailList.isEmpty()) {
+					mailService.sendMailWithCC(String.join(",", mailList), rmgMail,
+							"Regarding Project Resource Management Application Request",
+							"Dear Manager ,"+"<br>"
+									+"<br>"+"Please take necessary actions : "
+									+"<br>"
+									+ html.toString());			
+				}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

@@ -327,7 +327,6 @@ export class ResourceManagementComponent implements OnInit {
   addTeamMemberMapping(){
     this.allTeamList?.forEach((team:any) => {
       if(team.teamName == this.currentTeam.teamName){
-        team.createdBy = this.currentUser.empId;
         if(team.teamMemberList){
           if(this.allTeamMembers.length){
             team.teamMemberList = [...team.teamMemberList,...this.allTeamMembers];
@@ -460,6 +459,7 @@ export class ResourceManagementComponent implements OnInit {
   createDraftProjectInfo(template: TemplateRef<any>){
     
     this.projectObj.teamList = this.allTeamList;
+    this.projectObj.createdBy = this.currentUser.empId;
     
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
     if (!inputValidated) return;
