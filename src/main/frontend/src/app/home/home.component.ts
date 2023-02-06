@@ -332,15 +332,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
     let compOff:Leave = new Leave();
-
     compOff = Object.assign({},compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
     compOff.managerEmail = this.currentUser.email;
     compOff.managerName = this.currentUser.name;
     compOff.employeeName = compOff.createdByName;
-    console.log("Update Comp off : ", compOffObj);
-    this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
+    console.log("Update Comp off : ", compOff);
+
+    this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.countPendingCompOffRequestsByManagerId();
         this.getPendingCompOffRequestsByManagerId();
