@@ -81,4 +81,13 @@ public class ProjectController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllMyProjectByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllMyProjectByEmpId(@RequestBody ProjectDTO projectDto) {
+		
+		ServiceResponse response = projectService.getAllMyProjectByEmpId(projectDto);
+		return response;
+	}
+	
+	
+	
 }

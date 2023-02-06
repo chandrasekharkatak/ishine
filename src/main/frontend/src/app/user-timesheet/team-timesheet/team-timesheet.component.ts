@@ -269,6 +269,8 @@ export class TeamTimesheetComponent implements OnInit {
           "Office Out Time": x.officeOutTime,
           "Total Office Working Hours": x.totalWorkingOfficeHours,
           "Status": x.status,
+          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
+          "Leave Type": x.leaveType,
           "Remarks": x.remarks
         })
       )
@@ -291,6 +293,7 @@ export class TeamTimesheetComponent implements OnInit {
           "Office In Time": x.officeInTime,
           "Office Out Time": x.officeOutTime,
           "Total Office Working Hours": x.totalWorkingOfficeHours,
+          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
           "Status": x.status
         })
       )
@@ -382,7 +385,9 @@ export class TeamTimesheetComponent implements OnInit {
             case 'status':
               return compare(a.status, b.status, isAsc)
             case 'remarks':
-              return compare(a.remarks, b.remarks, isAsc)
+              return compare(a.remarks, b.remarks, isAsc);
+            case 'leaveType':
+              return compare(a.leaveType, b.leaveType, isAsc);
             default:
               return 0;
           }

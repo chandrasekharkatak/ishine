@@ -177,8 +177,8 @@
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let proj of allProjects |filter:data |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
-                                <th class="info-label">{{17*(page-1)+i+1}}</th>
+                                *ngFor="let proj of allProjects |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                                <th class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{proj.projectName}}</td>
                                 <td>{{proj.employeeName}}</td>
                                 <td>{{proj.clientName}}</td>

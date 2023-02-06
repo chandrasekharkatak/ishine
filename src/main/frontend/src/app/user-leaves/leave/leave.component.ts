@@ -459,6 +459,7 @@ export class LeaveComponent implements OnInit {
   }
 
   openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+      this.leaveObj.rejectReason = '';
       this.cancelRequest();
       this.leaveObj = leave;
       this.modalRef = this.modalService.show(template);
@@ -1139,6 +1140,7 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.previouslyAppliedLeavesList = JSON.parse(JSON.stringify(response.serviceResponse));
+        this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
 
@@ -1154,9 +1156,8 @@ export class LeaveComponent implements OnInit {
         console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
 
         console.log("leaveHistoryList : ", this.leaveHistoryList);
-        this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
+        // this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
        // this.filteredMyLeaveApplication();
-       console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
 
       } else {
         console.error(response.serviceResponse);
@@ -1178,6 +1179,8 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveHistoryList = response.serviceResponse;
         this.previouslyAppliedLeavesList = JSON.parse(JSON.stringify(response.serviceResponse));
+        this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
+
         this.leaveHistoryList.forEach(leave => {
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;

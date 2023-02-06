@@ -168,8 +168,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 d-flex">
-                        <div class="col-md-4 mb-0">
+                    <div class="d-flex">
+                        <div class="mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
@@ -558,6 +558,7 @@
                         <th scope="col" class="info-label">Sr No.</th>	
                         <th scope="col" class="info-label" mat-sort-header="activity">Activity</th>	
                         <th scope="col" class="info-label" mat-sort-header="eta">ETA</th>	
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole">Activity Role</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>	
                         <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
@@ -571,6 +572,7 @@
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
+                        <td>{{activity.employeeRole}}</td>
                         <td>{{activity.createdByName}}</td>
                         <td>{{activity.createdOn}}</td>
                         <td>
@@ -670,7 +672,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Department</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.deptId" (change)="getActivityTemplate(alert_message)">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="getActivityTemplate(alert_message)">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                         </select>

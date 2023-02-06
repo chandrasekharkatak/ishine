@@ -399,14 +399,12 @@ export class SurveyConfigComponent implements OnInit {
       
       employees.forEach(employee => {
         let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => "A-"+ response.employeementId == employee[0]);
-        employeeResponse.forEach((response:SurveyQuestion, index) => {
-          employee.push(response.response);
-          // employee.push(response.question, response.response);
-
-          // employee[`question${index+1}`] = response.question;
-          // employee[`answer${index+1}`] = response.response;
+        
+        this.responseListTableHeaders.forEach(header => {
+          const surveyResponse = employeeResponse.find((response:SurveyQuestion) => response.question == header);
+          if(surveyResponse) employee.push(surveyResponse.response);
         });
-      })
+      });
       
       console.log("employees with responses : ", employees);
       this.allSurveyResponseList = employees;
@@ -594,12 +592,9 @@ export class SurveyConfigComponent implements OnInit {
       
       employees.forEach(employee => {
         let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0].substring(2));
-        employeeResponse.forEach((surveyResponse:SurveyQuestion, index) => {
-          employee.push(surveyResponse.response);
-          // employee.push(response.question, response.response);
-
-          // employee[`question${index+1}`] = response.question;
-          // employee[`answer${index+1}`] = response.response;
+        this.responseListTableHeaders.forEach(header => {
+          const surveyResponse = employeeResponse.find((response:SurveyQuestion) => response.question == header);
+          if(surveyResponse) employee.push(surveyResponse.response);
         });
       })
       

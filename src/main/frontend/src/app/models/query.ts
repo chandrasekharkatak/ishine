@@ -4,6 +4,7 @@ export class Query{
     value:any;
     conjunction:string="";
 
+    customQuery:string;
     queryList:any;
     queryList1:any=[];
 }

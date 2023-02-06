@@ -4,6 +4,8 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report" [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet Report</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report" [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" (click)="showAccessControlListTable()">ACL(Access Control List)</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveTimesheetReportTable}" (click)="showLeaveTimesheetReportTable()">Leave Timesheet Report</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}" (click)="showCustomQueryForm()">Custom Query Data</button>
     </div>
 </div>
 
@@ -132,6 +134,7 @@
                 <th scope="col" class="info-label" mat-sort-header="officeInTime">Office In Time</th>
                 <th scope="col" class="info-label" mat-sort-header="officeOutTime">Office Out Time</th>
                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
                 <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>
                 <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName">Updated By</th>
@@ -153,6 +156,7 @@
                 <td>{{timesheet.officeInTime}}</td>
                 <td>{{timesheet.officeOutTime}}</td>
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.leaveType}}</td>
                 <td>{{timesheet.createdOn}}</td>
                 <td>{{timesheet.updatedOn}}</td>
                 <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
@@ -370,12 +374,12 @@
   </div>  
 
     <div class="col-md-12">
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
-        [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'"
+      <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'"
+        [tableTHeadId]="'aclReportInfoTHead'" [tableTHeadTrId]="'aclReportInfoTHeadTr'"
         style="max-height: 65vh;">
-        <table class="table table-responsive table-bordered table-hover" id="table">
-          <thead>
-            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
+        <table class="table table-responsive table-bordered table-hover" id="aclReportInfo">
+          <thead id="aclReportInfoTHead">
+            <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
               (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
               <ng-container *ngFor="let column of finalColumns; let i = index">
                 <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true"
@@ -457,11 +461,132 @@
           </tbody>
         </table>
       </div>
-      <button type="button" class="btn btn-sm btn-outline-primary mt-2" [hidden]="paginateData.length == 0"
-        (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+      <div class="row" [hidden]="paginateData.length == 0">
+         <div class="col-md-12 d-flex justiy-content-center mt-2">
+          <button type="button" class="btn btn-sm btn-outline-primary"
+          (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2" (click)="exportToExcel()">
+            <em class="fa fa-file-arrow-down fa-2x"></em>
+          </button>
+         </div>
+      </div>
     </div>
 </div>
 <!-- end :: ACL (access control list) -->
+
+<!-- start :: Leave Timesheet Report Table -->
+<div class="row" *ngIf="isLeaveTimesheetReportTable">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Leave Timesheet Report</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+            <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="startDate"
+              (change)="getAllLeaveTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>End Date</label>
+            <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="endDate"
+              (change)="getAllLeaveTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
+          </div>
+        </div>
+      </div>
+      <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+        <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
+          [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
+          <table class="table table-responsive" matSort (matSortChange)="sortTimesheetReportList($event)" id="leaveTimesheetReportInfo">
+            <thead class="thead-light" id="leaveTimesheetReportTHead">
+              <tr id="leaveTimesheetReportTHeadTr">
+                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName">Full Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
+                <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="managerName">Manager Name</th>
+                <th scope="col" class="info-label" mat-sort-header="departmentName">Department Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName">Updated By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="allLeaveTimesheets.length == 0">
+                <th colspan="12" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let timesheet of allLeaveTimesheets |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td colspan="4">{{timesheet.description}}</td>
+                <td>{{timesheet.status}}</td>
+                <td>{{timesheet.managerName}}</td>
+                <td>{{timesheet.departmentName}}</td>
+                <td>{{timesheet.createdOn}}</td>
+                <td>{{timesheet.updatedOn}}</td>
+                <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="allLeaveTimesheets.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+          [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end :: Timesheet Report table -->
+
+<!-- start :: Custom Query Form -->
+<div class="row" *ngIf="isCustomQueryForm">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Custom Query Data</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label for="customQuery"><span class="text-danger">*</span>Query</label>
+          <textarea class="form-control" id="customQuery" rows="4"
+              [(ngModel)]="customQuery"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+          [disabled]="!customQuery" (click)="getCustomQueryData(alert_message)">Execute</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end :: Custom Query Form -->
 
 <!-- Filter Modal -->
 <ng-template #filter>

@@ -1,5 +1,12 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -11,6 +18,7 @@ import javax.persistence.PersistenceContext;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
@@ -25,6 +33,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -65,7 +74,21 @@ public class CustomFilterService {
 	
 	@Autowired
 	JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
+	
+	
+	@Value("${spring.datasource.url}")
+	private String dbURL;
+	
+	@Value("${spring.datasource.username}")
+	private String dbUsername;
+	
+	@Value("${spring.datasource.password}")
+	private String dbPassword;
 
+	
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
 			StringBuilder query = new StringBuilder("");
 			
@@ -680,6 +703,11 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());	
 					break;	
 				}
+				case "Leave Type": {
+					query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				default:
 					break;
 				}
@@ -693,7 +721,7 @@ public class CustomFilterService {
 			
 			try {
 				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
-						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours \n"
+						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type \n"
 						+ "FROM employee_timesheets et \n"
 						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
@@ -701,7 +729,8 @@ public class CustomFilterService {
 						+ "LEFT JOIN department d on jr.dept_id = d.dept_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
+						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -748,6 +777,7 @@ public class CustomFilterService {
 					timesheetDto.setOfficeInTime(object[13] != null ? object[13].toString() : null);
 					timesheetDto.setOfficeOutTime(object[14] != null ? object[14].toString() : null);
 					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
+					timesheetDto.setLeaveType(object[16] != null ? object[16].toString() : null);
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1405,7 +1435,7 @@ public class CustomFilterService {
 				break;
 			}
             case "Day Type": {
-            	String[] status = new String[]{"Working", "Holiday", "Non-working"};
+            	String[] status = new String[]{"Working", "Holiday", "Non-working", "Public Holiday", "Leave", "Week Off"};
             	for(String object: status) {
             		EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
@@ -1450,4 +1480,91 @@ public class CustomFilterService {
 		return response;
 	}
 	
+	
+	public ServiceResponse getCustomQueryData(CustomFilterDTO customFilterDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<Object[]> list = new ArrayList<Object[]>();
+		Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			
+			if(customFilterDTO.getCustomQuery() != null) {
+			
+//				Session session = entityManager.unwrap(Session.class);
+				try {				
+					String q= customFilterDTO.getCustomQuery();
+//
+//					Query query = session.createSQLQuery(q);
+//					System.out.println("\n\n query : "+ query);
+//					System.out.println("\n\n Result Set : "+ query.getResultList());
+//					list = query.getResultList();
+					
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					con = DriverManager.getConnection(dbURL,dbUsername,dbPassword);
+					
+					stmt = con.createStatement();
+					rs = stmt.executeQuery(q);
+					ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+					
+					int columnsNumber = rsmd.getColumnCount();
+					System.out.println("column size  : " + columnsNumber);
+					
+					Object[] headers = new Object[columnsNumber];
+					
+					for (int i = 1; i <= columnsNumber; i++) {
+						headers[i-1] = rsmd.getColumnLabel(i);
+					}
+					
+					list.add(headers);
+					
+					while (rs.next()) {
+						Object[] dataArr = new Object[columnsNumber];
+						
+						for (int i = 1; i <= columnsNumber; i++) {
+							String data = rs.getString(i);
+							dataArr[i-1] = data;
+							
+						}
+						
+						list.add(dataArr);
+					}
+					
+				}catch(Exception e) {
+					e.printStackTrace();
+					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Something Went Wrong.");
+					response.setServiceError(e.getMessage());
+				}finally {
+					stmt.close();
+					rs.close();
+					
+					try {
+						if (con != null)
+							con.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+
+				if (list != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(list);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Result set is empty.");
+				}
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Custom Query Not Found.");
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

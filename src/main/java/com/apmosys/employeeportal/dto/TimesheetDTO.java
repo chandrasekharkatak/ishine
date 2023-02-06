@@ -86,4 +86,6 @@ public class TimesheetDTO {
 	private Long actualEODCount;
 	private Long resourceCount;
 	private Long expectedEODCount;
+	
+	private String leaveType;
 }

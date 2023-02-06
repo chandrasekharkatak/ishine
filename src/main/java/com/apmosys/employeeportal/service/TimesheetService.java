@@ -428,6 +428,7 @@ public class TimesheetService {
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
 						
 						dtoList.add(dto);
 					});
@@ -510,6 +511,8 @@ public class TimesheetService {
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -1045,6 +1048,8 @@ public class TimesheetService {
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -1372,6 +1377,85 @@ public class TimesheetService {
 		}
 		return response;
 		
+	}
+	
+	
+	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllLeaveTimesheetsWithoutLeaveApplication");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate() );
+		try {
+
+			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+
+			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+
+			List<Object[]> timesheetList = timesheetsRepository
+					.getAllLeaveTimesheetsWithoutLeaveApplication(start, end);
+
+			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Timesheet list is empty");
+					
+					apiLogInfo.setApiResponse("Timesheet list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				} else {
+
+					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+
+					list.forEach((object) -> {
+
+						TimesheetDTO timesheetDto = new TimesheetDTO();
+						timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+						timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
+						timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
+						timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
+						timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
+						timesheetDto.setLeaveType(object[6] != null ? object[6].toString() : null);
+						timesheetDto.setManagerName(object[7] != null ? object[7].toString() : null);
+						timesheetDto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+						timesheetDto.setCreatedOn(object[9] != null ? object[9].toString() : null);
+						timesheetDto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
+						timesheetDto.setTimesheetStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
+						
+						dtoList.add(timesheetDto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					
+					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				}
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet list is null");
+				
+				apiLogInfo.setApiResponse("Timesheet list is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 	
 
