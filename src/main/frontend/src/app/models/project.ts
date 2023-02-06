@@ -22,6 +22,8 @@ export class Project{
 	updatedByName: any;
 	teamList: any[] = [];
 	isHOD:any;
+	projectManagerName:any;
+	isTeamCreated:any;
 
 
 	//Project from Po

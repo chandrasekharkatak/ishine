@@ -105,6 +105,7 @@ const routes: Routes = [
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
+      { path:'resource-management/:id', component: ResourceManagementComponent,},
     ]
   },
   {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],

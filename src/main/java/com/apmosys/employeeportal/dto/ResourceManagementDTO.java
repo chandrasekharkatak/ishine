@@ -24,13 +24,14 @@ public class ResourceManagementDTO {
 	private Long projectManagerId;
 	private String[] department;
 	private String clientName;
-	private String clientLocation;
+	private String[] clientLocation;
 	private String clientState;
 	private List<TeamDTO> teamList;
 	private String projectManagerName;
 	private String isDraftProject;
 	private String isTeamCreated;
 	private String isHOD;
+	private String projectManager; // poProjecManager : 'A-1234'
 	
 	private Long createdBy;
 	private Long updatedBy;

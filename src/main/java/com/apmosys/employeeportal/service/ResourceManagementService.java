@@ -227,7 +227,7 @@ public class ResourceManagementService {
 							
 							//InActivate Team
 							
-							List<Team> alreadyExistTeam = teamRepository.findByTeamIdNotIn(allTeam);
+							List<Team> alreadyExistTeam = teamRepository.findByTeamIdNotInAndProjectId(allTeam, projectObj.getProjectId());
 							if(!alreadyExistTeam.isEmpty()) {
 								List<Team> teamToBeRemoved = new ArrayList<>();
 								
@@ -372,12 +372,17 @@ public class ResourceManagementService {
 					
 					if(clientDbResponse != null) {
 						clientId = clientDbResponse.getClientId();
-						ClientLocation newClientLocation = new ClientLocation();
-						newClientLocation.setClientId(clientDbResponse.getClientId());
-						newClientLocation.setClientLocation(resourceManagementDTO.getClientLocation());
-						ClientLocation clientLocationDbResponse = clientLocationRepository.save(newClientLocation);
+						List<ClientLocation> locations = new ArrayList<>();
 						
-						if(clientLocationDbResponse != null) {
+						for(String clientLocation: resourceManagementDTO.getClientLocation()) {
+							ClientLocation newClientLocation = new ClientLocation();
+							newClientLocation.setClientId(clientDbResponse.getClientId());
+							newClientLocation.setClientLocation(clientLocation);
+							locations.add(newClientLocation);
+						}
+						List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+						
+						if(!clientLocationDbResponse.isEmpty()) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Client Location added");
 						}else {
@@ -392,15 +397,28 @@ public class ResourceManagementService {
 					}
 				}
 				
+				//Find ProjectManager empId
+				Long employeementID = Long.parseLong(resourceManagementDTO.getProjectManager().split("-")[1]);
+				Long projManagerId = null;
+				Employee employee = employeeRepository.findByEmployeementId(employeementID);
+				if(employee != null) {
+					projManagerId = employee.getEmpId();
+				}
+				
 				//Add project
 				Project newProject = new Project();
-				newProject.setProjectManagerId(resourceManagementDTO.getProjectManagerId());
+				newProject.setProjectManagerId(projManagerId);
 				newProject.setProjectName(resourceManagementDTO.getName());
 				newProject.setState(resourceManagementDTO.getClientState());
 				newProject.setClientId(clientId);
 				newProject.setPoProjectId(resourceManagementDTO.getId());
 				newProject.setActive("true");
 				newProject.setSyncProject("true");
+				if(resourceManagementDTO.getIsHOD().equals("true")) {
+					newProject.setIsDraftProject("false");
+				}else {
+					newProject.setIsDraftProject("true");
+				}
 				newProject.setIsDraftProject("true");
 				newProject.setCreatedBy(resourceManagementDTO.getCreatedBy());
 				
@@ -504,9 +522,37 @@ public class ResourceManagementService {
 								}
 							}
 							if(newActivityCreated != null) {
+								
+								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
+								if(resourceManagementDTO.getIsHOD().equals("true")) {
+									try {
+										mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+												"Regarding Resource managment",
+												"Dear RMG Team ,"+"<br>"
+												+"<br>"
+											    +"HOD has created the project & team");
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+								
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully.");
 							}else {
+								
+								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
+								if(resourceManagementDTO.getIsHOD().equals("true")) {
+									try {
+										mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
+												"Regarding Resource managment",
+												"Dear RMG Team ,"+"<br>"
+												+"<br>"
+											    +"HOD has created the project & team");
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+								
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully, but default activities are not mapped");
 							}
@@ -821,11 +867,11 @@ public class ResourceManagementService {
 						html.append("<br><br>");
 				}				
 			}
-			   html.append("<a style='background-color:blue;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;' href='http://localhost:8080/employeeportal/api/approveProject?id=1&status=Approved'>Approve Here</a>");
+			   html.append("<a style='background-color:blue;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;' href='http://localhost:4200/#/user-team/resource-management/"+resourceManagementDTO.getId()+"'>Approve Here</a>");
 				
 				html.append("  </body>\n" +
 			            "</html>");
-			
+				
 			mailService.sendMailWithCC("prasad.more@apmosys.com", "harshit.toxia@apmosys.com",
 					"Regarding Project Resource Management Application Request",
 					"Dear Manager ,"+"<br>"

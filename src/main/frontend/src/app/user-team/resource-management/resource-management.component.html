@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}" (click)="showViewProjects()">View Projects</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isMyDepartmentProject}" (click)="showDepartmentWiseProject()">View My Department Projects</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isPendingProject}" (click)="showPendingForApprovalProject()">View Pending For Approval Projects</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}" *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View Projects</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isMyDepartmentProject}" *ngIf="userMapping.view_my_department_rmg_projects" (click)="showDepartmentWiseProject()">View My Department Projects</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isPendingProject}" *ngIf="userMapping.view_pending_for_approval_rmg_projects" (click)="showPendingForApprovalProject()">View Pending For Approval Projects</button>
     </div>
 </div>
 
@@ -29,7 +29,7 @@
                           <tr id="projectInfoTHeadTr">	
                             <th scope="col" class="info-label">Sr No.</th>
                             <th scope="col" class="info-label" mat-sort-header="name">Project Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="projectManager">Project Manager</th>	
+                            <th scope="col" class="info-label" mat-sort-header="projectManagerName">Project Manager</th>	
                             <th scope="col" class="info-label" mat-sort-header="clientName">Client</th>
                             <th scope="col" class="info-label" mat-sort-header="clientState">State</th>
                             <th scope="col" *ngIf="!isPendingProject" class="info-label" mat-sort-header="status">Status</th>
@@ -100,7 +100,7 @@
                                                             <div class="info-wrapper">
                                                                 <div class="form-group">
                                                                     <label><span class="text-danger">*</span>Project Manager</label>
-                                                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManager">
+                                                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManagerName">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -123,7 +123,7 @@
                                                                 <div class="info-wrapper">
                                                                     <div class="form-group">
                                                                         <label class="info-label"><span class="text-danger">*</span>Team Name</label>
-                                                                        <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="teamObj.teamName">
+                                                                        <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="teamObj.teamName" (blur)="checkTeamName(alert_message, teamObj, i)">
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -374,7 +374,7 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label>Project Manager</label>
-                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManager">
+                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManagerName">
                                 </div>
                             </div>
                         </div>
@@ -389,7 +389,7 @@
                             </div>
                         </div>
                     </div>
-                    <h5 class="card-name">Team Info</h5>
+                    <h5 *ngIf="previewTeamList.length != 0" class="card-name">Team Info</h5>
                     <ng-container *ngFor = "let team of previewTeamList; let i = index">
                         <div class="row">
                             <div class="col-md-4 mb-0">
