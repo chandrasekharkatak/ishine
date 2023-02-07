@@ -24,6 +24,7 @@ export class Project{
 	isHOD:any;
 	projectManagerName:any;
 	isTeamCreated:any;
+	rejectReason:any;       // RMG project reject reason
 
 
 	//Project from Po

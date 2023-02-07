@@ -32,6 +32,9 @@ public class ResourceManagementDTO {
 	private String isTeamCreated;
 	private String isHOD;
 	private String projectManager; // poProjecManager : 'A-1234'
+	private Long empId;
+	private String rejectReason;
+	private Long poProjectId;
 	
 	private Long createdBy;
 	private Long updatedBy;

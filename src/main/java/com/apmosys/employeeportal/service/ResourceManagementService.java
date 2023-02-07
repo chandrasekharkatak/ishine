@@ -529,7 +529,7 @@ public class ResourceManagementService {
 							}
 							if(newActivityCreated != null) {
 								
-								//Send mail to RMG: if HOD has updated project/Team
+								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
 										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
@@ -547,7 +547,6 @@ public class ResourceManagementService {
 							}else {
 								
 								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
-								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
 										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
@@ -722,6 +721,7 @@ public class ResourceManagementService {
 					dto.setClientName(object[4] != null ? object[4].toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
 					dto.setIsDraftProject(object[6] != null ? object[6].toString() : null);
+					dto.setPoProjectId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					dto.setDepartment(department.toArray(new String[department.size()]));
 					dto.setIsTeamCreated(isTeamCreated);
 					
@@ -754,10 +754,31 @@ public class ResourceManagementService {
 				
 				if(projectDbResponse != null) {
 					
-					//Send project approved successfully mail to rmg
+					Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+					if(employeeObj != null) {
+						
+						//Send project Approval successfully mail to rmg
+						try {
+							mailService.sendMailWithCC(rmgMail, "prasad.more@apmosys.com",
+									"Regarding Project Approval",
+									"Dear RMG Team ,"+"<br>"
+									+"<br>"
+									+ employeeObj.getName() +" has approved the project : " +resourceManagementDTO.getName()
+									+"<br>"
+									+ "The above Project Info with Team & Team Member details will be shared with PoPortal.");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						// Send Project/Team detail JSON to PoPotal
+						
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Project Approved.");						
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("User's mail address not found.");
+					}
 					
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Project Approved.");
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to approve project.");
@@ -785,10 +806,28 @@ public class ResourceManagementService {
 				
 				if(projectDbResponse != null) {
 					
-					//Send project rejection successfully mail to rmg
+					Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+					if(employeeObj != null) {
+						
+						//Send project rejection successfully mail to rmg
+						try {
+							mailService.sendMailWithCC(rmgMail, "prasad.more@apmosys.com",
+									"Regarding Project Rejection",
+									"Dear RMG Team ,"+"<br>"
+									+"<br>"
+									+ employeeObj.getName() +" has rejected the project : " +resourceManagementDTO.getName()
+									+"<br>"
+									+ "Reject Reason : " + resourceManagementDTO.getRejectReason());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Project Rejected.");						
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("User's mail address not found.");
+					}
 					
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Project Rejected.");
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to reject project.");
@@ -848,7 +887,7 @@ public class ResourceManagementService {
 			  // add cells to the row
 			  html.append("        <td>" + resourceManagementDTO.getName() + "</td>\n");
 			  html.append("        <td>" + resourceManagementDTO.getProjectManagerName() + "</td>\n");
-			  html.append("        <td>" + resourceManagementDTO.getClientLocation() + "</td>\n");
+			  html.append("        <td>" + resourceManagementDTO.getClientName() + "</td>\n");
 			  html.append("        <td>" + resourceManagementDTO.getClientState() + "</td>\n");
 			  html.append("      </tr>\n");
 
@@ -895,10 +934,10 @@ public class ResourceManagementService {
 				if(!mailList.isEmpty()) {
 					mailService.sendMailWithCC(String.join(",", mailList), rmgMail,
 							"Regarding Project Resource Management Application Request",
-							"Dear Manager ,"+"<br>"
+							"Dear Team ,"+"<br>"
 									+"<br>"+"Please take necessary actions : "
 									+"<br>"
-									+ html.toString());			
+									+ html.toString());
 				}
 			
 		}catch(Exception e) {

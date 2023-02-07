@@ -55,7 +55,7 @@
                                         <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton" type="submit" (click)="showEditProjectForm(project);project.isEditProject = true"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="project.name == projectObj.name && isHideButton" type="submit" (click)="closeEditProject();project.isEditProject = false"><i class="fa-solid fa-xmark"></i></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-success mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="onApproveProject(project)" type="submit">Approve</button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="onRejectProject(project)" type="submit">Reject</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="openRejectModal(reject_project,project)" type="submit">Reject</button>&nbsp;
                                     </td>
                                 </tr>
                                 <tr *ngIf="project.isEditProject">
@@ -415,5 +415,14 @@
         </div>
 
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #reject_project>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="projectObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(projectObj)" (click)="cancelRequest();onRejectProject(projectObj)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

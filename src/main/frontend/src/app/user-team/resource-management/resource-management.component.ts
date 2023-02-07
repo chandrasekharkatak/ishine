@@ -15,6 +15,7 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { TeamService } from 'src/app/services/team.service';
+import { ActivatedRoute, Router, Params } from '@angular/router';
 
 @Component({
   selector: 'app-resource-management',
@@ -50,6 +51,8 @@ export class ResourceManagementComponent implements OnInit {
   isHOD:boolean = false;
 
   currentTeam:any;
+  selectedProjToReject:any;
+  currentProjectId:any;
 
   allProjectList:any[] = [];
   allDeptList:any[] = [];
@@ -67,12 +70,14 @@ export class ResourceManagementComponent implements OnInit {
 
   constructor(
     private departmentService: DepartmentService,
-    private validationService: ValidationService,
+    public validationService: ValidationService,
     private employeeService: EmployeeService,
     private modalService: BsModalService,
     private teamService: TeamService,
     private resourceManagementService: ResourceManagementService,
     private authenticationService: AuthenticationService,
+    private route: ActivatedRoute,
+    private router : Router,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -87,6 +92,10 @@ export class ResourceManagementComponent implements OnInit {
      });
      console.log(this.feature, this.userMapping);
 
+     this.route.params.subscribe((params:Params) => {
+      this.currentProjectId = params['id'];
+    });
+    console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
   }
 
@@ -105,6 +114,10 @@ export class ResourceManagementComponent implements OnInit {
     } else if (this.userMapping.view_my_department_rmg_projects) {
       this.showDepartmentWiseProject();
     } else if (this.userMapping.view_pending_for_approval_rmg_projects) {
+      this.showPendingForApprovalProject();
+    }
+
+    if(this.currentProjectId != undefined || this.currentProjectId != null){
       this.showPendingForApprovalProject();
     }
   }
@@ -197,6 +210,15 @@ export class ResourceManagementComponent implements OnInit {
               this.allProjectList = pendingProject;
             }else{
               this.allProjectList = pendingProject.filter((proj) => proj.department?.includes(this.currentUser.departmentName));
+            }
+
+            if(this.currentProjectId != undefined || this.currentProjectId != null){
+              this.allProjectList.forEach((proj) => {
+                if(proj.poProjectId == this.currentProjectId){
+                  proj.isEditProject = true;
+                  this.showEditProjectForm(proj);
+                }
+              })
             }
             console.log( this.allProjectList, " :  this.allProjectList");
           } else {
@@ -492,7 +514,7 @@ export class ResourceManagementComponent implements OnInit {
             }
           });
         } else {
-          console.error(response.serviceResponse);
+          this.openAlertMod(this.alertTemplate,response.serviceResponse);
         }
       });
     }
@@ -532,23 +554,28 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   onApproveProject(project:any) {
+    project.empId = this.currentUser.empId;
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(this.alertTemplate,response.serviceResponse);
         this.showPendingForApprovalProject();
       } else {
-        console.error(response.serviceResponse);
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
       }
     });
   }
 
   onRejectProject(project:any) {
-    this.resourceManagementService.rejectPendingProject(project).pipe(first()).subscribe((response: any) => {
+
+    let projObj = this.selectedProjToReject;
+    projObj.rejectReason = project.rejectReason;
+    projObj.empId = this.currentUser.empId;
+    this.resourceManagementService.rejectPendingProject(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(this.alertTemplate,response.serviceResponse);
         this.showPendingForApprovalProject();
       } else {
-        console.error(response.serviceResponse);
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
       }
     });
   }
@@ -666,6 +693,11 @@ export class ResourceManagementComponent implements OnInit {
     this.projectObj = Object.assign({}, project);
     this.getTeamListByProjectName(project);
 
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  openRejectModal(template: TemplateRef<any>, projectObj:any){
+    this.selectedProjToReject = projectObj;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
