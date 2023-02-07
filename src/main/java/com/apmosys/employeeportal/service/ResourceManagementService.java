@@ -426,7 +426,6 @@ public class ResourceManagementService {
 				}else {
 					newProject.setIsDraftProject("true");
 				}
-				newProject.setIsDraftProject("true");
 				newProject.setCreatedBy(resourceManagementDTO.getCreatedBy());
 				
 				Project projectDbResponse = projectRepository.save(newProject);

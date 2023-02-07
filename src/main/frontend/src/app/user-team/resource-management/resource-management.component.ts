@@ -610,6 +610,7 @@ export class ResourceManagementComponent implements OnInit {
 
   openTeamMemberModal(template: TemplateRef<any>, currentTeam){
     this.allTeamMembers = [];
+    this.teamObj.teamLeadId = '';
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(currentTeam.departmentList);
     this.allTeamList?.forEach((team:any) => {
