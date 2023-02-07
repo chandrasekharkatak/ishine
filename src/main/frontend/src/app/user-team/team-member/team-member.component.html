@@ -28,10 +28,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="viewTeamMemberList.length == 0">
+                  <tr *ngIf="viewTeamMemberList.length == 0 || (viewTeamMemberList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data}:false).length == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let viewTeamMember of viewTeamMemberList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                  <tr *ngFor="let viewTeamMember of viewTeamMemberList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data}:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{viewTeamMember.employeementId}}</td>
                     <td>{{viewTeamMember.name}}</td>

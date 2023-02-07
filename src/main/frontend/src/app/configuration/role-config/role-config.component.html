@@ -153,11 +153,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="filterAllJobRoleList && filterAllJobRoleList.length == 0">
+                            <tr *ngIf="filterAllJobRoleList && filterAllJobRoleList.length == 0 || (filterAllJobRoleList| colFilter: {name: data, employeeRole: data, departmentName: data,
+                                createdBy: data, createdOn: data, updatedByName: data, updatedOn: data}:false).length == 0 ">
                                 <th colspan="8" class="text-center info-label">No Designation to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let jobRole of filterAllJobRoleList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                                *ngFor="let jobRole of filterAllJobRoleList| colFilter: {name: data, employeeRole: data, departmentName: data,
+                                 createdBy: data, createdOn: data, updatedByName: data, updatedOn: data}:false | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{jobRole.name}}</td>
                                 <td>{{jobRole.employeeRole}}</td>

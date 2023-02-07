@@ -406,11 +406,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="appByCategory.length == 0 ">
+                            <tr *ngIf="appByCategory.length == 0 || (appByCategory | colFilter: {appreciateType: data, appreciationToName: data, appreciationByName: data,
+                                appreciationDate: data, managerName: data, reason: data}:false ).length == 0">
                                 <th colspan="9" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index ">
+                                *ngFor="let appreciation  of appByCategory | colFilter: {appreciateType: data, appreciationToName: data, appreciationByName: data,
+                                 appreciationDate: data, managerName: data, reason: data}:false | paginate: { itemsPerPage: 10, currentPage: page } , let i = index ">
                                 <td>{{appreciation.appreciateType}}</td>
                                 <td>{{appreciation.appreciationToName}}</td>
                                 <td>{{appreciation.appreciationByName}}</td>
@@ -455,7 +457,7 @@
             <tr *ngIf="allAppreciationEvent.length == 0">	
                 <th colspan="6" class="text-center info-label">No Files to display...</th>	
             </tr>	
-            <tr *ngFor="let event of allAppreciationEvent | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">		
+            <tr *ngFor="let event of allAppreciationEvent | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">		
              <th class="info-label">{{10*(page-1)+i+1}}</th>	
             <td>{{event.appreciationEventName}}</td>	
             <td>{{event.fromDate | date:'dd-MM-yyyy'}}</td>	

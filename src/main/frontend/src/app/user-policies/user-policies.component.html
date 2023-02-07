@@ -32,10 +32,10 @@
                       </tr>
                     </thead>
                     <tbody> 
-                      <tr *ngIf="document.length == 0">
+                      <tr *ngIf="document.length == 0 || (document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false).length == 0">
                         <th colspan="6" class="text-center info-label">No Document to display...</th>
                       </tr>
-                      <tr *ngFor="let doc of document | filter:data |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
+                      <tr *ngFor="let doc of document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
                         <th class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{doc.fileName}}</td>
                         <td>{{doc.policyName}}</td>

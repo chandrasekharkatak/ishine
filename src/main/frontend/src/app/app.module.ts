@@ -77,6 +77,8 @@ import { ProjectConfigComponent } from './configuration/project-config/project-c
 import { NgxOrgChartModule } from 'ngx-org-chart';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
+import {ColFilterPipe} from './col-filter.pipe';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -129,6 +131,7 @@ import {AutocompleteLibModule} from 'angular-ng-autocomplete';
     OnBoardingComponent,
     UserExitComponent,
     ProjectConfigComponent,
+    ColFilterPipe,
   ],
   imports: [
     BrowserModule,

@@ -58,11 +58,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="allLeaveApplicationsList.length == 0">
+              <tr *ngIf="allLeaveApplicationsList.length == 0 || (allLeaveApplicationsList | colFilter: {employeementId: data, employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                reason: data, status: data, managerName: data, departmentName: data, createdOn: data, updatedOn: data, leaveStatusUpdatedByName: data}:false).length == 0">
                 <th colspan="16" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let leave of allLeaveApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let leave of allLeaveApplicationsList | colFilter: {employeementId: data, employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                   reason: data, status: data, managerName: data, departmentName: data, createdOn: data, updatedOn: data, leaveStatusUpdatedByName: data}:false |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
@@ -141,11 +143,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="allTimesheetApplicationsList.length == 0">
+              <tr *ngIf="allTimesheetApplicationsList.length == 0 || (allTimesheetApplicationsList | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, totalWorkingHours: data,
+                officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, leaveType: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false).length == 0">
                 <th colspan="13" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let timesheet of allTimesheetApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let timesheet of allTimesheetApplicationsList | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, totalWorkingHours: data,
+                  officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, leaveType: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
@@ -263,10 +267,14 @@
               </tr>
             </thead>
             <tbody>
-                <tr *ngIf="allEmployeeList.length == 0">
+                <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter: {employeementId:data,name:data,departmentName:data,jobRoleName:data,managerName:data,mobileNo:data,email:data,employmentstatus:data,dateOfJoining:data,aadhar:data,aboutMe:data,address:data,permanentAddress:data,city:data,bloodGroup:data,dateOfBirth:data,
+                  gender:data,fatherName:data,panNumber:data,placeOfBirth:data,workLocation:data,probationPeriod:data,noticePeriod:data,country:data,totalExperience:data,emergencyContactMobile:data,emergencyContactPerson:data,landline:data,maritalStatus:data,motherTongue:data,alternateMobileNo:data,pincode:data,relation:data,
+                  state:data,viewsOnOrganisation:data,passportNumber:data,bankAccountNo:data,bankIFSCCode:data,bankName:data,pfAccountNumber:data,previousPfAccountNumber:data,uan:data,esicNumber:data,graduationType:data,pursuing:data,passingGrade:data,yearOfPassing:data,updatedOn:data,updatedByName:data,createdByName:data,createdOn:data} : false).length == 0">
                     <th colspan="20" class="text-center info-label">No details to display...</th>
                 </tr>
-              <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+              <tr *ngFor="let employee of allEmployeeList | colFilter: {employeementId:data,name:data,departmentName:data,jobRoleName:data,managerName:data,mobileNo:data,email:data,employmentstatus:data,dateOfJoining:data,aadhar:data,aboutMe:data,address:data,permanentAddress:data,city:data,bloodGroup:data,dateOfBirth:data,
+                gender:data,fatherName:data,panNumber:data,placeOfBirth:data,workLocation:data,probationPeriod:data,noticePeriod:data,country:data,totalExperience:data,emergencyContactMobile:data,emergencyContactPerson:data,landline:data,maritalStatus:data,motherTongue:data,alternateMobileNo:data,pincode:data,relation:data,
+                state:data,viewsOnOrganisation:data,passportNumber:data,bankAccountNo:data,bankIFSCCode:data,bankName:data,pfAccountNumber:data,previousPfAccountNumber:data,uan:data,esicNumber:data,graduationType:data,pursuing:data,passingGrade:data,yearOfPassing:data,updatedOn:data,updatedByName:data,createdByName:data,createdOn:data} : false |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
@@ -528,11 +536,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="allLeaveTimesheets.length == 0">
+              <tr *ngIf="allLeaveTimesheets.length == 0 || (allLeaveTimesheets | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, managerName: data,
+                 departmentName: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false).length == 0">
                 <th colspan="12" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let timesheet of allLeaveTimesheets |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let timesheet of allLeaveTimesheets | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, managerName: data,
+                   departmentName: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>

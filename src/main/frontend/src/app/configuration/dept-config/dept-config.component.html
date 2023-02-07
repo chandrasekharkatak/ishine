@@ -82,11 +82,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allDeptList.length == 0">
+                            <tr *ngIf="allDeptList.length == 0 || (allDeptList | colFilter: {name: data, hodName: data, createdByName: data,
+                                createdOn: data, updatedOn: data, updatedByName: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let dept of allDeptList |filter:data |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                *ngFor="let dept of allDeptList | colFilter: {name: data, hodName: data, createdByName: data,
+                                    createdOn: data, updatedOn: data, updatedByName: data}:false |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{dept.name}}</td>
                                 <td>{{dept.hodName}}</td>

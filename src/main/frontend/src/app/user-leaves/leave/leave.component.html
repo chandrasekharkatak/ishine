@@ -206,10 +206,12 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveHistoryList.length == 0">
+                            <tr *ngIf="leaveHistoryList.length == 0 || (leaveHistoryList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, reason: data, approverName: data, remark: data}:false).length">
                                 <th colspan="14" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let leaveHistory of leaveHistoryList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, reason: data, approverName: data, remark: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                                 <td>{{leaveHistory.leaveType}}</td>
@@ -298,10 +300,12 @@
                       </tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="leaveApplicationList.length == 0">
+                        <tr *ngIf="leaveApplicationList.length == 0 || (leaveApplicationList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                            createdByName: data, createdOn: data, reason: data}:false).length == 0">
                             <th colspan="12" class="text-center info-label">No details to display...</th>
                         </tr>
-                        <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                        <tr *ngFor="let leaveApplication of leaveApplicationList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                            createdByName: data, createdOn: data, reason: data}:false | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                             <td><input class="leave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>{{leaveApplication.employeeName}}</td>
@@ -358,10 +362,10 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveBalanceList.length == 0">
+                            <tr *ngIf="leaveBalanceList.length == 0 || (leaveBalanceList| colFilter: {leaveType: data, totalLeaveBalance: data, pendingForApproval: data, balance: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveType of leaveBalanceList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
+                            <tr *ngFor="let leaveType of leaveBalanceList| colFilter: {leaveType: data, totalLeaveBalance: data, pendingForApproval: data, balance: data}:false | paginate: { itemsPerPage: 20, currentPage: page }">
                                 <td>{{leaveType.leaveType}}</td>
                                 <td>{{leaveType.totalLeaveBalance}} days(s)</td>
                                 <td>{{leaveType.pendingForApproval}} day(s)</td>
@@ -409,10 +413,10 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveLogList.length == 0">
+                            <tr *ngIf="leaveLogList.length == 0 || (leaveLogList| colFilter: {rowNumber: data, leaveType: data, updateBalanceBy: data, balance: data, message: data, createdOn: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let log of leaveLogList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let log of leaveLogList| colFilter: {rowNumber: data, leaveType: data, updateBalanceBy: data, balance: data, message: data, createdOn: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{log.rowNumber}}</td>
                                 <td>{{log.leaveType}}</td>
                                 <td>{{log.updateBalanceBy}}</td>
@@ -472,10 +476,12 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="revokeLeaveApplicationList.length == 0">
+                            <tr *ngIf="revokeLeaveApplicationList.length == 0 || (revokeLeaveApplicationList| colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, revokeReason: data, approverName: data, remark: data}:false).length == 0">
                                 <th colspan="11" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leave of revokeLeaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                            <tr *ngFor="let leave of revokeLeaveApplicationList| colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, revokeReason: data, approverName: data, remark: data}:false | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveRevokeApplication">{{leave.employeeName}}</td>
                                 <td>{{leave.leaveType}}</td>
@@ -535,10 +541,12 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="reporteeLeaveRevokeApplicationList.length == 0">
+                            <tr *ngIf="reporteeLeaveRevokeApplicationList.length == 0 || (reporteeLeaveRevokeApplicationList | colFilter: {leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                                status: data, createdByName: data, createdOn: data, revokeReason: data}:false).length === 0">
                                 <th colspan="10" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                            <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | colFilter: {leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                                 status: data, createdByName: data, createdOn: data, revokeReason: data}:false | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
                                 <td>{{leave.leaveType}}</td>
                                 <td>{{leave.fromDate}}</td>

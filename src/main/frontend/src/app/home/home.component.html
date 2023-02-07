@@ -397,10 +397,12 @@
               </tr>
             </thead>
             <tbody class="text-center">
-                <tr *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0">
+                <tr *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0 || (leaveApplicationList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                    status: data, createdByName: data, createdOn: data, reason: data}:false).length == 0">
                     <th colspan="12" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <tr *ngFor="let leaveApplication of leaveApplicationList| colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                    status: data, createdByName: data, createdOn: data, reason: data}:false| paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                     <td><input class="homeLeave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
@@ -458,10 +460,10 @@
              </tr>
             </thead>
             <tbody>
-                <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0">
+                <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0 || (allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status:data }:false).length == 0">
                     <th colspan="10" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                <tr *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status:data }:false | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
@@ -535,10 +537,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="allTeamTimesheetRequests.length == 0">
+              <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data,
+                description: data, officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, isNightShift: data, status: data}:false).length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter: {employeementId: data, employeeName: data, date: data, dayType: data,
+                description: data, officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, isNightShift: data, status: data}:false | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                 <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                 <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>

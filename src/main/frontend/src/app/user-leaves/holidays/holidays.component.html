@@ -39,10 +39,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="holidayList.length == 0">
+              <tr *ngIf="holidayList.length == 0 || (holidayList| colFilter: {occasion: data, dayOfTheWeek: data, dateOfHoliday: data, state: data}:false).length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-                <tr *ngFor="let holiday of holidayList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                <tr *ngFor="let holiday of holidayList| colFilter: {occasion: data, dayOfTheWeek: data, dateOfHoliday: data, state: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                     <td>{{20*(page-1)+i+1}}</td>
                     <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight"><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                     <td>{{holiday.dayOfTheWeek}}</td>

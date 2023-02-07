@@ -62,10 +62,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="allTeamTimesheets.length == 0">
+                  <tr *ngIf="allTeamTimesheets.length == 0 || (allTeamTimesheets | colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data,
+                    totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data, leaveType:data, remarks:data}:false).length == 0">
                     <th colspan="16" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheets |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                  <tr *ngFor="let timesheet of allTeamTimesheets | colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data,
+                     totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data, leaveType:data, remarks:data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                     <td>{{20*(page-1)+i+1}}</td>
                     <td>{{timesheet.employeementId}}</td>
                     <td>{{timesheet.employeeName}}</td>
@@ -155,11 +157,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="allTeamTimesheetRequests.length == 0">
+            <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data, createdByName:data, totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data}:false).length == 0">
               <th colspan="14" class="text-center info-label">No details to display...</th>
             </tr>
             <tr
-              *ngFor="let timesheet of allTeamTimesheetRequests|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+              *ngFor="let timesheet of allTeamTimesheetRequests| colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data, createdByName:data, totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data}:false | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
               <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected"
                   (change)="select(timesheet,$event)"></td>
               <td>{{items*(page-1)+i+1}}</td>

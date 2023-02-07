@@ -131,10 +131,10 @@
                          </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allCompOffRequests.length == 0">
+                            <tr *ngIf="allCompOffRequests.length == 0 || (allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                               </tr>
-                            <tr *ngFor="let compOffReq of allCompOffRequests |filter:data| paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                            <tr *ngFor="let compOffReq of allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffReq.compOffReasons}}</td>
                                 <td>{{compOffReq.fromDate}}</td>
@@ -192,10 +192,10 @@
                          </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allCompOffApplications.length == 0">
+                            <tr *ngIf="allCompOffApplications.length == 0 || (allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                               </tr>
-                            <tr *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                            <tr *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffApp.createdByName}}</td>
                                 <td>{{compOffApp.compOffReasons}}</td>

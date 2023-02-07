@@ -74,11 +74,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngIf="teamViewList.length == 0">
+                <tr *ngIf="teamViewList.length == 0 || (teamViewList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data, managerName: data}:false).length == 0">
                   <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                  *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
+                  *ngFor="let teamView of teamViewList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data, managerName: data}:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
                   (click)="myTeamHierarchy(teamView)">
                   <td class="info-label">{{10*(page-1)+i+1}}</td>
                   <td class="info-label">{{teamView.employeementId}}</td>
@@ -186,10 +186,12 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr *ngIf="teamViewLeaveHistoryList.length == 0">
+                          <tr *ngIf="teamViewLeaveHistoryList.length == 0 || (teamViewLeaveHistoryList | colFilter: {createdByName:data, fromDate:data, toDate:data, createdOn:data, noOfDays:data,
+                            status:data, leaveStatusUpdatedByName:data, reason:data, leaveType:data, remark:data}:false).length == 0">
                             <th colspan="11" class="text-center info-label">No details to display...</th>
                           </tr>
-                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | colFilter: {createdByName:data, fromDate:data, toDate:data, createdOn:data, noOfDays:data,
+                             status:data, leaveStatusUpdatedByName:data, reason:data, leaveType:data, remark:data}:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
                             <td class="info-label">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
@@ -259,10 +261,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="teamViewCompOffHistoryList.length == 0">
+              <tr *ngIf="teamViewCompOffHistoryList.length == 0 || (teamViewCompOffHistoryList| colFilter: {createdByName:data, fromDate:data, toDate:data,
+                createdOn:data, noOfDays:data, status:data, leaveStatusUpdatedByName:data, reason:data}:false).length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList| colFilter: {createdByName:data, fromDate:data, toDate:data,
+                 createdOn:data, noOfDays:data, status:data, leaveStatusUpdatedByName:data, reason:data}:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
               <td class="info-label">{{compOffHistory.createdByName}}</td>
               <td class="info-label">{{compOffHistory.fromDate}}</td>
@@ -360,11 +364,13 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="leaveApplicationList.length == 0">
+                  <tr *ngIf="leaveApplicationList.length == 0 || (leaveApplicationList| colFilter: {employeeName:data, leaveType:data, fromDate:data, toDate:data, noOfDays:data,
+                    status:data, createdByName:data, createdOn:data, reason:data}:false).length == 0">
                     <th colspan="14" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr
-                    *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                    *ngFor="let leaveApplication of leaveApplicationList| colFilter: {employeeName:data, leaveType:data, fromDate:data, toDate:data, noOfDays:data,
+                       status:data, createdByName:data, createdOn:data, reason:data}:false | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                     <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
                         [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
                     <td>{{items*(page-1)+i+1}}</td>
@@ -428,11 +434,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="allCompOffApplications.length == 0">
+                  <tr *ngIf="allCompOffApplications.length == 0 || (allCompOffApplications| colFilter: {createdByName:data, compOffReasons:data, fromDate:data, toDate:data, noOfDays:data, description:data, status:data}:false).length == 0 ">
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr
-                    *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                    *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName:data, compOffReasons:data, fromDate:data, toDate:data, noOfDays:data, description:data, status:data}:false | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>

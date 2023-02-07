@@ -342,10 +342,10 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allTeamList.length == 0">
+                            <tr *ngIf="allTeamList.length == 0 || (allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let team of allTeamList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let team of allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{team.projectName}}</td>
                                 <td>{{team.teamName}}</td>
@@ -565,10 +565,10 @@
                       </tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="allActivityList.length == 0">
+                        <tr *ngIf="allActivityList.length == 0 || (allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false).length == 0">
                             <th colspan="8" class="text-center info-label">No details to display...</th>
                         </tr>
-                      <tr *ngFor="let activity of allActivityList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                      <tr *ngFor="let activity of allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
@@ -698,10 +698,10 @@
                       </tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="templateActivityList.length == 0">
+                        <tr *ngIf="templateActivityList.length == 0 || (templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false).length == 0">
                             <th colspan="8" class="text-center info-label">No details to display...</th>
                         </tr>
-                      <tr *ngFor="let activity of templateActivityList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                      <tr *ngFor="let activity of templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.employeeRole}}</td>
                         <td>{{activity.activityDescription}}</td>
