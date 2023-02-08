@@ -841,8 +841,15 @@ public class EmployeeLeaveService {
 			Employee employee = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 
 			if (employee != null) {
-				List<Object[]> employeeLeavesList = employeeLeavesMapRepository
-						.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());
+				
+				List<Object[]> employeeLeavesList;
+				if(employee.getEmploymentstatus().equals("InActive")) {
+					employeeLeavesList = employeeLeavesMapRepository.getInActiveEmployeeLeaveBalance(employee.getEmpId());	
+				}else {
+					employeeLeavesList = employeeLeavesMapRepository
+							.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());					
+				}
+				
 				List<Object[]> employeeData = employeeRepository
 						.getEmployeeData(employee.getEmpId());
 				List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
