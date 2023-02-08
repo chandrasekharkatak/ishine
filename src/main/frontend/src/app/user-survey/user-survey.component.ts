@@ -113,8 +113,17 @@ export class UserSurveyComponent implements OnInit {
         this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit" && x.isActive == "true");
         if(this.currentSurveyId != null){
           let currentSurvey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
-          console.log(currentSurvey, " : currentSurvey");
-          this.onTakeSurvey(currentSurvey);
+
+          // Check if user has already taken survey
+          currentSurvey.empId = this.currentUser.empId;
+          this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.currentSurveyId = null;
+              this.router.navigate(['/user-survey']);
+            } else {
+              this.onTakeSurvey(currentSurvey);
+            }
+          });
         }
         
         this.getAllAnsweredSurveys();
@@ -249,7 +258,7 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        this.router.navigate(['/user-survey']);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
