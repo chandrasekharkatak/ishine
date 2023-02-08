@@ -218,23 +218,40 @@ public class TeamsService {
 							Department departmentObj = departmentRepository.getById(Long.parseLong(deptId));
 							deptIds.add(Long.parseLong(deptId));
 							if(departmentObj != null) {
-								map = new EmployeeTeamMap();
-								map.setActive(1l);
-								map.setEmpId(departmentObj.getHodId());
-								map.setTeamId(teamCreated.getTeamId());
-								map.setEmployeeRole("HOD");
-								mapList.add(map);
+								
+								//Check if HOD is already added
+								EmployeeTeamMap isFound = mapList.stream().filter(team -> departmentObj.getHodId().equals(team.getEmpId())).findFirst().orElse(null);
+								
+								if(isFound != null) {
+									isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"HOD");
+								}else {
+									map = new EmployeeTeamMap();
+									map.setActive(1l);
+									map.setEmpId(departmentObj.getHodId());
+									map.setTeamId(teamCreated.getTeamId());
+									map.setEmployeeRole("HOD");
+									mapList.add(map);									
+								}
+								
 							}
 						}
 						
 						// Add project Manager
 						if(projectObj != null) {
-							map = new EmployeeTeamMap();
-							map.setActive(1l);
-							map.setEmpId(projectObj.getProjectManagerId());
-							map.setTeamId(teamCreated.getTeamId());
-							map.setEmployeeRole("Manager");
-							mapList.add(map);
+							
+							//Check if ProjManager is already added
+							EmployeeTeamMap isFound = mapList.stream().filter(team -> projectObj.getProjectManagerId().equals(team.getEmpId())).findFirst().orElse(null);
+							
+							if(isFound != null) {
+								isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"Manager");
+							}else {
+								map = new EmployeeTeamMap();
+								map.setActive(1l);
+								map.setEmpId(projectObj.getProjectManagerId());
+								map.setTeamId(teamCreated.getTeamId());
+								map.setEmployeeRole("Manager");
+								mapList.add(map);								
+							}
 						}
 
 						list.forEach((teamMember) -> {
