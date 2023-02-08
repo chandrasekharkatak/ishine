@@ -43,4 +43,8 @@ export class ProjectService {
     return this.http.post(`${this.baseUrl}` + `api/checkProjectName`, project);
   }
 
+  getAllMyProjectByEmpId(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyProjectByEmpId`, project);
+  }
+
 }

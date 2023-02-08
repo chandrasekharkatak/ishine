@@ -11,6 +11,7 @@
     <div class="card col-md-12 px-0" *ngIf="isForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Apply Compensatory Off</strong>
+            <strong *ngIf="isUpdation">Update Compensatory Off</strong>
         </div>
         <div class="card-body">
             <div class="row">
@@ -89,6 +90,7 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyCompOff(alert_message)">Apply</button>
+                    <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateCompOff(alert_message)">Update</button>
                 </div>
             </div>
         </div>
@@ -125,6 +127,7 @@
                             <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
                             <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
                             <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                            <th scope="col" class="info-label" >Actions</th>
                          </tr>
                         </thead>
                         <tbody>
@@ -139,6 +142,10 @@
                                 <td>{{compOffReq.noOfDays}}</td>
                                 <td>{{compOffReq.description}}</td>
                                 <td>{{compOffReq.status}}</td>
+                                <td>
+                                    <button *ngIf="compOffReq.status == 'Pending'" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(compOffReq)"><em class="fa fa-edit"></em></button>&nbsp;	
+                                    <button *ngIf="compOffReq.status == 'Pending'" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteCompOff(delete_compoff_req,compOffReq)"><em class="fa fa-trash"></em></button>&nbsp;
+                                </td>
                             </tr>
                         </tbody>
                       </table>
@@ -219,4 +226,12 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #delete_compoff_req>	
+    <div class="modal-body text-center">	
+        <p>Are you sure you want to delete compOff Request?</p>	
+        <button type="button" class="btn btn-success" (click)="deleteCompOff(alert_message);">Yes, proceed</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
 </ng-template>

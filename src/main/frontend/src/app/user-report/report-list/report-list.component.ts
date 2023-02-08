@@ -20,6 +20,7 @@ import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { UtilityService } from 'src/app/services/utility.service';
 import * as XLSX from 'xlsx';
+import { Timesheet } from 'src/app/models/timesheet';
 
 class FilterData {
   title: any;
@@ -53,6 +54,7 @@ export class ReportListComponent implements OnInit {
   isTimesheetReportTable: boolean = false;
   isEmployeeReportTable: boolean = false;
   isAccessControlListTable: boolean = false;
+  isLeaveTimesheetReportTable: boolean = false
   isCustomQueryForm: boolean = false;
 
   allEmployeeList: any[] = [];
@@ -84,7 +86,7 @@ export class ReportListComponent implements OnInit {
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
-  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
+  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
   queryList: any[] = [];
   filterData: any = new FilterData();
 
@@ -93,6 +95,10 @@ export class ReportListComponent implements OnInit {
   pos: any;
   release: boolean = true;
   finalColumns: any[] = [];
+
+  allLeaveTimesheets: any[] = [];
+  endDate:any;
+  startDate:any;
 
   customQuery:any;
 
@@ -147,6 +153,7 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
+    this.isLeaveTimesheetReportTable = false;
 
     console.log(this.storedDataList, " : storeddatalist");
 
@@ -178,6 +185,7 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
+    this.isLeaveTimesheetReportTable = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
@@ -205,6 +213,7 @@ export class ReportListComponent implements OnInit {
     this.isTimesheetReportTable = false;
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
+    this.isLeaveTimesheetReportTable = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -230,9 +239,24 @@ export class ReportListComponent implements OnInit {
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isCustomQueryForm = false;
+    this.isLeaveTimesheetReportTable = false;
     this.data = '';
     this.columns = [];
     this.paginateData = [];
+  }
+
+  showLeaveTimesheetReportTable(){
+    this.isLeaveTimesheetReportTable = true;
+    this.startDate = null;
+    this.endDate = null;
+
+    this.isCustomQueryForm = false;
+    this.isAccessControlListTable = false;
+    this.isEmployeeReportTable = false;
+    this.isLeaveReportTable = false;
+    this.isTimesheetReportTable = false;
+
+    this.allLeaveTimesheets = [];
   }
 
   showCustomQueryForm() {
@@ -243,6 +267,11 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.isLeaveTimesheetReportTable = false;
+  }
+
+  disableMannualDateInput() {
+    return false;
   }
 
 
@@ -699,6 +728,49 @@ export class ReportListComponent implements OnInit {
     }
   }
 
+  // Leave Timesheet Report
+  getAllLeaveTimesheets(template?: TemplateRef<any>) {
+    this.allLeaveTimesheets = [];
+
+    if (this.endDate) {
+      if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
+        this.alertMessage = "Please enter Start Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
+        this.alertMessage = "Please enter End Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    } else {
+      return;
+    }
+
+    let timesheetObj = new Timesheet();
+    timesheetObj.startDate = this.startDate;
+    timesheetObj.endDate = this.endDate;
+    console.log("timesheet obj  : ", timesheetObj)
+
+    this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allLeaveTimesheets = response.serviceResponse;
+
+        for (let x of this.allLeaveTimesheets) {
+          x.employeementId = "A-".concat(x.employeementId);
+          x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
+          x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        }
+
+        console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
 
   // Custom Query Data 
   getCustomQueryData(template: TemplateRef<any>) {
@@ -785,6 +857,7 @@ export class ReportListComponent implements OnInit {
           "description": x.description?.replaceAll('<br>', ' \n'),
           "status": x.status,
           "totalWorkingHours": x.totalWorkingHours,
+          "Leave Type": x.leaveType,
           "createdOn": x.createdOn,
           "updatedOn": x.updatedOn,
           "timesheetStatusUpdatedByName": x.timesheetStatusUpdatedByName
@@ -898,6 +971,28 @@ export class ReportListComponent implements OnInit {
 
       XLSX.writeFile(book, this.excelName);
     }
+
+    if (this.isLeaveTimesheetReportTable == true) {
+      this.excelName = 'LeaveTimesheetReport.xlsx';
+
+      const onlySpecificDataArr = this.allLeaveTimesheets.map(
+        x => ({
+          "Employeement Id": x.employeementId,
+          "Employee Name": x.employeeName,
+          "date": x.date,
+          "dayType": x.dayType,
+          "description": x.description?.replaceAll('<br>', ' \n'),
+          "status": x.status,
+          "Manager Name": x.managerName,
+          "Department Name": x.departmentName,
+          "createdOn": x.createdOn,
+          "updatedOn": x.updatedOn,
+          "timesheetStatusUpdatedByName": x.timesheetStatusUpdatedByName
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    }
+
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -1006,7 +1101,6 @@ export class ReportListComponent implements OnInit {
   sortEmployeeReportList(sort: Sort) {
     console.log(sort);
     let data = this.allEmployeeList;
-    console.log("anurag :", this.allEmployeeList);
 
     if (!sort.active || sort.direction === '') {
       this.allEmployeeList = data;
@@ -1167,6 +1261,48 @@ export class ReportListComponent implements OnInit {
             case 'updatedByName':
               return compare(a.updatedByName, b.updatedByName, isAsc);
 
+
+            default:
+              return 0;
+          }
+        }
+      )
+    }
+  }
+
+  sortLeaveTimesheetReportList(sort: Sort) {
+    console.log(sort);
+    const data = this.allLeaveTimesheets;
+    if (!sort.active || sort.direction === '') {
+      this.allLeaveTimesheets = data;
+      return;
+    } else {
+      this.allLeaveTimesheets = data.sort(
+        (a, b) => {
+          const isAsc = sort.direction === 'asc';
+          switch (sort.active) {
+            case 'employeementId':
+              return compare(a.employeementId, b.employeementId, isAsc)
+            case 'employeeName':
+              return compare(a.employeeName, b.employeeName, isAsc)
+            case 'date':
+              return compare(a.date, b.date, isAsc)
+            case 'dayType':
+              return compare(a.dayType, b.dayType, isAsc)
+            case 'managerName':
+              return compare(a.managerName, b.managerName, isAsc);
+            case 'departmentName':
+              return compare(a.departmentName, b.departmentName, isAsc);
+            case 'description':
+              return compare(a.description, b.description, isAsc);
+            case 'timesheetStatusUpdatedByName':
+              return compare(a.timesheetStatusUpdatedByName, b.timesheetStatusUpdatedByName, isAsc);
+            case 'createdOn':
+              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
+            case 'updatedOn':
+              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
+            case 'status':
+              return compare(a.status, b.status, isAsc)
 
             default:
               return 0;

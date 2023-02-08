@@ -331,10 +331,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
     this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
-    compOffObj.leaveStatusId = updatedCompOffStatusId;
-    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
-    console.log("Update Comp off : ", compOffObj);
-    this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
+    let compOff:Leave = new Leave();
+    compOff = Object.assign({},compOffObj);
+    compOff.leaveStatusId = updatedCompOffStatusId;
+    compOff.leaveStatusUpdatedBy = this.currentUser.empId
+    compOff.managerEmail = this.currentUser.email;
+    compOff.managerName = this.currentUser.name;
+    compOff.employeeName = compOff.createdByName;
+    console.log("Update Comp off : ", compOff);
+
+    this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.countPendingCompOffRequestsByManagerId();
         this.getPendingCompOffRequestsByManagerId();
@@ -1045,7 +1051,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
         "Name": x.employeeName,
         "Date": x.date,
         "Day Type": x.dayType,
-        "Timesheet Details": x.description,
+        "Activity": x.description?.replaceAll('<br>', ' \n'),
+        "Applied By": x.createdByName,
+        "Working Hours": x.totalTime,
+        "Office In Time": x.officeInTime,
+        "Office Out Time": x.officeOutTime,
+        "Total Office Working Hours": x.totalWorkingOfficeHours,
+        "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
         "Status": x.status
       })
     )

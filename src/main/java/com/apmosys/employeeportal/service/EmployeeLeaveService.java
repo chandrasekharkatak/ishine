@@ -181,7 +181,12 @@ public class EmployeeLeaveService {
 				leaveBalanceLogRepository.save(log);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". If you already filled the timesheet,that will be automatically updated by system");
+				
+				if(LocalDate.parse(leaveDTO.getFromDate()).isBefore(LocalDate.now())) {
+					response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". If you already filled the timesheet,that will be automatically updated by system");
+				}else {
+					response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". Your timesheet will be automatically added by system");
+				}
 				
 				LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
 				
@@ -273,6 +278,7 @@ public class EmployeeLeaveService {
 						newTimesheet.setDescription("On leave");
 						newTimesheet.setEmpId(leaveDTO.getEmpId());
 						newTimesheet.setStatus("Approved");
+						newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 
 						timesheetsRepository.save(newTimesheet);
 					}
@@ -281,20 +287,25 @@ public class EmployeeLeaveService {
 
 						while(tempDateToday.compareTo(toDate) != 1) {
 							
-							Timesheet newTimesheet = new Timesheet();
+							if(tempDateToday.isEqual(fromDate) && leaveDTO.getFromDateDayType() == 0.5) {
+								System.out.println("From Date is Half Day");
+							}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
+								System.out.println("To Date is Half Day");
+							}else {
+								Timesheet newTimesheet = new Timesheet();
 
+								newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
+								newTimesheet.setDate(tempDateToday);
+								newTimesheet.setDayType("Leave");
+								newTimesheet.setDescription("On leave");
+								newTimesheet.setEmpId(leaveDTO.getEmpId());
+								newTimesheet.setStatus("Approved");
+								newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 
-							newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
-							newTimesheet.setDate(tempDateToday);
-							newTimesheet.setDayType("Leave");
-							newTimesheet.setDescription("On leave");
-							newTimesheet.setEmpId(leaveDTO.getEmpId());
-							newTimesheet.setStatus("Approved");
-
-							timesheetsRepository.save(newTimesheet);
+								timesheetsRepository.save(newTimesheet);
+							}
 							
 							tempDateToday = tempDateToday.plusDays(1);
-
 							
 						}
 					}
@@ -378,11 +389,11 @@ public class EmployeeLeaveService {
 				apiLogInfo.setApiResponse("Leave Application Deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
-				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Leave Application Request Deletion", 
+				mailService.sendMailWithCC(leaveDTO.getManagerEmail(), leaveDTO.getEmail() +","+hrMailAddress, "Regarding Leave Application Request Deletion", 
 						"Dear "+ leaveDTO.getManagerName()+","+
 				"<br> "
 				+" &nbsp;"+" &nbsp;"+" "+"Pending leave application has been deleted by "+ leaveDTO.getEmployeeName() +"."+
-				"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+				"<br>"+"<br>"+"<b>"+"Leave Details :"+"<b>"+
 				"<br>"+
 				"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
 				"<br>"+

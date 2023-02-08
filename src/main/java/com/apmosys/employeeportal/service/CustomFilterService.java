@@ -33,6 +33,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -73,6 +74,9 @@ public class CustomFilterService {
 	
 	@Autowired
 	JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 	
 	
 	@Value("${spring.datasource.url}")
@@ -699,6 +703,11 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());	
 					break;	
 				}
+				case "Leave Type": {
+					query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				default:
 					break;
 				}
@@ -712,7 +721,7 @@ public class CustomFilterService {
 			
 			try {
 				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
-						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours \n"
+						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type \n"
 						+ "FROM employee_timesheets et \n"
 						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
@@ -720,7 +729,8 @@ public class CustomFilterService {
 						+ "LEFT JOIN department d on jr.dept_id = d.dept_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
+						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -767,6 +777,7 @@ public class CustomFilterService {
 					timesheetDto.setOfficeInTime(object[13] != null ? object[13].toString() : null);
 					timesheetDto.setOfficeOutTime(object[14] != null ? object[14].toString() : null);
 					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
+					timesheetDto.setLeaveType(object[16] != null ? object[16].toString() : null);
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1424,7 +1435,7 @@ public class CustomFilterService {
 				break;
 			}
             case "Day Type": {
-            	String[] status = new String[]{"Working", "Holiday", "Non-working"};
+            	String[] status = new String[]{"Working", "Holiday", "Non-working", "Public Holiday", "Leave", "Week Off"};
             	for(String object: status) {
             		EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);

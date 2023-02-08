@@ -412,6 +412,15 @@ export class MyTimesheetComponent implements OnInit {
     if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave") {
       let flag = true;
       let totalActivityTime = 0;
+      let totalWorkingHoursInSeconds = 0;
+
+      let hm = (timesheetObj.totalWorkingOfficeHours)? timesheetObj.totalWorkingOfficeHours : '00:00';         
+      let timeData = hm.split(':'); 
+
+      // minutes are worth 60 seconds. Hours are worth 60 minutes.
+      totalWorkingHoursInSeconds = (+timeData[0]) * 60 * 60 + (+timeData[1]) * 60; 
+
+      console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
         this.alertMessage = "Please enter In Date-Time !!"
@@ -421,6 +430,12 @@ export class MyTimesheetComponent implements OnInit {
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeOutTime)) {
         this.alertMessage = "Please select Out Date-Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if (totalWorkingHoursInSeconds <= 0) {
+        this.alertMessage = "Please select Valid IN-OUT Date-Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -728,10 +743,11 @@ export class MyTimesheetComponent implements OnInit {
     const key = "teamId";
     this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
-        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName }
+        project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
+        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam : project.displayTeam}
       }
     });
-    console.log("projectList :", this.projectList);
+    console.log("projectList with displayTeam:", this.projectList);
     this.setAllProjects(activityObj, this.projectList);
   }
 
@@ -1084,6 +1100,7 @@ export class MyTimesheetComponent implements OnInit {
           "Applied By": x.createdByName,
           "Applied On": x.createdOn,
           "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
+          "Leave Type": x.leaveType,
           "Remarks": x.remarks
         })
       )
@@ -1323,7 +1340,9 @@ export class MyTimesheetComponent implements OnInit {
             case 'remarks':
               return compare(a.remarks, b.remarks, isAsc);
             case 'status':
-              return compare(a.status, b.status, isAsc)
+              return compare(a.status, b.status, isAsc);
+            case 'leaveType':
+            return compare(a.leaveType, b.leaveType, isAsc);
             default:
               return 0;
           }
@@ -1371,6 +1390,8 @@ export class MyTimesheetComponent implements OnInit {
               return compare(a.remarks, b.remarks, isAsc);
             case 'status':
               return compare(a.status, b.status, isAsc)
+            case 'leaveType':
+              return compare(a.leaveType, b.leaveType, isAsc);
             default:
               return 0;
           }

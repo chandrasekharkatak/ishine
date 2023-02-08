@@ -296,7 +296,7 @@
               <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
                 <th colspan="8" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities |filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities; let i = index">
                 <td>{{10*(page-1)+i+1}}</td>
                 <td>{{activity.projectName}}</td>
                 <td>{{activity.teamName}}</td>

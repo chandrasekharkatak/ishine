@@ -104,6 +104,13 @@ public class TimesheetController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllLeaveTimesheetsWithoutLeaveApplication", method = RequestMethod.POST)
+	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetDTO);
+		return response;
+	}
+	
 	/*		
 	 *	Data migration - Client & Project 		
 	 */		

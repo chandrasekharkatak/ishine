@@ -24,6 +24,7 @@ export class CompOffComponent implements OnInit {
   //flags 
   isCreation:boolean = false;
   isForm: boolean = false;
+  isUpdation:boolean = false;
   isCompOffRequestsTable: boolean = false;
   isCompOffApplicationsTable: boolean = false;
 
@@ -100,6 +101,25 @@ export class CompOffComponent implements OnInit {
     this.getAllCompOffRequestsByEmpId();
   }
 
+  showUpdateForm(compOff:Leave){	
+    this.isForm = true;	
+    this.isUpdation = true;	
+    this.isCreation = false;	
+  
+    this.isCompOffRequestsTable = false;
+    this.isCompOffApplicationsTable = false;
+
+    this.compOffObj = Object.assign({}, compOff);
+    this.compOffObj.leaveType = 'Compensatory Off'
+    this.compOffObj.fromDate = (this.compOffObj.fromDate)? moment(this.compOffObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
+    this.compOffObj.toDate = (this.compOffObj.toDate)? moment(this.compOffObj.toDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
+
+    let selectedReason =  this.compOffReasons.find(compOffReson => compOffReson.compOffReasons == this.compOffObj.compOffReasons);
+    if(selectedReason) this.compOffObj.reasonId = selectedReason.compOffId;
+
+    console.log("For Update Comp-Off : ", this.compOffObj, selectedReason);
+  }
+
   showCompOffRequestTable(){
     this.isCompOffRequestsTable = true;
 
@@ -141,6 +161,12 @@ export class CompOffComponent implements OnInit {
       this.modalRef.hide();
     }
 
+    openDeleteCompOff(template: TemplateRef<any>, compOff: any) {	
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+      this.compOffObj = compOff;	
+      console.log("compOffObj : ", this.compOffObj);	
+    }
+
     getAllCompOffReasons(){
       this.compOffReasons = [];
   
@@ -168,6 +194,11 @@ export class CompOffComponent implements OnInit {
       // const FUTUREDATED_LEAVE_PERIOD = 180;
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime());
+
+      if (this.isUpdation) {
+        this.previousCompOffRequests = this.previousCompOffRequests.filter(compOff => this.datePipe.transform(compOff.fromDate, "yyyy-MM-dd") != this.datePipe.transform(this.compOffObj.fromDate, "yyyy-MM-dd"));
+      }
+  
       
       return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
@@ -267,10 +298,16 @@ export class CompOffComponent implements OnInit {
 
     onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
       // 1 = pending , 2 = Approved , 3= Rejected
-      compOffObj.leaveStatusId = updatedCompOffStatusId;
-      compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
-      console.log("Update Comp off : ", compOffObj);
-      this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
+      let compOff:Leave = new Leave();
+
+      compOff = Object.assign({},compOffObj);
+      compOff.leaveStatusId = updatedCompOffStatusId;
+      compOff.leaveStatusUpdatedBy = this.currentUser.empId
+      compOff.managerEmail = this.currentUser.email;
+      compOff.managerName = this.currentUser.name;
+      compOff.employeeName = compOff.createdByName;
+      console.log("Update Comp off : ", compOff);
+      this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
           this.getPendingCompOffRequestsByManagerId();
@@ -288,7 +325,9 @@ export class CompOffComponent implements OnInit {
       compOff.empId = this.currentUser.empId;
       this.leaveService.getAllCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.previousCompOffRequests = JSON.parse(JSON.stringify(response.serviceResponse)); 
+          this.previousCompOffRequests = JSON.parse(JSON.stringify(response.serviceResponse));
+          this.previousCompOffRequests = this.previousCompOffRequests.filter(compOffApplication => compOffApplication.status != "Rejected");
+          
           this.allCompOffRequests = response.serviceResponse;
           this.allCompOffRequests.forEach(compOff => {
             compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
@@ -318,6 +357,54 @@ export class CompOffComponent implements OnInit {
           console.error(response.serviceResponse);
         }
       });
+    }
+
+    onUpdateCompOff(template: TemplateRef<any>){
+      const dateFormat = 'YYYY-MM-DD';
+      let inputValidated:boolean  = this.validateLeavetObj(this.compOffObj, template)
+      if(!inputValidated) return;
+
+      let compOff = new Leave();
+      compOff = Object.assign({}, this.compOffObj);
+      compOff.description = this.compOffObj.description?.trim();
+      compOff.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
+      compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
+      compOff.updatedBy = this.currentUser.empId;
+  
+      console.log("Update comp off : ", compOff);
+      this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showCompOffRequestTable();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
+
+    deleteCompOff(template: TemplateRef<any>) {	
+      this.cancelRequest();
+      
+      let compOff = new Leave;
+      compOff = Object.assign({}, this.compOffObj);
+
+      compOff.empId = this.currentUser.empId;	
+      compOff.email = this.currentUser.email;
+      compOff.employeeName = this.currentUser.name;
+      compOff.employeementId = this.currentUser.employeementId;
+      compOff.managerId = this.currentUser.managerId;	
+      compOff.managerEmail = this.currentUser.managerEmail;
+      compOff.managerName = this.currentUser.managerName;
+
+      console.log("Delete compOff ",compOff)
+      this.leaveService.deleteCompOff(compOff).pipe(first()).subscribe((response: any) => {	
+        if (response.serviceStatus == "Success") {	
+          this.openAlertMod(template, response.serviceResponse);	
+          this.showCompOffRequestTable();
+        } else {	
+          this.openAlertMod(template, response.serviceResponse);	
+        }	
+      });	
     }
 
 

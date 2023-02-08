@@ -56,6 +56,7 @@
                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
                 <th scope="col" class="info-label" mat-sort-header="status">Status</th>
                 <th scope="col" class="info-label">Shift</th>
+                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
                 <th scope="col" class="info-label">Remarks</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
@@ -77,6 +78,7 @@
                     <td>{{timesheet.totalWorkingOfficeHours}}</td>
                     <td>{{timesheet.status}}</td>
                     <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                    <td>{{timesheet.leaveType}}</td>
                     <td>{{timesheet.remarks}}</td>
                     <td>
                       <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
@@ -239,7 +241,7 @@
       </div>
     </div>
   </div>
-  <div *ngIf="timesheetObj.dayType == 'Holiday'" class="row">
+  <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
     <div class="col-md-4 mb-0">
         <div class="info-wrapper">
             <div class="form-group">
@@ -249,7 +251,7 @@
         </div>
     </div>
   </div>
-  <div *ngIf="timesheetObj.dayType != 'Holiday'" class="row px-3">
+  <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
     <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
       <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
       </div> -->
@@ -270,7 +272,7 @@
           <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
             <th colspan="8" class="text-center info-label">No details to display...</th>
           </tr>
-          <tr *ngFor="let activity of timesheetObj.allTimesheetActivities | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+          <tr *ngFor="let activity of timesheetObj.allTimesheetActivities; let i = index">
             <td>{{20*(page-1)+i+1}}</td>
             <td>{{activity.clientName}}</td>
             <td>{{activity.clientLocation}}</td>

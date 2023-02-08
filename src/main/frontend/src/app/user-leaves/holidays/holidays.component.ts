@@ -1,7 +1,9 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { Holiday } from 'src/app/models/holiday';
 import { User } from 'src/app/models/user';
@@ -64,6 +66,10 @@ export class HolidaysComponent implements OnInit {
     this.holidayService.getAllHolidayByEmpWorkLocation(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
+        this.holidayList.forEach(holiday => {
+          holiday.dateOfHoliday = (holiday.dateOfHoliday)? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
+        });
+
         this.holidayList1 = this.holidayList;	
 
         this.currentYear = new Date().getFullYear();	

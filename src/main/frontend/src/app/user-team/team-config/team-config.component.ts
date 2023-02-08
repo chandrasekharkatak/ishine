@@ -768,14 +768,6 @@ export class TeamConfigComponent implements OnInit {
         console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
         let allProjectList = response.serviceResponse;
 
-        //revome repeated project
-
-        allProjectList = allProjectList.filter((value, index, self) =>
-          index === self.findIndex((t) => (
-            t.projectId === value.projectId
-          ))
-        )
-
         if(this.userMapping.allow_all_projects){
           isAllProjectAllowed = this.userMapping.allow_all_projects;
         }
@@ -783,10 +775,41 @@ export class TeamConfigComponent implements OnInit {
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || isAllProjectAllowed){
           this.allProjectListByManagerId = allProjectList;
+
+          //revome repeated project
+
+          this.allProjectListByManagerId = this.allProjectListByManagerId.filter((value, index, self) =>
+            index === self.findIndex((t) => (
+              t.projectId === value.projectId
+            ))
+          )
           console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
         }else{
           this.allProjectListByManagerId = allProjectList;
           this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
+          
+          //My Projects
+          projectObj.empId = this.currentUser.empId;
+          this.projectService.getAllMyProjectByEmpId(projectObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              let myProjectList = response.serviceResponse;
+
+              if(myProjectList){
+                this.allProjectListByManagerId.push(myProjectList);
+              }
+
+            } else {
+              console.error(response.serviceResponse);
+            }
+          });
+
+          //revome repeated project
+
+          this.allProjectListByManagerId = this.allProjectListByManagerId.filter((value, index, self) =>
+            index === self.findIndex((t) => (
+              t.projectId === value.projectId
+            ))
+          )
           console.log("allProjectList By Department :", this.allProjectListByManagerId);
         }
 
