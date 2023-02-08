@@ -65,10 +65,10 @@
                         <thead class="thead-light" id="policyDocInfoTHead">
                         <tr id="policyDocInfoTHeadTr">
                             <th scope="col" class="info-label">Sr No.</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fileName">File Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                            <th scope="col" class="info-label" mat-sort-header="fileName|string">File Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="policyName|string">Policy Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                             <!-- <th scope="col" class="info-label" mat-sort-header="createdOn">Read Enabled</th> -->
                             <th scope="col" class="info-label">Action</th>	
                             <th scope="col" class="info-label">Read Confirmation</th>	  
@@ -79,7 +79,7 @@
                             <tr *ngIf="document.length == 0 || (document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No Files to display...</th>
                             </tr>
-                            <tr *ngFor="let doc of document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
+                            <tr *ngFor="let doc of document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
                             <th class="info-label">{{10*(page-1)+i+1}}</th>
                             <td>{{doc.fileName}}</td>
                             <td>{{doc.policyName}}</td>
@@ -125,21 +125,21 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'policyReadInfo'" [tableTHeadId]="'policyReadInfoTHead'"
                 [tableTHeadTrId]="'policyReadInfoTHeadTr'">
-                    <table class="table department-table" matSort (matSortChange)="sortReadData($event)" id="policyReadInfo">	
+                    <table class="table department-table" matSort (matSortChange)="sortData($event)" id="policyReadInfo">	
                         <thead class="thead-light" id="policyReadInfoTHead">
                         <tr id="policyReadInfoTHeadTr">
                             <th scope="col" class="info-label">Sr No.</th>	
-                            <th scope="col" class="info-label" mat-sort-header="name">Emp Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="empId" >Emp id</th>
-                            <th scope="col" class="info-label" mat-sort-header="policyName">policy name</th>
-                            <th scope="col" class="info-label" mat-sort-header="readEnabled">Read on</th>
+                            <th scope="col" class="info-label" mat-sort-header="name|string">Emp Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="empId|empId" >Emp id</th>
+                            <th scope="col" class="info-label" mat-sort-header="policyName|string">policy name</th>
+                            <th scope="col" class="info-label" mat-sort-header="readEnabled|string">Read on</th>
                         </tr>
                         </thead>
                         <tbody>
                             <tr *ngIf="responseList.length == 0 || (responseList | colFilter: {name: data, empId: data, policyName: data, readEnabled: data}:false).length == 0">
                                 <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
                             </tr>
-                            <tr *ngFor="let doc of responseList | colFilter: {name: data, empId: data, policyName: data, readEnabled: data}:false | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
+                            <tr *ngFor="let doc of responseList | colFilter: {name: data, empId: data, policyName: data, readEnabled: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">	
                             <th class="info-label">{{10*(page-1)+i+1}}</th> 
                             <td>{{doc.name}}</td>
                             <td>{{doc.empId}}</td>

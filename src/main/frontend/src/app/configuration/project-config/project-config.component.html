@@ -157,18 +157,18 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
                     [tableTHeadTrId]="'projectInfoTHeadTr'">
-                    <table class="table table-responsive" matSort (matSortChange)="sortProjectList($event)" id="projectInfo">
+                    <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="projectInfo">
                         <thead class="thead-light" id="projectInfoTHead">
                             <tr id="projectInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="employeeName">Project Manager</th>
-                                <th scope="col" class="info-label" mat-sort-header="clientName">Client Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>
-                                <th scope="col" class="info-label" mat-sort-header="state">State</th>
+                                <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Project Manager</th>
+                                <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>
+                                <th scope="col" class="info-label" mat-sort-header="state|string">State</th>
                                 <th scope="col" class="info-label">Actions</th>
                             </tr>
                         </thead>
@@ -177,7 +177,7 @@
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let proj of allProjects | colFilter: {projectName: data, employeeName: data, clientName: data, createdOn: data, createdByName: data, updatedOn: data, updatedByName: data, state: data}:false |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                                *ngFor="let proj of allProjects | colFilter: {projectName: data, employeeName: data, clientName: data, createdOn: data, createdByName: data, updatedOn: data, updatedByName: data, state: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{proj.projectName}}</td>
                                 <td>{{proj.employeeName}}</td>

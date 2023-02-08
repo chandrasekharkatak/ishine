@@ -26,6 +26,10 @@ export class SurveyConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -655,41 +659,15 @@ export class SurveyConfigComponent implements OnInit {
     this.page = event;
   }
 
-  // sortSurvey()
-  sortSurvey(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allSurveyList;
-
-    if (!sort.active || sort.direction === '') {
-      this.allSurveyList = data;
-      return;
-    }
-    else {
-      this.allSurveyList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'surveyName':
-              return compare(a.surveyName.toLowerCase(), b.surveyName.toLowerCase(), isAsc)
-            case 'description':
-              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc)
-            case 'isActive':
-              return compare(a.isActive.toLowerCase(), b.isActive.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
-
 
 }
 

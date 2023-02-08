@@ -26,6 +26,10 @@ export class TeamTimesheetComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isAllTimesheetTable: boolean = false;
   isAllTimesheetRequestTable: boolean = false;
@@ -351,128 +355,14 @@ export class TeamTimesheetComponent implements OnInit {
 
 
   //sorting timesheet	
-  sortTimeSheet(sort: Sort) {
-    //console.log(sort);	
-    const data = this.allTeamTimesheets;
-
-
-    if (!sort.active || sort.direction === '') {
-      this.allTeamTimesheets = data;
-      return;
-    } else {
-      this.allTeamTimesheets = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc)
-            case 'employeeName':
-              return compare(a.employeeName, b.employeeName, isAsc)
-            case 'date':
-              return compare(a.date, b.date, isAsc)
-            case 'dayType':
-              return compare(a.dayType, b.dayType, isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'totalTime':
-              return compare(new Date(a.totalTime).getTime(), new Date(b.totalTime).getTime(), isAsc);
-            case 'officeInTime':
-              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
-            case 'officeOutTime':
-              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
-            case 'totalWorkingOfficeHours':
-              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc)
-            case 'remarks':
-              return compare(a.remarks, b.remarks, isAsc);
-            case 'leaveType':
-              return compare(a.leaveType, b.leaveType, isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-
-
-  }
-
-  sortAllTimesheet(sort: Sort) {
-    ////console.log(sort);	
-    const data = this.allTeamTimesheetRequests;
-    if (!sort.active || sort.direction === '') {
-      this.allTeamTimesheetRequests = data;
-      return;
-    } else {
-      this.allTeamTimesheetRequests = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc)
-            case 'employeeName':
-              return compare(a.employeeName, b.employeeName, isAsc)
-            case 'date':
-              return compare(a.date, b.date, isAsc)
-            case 'dayType':
-              return compare(a.dayType, b.dayType, isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'createdByName':
-              return compare(a.createdByName, b.createdByName, isAsc)
-            case 'totalTime':
-              return compare(new Date(a.totalTime).getTime(), new Date(b.totalTime).getTime(), isAsc);
-            case 'officeInTime':
-              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
-            case 'officeOutTime':
-              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
-            case 'totalWorkingOfficeHours':
-              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-  }
-  sortMyTimesheetView(sort: Sort) {
-    //console.log(sort);
-    const data = this.timesheetObj.allTimesheetActivities;
-    if (!sort.active || sort.direction === '') {
-      this.timesheetObj.allTimesheetActivities = data;
-      return;
-    } else {
-      this.timesheetObj.allTimesheetActivities = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'clientName':
-              return compare(a.clientName, b.clientName, isAsc)
-            case 'clientLocation':
-              return compare(a.clientLocation, b.clientLocation, isAsc)
-            case 'projectName':
-              return compare(a.projectName, b.projectName, isAsc)
-
-            case 'teamName':
-              return compare(a.teamName, b.teamName, isAsc);
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'activity':
-              return compare(a.activity, b.activity, isAsc);
-            case 'completionTime':
-              return compare(a.completionTime, b.completionTime, isAsc);
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
   }
 
   selectAll(event) {

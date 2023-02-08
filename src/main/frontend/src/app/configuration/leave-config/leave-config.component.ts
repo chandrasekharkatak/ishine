@@ -22,6 +22,11 @@ import { AppComponent } from 'src/app/app.component';
 })
 export class LeaveConfigComponent implements OnInit {
   data: string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -1131,108 +1136,13 @@ export class LeaveConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortHolidayData(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.holidayListFilter;
-    if (!sort.active || sort.direction === '') {
-      this.holidayListFilter = data;
-      return;
-    } else {
-      this.holidayListFilter = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-
-            case 'occasion':
-              return compare(a.occasion.toLowerCase(), b.occasion.toLowerCase(), isAsc)
-            case 'dayOfTheWeek':
-              return compare(a.dayOfTheWeek.toLowerCase(), b.dayOfTheWeek.toLowerCase(), isAsc)
-            case 'dateOfHoliday':
-              return compare(a.dateOfHoliday.toLowerCase(), b.dateOfHoliday.toLowerCase(), isAsc)
-            case 'state':
-              return compare(a.state.toLowerCase(), b.state.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
-            case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-
-            case 'updatedByName':
-              return compare(a.updatedByName.toLowerCase(), b.updatedByName.toLowerCase(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-  }
-
-  sortFunc(sort: Sort) {
-    console.log(sort);
-
-    const data = this.leaveTypes;
-    if (!sort.active || sort.direction === '') {
-      this.leaveTypes = data
-      return;
-    } else {
-      this.leaveTypes = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-
-            case 'leaveType':
-              return compare(a.leaveType.toLowerCase(), b.leaveType.toLowerCase(), isAsc)
-            case 'leaveTypeCode':
-              return compare(a.leaveTypeCode.toLowerCase(), b.leaveTypeCode.toLowerCase(), isAsc)
-            case 'gender':
-              return compare(a.gender.toLowerCase(), b.gender.toLowerCase(), isAsc)
-            case 'noOfDays':
-              compare(a.noOfDays, b.noOfDays, isAsc)
-            case 'rules':
-              return compare(a.rules, b.rules, isAsc)
-              case 'updatedOn':
-                return compare(a.updatedOn, b.updatedOn, isAsc)
-                case 'updatedByName':
-                  return compare(a.updatedByName, b.updatedByName, isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc)
-          }
-        }
-      )
-    }
-
-  }
-  sortPolicy(sort: Sort) {
-    console.log(sort);
-    const data = this.leavePolicyList;
-    if (!sort.active || sort.direction === '') {
-      this.leavePolicyList = data;
-      return;
-    }
-    else {
-      this.leavePolicyList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'leavePolicyName':
-              return compare(a.leavePolicyName.toLowerCase(), b.leavePolicyName.toLowerCase(), isAsc)
-            case 'leaveType':
-              return compare(a.leaveType.toLowerCase(), b.leaveType.toLowerCase(), isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc)
-            case 'createdByName':
-              compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(a.createdOn, b.createdOn, isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
 

@@ -16,22 +16,22 @@
         <div class="col-md-12">
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamMemberInfo'" [tableTHeadId]="'teamMemberInfoTHead'"
           [tableTHeadTrId]="'teamMemberInfoTHeadTr'">
-            <table class="table team-table" id="team-table" matSort (matSortChange)="sortTeamMemberDetails($event)">	
+            <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">	
               <thead class="thead-light">	
                 <tr>	
                   <th scope="col" class="info-label">Sr No.</th>	
-                  <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
-                  <th scope="col" class="info-label" mat-sort-header="name">Name</th>	
-                  <th scope="col" class="info-label" mat-sort-header="email">Email</th>	
-                  <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>	
-                  <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>	
+                  <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>	
+                  <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>	
+                  <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Designation</th>	
+                  <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngIf="viewTeamMemberList.length == 0 || (viewTeamMemberList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data}:false).length == 0">
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let viewTeamMember of viewTeamMemberList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data}:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                  <tr *ngFor="let viewTeamMember of viewTeamMemberList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{viewTeamMember.employeementId}}</td>
                     <td>{{viewTeamMember.name}}</td>

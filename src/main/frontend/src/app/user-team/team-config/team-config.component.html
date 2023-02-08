@@ -328,16 +328,16 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamInfo'" [tableTHeadId]="'teamInfoTHead'"
                     [tableTHeadTrId]="'teamInfoTHeadTr'">
-                    <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortTeam($event)">	
+                    <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="teamInfoTHead">	
                           <tr id="teamInfoTHeadTr">	
                             <th scope="col" class="info-label">Sr No.</th>
-                            <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="teamName">Team Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="teamLeadName">Team Lead</th>
-                            <th scope="col" class="info-label" mat-sort-header="projectManagerName">Project Manager</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="teamLeadName|string">Team Lead</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project Manager</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
                         </thead>
@@ -345,7 +345,7 @@
                             <tr *ngIf="allTeamList.length == 0 || (allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let team of allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let team of allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{team.projectName}}</td>
                                 <td>{{team.teamName}}</td>
@@ -552,15 +552,15 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
                 [tableTHeadTrId]="'activityInfoTHeadTr'">
-                <table class="table table-responsive" id="activities-table" matSort (matSortChange)="sortActivity($event)">	
+                <table class="table table-responsive" id="activities-table" matSort (matSortChange)="sortData($event)">	
                     <thead class="thead-light">	
                       <tr>	
                         <th scope="col" class="info-label">Sr No.</th>	
-                        <th scope="col" class="info-label" mat-sort-header="activity">Activity</th>	
-                        <th scope="col" class="info-label" mat-sort-header="eta">ETA</th>	
-                        <th scope="col" class="info-label" mat-sort-header="employeeRole">Activity Role</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>	
-                        <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                        <th scope="col" class="info-label" mat-sort-header="activity|string">Activity</th>	
+                        <th scope="col" class="info-label" mat-sort-header="eta|number">ETA</th>	
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Activity Role</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>	
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>
@@ -568,7 +568,7 @@
                         <tr *ngIf="allActivityList.length == 0 || (allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false).length == 0">
                             <th colspan="8" class="text-center info-label">No details to display...</th>
                         </tr>
-                      <tr *ngFor="let activity of allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                      <tr *ngFor="let activity of allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
@@ -687,13 +687,13 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
                 [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
-                <table class="table table-responsive" matSort (matSortChange)="sortActivityTemplate($event)" id="activityTemplateInfo">	
+                <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">	
                     <thead class="thead-light" id="activityTemplateInfoTHead">	
                       <tr id="activityTemplateInfoTHeadTr">	
                         <th scope="col" class="info-label">Sr No.</th>
-                        <th scope="col" class="info-label" mat-sort-header="employeeRole">Employee Role</th>
-                        <th scope="col" class="info-label" mat-sort-header="activityDescription">Activities</th>
-                        <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Employee Role</th>
+                        <th scope="col" class="info-label" mat-sort-header="activityDescription|string">Activities</th>
+                        <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>
@@ -701,7 +701,7 @@
                         <tr *ngIf="templateActivityList.length == 0 || (templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false).length == 0">
                             <th colspan="8" class="text-center info-label">No details to display...</th>
                         </tr>
-                      <tr *ngFor="let activity of templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                      <tr *ngFor="let activity of templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.employeeRole}}</td>
                         <td>{{activity.activityDescription}}</td>

@@ -71,12 +71,12 @@
                         <thead class="thead-light" id="departmentInfoTHead">
                             <tr id="departmentInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="name">Department Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="hodName">Head of Department</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>
+                                <th scope="col" class="info-label" mat-sort-header="name|string">Department Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="hodName|string">Head of Department</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>
                                 <th *ngIf="userMapping.update_department || userMapping.delete_department" scope="col"
                                     class="info-label">Actions</th>
                             </tr>
@@ -88,7 +88,7 @@
                             </tr>
                             <tr
                                 *ngFor="let dept of allDeptList | colFilter: {name: data, hodName: data, createdByName: data,
-                                    createdOn: data, updatedOn: data, updatedByName: data}:false |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                    createdOn: data, updatedOn: data, updatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{dept.name}}</td>
                                 <td>{{dept.hodName}}</td>

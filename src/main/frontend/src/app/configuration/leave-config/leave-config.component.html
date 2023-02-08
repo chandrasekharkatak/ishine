@@ -127,18 +127,18 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortHolidayData($event)">	
+                    <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="holidayInfoTHead">	
                           <tr id="holidayInfoTHeadTr">	
                             <th scope="col" class="info-label" >Sr. No</th>	
-                            <th scope="col" class="info-label"  mat-sort-header="occasion">Occasion</th>	
-                            <th scope="col" class="info-label" mat-sort-header="dayOfTheWeek">Day</th>	
-                            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday">Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="state">State</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdbyName">Created By</th>
-                            <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>
-                            <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated By</th>
+                            <th scope="col" class="info-label"  mat-sort-header="occasion|string">Occasion</th>	
+                            <th scope="col" class="info-label" mat-sort-header="dayOfTheWeek|string">Day</th>	
+                            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday|date">Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="state|string">State</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdbyName|string">Created By</th>
+                            <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                            <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
                         </thead>
@@ -148,7 +148,7 @@
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr *ngFor="let holiday of holidayListFilter| colFilter: {occasion: data, dayOfTheWeek: data, dateOfHoliday: data, state: data,
-                                 createdOn: data, createdbyName: data, updatedOn: data, updatedByName: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                 createdOn: data, createdbyName: data, updatedOn: data, updatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                                 <td>{{holiday.dayOfTheWeek}}</td>
@@ -267,17 +267,17 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
                     [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
-                    <table class="table table-responsive" id="employeeBucketInfo" matSort (matSortChange)="sortFunc($event)">	
+                    <table class="table table-responsive" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="employeeBucketInfoTHead">	
                           <tr id="employeeBucketInfoTHeadTr">	
-                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="leaveTypeCode">Leave Code</th>	
-                            <th scope="col" class="info-label" mat-sort-header="gender">Employee Gender</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Default Leaves</th>	
-                            <th scope="col" class="info-label" mat-sort-header="rules">Rules</th>	
-                            <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated on</th>	
-                            <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated by</th>	
-                            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                            <th scope="col" class="info-label" mat-sort-header="leaveTypeCode|string">Leave Code</th>	
+                            <th scope="col" class="info-label" mat-sort-header="gender|string">Employee Gender</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Default Leaves</th>	
+                            <th scope="col" class="info-label" mat-sort-header="rules|string">Rules</th>	
+                            <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>	
+                            <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
                         </thead>
@@ -287,7 +287,7 @@
                                 <th colspan="16" class="info-label">No details to display...</th>
                             </tr>
                             <tr *ngFor="let leaveType of leaveTypes| colFilter: {leaveType: data, leaveTypeCode: data, gender: data, noOfDays: data,
-                                 rules: data, updatedOn: data, updatedByName: data, description: data}:false | paginate: { itemsPerPage: 20, currentPage: page }">
+                                 rules: data, updatedOn: data, updatedByName: data, description: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }">
                                 <td>{{leaveType.leaveType}}</td>
                                 <td>{{leaveType.leaveTypeCode}}</td>
                                 <td>{{leaveType.gender}}</td>
@@ -651,17 +651,17 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
                         [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                        <table class="table table-responsive" matSort (matSortChange)="sortPolicy($event)">	
+                        <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
                             <thead class="thead-light">	
                               <tr>	
                                 <th scope="col" class="info-label">Sr No.</th>	
-                                <th scope="col" class="info-label" mat-sort-header="leavePolicyName">Leave Policy Name</th>	
-                                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                                <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description">Description</th>	
-                                <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>	
-                                <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>	
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName">Updated By</th>
+                                <th scope="col" class="info-label" mat-sort-header="leavePolicyName|string">Leave Policy Name</th>	
+                                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                                <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description|string">Description</th>	
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>	
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>	
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                 <th scope="col" class="info-label">Actions</th>
                               </tr>
                             </thead>
@@ -671,7 +671,7 @@
                                     <th colspan="10" class="text-center info-label">No details to display...</th>
                                 </tr>
                                 <tr *ngFor="let leavePolicy of leavePolicyList| colFilter: {leavePolicyName: data, leaveType: data, description: data,
-                                     createdByName: data, createdOn: data, updatedOn: data, updatedByName: data}:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                     createdByName: data, createdOn: data, updatedOn: data, updatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <td>{{20*(page-1)+i+1}}</td>
                                     <td>{{leavePolicy.leavePolicyName}}</td>
                                     <td>{{leavePolicy.leaveType}}</td>

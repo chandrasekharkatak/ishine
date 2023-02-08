@@ -26,6 +26,10 @@ export class ProjectConfigComponent implements OnInit {
   employeeObj: Employee = new Employee();
   projectObj: Project = new Project();
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   isCreateForm:boolean = false;
   isUpdateForm:boolean = false;
   isTable:boolean = false;
@@ -457,46 +461,14 @@ export class ProjectConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  sortProjectList(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allProjects;
-
-    if (!sort.active || sort.direction === '') {
-      this.allProjects = data;
-      return;
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-    else {
-      this.allProjects = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'projectName':
-              return compare(a.projectName.toLowerCase(), b.projectName.toLowerCase(), isAsc)
-            case 'employeeName':
-              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc)
-            case 'clientName':
-              return compare(a.clientName.toLowerCase(), b.clientName.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'createdByName':
-              return compare(a.createdByName, b.createdByName, isAsc)
-              case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-            case 'updatedByName':
-              return compare(a.updatedByName, b.updatedByName, isAsc)
-            case 'state':
-              return compare(a.state.toLowerCase(), b.state.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
   }
 
 }

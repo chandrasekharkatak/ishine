@@ -32,6 +32,9 @@ export class UploadPoliciesComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
 
   //flags 
   isDocumentForm: boolean = false;
@@ -298,73 +301,16 @@ export class UploadPoliciesComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  sortData(sort:Sort){	
-    console.log(sort);	
-    	
-    const data=this.document;	
-   	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.document=data;	
-      return;	
-    }	
-    else {	
-      this.document=data.sort(	
-        (a,b)=>{	
-          const isAsc =sort.direction==='asc';	
-          switch(sort.active){	
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'fileName':	
-              return compare(a.fileName.toLowerCase() , b.fileName.toLowerCase() , isAsc)	
-              case 'policyName':	
-                return compare(a.policyName.toLowerCase() , b.policyName.toLowerCase() , isAsc)	
-                case 'createdByName':	
-                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
-                  case 'createdOn':	
-                    return compare(a.createdOn , b.createdOn , isAsc)	
-                default:	
-                 return 0;	
-          }	
-        }	
-      )	
-    }	
-    	
-    	
-  }	
-  
-  sortReadData(sort:Sort){	
-    console.log(sort);	
-    	
-    const responsedata=this.responseList;	
-   	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.document=responsedata;	
-      return;	
-    }	
-    else {	
-      this.document=responsedata.sort(	
-        (a,b)=>{	
-          const isAsc =sort.direction==='asc';	
-          switch(sort.active){	
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'name':	
-              return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
-              case 'empId':	
-                return compare(a.empId.toLowerCase() , b.empId.toLowerCase() , isAsc)	
-                case 'policyName':	
-                  return compare(a.policyName.toLowerCase() , b.policyName.toLowerCase() , isAsc)	
-                  case 'readEnabled':	
-                    return compare(a.readEnabled , b.readEnabled , isAsc)	
-                default:	
-                 return 0;	
-          }	
-        }	
-      )	
-    }	 	
-  }	
+
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
+  }
 }
   function compare(a: number | string, b: number | string, isAsc: boolean) {	
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

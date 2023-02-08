@@ -117,16 +117,16 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
                     [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
-                    <table class="table table-responsive" id="compOffRequest-table" matSort (matSortChange)="sortCompensatory($event)">	
+                    <table class="table table-responsive" id="compOffRequest-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>	
                             <th scope="col" class="info-label">Sr No.</th>	
-                            <th scope="col" class="info-label" mat-sort-header="compOffReasons">Leave Applied For</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Leave Applied For</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                             <th scope="col" class="info-label" >Actions</th>
                          </tr>
                         </thead>
@@ -134,7 +134,7 @@
                             <tr *ngIf="allCompOffRequests.length == 0 || (allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                               </tr>
-                            <tr *ngFor="let compOffReq of allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                            <tr *ngFor="let compOffReq of allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffReq.compOffReasons}}</td>
                                 <td>{{compOffReq.fromDate}}</td>
@@ -177,17 +177,17 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffAppInfo'" [tableTHeadId]="'compOffAppInfoTHead'"
                     [tableTHeadTrId]="'compOffAppInfoTHeadTr'">
-                    <table class="table table-responsive scrollable-table " id="compOffAppInfo" matSort (matSortChange)="sortReporteeCompensatory($event)">	
+                    <table class="table table-responsive scrollable-table " id="compOffAppInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="compOffAppInfoTHead">	
                           <tr id="compOffAppInfoTHeadTr">	
                             <th scope="col" class="info-label">Sr No.</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-                            <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="description">Description</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
+                            <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Applied For</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                             <th scope="col" class="info-label">Actions</th>
                          </tr>
                         </thead>
@@ -195,7 +195,7 @@
                             <tr *ngIf="allCompOffApplications.length == 0 || (allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                               </tr>
-                            <tr *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                            <tr *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | sort : [sortColumn, sortColumnType, sortDirection]| sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffApp.createdByName}}</td>
                                 <td>{{compOffApp.compOffReasons}}</td>

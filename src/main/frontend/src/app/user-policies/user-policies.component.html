@@ -24,10 +24,10 @@
                     <thead class="thead-light" id="policyInfoTHead">	
                       <tr id="policyInfoTHeadTr">
                         <th scope="col" class="info-label">Sr No.</th>	
-                        <th scope="col" class="info-label" mat-sort-header="fileName">File Name</th>	
-                        <th scope="col" class="info-label" mat-sort-header="policyName">Policy Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName">Created By</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
+                        <th scope="col" class="info-label" mat-sort-header="fileName|string">File Name</th>	
+                        <th scope="col" class="info-label" mat-sort-header="policyName|string">Policy Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                         <th scope="col" class="info-label">Action</th>	  
                       </tr>
                     </thead>
@@ -35,7 +35,7 @@
                       <tr *ngIf="document.length == 0 || (document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false).length == 0">
                         <th colspan="6" class="text-center info-label">No Document to display...</th>
                       </tr>
-                      <tr *ngFor="let doc of document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
+                      <tr *ngFor="let doc of document | colFilter: {fileName: data, policyName: data, createdByName: data, createdOn: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
                         <th class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{doc.fileName}}</td>
                         <td>{{doc.policyName}}</td>

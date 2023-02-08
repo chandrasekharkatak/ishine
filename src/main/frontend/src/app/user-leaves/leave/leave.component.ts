@@ -32,6 +32,11 @@ import { EmployeeService } from 'src/app/services/employee.service';
 export class LeaveComponent implements OnInit {
 
   data:string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation:boolean = false;
   isUpdation: boolean = false;
@@ -1497,224 +1502,15 @@ export class LeaveComponent implements OnInit {
     handlePageChange(event) {	
       this.page = event;	
     }
-    sortLeaveHistory(sort:Sort){	
-      console.log(sort)	
-      const data=this.leaveHistoryList;	
-      	
-      if(!sort.active || sort.direction===''){	
-        this.leaveHistoryList=data;	
-        return ;	
-      }else {	
-        this.leaveHistoryList=data.sort(	
-          (a , b)=>{	
-            const isAsc=sort.direction==='asc';	
-            switch(sort.active){
-            case 'employeeName':	
-             return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)		
-              case 'leaveType':	
-                return compare(a.leaveType , b.leaveType , isAsc)	
-                case 'fromDate':	
-                  return compare(a.fromDate , b.fromDate , isAsc)	
-                  case 'toDate':	
-                    return compare(a.toDate , b.toDate ,isAsc)	
-                    case 'noOfDays':	
-                      return compare(a.noOfDays , b.noOfDays , isAsc)	
-                      case 'status':	
-                        return compare(a.status , b.status , isAsc)	
-                        case 'createdByName':	
-                          return compare(a.createdByName , b.createdByName , isAsc)	
-                          case 'createdOn':	
-                            return compare(a.createdOn , b.createdOn , isAsc)	
-                            case 'reason':	
-                              return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
-                              case 'approverName':	
-                              return compare(a.approverName.toLowerCase() , b.approverName.toLowerCase() , isAsc)	
-                              case 'remark':	
-                              return compare(a.remark, b.remark, isAsc)	
-                default :	
-                return 0;	
-            }	
-          }	
-        )	
-      }	
-      	
-    }	
-    sortLeaveBalance(sort:Sort){	
-      console.log(sort);	
-      	
-      const data=this.leaveBalanceList;	
-      	
-      	
-      if(!sort.active || sort.direction===''){	
-        this.leaveBalanceList=data;	
-        return ;	
-      }else {	
-        this.leaveBalanceList=data.sort(	
-          (a , b)=>{	
-            const isAsc=sort.direction==='asc'	
-            switch(sort.active){	
-              case 'leaveType':	
-                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
-                case 'totalLeaveBalance':	
-                  return compare(a.totalLeaveBalance , b.totalLeaveBalance ,isAsc)	
-                  case 'pendingForApproval':	
-                    return compare(a.pendingForApproval , b.pendingForApproval ,isAsc)	
-                    case 'balance':	
-                      return compare(a.balance , b.balance , isAsc)	
-                default :	
-                return 0;	
-            }	
-          }	
-        )	
-      }	
-    }	
-    sortLeaveRevokeTable(sort:Sort){	
-      console.log(sort);	
-      	
-      const data=this.revokeLeaveApplicationList; 	
-      if(!sort.active || sort.direction===''){	
-        this.revokeLeaveApplicationList=data;	
-        return ;	
-      }else {	
-        this.revokeLeaveApplicationList=data.sort(	
-          (a , b)=>{	
-            const isAsc=sort.direction==='asc'	
-            switch(sort.active){	
-              case 'employeeName':	
-              return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
-              case 'leaveType':	
-               return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
-              case 'fromDate':	
-                return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc)	
-              case 'toDate':	
-                return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc)	         
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays ,isAsc)	
-                  case 'status':	
-                    return compare(a.status , b.status ,isAsc)	
-                    case 'createdByName':	
-                      return compare(a.createdByName , b.createdByName , isAsc)	
-                      case 'createdOn':	
-                      return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc)	
-                    	case 'reason':	
-                       return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
-                       case 'approverName':	
-                       return compare(a.approverName.toLowerCase() , b.approverName.toLowerCase() , isAsc)	
-               
-                default :	
-                return 0;	
-            }	
-          }	
-        )	
-      }	    	
-    }	
-    sortReporteeLog(sort:Sort){	
-      console.log(sort)	
-      const data = this.leaveApplicationList;	
-      	
-      if(!sort.active || sort.direction===''){	
-        this.leaveApplicationList=data;	
-        return ;	
-      }else {	
-        this.leaveApplicationList=data.sort(	
-          (a , b)=>{	
-            const isAsc=sort.direction==='asc'	
-            switch(sort.active){	
-              case 'employeeName':	
-              return compare(a.employeeName.toLowerCase() , b.employeeName.toLowerCase() , isAsc)	
-               case 'leaveType':	
-                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
-                case 'fromDate':	
-                  return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
-                  case 'toDate':	
-                    return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
-                    case 'noOfDays':	
-                      return compare(a.noOfDays , b.noOfDays , isAsc)	
-                      case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                    	
-                      case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'createdByName':
-              return compare(a.createdByName, b.createdByName, isAsc)
-                          case 'reason':	
-                            return compare(a.reason.toLowerCase() , b.reason.toLowerCase() , isAsc)	
-                default :	
-                return 0;	
-            }	
-          }	
-        )	
-      }	
-      	
-    }	
 
-    sortReporteeLeaveBalanceChange(sort:Sort){	
-      console.log(sort)	
-      const data = this.reporteeLeaveRevokeApplicationList;	
-      	
-      if(!sort.active || sort.direction===''){	
-        this.reporteeLeaveRevokeApplicationList=data;	
-        return ;	
-      }else {	
-        this.reporteeLeaveRevokeApplicationList=data.sort(	
-          (a , b)=>{	
-            const isAsc=sort.direction==='asc'	
-            switch(sort.active){	
-              case 'leaveType':	
-                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
-                case 'fromDate':	
-                  return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
-                  case 'toDate':	
-                    return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
-                    case 'noOfDays':	
-                      return compare(a.noOfDays , b.noOfDays , isAsc)	
-                      case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                    	
-                      case 'createdByName':	
-                        return compare(a.createdByName , b.createdByName , isAsc)	
-                        case 'createdOn':	
-                          return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-                          case 'revokeReason':	
-                            return compare(a.revokeReason.toLowerCase() , b.revokeReason.toLowerCase() , isAsc)	
-                default :	
-                return 0;	
-            }	
-          }	
-        )	
-      }	
-      	
-    }	
-
-    sortLeaveLogList(sort:Sort){	
-      console.log(sort);	
-      	
-      const data=this.leaveLogList;	
-      	
-      if(!sort.active || sort.direction===''){	
-        this.leaveLogList=data;	
-        return ;	
-      }else {	
-        this.leaveLogList=data.sort(	
-          (a , b)=>{	
-            const isAsc=sort.direction==='asc'	
-            switch(sort.active){	
-              case 'leaveType':	
-                return compare(a.leaveType.toLowerCase() , b.leaveType.toLowerCase() , isAsc)	
-                case 'updateBalanceBy':	
-                  return compare(a.updateBalanceBy , b.updateBalanceBy ,isAsc)	
-                  case 'balance':	
-                    return compare(a.balance , b.balance ,isAsc)	
-                    case 'message':	
-                      return compare(a.message.toLowerCase() , b.message.toLowerCase() , isAsc)	
-                      case 'createdOn':	
-                      return compare(a.createdOn , b.createdOn , isAsc)	
-                default :	
-                return 0;	
-            }	
-          }	
-        )	
-      }	
+    sortData(sort: Sort){	
+      console.log(sort);
+      if(sort.active){
+        let sortParams:any[] = sort.active?.split("|");
+        this.sortColumn = sortParams[0];
+        this.sortColumnType = sortParams[1];
+        this.sortDirection = sort.direction;      
+      }
     }
 
     selectAll(event){

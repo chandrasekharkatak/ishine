@@ -17,6 +17,7 @@ import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
+import { ColFilterPipe } from 'src/app/col-filter.pipe';
 
 @Component({
   selector: 'app-dept-config',
@@ -31,6 +32,11 @@ export class DeptConfigComponent implements OnInit {
   isForm: boolean = false;
   isTable: boolean = false;
   data:string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -346,44 +352,15 @@ export class DeptConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort:Sort){	
-    console.log(sort);	
-    	
-    const data=this.allDeptList;	
-   	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.allDeptList=data;	
-      return;	
-    }	
-    else {	
-      this.allDeptList=data.sort(	
-        (a,b)=>{	
-          const isAsc =sort.direction==='asc';	
-          switch(sort.active){	
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'name':	
-              return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
-              case 'hodName':	
-                return compare(a.hodName.toLowerCase() , b.hodName.toLowerCase() , isAsc)	
-                case 'createdByName':	
-                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
-                  case 'createdOn':	
-                    return compare(a.createdOn , b.createdOn , isAsc)	
-                     case 'updatedOn':	
-                       return compare(a.updatedOn , b.updatedOn , isAsc)	
-                        case 'updatedByName':	
-                         return compare(a.updatedByName , b.updatedByName , isAsc)	
-                default:	
-                 return 0;	
-          }	
-        }	
-      )	
-    }	
-    	
-    	
-  }	
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
+  }
 }	
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
