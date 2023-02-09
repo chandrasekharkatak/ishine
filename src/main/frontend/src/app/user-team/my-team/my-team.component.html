@@ -205,7 +205,7 @@
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
                             <td>
-                              <button *ngIf="leaveHistory.status == 'Approved' && leaveHistory.isExpire == 'true'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
+                              <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved' && leaveHistory.isExpire == 'true'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
                             </td>
                           </tr>
                         </tbody>
