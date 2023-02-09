@@ -18,6 +18,7 @@ import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +111,12 @@ public class TeamsService {
 
 	@PersistenceContext
     private EntityManager entityManager;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1592,6 +1599,99 @@ public class TeamsService {
 						}
 					}
 				});
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			EmployeeLeave leaveApplication = employeeLeaveRepository.findByLeaveId(leaveDTO.getLeaveId());
+			
+			if(leaveApplication != null) {
+				leaveApplication.setLeaveStatusId((short)5);
+				leaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				
+				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveApplication);
+				
+				if(dbResponse != null) {
+					//Manage Employee leave balance
+					
+					EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+							.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
+					
+					if(empLeaveMapping != null) {
+						Float prevBalace = empLeaveMapping.getBalance();
+						empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
+						
+						EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+						
+						if(mapDbResponse != null) {
+							LeaveBalanceLog log = new LeaveBalanceLog();
+							
+							log.setBalance(mapDbResponse.getBalance());
+							log.setEmpId(leaveApplication.getEmpId());
+							log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+							log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
+							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+
+							LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
+							
+							if(balanceDbResponse != null) {
+								
+								Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+								Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
+								
+								if(empObj != null && managerObj != null) {
+									
+									//Send Mail to User with cc: HR,HOD,Manager
+									mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+											"Regarding Revoke Leave Application By Manager",
+											"Dear "+ empObj.getName() + ","+"<br>"
+											+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
+											"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+											"<br>"+
+											"EmpID :"+" "+ empObj.getEmployeementId()+
+											"<br>"+
+											"Name :"+" "+ empObj.getName()+
+											"<br>"+
+											" From :"+" "+ leaveApplication.getFromDate()+
+											"<br>"+
+											" To :"+" "+ leaveApplication.getToDate() +
+											"<br>"+
+											" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
+											+"<br>"+
+											" Leave Type :"+" "+leaveDTO.getLeaveType()+
+											"<br>"+
+											"leave Reason :"+" "+leaveDTO.getRevokeReason());
+								}
+								
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Leave revoked successfully.");								
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to revoke leave.");
+							}
+						}
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Employee Leave Balance details not found.");
+					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to revoke Leave Application.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application not found.");
 			}
 			
 		}catch(Exception e) {

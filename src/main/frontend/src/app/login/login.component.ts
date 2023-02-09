@@ -281,6 +281,7 @@ export class LoginComponent implements OnInit{
       this.user.reportingManagerName = user.reportingManagerName;
       this.user.reportingManagerEmail = user.reportingManagerEmail;
       this.user.approvalsTo = user.approvalsTo;
+      this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
 
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);

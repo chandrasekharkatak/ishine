@@ -31,4 +31,8 @@ export class TeamViewService {
     return this.http.post(`${this.baseUrl}` + `api/getDepartmentLeaveHistory`, leaveObj);
   }
 
+  revokeReporteeLeave(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/revokeReporteeLeave`, leaveObj);
+  }
+
 }

@@ -50,4 +50,6 @@ export class User{
 	approvalsTo:any;
 	reportingManagerName:any;
     reportingManagerEmail:any;
+
+    revokeReporteeLeaveValidity:any;
 }
