@@ -64,4 +64,6 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	public EmployeeLeave findByLeaveId(Long leaveId);
 
+	public List<EmployeeLeave> findByFromDateAfterAndLeaveStatusId(LocalDate leaveFromDate, short s);
+
 }

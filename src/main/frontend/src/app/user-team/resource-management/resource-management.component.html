@@ -51,14 +51,14 @@
                                     <td *ngIf="!isPendingProject">{{project.status}}</td>
                                     <td *ngIf="isPendingProject">{{project.isDraftProject == 'true' ? 'Pending For Approval' : project.isDraftProject == 'Rejected' ? 'Rejected' : "Null"}}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'" (click)="openProjectPreviewModal(preview_team, project)" type="submit">Preview</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'" (click)="openProjectPreviewModal(preview_team, project);isEditProject = false" type="submit">Preview</button>&nbsp;
                                         <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton" type="submit" (click)="showEditProjectForm(project);project.isEditProject = true"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="project.name == projectObj.name && isHideButton" type="submit" (click)="closeEditProject();project.isEditProject = false"><i class="fa-solid fa-xmark"></i></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-success mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="onApproveProject(project)" type="submit">Approve</button>&nbsp;
                                         <button class="btn btn-sm btn-outline-danger mb-1" *ngIf="isPendingProject && project.isDraftProject == 'true'" (click)="openRejectModal(reject_project,project)" type="submit">Reject</button>&nbsp;
                                     </td>
                                 </tr>
-                                <tr *ngIf="project.isEditProject">
+                                <tr *ngIf="project.isEditProject && isEditProject">
                                     <td colspan="7">
                                         <!-- project Edit :: start -->
                                         <div class="row">

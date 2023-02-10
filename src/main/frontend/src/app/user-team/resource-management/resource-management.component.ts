@@ -689,6 +689,10 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   openProjectPreviewModal(template: TemplateRef<any>, project:any){
+    this.isHideButton = false
+    this.allProjectList.forEach((proj) => {
+      proj.isEditProject = false;
+    });
     this.previewTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.getTeamListByProjectName(project);

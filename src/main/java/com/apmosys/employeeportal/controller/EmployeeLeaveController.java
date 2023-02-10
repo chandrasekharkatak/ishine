@@ -234,5 +234,12 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.setEmployeeLeaveEntitlement(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/fillTimesheetForOldLeaves" ,method = RequestMethod.GET)
+	public ServiceResponse fillTimesheetForOldLeaves() {
+		
+		ServiceResponse response = employeeLeaveService.fillTimesheetForOldLeaves();
+		return response;
+	}
 
 }

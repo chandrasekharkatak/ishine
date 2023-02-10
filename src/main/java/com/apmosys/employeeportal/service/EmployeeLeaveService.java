@@ -35,6 +35,7 @@ import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
+import com.apmosys.employeeportal.projections.Leave;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -2460,6 +2461,88 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse fillTimesheetForOldLeaves() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			LocalDate leaveFromDate = LocalDate.parse("2022-12-01");
+			List<EmployeeLeave> leaveApplication = employeeLeaveRepository.findByFromDateAfterAndLeaveStatusId(leaveFromDate,(short) 2);
+			
+			if(!leaveApplication.isEmpty()) {
+				
+				leaveApplication.forEach((leave) -> {
+					// If leave is of 1 day
+					if(leave.getNoOfDays().equals((float)1)) {
+						
+						System.out.println(leave.getLeaveId() + "id \n\n\n");
+						
+						Timesheet employeeTimesheet = timesheetsRepository.findByEmpIdAndDate(leave.getEmpId(), leave.getFromDate());
+						
+						if(employeeTimesheet != null) {
+							System.out.println("Timesheet filled already");
+						}else {
+							Timesheet newTimesheet = new Timesheet();
+							
+							newTimesheet.getCommonProperty().setCreatedBy(leave.getEmpId());
+							newTimesheet.setDate(leave.getFromDate());
+							newTimesheet.setDayType("Leave");
+							newTimesheet.setDescription("On leave");
+							newTimesheet.setEmpId(leave.getEmpId());
+							newTimesheet.setStatus("Approved");
+							
+							Timesheet dbResposne = timesheetsRepository.save(newTimesheet);
+							
+							if(dbResposne != null) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("timesheet Added successfully");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to add timesheet.");
+							}
+						}
+					}
+					// If leave is of multiple days
+					if(leave.getNoOfDays() > 1.0F) {
+						LocalDate tempFromDate = leave.getFromDate();
+						
+						while(tempFromDate.compareTo(leave.getToDate()) != 1) {
+							
+							Timesheet employeeTimesheet = timesheetsRepository.findByEmpIdAndDate(leave.getEmpId(), tempFromDate);
+							
+							if(employeeTimesheet != null) {
+								System.out.println("Timesheet filled already");
+								tempFromDate = tempFromDate.plusDays(1);
+							}else {
+								Timesheet newTimesheet = new Timesheet();
+								
+								newTimesheet.getCommonProperty().setCreatedBy(leave.getEmpId());
+								newTimesheet.setDate(leave.getFromDate());
+								newTimesheet.setDayType("Leave");
+								newTimesheet.setDescription("On leave");
+								newTimesheet.setEmpId(leave.getEmpId());
+								newTimesheet.setStatus("Approved");
+								
+								Timesheet dbResposne = timesheetsRepository.save(newTimesheet);
+								
+								tempFromDate = tempFromDate.plusDays(1);
+								System.out.println("timesheet filled");
+							}
+						}
+						
+					}
+				});
+				
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 
