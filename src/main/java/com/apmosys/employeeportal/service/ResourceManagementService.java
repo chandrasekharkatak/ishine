@@ -757,7 +757,7 @@ public class ResourceManagementService {
 						
 						//Send project Approval successfully mail to rmg
 						try {
-							mailService.sendMailWithCC(rmgMail, "prasad.more@apmosys.com",
+							mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 									"Regarding Project Approval",
 									"Dear RMG Team ,"+"<br>"
 									+"<br>"
@@ -809,7 +809,7 @@ public class ResourceManagementService {
 						
 						//Send project rejection successfully mail to rmg
 						try {
-							mailService.sendMailWithCC(rmgMail, "prasad.more@apmosys.com",
+							mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 									"Regarding Project Rejection",
 									"Dear RMG Team ,"+"<br>"
 									+"<br>"
