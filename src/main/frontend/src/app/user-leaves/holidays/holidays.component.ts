@@ -78,22 +78,24 @@ export class HolidaysComponent implements OnInit {
 
         this.currentYear = new Date().getFullYear();	
         // sessionStorage.setItem('currentyear');
-        this.holidayList = this.holidayList.filter(x=>new Date (x.dateOfHoliday).getFullYear() == this.currentYear);
+        this.holidayList = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.currentYear);
 
 
-        console.log("holidayList : ", this.holidayList);
+        console.log("this.holidayList : ", this.holidayList);
+        console.log("this.holidayList1 : ", this.holidayList1);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
+
   getFilterHolidayList(value:any){	
     this.selectedYearholidayList = [];	
     let searchYear = parseInt(value);	
     console.log(searchYear,"searchYear")	
     console.log(this.holidayList,"this.holidayListthis.holidayList")	
     this.holidayList1.forEach(holiday =>{	
-      const year = new Date(holiday.dateOfHoliday).getFullYear();	
+      const year = moment(holiday.dateOfHoliday, "DD-MM-YYYY").year();	
       if(searchYear === year){	
         this.selectedYearholidayList.push(holiday);	
       }      	
