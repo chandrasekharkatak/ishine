@@ -79,6 +79,7 @@ import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
 import {ColFilterPipe} from './col-filter.pipe';
 import { SortPipe } from './sort.pipe';
+import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
 
 @NgModule({
   declarations: [
@@ -133,7 +134,8 @@ import { SortPipe } from './sort.pipe';
     UserExitComponent,
     ProjectConfigComponent,
     ColFilterPipe,
-    SortPipe
+    SortPipe,
+    ColumnFilterBarComponent
   ],
   imports: [
     BrowserModule,

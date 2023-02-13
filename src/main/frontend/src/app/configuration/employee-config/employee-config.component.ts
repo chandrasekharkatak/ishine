@@ -117,6 +117,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
+
+  filters:any = {};
+  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
+  draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
   
   constructor(
     private employeeService: EmployeeService,
@@ -1503,8 +1508,6 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
-    this.employeeObj.name = this.currentUser.name;
-    this.employeeObj.email = this.currentUser.email;
     console.log(" reject KYC :  ",this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1648,13 +1651,7 @@ export class EmployeeConfigComponent implements OnInit {
     
     if(this.employeeObj.dateOfResign){
       let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
-    let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
-      let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
-    this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
-      this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
-      console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
-    console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
       console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
     }
   }	
@@ -1789,7 +1786,13 @@ export class EmployeeConfigComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }  	
-  }	
+  }
+
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
