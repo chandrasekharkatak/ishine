@@ -1524,10 +1524,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
-    }  
-    this.employeeObj.name = this.currentUser.name;
-    this.employeeObj.email = this.currentUser.email;
-    console.log("  anurag :  ",this.employeeObj);
+    } 
     this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
