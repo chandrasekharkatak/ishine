@@ -216,14 +216,6 @@ public class AuthenticationService {
 					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
 
-					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
-					currentEmployeeDto.setCompOffLockDays(compOffLockDays);
-					currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
-					currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
-					
-					logInfo.setLoginTime(df.format(new Date()));
-					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
-
 				currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
 				currentEmployeeDto.setCompOffLockDays(compOffLockDays);
 				currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
