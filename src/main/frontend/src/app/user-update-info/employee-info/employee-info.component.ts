@@ -222,13 +222,17 @@ export class EmployeeInfoComponent implements OnInit{
 
   // Validations 
   checkEmployeeAadharNumber(template: TemplateRef<any>) {
-    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
-    this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Fail") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.employeeObj.aadhar = '';
-      }
-    });
+    if(this.employeeObj.aadhar != null){
+      this.employeeObj.aadhar = String(this.employeeObj.aadhar)?.trim();
+      this.employeeObj.empId = this.currentUser.empId;
+
+      this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Fail") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.employeeObj.aadhar = '';
+        }
+      });
+    }
   }
 
   checkEmployeePanNumber(template: TemplateRef<any>) {
@@ -540,21 +544,23 @@ if(this.errorMsg == ""){
 
   validateAadhar(event, data:any){
     this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
+
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter aadhar card number !!"   
-  }
-   else if (data.toString().length != 12) {
+      this.errorMsg = "Please enter aadhar card number !!"
+    }
+    else if (data.toString().length != 12) {
       this.errorMsg = "Please enter Valid aadhar card number !!";
+    }
+    else {
+      this.errorMsg = ""
+    }
+    if (this.errorMsg === "") {
+      event.target.nextElementSibling.textContent = '';
+    } else {
+      event.target.nextElementSibling.textContent = this.errorMsg
+    }
   }
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
-  }
+
   validatePan(event, data:any){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter pan number !!"   
