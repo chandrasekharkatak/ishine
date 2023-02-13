@@ -151,4 +151,6 @@ public class Employee {
 	private String isTimesheetLockCheckEnable;
 	
 	private LocalDate timesheetLockUpdatedOn;
+	
+	private LocalDateTime otpUpdatedOn;
 }
