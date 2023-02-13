@@ -344,6 +344,8 @@ public class EmployeeService {
 			employee.setChild3(employeedto.getChild3());
 			employee.setBillable(employeedto.getBillable());
 			employee.setIsTimesheetLockCheckEnable("true");
+			employee.setReportingManagerId(employeedto.getReportingManagerId());
+			employee.setApprovalsTo(employeedto.getApprovalsTo());
 
 			Employee newEmployee = employeeRepository.save(employee);
 
@@ -891,7 +893,11 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);	
+					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
+					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
+					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
+					
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1186,6 +1192,9 @@ public class EmployeeService {
 				employee.setSpouse(employeedto.getSpouse());
 				employee.setTotalExperience(employeedto.getTotalExperience());
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setReportingManagerId(employeedto.getReportingManagerId());
+				employee.setApprovalsTo(employeedto.getApprovalsTo());
+				
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -1487,6 +1496,8 @@ public class EmployeeService {
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
 					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+					
+					
 					
 					dtoList.add(empDTO);
 				});
@@ -2377,6 +2388,10 @@ public class EmployeeService {
 					employee.setHodName(object[17] != null ? object[17].toString() : null);
 					employee.setHodEmail(object[18] != null ? object[18].toString() : null);
 					employee.setIsTimesheetLockCheckEnable(object[19] != null ? object[19].toString() : null);
+					employee.setReportingManagerId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					employee.setApprovalsTo(object[21] != null ? object[21].toString() : null);
+					employee.setReportingManagerName(object[22] != null ? object[22].toString() : null);
+					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
 				});
 				return employee;
 			}

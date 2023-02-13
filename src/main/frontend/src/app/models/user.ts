@@ -45,4 +45,11 @@ export class User{
 	compOffLockDays:any;
     leaveBackdatedLockDays:any;
     leaveFuturedatedLockDays:any;
+
+    reportingManagerId:any;
+	approvalsTo:any;
+	reportingManagerName:any;
+    reportingManagerEmail:any;
+
+    revokeReporteeLeaveValidity:any;
 }

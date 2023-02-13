@@ -18,6 +18,7 @@ import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +111,12 @@ public class TeamsService {
 
 	@PersistenceContext
     private EntityManager entityManager;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -218,23 +225,40 @@ public class TeamsService {
 							Department departmentObj = departmentRepository.getById(Long.parseLong(deptId));
 							deptIds.add(Long.parseLong(deptId));
 							if(departmentObj != null) {
-								map = new EmployeeTeamMap();
-								map.setActive(1l);
-								map.setEmpId(departmentObj.getHodId());
-								map.setTeamId(teamCreated.getTeamId());
-								map.setEmployeeRole("HOD");
-								mapList.add(map);
+								
+								//Check if HOD is already added
+								EmployeeTeamMap isFound = mapList.stream().filter(team -> departmentObj.getHodId().equals(team.getEmpId())).findFirst().orElse(null);
+								
+								if(isFound != null) {
+									isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"HOD");
+								}else {
+									map = new EmployeeTeamMap();
+									map.setActive(1l);
+									map.setEmpId(departmentObj.getHodId());
+									map.setTeamId(teamCreated.getTeamId());
+									map.setEmployeeRole("HOD");
+									mapList.add(map);									
+								}
+								
 							}
 						}
 						
 						// Add project Manager
 						if(projectObj != null) {
-							map = new EmployeeTeamMap();
-							map.setActive(1l);
-							map.setEmpId(projectObj.getProjectManagerId());
-							map.setTeamId(teamCreated.getTeamId());
-							map.setEmployeeRole("Manager");
-							mapList.add(map);
+							
+							//Check if ProjManager is already added
+							EmployeeTeamMap isFound = mapList.stream().filter(team -> projectObj.getProjectManagerId().equals(team.getEmpId())).findFirst().orElse(null);
+							
+							if(isFound != null) {
+								isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"Manager");
+							}else {
+								map = new EmployeeTeamMap();
+								map.setActive(1l);
+								map.setEmpId(projectObj.getProjectManagerId());
+								map.setTeamId(teamCreated.getTeamId());
+								map.setEmployeeRole("Manager");
+								mapList.add(map);								
+							}
 						}
 
 						list.forEach((teamMember) -> {
@@ -861,6 +885,10 @@ public class TeamsService {
 					dto.setHodEmail(object[12] != null ? object[12].toString() : null);
 					dto.setDepartmentId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[14] != null ? object[14].toString() : null);
+					dto.setReportingManagerId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
+					dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
+					dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
 					
 					dtoList.add(dto);
 					
@@ -970,6 +998,7 @@ public class TeamsService {
 		try {
 			
 			if(teamdto.getTeamId() != null) {
+				
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -978,7 +1007,22 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+			}else if(teamdto.getProjectId() == null && teamdto.getTeamName() != null && teamdto.getProjectName() != null) {
+				
+				Project projectObj = projectRepository.findByProjectName(teamdto.getProjectName());
+				
+				if(projectObj != null) {
+					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), projectObj.getProjectId());
+					
+					if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
+						if(checkTeamNameByName != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Team Name already exist!");
+						}
+					}
+				}
 			}else {
+				
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -987,16 +1031,6 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 			}
-			
-			
-//			if(checkTeamNameByName==null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				}else if(checkTeamNameByName != null) {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Team Name already exist!");
-//				}
-			
-			
 			 
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -1565,6 +1599,99 @@ public class TeamsService {
 						}
 					}
 				});
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			EmployeeLeave leaveApplication = employeeLeaveRepository.findByLeaveId(leaveDTO.getLeaveId());
+			
+			if(leaveApplication != null) {
+				leaveApplication.setLeaveStatusId((short)5);
+				leaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				
+				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveApplication);
+				
+				if(dbResponse != null) {
+					//Manage Employee leave balance
+					
+					EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+							.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
+					
+					if(empLeaveMapping != null) {
+						Float prevBalace = empLeaveMapping.getBalance();
+						empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
+						
+						EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+						
+						if(mapDbResponse != null) {
+							LeaveBalanceLog log = new LeaveBalanceLog();
+							
+							log.setBalance(mapDbResponse.getBalance());
+							log.setEmpId(leaveApplication.getEmpId());
+							log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+							log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
+							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+
+							LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
+							
+							if(balanceDbResponse != null) {
+								
+								Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+								Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
+								
+								if(empObj != null && managerObj != null) {
+									
+									//Send Mail to User with cc: HR,HOD,Manager
+									mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+											"Regarding Revoke Leave Application By Manager",
+											"Dear "+ empObj.getName() + ","+"<br>"
+											+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
+											"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+											"<br>"+
+											"EmpID :"+" "+ empObj.getEmployeementId()+
+											"<br>"+
+											"Name :"+" "+ empObj.getName()+
+											"<br>"+
+											" From :"+" "+ leaveApplication.getFromDate()+
+											"<br>"+
+											" To :"+" "+ leaveApplication.getToDate() +
+											"<br>"+
+											" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
+											+"<br>"+
+											" Leave Type :"+" "+leaveDTO.getLeaveType()+
+											"<br>"+
+											"leave Reason :"+" "+leaveDTO.getRevokeReason());
+								}
+								
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Leave revoked successfully.");								
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to revoke leave.");
+							}
+						}
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Employee Leave Balance details not found.");
+					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to revoke Leave Application.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application not found.");
 			}
 			
 		}catch(Exception e) {

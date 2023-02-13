@@ -1,11 +1,14 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
+import com.apmosys.employeeportal.projections.Leave;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -838,8 +842,15 @@ public class EmployeeLeaveService {
 			Employee employee = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 
 			if (employee != null) {
-				List<Object[]> employeeLeavesList = employeeLeavesMapRepository
-						.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());
+				
+				List<Object[]> employeeLeavesList;
+				if(employee.getEmploymentstatus().equals("InActive")) {
+					employeeLeavesList = employeeLeavesMapRepository.getInActiveEmployeeLeaveBalance(employee.getEmpId());	
+				}else {
+					employeeLeavesList = employeeLeavesMapRepository
+							.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());					
+				}
+				
 				List<Object[]> employeeData = employeeRepository
 						.getEmployeeData(employee.getEmpId());
 				List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
@@ -2320,4 +2331,219 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+
+	public ServiceResponse setEmployeeLeaveEntitlement(LeaveDTO leaveDTO) {
+
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/setEmployeeLeaveEntitlement");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("FROM DATE : " + leaveDTO.getFromDate() + ", TO DATE : " + leaveDTO.getToDate());
+
+		List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+		List<LeaveDTO> employeeBalanceList = new ArrayList<LeaveDTO>();
+		List<EmployeeLeavesMap> updatedBalanceList = new ArrayList<EmployeeLeavesMap>();
+		 
+		try {
+
+			List<Object[]> employees = employeeLeavesMapRepository.getEmployeesInProbation();
+
+			if (employees != null) {
+				
+				employees.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+					dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					dto.setEmploymentStatus(object[3] != null ? object[3].toString() : null);
+					dto.setDateOfJoining(object[4] != null ? object[4].toString() : null);
+					dto.setLeaveTypeMasterId(object[5] != null ? Short.parseShort(object[5].toString()) : null);
+					dto.setLeaveType(object[6] != null ? object[6].toString() : null);
+					dto.setEmployeeLeavesMapId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					dto.setBalance(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+
+					employeeBalanceList.add(dto);
+				});
+				
+				
+				System.out.println("employeeBalanceList : "+ employeeBalanceList);
+				
+				if(!employeeBalanceList.isEmpty()) {
+					DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					LocalDate checkDate = LocalDate.parse("2022-12-01" , format);
+					
+					employeeBalanceList.forEach((emp) -> {
+						LocalDate dateOfJoining = LocalDate.parse(emp.getDateOfJoining() , format);
+						Float newBalance = 0.0F;
+						
+						Period period = Period.between(dateOfJoining, checkDate);
+						long elapsedMonths = period.getMonths();
+						long elapsedDays = period.getDays();
+						double leavesForMonths = (double)(2.5*elapsedMonths);
+						double leavesForDays = (double)((2.5*elapsedDays)/30);
+						
+						if(leavesForDays != 0) {
+							BigDecimal BIG_O5 = new BigDecimal(0.5);
+
+						    BigDecimal bd = new BigDecimal( leavesForDays - Math.floor(leavesForDays));
+						    bd = bd.setScale(4,RoundingMode.HALF_DOWN);
+						    System.out.println("Decimal value " + bd.toString());
+						    
+						    if(bd.compareTo(BIG_O5) == 1) {
+						    	leavesForDays = Math.ceil(leavesForDays);
+						    }else if(bd.compareTo(BIG_O5) == 0){
+						    	leavesForDays = Math.floor(leavesForDays) + 0.5;
+						    }else {
+						    	leavesForDays = Math.floor(leavesForDays);
+						    }
+						}
+						
+						 System.out.println("\n============\n " + emp.getEmployeeName()+ " : "+ emp.getBalance() + " : "+ emp.getDateOfJoining());
+						 System.out.println("Leaves for " + elapsedMonths + " Months : "+ leavesForMonths + "\nLeaves for Days "+ elapsedDays + " Days : "+ leavesForDays);
+						 System.out.println("============\n");
+						 
+						// for Extra Days Leaves  
+//						newBalance =  (float) leavesForDays;
+//						emp.setCreditedBalance(newBalance);
+//						dtoList.add(emp);
+						
+						newBalance =  (float)(leavesForMonths + leavesForDays);
+						
+						Optional<EmployeeLeavesMap> empMap = employeeLeavesMapRepository.findById(emp.getEmployeeLeavesMapId());
+						if(!empMap.isEmpty()) {
+							EmployeeLeavesMap leaveMap = empMap.get();
+							float updatedBalance = leaveMap.getBalance() + newBalance;
+							leaveMap.setBalance(updatedBalance);
+							
+							updatedBalanceList.add(leaveMap);
+							
+							emp.setCreditedBalance(newBalance);
+							dtoList.add(emp);
+						}
+					});
+					
+					List<EmployeeLeavesMap> updatedList = employeeLeavesMapRepository.saveAll(updatedBalanceList);
+					
+					if(!updatedList.isEmpty()){
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						
+						apiLogInfo.setApiResponse(dtoList.size()+ " Leave Buckets Updated.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("failed to update Leave Buckets.");
+
+						apiLogInfo.setApiResponse("failed to update Leave Buckets.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
+				}
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employees not found.");
+
+				apiLogInfo.setApiResponse("Employees not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse fillTimesheetForOldLeaves() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			LocalDate leaveFromDate = LocalDate.parse("2022-12-01");
+			List<EmployeeLeave> leaveApplication = employeeLeaveRepository.findByFromDateAfterAndLeaveStatusId(leaveFromDate,(short) 2);
+			
+			if(!leaveApplication.isEmpty()) {
+				
+				leaveApplication.forEach((leave) -> {
+					// If leave is of 1 day
+					if(leave.getNoOfDays().equals((float)1)) {
+						
+						System.out.println(leave.getLeaveId() + "id \n\n\n");
+						
+						Timesheet employeeTimesheet = timesheetsRepository.findByEmpIdAndDate(leave.getEmpId(), leave.getFromDate());
+						
+						if(employeeTimesheet != null) {
+							System.out.println("Timesheet filled already");
+						}else {
+							Timesheet newTimesheet = new Timesheet();
+							
+							newTimesheet.getCommonProperty().setCreatedBy(leave.getEmpId());
+							newTimesheet.setDate(leave.getFromDate());
+							newTimesheet.setDayType("Leave");
+							newTimesheet.setDescription("On leave");
+							newTimesheet.setEmpId(leave.getEmpId());
+							newTimesheet.setStatus("Approved");
+							
+							Timesheet dbResposne = timesheetsRepository.save(newTimesheet);
+							
+							if(dbResposne != null) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("timesheet Added successfully");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to add timesheet.");
+							}
+						}
+					}
+					// If leave is of multiple days
+					if(leave.getNoOfDays() > 1.0F) {
+						LocalDate tempFromDate = leave.getFromDate();
+						
+						while(tempFromDate.compareTo(leave.getToDate()) != 1) {
+							
+							Timesheet employeeTimesheet = timesheetsRepository.findByEmpIdAndDate(leave.getEmpId(), tempFromDate);
+							
+							if(employeeTimesheet != null) {
+								System.out.println("Timesheet filled already");
+								tempFromDate = tempFromDate.plusDays(1);
+							}else {
+								Timesheet newTimesheet = new Timesheet();
+								
+								newTimesheet.getCommonProperty().setCreatedBy(leave.getEmpId());
+								newTimesheet.setDate(leave.getFromDate());
+								newTimesheet.setDayType("Leave");
+								newTimesheet.setDescription("On leave");
+								newTimesheet.setEmpId(leave.getEmpId());
+								newTimesheet.setStatus("Approved");
+								
+								Timesheet dbResposne = timesheetsRepository.save(newTimesheet);
+								
+								tempFromDate = tempFromDate.plusDays(1);
+								System.out.println("timesheet filled");
+							}
+						}
+						
+					}
+				});
+				
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }

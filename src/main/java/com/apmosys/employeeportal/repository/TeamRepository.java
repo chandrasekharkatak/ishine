@@ -24,4 +24,10 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	public List<Team> findByProjectId(Integer projectId);
 
+	public Long countByProjectId(Integer projectId);
+
+	public List<Team> findByProjectIdAndIsActive(Integer projectId, String string);
+
+	public List<Team> findByTeamIdNotInAndProjectId(List<Long> allTeam, Integer projectId);
+
 }

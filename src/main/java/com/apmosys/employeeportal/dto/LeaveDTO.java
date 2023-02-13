@@ -115,4 +115,9 @@ public class LeaveDTO {
 	private String approverEmail;
 	private String name;
 	private String updatedByName;
+	
+	
+	private String dateOfJoining;
+	private Long employeeLeavesMapId;
+	private Float creditedBalance;
 }

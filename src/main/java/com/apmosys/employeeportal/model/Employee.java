@@ -152,5 +152,9 @@ public class Employee {
 	
 	private LocalDate timesheetLockUpdatedOn;
 	
+	private Long reportingManagerId;
+	
+	private String approvalsTo;
+
 	private LocalDateTime otpUpdatedOn;
 }

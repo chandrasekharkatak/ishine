@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, Params } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -14,6 +14,7 @@ export class UserTeamComponent implements OnInit {
   tabName:any = 'My Team';
   currentUser:User;
   userMapping:any = {};
+  projectId:any;
 
   constructor(
     private router: Router,
@@ -37,26 +38,45 @@ export class UserTeamComponent implements OnInit {
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
     console.log(this.tabName, this.userMapping);
+
+    this.projectId = this.router.url.split("/")[3];
   }
 
   ngAfterViewInit(): void {
-    this.setActiveTab();
+    if(this.projectId != undefined || this.projectId != null){
+      this.setActiveTab('resource-management');
+    }else{
+      this.setActiveTab();
+    }
   }
 
   ngOnDestroy(): void {
     this.removeActiveTab();
   }
 
-  setActiveTab(){
-    const tab = document.getElementById('teamTab').querySelector('.nav-link');
-    console.log(tab);
+  setActiveTab(rmgUrl?:any){
+    let activeRouteLink:any;
+    if(rmgUrl != null){
+      const tabs = document.getElementById('teamTab').querySelectorAll('.nav-link');
+      tabs.forEach(tab => {
+        let routeLink =  tab.getAttribute('routerLink');
 
-    tab.classList.add('active');
-    let activeRouteLink = tab.getAttribute('routerLink');
-    console.log("activeRouteLink :", activeRouteLink);
-    console.log("Router :",  this.router);
-    
-    this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+        if(rmgUrl == routeLink){
+          tab.classList.add('active');
+        }
+      });
+      activeRouteLink = rmgUrl;
+
+      this.router.navigate(['./'+activeRouteLink, this.projectId], {relativeTo: this.route});
+    }else{
+      const tab = document.getElementById('teamTab').querySelector('.nav-link');
+      console.log(tab);
+
+      tab.classList.add('active');
+
+      activeRouteLink = tab.getAttribute('routerLink');
+      this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+    }
   }
 
   removeActiveTab(){

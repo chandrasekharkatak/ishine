@@ -400,6 +400,21 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
+                                            <p class="info-label">Reporting Manager</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.reportingManagerName}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="currentEmployeeInfo.reportingManagerName != null && currentEmployeeInfo.reportingManagerName != ''" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Approvals To</label>
+                                                <p class="info-text info-highlight">{{currentEmployeeInfo.approvalsTo}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
                                             <p class="info-label">Department Name</p>
                                             <p class="info-text">{{currentEmployeeInfo.departmentName}}</p>
                                         </div>

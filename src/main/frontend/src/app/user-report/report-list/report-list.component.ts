@@ -841,6 +841,7 @@ export class ReportListComponent implements OnInit {
           "Reason": x.reason,
           "Status": x.status,
           "Manager Name": x.managerName,
+          "Department Name": x.departmentName,
           "Created On": x.createdOn,
           "Updated On": x.updatedOn,
           "Updated By": x.leaveStatusUpdatedByName

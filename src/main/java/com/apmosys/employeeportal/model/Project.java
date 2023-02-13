@@ -41,6 +41,7 @@ public class Project {
 	private Long poProjectId;
 	private String active;
 	private String syncProject;
+	private String isDraftProject;
 	private Long createdBy;
 	private Long updatedBy;
 	private LocalDateTime updatedOn;

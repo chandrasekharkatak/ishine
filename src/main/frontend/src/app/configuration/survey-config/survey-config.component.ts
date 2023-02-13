@@ -14,6 +14,8 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ClipboardService } from 'ngx-clipboard';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-survey-config',
@@ -70,7 +72,9 @@ export class SurveyConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private surveyService : SurveyService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private clipboardService: ClipboardService,
+    private router: Router
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -619,6 +623,14 @@ export class SurveyConfigComponent implements OnInit {
       console.log("onlySpecificDataArr : ", onlySpecificDataArr);
       
        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  }
+
+  copySurveyLinkToClipBoard(survey:any,template: TemplateRef<any>) {
+    let url = window.location.href.split("#")[0].concat("#/user-survey/").concat(survey.surveyId);
+    console.log(url, " : url");
+    
+    this.clipboardService.copy(url);
+    this.openAlertMod(template, "Link copied to clipboard !!");
   }
 
 

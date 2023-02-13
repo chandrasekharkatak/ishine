@@ -20,4 +20,21 @@ export class Project{
 	createdBy: any;
 	updatedBy:any;
 	updatedByName: any;
+	teamList: any[] = [];
+	isHOD:any;
+	projectManagerName:any;
+	isTeamCreated:any;
+	rejectReason:any;       // RMG project reject reason
+
+
+	//Project from Po
+	name:any;
+	status:any;
+	clientState:any;
+	department:any;
+	projectManager:any;
+
+	//Team
+	teamName:any;
+	teamMemberList:any;
 }

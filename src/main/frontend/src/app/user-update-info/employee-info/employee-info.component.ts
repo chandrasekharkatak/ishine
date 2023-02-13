@@ -783,71 +783,79 @@ if(this.errorMsg == ""){
   event.target.nextElementSibling.textContent =  this.errorMsg
 } 
   }
-//   validatepfAccountNumber(event, data:any){
-//     if(data === null){
-//       this.errorMsg = ""
-//     }
-//  else  if (!this.validationService.validateAlphaNumeric(data)) {
-//     this.errorMsg = "Please enter valid  PF account number !!"   
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-// if(this.errorMsg == ""){
-//   event.target.nextElementSibling.textContent = ""
-// }else{
-//   event.target.nextElementSibling.textContent =  this.errorMsg
-// } 
-//   }
-//   validatePreviouspfAccountNumber(event, data:any){
-//     if(data === null){
-//       this.errorMsg = ""
-//     }
-//  else  if (!this.validationService.validateAlphaNumeric(data)) {
-//     this.errorMsg = "Please enter valid  PF account number !!"   
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-// if(this.errorMsg == ""){
-//   event.target.nextElementSibling.textContent = ""
-// }else{
-//   event.target.nextElementSibling.textContent =  this.errorMsg
-// } 
-//   }
-//   validateUan(event, data:any){
-//     if(data === null){
-//       this.errorMsg = ""
-//     }
-//  else  if (!this.validationService.validateAlphaNumeric(data)) {
-//     this.errorMsg = "Please enter valid  UAN !!"   
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-// if(this.errorMsg == ""){
-//   event.target.nextElementSibling.textContent = ""
-// }else{
-//   event.target.nextElementSibling.textContent =  this.errorMsg
-// } 
-//   }
-  validateEsicNumber(event, data:any){
-    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Esic number !!"   
+
+  validatePfAccountNumber(event, data: any) {
+
+    if(data != null){
+      this.employeeObj.pfAccountNumber = this.employeeObj.pfAccountNumber?.trim();
+      if (!this.validationService.validatePfAccountNumber(data)) {
+        this.errorMsg = "Please enter valid  Pf Account Number !!"
+      } else {
+        this.errorMsg = ""
+      }
+
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
   }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid  Esic number !!"   
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-} 
+
+  validatePreviousPfAccountNumber(event, data: any) {
+   
+    if(data != null){
+      this.employeeObj.previousPfAccountNumber = this.employeeObj.previousPfAccountNumber?.trim();
+      if (!this.validationService.validatePfAccountNumber(data)) {
+        this.errorMsg = "Please enter valid Pervious Pf Account Number !!"
+      } else {
+        this.errorMsg = ""
+      }
+
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
   }
+
+  validateUAN(event, data: any) {
+  
+    if(data != null){
+      this.employeeObj.uan = this.employeeObj.uan?.trim();
+      if (!this.validationService.validateUAN(data)) {
+        this.errorMsg = "Please enter valid UAN Number !!"
+      } else {
+        this.errorMsg = ""
+      }
+
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
+  }
+
+  validateEsicNumber(event, data: any) {
+
+    if (data != null) {
+      this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
+      if (!this.validationService.validateESICNumber(data)) {
+        this.errorMsg = "Please enter valid  Esic number !!"
+      }
+      else {
+        this.errorMsg = ""
+      }
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
+  }
+
   validateemployerName(event, data:any){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter Employer name !!"  

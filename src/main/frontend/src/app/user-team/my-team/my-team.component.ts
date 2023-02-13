@@ -28,6 +28,7 @@ export class MyTeamComponent implements OnInit {
   feature = "My Team";
   currentUser: User;
   userMapping: any = {};
+  dateToday: any = new Date();
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -64,6 +65,8 @@ export class MyTeamComponent implements OnInit {
   allCompOffApplicationsDataForExcel: any[];
   elementName = '';
   excelName = '';
+
+  revokeLeaveHistoryInfo:any;
 
   fromDate:any;
   toDate:any;
@@ -136,13 +139,9 @@ export class MyTeamComponent implements OnInit {
     this.isHierarchyChart = false;
 
     this.getAllManagers();
-    // this.getAllTeamView();    
+    this.getAllTeamView();    
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    employeeObj.managerId = this.currentUser.managerId;
-    this.myTeamHierarchy(employeeObj); 
   }
 
   viewTeamLeaveHistory() {
@@ -289,6 +288,13 @@ export class MyTeamComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.teamViewLeaveHistoryList = response.serviceResponse;
           this.teamViewLeaveHistoryList.forEach(leaveHistory => {
+
+            let revokeExpireDate = moment(leaveHistory.fromDate, "YYYY-MM-DD").add(this.currentUser.revokeReporteeLeaveValidity, 'days')?.format("YYYY-MM-DD");
+            let dateToday = moment(this.dateToday).format("YYYY-MM-DD");
+            if (revokeExpireDate > dateToday) {
+              leaveHistory.isExpire = "true";
+            }
+
             leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
@@ -744,6 +750,29 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+  revokeMyReporteeLeave(template: TemplateRef<any>){
+    this.cancelRequest();
+    let leaveHistory = this.revokeLeaveHistoryInfo;
+    leaveHistory.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveHistory.revokeReason = this.leaveObj.revokeReason;
+    let fromDate = this.fromDate;
+    let toDate = this.toDate;
+
+    this.teamViewService.revokeReporteeLeave(leaveHistory).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.viewLeaveHistory();
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+        this.getAllTeamLeaveHistoryView();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  // Modals
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -751,6 +780,11 @@ export class MyTeamComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){
+    this.modalRef = this.modalService.show(template);
+    this.revokeLeaveHistoryInfo = leaveHistory;
   }
 
     //pagination 

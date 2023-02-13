@@ -205,6 +205,9 @@
                             <td class="info-label">{{leaveHistory.reason}}</td>
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
+                            <td>
+                              <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved' && leaveHistory.isExpire == 'true'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
+                            </td>
                           </tr>
                         </tbody>
                       </table>
@@ -506,4 +509,22 @@
       <!-- <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp; -->
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
+</ng-template>
+
+<ng-template #revoke_approved_leave>
+  <div class="modal-body text-center">
+      <p>Are you sure you want to revoke leave Application?</p>
+      <div class="row">
+          <div class="col-md-12">
+              <div class="info-wrapper">
+                  <div class="form-group">
+                      <label class="info-label"><span class="text-danger">*</span>Reason</label>
+                      <textarea class="form-control" id="revokereason" rows="3" [(ngModel)]="leaveObj.revokeReason"></textarea>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.revokeReason)" (click)="revokeMyReporteeLeave(alert_message)">Yes, proceed</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+   </div>
 </ng-template>

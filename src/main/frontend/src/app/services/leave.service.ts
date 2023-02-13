@@ -214,6 +214,5 @@ export class LeaveService {
 
   getHolidayWeekOffSize(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/getHolidayWeekOffSize`, leaveObj);
-
   }
 }

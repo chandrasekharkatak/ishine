@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -228,11 +230,18 @@ public class CronJobService {
 	
 	
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
+//	0 0/2 * ? * *
 	@Scheduled(cron = "0 0 12 1 * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
 		     List<Employee> employeeList = employeeRepository.findAll();
+		     LocalDate dateToday = LocalDate.now();
+		     LocalDate prevMonthStart = dateToday.minusMonths(1).withDayOfMonth(1);
+		     
+		     YearMonth thisYearMonth = YearMonth.of(prevMonthStart.getYear(), prevMonthStart.getMonthValue());
+		     
+		     LocalDate prevMonthEnd = thisYearMonth.atEndOfMonth();
 		     
 		     if(!leaveType.isEmpty()) {
 		    	 for(LeaveTypeMaster ltm :leaveType) {
@@ -253,22 +262,72 @@ public class CronJobService {
 		        				  System.out.println(employeeLeaveMap.getBalance() +"  "+ leavePolicyObj.getIncrementValue());
 		        				  
 		        				          if(employeeLeaveMap != null) {
-		        				        	  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
-		        				        	  System.out.println(newBalance);
-		        				        	  employeeLeaveMap.setBalance(newBalance);
-		        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
 		        				        	  
-		        				        	  if(dbResponse != null) {
-													LeaveBalanceLog log = new LeaveBalanceLog();
+		        				        	  // Manage Balance if user In-Between a month
+		        				        	  Boolean isContains = (employeeObj.getDateOfJoining().isBefore(prevMonthEnd) ) && (employeeObj.getDateOfJoining().isAfter(prevMonthStart));
+		        				        	  
+		        				        	  if(isContains) {
+		        				        		  Float newBalance = 0.0F;
+		        				        		  
+		        				        		    Period period = Period.between(employeeObj.getDateOfJoining(), dateToday);
+		        									long elapsedDays = period.getDays();
+		        									double leavesForDays = (double)((leavePolicyObj.getIncrementValue()*elapsedDays)/30);
+		        									
+		        									
+		        									if(leavesForDays != 0) {
+		        										BigDecimal BIG_O5 = new BigDecimal(0.5);
 
-													log.setBalance(newBalance);
-													log.setEmpId(employeeObj.getEmpId());
-													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
-													log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
-															leavePolicyObj.getIncrementValue().toString()));
-													log.setUpdateBalanceBy("+" + leavePolicyObj.getIncrementValue());
+		        									    BigDecimal bd = new BigDecimal( leavesForDays - Math.floor(leavesForDays));
+		        									    bd = bd.setScale(4,RoundingMode.HALF_DOWN);
+		        									    System.out.println("Decimal value " + bd.toString());
+		        									    
+		        									    if(bd.compareTo(BIG_O5) == 1) {
+		        									    	leavesForDays = Math.ceil(leavesForDays);
+		        									    }else if(bd.compareTo(BIG_O5) == 0){
+		        									    	leavesForDays = Math.floor(leavesForDays) + 0.5;
+		        									    }else {
+		        									    	leavesForDays = Math.floor(leavesForDays);
+		        									    }
+		        									}
+		        									
+		        									newBalance =  (float)(employeeLeaveMap.getBalance() + leavesForDays);
+		        									
+		        									employeeLeaveMap.setBalance(newBalance);
+				        				        	 EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+				        				        	 
+				        				        	 if(dbResponse != null) {
+															LeaveBalanceLog log = new LeaveBalanceLog();
 
-													leaveBalanceLogRepository.save(log);
+															log.setBalance(newBalance);
+															log.setEmpId(employeeObj.getEmpId());
+															log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+															log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+																	leavePolicyObj.getIncrementValue().toString()));
+															log.setUpdateBalanceBy("+" + leavePolicyObj.getIncrementValue());
+
+															leaveBalanceLogRepository.save(log);
+				        				        	  }
+		        				        		  
+		        				        	  }else {
+		        				        		  
+		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+			        				        	  System.out.println(newBalance);
+			        				        	  employeeLeaveMap.setBalance(newBalance);
+			        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+			        				        	  
+			        				        	  if(dbResponse != null) {
+														LeaveBalanceLog log = new LeaveBalanceLog();
+
+														log.setBalance(newBalance);
+														log.setEmpId(employeeObj.getEmpId());
+														log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+														log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+																leavePolicyObj.getIncrementValue().toString()));
+														log.setUpdateBalanceBy("+" + leavePolicyObj.getIncrementValue());
+
+														leaveBalanceLogRepository.save(log);
+			        				        	  }
+		        				        		  
 		        				        	  }
 		        				          }
 		        			  }
@@ -1614,7 +1673,7 @@ public class CronJobService {
 						ws.value(0, 11, "Client"); // comma seperated
 						ws.value(0, 12, "Project"); // comma seperated
 						ws.value(0, 13, "Status");
-
+						
 						int rowNum = 1;
 
 						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
@@ -1642,11 +1701,9 @@ public class CronJobService {
 									
 									if (!objectList.isEmpty()) {
 										for (Object[] object : objectList) {
-											
 											activity.append(object[1] != null ? object[1].toString() : null).append(",");
 											project.add(object[5] != null ? object[5].toString() : null);
 											clientName.add(object[6] != null ? object[6].toString() : null);
-											
 										}
 										
 										ws.style(rowNum, 3).format("dd-MM-yyyy").set();
@@ -1693,6 +1750,7 @@ public class CronJobService {
 										}
 
 										// Fill data of weekoff & leave
+
 										ws.style(rowNum, 3).format("dd-MM-yyyy").set();
 										ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
 										ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();

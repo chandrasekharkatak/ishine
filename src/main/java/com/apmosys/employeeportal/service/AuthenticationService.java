@@ -78,6 +78,9 @@ public class AuthenticationService {
 	@Value("${leave.future.lock.days}")
 	private Integer leaveFutureLockDays;
 	
+	@Value("${revoke.reportee.leave.validity}")
+	private Integer revokeReporteeLeaveValidity;
+
 	@Value("${otp.timeout.period}")
 	private Long otpTimeoutPeriod;
 	
@@ -220,6 +223,15 @@ public class AuthenticationService {
 					
 					logInfo.setLoginTime(df.format(new Date()));
 					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+
+				currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+				currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+				currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+				currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
+				currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
+				
+				logInfo.setLoginTime(df.format(new Date()));
+				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 
 					if (!isUserLoggedIn) {
 						userSessionList.put(employee.getEmpId(), sessionString);
