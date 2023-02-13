@@ -27,10 +27,12 @@ public class ActivityTemplateService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<ActivityTemplate> dtoList = new ArrayList<ActivityTemplate>();
-			activityTemplateDTO.getTemplateActivityList().forEach((object) -> {
-				ActivityTemplate checkActivityName=activityTemplateRepository
-						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
 			
+			activityTemplateDTO.getTemplateActivityList().forEach((object) -> {
+				
+				ActivityTemplate checkActivityName = activityTemplateRepository
+						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
+				
 				if(checkActivityName == null) {
 					ActivityTemplate activity = new ActivityTemplate();
 					
@@ -142,21 +144,29 @@ public class ActivityTemplateService {
 			ActivityTemplate dbResposne = null;
 			for (ActivityDTO object : activityTemplateDTO.getTemplateActivityList()) {
 				
-				if (object.getActivityTemplateId() != null) {
-					ActivityTemplate activityTemplate = activityTemplateRepository.getById(object.getActivityTemplateId());
-					
-					activityId.add(object.getActivityTemplateId());
-					activityTemplate.setTemplateActivity(object.getActivity());
-					activityDbResponse = activityTemplateRepository.save(activityTemplate);
-				} else {
-					ActivityTemplate activity = new ActivityTemplate();
-
-					activity.setDeptId(activityTemplateDTO.getDeptId());
-					activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
-					activity.setTemplateActivity(object.getActivity());
-					dbResposne = activityTemplateRepository.save(activity);
-					activityId.add(dbResposne.getActivityTemplateId());
+				ActivityTemplate checkActivityName = activityTemplateRepository
+						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
+				
+				if(checkActivityName != null) {
+					activityTemplateDTO.getTemplateActivityList().remove(object);
+				}else {
+					if (object.getActivityTemplateId() != null) {
+						ActivityTemplate activityTemplate = activityTemplateRepository.getById(object.getActivityTemplateId());
+						
+						activityId.add(object.getActivityTemplateId());
+						activityTemplate.setTemplateActivity(object.getActivity());
+						activityDbResponse = activityTemplateRepository.save(activityTemplate);
+					} else {
+						ActivityTemplate activity = new ActivityTemplate();
+						
+						activity.setDeptId(activityTemplateDTO.getDeptId());
+						activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
+						activity.setTemplateActivity(object.getActivity());
+						dbResposne = activityTemplateRepository.save(activity);
+						activityId.add(dbResposne.getActivityTemplateId());
+					}					
 				}
+				
 			}
 			List<ActivityTemplate> activityToBeDeleted = activityTemplateRepository
 					.findByActivityTemplateIdNotInAndDeptIdAndEmployeeRole(activityId, activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());

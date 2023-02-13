@@ -1103,6 +1103,13 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
+    const uniqueActivity = new Set(this.allTemplateActivityList.map(x => x.activity));
+    if (uniqueActivity.size < this.allTemplateActivityList.length) {
+      this.alertMessage = "Duplicate Activities are not allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     this.allTemplateActivityList.forEach((activity, index) => {
 
       activity.activity = activity.activity?.trim();
@@ -1135,8 +1142,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.createActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showActivityTemplateTable();
         this.selectedDept = this.activityTemplateObj.deptId;
+        this.showActivityTemplateTable();
         this.getActivityTemplate(template);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -1210,6 +1217,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showActivityTemplateTable();
+        this.selectedDept = this.activityTemplateObj.deptId;
         this.getActivityTemplate(template);
       } else {
         this.openAlertMod(template, response.serviceResponse);

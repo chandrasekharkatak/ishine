@@ -10,14 +10,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class ResourceManagementDTO {
-
-//	private Long draftTeamId;
-//	private Long id;
-//	private String name;
-//	private String teamName;
-//	private String description;
-//	private Long teamLeadId;
-//	
 	
 	private Long id;    // poPortal Project Id
 	private String name;   // project name

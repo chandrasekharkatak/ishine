@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
+import com.apmosys.employeeportal.dto.PoTeamDTO;
+import com.apmosys.employeeportal.dto.PoTeamMemberDetailDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
@@ -20,7 +23,6 @@ import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
-import com.apmosys.employeeportal.model.DraftTeam;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
@@ -31,7 +33,6 @@ import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
-import com.apmosys.employeeportal.repository.DraftTeamRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
@@ -45,9 +46,6 @@ public class ResourceManagementService {
 	
 	@Autowired
 	ProjectService projectService;
-	
-	@Autowired
-	DraftTeamRepository draftTeamRepository;
 	
 	@Autowired
 	ProjectRepository projectRepository;
@@ -939,6 +937,109 @@ public class ResourceManagementService {
 									+"<br>"
 									+ html.toString());
 				}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public String getEmploymentId(Long empId) {
+		Employee employeeObj = employeeRepository.findByEmpId(empId);
+		String employmentId = null;
+		if(employeeObj != null) {
+			employmentId = ("A-").concat(employeeObj.getEmployeementId().toString());
+		}
+		return employmentId;
+	}
+	
+	public ServiceResponse sendProjectInfoToPoPortal(ResourceManagementDTO resourceManagementDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			List<PoTeamDTO> teamList = new ArrayList<PoTeamDTO>();
+			List<PoTeamMemberDetailDTO> teamMember = new ArrayList<PoTeamMemberDetailDTO>();
+			
+			if(projectObj != null) {
+				PoProjectSyncDTO projectDTO = new PoProjectSyncDTO();
+				
+				projectDTO.setPoProjectId(projectObj.getPoProjectId());
+				projectDTO.setProjectName(projectObj.getProjectName());
+				
+				String projectManagerId = getEmploymentId(projectObj.getProjectManagerId());
+				projectDTO.setPoProjectManagerId(projectManagerId != null ? projectManagerId : null);
+				
+				//Get Team Details
+				List<Team> teamDetails = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
+				
+				if(!teamDetails.isEmpty()) {
+					teamDetails.forEach((team) -> {
+						PoTeamDTO poTeamDTO = new PoTeamDTO();
+						
+						poTeamDTO.setPoTeamId(null);
+						poTeamDTO.setTeamName(team.getTeamName());
+						
+						if(team.getCommonProperty().getCreatedBy() != null) {
+							String createdBy = getEmploymentId(team.getCommonProperty().getCreatedBy());
+							poTeamDTO.setCreatedBy(createdBy);
+						}
+						
+						if(team.getCommonProperty().getUpdatedBy() != null) {
+							String updatedBy = getEmploymentId(team.getCommonProperty().getCreatedBy());
+							poTeamDTO.setUpdatedBy(updatedBy);
+						}
+						
+						if(team.getCommonProperty().getUpdatedOn() != null) {
+							poTeamDTO.setUpdatedOn(team.getCommonProperty().getUpdatedOn().toString());
+						}
+						
+						if(team.getTeamLeadId() != null) {
+							String teamLeadId = getEmploymentId(team.getTeamLeadId());
+							poTeamDTO.setPoTeamLeadId(teamLeadId);						
+						}
+						
+						String[] deptIds = team.getDeptIds().split(",");
+						List<String> departments = new ArrayList<String>();
+						for(String deptId : deptIds) {
+							Department deptObj = departmentRepository.getById(Long.parseLong(deptId));
+							if(deptObj != null) {
+								departments.add(deptObj.getName());
+							}
+						}
+						String deptList[] = departments.toArray(new String[departments.size()]);
+						poTeamDTO.setDepartmentList(deptList);
+						
+						//Get TeamMember Details
+						List<EmployeeTeamMap> teamMemberDetials = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId(), 1l);
+						
+						if(!teamMemberDetials.isEmpty()) {
+							teamMemberDetials.forEach((member) -> {
+								
+								PoTeamMemberDetailDTO memberDTO = new PoTeamMemberDetailDTO();
+								
+								String memberEmpId = getEmploymentId(team.getCommonProperty().getCreatedBy());
+								memberDTO.setEmpId(memberEmpId);
+								memberDTO.setEndDate(null);
+								memberDTO.setMonth(null);
+								memberDTO.setStartDate(null);
+								memberDTO.setWorkignDays(null);
+								
+								teamMember.add(memberDTO);
+							});
+						}
+						poTeamDTO.setTeamMemberDetails(teamMember);
+						teamList.add(poTeamDTO);
+					});
+				}
+				projectDTO.setTeamList(teamList);
+				
+				//Send projectDTO in PoPortal reverse-sync API
+				//Send Mail to PoPortal
+			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

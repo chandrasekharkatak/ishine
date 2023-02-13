@@ -491,7 +491,13 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
+          if(this.isMyDepartmentProject == true){
+            this.showDepartmentWiseProject();
+          }else if(this.isPendingProject == true){
+            this.showPendingForApprovalProject();
+          }else{
+            this.showViewProjects();
+          }
           this.openAlertMod(template, response.serviceResponse);
         } else {
           console.error(response.serviceResponse);
@@ -502,7 +508,13 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
+          if(this.isMyDepartmentProject == true){
+            this.showDepartmentWiseProject();
+          }else if(this.isPendingProject == true){
+            this.showPendingForApprovalProject();
+          }else{
+            this.showViewProjects();
+          }
           this.openAlertMod(template,response.serviceResponse);
 
           this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {

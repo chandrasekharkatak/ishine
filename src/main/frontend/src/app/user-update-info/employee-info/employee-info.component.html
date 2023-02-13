@@ -730,7 +730,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">PF Account Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pfAccountNumber" >
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pfAccountNumber" (blur)="validatePfAccountNumber($event,employeeObj.pfAccountNumber)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -740,7 +740,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Previous PF Account Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.previousPfAccountNumber" >
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.previousPfAccountNumber" (blur)="validatePreviousPfAccountNumber($event,employeeObj.previousPfAccountNumber)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -750,7 +750,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">UAN</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.uan" >
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.uan" (blur)="validateUAN($event,employeeObj.uan)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
