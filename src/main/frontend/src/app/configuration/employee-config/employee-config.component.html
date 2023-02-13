@@ -487,18 +487,19 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Notice Period</label>
-                                                <input type="number" class="form-control"(keypress)="omit_character($event)" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod">
+                                                <input type="number" class="form-control"(keypress)="omit_character($event)" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod" (change)="estimateDateOfReleiving(employeeObj)">
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">                                        <div class="info-wrapper">
+                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
-                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORePicker" #input (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DORePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>
@@ -510,7 +511,7 @@
                                                     <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
                                                     <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>	
                                                 </div>	
-                                                <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false" ></mat-datepicker>	
+                                                <mat-datepicker  #DORPicker (closed)="input.blur()" [disabled]="!employeeObj.dateOfResign" ></mat-datepicker>	
                                             </div>	
                                         </div>	
                                     </div>

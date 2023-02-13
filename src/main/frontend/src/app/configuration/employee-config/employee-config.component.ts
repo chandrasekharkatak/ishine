@@ -255,6 +255,19 @@ export class EmployeeConfigComponent implements OnInit {
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
+  relievingDateFilter = (d: Date)=>{
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    
+    let resignDate = this.employeeObj.dateOfResign;
+
+    if(resignDate){
+      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+    }else{
+      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+    }
+  }
+
   setYearOfPassingList(){
     for (let start = 1990; start < 2051; start++) {
       this.yearOfPassingList.push(start);
@@ -1627,10 +1640,18 @@ export class EmployeeConfigComponent implements OnInit {
   	
   estimateDateOfReleiving(employeeObj: Employee){	
     const dateFormat = 'YYYY-MM-DD';	
-    console.log(employeeObj,"employeeObj");	
+    
+    if(this.employeeObj.dateOfResign){
+      let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
     let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
+      let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
+      this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
     this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
+      this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
+      console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
     console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
+      console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
+    }
   }	
 
   onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
