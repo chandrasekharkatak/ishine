@@ -693,6 +693,14 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter Probation period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }if (employeeObj.probationPeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(employeeObj.probationPeriod)) {
+      this.alertMessage = "Please enter valid probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.noticePeriod)) {

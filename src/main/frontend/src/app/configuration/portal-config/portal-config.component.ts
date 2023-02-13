@@ -354,17 +354,37 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter Probation Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }if (portalObj.probationPeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(portalObj.probationPeriod)) {
+      this.alertMessage = "Please enter valid probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.probationMailTrigger)) {
       this.alertMessage = "Please enter Probation Period Mail Trigger !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticePeriod)) {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }if (portalObj.noticePeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(portalObj.noticePeriod)) {
+      this.alertMessage = "Please enter valid notice period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticeMailTrigger)) {
       this.alertMessage = "Please enter Notice Period Mail Trigger !!"
       this.openAlertMod(template, this.alertMessage);
