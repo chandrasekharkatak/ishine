@@ -40,6 +40,10 @@ export class TeamConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -1334,92 +1338,15 @@ export class TeamConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortTeam(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allTeamList;
-    if (!sort.active || sort.direction === '') {
-      this.allTeamList = data;
-      return;
-    } else {
-      this.allTeamList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'projectName':
-              return compare(a.projectName.toLowerCase(), b.projectName.toLowerCase(), isAsc)
-            case 'teamName':
-              return compare(a.teamName.toLowerCase(), b.teamName.toLowerCase(), isAsc)
-            case 'teamLeadName':
-              return compare(a.teamLeadName, b.teamLeadName, isAsc)
-              case 'projectManagerName':
-              return compare(a.projectManagerName.toLowerCase(), b.projectManagerName.toLowerCase(), isAsc)
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-              case 'createdOn':	
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
-  sortActivity(sort: Sort) {
-    console.log(sort);
-    const data = this.allActivityList;
-    if (!sort.active || sort.direction === '') {
-      this.allActivityList = data;
-      return;
-    } else {
-      this.allActivityList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'activity':
-              return compare(a.activity.toLowerCase(), b.activity.toLowerCase(), isAsc)
-            case 'eta':
-              return compare(a.eta, b.eta, isAsc)
-            case 'employeeRole':
-              return compare(a.employeeRole.toLowerCase(), b.employeeRole.toLowerCase(), isAsc)
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            case 'createdOn':	
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-  }
-
-  // sortActivityTemplate
-  sortActivityTemplate(sort: Sort) {
-    console.log(sort);
-    const data = this.templateActivityList;
-    if (!sort.active || sort.direction === '') {
-      this.templateActivityList = data;
-      return;
-    } else {
-      this.templateActivityList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeeRole':
-              return compare(a.employeeRole.toLowerCase(), b.employeeRole.toLowerCase(), isAsc)
-            case 'activityDescription':
-              return compare(a.activityDescription, b.activityDescription, isAsc)
-            case 'departmentName':
-              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-  }
-
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

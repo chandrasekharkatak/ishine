@@ -134,14 +134,14 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyInfo'" [tableTHeadId]="'surveyInfoTHead'"
                 [tableTHeadTrId]="'surveyInfoTHeadTr'">
-                <table class="table" matSort (matSortChange)="sortSurvey($event)">
+                <table class="table" matSort (matSortChange)="sortData($event)">
                     <thead class="thead-light">
                       <tr>
-                        <th scope="col" class="info-label" mat-sort-header="surveyName">Survey Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="description">Description</th>
-                        <th scope="col" class="info-label" mat-sort-header="isActive">Status</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">Survey Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="isActive|string">Status</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>
@@ -149,7 +149,7 @@
                         <tr *ngIf="allSurveyList.length == 0">
                             <th colspan="6" class="text-center info-label">No Surveys to display...</th>
                         </tr>
-                      <tr *ngFor="let survey of allSurveyList | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                      <tr *ngFor="let survey of allSurveyList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <td>{{survey.surveyName}}</td>
                         <td>{{survey.description}}</td>
                         <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>

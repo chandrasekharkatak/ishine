@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.text.SimpleDateFormat;
 import com.apmosys.employeeportal.dto.AppreciationEventDTO;	
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
@@ -79,6 +80,9 @@ public class AuthenticationService {
 	
 	@Value("${revoke.reportee.leave.validity}")
 	private Integer revokeReporteeLeaveValidity;
+
+	@Value("${otp.timeout.period}")
+	private Long otpTimeoutPeriod;
 	
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
@@ -122,6 +126,7 @@ public class AuthenticationService {
 									mailService.sendMail(employeedto.getEmail(), "Regarding otp",
 											"Please find your otp " + otp);
 									employee.setInvalidAccessAttempt(0);
+									employee.setOtpUpdatedOn(LocalDateTime.now());
 
 									employeeRepository.save(employee);
 
@@ -202,11 +207,22 @@ public class AuthenticationService {
 			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
-			if (employeedto.getOtp().toString().equals(employee.getOtp().toString())
-					|| employeedto.getOtp().toString().equals(portalStaticOtp)) {
-				ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
-				EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
-				AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
+			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+			
+			if(otpDiff < otpTimeoutPeriod) {
+				if (employeedto.getOtp().toString().equals(employee.getOtp().toString())
+						|| employeedto.getOtp().toString().equals(portalStaticOtp)) {
+					ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
+					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
+
+					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+					currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+					currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+					currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
+					
+					logInfo.setLoginTime(df.format(new Date()));
+					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 
 				currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
 				currentEmployeeDto.setCompOffLockDays(compOffLockDays);
@@ -217,37 +233,46 @@ public class AuthenticationService {
 				logInfo.setLoginTime(df.format(new Date()));
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
 
-				if (!isUserLoggedIn) {
-					userSessionList.put(employee.getEmpId(), sessionString);
-					userLogInfoList.put(employee.getEmpId(), logInfo);
-				} else {
-					userSessionList.put(employee.getEmpId(), sessionString);
-					userLogInfoList.put(employee.getEmpId(), logInfo);
-				}
+					if (!isUserLoggedIn) {
+						userSessionList.put(employee.getEmpId(), sessionString);
+						userLogInfoList.put(employee.getEmpId(), logInfo);
+					} else {
+						userSessionList.put(employee.getEmpId(), sessionString);
+						userLogInfoList.put(employee.getEmpId(), logInfo);
+					}
 
-				Object[] object = new Object[8];
-				object[0] = currentEmployeeDto;
-				object[1] = serviceResponse.getServiceResponse();
-				object[2] = sessionString;
-				object[3] = sessionTimeout;
-				object[4] = maxFileSize.replace("MB","");
-				object[5] = maxRequestSize.replace("MB","");
-				object[6] = logInfo;
-				object[7] = currentEventDto;
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(object);
-				response.setServiceMessage("OTP validated successfully. User Log in success.");
-				
-				apiLogInfo.setApiResponse("OTP validated successfully. User Log in success.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
+					Object[] object = new Object[8];
+					object[0] = currentEmployeeDto;
+					object[1] = serviceResponse.getServiceResponse();
+					object[2] = sessionString;
+					object[3] = sessionTimeout;
+					object[4] = maxFileSize.replace("MB","");
+					object[5] = maxRequestSize.replace("MB","");
+					object[6] = logInfo;
+					object[7] = currentEventDto;
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(object);
+					response.setServiceMessage("OTP validated successfully. User Log in success.");
+					
+					apiLogInfo.setApiResponse("OTP validated successfully. User Log in success.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("OTP validation failed. Please try again.");
+					
+					apiLogInfo.setApiResponse("OTP validation failed. Please try again.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("OTP validation failed. Please try again.");
+				response.setServiceResponse("OTP Expired, Please re-send new otp.");
 				
-				apiLogInfo.setApiResponse("OTP validation failed. Please try again.");			
+				apiLogInfo.setApiResponse("OTP Expired, Please re-send new otp.");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -389,10 +414,11 @@ public class AuthenticationService {
 					else {
 						Random random = new Random();	
 						int otp = random.nextInt(999999 - 100000) + 100000;	
-						employee.setOtp(otp);	
+						employee.setOtp(otp);
+						employee.setOtpUpdatedOn(LocalDateTime.now());
 						employeeRepository.save(employee);	
 							
-						mailService.sendMail(employeedto.getEmail(), "Regarding otp","Please find your otp "+otp);	
+						mailService.sendMail(employeedto.getEmail(), "Regarding forgot password otp","Please find your otp "+otp);	
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 						response.setServiceResponse("OTP sent to emailId.");
 						
@@ -438,17 +464,27 @@ public class AuthenticationService {
 
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
-			if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("OTP verified successfully.");
-				
-				apiLogInfo.setApiResponse("OTP verified successfully.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
+			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+			
+			if(otpDiff < otpTimeoutPeriod) {
+				if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("OTP verified successfully.");
+					
+					apiLogInfo.setApiResponse("OTP verified successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid OTP. Please try again");
+					
+					apiLogInfo.setApiResponse("Invalid OTP. Please try again.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Invalid OTP. Please try again");
+				response.setServiceResponse("OTP Expired, Please re-send new otp.");
 				
-				apiLogInfo.setApiResponse("Invalid OTP. Please try again.");			
+				apiLogInfo.setApiResponse("OTP Expired, Please re-send new otp.");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
@@ -487,6 +523,7 @@ public class AuthenticationService {
 				int otp = random.nextInt(999999 - 100000)
 						+ 100000; /* Random number will be generated between 1000 and 9999 */
 				employee.setOtp(otp);
+				employee.setOtpUpdatedOn(LocalDateTime.now());
 				
 				mailService.sendMail(employeedto.getEmail(), "Regarding otp",
 						"Please find your otp " + otp);

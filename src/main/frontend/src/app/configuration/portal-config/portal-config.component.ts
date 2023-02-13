@@ -44,6 +44,11 @@ export class PortalConfigComponent implements OnInit {
   data: any;
   appByCategory: any;
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
+
   //flag	
   portalConfig: boolean = false;
   appreciationConfig: boolean = false;
@@ -349,17 +354,37 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter Probation Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }if (portalObj.probationPeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(portalObj.probationPeriod)) {
+      this.alertMessage = "Please enter valid probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.probationMailTrigger)) {
       this.alertMessage = "Please enter Probation Period Mail Trigger !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticePeriod)) {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }if (portalObj.noticePeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(portalObj.noticePeriod)) {
+      this.alertMessage = "Please enter valid notice period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticeMailTrigger)) {
       this.alertMessage = "Please enter Notice Period Mail Trigger !!"
       this.openAlertMod(template, this.alertMessage);
@@ -885,111 +910,15 @@ export class PortalConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  sortData(sort: Sort) {
+  
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allEmployeeList;
-
-    if (!sort.active || sort.direction === '') {
-      this.allEmployeeList = data;
-      return;
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-    else {
-      this.allEmployeeList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'empId':
-              return compare(a.empId, b.empId, isAsc)
-            case 'name':
-              return compare(a.name.toLowerCase(), b.name.toLowerCase(), isAsc)
-            case 'email':
-              return compare(a.email.toLowerCase(), b.email.toLowerCase(), isAsc)
-            case 'employmentstatus':
-              return compare(a.employmentstatus.toLowerCase(), b.employmentstatus.toLowerCase(), isAsc)
-            case 'dateOfJoining':
-              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
-  }
-  // allAppreciationEvent
-  sortAppreciationEventHistoryData(sort: Sort) {
-    console.log(sort);
-
-    const data = this.allAppreciationEvent;
-
-    if (!sort.active || sort.direction === '') {
-      this.allAppreciationEvent = data;
-      return;
-    }
-    else {
-      this.allAppreciationEvent = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'appreciationEventName':
-              return compare(a.appreciationEventName.toLowerCase(), b.appreciationEventName.toLowerCase(), isAsc)
-            case 'fromDate':
-              return compare(a.fromDate, b.fromDate, isAsc)
-            case 'toDate':
-              return compare(a.toDate, b.toDate, isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-  }
-
-  sortViewAppreciationData(sort: Sort) {
-    console.log(sort);
-
-    const data = this.appByCategory;
-
-    if (!sort.active || sort.direction === '') {
-      this.appByCategory = data;
-      return;
-    }
-    else {
-      this.appByCategory = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'appreciateType':
-              return compare(a.appreciateType.toLowerCase(), b.appreciateType.toLowerCase(), isAsc)
-            case 'appreciationToName':
-              return compare(a.appreciationToName.toLowerCase(), b.appreciationToName.toLowerCase(), isAsc)
-            case 'appreciationByName':
-              return compare(a.appreciationByName.toLowerCase(), b.appreciationByName.toLowerCase(), isAsc)
-            case 'appreciationDate':
-              return compare(new Date(a.appreciationDate).getTime(), new Date(b.appreciationDate).getTime(), isAsc);
-            case 'managerName':
-              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc)
-            case 'reason':
-              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
   }
 
 }

@@ -390,27 +390,29 @@
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
                     [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
                     <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
-                        (matSortChange)="sortViewAppreciationData($event) ">
+                        (matSortChange)="sortData($event) ">
                         <thead class="thead-light" id="appreciationInfoTHeadTr">
                             <tr id="appreciationInfoTHeadTr">
-                                <th scope="col" class="info-label" mat-sort-header="appreciateType">Appreciation Type
+                                <th scope="col" class="info-label" mat-sort-header="appreciateType|string">Appreciation Type
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="appreciationToName">Appreciation To
+                                <th scope="col" class="info-label" mat-sort-header="appreciationToName|string">Appreciation To
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="appreciationByName">Appreciation By
+                                <th scope="col" class="info-label" mat-sort-header="appreciationByName|string">Appreciation By
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="appreciationDate">Appreciation Date
+                                <th scope="col" class="info-label" mat-sort-header="appreciationDate|date">Appreciation Date
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="managerName">Reporting To</th>
-                                <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Reporting To</th>
+                                <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="appByCategory.length == 0 ">
+                            <tr *ngIf="appByCategory.length == 0 || (appByCategory | colFilter: {appreciateType: data, appreciationToName: data, appreciationByName: data,
+                                appreciationDate: data, managerName: data, reason: data}:false ).length == 0">
                                 <th colspan="9" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let appreciation  of appByCategory | filter:data | paginate: { itemsPerPage: 10, currentPage: page } , let i = index ">
+                                *ngFor="let appreciation  of appByCategory | colFilter: {appreciateType: data, appreciationToName: data, appreciationByName: data,
+                                 appreciationDate: data, managerName: data, reason: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page } , let i = index ">
                                 <td>{{appreciation.appreciateType}}</td>
                                 <td>{{appreciation.appreciationToName}}</td>
                                 <td>{{appreciation.appreciationByName}}</td>
@@ -439,14 +441,14 @@
     <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">	
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
         </div> -->	
-    <table class="table department-table" matSort (matSortChange)="sortAppreciationEventHistoryData($event)">		
+    <table class="table department-table" matSort (matSortChange)="sortData($event)">		
         <thead class="thead-light">	
           <tr>	
             <th scope="col" class="info-label">Sr No.</th>		
-            <th scope="col" class="info-label" mat-sort-header="appreciationEventName">Event Name</th>		
-            <th scope="col" class="info-label" mat-sort-header="fromDate">Start Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="toDate">End Date</th>	
-            <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>	
+            <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Event Name</th>		
+            <th scope="col" class="info-label" mat-sort-header="fromDate|date">Start Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="toDate|date">End Date</th>	
+            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>	
             <th scope="col" class="info-label">Action</th>		  	
   	
           </tr>	
@@ -455,7 +457,7 @@
             <tr *ngIf="allAppreciationEvent.length == 0">	
                 <th colspan="6" class="text-center info-label">No Files to display...</th>	
             </tr>	
-            <tr *ngFor="let event of allAppreciationEvent | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">		
+            <tr *ngFor="let event of allAppreciationEvent | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">		
              <th class="info-label">{{10*(page-1)+i+1}}</th>	
             <td>{{event.appreciationEventName}}</td>	
             <td>{{event.fromDate | date:'dd-MM-yyyy'}}</td>	

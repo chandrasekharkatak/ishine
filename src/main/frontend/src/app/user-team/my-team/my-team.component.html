@@ -60,25 +60,25 @@
         <div class="col-md-12">
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
             [tableTHeadTrId]="'holidayInfoTHeadTr'">
-            <table class="table team-table" id="team-table" matSort (matSortChange)="sortViewTeamTable($event)">
+            <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light">
                 <tr>
                   <th scope="col" class="info-label">Sr No.</th>
-                  <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                  <th scope="col" class="info-label" mat-sort-header="name">Name</th>
-                  <th scope="col" class="info-label" mat-sort-header="email">Email</th>
-                  <th scope="col" class="info-label" mat-sort-header="jobRoleName">Designation</th>
-                  <th scope="col" class="info-label" mat-sort-header="mobileNo">Mobile No.</th>
-                  <th scope="col" class="info-label" mat-sort-header="managerName">Reports To</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                  <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>
+                  <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Designation</th>
+                  <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerName|string">Reports To</th>
                   <th scope="col" class="info-label">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngIf="teamViewList.length == 0">
+                <tr *ngIf="teamViewList.length == 0 || (teamViewList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data, managerName: data}:false).length == 0">
                   <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                  *ngFor="let teamView of teamViewList| filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
+                  *ngFor="let teamView of teamViewList| colFilter: {employeementId: data, name: data, email: data, jobRoleName: data, mobileNo: data, managerName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index"
                   (click)="myTeamHierarchy(teamView)">
                   <td class="info-label">{{10*(page-1)+i+1}}</td>
                   <td class="info-label">{{teamView.employeementId}}</td>
@@ -167,30 +167,31 @@
             <div class="col-md-12">
               <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
                     [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
-                    <table class="table leave-history-table" id="leaveHistoryInfo" matSort (matSortChange)="sortViewLeaveHistory($event)">	
+                    <table class="table leave-history-table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
                       <thead class="thead-light" id="leaveHistoryInfoTHead">	
                         <tr id="leaveHistoryInfoTHeadTr">	
                           <th scope="col" class="info-label"> Sr No.</th>	
-                          <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
-                          <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                          <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                          <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
+                          <th scope="col" class="info-label" mat-sort-header="createdByName|string">Employee </th>	
+                          <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                          <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                          <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Apply Date</th>	
                           <!-- <th scope="col" class="info-label">Approver</th>	
                           <th scope="col" class="info-label">Approval Date</th> -->	
-                          <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                          <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-                          <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
-                          <th scope="col" class="info-label" mat-sort-header="reason">Leave Reason</th>	
-                          <th scope="col" class="info-label" mat-sort-header="leaveType">Type</th>
-                          <th scope="col" class="info-label" mat-sort-header="remark">Remarks</th>
-                          <th scope="col" class="info-label" mat-sort-header="remark">Action</th>
+                          <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                          <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                          <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName|string">Approved/Rejected By</th>	
+                          <th scope="col" class="info-label" mat-sort-header="reason|string">Leave Reason</th>	
+                          <th scope="col" class="info-label" mat-sort-header="leaveType|string">Type</th>
+                          <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr *ngIf="teamViewLeaveHistoryList.length == 0">
+                          <tr *ngIf="teamViewLeaveHistoryList.length == 0 || (teamViewLeaveHistoryList | colFilter: {createdByName:data, fromDate:data, toDate:data, createdOn:data, noOfDays:data,
+                            status:data, leaveStatusUpdatedByName:data, reason:data, leaveType:data, remark:data}:false).length == 0">
                             <th colspan="11" class="text-center info-label">No details to display...</th>
                           </tr>
-                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | colFilter: {createdByName:data, fromDate:data, toDate:data, createdOn:data, noOfDays:data,
+                             status:data, leaveStatusUpdatedByName:data, reason:data, leaveType:data, remark:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
                             <td class="info-label">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
@@ -246,27 +247,29 @@
         <div class="col-md-12">
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffHistoryInfo'" [tableTHeadId]="'compOffHistoryInfoTHead'"
           [tableTHeadTrId]="'compOffHistoryInfoTHeadTr'">
-          <table class="table compOff-history-table" id="compOffHistoryInfo" matSort (matSortChange)="sortViewCompOffLeave($event)">	
+          <table class="table compOff-history-table" id="compOffHistoryInfo" matSort (matSortChange)="sortData($event)">	
             <thead class="thead-light" id="compOffHistoryInfoTHead">	
               <tr id="compOffHistoryInfoTHeadTr">	
                 <th scope="col" class="info-label"> Sr No.</th>	
-                <th scope="col" class="info-label" mat-sort-header="createdByName">Employee </th>	
-                <th scope="col" class="info-label" mat-sort-header="fromDate">From</th>	
-                <th scope="col" class="info-label" mat-sort-header="toDate">To</th>	
-                <th scope="col" class="info-label" mat-sort-header="createdOn">Apply Date</th>	
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Employee </th>	
+                <th scope="col" class="info-label" mat-sort-header="fromDate|date">From</th>	
+                <th scope="col" class="info-label" mat-sort-header="toDate|date">To</th>	
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Apply Date</th>	
                 <!-- <th scope="col" class="info-label">Approver</th>	
                 <th scope="col" class="info-label">Approval Date</th> -->	
-                <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-                <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName">Approved/Rejected By</th>	
-                <th scope="col" class="info-label" mat-sort-header="reason">Comp-Off Reason</th>
+                <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName|string">Approved/Rejected By</th>	
+                <th scope="col" class="info-label" mat-sort-header="reason|string">Comp-Off Reason</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="teamViewCompOffHistoryList.length == 0">
+              <tr *ngIf="teamViewCompOffHistoryList.length == 0 || (teamViewCompOffHistoryList| colFilter: {createdByName:data, fromDate:data, toDate:data,
+                createdOn:data, noOfDays:data, status:data, leaveStatusUpdatedByName:data, reason:data}:false).length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList|filter:data | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+              <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList| colFilter: {createdByName:data, fromDate:data, toDate:data,
+                 createdOn:data, noOfDays:data, status:data, leaveStatusUpdatedByName:data, reason:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
               <td class="info-label">{{compOffHistory.createdByName}}</td>
               <td class="info-label">{{compOffHistory.fromDate}}</td>
@@ -345,30 +348,32 @@
             <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveRequestInfo'"
               [tableTHeadId]="'leaveRequestInfoTHead'" [tableTHeadTrId]="'leaveRequestInfoTHeadTr'">
               <table class="table leave-request-table" id="leaveRequestInfo" matSort
-                (matSortChange)="sortLeaveRequestTable($event)">
+                (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="leaveRequestInfoTHead">
                   <tr id="leaveRequestInfoTHeadTr">
                     <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
                         [(ngModel)]="isSelectAll"></th>
                     <th scope="col" class="info-label">Sr No.</th>
-                    <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
-                    <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
-                    <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
-                    <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
-                    <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
-                    <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                    <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
-                    <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>
-                    <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+                    <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                    <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
+                    <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>
+                    <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="leaveApplicationList.length == 0">
+                  <tr *ngIf="leaveApplicationList.length == 0 || (leaveApplicationList| colFilter: {employeeName:data, leaveType:data, fromDate:data, toDate:data, noOfDays:data,
+                    status:data, createdByName:data, createdOn:data, reason:data}:false).length == 0">
                     <th colspan="14" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr
-                    *ngFor="let leaveApplication of leaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                    *ngFor="let leaveApplication of leaveApplicationList| colFilter: {employeeName:data, leaveType:data, fromDate:data, toDate:data, noOfDays:data,
+                       status:data, createdByName:data, createdOn:data, reason:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                     <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
                         [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
                     <td>{{items*(page-1)+i+1}}</td>
@@ -417,26 +422,26 @@
             <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
               [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
               <table class="table compOffApplication-table" id="compOffApplication-table" matSort
-                (matSortChange)="sortCompOffRequestTable($event)">
+                (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                   <tr>
                     <th scope="col" class="info-label">Sr No.</th>
-                    <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>
-                    <th scope="col" class="info-label" mat-sort-header="compOffReasons">Applied For</th>
-                    <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>
-                    <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>
-                    <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>
-                    <th scope="col" class="info-label" mat-sort-header="description">Description</th>
-                    <th scope="col" class="info-label" mat-sort-header="status">Status</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
+                    <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Applied For</th>
+                    <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
+                    <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
+                    <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="allCompOffApplications.length == 0">
+                  <tr *ngIf="allCompOffApplications.length == 0 || (allCompOffApplications| colFilter: {createdByName:data, compOffReasons:data, fromDate:data, toDate:data, noOfDays:data, description:data, status:data}:false).length == 0 ">
                     <th colspan="9" class="text-center info-label">No details to display...</th>
                   </tr>
                   <tr
-                    *ngFor="let compOffApp of allCompOffApplications|filter:data | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                    *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName:data, compOffReasons:data, fromDate:data, toDate:data, noOfDays:data, description:data, status:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>

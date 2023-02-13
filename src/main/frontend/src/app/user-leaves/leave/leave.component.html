@@ -186,30 +186,32 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
                 [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
-                    <table class="table table-responsive" id="leaveHistoryInfo" matSort (matSortChange)="sortLeaveHistory($event)">	
+                    <table class="table table-responsive" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="leaveHistoryInfoTHead">	
                         <tr id="leaveHistoryInfoTHeadTr">	
                             <th scope="col" class="info-label">Sr No.</th>
-                            <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-                            <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
-                            <th scope="col" class="wide-col" mat-sort-header="reason">Reason</th>
-                            <th scope="col" class="info-label" mat-sort-header="approverName">Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="remark">Remarks</th>
+                            <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                            <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
+                            <th scope="col" class="wide-col" mat-sort-header="reason|string">Reason</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                             <th scope="col" class="info-label">Action</th>
                             <!-- <th scope="col" class="info-label">Comments</th> -->
                         </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveHistoryList.length == 0">
+                            <tr *ngIf="leaveHistoryList.length == 0 || (leaveHistoryList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, reason: data, approverName: data, remark: data}:false).length">
                                 <th colspan="14" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveHistory of leaveHistoryList |filter:data| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let leaveHistory of leaveHistoryList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, reason: data, approverName: data, remark: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveHistory">{{leaveHistory.employeeName}}</td>
                                 <td>{{leaveHistory.leaveType}}</td>
@@ -279,29 +281,31 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplicationInfo'" [tableTHeadId]="'leaveApplicationInfoTHead'"
                 [tableTHeadTrId]="'leaveApplicationInfoTHeadTr'">
-                <table class="table table-responsive" id="leaveApplicationInfo" matSort (matSortChange)="sortReporteeLog($event)">	
+                <table class="table table-responsive" id="leaveApplicationInfo" matSort (matSortChange)="sortData($event)">	
                     <thead class="thead-light">	
                       <tr>	
                         <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
                         <th scope="col" class="info-label" >Sr No.</th>
-                        <th scope="col" class="info-label" mat-sort-header="employeeName">Name</th>		
-                        <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                        <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                        <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                        <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                        <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-                        <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-                        <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
-                        <th scope="col" class="info-label" mat-sort-header="reason">Reason</th>
+                        <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>		
+                        <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                        <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                        <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                        <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
+                        <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
                         <!-- <th scope="col" class="info-label">Comments</th> -->
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="leaveApplicationList.length == 0">
+                        <tr *ngIf="leaveApplicationList.length == 0 || (leaveApplicationList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                            createdByName: data, createdOn: data, reason: data}:false).length == 0">
                             <th colspan="12" class="text-center info-label">No details to display...</th>
                         </tr>
-                        <tr *ngFor="let leaveApplication of leaveApplicationList |filter:data| paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                        <tr *ngFor="let leaveApplication of leaveApplicationList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                            createdByName: data, createdOn: data, reason: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                             <td><input class="leave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>{{leaveApplication.employeeName}}</td>
@@ -348,20 +352,20 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveBalanceInfo'" [tableTHeadId]="'leaveBalanceInfoTHead'"
                     [tableTHeadTrId]="'leaveBalanceInfoTHeadTr'">
-                    <table class="table leaveBalance-table" id="leaveBalanceInfo" matSort (matSortChange)="sortLeaveBalance($event)">	
+                    <table class="table leaveBalance-table" id="leaveBalanceInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light text-center" id="leaveBalanceInfoTHead">	
                           <tr id="leaveBalanceInfoTHeadTr">	
-                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="totalLeaveBalance">Balance</th>	
-                            <th scope="col" class="info-label" mat-sort-header="pendingForApproval">Leaves Pending for Approval</th>	
-                            <th scope="col" class="info-label" mat-sort-header="balance">Effective Leave Balance</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                            <th scope="col" class="info-label" mat-sort-header="totalLeaveBalance|number">Balance</th>	
+                            <th scope="col" class="info-label" mat-sort-header="pendingForApproval|number">Leaves Pending for Approval</th>	
+                            <th scope="col" class="info-label" mat-sort-header="balance|number">Effective Leave Balance</th>
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveBalanceList.length == 0">
+                            <tr *ngIf="leaveBalanceList.length == 0 || (leaveBalanceList| colFilter: {leaveType: data, totalLeaveBalance: data, pendingForApproval: data, balance: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveType of leaveBalanceList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }">
+                            <tr *ngFor="let leaveType of leaveBalanceList| colFilter: {leaveType: data, totalLeaveBalance: data, pendingForApproval: data, balance: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }">
                                 <td>{{leaveType.leaveType}}</td>
                                 <td>{{leaveType.totalLeaveBalance}} days(s)</td>
                                 <td>{{leaveType.pendingForApproval}} day(s)</td>
@@ -397,22 +401,22 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="log-table" matSort (matSortChange)="sortLeaveLogList($event)">	
+                    <table class="table table-responsive" id="log-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>	
                             <th scope="col" class="info-label" >Sr. No</th>	
-                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Types</th>	
-                            <th scope="col" class="info-label" mat-sort-header="updateBalanceBy">Change</th>	
-                            <th scope="col" class="info-label" mat-sort-header="balance">Balance</th>	
-                            <th scope="col" class="info-label" mat-sort-header="message">Message</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Updated On</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Types</th>	
+                            <th scope="col" class="info-label" mat-sort-header="updateBalanceBy|string">Change</th>	
+                            <th scope="col" class="info-label" mat-sort-header="balance|number">Balance</th>	
+                            <th scope="col" class="info-label" mat-sort-header="message|string">Message</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Updated On</th>
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveLogList.length == 0">
+                            <tr *ngIf="leaveLogList.length == 0 || (leaveLogList| colFilter: {rowNumber: data, leaveType: data, updateBalanceBy: data, balance: data, message: data, createdOn: data}:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let log of leaveLogList|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let log of leaveLogList| colFilter: {rowNumber: data, leaveType: data, updateBalanceBy: data, balance: data, message: data, createdOn: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{log.rowNumber}}</td>
                                 <td>{{log.leaveType}}</td>
                                 <td>{{log.updateBalanceBy}}</td>
@@ -454,28 +458,30 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="revoke-history-table" matSort (matSortChange)="sortLeaveRevokeTable($event)">	
+                    <table class="table table-responsive" id="revoke-history-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>
                             <th scope="col" class="info-label" >Sr. No</th>
-                            <th *ngIf="isTeamLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="employeeName">Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-                            <th *ngIf="isSelfLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
-                            <th scope="col" class="info-label" mat-sort-header="reason">Revoke Reason</th>
-                            <th scope="col" class="info-label" mat-sort-header="approverName">Approver Name</th>
+                            <th *ngIf="isTeamLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                            <th *ngIf="isSelfLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
+                            <th scope="col" class="info-label" mat-sort-header="reason|string">Revoke Reason</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Approver Name</th>
                             <th scope="col" class="info-label">Remarks</th>
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="revokeLeaveApplicationList.length == 0">
+                            <tr *ngIf="revokeLeaveApplicationList.length == 0 || (revokeLeaveApplicationList| colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, revokeReason: data, approverName: data, remark: data}:false).length == 0">
                                 <th colspan="11" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leave of revokeLeaveApplicationList|filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                            <tr *ngFor="let leave of revokeLeaveApplicationList| colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
+                                createdByName: data, createdOn: data, revokeReason: data, approverName: data, remark: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamLeaveRevokeApplication">{{leave.employeeName}}</td>
                                 <td>{{leave.leaveType}}</td>
@@ -519,26 +525,28 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" matSort (matSortChange)="sortReporteeLeaveBalanceChange($event)">	
+                    <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>
                             <th scope="col" class="info-label" >Sr. No</th>
-                            <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status">Status</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdByName">Applied By</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Applied On</th>	
-                            <th scope="col" class="info-label" mat-sort-header="revokeReason">Revoke Reason</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
+                            <th scope="col" class="info-label" mat-sort-header="revokeReason|string">Revoke Reason</th>
                             <th scope="col" class="info-label">Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="reporteeLeaveRevokeApplicationList.length == 0">
+                            <tr *ngIf="reporteeLeaveRevokeApplicationList.length == 0 || (reporteeLeaveRevokeApplicationList | colFilter: {leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                                status: data, createdByName: data, createdOn: data, revokeReason: data}:false).length === 0">
                                 <th colspan="10" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | filter:data | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                            <tr *ngFor="let leave of reporteeLeaveRevokeApplicationList | colFilter: {leaveType: data, fromDate: data, toDate: data, noOfDays: data,
+                                 status: data, createdByName: data, createdOn: data, revokeReason: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <td>{{items*(page-1)+i+1}}</td>
                                 <td>{{leave.leaveType}}</td>
                                 <td>{{leave.fromDate}}</td>

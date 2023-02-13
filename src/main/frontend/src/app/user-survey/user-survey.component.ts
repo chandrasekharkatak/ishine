@@ -26,6 +26,10 @@ export class UserSurveyComponent implements OnInit {
 
   currentSurveyId:any;
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -345,28 +349,13 @@ export class UserSurveyComponent implements OnInit {
     this.page = event;
   }
 
-  // sorting implementation 09-01-2023
-  sortAllSurvey(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-    const data = this.allSurveyList;
-    if (!sort.active || sort.direction === '') {
-      this.allSurveyList = data;
-      return;
-    } else {
-      this.allSurveyList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'surveyName':
-              return compare(a.surveyName, b.surveyName, isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc)
-
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
 

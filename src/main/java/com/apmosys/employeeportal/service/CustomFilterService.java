@@ -1485,7 +1485,7 @@ public class CustomFilterService {
 		ServiceResponse response = new ServiceResponse();
 		List<Object[]> list = new ArrayList<Object[]>();
 		Connection con = null;
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
 			
@@ -1503,56 +1503,65 @@ public class CustomFilterService {
 					Class.forName("com.mysql.cj.jdbc.Driver");
 					con = DriverManager.getConnection(dbURL,dbUsername,dbPassword);
 					
-					stmt = con.createStatement();
-					rs = stmt.executeQuery(q);
-					ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+					stmt = con.prepareStatement(q);
 					
-					int columnsNumber = rsmd.getColumnCount();
-					System.out.println("column size  : " + columnsNumber);
-					
-					Object[] headers = new Object[columnsNumber];
-					
-					for (int i = 1; i <= columnsNumber; i++) {
-						headers[i-1] = rsmd.getColumnLabel(i);
-					}
-					
-					list.add(headers);
-					
-					while (rs.next()) {
-						Object[] dataArr = new Object[columnsNumber];
+					if (stmt != null) {
+						rs = stmt.executeQuery();
+						ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+						
+						int columnsNumber = rsmd.getColumnCount();
+						System.out.println("column size  : " + columnsNumber);
+						
+						Object[] headers = new Object[columnsNumber];
 						
 						for (int i = 1; i <= columnsNumber; i++) {
-							String data = rs.getString(i);
-							dataArr[i-1] = data;
-							
+							headers[i-1] = rsmd.getColumnLabel(i);
 						}
 						
-						list.add(dataArr);
+						list.add(headers);
+						
+						while (rs.next()) {
+							Object[] dataArr = new Object[columnsNumber];
+							
+							for (int i = 1; i <= columnsNumber; i++) {
+								String data = rs.getString(i);
+								dataArr[i-1] = data;
+								
+							}
+							
+							list.add(dataArr);
+						}
+						
+						if (!list.isEmpty()){
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse(list);
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Result set is empty.");
+						}
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Invalid Query.");
 					}
 					
+				}catch(SQLException e) {
+					e.printStackTrace();
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid Query, Please Check entered query.");
+					response.setServiceError(e.getMessage());
 				}catch(Exception e) {
 					e.printStackTrace();
 					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 					response.setServiceResponse("Something Went Wrong.");
 					response.setServiceError(e.getMessage());
 				}finally {
-					stmt.close();
-					rs.close();
-					
 					try {
-						if (con != null)
-							con.close();
+						if (stmt != null) stmt.close();
+						if (rs != null) rs.close();
+						if (con != null) con.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
-				}
-
-				if (list != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(list);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Result set is empty.");
 				}
 				
 			}else {

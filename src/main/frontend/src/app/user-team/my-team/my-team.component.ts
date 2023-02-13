@@ -30,6 +30,10 @@ export class MyTeamComponent implements OnInit {
   userMapping: any = {};
   dateToday: any = new Date();
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   // modal
   alertMessage: any
   modalRef: BsModalRef = new BsModalRef();
@@ -797,206 +801,15 @@ export class MyTeamComponent implements OnInit {
   }
     
   //Sorting team view table 	
-  sortViewTeamTable(sort:Sort){	
-    console.log(sort);	
-    const data=this.teamViewList;	
-   // console.log(data , "****************************");	
-   if(!sort.active || sort.direction==='')	
-   {	
-    this.teamViewList=data;	
-    return ;	
-   }else {	
-    this.teamViewList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'employeementId':	
-            return compare(a.employeementId , b.employeementId , isAsc)	
-            case 'name':	
-              return compare(a.name , b.name , isAsc)	
-              case 'email':	
-                return compare(a.email , b.email , isAsc)	
-                case 'jobRoleName':	
-                  return compare(a.jobRoleName , b.jobRoleName , isAsc)	
-                  case 'mobileNo':	
-                    return compare(a.mobileNo , b.mobileNo ,isAsc)	
-                    case 'managerName':	
-                      return compare(a.managerName , b.managerName , isAsc)	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-    	
-  }	
-
-  sortViewLeaveHistory(sort:Sort){	
-    console.log(sort);	
-    const data=this.teamViewLeaveHistoryList;	
-   // console.log(data , "=====================");	
-    	
-   if(!sort.active || sort.direction==='')	
-   {	
-    this.teamViewLeaveHistoryList=data;	
-    return ;	
-   }else {	
-    this.teamViewLeaveHistoryList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'createdOn':	
-                  return compare(a.createdOn , b.createdOn , isAsc)	
-                  case 'noOfDays':	
-                    return compare(a.noOfDays , b.noOfDays ,isAsc)	
-                    case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                       case 'leaveStatusUpdatedByName':	
-                         return compare(a.leaveStatusUpdatedByName , b.leaveStatusUpdatedByName , isAsc)	
-                         case 'reason':	
-                           return compare(a.reason , b.reason , isAsc)	
-                            case 'leaveType':	
-                             return compare(a.leaveType , b.leaveType , isAsc)	
-                             case 'remark':	
-                             return compare(a.remark , b.remark , isAsc)	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-    	
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
   }
-
-  sortViewCompOffLeave(sort:Sort){	
-    console.log(sort);	
-    const data=this.teamViewCompOffHistoryList;	
- //   console.log(data , "********************************************");	
-    if(!sort.active || sort.direction==='')	
-   {	
-    this.teamViewCompOffHistoryList=data;	
-    return ;	
-   }else {	
-    this.teamViewCompOffHistoryList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'createdOn':	
-                  return compare(a.createdOn , b.createdOn , isAsc)	
-                  case 'noOfDays':	
-                    return compare(a.noOfDays , b.noOfDays ,isAsc)	
-                    case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                       case 'leaveStatusUpdatedByName':	
-                         return compare(a.leaveStatusUpdatedByName , b.leaveStatusUpdatedByName , isAsc)	
-                         case 'reason':	
-                           return compare(a.reason , b.reason , isAsc)	
-                           	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-    	
-    	
-  }
-
-  sortLeaveRequestTable(sort:Sort){	
-    console.log(sort);	
-    const data =this.leaveApplicationList;	
-    console.log(data , "====================");	
-    	
-    if(!sort.active || sort.direction==='')	
-   {	
-    this.leaveApplicationList=data;	
-    return ;	
-   }else {	
-    this.leaveApplicationList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'employeeName':	
-          return compare(a.employeeName , b.employeeName , isAsc)	
-          case 'leaveType':	
-            return compare(a.leaveType , b.leaveType , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays , isAsc)	
-                  case 'status':	
-                    return compare(a.status , b.status ,isAsc)	
-                    case 'createdByName':	
-                      return compare(a.createdByName , b.createdByName , isAsc)	
-                       case 'createdOn':	
-                         return compare(a.createdOn , b.createdOn , isAsc)	
-                         case 'reason':	
-                           return compare(a.reason , b.reason , isAsc)	
-                           	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-  }
-
-  sortCompOffRequestTable(sort:Sort){	
-    console.log(sort);	
-    const data=this.allCompOffApplications;	
-   // console.log(data , "++++++++++++++++++++++");	
-    	
-   if(!sort.active || sort.direction==='')	
-   {	
-    this.allCompOffApplications=data;	
-    return ;	
-   }else {	
-    this.allCompOffApplications=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'compOffReasons':	
-              return compare(a.compOffReasons , b.compOffReasons , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays , isAsc)	
-                  case 'description':	
-                    return compare(a.description , b.description , isAsc)	
-                  case 'status':	
-                    return compare(a.status , b.status ,isAsc)	
-                   	
-                           	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-  }	
 
   
   selectAll(event){

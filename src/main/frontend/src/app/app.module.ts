@@ -78,6 +78,10 @@ import { NgxOrgChartModule } from 'ngx-org-chart';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
+import {ColFilterPipe} from './col-filter.pipe';
+import { SortPipe } from './sort.pipe';
+import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -131,6 +135,9 @@ import { ResourceManagementComponent } from './user-team/resource-management/res
     UserExitComponent,
     ProjectConfigComponent,
     ResourceManagementComponent,
+    ColFilterPipe,
+    SortPipe,
+    ColumnFilterBarComponent
   ],
   imports: [
     BrowserModule,

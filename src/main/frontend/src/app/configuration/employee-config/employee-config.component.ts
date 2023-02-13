@@ -21,6 +21,7 @@ import { Document } from 'src/app/models/document';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { AppComponent } from 'src/app/app.component';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-employee-config',
@@ -33,6 +34,10 @@ export class EmployeeConfigComponent implements OnInit {
   data:string;
   items = 10;
   datas:string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
 
   //flags 
   isCreation: boolean = false;
@@ -112,6 +117,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
+
+  filters:any = {};
+  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
+  draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
   
   constructor(
     private employeeService: EmployeeService,
@@ -249,6 +259,19 @@ export class EmployeeConfigComponent implements OnInit {
     const currentDate = new Date();
     
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+  }
+
+  relievingDateFilter = (d: Date)=>{
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    
+    let resignDate = this.employeeObj.dateOfResign;
+
+    if(resignDate){
+      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+    }else{
+      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+    }
   }
 
   setYearOfPassingList(){
@@ -660,6 +683,14 @@ export class EmployeeConfigComponent implements OnInit {
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.probationPeriod)) {
       this.alertMessage = "Please enter Probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }if (employeeObj.probationPeriod > 365) {
+      this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(employeeObj.probationPeriod)) {
+      this.alertMessage = "Please enter valid probation period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1166,6 +1197,9 @@ export class EmployeeConfigComponent implements OnInit {
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
+
+        // Default Sorting
+        this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name','string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
       } else {
         alert(response.serviceResponse);
@@ -1447,8 +1481,6 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
-    this.employeeObj.name = this.currentUser.name;
-    this.employeeObj.email = this.currentUser.email;
     console.log(" reject KYC :  ",this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1468,10 +1500,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
-    }  
-    this.employeeObj.name = this.currentUser.name;
-    this.employeeObj.email = this.currentUser.email;
-    console.log("  anurag :  ",this.employeeObj);
+    } 
     this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1592,10 +1621,12 @@ export class EmployeeConfigComponent implements OnInit {
   	
   estimateDateOfReleiving(employeeObj: Employee){	
     const dateFormat = 'YYYY-MM-DD';	
-    console.log(employeeObj,"employeeObj");	
-    let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
-    this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
-    console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
+    
+    if(this.employeeObj.dateOfResign){
+      let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);	
+      this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);	
+      console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")	
+    }
   }	
 
   onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
@@ -1720,121 +1751,21 @@ export class EmployeeConfigComponent implements OnInit {
      });
    }    
    
-    // implementing sorting functionality by anurag
-  
   sortData(sort: Sort){	
-    console.log(sort);  	
-       let data=this.allEmployeeList;	
-       console.log("anurag :" , this.allEmployeeList );	
-         
-         if(!sort.active || sort.direction ===''){	
-          this.allEmployeeList=data;	
-         return;	
-        }	
-         else {	
-          this.allEmployeeList=data.sort(	
-             (a , b )=>{	
-               const isAsc=sort.direction==='asc';	
-               switch(sort.active){	
-                  case 'employeementId':	
-                    return compare(a.employeementId, b.employeementId, isAsc); 	
-        
-                   case 'name':	
-                     return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc);	
-
-                     case 'email':	
-                      return compare(a.email , b.email , isAsc);	
-
-                     case 'employmentstatus':	
-                     return compare(a.employmentstatus.toLowerCase() , b.employmentstatus.toLowerCase() , isAsc);	
-
-                     case 'managerName':	
-                     return compare(a.managerName.toLowerCase() , b.managerName.toLowerCase() , isAsc);	
-
-                     case 'departmentName':	
-                     return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc);	
-                   
-                     case 'dateOfJoining':	    
-                       return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
-                    
-                       case 'dateOfRelieving':	    
-                       return  compare(new Date(a.dateOfRelieving).getTime() ,  new Date(b.dateOfRelieving).getTime(), isAsc);	
-
-                       case 'createdOn':	    
-                       return  compare(new Date(a.createdOn).getTime() ,  new Date(b.createdOn).getTime(), isAsc);	
-          
-                       case 'createdByName':	    
-                       return  compare(a.createdByName.toLowerCase() ,  b.createdByName.toLowerCase(), isAsc);	
-
-                       case 'updatedOn':	    
-                       return  compare(new Date(a.updatedOn).getTime() ,  new Date(b.updatedOn).getTime(), isAsc);	
-
-                       case 'updatedByName':	    
-                       return  compare(a.updatedByName.toLowerCase() ,  b.updatedByName.toLowerCase(), isAsc);	
-
-                      
-                   default:	
-                     return 0; 	
-                 }	
-             }	
-           )	
-         }	
-       }	
-
-      //  sortHistoryTable(sort: Sort){	
-      //   console.log(sort);  	
-      //      let data=this.employeeWorkingHistory;	
-      //      console.log("anurag :" , this.employeeWorkingHistory );	
-             
-      //        if(!sort.active || sort.direction ===''){	
-      //         this.employeeWorkingHistory=data;	
-      //        return;	
-      //       }	
-      //        else {	
-      //         this.employeeWorkingHistory=data.sort(	
-      //            (a , b )=>{	
-      //              const isAsc=sort.direction==='asc';	
-      //              switch(sort.active){	
-
-      //                 case 'teamName':	
-      //                   return compare(a.teamName.toLowerCase(), b.teamName.toLowerCase(), isAsc); 	
-            
-      //                  case 'projectName':	
-      //                    return compare(a.projectName.toLowerCase() , b.projectName.toLowerCase() , isAsc);	
-    
-      //                    case 'startDate':	    
-      //                    return  compare(new Date(a.startDate).getTime() ,  new Date(b.startDate).getTime(), isAsc);
-                         
-      //                    case 'updatedOn':	    
-      //                    return  compare(new Date(a.updatedOn).getTime() ,  new Date(b.updatedOn).getTime(), isAsc);
-
-      //                    case 'teamLeadName':	
-      //                     return compare(a.teamLeadName , b.teamLeadName , isAsc);	
-    
-      //                     // case 'dateOfJoining':	    
-      //                     //   return  compare(new Date(a.dateOfJoining).getTime() ,  new Date(b.dateOfJoining).getTime(), isAsc);	
-                         
-      //                     //   case 'dateOfRelieving':	    
-      //                     //   return  compare(new Date(a.dateOfRelieving).getTime() ,  new Date(b.dateOfRelieving).getTime(), isAsc);	
-     
-      //                    case 'jobRoleName':	
-      //                    return compare(a.jobRoleName.toLowerCase() , b.jobRoleName.toLowerCase() , isAsc);	
-    
-      //                    case 'clientLocation':	
-      //                    return compare(a.clientLocation.toLowerCase() , b.clientLocation.toLowerCase() , isAsc);	
-    
-      //                    case 'clientName':	
-      //                    return compare(a.clientName.toLowerCase() , b.clientName.toLowerCase() , isAsc);	
-                          
-      //                  default:	
-      //                    return 0; 	
-      //                }	
-      //            }	
-      //          )	
-      //        }	
-      //      }	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }  	
+  }
 
 
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

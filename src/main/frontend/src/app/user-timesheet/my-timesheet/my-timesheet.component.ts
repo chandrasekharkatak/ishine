@@ -34,6 +34,10 @@ export class MyTimesheetComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -1303,103 +1307,14 @@ export class MyTimesheetComponent implements OnInit {
     this.page = event;
   }
 
-  // sorting .....	
-  sortMyTimesheet(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-    const data = this.allMyTimesheets;
-    if (!sort.active || sort.direction === '') {
-      this.allMyTimesheets = data;
-      return;
-    } else {
-      this.allMyTimesheets = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeeName':
-              return compare(a.employeeName, b.employeeName, isAsc)
-            case 'date':
-              return compare(a.date, b.date, isAsc)
-            case 'dayType':
-              return compare(a.dayType, b.dayType, isAsc)
-            case 'officeInTime':
-              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
-            case 'officeOutTime':
-              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
-            case 'totalWorkingOfficeHours':
-              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'totalTime':
-              return compare(a.totalTime, b.totalTime, isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc);
-            case 'createdByName':
-              return compare(a.createdByName, b.createdByName, isAsc);
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'remarks':
-              return compare(a.remarks, b.remarks, isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc);
-            case 'leaveType':
-            return compare(a.leaveType, b.leaveType, isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-
-
-  }
-  // sortMyTimesheetView
-  sortMyTimesheetView(sort: Sort) {
-    console.log(sort);
-    const data = this.timesheetObj.allTimesheetActivities;
-    if (!sort.active || sort.direction === '') {
-      this.timesheetObj.allTimesheetActivities = data;
-      return;
-    } else {
-      this.timesheetObj.allTimesheetActivities = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeeName':
-              return compare(a.employeeName, b.employeeName, isAsc)
-            case 'date':
-              return compare(a.date, b.date, isAsc)
-            case 'dayType':
-              return compare(a.dayType, b.dayType, isAsc)
-            case 'officeInTime':
-              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
-            case 'officeOutTime':
-              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
-            case 'totalWorkingOfficeHours':
-              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'totalTime':
-              return compare(a.totalTime, b.totalTime, isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc);
-            case 'createdByName':
-              return compare(a.createdByName, b.createdByName, isAsc);
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'remarks':
-              return compare(a.remarks, b.remarks, isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc)
-            case 'leaveType':
-              return compare(a.leaveType, b.leaveType, isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
   }
 
 }

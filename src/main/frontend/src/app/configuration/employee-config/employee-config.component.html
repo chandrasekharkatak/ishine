@@ -487,18 +487,19 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Notice Period</label>
-                                                <input type="number" class="form-control"(keypress)="omit_character($event)" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod">
+                                                <input type="number" class="form-control"(keypress)="omit_character($event)" autocomplete="none" [(ngModel)]="employeeObj.noticePeriod" (change)="estimateDateOfReleiving(employeeObj)">
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">                                        <div class="info-wrapper">
+                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
-                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORePicker" #input (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DORePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>
@@ -510,7 +511,7 @@
                                                     <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
                                                     <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>	
                                                 </div>	
-                                                <mat-datepicker  #DORPicker (closed)="input.blur()" disabled="false" ></mat-datepicker>	
+                                                <mat-datepicker  #DORPicker (closed)="input.blur()" [disabled]="!employeeObj.dateOfResign" ></mat-datepicker>	
                                             </div>	
                                         </div>	
                                     </div>
@@ -836,30 +837,35 @@
                             <tr id="employeeInfoTHeadTr">
                                 <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
                             <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
-                                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                                <th scope="col" class="info-label" mat-sort-header="name">Full Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="email">Email Id</th>
-                                <th scope="col" class="info-label" mat-sort-header="employmentstatus">Employment Status</th>
-                                <th scope="col" class="info-label" mat-sort-header="managerName">Manager Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="departmentName">Department Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date of Joining</th>
-                                <th scope="col" class="info-label" *ngIf="dateOfReleivingshow" mat-sort-header="dateOfRelieving" > Date of Releiving</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn"> Created On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdByName"> Created by</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn"> Updated On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedByName"> Updated by</th>
+                                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                                <th scope="col" class="info-label" mat-sort-header="name|string" >Full Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="email|string" >Email Id</th>
+                                <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="departmentName|string" >Department Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date">Date of Joining</th>
+                                <th scope="col" class="info-label" *ngIf="dateOfReleivingshow && isTable" mat-sort-header="dateOfRelieving|date"> Date of Releiving</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime"> Created On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdByName|string"> Created by</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime"> Updated On</th>
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedByName|string"> Updated by</th>
 
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
                                     scope="col" class="info-label">Actions</th>
                             </tr>
+                            <!-- <tr app-column-filter-bar *ngIf="isTable && !dateOfReleivingshow" [columnList]="employeeActiveColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                            <tr app-column-filter-bar *ngIf="isTable && dateOfReleivingshow" [columnList]="employeeInActiveColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                            <tr app-column-filter-bar *ngIf="isDraftTable" [columnList]="draftEmployeeColumns" (onSearch)="onSearch($event);page=1"></tr> -->
                         </thead>
                         <tbody>
-                            <tr *ngIf="allEmployeeList.length == 0">
+                            <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
+                                departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data} : false).length == 0">
                                 <th colspan="12" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+                                *ngFor="let employee of allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
+                                departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data}:false| sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
@@ -869,7 +875,7 @@
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>
-                                <td *ngIf="dateOfReleivingshow">{{employee.dateOfRelieving}}</td>
+                                <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
                                 <td *ngIf="isTable">{{employee.createdOn}}</td>
                                 <td *ngIf="isTable">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable">{{employee.updatedOn}}</td>
@@ -962,10 +968,12 @@
                  </tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="employeeWorkingHistory.length == 0"> 
+                    <tr *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory| colFilter: {teamName: datas, projectName: datas, startDate: datas, updatedOn: datas,
+                        teamLeadName: datas, jobRoleName: datas, clientLocation: datas, clientName: datas }:false).length == 0"> 
                        <th colspan="11" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory|filter:datas | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory| colFilter: {teamName: datas, projectName: datas, startDate: datas, updatedOn: datas,
+                     teamLeadName: datas, jobRoleName: datas, clientLocation: datas, clientName: datas }:false | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->

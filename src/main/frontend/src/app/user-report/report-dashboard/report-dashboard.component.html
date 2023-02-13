@@ -29,19 +29,19 @@
                         <thead class="thead-light">	
                           <tr>
                             <th scope="col" class="info-label" >Sr No.</th>	
-                            <th scope="col" class="info-label" mat-sort-header="employeementId">Employee ID</th>	
-                            <th scope="col" class="info-label" mat-sort-header="name" >Employee Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="departmentName">Department</th>
-                            <th scope="col" class="info-label" mat-sort-header="dateOfResign">Date Of Resign</th>
-                            <th scope="col" class="info-label" mat-sort-header="dateOfRelieving">Date Of Relieving</th>	
-                            <th scope="col" class="info-label" mat-sort-header="managerName">Reporting To</th>	
+                            <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee ID</th>	
+                            <th scope="col" class="info-label" mat-sort-header="name|string" >Employee Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
+                            <th scope="col" class="info-label" mat-sort-header="dateOfResign|date">Date Of Resign</th>
+                            <th scope="col" class="info-label" mat-sort-header="dateOfRelieving|date">Date Of Relieving</th>	
+                            <th scope="col" class="info-label" mat-sort-header="managerName|string">Reporting To</th>	
                           </tr>
                         </thead>
                         <tbody> 
-                          <tr *ngIf="allResignEmployee && allResignEmployee.length == 0">
+                          <tr *ngIf="allResignEmployee && allResignEmployee.length == 0 || (allResignEmployee |  colFilter: {employeementId: data, name: data, departmentName: data, dateOfResign: data, dateOfRelieving: data, managerName: data} : false).length == 0">
                             <th colspan="6" class="text-center info-label">No Document to display...</th>
                           </tr>
-                          <tr *ngFor="let emp of allResignEmployee |  filter:data |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                          <tr *ngFor="let emp of allResignEmployee |  colFilter: {employeementId: data, name: data, departmentName: data, dateOfResign: data, dateOfRelieving: data, managerName: data} : false | sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                             <th class="info-label">{{10*(page-1)+i+1}}</th>
                             <td>{{emp.employeementId}}</td>
                             <td>{{emp.name}}</td>
@@ -190,16 +190,16 @@
     </div>
     <div class="modal-body d-flex">
     <div class="row col-md-12">
-        <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortDashboardModal($event)">
+        <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
                     <th scope="col" class="info-label wide-col">Sr No.</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Emp ID</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="employeeName">Name</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department Name</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="fromDate">From Date</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="toDate">To Date</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="status">Status</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="fromDate|date">From Date</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="toDate|date">To Date</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="status|string">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -207,7 +207,7 @@
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                    *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>A-{{leave.employeementId}}</td>
                     <td>{{leave.employeeName}}</td>
@@ -236,22 +236,22 @@
     </div>
     <div class="modal-body d-flex">
         <div class="row col-md-12">
-            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortTimesheetDashboard($event)">
+            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col">Sr No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Emp ID</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeName">Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
                         <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
                         <th scope="col" class="info-label wide-col" >Day Type</th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="email">Email Id</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName">Manager Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo">Mobile No</th>
-                        <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="pendingEodCount">Pending EOD Count</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No</th>
+                        <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="pendingEodCount|number">Pending EOD Count</th>
                         <!-- <th scope="col" class="info-label wide-col">Total Working Hour</th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="legend">Type</th>
-                        <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count">Count</th>	
+                        <th scope="col" class="info-label wide-col" mat-sort-header="legend|string">Type</th>
+                        <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count|number">Count</th>	
 
                     </tr>
                 </thead>
@@ -260,7 +260,7 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
@@ -295,19 +295,19 @@
     </div>
     <div class="modal-body d-flex">
         <div class="row col-md-12">
-            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sort7DaysEODModal($event)">
+            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col wide-col">Sr No.</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeementId">Emp ID</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeeName">Name</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="departmentName">Department Name</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="email">Email Id</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="managerName">Manager Name</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="mobileNo">Mobile No</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="date">Timesheet Date</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="dayType">Day Type</th>
-                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="totalWorkingHours">Total Working Hour</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeeName|string">Name</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="departmentName|string">Department Name</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="email|string">Email Id</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="managerName|string">Manager Name</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="mobileNo|number">Mobile No</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="date|date">Timesheet Date</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="dayType|string">Day Type</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="totalWorkingHours|number">Total Working Hour</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -315,7 +315,7 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
@@ -347,24 +347,24 @@
     </div>
     <div class="modal-body d-flex">
         <div class="row col-md-12">
-            <div class="form-group ml-auto col-md-3">	
+            <!-- <div class="form-group ml-auto col-md-3">	
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">		
-        </div>
-            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortEmployeeDashboard($event)">
+        </div> -->
+            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col">Sr No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Emp ID</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="name">Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="email">Email Id</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName">Manager Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining">Date Of Joining</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo">Mobile No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus">Status</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience">Total Experience</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="gender">Gender</th>
-                        <th scope="col" class="info-label" mat-sort-header="age">Age</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">Date Of Joining</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No.</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|number">Total Experience</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="gender|string">Gender</th>
+                        <th scope="col" class="info-label" mat-sort-header="age|number">Age</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -372,7 +372,7 @@
                         <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | filter:data | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
                         <td class="text-capitalize">{{leave.name}}</td>
@@ -424,7 +424,7 @@
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                    *ngFor="let emp of modalSummaryList | filter:data | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    *ngFor="let emp of modalSummaryList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>A-{{emp.employeementId}}</td>
                     <td class="text-capitalize">{{emp.employeeName}}</td>

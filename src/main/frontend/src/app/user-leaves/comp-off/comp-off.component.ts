@@ -20,7 +20,12 @@ import * as XLSX from 'xlsx';
 })
 export class CompOffComponent implements OnInit {
 
-    data:string;
+  data:string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation:boolean = false;
   isForm: boolean = false;
@@ -444,70 +449,15 @@ handlePageChange(event) {
   this.page = event;
 }
 
-sortCompensatory(sort:Sort){	
-  console.log(sort);	
-  const data=this.allCompOffRequests;	
-  if(!sort.active || sort.direction===''){	
-    this.allCompOffRequests=data;	
-    return ;	
-  } else {	
-    this.allCompOffRequests=data.sort(	
-      (a,b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'compOffReasons':	
-            return compare(a.compOffReasons , b.compOffReasons , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays , isAsc)	
-                  case 'description':	
-                    return compare(a.description , b.description , isAsc)	
-                    case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                    default :	
-                    return 0;	
-        }	
-      }	
-    )	
+sortData(sort: Sort){	
+  console.log(sort);
+  if(sort.active){
+    let sortParams:any[] = sort.active?.split("|");
+    this.sortColumn = sortParams[0];
+    this.sortColumnType = sortParams[1];
+    this.sortDirection = sort.direction;      
   }
-
 }
-
-sortReporteeCompensatory(sort:Sort){	
-  console.log(sort);	
-  const data=this.allCompOffApplications;	
-  if(!sort.active || sort.direction===''){	
-    this.allCompOffApplications=data;	
-    return ;	
-  } else {	
-    this.allCompOffApplications=data.sort(	
-      (a,b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'compOffReasons':	
-              return compare(a.compOffReasons , b.compOffReasons , isAsc)	
-              case 'fromDate':	
-                return compare(a.fromDate , b.fromDate , isAsc)	
-                case 'toDate':	
-                  return compare(a.toDate , b.toDate , isAsc)	
-                  case 'noOfDays':	
-                    return compare(a.noOfDays , b.noOfDays , isAsc)	
-                    case 'description':	
-                      return compare(a.description , b.description , isAsc)	
-                      case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                    default :	
-                    return 0;	
-        }	
-      }	
-    )	
-  }	
-  }	
 
 }
 

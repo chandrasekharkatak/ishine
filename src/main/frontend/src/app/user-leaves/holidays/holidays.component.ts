@@ -17,10 +17,14 @@ import { HolidayService } from 'src/app/services/holiday.service';
 })
 export class HolidaysComponent implements OnInit {
 
-    data:string;
+  data:string;
   feature="Holiday";
   currentUser:User;
   userMapping:any = {};
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
 
   holidayList:any[] = [];
 
@@ -105,37 +109,14 @@ export class HolidaysComponent implements OnInit {
     this.page = event;
   }
 
-  sortHoliday(sort:Sort){
+  sortData(sort: Sort){	
     console.log(sort);
-    const data=this.holidayList;
-    if(!sort.active || sort.direction===''){
-      this.holidayList=data;
-      return ;
-    }else {
-      this.holidayList=data.sort(
-        (a,b)=>{
-          const isAsc=sort.direction==='asc';
-          switch(sort.active){
-            case 'occasion':
-              return compare(a.occasion.toLowerCase() , b.occasion.toLowerCase() , isAsc)
-
-              case 'dayOfTheWeek':
-                return compare(a.dayOfTheWeek.toLowerCase() , b.dayOfTheWeek.toLowerCase() , isAsc)
-
-                case 'dateOfHoliday':
-                  return compare(a.dateOfHoliday , b.dateOfHoliday ,isAsc)
-
-                  case 'state':
-                    return compare(a.state , b.state , isAsc)
-
-                    default :
-                    return 0;
-              
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-    
   }
 
 }

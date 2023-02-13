@@ -24,7 +24,12 @@ import { AppComponent } from 'src/app/app.component';
 })
 export class RoleConfigComponent implements OnInit {
 
-    data:string;
+  data:string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -511,40 +516,14 @@ export class RoleConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortroleData(sort:Sort){	
-    console.log(sort);	
-      
-    const data=this.filterAllJobRoleList;	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.filterAllJobRoleList=data;	
-      return;	
-    }else {	
-      this.filterAllJobRoleList=data.sort(	
-        (a,b)=>{	
-          const isAsc=sort.direction==='asc';	
-          switch(sort.active){	
-            case 'name':	
-              return compare(a.name.toLowerCase() , b.name.toLowerCase() , isAsc)	
-              case 'employeeRole':	
-                return compare(a.employeeRole.toLowerCase() , b.employeeRole.toLowerCase() , isAsc)
-                case 'departmentName':	
-                return compare(a.departmentName.toLowerCase() , b.departmentName.toLowerCase() , isAsc)	
-                case 'createdBy':	
-                  return compare(a.createdBy.toLowerCase() , b.createdBy.toLowerCase() ,isAsc)	
-                  case 'createdOn':	
-                    return compare(a.createdOn , b.createdOn , isAsc)	
-                    case 'updatedByName':	
-                      return compare(a.updatedByName , b.updatedByName ,isAsc)	
-                      case 'updatedOn':	
-                        return compare(a.updatedOn , b.updatedOn , isAsc)	
-              default:	
-                return 0;	
-          }	
-        }	
-      )	
-    }	
-      
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
   }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

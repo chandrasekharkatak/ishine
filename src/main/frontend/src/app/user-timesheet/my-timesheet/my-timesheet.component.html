@@ -425,33 +425,35 @@
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'myTimesheetInfo'"
                     [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'">
                     <table class="table table-responsive" id="myTimesheetInfo" matSort
-                        (matSortChange)="sortMyTimesheet($event)">
+                        (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="myTimesheetInfoTHead">
                             <tr id="myTimesheetInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md" mat-sort-header="employeeName">Name</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="date">Date</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="dayType">Day Type</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeInTime">In Time</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime">Out Time</th>
-                                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Working Hours</th>
-                                <th scope="col" colspan="4" class="info-label column-md" mat-sort-header="description">Activity</th>
-                                <th scope="col" colspan="info-label" class="info-label" mat-sort-header="totalTime">Total Activity Time</th>
-                                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md" mat-sort-header="createdByName">Applied By</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="createdOn">Applied On</th>
-                                <th scope="col" class="info-label column-md">Shift</th>
-                                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="remarks">Remarks</th>
+                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md" mat-sort-header="employeeName|string">Name</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="date|date">Date</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="dayType|string">Day Type</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="officeInTime|datetime">In Time</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime|datetime">Out Time</th>
+                                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Working Hours</th>
+                                <th scope="col" colspan="4" class="info-label column-md" mat-sort-header="description|string">Activity</th>
+                                <th scope="col" colspan="info-label" class="info-label" mat-sort-header="totalTime|number">Total Activity Time</th>
+                                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md" mat-sort-header="createdByName|string">Applied By</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="createdOn|datetime">Applied On</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShift|string">Shift</th>
+                                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                                <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">Remarks</th>
                                 <th scope="col" class="info-label column-md">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allMyTimesheets.length == 0">
+                            <tr *ngIf="allMyTimesheets.length == 0 || (allMyTimesheets| colFilter: {employeeName:data, date:data, dayType:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data,
+                                description:data, totalTime:data, status:data, createdByName:data, createdOn:data, leaveType:data, remarks:data}:false).length == 0">
                                 <th colspan="16" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let timesheet of allMyTimesheets|filter:data | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                                *ngFor="let timesheet of allMyTimesheets| colFilter: {employeeName:data, date:data, dayType:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data,
+                                     description:data, totalTime:data, status:data, createdByName:data, createdOn:data, leaveType:data, remarks:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
                                 <td>{{timesheet.date}}</td>
@@ -593,17 +595,17 @@
             </div>
         </div>
         <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
-            <table class="table timesheet-table" matSort (matSortChange)="sortMyTimesheetView($event)" >
+            <table class="table timesheet-table" matSort (matSortChange)="sortData($event)" >
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
-                        <th scope="col" class="info-label" mat-sort-header="clientName">Client Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="clientLocation">Client Location</th>
-                        <th scope="col" class="info-label" mat-sort-header="projectName">Project Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="teamName">Team Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="activity">Activity</th>
-                        <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
-                        <th scope="col" class="info-label" mat-sort-header="completionTime">Time<small>(Hrs)</small></th>
+                        <th scope="col" class="info-label">Client Name</th>
+                        <th scope="col" class="info-label">Client Location</th>
+                        <th scope="col" class="info-label">Project Name</th>
+                        <th scope="col" class="info-label">Team Name</th>
+                        <th scope="col" class="info-label">Activity</th>
+                        <th scope="col" colspan="4" class="info-label">Description</th>
+                        <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
                     </tr>
                 </thead>
                 <tbody>

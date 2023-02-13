@@ -155,4 +155,6 @@ public class Employee {
 	private Long reportingManagerId;
 	
 	private String approvalsTo;
+
+	private LocalDateTime otpUpdatedOn;
 }
