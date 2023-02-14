@@ -685,7 +685,7 @@ export class TeamConfigComponent implements OnInit {
 
   getDepartmentByTeam(teamId: any){
     this.filteredDeptList = [];
-    this.activityObj.departmentList = '';
+    this.activityObj.departmentList = ''; 
 
     const selectedTeam = this.allTeamList.find(x => x.teamId == teamId);
     let departmentList = selectedTeam.departmentList.map(x => +x);
