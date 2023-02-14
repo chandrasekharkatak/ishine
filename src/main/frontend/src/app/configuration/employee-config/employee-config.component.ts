@@ -266,11 +266,11 @@ export class EmployeeConfigComponent implements OnInit {
     const currentDate = new Date();
     
     let resignDate = this.employeeObj.dateOfResign;
-
+    
     if(resignDate){
-      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat));
     }else{
-      return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
+      return false;
     }
   }
 
@@ -685,7 +685,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter Probation period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if (employeeObj.probationPeriod > 365) {
+    }if (employeeObj.probationPeriod > 365 || employeeObj.probationPeriod < 0) {
       this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -699,7 +699,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } if (employeeObj.noticePeriod > 365) {
+    } if (employeeObj.noticePeriod > 365 || employeeObj.noticePeriod < 0) {
       this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -707,6 +707,26 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter valid notice period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }
+
+    if(employeeObj.employmentstatus == "Resigned"){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
+        this.alertMessage = "Please enter date of Resign !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else if(employeeObj.employmentstatus == "InActive"){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
+        this.alertMessage = "Please enter date of Resign !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfRelieving)) {
+        this.alertMessage = "Please enter date of Relieving !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.managerId)) {

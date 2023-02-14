@@ -354,7 +354,7 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter Probation Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
-    }if (portalObj.probationPeriod > 365) {
+    }if (portalObj.probationPeriod > 365 || portalObj.probationPeriod < 0) {
       this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -374,7 +374,7 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
-    }if (portalObj.noticePeriod > 365) {
+    }if (portalObj.noticePeriod > 365 || portalObj.noticePeriod < 0) {
       this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
