@@ -494,7 +494,7 @@
                                     <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label">Date Of Resign</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of Resign</label>
                                                 <div class="d-flex">
                                                     <input class="form-control" matInput id="DOR" [matDatepicker]="DORePicker" #input (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
@@ -506,9 +506,9 @@
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">	
                                         <div class="info-wrapper">	
                                             <div class="form-group">	
-                                                <label class="info-label">Date Of Releiving</label>	
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of Releiving</label>	
                                                 <div class="d-flex">	
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
+                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="relievingDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
                                                     <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>	
                                                 </div>	
                                                 <mat-datepicker  #DORPicker (closed)="input.blur()" [disabled]="!employeeObj.dateOfResign" ></mat-datepicker>	

@@ -207,7 +207,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="leaveHistoryList.length == 0 || (leaveHistoryList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
-                                createdByName: data, createdOn: data, reason: data, approverName: data, remark: data}:false).length">
+                                createdByName: data, createdOn: data, reason: data, approverName: data, remark: data}:false).length == 0">
                                 <th colspan="14" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr *ngFor="let leaveHistory of leaveHistoryList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data, status: data,
