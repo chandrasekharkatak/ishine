@@ -120,4 +120,7 @@ public class LeaveDTO {
 	private String dateOfJoining;
 	private Long employeeLeavesMapId;
 	private Float creditedBalance;
+	
+	private String teamName;
+	private String projectName;
 }

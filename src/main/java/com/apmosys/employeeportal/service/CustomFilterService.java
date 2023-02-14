@@ -207,7 +207,7 @@ public class CustomFilterService {
 //						+ "inner join employee e3 on el.leave_status_updated_by = e3.emp_id where "+customQuery;
 				
 				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,p.client_name from employee_leave el "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
@@ -263,6 +263,10 @@ public class CustomFilterService {
 					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
+					leavedto.setTeamName(object[13] != null ? object[13].toString() : null);
+					leavedto.setProjectName(object[14] != null ? object[14].toString() : null);
+					leavedto.setFromDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
+					leavedto.setToDateDayType(object[16] != null ? Float.parseFloat(object[16].toString()) : null);
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
