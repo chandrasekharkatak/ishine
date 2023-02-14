@@ -30,4 +30,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	public List<Team> findByTeamIdNotInAndProjectId(List<Long> allTeam, Integer projectId);
 
+	public Team findByTeamIdAndProjectId(Long teamId, Integer projectId);
+
 }

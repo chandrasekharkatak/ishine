@@ -50,7 +50,6 @@ public class PoTeamDTO {
 	private String createdBy;
 	private String[] departmentList;
 	
-	private List<PoTeamMemberDetailDTO> teamMemberDetails;
-
+	private Long ishineTeamId;
 	
 }

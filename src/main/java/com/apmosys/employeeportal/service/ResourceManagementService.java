@@ -7,13 +7,23 @@ import java.util.Optional;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpServerErrorException.InternalServerError;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
-import com.apmosys.employeeportal.dto.PoTeamMemberDetailDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
@@ -108,7 +118,12 @@ public class ResourceManagementService {
 				
 				resourceManagementDTO.getTeamList().forEach((teamObj) -> {
 					//Check if team present
-					Team teamPresent = teamRepository.findByTeamNameAndProjectId(teamObj.getTeamName(), projectObj.getProjectId());
+					Team teamPresent;
+					if(teamObj.getTeamId() != null) {
+						teamPresent = teamRepository.findByTeamIdAndProjectId(teamObj.getTeamId(), projectObj.getProjectId());
+					}else {
+						teamPresent = teamRepository.findByTeamNameAndProjectId(teamObj.getTeamName(), projectObj.getProjectId());						
+					}
 					
 					//DeptIds
 					StringBuilder deptList = new StringBuilder("");
@@ -257,6 +272,18 @@ public class ResourceManagementService {
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
+								
+								// Send Project/Team detail JSON to PoPotal
+								
+								ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+								
+								if(poPortalResponse.getServiceStatus().equals("Success")) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Team updated successfully.");
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse(poPortalResponse.getServiceResponse());
+								}
 							}
 						}
 					}else {
@@ -324,6 +351,9 @@ public class ResourceManagementService {
 							}
 							if(newActivityCreated != null) {
 								
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Team created successfully.");
+								
 								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
@@ -335,11 +365,24 @@ public class ResourceManagementService {
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
+									
+									// Send Project/Team detail JSON to PoPotal
+									
+									ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+									
+									if(poPortalResponse.getServiceStatus().equals("Success")) {
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("Team updated successfully.");
+									}else {
+										response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+										response.setServiceResponse(poPortalResponse.getServiceResponse());
+									}
 								}
 								
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Team created successfully.");
 							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Team created successfully, but default activities are not mapped");
+								
 								//Send mail to RMG: if HOD has updated project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
 									try {
@@ -351,10 +394,19 @@ public class ResourceManagementService {
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
+									
+									// Send Project/Team detail JSON to PoPotal
+									
+									ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+									
+									if(poPortalResponse.getServiceStatus().equals("Success")) {
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("Team updated successfully.");
+									}else {
+										response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+										response.setServiceResponse(poPortalResponse.getServiceResponse());
+									}
 								}
-								
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Team created successfully, but default activities are not mapped");
 							}
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -526,23 +578,8 @@ public class ResourceManagementService {
 								}
 							}
 							if(newActivityCreated != null) {
-								
-								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
-								if(resourceManagementDTO.getIsHOD().equals("true")) {
-									try {
-										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
-												"Regarding Resource managment",
-												"Dear RMG Team ,"+"<br>"
-												+"<br>"
-												+ employeeObj.getName() +" has created the project and Team");
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-								
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully.");
-							}else {
 								
 								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
 								if(resourceManagementDTO.getIsHOD().equals("true")) {
@@ -555,10 +592,48 @@ public class ResourceManagementService {
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
+									
+									// Send Project/Team detail JSON to PoPotal
+									
+									ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+									
+									if(poPortalResponse.getServiceStatus().equals("Success")) {
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("Team updated successfully.");
+									}else {
+										response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+										response.setServiceResponse(poPortalResponse.getServiceResponse());
+									}
+
 								}
-								
+							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully, but default activities are not mapped");
+								
+								//Send mail to RMG: if HOD/SuperAdmin has created project/Team
+								if(resourceManagementDTO.getIsHOD().equals("true")) {
+									try {
+										mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
+												"Regarding Resource managment",
+												"Dear RMG Team ,"+"<br>"
+												+"<br>"
+												+ employeeObj.getName() +" has created the project and Team");
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									
+									// Send Project/Team detail JSON to PoPotal
+									
+									ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+									
+									if(poPortalResponse.getServiceStatus().equals("Success")) {
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("Team updated successfully.");
+									}else {
+										response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+										response.setServiceResponse(poPortalResponse.getServiceResponse());
+									}
+								}
 							}
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -770,8 +845,15 @@ public class ResourceManagementService {
 						
 						// Send Project/Team detail JSON to PoPotal
 						
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Project Approved.");						
+						ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+						
+						if(poPortalResponse.getServiceStatus().equals("Success")) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Project Approved.");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse(poPortalResponse.getServiceResponse());
+						}						
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("User's mail address not found.");
@@ -961,8 +1043,9 @@ public class ResourceManagementService {
 		try {
 			
 			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 			List<PoTeamDTO> teamList = new ArrayList<PoTeamDTO>();
-			List<PoTeamMemberDetailDTO> teamMember = new ArrayList<PoTeamMemberDetailDTO>();
+			List<String> teamMember = new ArrayList<String>();
 			
 			if(projectObj != null) {
 				PoProjectSyncDTO projectDTO = new PoProjectSyncDTO();
@@ -980,7 +1063,7 @@ public class ResourceManagementService {
 					teamDetails.forEach((team) -> {
 						PoTeamDTO poTeamDTO = new PoTeamDTO();
 						
-						poTeamDTO.setPoTeamId(null);
+						poTeamDTO.setIshineTeamId(team.getTeamId());
 						poTeamDTO.setTeamName(team.getTeamName());
 						
 						if(team.getCommonProperty().getCreatedBy() != null) {
@@ -1018,27 +1101,57 @@ public class ResourceManagementService {
 						
 						if(!teamMemberDetials.isEmpty()) {
 							teamMemberDetials.forEach((member) -> {
-								
-								PoTeamMemberDetailDTO memberDTO = new PoTeamMemberDetailDTO();
-								
 								String memberEmpId = getEmploymentId(team.getCommonProperty().getCreatedBy());
-								memberDTO.setEmpId(memberEmpId);
-								memberDTO.setEndDate(null);
-								memberDTO.setMonth(null);
-								memberDTO.setStartDate(null);
-								memberDTO.setWorkignDays(null);
-								
-								teamMember.add(memberDTO);
+								teamMember.add(memberEmpId);
 							});
 						}
-						poTeamDTO.setTeamMemberDetails(teamMember);
+						String teamMemberList[] = teamMember.toArray(new String[teamMember.size()]);
+						poTeamDTO.setTeamMemberList(teamMemberList);
+						
 						teamList.add(poTeamDTO);
 					});
 				}
 				projectDTO.setTeamList(teamList);
 				
+				projectInfo.add(projectDTO);		
 				//Send projectDTO in PoPortal reverse-sync API
-				//Send Mail to PoPortal
+				
+				try {
+					
+					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/sync";
+					RestTemplate restTemplate = new RestTemplate();
+					String syncResponse = restTemplate.postForObject(syncUrl, projectInfo, String.class);
+					
+					JSONObject json = new JSONObject(syncResponse);
+					
+					if(json.getInt("httpStatusCode") == 200) {
+						//Send Mail to PoPortal
+					     try {
+								mailService.sendMail(rmgMail,
+										"Regarding Project Sync With PoPortal",
+										"Dear RMG Team ,"+"<br>"
+										+"<br>"
+										+"Project : " +resourceManagementDTO.getName()+ "has been successfully synced with PoPortal.");
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+					     
+					     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						 response.setServiceResponse(json.get("message"));
+					}
+					
+				}catch(InternalServerError e) {
+					JSONObject json = new JSONObject(e.getResponseBodyAsString());
+					
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse(json.get("message"));
+					
+				}catch(HttpClientErrorException e) {
+                    JSONObject json = new JSONObject(e.getResponseBodyAsString());
+					
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse(json.get("message"));
+				}
 			}
 			
 		}catch(Exception e) {

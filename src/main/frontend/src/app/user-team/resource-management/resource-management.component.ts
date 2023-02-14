@@ -500,7 +500,7 @@ export class ResourceManagementComponent implements OnInit {
           }
           this.openAlertMod(template, response.serviceResponse);
         } else {
-          console.error(response.serviceResponse);
+          this.openAlertMod(template, response.serviceResponse);
         }
       });
     }else{
@@ -522,7 +522,7 @@ export class ResourceManagementComponent implements OnInit {
               this.cancelRequest();
               this.openAlertMod(template,response.serviceResponse);
             } else {
-              console.error(response.serviceResponse);
+              this.openAlertMod(template,response.serviceResponse);
             }
           });
         } else {
@@ -548,7 +548,8 @@ export class ResourceManagementComponent implements OnInit {
           this.addInputTeamField();
         } else {
           this.allTeamList = this.projectObj.teamList;
-          this.allTeamListCopy = this.projectObj.teamList;
+          // this.allTeamListCopy = this.projectObj.teamList;
+          this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
 
       } else {
@@ -559,7 +560,7 @@ export class ResourceManagementComponent implements OnInit {
           this.addInputTeamField();
         } else {
           this.allTeamList = this.projectObj.teamList;
-          this.allTeamListCopy = this.projectObj.teamList;
+          this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
       }
     });
