@@ -1469,18 +1469,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.isError = false;
     this.errorMsg = '';
 
-    this.user.empId = this.currentUser.empId;
-    this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+    if(this.password){
+      this.user.empId = this.currentUser.empId;
+      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
 
-    this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.oldPasswordValid = true;
-      } else {
-        this.isError = true;
-        this.errorMsg = response.serviceResponse;
-        this.oldPasswordValid = false;
-      }
-    });
+      this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.oldPasswordValid = true;
+        } else {
+          this.isError = true;
+          this.errorMsg = response.serviceResponse;
+          this.oldPasswordValid = false;
+        }
+      });
+    }
   }
 
   openChangePassword(changePasswordTemplate) {
