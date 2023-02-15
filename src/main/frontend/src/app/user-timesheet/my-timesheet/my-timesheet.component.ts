@@ -87,6 +87,8 @@ export class MyTimesheetComponent implements OnInit {
  
   isTimesheetLockCheckEnable:any = "true";
 
+  selectedTimesheet:any;
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -187,6 +189,24 @@ export class MyTimesheetComponent implements OnInit {
     this.data = '';
   }
 
+  openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.selectedTimesheet = null;
+    this.selectedTimesheet = Object.assign({}, timesheetObj);
+  }
+
+  checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>){
+      if(timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities){
+          this.openInActiveUpdateConfimationModal(template, timesheetObj);
+      }else{
+          this.showUpdateTimesheetForm(timesheetObj);      
+      }
+  }
+
+  updateInactiveActivitiesTimesheet(){
+    this.showUpdateTimesheetForm(this.selectedTimesheet);  
+  }
+
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
     this.isTimesheetForm = true;
     this.isUpdation = true;
@@ -227,7 +247,7 @@ export class MyTimesheetComponent implements OnInit {
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
     }
-
+    
     this.getAllProjectsByEmpId(userObj);
     this.getAllAvailableTimesheetByEmpId(userObj);
     setTimeout(()=>{
@@ -1028,7 +1048,14 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetActivities = response.serviceResponse;
-        console.log("allTimesheetActivities :", this.allTimesheetActivities);
+        const allActivities = [...this.allTimesheetActivities]; 
+        let inactiveActivities:any[] = timesheet.inactiveTimesheetActivities;
+
+        // Removing Inactive Activities from AllTimesheetActivities and added in UpdatedTimesheetActivities
+        allActivities.forEach(activityObj => {
+          if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
+        });
+
       } else {
         console.error(response.serviceResponse)
       }

@@ -188,8 +188,8 @@
                                             <mat-select ngxMatSelect 
                                                 class="form-control"
                                                 #clientLocation="ngxMatSelect" 
-                                                [displayMember]="'clientName'"
-                                                [valueMember]="'clientId'" 
+                                                [displayMember]="'clientLocation'"
+                                                [valueMember]="'clientLocationId'" 
                                                 [source]="activityObj.clientLocationList" 
                                                 [useInfiniteScroll]="true"
                                                 (selectionChange)="getProjectList(activityObj)"
@@ -477,7 +477,7 @@
                                     <button
                                         *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
                                         class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                        (click)="showUpdateTimesheetForm(timesheet)"><em
+                                        (click)="checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
                                             class="fa fa-edit"></em></button>
                                 </td>
                             </tr>
@@ -554,6 +554,16 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #inactive_update_timesheet_template>
+    <div class="modal-body text-center">
+        <p>Timesheet you are trying to update have some activities which are deleted recently, Updating this timsheet will result in some data loss.</p>
+        <p>Are you sure you want to Update the Timesheet?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();updateInactiveActivitiesTimesheet()">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 
