@@ -1014,6 +1014,7 @@ export class EmployeeConfigComponent implements OnInit {
    // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
     if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
+        employee.email = this.employeeObj.email;
         this.employeeService.checkEmployeeEmail(employee).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Fail") {
             this.openAlertMod(template, response.serviceResponse);
