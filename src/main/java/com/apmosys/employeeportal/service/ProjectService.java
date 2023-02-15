@@ -8,10 +8,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -78,6 +81,12 @@ public class ProjectService {
 	
 	@Autowired
 	ActivitiesRepository activitiesRepository;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	private LogService logService;
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
@@ -355,6 +364,14 @@ public class ProjectService {
 
 	public ServiceResponse syncPoProjectAndTeam(PoProjectSyncDTO[] poProjectSyncDto) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("syncPoProjectAndTeam");
+		apiLogInfo.setApiUrl("/api/syncPoProjectAndTeam");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder requestBuilder = new StringBuilder();
+		StringBuilder responseBuilder = new StringBuilder();
+		requestBuilder.append("Sync Start");
 		try {
 			
 			for(PoProjectSyncDTO poProjectSyncDTO : poProjectSyncDto) {
@@ -582,6 +599,8 @@ public class ProjectService {
 				}
 				
 				if(project != null) {
+					requestBuilder.append("Update Project : " + "Project Name In Ishine : " + project.getProjectName() + "Project Name fro PoPortal : " + poProjectSyncDTO.getProjectName());
+					
 					//validate
 					if(poProjectSyncDTO.getUpdatedBy() == null || poProjectSyncDTO.getUpdatedBy() == "") {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -634,6 +653,8 @@ public class ProjectService {
 					Project projectDbResponse =  projectRepository.save(project);
 					
 					if(projectDbResponse != null) {
+						responseBuilder.append("Update Project resposne : success " + "Project Id " + projectDbResponse.getProjectId() + " Project Name" + projectDbResponse.getProjectName());
+						
 						//update department
 						List<Long> departmentId = new ArrayList<Long>();
 						for(String department: poProjectSyncDTO.getDepartmentList()){
@@ -648,6 +669,12 @@ public class ProjectService {
 									projectDeptMap.setProjectId(projectDbResponse.getProjectId());
 									projectDeptMap.setDeptId(departmentObj.getDeptId());
 									ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+									
+									if(projDeptMapDbResponse != null) {
+										responseBuilder.append("Project Department Mapping resposne : sucess" + "ProjDept Mapping Id : " + projDeptMapDbResponse.getProjectDepartmentMapId());
+									}else {
+										responseBuilder.append("Project Department Mapping resposne : failed");
+									}
 								}
 							}
 						}
@@ -663,7 +690,9 @@ public class ProjectService {
 						
 						//update team info 
 						poProjectSyncDTO.getTeamList().forEach((object) -> {
+												
 							Team teamObj =  teamRepository.findByPoTeamId(object.getPoTeamId());
+							
 							Employee teamLeadObj = null;
 							if(object.getPoTeamLeadId() != null && object.getPoTeamLeadId() != "") {
 								teamLeadObj = getEmployeeByEmployeementId(object.getPoTeamLeadId());
@@ -686,6 +715,10 @@ public class ProjectService {
 							}
 							Employee teamUpdatedByObj = getEmployeeByEmployeementId(object.getUpdatedBy());
 							if(teamObj != null) {
+								
+								requestBuilder.append("update Team Info : " + "Team Name from PoPortal : "+ object.getTeamName() + "Team Name in IShine : " + teamObj.getTeamName() + " Team Id : " + teamObj.getTeamId());
+								
+								
 								teamObj.setTeamName(object.getTeamName());
 								teamObj.setTeamLeadId(teamLeadObj !=null ? teamLeadObj.getEmpId() : null);
 								teamObj.setDescription(object.getDescription());
@@ -696,6 +729,9 @@ public class ProjectService {
 								Team teamDbResponse = teamRepository.save(teamObj);
 								
 								if(teamDbResponse != null) {
+									
+									responseBuilder.append("Update Team Response : success" + " Team Id : " +  teamDbResponse.getTeamId() + "Team Name : " + teamDbResponse.getTeamName());
+									
 									//update employee team mapping : adding new member, in-active removed member
 									List<Long> teamMemberList = new ArrayList<Long>();
 									List<String> newTeamMemberList = new ArrayList<String>(Arrays.asList(object.getTeamMemberList()));
@@ -714,12 +750,21 @@ public class ProjectService {
 												findFirstByEmpIdAndTeamIdAndActive(teamMemberObj.getEmpId(), teamDbResponse.getTeamId(), 1l);
 										// adding new member
 										if(teamMappingObj.isEmpty()) {
+											
+											requestBuilder.append("Add new Team Member : " + " Member id : " + teamMemberObj.getEmpId() + " Member Team Id : " + teamDbResponse.getTeamId());
+											
 											EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
 											empTeamMap.setEmpId(teamMemberObj.getEmpId());
 											empTeamMap.setTeamId(teamDbResponse.getTeamId());
 											empTeamMap.setActive(1l);
 											empTeamMap.setEmployeeRole("Employee");
 											EmployeeTeamMap teamMapDbResponse = employeeTeamMapRepository.save(empTeamMap);
+											
+											if(teamMapDbResponse != null) {
+												responseBuilder.append("Adding new member resposne : success" + "EmpTeamMap Id : " + teamMapDbResponse.getEmployeeTeamMapId() + " Team Id : " + teamMapDbResponse.getTeamId());
+											}else {
+												responseBuilder.append("Adding new member resposne : failed" + "employee Id : " + teamMemberObj.getEmpId() + " Team Id : " + teamDbResponse.getTeamId());
+											}
 										}
 							        }
 									// In-Active/removed team member
@@ -737,11 +782,18 @@ public class ProjectService {
 									}
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 									response.setServiceResponse("Project & Team updated Successfully.");
+									
+									responseBuilder.append("Team Updation response : success");								
 								}else {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 									response.setServiceResponse("Team updation failed.");
+									
+									responseBuilder.append("Team Updation response : failed");
 								}
 							}else {
+								
+								requestBuilder.append("New Team creation while updation Project : " + "PoTeam Id : " + object.getPoTeamId() + "PoTeam Name : " + object.getTeamName());
+								
 								Employee teamCreatedByObj = getEmployeeByEmployeementId(object.getCreatedBy());
 								//create Team
 								
@@ -759,6 +811,9 @@ public class ProjectService {
 								
 								List<EmployeeTeamMap> teamMemberDbResponse = null;
 								if(teamDbResponse != null) {
+									
+									responseBuilder.append("New Team creation in update project response : success" + "Team Id : " + teamDbResponse.getTeamId());
+									
 									List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 									// Add teamLead
 									EmployeeTeamMap defaultMemberMap = new EmployeeTeamMap();
@@ -803,6 +858,8 @@ public class ProjectService {
 												&& ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
 														!deptsObj.stream().anyMatch(o -> teamMemberObj.getEmpId().equals(o.getHodId()))) )) {
 											
+											requestBuilder.append("Adding new member in team : " + " EmpId : " + teamMemberObj.getEmpId() + " Team Id : " + teamDbResponse.getTeamId());
+											
 											newEmpTeamMap.setActive(1l);
 											newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
 											newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
@@ -812,62 +869,66 @@ public class ProjectService {
 									}
 									teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
 									
-									// Add team member in team
-//									for(String teamMember: object.getTeamMemberList()) {
-//										Employee teamMemberObj = getEmployeeByEmployeementId(teamMember);
-//										EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-//										
-//										if(!teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
-//												!managerObj.getEmpId().equals(teamMemberObj.getEmpId()) && 
-//												!hodId.equals(teamMemberObj.getEmpId())) {
-//											
-//											newEmpTeamMap.setActive(1l);
-//											newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
-//											newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-//											newEmpTeamMap.setEmployeeRole("Employee");
-//											mapList.add(newEmpTeamMap);
-//										}
-//									}
-//									teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
-								}
-								Activity newActivityCreated = null;
-								if(!teamMemberDbResponse.isEmpty()) {
-									//Add default activities mapping
-									for(String department: object.getDepartmentList()) {
-										Department deptObj = departmentRepository.findByName(department);
-										if(deptObj != null) {
-											List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptObj.getDeptId());
-											if(!activityTemplate.isEmpty()) {
-												
-												for(ActivityTemplate activityObject: activityTemplate) {
-													Activity newActivity = new Activity();
+									//Adding default Activities
+									
+									Activity newActivityCreated = null;
+									if(!teamMemberDbResponse.isEmpty()) {
+										
+										responseBuilder.append("Add new Member in Team response : success");
+										
+										
+										//Add default activities mapping
+										for(String department: object.getDepartmentList()) {
+											Department deptObj = departmentRepository.findByName(department);
+											if(deptObj != null) {
+												List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(deptObj.getDeptId());
+												if(!activityTemplate.isEmpty()) {
+													
+													for(ActivityTemplate activityObject: activityTemplate) {
+														Activity newActivity = new Activity();
 
-													newActivity.setActivity(activityObject.getTemplateActivity());
-													newActivity.setTeamId(teamDbResponse.getTeamId());
-													newActivity.setEmployeeRole(activityObject.getEmployeeRole());
-													newActivity.setDeptIds(activityObject.getDeptId().toString());
-													newActivity.getCommonProperty().setCreatedBy(4l);
+														newActivity.setActivity(activityObject.getTemplateActivity());
+														newActivity.setTeamId(teamDbResponse.getTeamId());
+														newActivity.setEmployeeRole(activityObject.getEmployeeRole());
+														newActivity.setDeptIds(activityObject.getDeptId().toString());
+														newActivity.getCommonProperty().setCreatedBy(4l);
 
-													newActivityCreated = activitiesRepository.save(newActivity);
+														newActivityCreated = activitiesRepository.save(newActivity);
+													}
 												}
 											}
 										}
 									}
-								}
-								if(newActivityCreated != null) {
-									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-									response.setServiceResponse("Project updated & new Team created Successfully.");
+									if(newActivityCreated != null) {
+										
+										responseBuilder.append("Adding Default activities in Team : success");
+										
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("Project updated & new Team created Successfully.");
+									}else {
+										responseBuilder.append("Adding Default activities in Team : failed");
+										
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("Project updated & new Team created Successfully, but default activitis are not mapped.");
+									}
 								}else {
-									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-									response.setServiceResponse("Project updated & new Team created Successfully, but default activitis are not mapped.");
+									responseBuilder.append("New Team creation in update project response : failed");
+									
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Unable to create new team.");
 								}
 							}
 						});
 					}else {
+						
+						responseBuilder.append("Update Project resposne : failed " + "Project Id " + " Project Name" + poProjectSyncDTO.getProjectName());
+						
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Project Updation failed.");
 					}
 				}else {
+					
+					requestBuilder.append("Create Project : " + "Project Name  : " +poProjectSyncDTO.getProjectName() + "PoProject Id : " + poProjectSyncDTO.getPoProjectId());
 					
 					//validation
 					if(poProjectSyncDTO.getCreatedBy() == null || poProjectSyncDTO.getCreatedBy() == "") {
@@ -903,12 +964,18 @@ public class ProjectService {
 					Client clientDbresponse = null;
 					// Add new client & client location if not exist
 					if(client == null) {
+						
+						requestBuilder.append("Add new Client : " + " Client Name : " + poProjectSyncDTO.getClientName() + " PoClient Id :" + poProjectSyncDTO.getPoClientId());
+						
 						Client clientobj = new Client();
 						clientobj.setClientName(poProjectSyncDTO.getClientName());
 						clientobj.setPoClientId(poProjectSyncDTO.getPoClientId());
 						
 						clientDbresponse = clientsRepository.save(clientobj);
 						if(clientDbresponse != null) {
+							
+							responseBuilder.append("Create New Client resposne : success " + "Client Id : " + clientDbresponse.getClientId());
+							
 							clientId = clientDbresponse.getClientId();
 							List<ClientLocation> clientLocations = new ArrayList<ClientLocation>();
 							//default location : WFH
@@ -925,6 +992,9 @@ public class ProjectService {
 							}
 							List<ClientLocation> locationDbResponse = clientLocationRepository.saveAll(clientLocations);
 						}else {
+							
+							responseBuilder.append("Create New Client resposne : failed ");
+							
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Unable to create new client.");
 						}
@@ -943,16 +1013,28 @@ public class ProjectService {
 					projectObj.setCreatedBy(createdByObj.getEmpId());
 					Project projectDbResponse =  projectRepository.save(projectObj);
 					
-					// Add department mapping
-					for(String department: poProjectSyncDTO.getDepartmentList()) {
-						Department departmentObj = departmentRepository.findByName(department);
-						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
-						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
-						projectDeptMap.setDeptId(departmentObj.getDeptId());
-						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
-					}
-					
 					if(projectDbResponse != null) {
+						
+						responseBuilder.append("Create New Project response : success " + "Project Id : " + projectDbResponse.getProjectId());
+						
+						// Add department mapping
+						for(String department: poProjectSyncDTO.getDepartmentList()) {
+							
+							requestBuilder.append("New Project Department Mapping : " + "Project Name : " + projectDbResponse.getProjectName() + " Department Name : " +department);
+							
+							Department departmentObj = departmentRepository.findByName(department);
+							ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+							projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+							projectDeptMap.setDeptId(departmentObj.getDeptId());
+							ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+							
+							if(projDeptMapDbResponse != null) {
+								responseBuilder.append("Project department Mapping response : success " + "projDept Mapp Id" + projDeptMapDbResponse.getProjectDepartmentMapId());
+							}else {
+								responseBuilder.append("Project department Mapping response : Failed");
+							}
+						}
+						
 						poProjectSyncDTO.getTeamList().forEach((teamObj) -> {
 							Employee teamLeadObj = null;
 							if(teamObj.getPoTeamLeadId() != null && teamObj.getPoTeamLeadId() != "") {
@@ -968,6 +1050,9 @@ public class ProjectService {
 //								}
 //							}
 							// create new team
+							
+							requestBuilder.append("Create New Team : " + "Project Id : " + projectDbResponse.getProjectId() +  " Team Name : " + teamObj.getTeamName() + " PoTeam Id : " + teamObj.getPoTeamId());
+							
 							StringBuilder deptList = new StringBuilder("");
 							for(String department: teamObj.getDepartmentList()) {
 								Department deptObj = departmentRepository.findByName(department);
@@ -988,7 +1073,11 @@ public class ProjectService {
 							newTeamObj.setDeptIds(deptList.toString());
 							newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj.getEmpId());
 							Team teamDbResponse = teamRepository.save(newTeamObj);
+							
 							if(teamDbResponse != null) {
+								
+								responseBuilder.append("New Team Created resposne : success " + " team Id : " + teamDbResponse.getTeamId());
+								
 								List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 								
 								// Add teamLead
@@ -1034,6 +1123,8 @@ public class ProjectService {
 											&& ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
 													!deptsObj.stream().anyMatch(o -> teamMemberObj.getEmpId().equals(o.getHodId()))) )) {
 										
+										requestBuilder.append("Add Team Member : " + "Member EmpId :" + teamMemberObj.getEmpId() + " Team Id : " + teamDbResponse.getTeamId());
+										
 										newEmpTeamMap.setActive(1l);
 										newEmpTeamMap.setEmpId(teamMemberObj.getEmpId());
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
@@ -1046,6 +1137,10 @@ public class ProjectService {
 								// Add default activity
 								Activity newActivityCreated = null;
 								if(!teamMemberDbResponse.isEmpty()) {
+									
+									responseBuilder.append("New Team Member addtion resposne : success");
+									requestBuilder.append("Add Default Activity : ");
+									
 									for(String department: teamObj.getDepartmentList()) {
 										Department deptObj = departmentRepository.findByName(department);
 										if(deptObj != null) {
@@ -1068,18 +1163,30 @@ public class ProjectService {
 									}
 								}
 								if(newActivityCreated != null) {
+									
+									responseBuilder.append("Add default activity response : success " + " Response message : Project & Team created successfully.");
+									
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 									response.setServiceResponse("Project & Team created successfully.");
 								}else {
+									
+									responseBuilder.append("Add default activity response : success " + " Response message : Project & Team created successfully, but default activities are not mapped");
+									
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 									response.setServiceResponse("Project & Team created successfully, but default activities are not mapped");
 								}
 							}else {
+								
+								responseBuilder.append("Create New Team resposne : failed");
+								
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Unable to create new team.");
 							}
 						});
 					}else {
+						
+						responseBuilder.append("Create New Project response : failed ");
+						
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unable to create new Project.");
 					}
@@ -1091,6 +1198,9 @@ public class ProjectService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(requestBuilder.toString());
+		apiLogInfo.setApiResponse(responseBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

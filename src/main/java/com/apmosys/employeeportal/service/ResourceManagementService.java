@@ -1124,6 +1124,8 @@ public class ResourceManagementService {
 					
 					JSONObject json = new JSONObject(syncResponse);
 					
+					System.out.println(syncResponse  + " : syncResponse \n\n\n");
+					
 					if(json.getInt("httpStatusCode") == 200) {
 						//Send Mail to PoPortal
 					     try {
