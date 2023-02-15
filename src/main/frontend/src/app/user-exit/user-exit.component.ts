@@ -111,6 +111,7 @@ export class UserExitComponent implements OnInit {
   }
 
   openResignRuleModal(template: TemplateRef<any>){
+    this.isConsentCheck = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 

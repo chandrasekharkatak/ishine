@@ -294,6 +294,13 @@ export class ReportListComponent implements OnInit {
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           leave.updatedOn = (leave.updatedOn) ? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+          if(leave.fromDateDayType != null){
+            leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
+          }
+          if(leave.toDateDayType != null){
+            leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
+          }
         });
         console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
@@ -329,6 +336,13 @@ export class ReportListComponent implements OnInit {
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             leave.updatedOn = (leave.updatedOn) ? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+            if(leave.fromDateDayType != null){
+              leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
+            }
+            if(leave.toDateDayType != null){
+              leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
+            }
           });
           console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
         } else {
@@ -837,6 +851,8 @@ export class ReportListComponent implements OnInit {
           "Leave Type": x.leaveType,
           "From Date": x.fromDate,
           "To Date": x.toDate,
+          "From Date Day Type": x.fromDateDayType,
+          "To Date Day Type": x.toDateDayType,
           "No Of Days": x.noOfDays,
           "Reason": x.reason,
           "Status": x.status,

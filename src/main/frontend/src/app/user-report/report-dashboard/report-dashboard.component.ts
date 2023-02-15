@@ -177,6 +177,16 @@ export class ReportDashboardComponent implements OnInit {
     this.leaveService.getLast8DaysLeaveReport(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveSumarryList = response.serviceResponse;
+
+        this.leaveSumarryList.forEach((leave) => {
+          if(leave.fromDateDayType != null){
+            leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
+          }
+          if(leave.toDateDayType != null){
+            leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
+          }
+        });
+
         console.log("leaveSumarryList : ", this.leaveSumarryList);
         this.extractLeaveReportData();
       } else {
@@ -240,6 +250,16 @@ export class ReportDashboardComponent implements OnInit {
       this.leaveService.customQueryForLeaveReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.leaveSumarryList = response.serviceResponse;
+
+          this.leaveSumarryList.forEach((leave) => {
+            if(leave.fromDateDayType != null){
+              leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
+            }
+            if(leave.toDateDayType != null){
+              leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
+            }
+          });
+
           console.log(this.leaveSumarryList, "  :  this.leaveSumarryList");
           this.extractLeaveReportData();
         } else {
@@ -1653,6 +1673,8 @@ export class ReportDashboardComponent implements OnInit {
         "Department Name": x.departmentName,
         "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
         "To Date": (x.toDate)? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,
+        "From Date Day Type": x.fromDateDayType,
+        "To Date Day Type": x.toDateDayType,
         "Status": x.status
       })
     )
