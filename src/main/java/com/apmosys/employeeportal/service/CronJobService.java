@@ -33,9 +33,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1803,4 +1805,27 @@ public class CronJobService {
 			return response;
 		}
 		
+		
+		// To Remove any InActive / Blocked / LoggedIn user with 6hrs^
+		// "0 0 0/6 ? * * *" - Run at every 6Hrs
+		// "0 0/1 * ? * *" - Run at every 1 min
+		/*
+		@Scheduled(cron = "0 0/1 * ? * *")
+		public void loggedInUserAudit() {
+			
+			try {
+				ConcurrentHashMap<Long, String> userSessionList = AuthenticationService.userSessionList;
+				
+				for (Entry<Long, String> entry : userSessionList.entrySet()) {
+				      String key = entry.getKey().toString();
+				      String value = entry.getValue();
+				      System.out.println("key: " + key + " value: " + value);
+				}
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+	*/	
 }	
