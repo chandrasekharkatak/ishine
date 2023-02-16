@@ -546,11 +546,19 @@ export class PortalConfigComponent implements OnInit {
 
   onFilterSubmit(queryList: any, template: TemplateRef<any>) {
     console.log("queryList : ", queryList);
-    this.queryList = queryList;
+
+    /* queryList Store query object and Stored data to re-populate same conditions if filter is re-opened.
+      Here we dont require any Stored data from Custom filter, hence assigning query object from queryList at index 0   
+    */
+
+    let queryObj = queryList[0]
+    this.queryList = queryList[0];
+    console.log("queryObj : ", queryObj);
+    
     this.cancelRequest();
 
     if (this.filterData.title == 'Filter Appreciation') {
-      this.getCustomEmployeeList(queryList, template);
+      this.getCustomEmployeeList(queryObj, template);
     }
   }
 
