@@ -496,7 +496,7 @@
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORePicker" #input (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
+                                                    <input class="form-control static-input" matInput id="DOR" [matDatepicker]="DORePicker" #input (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker  #DORePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
@@ -508,7 +508,7 @@
                                             <div class="form-group">	
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of Releiving</label>	
                                                 <div class="d-flex">	
-                                                    <input class="form-control" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="relievingDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
+                                                    <input class="form-control static-input" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="relievingDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
                                                     <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>	
                                                 </div>	
                                                 <mat-datepicker  #DORPicker (closed)="input.blur()" [disabled]="!employeeObj.dateOfResign" ></mat-datepicker>	
@@ -1392,8 +1392,26 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
+                                                <p class="info-label">Probation Period</p>
+                                                <p class="info-text">{{previewObj.probationPeriod}} Days</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
                                                 <p class="info-label">Notice Period</p>
                                                 <p class="info-text">{{previewObj.noticePeriod}} Days</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date Of Resign</p>
+                                                <p class="info-text">{{previewObj.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date Of Relieving</p>
+                                                <p class="info-text">{{previewObj.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1461,7 +1479,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date of Relieving</p>
-                                                <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}} Days</p>
+                                                <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1972,7 +1990,7 @@
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date of Relieving</p>
-                                                <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}} Days</p>
+                                                <p class="info-text">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">

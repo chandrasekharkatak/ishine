@@ -185,3 +185,9 @@ body {
 .cdk-overlay-container{
     z-index: 1051 !important;
 }
+
+
+/* Removing Carent from Static Input Tags */
+.static-input{
+    caret-color: transparent;
+}

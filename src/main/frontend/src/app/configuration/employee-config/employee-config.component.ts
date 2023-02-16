@@ -1116,9 +1116,9 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
-    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
-    this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
-    this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
+    if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
 
     if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){	
       this.employeeObj.dateOfResign = null;	
