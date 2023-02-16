@@ -50,6 +50,8 @@ public class ReportService {
 					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
 					leavedto.setEmploymentStatus(object[13] != null ? object[13].toString() : null);
+					leavedto.setFromDateDayType(object[14] != null ? Float.parseFloat(object[14].toString()) : null);
+					leavedto.setToDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

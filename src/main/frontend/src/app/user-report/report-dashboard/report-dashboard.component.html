@@ -199,6 +199,8 @@
                     <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="fromDate|date">From Date</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="toDate|date">To Date</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="fromDateDayType|string">From Date Day Type</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="toDateDayType|string">To Date Day Type</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="status|string">Status</th>
                 </tr>
             </thead>
@@ -214,6 +216,8 @@
                     <td>{{leave.departmentName}}</td>
                     <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
+                    <td>{{leave.fromDateDayType}}</td>
+                    <td>{{leave.toDateDayType}}</td>
                     <td>{{leave.status}}</td>
                 </tr>
             </tbody>

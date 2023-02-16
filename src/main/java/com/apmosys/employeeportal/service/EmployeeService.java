@@ -2286,28 +2286,31 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeeAadharNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		List<Employee> existingEmployeeAadhar = null;
-		List<DraftEmployee> existingDraftEmployeeAadhar = null;
-
 		try {
-			if (employeedto.getEmpId() != null) {
-				existingEmployeeAadhar = employeeRepository.findByAadharAndEmpId(employeedto.getAadhar(),
-						employeedto.getEmpId());
-				existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadharAndDraftEmpId(employeedto.getAadhar(),
-						employeedto.getEmpId());
-			} else {
-				existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
-				existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
-			}
+			
+			List<Employee> existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
+			List<DraftEmployee> existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
 
-			if (employeedto.getAadhar() != null && !existingEmployeeAadhar.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Aadhar Number already exist!");
-			} else if (employeedto.getAadhar() != null && !existingDraftEmployeeAadhar.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Aadhar Number already exist in Employee Draft!");
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			if(!existingEmployeeAadhar.isEmpty()) {
+				existingEmployeeAadhar.forEach((employee) -> {
+					if(!employee.getEmpId().equals(employeedto.getEmpId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Aadhaar Number already exists !!");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+				});
+			}
+			
+			if(!existingDraftEmployeeAadhar.isEmpty()) {
+				existingDraftEmployeeAadhar.forEach((employee) -> {
+					if(!employee.getDraftEmpId().equals(employeedto.getEmpId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Aadhaar Number already exists !!");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+				});
 			}
 
 		} catch (Exception e) {
