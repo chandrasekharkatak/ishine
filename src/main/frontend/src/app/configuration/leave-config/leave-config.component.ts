@@ -377,6 +377,20 @@ export class LeaveConfigComponent implements OnInit {
     console.log(this.years, "dynamic year");
 
   }
+
+  checkLeaveType(leaveTypeObj:Leave, template: TemplateRef<any>){
+    let leaveCheck = Object.assign({}, leaveTypeObj);
+    console.log("Leave Check : ", leaveCheck);
+    this.leaveService.checkLeaveType(leaveCheck).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // Valid Leave Type
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+        this.leaveTypeObj.leaveType = "";
+      }
+    });
+  }
+
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -734,6 +748,11 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   onAddLeaveType(template: TemplateRef<any>) {
+    this.leaveTypeObj.leaveType = this.leaveTypeObj.leaveType?.trim();
+    this.leaveTypeObj.leaveTypeCode = this.leaveTypeObj.leaveTypeCode?.trim();
+    this.leaveTypeObj.description = this.leaveTypeObj.description?.trim();
+    this.leaveTypeObj.rules = this.leaveTypeObj.rules?.trim();
+
     let inputValidated: boolean = this.validateLeaveTypeObj(this.leaveTypeObj, template)
     if (!inputValidated) return;
 

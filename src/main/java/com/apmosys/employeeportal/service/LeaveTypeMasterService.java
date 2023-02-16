@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
+import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
@@ -407,6 +409,35 @@ public class LeaveTypeMasterService {
 			}
 			
 		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse checkLeaveType(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LeaveTypeMaster existingLeaveType = null;
+		try {
+			
+			if(leaveDTO.getLeaveTypeMasterId() == null) {
+				existingLeaveType = leaveTypeMasterRepository.findByLeaveType(leaveDTO.getLeaveType());
+
+			}else {				
+				existingLeaveType = leaveTypeMasterRepository.findByLeaveTypeAndLeaveTypeMasterIdIsNot(leaveDTO.getLeaveType(), leaveDTO.getLeaveTypeMasterId());
+			}
+
+			
+			if ( existingLeaveType == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Type already exist!");
+			}
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

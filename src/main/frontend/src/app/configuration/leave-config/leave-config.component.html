@@ -187,7 +187,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Leave Type</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.leaveType">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveTypeObj.leaveType" (blur)="checkLeaveType(leaveTypeObj, alert_message)">
                         </div>
                     </div>
                 </div>
