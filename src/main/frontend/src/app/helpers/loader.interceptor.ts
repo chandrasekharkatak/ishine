@@ -139,6 +139,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getHierarchyByEmpId`,
     `${this.baseUrl}` + `api/alreadyCreatedTeam`,
     `${this.baseUrl}` + `api/createDraftProjectInfo`,
+    `${this.baseUrl}` + `api/approvePendingProject`,
+    `${this.baseUrl}` + `api/rejectPendingProject`,
   ]
 
   constructor(private loaderService: LoaderService) { }

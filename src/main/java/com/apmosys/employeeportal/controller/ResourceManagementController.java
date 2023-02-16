@@ -68,6 +68,13 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/sendProjectInfoToPoPortal", method = RequestMethod.POST)
+	public ServiceResponse sendProjectInfoToPoPortal(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.sendProjectInfoToPoPortal(resourceManagementDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/approveProject", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public String approveProject(@RequestParam(name = "id") String id,@RequestParam(name = "status") String status) {
 		return "<html>\n" + "<header><title>Welcome</title></header>\n" +

@@ -629,7 +629,7 @@ public class ProjectService {
 					for (int i = 0; i < poProjectSyncDTO.getTeamList().size(); i++){
 						PoTeamDTO team = poProjectSyncDTO.getTeamList().get(i);
 						Team teamExists = teamRepository.findByTeamNameAndProjectId(team.getTeamName(), project.getProjectId());
-						if(teamExists != null) {
+						if(!team.getPoTeamId().equals(teamExists.getPoTeamId())) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Team name already exist : " + team.getTeamName());
 							return response;
@@ -954,10 +954,15 @@ public class ProjectService {
 							response.setServiceResponse("PoTeam ID already exists : " + poProjectSyncDTO.getProjectName());
 							return response;
 						}
-						if(!validationService.validateEmploymentId(Long.parseLong(team.getCreatedBy().split("-")[1]))) {
+						if(team.getCreatedBy() != null) {
+							if(!validationService.validateEmploymentId(Long.parseLong(team.getCreatedBy().split("-")[1]))) {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("No user found with EmpId : " + team.getCreatedBy());
+								return response;
+							}
+						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("No user found with EmpId : " + team.getCreatedBy());
-							return response;
+							response.setServiceResponse("Please provide Team created By : " + team.getTeamName());						return response;
 						}
 					}
 					

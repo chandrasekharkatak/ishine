@@ -25,6 +25,7 @@ export class Project{
 	projectManagerName:any;
 	isTeamCreated:any;
 	rejectReason:any;       // RMG project reject reason
+	isDraftProject:any;
 
 
 	//Project from Po

@@ -16,6 +16,9 @@ export class SortPipe implements PipeTransform {
       multiplier = -1;
     }
 
+    console.log("Sort Data : ", value);
+    
+
     value.sort((a: any, b: any) => {
       if (sortFieldType == "string") {
         if (a[sortField].toLowerCase() < b[sortField].toLowerCase()) {
