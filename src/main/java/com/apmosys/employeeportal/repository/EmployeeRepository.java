@@ -147,4 +147,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getElapsedEmpInProbationAndNotice();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmploymentStatusAndInvalidAccessAttemptByEmpId(Long empId);
 }

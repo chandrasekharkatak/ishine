@@ -1807,25 +1807,67 @@ public class CronJobService {
 		
 		
 		// To Remove any InActive / Blocked / LoggedIn user with 6hrs^
-		// "0 0 0/6 ? * * *" - Run at every 6Hrs
+		// "0 0 0/6 ? * *" - Run at every 6Hrs
 		// "0 0/1 * ? * *" - Run at every 1 min
-		/*
-		@Scheduled(cron = "0 0/1 * ? * *")
+		
+		@Scheduled(cron = "0 0 0/6 ? * *")
 		public void loggedInUserAudit() {
+			
+			System.out.println("Running LoggedIn User Audit ... ");
 			
 			try {
 				ConcurrentHashMap<Long, String> userSessionList = AuthenticationService.userSessionList;
+				List<String> loggedOutUsers = new ArrayList<String>();
 				
 				for (Entry<Long, String> entry : userSessionList.entrySet()) {
-				      String key = entry.getKey().toString();
+				      Long key = entry.getKey();
 				      String value = entry.getValue();
-				      System.out.println("key: " + key + " value: " + value);
+				      String timeStr = value.substring(0, 29);
+				      String userEmail = value.substring(29);
+				      String user = null;
+				      
+				      LocalDateTime loginTime = LocalDateTime.parse(timeStr);
+				      LocalDateTime today = LocalDateTime.now();
+				      Long elapsedHours = ChronoUnit.HOURS.between(loginTime, today);
+				      Long elapsedMins = ChronoUnit.MINUTES.between(loginTime, today);
+				      
+//				      System.out.println("key: " + key + " value: " + value + " loginTime : "+ loginTime+ " currentDateTime : "+ today + " elapsedHours : "+ elapsedHours);
+				      
+				      if(key != null) {
+				    	  List<Object[]> employeeData =  employeeRepository.getEmploymentStatusAndInvalidAccessAttemptByEmpId(key);
+				    	  
+				    	  EmployeeDTO employee = new EmployeeDTO();
+				    	  
+				    	  if (!employeeData.isEmpty()) {
+				    		  employeeData.forEach((data) -> {
+				    			  employee.setEmpId((data[0] != null) ? Long.parseLong(data[0].toString()) : null);
+				    			  employee.setEmploymentstatus((data[1] != null) ? data[1].toString() : null);
+				    			  employee.setInvalidAccessAttempt((data[0] != null) ? Integer.parseInt(data[2].toString()) : null);
+								});
+				    	  };
+				    	  
+				    	  
+				    	  final long INVALID_ATTEMPT_LIMIT = 5;
+				    	  final long LOGGEDIN_HOURS_LIMIT = 6;
+				    	  
+				    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > INVALID_ATTEMPT_LIMIT)) {
+				    		  user = userEmail + " - "+ "InActive/Blocked";
+				    		  AuthenticationService.userSessionList.remove(key);
+				    	  }else if(elapsedHours >= LOGGEDIN_HOURS_LIMIT){
+				    		  user = userEmail + " - "+ "Logged In for "+ elapsedHours + " Hrs.";
+				    		  AuthenticationService.userSessionList.remove(key);
+				    	  }
+				    	  
+				    	  if(user != null) {
+				    		  loggedOutUsers.add(user);				    		  
+				    	  } 
+				      }
 				}
+				
+				System.out.println("LoggedOutusers : "+ loggedOutUsers.toString());
 				
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-
-	*/	
 }	
