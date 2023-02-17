@@ -72,10 +72,11 @@ export class ResourceManagementComponent implements OnInit {
   previewTeamList: any[] = [];
   allTeamListCopy: any[] = [];
   managerList: any[] = [];
+  bulkSyncList: any[] = [];
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
-  projectColumns:any[] = ["blank", "name","projectManagerName","clientName","clientState","status","isDraftProject"];
+  projectColumns:any[] = ["blank", "blank", "name","projectManagerName","clientName","clientState","status","isDraftProject"];
 
   constructor(
     private departmentService: DepartmentService,
@@ -143,7 +144,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    this.getManagerList();
+    // this.getManagerList();
     this.alreadyCreatedTeam();
   }
 
@@ -206,7 +207,7 @@ export class ResourceManagementComponent implements OnInit {
         });
 
         _projectList.forEach((proj) => {
-          let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.name == projTeam.name);
+          let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
           if(selectedProj){
             proj.isTeamCreated = true;
             proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
@@ -413,6 +414,9 @@ export class ResourceManagementComponent implements OnInit {
       teamObj.teamName = team.teamName;
       teamObj.projectName = this.projectObj.name;
 
+      console.log(teamObj, " : teamObj");
+      
+
       this.teamService.checkTeamName(teamObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Fail") {
           this.allTeamList.forEach((presentTeam, index) => {
@@ -426,11 +430,11 @@ export class ResourceManagementComponent implements OnInit {
             if(teamCopy.teamName == team.teamName && (team.teamName != null && team.teamName != '' && team.teamName != undefined)){
     
               this.allTeamList.forEach((presentTeam, index) => {
-                if(index == teamIndex){
+                if(index !== teamIndex){
                   presentTeam.teamName = '';
+                  this.openAlertMod(template, "Team Name already exists!!");
                 }
               });
-              this.openAlertMod(template, "Team Name already exists!!");
             }
           });
         }
@@ -441,11 +445,11 @@ export class ResourceManagementComponent implements OnInit {
         if(teamCopy.teamName == team.teamName && (team.teamName != null && team.teamName != '' && team.teamName != undefined)){
 
           this.allTeamList.forEach((presentTeam, index) => {
-            if(index == teamIndex){
+            if(index !== teamIndex){
               presentTeam.teamName = '';
+              this.openAlertMod(template, "Team Name already exists!!");
             }
           });
-          this.openAlertMod(template, "Team Name already exists!!");
         }
       });
     }
@@ -646,6 +650,37 @@ export class ResourceManagementComponent implements OnInit {
         console.error(response.serviceResponse)	
       }	
     });	
+  }
+
+  onSelectProjectForSync(project, event) {
+    if (event.target.checked) {
+      event.target.classList.add('checked');
+      this.bulkSyncList.push(project);
+    } else {
+      event.target.classList.remove('checked');
+      const projectCheckboxes = document.querySelectorAll('.sync-project-checkbox.checked');
+      this.bulkSyncList.forEach((projObj, index) => {
+        if (projObj == project) this.bulkSyncList.splice(index, 1);
+      });
+    }
+    console.log("Updated Bulk List : ", this.bulkSyncList);
+  }
+
+  onBulkSyncProject(template: TemplateRef<any>){
+
+    let projObj = new Project();
+    projObj.bulkSyncList = this.bulkSyncList;
+
+    console.log(projObj, " : this.projObj");
+    
+    this.resourceManagementService.bulkSyncProject(projObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.showViewProjects();
+        this.openAlertMod(template,response.serviceResponse);
+      } else {
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    });
   }
 
   // Manage team & teamMemberList

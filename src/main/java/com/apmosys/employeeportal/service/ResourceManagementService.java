@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
@@ -101,18 +102,30 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
 			
 			List<Long> allTeam = new ArrayList<>();
 			if(projectObj != null) {
 				
+				//Find ProjectManager empId
+				Long employeementID = Long.parseLong(resourceManagementDTO.getProjectManager().split("-")[1]);
+				Long projManagerId = null;
+				Employee employee = employeeRepository.findByEmployeementId(employeementID);
+				if(employee != null) {
+					projManagerId = employee.getEmpId();
+				}
+				
 				if(resourceManagementDTO.getIsHOD().equals("true")) {
 					projectObj.setIsDraftProject("false");
+					projectObj.setProjectName(resourceManagementDTO.getName());
+					projectObj.setProjectManagerId(projManagerId);
 					
-					Project projectDbResponse = projectRepository.save(projectObj);
+//					Project projectDbResponse = projectRepository.save(projectObj);
 				}else {
                     projectObj.setIsDraftProject("true");
+                    projectObj.setProjectName(resourceManagementDTO.getName());
+					projectObj.setProjectManagerId(projManagerId);
 					
 					Project projectDbResponse = projectRepository.save(projectObj);
 				}
@@ -260,6 +273,9 @@ public class ResourceManagementService {
 						Team teamDbResponse = teamRepository.save(newTeamObj);
 						
 						if(teamDbResponse != null) {
+							
+							allTeam.add(teamDbResponse.getTeamId());
+							
 							List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 							// Add team member in team
 							
@@ -352,6 +368,18 @@ public class ResourceManagementService {
 						e.printStackTrace();
 					}
 				}
+				
+				// Send Project/Team detail JSON to PoPotal
+				
+				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+				
+				if(poPortalResponse.getServiceStatus().equals("Success")) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project updated successfully");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse(poPortalResponse.getServiceResponse());
+				}		
 				
 			}else {
 				Integer clientId = null;
@@ -541,6 +569,18 @@ public class ResourceManagementService {
 							e.printStackTrace();
 						}
 					}
+					
+					// Send Project/Team detail JSON to PoPotal
+					
+					ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+					
+					if(poPortalResponse.getServiceStatus().equals("Success")) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Project created successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse(poPortalResponse.getServiceResponse());
+					}
 				}
 			}
 		}catch(Exception e) {
@@ -556,7 +596,7 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			
 			if(projectObj != null) {
 				List<Team> teamList = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
@@ -642,6 +682,7 @@ public class ResourceManagementService {
 						
 						resourceDTO.setName(projObject.getProjectName());
 						resourceDTO.setIsDraftProject(projObject.getIsDraftProject());
+						resourceDTO.setPoProjectId(projObject.getPoProjectId());
 						dtoList.add(resourceDTO);
 					}
 				});
@@ -720,7 +761,7 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());;
 			if(projectObj != null) {
 				
 				projectObj.setIsDraftProject("false");
@@ -749,15 +790,15 @@ public class ResourceManagementService {
 						
 						// Send Project/Team detail JSON to PoPotal
 						
-//						ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-//						
-//						if(poPortalResponse.getServiceStatus().equals("Success")) {
-//							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//							response.setServiceResponse("Project Approved.");
-//						}else {
-//							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//							response.setServiceResponse(poPortalResponse.getServiceResponse());
-//						}				
+						ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+						
+						if(poPortalResponse.getServiceStatus().equals("Success")) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Project Approved.");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse(poPortalResponse.getServiceResponse());
+						}				
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("User's mail address not found.");
@@ -782,7 +823,7 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			if(projectObj != null) {
 				
 				projectObj.setIsDraftProject("Rejected");
@@ -954,10 +995,9 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Project projectObj = projectRepository.findByProjectName(resourceManagementDTO.getName());
+			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 			List<PoTeamDTO> teamList = new ArrayList<PoTeamDTO>();
-			List<String> teamMember = new ArrayList<String>();
 			
 			if(projectObj != null) {
 				PoProjectSyncDTO projectDTO = new PoProjectSyncDTO();
@@ -973,6 +1013,8 @@ public class ResourceManagementService {
 				
 				if(!teamDetails.isEmpty()) {
 					teamDetails.forEach((team) -> {
+						List<String> teamMember = new ArrayList<String>();
+
 						PoTeamDTO poTeamDTO = new PoTeamDTO();
 						
 						poTeamDTO.setIshineTeamId(team.getTeamId());
@@ -1069,6 +1111,32 @@ public class ResourceManagementService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(json.get("message"));
 				}
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse bulkSyncProject(ProjectDTO projectDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			for(ResourceManagementDTO rmg :projectDTO.getBulkSyncList()) {
+				
+				ServiceResponse syncResponse = sendProjectInfoToPoPortal(rmg);
+				
+				if(syncResponse.getServiceStatus().equals("Success")) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project Synced successfully.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse(syncResponse.getServiceResponse());
+				}	
 			}
 			
 		}catch(Exception e) {

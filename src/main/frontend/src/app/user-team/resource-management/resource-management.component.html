@@ -20,13 +20,19 @@
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
         </div> -->
+
+        <div *ngIf="bulkSyncList.length > 1" class="form-group ml-4">
+            <button class="btn btn-sm btn-primary mt-2" (click)="onBulkSyncProject(alert_message)" type="submit">Sync Project <em class="fa-solid fa-rotate"></em></button>&nbsp;
+        </div>
+
         <div class="row">
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
                     [tableTHeadTrId]="'projectInfoTHeadTr'">
                     <table class="table table-responsive" id="projectInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="projectInfoTHead">	
-                          <tr id="projectInfoTHeadTr">	
+                          <tr id="projectInfoTHeadTr">
+                            <th></th>	
                             <th scope="col" class="info-label">Sr No.</th>
                             <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
                             <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project Manager</th>	
@@ -44,6 +50,7 @@
                             </tr>
                             <ng-container *ngFor="let project of allProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <tr>
+                                    <td><span *ngIf="project.isDraftProject == 'Approved'"><input class="sync-project-checkbox" id="{{i}}" type="checkbox" (change)="onSelectProjectForSync(project,$event)"></span></td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td>{{project.name}}</td>
                                     <td>{{project.projectManagerName}}</td>
@@ -60,7 +67,7 @@
                                     </td>
                                 </tr>
                                 <tr *ngIf="project.isEditProject && isEditProject">
-                                    <td colspan="8">
+                                    <td colspan="9">
                                         <!-- project Edit :: start -->
                                         <div class="row">
                                             <!-- Project Info -->
@@ -261,8 +268,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex">
-                        <div class="mb-0">
+                    <div class="col-md-8 d-flex">
+                        <div class="col-md-4 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
@@ -293,8 +300,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex">
-                        <div class="mb-0">
+                    <div class="col-md-8 d-flex">
+                        <div class="col-md-4 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
@@ -326,6 +333,7 @@
                                   [source]="employeeListByDept"
                                   [useInfiniteScroll]="true"
                                   [multiple]="false"
+                                  (selectionChange) = roleSelect.open()
                                   [(ngModel)]="newteamMember.empId"
                                   >
                                   <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
@@ -335,11 +343,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex">
-                    <div class="mb-0">
+                <div class="col-md-8 d-flex">
+                    <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
-                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
+                                <mat-select #roleSelect class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
                                     <mat-option selected="selected" value="" disabled>Select</mat-option>
                                     <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
                                 </mat-select>
@@ -354,7 +362,7 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
+                    <button type="submit" [disabled]="!newteamMember.employeeRole || newteamMember.employeeRole.length == 0" class="btn btn-primary btn-sm mx-1 mb-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
                     <!-- <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button> -->
                 </div>
             </div>

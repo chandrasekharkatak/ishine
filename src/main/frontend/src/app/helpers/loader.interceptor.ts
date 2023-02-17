@@ -141,6 +141,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/createDraftProjectInfo`,
     `${this.baseUrl}` + `api/approvePendingProject`,
     `${this.baseUrl}` + `api/rejectPendingProject`,
+    `${this.baseUrl}` + `api/bulkSyncProject`,
   ]
 
   constructor(private loaderService: LoaderService) { }

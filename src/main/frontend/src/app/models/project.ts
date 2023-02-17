@@ -26,6 +26,7 @@ export class Project{
 	isTeamCreated:any;
 	rejectReason:any;       // RMG project reject reason
 	isDraftProject:any;
+	bulkSyncList: any[] = [];
 
 
 	//Project from Po

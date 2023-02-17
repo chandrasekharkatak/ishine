@@ -36,5 +36,6 @@ public class ProjectDTO {
     private String createdByName;
     private String updatedByName;
     private String updatedOn;
+    private List<ResourceManagementDTO> bulkSyncList;
 
 }

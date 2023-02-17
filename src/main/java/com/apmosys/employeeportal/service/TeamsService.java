@@ -997,28 +997,36 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			if(teamdto.getTeamId() != null) {
+			if(teamdto.getTeamId() != null && teamdto.getProjectId() != null) {
 				
-				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
-				if(checkTeamNameByName != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Team Name already exist!");
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectIdAndIsActive(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId(), "Y");
+//				if(checkTeamNameByName != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Team Name already exist!");
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+				if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
+					if(checkTeamNameByName != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Team Name already exist!");
+					}
+					System.out.println("   checkTeamNameByName = "+checkTeamNameByName);    
 				}
-				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+				
 			}else if(teamdto.getProjectId() == null && teamdto.getTeamName() != null && teamdto.getProjectName() != null) {
 				
 				Project projectObj = projectRepository.findByProjectName(teamdto.getProjectName());
 				
 				if(projectObj != null) {
-					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), projectObj.getProjectId());
+					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectIdAndIsActive(teamdto.getTeamName(), projectObj.getProjectId(), "Y");
 					
 					if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
 						if(checkTeamNameByName != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Team Name already exist!");
 						}
+						System.out.println("   checkTeamNameByName - "+checkTeamNameByName);
 					}
 				}
 			}else {
@@ -1030,6 +1038,7 @@ public class TeamsService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
+				System.out.println("   checkTeamNameByName : "+checkTeamNameByName);
 			}
 			 
 		}catch (Exception e) {
