@@ -144,7 +144,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    // this.getManagerList();
+    this.getManagerList();
     this.alreadyCreatedTeam();
   }
 
@@ -456,6 +456,12 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   validateProjectObj(projectObj, template: TemplateRef<any>){
+      if (!this.validationService.validateNullUndefinedEmptyString(projectObj.projectManager)) {
+        this.alertMessage = `Please select project manager!!`
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+
     if(projectObj.teamList.length == 0){
       this.alertMessage = "Please add a Team !!"
       this.openAlertMod(template, this.alertMessage);
@@ -711,14 +717,14 @@ export class ResourceManagementComponent implements OnInit {
     this.newteamMember = new TeamMember();
   }
 
-  removeTeamMember(teamMember) {
+  removeTeamMember(teamMember, index) {
     const currentTeam = this.currentTeam;
     this.allTeamList?.forEach((team) => {
       if (team.teamName == currentTeam.teamName) {
-        team.teamMemberList.splice(teamMember,1);
+        team.teamMemberList.splice(index,1);
         console.log(team.teamMemberList, " : team.teamMemberList");
         
-        this.teamObj.allTeamMemberList.splice(teamMember, 1);
+        this.teamObj.allTeamMemberList.splice(index, 1);
         let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
         if (existingEmployee) existingEmployee.isSelected = false;
       }

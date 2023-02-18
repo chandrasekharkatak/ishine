@@ -21,7 +21,7 @@
             </div>
         </div> -->
 
-        <div *ngIf="bulkSyncList.length > 1" class="form-group ml-4">
+        <div *ngIf="bulkSyncList.length >= 1" class="form-group ml-4">
             <button class="btn btn-sm btn-primary mt-2" (click)="onBulkSyncProject(alert_message)" type="submit">Sync Project <em class="fa-solid fa-rotate"></em></button>&nbsp;
         </div>
 
@@ -280,7 +280,7 @@
                             </div>
                         </div>
                         <div class="m-0">
-                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember, i)">
                                 <i class="fa fa-trash" aria-hidden="true"></i></button>
                         </div>
                     </div>
@@ -362,7 +362,7 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" [disabled]="!newteamMember.employeeRole || newteamMember.employeeRole.length == 0" class="btn btn-primary btn-sm mx-1 mb-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
                     <!-- <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button> -->
                 </div>
             </div>
