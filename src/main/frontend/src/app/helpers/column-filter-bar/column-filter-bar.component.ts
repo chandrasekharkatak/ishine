@@ -27,7 +27,9 @@ export class ColumnFilterBarComponent implements OnInit {
     
     if(this.columnList && this.columnList.length != 0){
       this.columnList.forEach(columnName => {
-          this.displayColumns.push({column : columnName, value: ''});
+          let isBlank:boolean = false;
+          if(columnName == 'blank') isBlank=true; 
+          this.displayColumns.push({column : columnName, value: '', isBlank: isBlank});
       });
     }else{
       console.error("column List is empty.")

@@ -997,28 +997,36 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			if(teamdto.getTeamId() != null) {
+			if(teamdto.getTeamId() != null && teamdto.getProjectId() != null) {
 				
-				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
-				if(checkTeamNameByName != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Team Name already exist!");
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectIdAndIsActive(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId(), "Y");
+//				if(checkTeamNameByName != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Team Name already exist!");
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+				if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
+					if(checkTeamNameByName != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Team Name already exist!");
+					}
+					System.out.println("   checkTeamNameByName = "+checkTeamNameByName);    
 				}
-				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+				
 			}else if(teamdto.getProjectId() == null && teamdto.getTeamName() != null && teamdto.getProjectName() != null) {
 				
 				Project projectObj = projectRepository.findByProjectName(teamdto.getProjectName());
 				
 				if(projectObj != null) {
-					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), projectObj.getProjectId());
+					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectIdAndIsActive(teamdto.getTeamName(), projectObj.getProjectId(), "Y");
 					
 					if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
 						if(checkTeamNameByName != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Team Name already exist!");
 						}
+						System.out.println("   checkTeamNameByName - "+checkTeamNameByName);
 					}
 				}
 			}else {
@@ -1030,6 +1038,7 @@ public class TeamsService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
+				System.out.println("   checkTeamNameByName : "+checkTeamNameByName);
 			}
 			 
 		}catch (Exception e) {
@@ -1161,36 +1170,132 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Employee getEmpData = null;
-			if(project.getEmployeementId() != null) {
-				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
-			}
+			Project projectObj = projectRepository.findByProjectName(project.getProjectName());
 			
-			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
-			
-			if(projectPresent == null) {
-				Project newProject = new Project();
-
-				newProject.setClientName(project.getClientName());
-				newProject.setClientLocation(project.getClientLocation());
-				newProject.setState(project.getState());
-				newProject.setProjectName(project.getProjectName());
-				newProject.setDescription(project.getDescription());
+			if(projectObj != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("project already present.");
+			}else {
 				
-				if(getEmpData != null) {
-					newProject.setProjectManagerId(getEmpData.getEmpId());
+				Integer clientId = null;
+				Optional<Client> clientObj = clientsRepository.findByClientName(project.getClientName());
+				if(!clientObj.isEmpty()) {
+					Client clientPresent = clientObj.get();
+					clientId = clientPresent.getClientId();
+				}else {
+					// Add Client & Client Location
+					
+					Client newClient = new Client();
+					newClient.setClientName(project.getClientName());
+					Client clientDbResponse = clientsRepository.save(newClient);
+					
+					if(clientDbResponse != null) {
+						clientId = clientDbResponse.getClientId();
+						List<ClientLocation> locations = new ArrayList<>();
+						
+							ClientLocation newClientLocation = new ClientLocation();
+							newClientLocation.setClientId(clientDbResponse.getClientId());
+							newClientLocation.setClientLocation(project.getClientLocation());
+							locations.add(newClientLocation);
+							
+						List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+						
+						if(!clientLocationDbResponse.isEmpty()) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Client Location added");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Failed to add client Location");
+							return response;
+						}
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Failed to add client");
+						return response;
+					}
 				}
 				
-				Project projectCreated = projectRepository.save(newProject);
+				//Find ProjectManager empId
+				Long projManagerId = null;
+				if(project.getProjectManagerId() != null) {
+					Long employeementID = project.getProjectManagerId();
+					Employee employee = employeeRepository.findByEmployeementId(employeementID);
+					if(employee != null) {
+						projManagerId = employee.getEmpId();
+					}
+				}else {
+					Department dept = departmentRepository.findByName(project.getDepartmentName());
+					projManagerId = dept.getHodId();
+				}
 				
-				if(projectCreated != null) {
+				//Add project
+				Project newProject = new Project();
+				newProject.setProjectManagerId(projManagerId);
+				newProject.setProjectName(project.getProjectName());
+				newProject.setState(project.getState());
+				newProject.setClientId(clientId);
+				newProject.setPoProjectId(project.getPoProjectId());
+				newProject.setActive("true");
+				newProject.setSyncProject("true");
+				newProject.setCreatedBy(3l);
+				
+				Project projectDbResponse = projectRepository.save(newProject);
+				
+				if(projectDbResponse != null) {
+					
+						Department departmentObj = departmentRepository.findByName(project.getDepartmentName());
+						if(departmentObj != null) {
+							ProjectDepartmentMap projectDeptMapObj = projectDepartmentMapRepository.
+									findByProjectIdAndDeptId(projectDbResponse.getProjectId(),departmentObj.getDeptId());
+							if(projectDeptMapObj == null) {
+								//add department
+								ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+								projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+								projectDeptMap.setDeptId(departmentObj.getDeptId());
+								ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+							}
+						}
+					
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Project created");
+					response.setServiceResponse("project added successfully.");
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("project creation failed");
+					response.setServiceResponse("Unable to add Project.");
 				}
+				
 			}
+			
+//			Employee getEmpData = null;
+//			if(project.getEmployeementId() != null) {
+//				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
+//			}
+//			
+//			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
+//			
+//			if(projectPresent == null) {
+//				Project newProject = new Project();
+//
+//				newProject.setClientName(project.getClientName());
+//				newProject.setClientLocation(project.getClientLocation());
+//				newProject.setState(project.getState());
+//				newProject.setProjectName(project.getProjectName());
+//				newProject.setDescription(project.getDescription());
+//				
+//				if(getEmpData != null) {
+//					newProject.setProjectManagerId(getEmpData.getEmpId());
+//				}
+//				
+//				Project projectCreated = projectRepository.save(newProject);
+//				
+//				if(projectCreated != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("Project created");
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("project creation failed");
+//				}
+//			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

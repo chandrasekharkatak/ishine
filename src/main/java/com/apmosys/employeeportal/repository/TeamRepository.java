@@ -20,7 +20,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	public Team findByPoTeamId(Long poTeamId);
 
-	public Team findByTeamNameAndTeamIdAndProjectId(String teamName, Long teamId, Integer projectId);
+//	public Team findByTeamNameAndTeamIdAndProjectId(String teamName, Long teamId, Integer projectId);
 
 	public List<Team> findByProjectId(Integer projectId);
 
@@ -31,5 +31,10 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	public List<Team> findByTeamIdNotInAndProjectId(List<Long> allTeam, Integer projectId);
 
 	public Team findByTeamIdAndProjectId(Long teamId, Integer projectId);
+
+	public Team findByTeamNameAndTeamIdAndProjectIdAndIsActive(String teamName, Long teamId, Integer projectId,
+			String string);
+
+	public Team findByTeamNameAndProjectIdAndIsActive(String teamName, Integer projectId, String string);
 
 }

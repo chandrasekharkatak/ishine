@@ -37,5 +37,9 @@ export class ResourceManagementService {
   sendProjectApproval(projectObj: Project){
     return this.http.post(`${this.baseUrl}` + `api/sendProjectApproval`, projectObj);
   }
+
+  bulkSyncProject(projectObj: Project){
+    return this.http.post(`${this.baseUrl}` + `api/bulkSyncProject`, projectObj);
+  }
   
 }
