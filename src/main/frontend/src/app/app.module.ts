@@ -81,6 +81,7 @@ import { ResourceManagementComponent } from './user-team/resource-management/res
 import {ColFilterPipe} from './col-filter.pipe';
 import { SortPipe } from './sort.pipe';
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
+import { MultiColFilterPipe } from './multi-col-filter.pipe';
 
 @NgModule({
   declarations: [
@@ -137,7 +138,8 @@ import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-fil
     ResourceManagementComponent,
     ColFilterPipe,
     SortPipe,
-    ColumnFilterBarComponent
+    ColumnFilterBarComponent,
+    MultiColFilterPipe
   ],
   imports: [
     BrowserModule,
