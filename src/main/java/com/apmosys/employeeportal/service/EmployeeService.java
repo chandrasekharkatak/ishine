@@ -1882,6 +1882,7 @@ public class EmployeeService {
 							dto.setName(object[1] != null ? object[1].toString() : null);
 							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+							dto.setEmployeementId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 							employeeList.add(dto);
 						});
 						

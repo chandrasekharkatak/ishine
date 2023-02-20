@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -65,6 +66,20 @@ public class ResourceManagementController {
 	public ServiceResponse sendProjectApproval(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.sendProjectApproval(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/sendProjectInfoToPoPortal", method = RequestMethod.POST)
+	public ServiceResponse sendProjectInfoToPoPortal(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.sendProjectInfoToPoPortal(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/bulkSyncProject", method = RequestMethod.POST)
+	public ServiceResponse bulkSyncProject(@RequestBody ProjectDTO projectDTO) {
+		
+		ServiceResponse response = resourceManagementService.bulkSyncProject(projectDTO);
 		return response;
 	}
 	
