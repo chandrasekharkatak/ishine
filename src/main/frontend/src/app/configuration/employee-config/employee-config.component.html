@@ -822,14 +822,20 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
                 <div class="form-group" *ngIf="!isDraftTable">
                     <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
                 </div>
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
                     [tableTHeadTrId]="'employeeInfoTHeadTr'">
                     <table class="table table-responsive" id="employeeInfo" matSort (matSortChange)="sortData($event)">
@@ -854,18 +860,21 @@
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
                                     scope="col" class="info-label">Actions</th>
                             </tr>
-                            <!-- <tr app-column-filter-bar *ngIf="isTable && !dateOfReleivingshow" [columnList]="employeeActiveColumns" (onSearch)="onSearch($event);page=1" ></tr>
-                            <tr app-column-filter-bar *ngIf="isTable && dateOfReleivingshow" [columnList]="employeeInActiveColumns" (onSearch)="onSearch($event);page=1" ></tr>
-                            <tr app-column-filter-bar *ngIf="isDraftTable" [columnList]="draftEmployeeColumns" (onSearch)="onSearch($event);page=1"></tr> -->
+                            <tr app-column-filter-bar *ngIf="isTable && !dateOfReleivingshow && isSearchEnabled" [columnList]="employeeActiveColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                            <tr app-column-filter-bar *ngIf="isTable && dateOfReleivingshow && isSearchEnabled" [columnList]="employeeInActiveColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                            <tr app-column-filter-bar *ngIf="isDraftTable && isSearchEnabled" [columnList]="draftEmployeeColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
+                            <!-- <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
                                 departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data} : false).length == 0">
                                 <th colspan="12" class="text-center info-label">No details to display...</th>
+                            </tr> -->
+                            <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
+                                <th colspan="12" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr
-                                *ngFor="let employee of allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
-                                departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data}:false| sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+                            <!-- <tr *ngFor="let employee of allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
+                                departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data}:false| sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index"> -->
+                                <tr *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>

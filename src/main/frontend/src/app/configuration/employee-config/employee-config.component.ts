@@ -119,6 +119,7 @@ export class EmployeeConfigComponent implements OnInit {
   previewEmployeeObj:Employee = new Employee();
 
   filters:any = {};
+  isSearchEnabled:boolean = false;
   employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
   employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
   draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
@@ -1782,6 +1783,9 @@ export class EmployeeConfigComponent implements OnInit {
     }  	
   }
 
+  toggleSearch(){
+      this.isSearchEnabled = !this.isSearchEnabled;
+  }
 
   onSearch(searchData){
     this.filters = searchData;
