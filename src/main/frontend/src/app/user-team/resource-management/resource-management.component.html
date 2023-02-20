@@ -45,10 +45,10 @@
                           <tr app-column-filter-bar [columnList]="projectColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allProjectList.length == 0 && (allProjectList | colFilter:filters:false).length == 0">
+                            <tr *ngIf="allProjectList.length == 0 && (allProjectList | multicolFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <ng-container *ngFor="let project of allProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <ng-container *ngFor="let project of allProjectList | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <tr>
                                     <td><span *ngIf="project.isDraftProject == 'Approved'"><input class="sync-project-checkbox" id="{{i}}" type="checkbox" (change)="onSelectProjectForSync(project,$event)"></span></td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
