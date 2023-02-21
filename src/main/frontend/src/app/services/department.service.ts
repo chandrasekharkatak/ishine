@@ -34,4 +34,8 @@ export class DepartmentService {
   changeDepartmentJobRoleMapping(deptObj: Department) {
     return this.http.post(`${this.baseUrl}` + `api/changeDepartmentJobRoleMapping`, deptObj);
   }
+
+  checkDepartmentName(deptObj: Department) {
+    return this.http.post(`${this.baseUrl}` + `api/checkDepartmentName`, deptObj);
+  }
 }

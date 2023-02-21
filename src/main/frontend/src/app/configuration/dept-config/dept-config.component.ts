@@ -304,6 +304,20 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
+  checkDepartmentName(deptName:any, template: TemplateRef<any>){
+
+    let deptObj = new Department();
+    deptObj.name = deptName;
+    deptObj.deptId = this.deptObj.deptId;
+
+    this.departmentService.checkDepartmentName(deptObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.deptObj.name = '';
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   openUpdateConfimationModal(template: TemplateRef<any>,) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
