@@ -44,6 +44,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -57,6 +58,7 @@ import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -108,6 +110,9 @@ public class TeamsService {
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -1738,6 +1743,20 @@ public class TeamsService {
 				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveApplication);
 				
 				if(dbResponse != null) {
+					
+					//Delete Timesheet Application regarding leave
+					
+					List<Timesheet> empTimesheet = timesheetsRepository.
+							findTimesheetOnLeaveDate(leaveApplication.getEmpId(),leaveApplication.getFromDate().toString(),leaveApplication.getToDate().toString());
+
+					if (empTimesheet != null) {
+
+						empTimesheet.forEach((timesheet)->{
+							timesheetsRepository.deleteById(timesheet.getTimesheetId());
+						});
+					}
+					
+					
 					//Manage Employee leave balance
 					
 					EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
