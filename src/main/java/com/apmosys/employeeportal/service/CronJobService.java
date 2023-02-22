@@ -163,6 +163,9 @@ public class CronJobService {
 	@Value("${finance.mail}")
 	private String financeMail;
 	
+	@Value("${allEmployeeDSR.file.location}")
+	private String allEmployeeDSRFileLocation;
+	
 	
 //	0 0 0 * * * for every midnight
 //	*/20 * * * * *  for every 20 secs
@@ -933,7 +936,7 @@ public class CronJobService {
 					            "</html>");
 					
 					mailService.sendMail(hrMailAddress,
-							"Regarding Employee's Probation Period",
+							"Regarding Employee's Notice Period",
 							"Dear team, <br><br>"
 	                      + "Following employee's has crossed there expected relieving date. <br><br>"
 						  + html.toString()
@@ -1653,8 +1656,15 @@ public class CronJobService {
 					subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
 				}
 					
-					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
-					var file = new File(fileName);
+				
+				String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
+				var file = new File(fileName);
+				
+				if(allEmployeeDSRFileLocation != null) {
+					Path path = Files.createDirectories(Paths.get(allEmployeeDSRFileLocation + "AllEmployeeDSR"));
+					file = new File(path + File.separator + "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx");				
+				}
+				
 						
 					try (var fos = new FileOutputStream(file)) {
 

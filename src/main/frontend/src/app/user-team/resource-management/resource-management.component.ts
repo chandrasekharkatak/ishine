@@ -59,6 +59,7 @@ export class ResourceManagementComponent implements OnInit {
   currentTeam:any;
   selectedProjToReject:any;
   currentProjectId:any;
+  selectedProjectManager:any;
 
   allProjectList:any[] = [];
   allDeptList:any[] = [];
@@ -147,7 +148,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    this.getManagerList();
+    // this.getManagerList();
     this.alreadyCreatedTeam();
   }
 
@@ -692,6 +693,14 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+  setManagerName(projectObj: any){
+    this.selectedProjectManager = '';
+    const managerFound = this.managerList.find(x => x.employeementId == projectObj.projectManager);
+    if(managerFound){
+      this.selectedProjectManager = managerFound.name;
+    }
+  }
+
   // Manage team & teamMemberList
 
   addInputTeamField(){
@@ -750,6 +759,7 @@ export class ResourceManagementComponent implements OnInit {
   openTeamMemberModal(template: TemplateRef<any>, currentTeam){
     this.allTeamMembers = [];
     this.teamObj.teamLeadId = '';
+    this.newteamMember.employeeRole = null;
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(currentTeam.departmentList);
     this.allTeamList?.forEach((team:any) => {
@@ -784,7 +794,8 @@ export class ResourceManagementComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  previewTeamModal(template: TemplateRef<any>, teamObj:any){
+  previewTeamModal(template: TemplateRef<any>, teamObj:any, projectObj:any){
+    this.selectedProjectManager = '';
     this.previewTeamList = [];
     this.allTeamList?.forEach((team:any) => {
       if(team.teamName == teamObj.teamName){
@@ -794,6 +805,9 @@ export class ResourceManagementComponent implements OnInit {
 
     if (Object.keys(this.previewTeamList[0]).length === 0) {
       this.previewTeamList = [];
+    }
+    if(projectObj.projectManager != null){
+      this.setManagerName(projectObj);
     }
     console.log(this.previewTeamList, " : this.previewTeamList");
     
@@ -807,6 +821,7 @@ export class ResourceManagementComponent implements OnInit {
     });
     this.previewTeamList = [];
     this.projectObj = Object.assign({}, project);
+    this.setManagerName(project);
     this.getTeamListByProjectName(project);
 
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });

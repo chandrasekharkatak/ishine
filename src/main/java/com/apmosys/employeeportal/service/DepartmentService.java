@@ -347,6 +347,32 @@ public class DepartmentService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse checkDepartmentName(DepartmentDTO departmentDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Department deptObj = departmentRepository.findByName(departmentDTO.getName());
+			
+			if(deptObj != null) {
+				if((departmentDTO.getDeptId() != null) && !departmentDTO.getDeptId().equals(deptObj.getDeptId())) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Department with same name already exists !!");
+				}
+				if(departmentDTO.getDeptId() == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Department with same name already exists !!");
+				}
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 	public ServiceResponse getAllDepartmentInfo() {
 		ServiceResponse response = new ServiceResponse();
