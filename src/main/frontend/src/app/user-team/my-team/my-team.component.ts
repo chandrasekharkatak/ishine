@@ -87,6 +87,14 @@ export class MyTeamComponent implements OnInit {
 
   isActionEnabled:boolean = false;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  teamViewColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo','managerName'];
+  teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType','remark'];
+  teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
+  teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -137,6 +145,8 @@ export class MyTeamComponent implements OnInit {
     this.page=1;
     this.isHierarchyTable = true;
     this.isHierarchyChart = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllManagers();
     this.getAllTeamView();    
@@ -162,6 +172,8 @@ export class MyTeamComponent implements OnInit {
     this.toDate = null;
     this.teamViewLeaveHistoryList = [];
     this.departmentLeaveHistoryList = [];
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
@@ -177,6 +189,8 @@ export class MyTeamComponent implements OnInit {
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
     this.isLeaveHistoryOfDepartment = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   viewCompOffHistory() {
@@ -188,6 +202,8 @@ export class MyTeamComponent implements OnInit {
     this.page=1;
     this.data='';
     this.isLeaveHistoryOfDepartment = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   viewTeamRequest() {
@@ -203,6 +219,8 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
@@ -213,6 +231,8 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   viewTeamCompOffRequest() {
@@ -220,6 +240,8 @@ export class MyTeamComponent implements OnInit {
     this.isCompOffRequest = true;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   getAllManagers() {
@@ -939,6 +961,15 @@ export class MyTeamComponent implements OnInit {
       console.log("error")
       }
     });
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }
 

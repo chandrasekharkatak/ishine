@@ -28,15 +28,21 @@
               <i class="fa-solid fa-filter"></i>
             </button>
           </div>
-          <div class="col-10 col-sm-10 col-md-10 col-lg-10">
+          <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
             <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveReportInfo'"
           [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
           <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
@@ -58,15 +64,14 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn|datetime">Updated On</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="leaveStatusUpdatedByName|string">Updated By</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isLeaveReportTable && isSearchEnabled" [columnList]="leaveReportColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allLeaveApplicationsList.length == 0 || (allLeaveApplicationsList | colFilter: {employeementId: data, employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
-                reason: data, status: data, managerName: data, departmentName: data, createdOn: data, updatedOn: data, leaveStatusUpdatedByName: data}:false).length == 0">
+              <tr *ngIf="allLeaveApplicationsList.length == 0 || (allLeaveApplicationsList | colFilter:filters:false).length == 0">
                 <th colspan="16" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let leave of allLeaveApplicationsList | colFilter: {employeementId: data, employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
-                   reason: data, status: data, managerName: data, departmentName: data, createdOn: data, updatedOn: data, leaveStatusUpdatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
@@ -116,15 +121,21 @@
               <i class="fa-solid fa-filter"></i>
             </button>
           </div>
-          <div class="col-10 col-sm-10 col-md-10 col-lg-10">
+          <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
             <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
           [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
           <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="timesheetReportInfo">
@@ -134,7 +145,7 @@
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-                <th scope="col" colspan="4" class="info-label" mat-sort-header="description|string">Description</th>
+                <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">Description</th>
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalWorkingHours|number">Total Working Hours</th>
                 <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
@@ -145,20 +156,19 @@
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
                 <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName|string">Updated By</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isTimesheetReportTable && isSearchEnabled" [columnList]="timesheetReportColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allTimesheetApplicationsList.length == 0 || (allTimesheetApplicationsList | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, totalWorkingHours: data,
-                officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, leaveType: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false).length == 0">
+              <tr *ngIf="allTimesheetApplicationsList.length == 0 || (allTimesheetApplicationsList | colFilter:filters:false).length == 0">
                 <th colspan="13" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let timesheet of allTimesheetApplicationsList | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, totalWorkingHours: data,
-                  officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, leaveType: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let timesheet of allTimesheetApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td colspan="4">{{timesheet.description}}</td>
+                <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.totalWorkingHours}}</td>
                 <td>{{timesheet.officeInTime}}</td>
@@ -202,15 +212,21 @@
                 <i class="fa-solid fa-filter"></i>
               </button>
             </div>
-            <div class="col-10 col-sm-10 col-md-10 col-lg-10">
+            <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
               <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-12">
+          <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'" [tableTHeadId]="'employeeReportInfoTHead'"
           [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
           <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
@@ -269,16 +285,13 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label wide-col">Profile completion Percentage</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled" [columnList]="employeeReportColumn" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-                <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter: {employeementId:data,name:data,departmentName:data,jobRoleName:data,managerName:data,mobileNo:data,email:data,employmentstatus:data,dateOfJoining:data,aadhar:data,aboutMe:data,address:data,permanentAddress:data,city:data,bloodGroup:data,dateOfBirth:data,
-                  gender:data,fatherName:data,panNumber:data,placeOfBirth:data,workLocation:data,probationPeriod:data,noticePeriod:data,country:data,totalExperience:data,emergencyContactMobile:data,emergencyContactPerson:data,landline:data,maritalStatus:data,motherTongue:data,alternateMobileNo:data,pincode:data,relation:data,
-                  state:data,viewsOnOrganisation:data,passportNumber:data,bankAccountNo:data,bankIFSCCode:data,bankName:data,pfAccountNumber:data,previousPfAccountNumber:data,uan:data,esicNumber:data,graduationType:data,pursuing:data,passingGrade:data,yearOfPassing:data,updatedOn:data,updatedByName:data,createdByName:data,createdOn:data} : false).length == 0">
+                <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
                     <th colspan="20" class="text-center info-label">No details to display...</th>
                 </tr>
-              <tr *ngFor="let employee of allEmployeeList | colFilter: {employeementId:data,name:data,departmentName:data,jobRoleName:data,managerName:data,mobileNo:data,email:data,employmentstatus:data,dateOfJoining:data,aadhar:data,aboutMe:data,address:data,permanentAddress:data,city:data,bloodGroup:data,dateOfBirth:data,
-                gender:data,fatherName:data,panNumber:data,placeOfBirth:data,workLocation:data,probationPeriod:data,noticePeriod:data,country:data,totalExperience:data,emergencyContactMobile:data,emergencyContactPerson:data,landline:data,maritalStatus:data,motherTongue:data,alternateMobileNo:data,pincode:data,relation:data,
-                state:data,viewsOnOrganisation:data,passportNumber:data,bankAccountNo:data,bankIFSCCode:data,bankName:data,pfAccountNumber:data,previousPfAccountNumber:data,uan:data,esicNumber:data,graduationType:data,pursuing:data,passingGrade:data,yearOfPassing:data,updatedOn:data,updatedByName:data,createdByName:data,createdOn:data} : false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+              <tr *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
@@ -514,13 +527,19 @@
           </div>
         </div>
       </div>
-      <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+      <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
         <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
-      </div>
+      </div> -->
     </div>
 
     <div class="row">
       <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
           [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
           <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="leaveTimesheetReportInfo">
@@ -530,7 +549,7 @@
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-                <th scope="col" colspan="4" class="info-label" mat-sort-header="description|string">Description</th>
+                <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">Description</th>
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
                 <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department Name</th>
@@ -538,20 +557,19 @@
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
                 <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName|string">Updated By</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isLeaveTimesheetReportTable && isSearchEnabled" [columnList]="leaveTimesheetReportColumn" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allLeaveTimesheets.length == 0 || (allLeaveTimesheets | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, managerName: data,
-                 departmentName: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false).length == 0">
+              <tr *ngIf="allLeaveTimesheets.length == 0 || (allLeaveTimesheets | colFilter:filters:false).length == 0">
                 <th colspan="12" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let timesheet of allLeaveTimesheets | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data, description: data, status: data, managerName: data,
-                   departmentName: data, createdOn: data, updatedOn: data, timesheetStatusUpdatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let timesheet of allLeaveTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td colspan="4">{{timesheet.description}}</td>
+                <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.managerName}}</td>
                 <td>{{timesheet.departmentName}}</td>

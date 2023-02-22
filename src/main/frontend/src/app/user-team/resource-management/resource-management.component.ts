@@ -76,6 +76,7 @@ export class ResourceManagementComponent implements OnInit {
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
+  isSearchEnabled:boolean = false;
   projectColumns:any[] = ["blank", "blank", "name","projectManagerName","clientName","clientState","status","isDraftProject"];
 
   constructor(
@@ -141,6 +142,8 @@ export class ResourceManagementComponent implements OnInit {
     this.isEditProject = false;
     // this.isMyDepartmentProject = false;
     // this.isPendingProject = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
@@ -835,5 +838,9 @@ export class ResourceManagementComponent implements OnInit {
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+}
 
 }

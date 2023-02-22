@@ -69,6 +69,10 @@ export class RoleConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -147,7 +151,9 @@ export class RoleConfigComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
-    this.selectedDept = ''
+    this.selectedDept = '';
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllJobRoleList();
     this.getAllSubFeatures();
@@ -525,6 +531,15 @@ export class RoleConfigComponent implements OnInit {
       this.sortDirection = sort.direction;      
     }
   }
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

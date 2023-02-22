@@ -114,7 +114,18 @@ export class LeaveComponent implements OnInit {
   level2ApproverEmail:any;
 
   weekOffExcludedDepartmentList:any[] = [];
-  previouslyAppliedLeavesList:any[] = [];	
+  previouslyAppliedLeavesList:any[] = [];
+  
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','approverName','remark'];
+  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','reason','approverName','remark'];
+  leaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  leaveBalColumns:any[] = ['leaveType','totalLeaveBalance','pendingForApproval','balance'];
+  leaveLogColumns:any[] = ['rowNumber','leaveType','updateBalanceBy','balance','message','createdOn'];
+  selfLeaveRevokeHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','approverName','remark'];
+  teamLeaveRevokeHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','revokeReason','approverName','remark'];
+  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason'];
 
   constructor(
     public validationService:ValidationService,
@@ -231,6 +242,9 @@ export class LeaveComponent implements OnInit {
     this.isSelfLeaveRevokeApplication = false;
     this.isTeamLeaveRevokeApplication = false;
     this.isReporteeLeaveRevokeApplicationsTable = false;
+
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.showSelfLeaveHistoryTable();
   }
 
@@ -252,6 +266,9 @@ export class LeaveComponent implements OnInit {
     this.isTeamLeaveRevokeApplication = false;
 
     this.isTeamLeaveHistory = false;
+
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
   }
 
@@ -270,6 +287,8 @@ export class LeaveComponent implements OnInit {
     this.data='';
 
     this.isSelfLeaveHistory = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.getAllTeamMemberList()
     this.getAllMyTeamApplicationsByEmpId(this.currentUser);
   }
@@ -286,7 +305,9 @@ export class LeaveComponent implements OnInit {
     this.isLeaveRevokeApplicationTable = false;
     this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
-    this.data=''
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.getMyLeaveBalancesByEmpId();
   }
 
@@ -302,7 +323,9 @@ export class LeaveComponent implements OnInit {
     this.isLeaveRevokeApplicationTable = false;
     this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
-    this.data=''
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
 
@@ -318,7 +341,9 @@ export class LeaveComponent implements OnInit {
     this.isLeaveRevokeApplicationTable = false;
     this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
-    this.data=''
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.getLeaveLogsByEmpId();
   }
 
@@ -336,6 +361,8 @@ export class LeaveComponent implements OnInit {
     this.isReporteeLeaveRevokeApplicationsTable = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.isTeamLeaveRevokeApplication = false;
     this.getRevokeLeaveApplicationByEmpId();
@@ -354,6 +381,8 @@ export class LeaveComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.isTeamLeaveRevokeApplication = false;
     this.getRevokeLeaveApplicationByEmpId();
@@ -372,6 +401,8 @@ export class LeaveComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.isSelfLeaveRevokeApplication = false;
     this.getAllMyTeamLeaveRevokeApplicationsByEmpId(this.currentUser);
@@ -392,6 +423,8 @@ export class LeaveComponent implements OnInit {
     this.page=1;
     this.data='';
     this.isSelfLeaveRevokeApplication = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
   }
@@ -1557,6 +1590,15 @@ export class LeaveComponent implements OnInit {
         this.sortColumnType = sortParams[1];
         this.sortDirection = sort.direction;      
       }
+    }
+
+    toggleSearch(){
+      this.isSearchEnabled = !this.isSearchEnabled;
+    }
+
+    onSearch(searchData){
+      this.filters = searchData;
+      console.log("Updated Filter : ", this.filters);
     }
 
     selectAll(event){

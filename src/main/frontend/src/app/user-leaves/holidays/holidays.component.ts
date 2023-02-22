@@ -33,6 +33,10 @@ export class HolidaysComponent implements OnInit {
   years:any[]=[];
   currentYear:any;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  holidayColumns:any[] = ['blank','occasion','dayOfTheWeek','dateOfHoliday','state'];
+
   constructor(
     private holidayService : HolidayService,
     private authenticationService : AuthenticationService,
@@ -119,6 +123,15 @@ export class HolidaysComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

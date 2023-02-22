@@ -806,9 +806,9 @@
             </div>
 
             <!-- For Employee Profile Update Table -->
-            <div class="col-md-3 offset-9 mb-2" *ngIf="isDraftTable">
+            <!-- <div class="col-md-3 offset-9 mb-2" *ngIf="isDraftTable">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-            </div>
+            </div> -->
 
             <!-- For Employee Table -->
             <div *ngIf="!isDraftTable" class="col-md-2 ml-auto mb-2">
@@ -865,15 +865,9 @@
                             <tr app-column-filter-bar *ngIf="isDraftTable && isSearchEnabled" [columnList]="draftEmployeeColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <!-- <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
-                                departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data} : false).length == 0">
-                                <th colspan="12" class="text-center info-label">No details to display...</th>
-                            </tr> -->
                             <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
                                 <th colspan="12" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <!-- <tr *ngFor="let employee of allEmployeeList | colFilter: {employeementId: data, name: data, email: data,employmentstatus: data,managerName: data,
-                                departmentName: data,dateOfJoining: data,dateOfRelieving: data,createdOn: data,createdByName: data,updatedOn: data,updatedByName: data}:false| sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index"> -->
                                 <tr *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
@@ -952,10 +946,16 @@
         </button>
     </div>
     <div class="modal-body">
-        <div class="form-group ml-auto col-md-3">
+        <!-- <div class="form-group ml-auto col-md-3">
             <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">	
-        </div>
+        </div> -->
         <div class="container history-table">
+            <div class="selector-toggle" (click)="toggleWorkHistorySearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isworkHistorySearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isworkHistorySearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
             <table class="table history-table" >
                 <thead class="thead-light">
                   <tr>
@@ -975,14 +975,13 @@
                     <th scope="col" class="info-label" >Client Name</th>
                     
                  </tr>
+                 <tr app-column-filter-bar *ngIf="isTable && isworkHistorySearchEnabled" [columnList]="employeeWorkhistoryColumns" (onSearch)="onWorkHistorySearch($event);page=1" ></tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory| colFilter: {teamName: datas, projectName: datas, startDate: datas, updatedOn: datas,
-                        teamLeadName: datas, jobRoleName: datas, clientLocation: datas, clientName: datas }:false).length == 0"> 
+                    <tr *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory| colFilter:filters:false).length == 0"> 
                        <th colspan="11" class="text-center info-label">No details to display...</th>
                    </tr> 
-                   <tr *ngFor="let empHistory of employeeWorkingHistory| colFilter: {teamName: datas, projectName: datas, startDate: datas, updatedOn: datas,
-                     teamLeadName: datas, jobRoleName: datas, clientLocation: datas, clientName: datas }:false | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
+                   <tr *ngFor="let empHistory of employeeWorkingHistory| colFilter:filters:false | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->

@@ -119,12 +119,18 @@
                     </select>
                 </div>
             </div>
-            <div class="form-group col-md-3">
+            <!-- <div class="form-group col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
                     <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
@@ -141,14 +147,13 @@
                             <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
+                          <tr app-column-filter-bar *ngIf="isHolidayTable && isSearchEnabled" [columnList]="holidayColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="holidayListFilter.length == 0 || (holidayListFilter| colFilter: {occasion: data, dayOfTheWeek: data, dateOfHoliday: data, state: data,
-                                createdOn: data, createdbyName: data, updatedOn: data, updatedByName: data}:false).length == 0">
+                            <tr *ngIf="holidayListFilter.length == 0 || (holidayListFilter| colFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let holiday of holidayListFilter| colFilter: {occasion: data, dayOfTheWeek: data, dateOfHoliday: data, state: data,
-                                 createdOn: data, createdbyName: data, updatedOn: data, updatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let holiday of holidayListFilter| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                                 <td>{{holiday.dayOfTheWeek}}</td>
@@ -258,13 +263,19 @@
                 <h1 class="table-header-title">Leave Types</h1>
             </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
             <div class="form-group ml-auto col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
-        </div>
+        </div> -->
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
                     [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
                     <table class="table table-responsive" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
@@ -280,14 +291,13 @@
                             <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
+                          <tr app-column-filter-bar *ngIf="isLeaveRuleTable && isSearchEnabled" [columnList]="leaveTypeColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="leaveTypes.length == 0 || (leaveTypes| colFilter: {leaveType: data, leaveTypeCode: data, gender: data, noOfDays: data,
-                                rules: data, updatedOn: data, updatedByName: data, description: data}:false).length == 0">
+                            <tr *ngIf="leaveTypes.length == 0 || (leaveTypes| colFilter:filters:false).length == 0">
                                 <th colspan="16" class="info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let leaveType of leaveTypes| colFilter: {leaveType: data, leaveTypeCode: data, gender: data, noOfDays: data,
-                                 rules: data, updatedOn: data, updatedByName: data, description: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }">
+                            <tr *ngFor="let leaveType of leaveTypes| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }">
                                 <td>{{leaveType.leaveType}}</td>
                                 <td>{{leaveType.leaveTypeCode}}</td>
                                 <td>{{leaveType.gender}}</td>
@@ -642,13 +652,19 @@
                 <h1 class="table-header-title">Leave Policies</h1>
             </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
             <div class="form-group ml-auto col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
-        </div>
+        </div> -->
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
                         [tableTHeadTrId]="'employeeInfoTHeadTr'">
                         <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
@@ -664,14 +680,13 @@
                                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                 <th scope="col" class="info-label">Actions</th>
                               </tr>
+                              <tr app-column-filter-bar *ngIf="isLeavePolicyTable && isSearchEnabled" [columnList]="leavePolicyColumns" (onSearch)="onSearch($event);page=1" ></tr>
                             </thead>
                             <tbody>
-                                <tr *ngIf="leavePolicyList.length === 0 || (leavePolicyList| colFilter: {leavePolicyName: data, leaveType: data, description: data,
-                                    createdByName: data, createdOn: data, updatedOn: data, updatedByName: data}:false).length == 0">
+                                <tr *ngIf="leavePolicyList.length === 0 || (leavePolicyList| colFilter:filters:false).length == 0">
                                     <th colspan="10" class="text-center info-label">No details to display...</th>
                                 </tr>
-                                <tr *ngFor="let leavePolicy of leavePolicyList| colFilter: {leavePolicyName: data, leaveType: data, description: data,
-                                     createdByName: data, createdOn: data, updatedOn: data, updatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                <tr *ngFor="let leavePolicy of leavePolicyList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <td>{{20*(page-1)+i+1}}</td>
                                     <td>{{leavePolicy.leavePolicyName}}</td>
                                     <td>{{leavePolicy.leaveType}}</td>

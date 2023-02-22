@@ -45,6 +45,10 @@ export class UserPoliciesComponent implements OnInit {
   alertMessage: any;
   allReadPoliciesList:any[] = [];
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  policyColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
+ 
 
   ngOnInit(): void {
 
@@ -136,7 +140,16 @@ export class UserPoliciesComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
-  }	
+  }
+  
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

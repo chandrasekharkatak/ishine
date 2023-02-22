@@ -106,6 +106,13 @@ export class ReportListComponent implements OnInit {
 
   customQuery:any;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  leaveReportColumns:any[] = ['employeementId','employeeName','leaveType','fromDate','toDate','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
+  timesheetReportColumns:any[] = ['employeementId','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  employeeReportColumn:any[] = ['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
+  leaveTimesheetReportColumn:any[] = ['employeementId','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -159,6 +166,9 @@ export class ReportListComponent implements OnInit {
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
 
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     console.log(this.storedDataList, " : storeddatalist");
 
 
@@ -190,6 +200,8 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
@@ -218,6 +230,8 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -259,6 +273,8 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.allLeaveTimesheets = [];
   }
@@ -1033,6 +1049,15 @@ export class ReportListComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+  
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }
 

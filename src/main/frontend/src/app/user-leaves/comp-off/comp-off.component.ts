@@ -51,6 +51,11 @@ export class CompOffComponent implements OnInit {
   previousCompOffRequests:any[] = [];
   allCompOffApplications:any[] = [];
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  compOffAppColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
@@ -422,42 +427,51 @@ export class CompOffComponent implements OnInit {
 
     // download excel
 
-exportToExcel(): void {
+  exportToExcel(): void {
 
-  if(this.isCompOffRequestsTable == true){
-    this.elementName = 'compOffRequest-table';
-    this.excelName = 'EmployeeCompOffRequest.xlsx'
+    if(this.isCompOffRequestsTable == true){
+      this.elementName = 'compOffRequest-table';
+      this.excelName = 'EmployeeCompOffRequest.xlsx'
+    }
+    if(this.isCompOffApplicationsTable == true){
+      this.elementName = 'compOffApplication-table';
+      this.excelName = 'CompOffRequestApplication.xlsx'
+    }
+
+    let element = document.getElementById(this.elementName);
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
+
+    const book: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+
+    XLSX.writeFile(book, this.excelName);
   }
-  if(this.isCompOffApplicationsTable == true){
-    this.elementName = 'compOffApplication-table';
-    this.excelName = 'CompOffRequestApplication.xlsx'
+
+  //pagination 
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
   }
 
-  let element = document.getElementById(this.elementName);
-  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
-
-  const book: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
-
-  XLSX.writeFile(book, this.excelName);
-}
-
-//pagination 
-
-page = 1;
-handlePageChange(event) {
-  this.page = event;
-}
-
-sortData(sort: Sort){	
-  console.log(sort);
-  if(sort.active){
-    let sortParams:any[] = sort.active?.split("|");
-    this.sortColumn = sortParams[0];
-    this.sortColumnType = sortParams[1];
-    this.sortDirection = sort.direction;      
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
   }
-}
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+  this.filters = searchData;
+  console.log("Updated Filter : ", this.filters);
+  }
 
 }
 

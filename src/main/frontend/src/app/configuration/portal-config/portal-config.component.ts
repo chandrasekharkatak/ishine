@@ -87,6 +87,11 @@ export class PortalConfigComponent implements OnInit {
 
   year: any[] = [];
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  employeeColumns:any[] = ['employeementId','name','email','departmentName','employmentstatus','dateOfJoining'];
+  appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
+
   constructor(
     private portalService: PortalService,
     private validationService: ValidationService,
@@ -714,6 +719,9 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.viewAppreciations(appreciationObj, template);
 
 
@@ -929,6 +937,14 @@ export class PortalConfigComponent implements OnInit {
     }
   }
 
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

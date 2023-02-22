@@ -107,14 +107,20 @@
             </div>
         </div>
 
-        <div class="row">
+        <!-- <div class="row">
             <div class="form-group d-flex flex-row ml-auto col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
-        </div>
+        </div> -->
 
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
                     [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
                     <table class="table table-responsive" id="compOffRequest-table" matSort (matSortChange)="sortData($event)">	
@@ -129,12 +135,13 @@
                             <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                             <th scope="col" class="info-label" >Actions</th>
                          </tr>
+                         <tr app-column-filter-bar *ngIf="isCompOffRequestsTable && isSearchEnabled" [columnList]="compOffReqColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allCompOffRequests.length == 0 || (allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false).length == 0">
+                            <tr *ngIf="allCompOffRequests.length == 0 || (allCompOffRequests | colFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                               </tr>
-                            <tr *ngFor="let compOffReq of allCompOffRequests | colFilter: {compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                            <tr *ngFor="let compOffReq of allCompOffRequests | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffReq.compOffReasons}}</td>
                                 <td>{{compOffReq.fromDate}}</td>
@@ -167,14 +174,20 @@
             </div>
         </div>
 
-        <div class="row">
+        <!-- <div class="row">
             <div class="form-group d-flex flex-row ml-auto col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
             </div>
-        </div>
+        </div> -->
 
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffAppInfo'" [tableTHeadId]="'compOffAppInfoTHead'"
                     [tableTHeadTrId]="'compOffAppInfoTHeadTr'">
                     <table class="table table-responsive scrollable-table " id="compOffAppInfo" matSort (matSortChange)="sortData($event)">	
@@ -190,12 +203,13 @@
                             <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                             <th scope="col" class="info-label">Actions</th>
                          </tr>
+                         <tr app-column-filter-bar *ngIf="isCompOffApplicationsTable && isSearchEnabled" [columnList]="compOffAppColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allCompOffApplications.length == 0 || (allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false).length == 0">
+                            <tr *ngIf="allCompOffApplications.length == 0 || (allCompOffApplications| colFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                               </tr>
-                            <tr *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status: data}:false | sort : [sortColumn, sortColumnType, sortDirection]| sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
+                            <tr *ngFor="let compOffApp of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page };let i = index">
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffApp.createdByName}}</td>
                                 <td>{{compOffApp.compOffReasons}}</td>

@@ -89,6 +89,11 @@ export class MyTimesheetComponent implements OnInit {
 
   selectedTimesheet:any;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShift','leaveType','remarks'];
+  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShift','leaveType','remarks'];
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -174,6 +179,9 @@ export class MyTimesheetComponent implements OnInit {
 
     this.allMyTimesheets = [];
     this.data = '';
+
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   showTeamTimesheets() {
@@ -187,6 +195,9 @@ export class MyTimesheetComponent implements OnInit {
 
     this.allMyTimesheets = [];
     this.data = '';
+
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
@@ -1342,6 +1353,15 @@ export class MyTimesheetComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

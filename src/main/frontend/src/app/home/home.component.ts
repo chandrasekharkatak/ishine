@@ -121,6 +121,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   profileCompletedPercentage: any = 0;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
+
   constructor(
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
@@ -1095,6 +1101,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   openReqMod(template: TemplateRef<any>) {
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -1575,6 +1583,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.sortDirection = sort.direction;      
     }
   }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

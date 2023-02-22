@@ -124,6 +124,11 @@ export class EmployeeConfigComponent implements OnInit {
   employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
   draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
   
+  workHistoryFilters:any = {};
+  isworkHistorySearchEnabled:boolean = false;
+  employeeWorkhistoryColumns:any[] = ['occasion','dayOfTheWeek','dateOfHoliday','state','createdOn','createdbyName','updatedOn','updatedByName'];
+  
+
   constructor(
     private employeeService: EmployeeService,
     public validationService: ValidationService,
@@ -314,6 +319,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDeletion = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.workHistoryFilters = {};
+    this.isSearchEnabled = false;
+    this.isworkHistorySearchEnabled = false;
 
     this.managerList = [];
     this.getAllEmployeeList();
@@ -330,6 +339,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDeletion = false;
     this.page=1;
     this.data='';
+    this.filters = {};
 
     this.getAllDraftEmployees();
   }
@@ -1788,6 +1798,16 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
+
+  // Work History 
+  toggleWorkHistorySearch(){
+    this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
+  }
+
+  onWorkHistorySearch(searchData){
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }

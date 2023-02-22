@@ -320,12 +320,18 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-3 mt-4 pt-2 mb-2">
+            <!-- <div class="col-md-3 mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamInfo'" [tableTHeadId]="'teamInfoTHead'"
                     [tableTHeadTrId]="'teamInfoTHeadTr'">
                     <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortData($event)">	
@@ -340,12 +346,13 @@
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
+                          <tr app-column-filter-bar *ngIf="isTeamTable && isSearchEnabled" [columnList]="viewTeamColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allTeamList.length == 0 || (allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false).length == 0">
+                            <tr *ngIf="allTeamList.length == 0 || (allTeamList| colFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let team of allTeamList| colFilter: {projectName:data, teamName:data, teamLeadName:data, projectManagerName:data, createdByName:data, createdOn:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let team of allTeamList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{team.projectName}}</td>
                                 <td>{{team.teamName}}</td>
@@ -544,12 +551,18 @@
             <div class="col-md-3 mt-4 pt-2 mb-2 ml-auto d-flex justify-content-end align-items-start">
                 <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()"><em class="fa-solid fa-plus"></em>Add New Activity</button>
             </div>
-            <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
+            <!-- <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
                 [tableTHeadTrId]="'activityInfoTHeadTr'">
                 <table class="table table-responsive" id="activities-table" matSort (matSortChange)="sortData($event)">	
@@ -563,12 +576,13 @@
                         <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
+                      <tr app-column-filter-bar *ngIf="isActivityTable && isSearchEnabled" [columnList]="viewActivityColumns" (onSearch)="onSearch($event);page=1" ></tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="allActivityList.length == 0 || (allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false).length == 0">
+                        <tr *ngIf="allActivityList.length == 0 || (allActivityList| colFilter:filters:false).length == 0">
                             <th colspan="8" class="text-center info-label">No details to display...</th>
                         </tr>
-                      <tr *ngFor="let activity of allActivityList| colFilter: {activity:data, eta:data, employeeRole:data, createdByName:data, createdOn:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                      <tr *ngFor="let activity of allActivityList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
@@ -679,12 +693,18 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
+            <!-- <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-            </div>
+            </div> -->
         </div>        
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
                 [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
                 <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">	
@@ -696,12 +716,13 @@
                         <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
+                      <tr app-column-filter-bar *ngIf="isActivityTemplate && isSearchEnabled" [columnList]="activityTemplateColumns" (onSearch)="onSearch($event);page=1" ></tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="templateActivityList.length == 0 || (templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false).length == 0">
+                        <tr *ngIf="templateActivityList.length == 0 || (templateActivityList| colFilter:filters:false).length == 0">
                             <th colspan="8" class="text-center info-label">No details to display...</th>
                         </tr>
-                      <tr *ngFor="let activity of templateActivityList| colFilter: {employeeRole: data, activityDescription: data, departmentName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                      <tr *ngFor="let activity of templateActivityList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
                         <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{activity.employeeRole}}</td>
                         <td>{{activity.activityDescription}}</td>

@@ -117,6 +117,13 @@ export class LeaveConfigComponent implements OnInit {
   // for View Holidays by State 
   selectedState: any = '';
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName'];
+  leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description'];
+  leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
+
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -201,6 +208,9 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
     this.page = 1;
     this.data = ''
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.getAllHolidays();
   }
 
@@ -218,6 +228,9 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
     this.page = 1;
     this.data = ''
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.getAllLeaveTypes();
   }
 
@@ -335,7 +348,10 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.page = 1;
-    this.data = ''
+    this.data = '';
+    this.filters = {};
+    this.isSearchEnabled = false;
+    
     this.getAllLeavePolicies();
   }
 
@@ -1163,6 +1179,15 @@ export class LeaveConfigComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

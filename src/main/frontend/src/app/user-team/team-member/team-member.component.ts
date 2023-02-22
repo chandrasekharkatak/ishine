@@ -31,6 +31,10 @@ export class TeamMemberComponent implements OnInit {
 
   viewTeamMemberList: any[] = []; 
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  teamMemberColumns:any[] = ['employeementId','name','email','jobRoleName','mobileNo'];
+
   constructor(
     private authenticationService : AuthenticationService,
     private teamViewService : TeamViewService,
@@ -110,6 +114,15 @@ export class TeamMemberComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

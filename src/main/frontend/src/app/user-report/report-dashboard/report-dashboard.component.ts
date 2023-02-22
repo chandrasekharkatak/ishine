@@ -89,6 +89,11 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
+
   constructor(
     private leaveService : LeaveService,
     private timesheetService : TimesheetService,
@@ -2045,7 +2050,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openDepartmentWiseEmployeeKycModalTable(deptName:any, status:any){
-    const CHECK_PERCENT = 50.00;
+    const CHECK_PERCENT = 100.00;
     this.data = ''
     this.modalSummaryList = [];
 
@@ -2077,6 +2082,15 @@ export class ReportDashboardComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }	
 
 }

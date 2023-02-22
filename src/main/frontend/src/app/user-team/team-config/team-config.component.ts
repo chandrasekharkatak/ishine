@@ -113,6 +113,12 @@ export class TeamConfigComponent implements OnInit {
   
   selectedDept:any;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  viewTeamColumns:any[] = ['blank', 'projectName','teamName','teamLeadName','projectManagerName','createdByName','createdOn'];
+  viewActivityColumns:any[] = ['blank','activity','eta','employeeRole','createdByName','createdOn'];
+  activityTemplateColumns:any[] = ['blank', 'employeeRole','activityDescription','departmentName'];
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -198,6 +204,8 @@ export class TeamConfigComponent implements OnInit {
     this.filterStatus= '';
     this.selectedDept = '';
     this.isGoToTeamButton = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
@@ -282,6 +290,8 @@ export class TeamConfigComponent implements OnInit {
     this.data = ''
     this.selectedDept = '';
     this.allActivityList = [];
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllProjectsByEmpId();
     this.getAllProjectListByProjectManagerId();
@@ -355,6 +365,9 @@ export class TeamConfigComponent implements OnInit {
     this.isGoToTeamButton = false;
     this.templateActivityList = [];
     this.allTemplateActivityList = [];
+    this.filters = {};
+    this.isSearchEnabled = false;
+
   }
 
   showUpdateActivityTemplateForm(activityTemplate: Team){
@@ -694,6 +707,7 @@ export class TeamConfigComponent implements OnInit {
 
   getAllMyTeamsByEmpId() {
     this.allTeamList = [];
+    this._allTeamList = [];
     this.allActivityList = [];
     this.filterStatus = "";
     this.selectedProject = "0";
@@ -1349,6 +1363,16 @@ export class TeamConfigComponent implements OnInit {
       this.sortDirection = sort.direction;      
     }
   }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

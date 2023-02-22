@@ -350,32 +350,37 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-
-    <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
-            Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
-    </div>
-   
-   
-    <div class="form-group d-flex flex-row justify-content-between">
-        <div class="form-inline ml-2">
-            <small>View</small> 
-            <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
-                (change)="page=1">
-                <option class="option-bg" selected value="10">10</option>
-                <option class="option-bg" value="20">20</option>
-                <option class="option-bg" value="50">50</option>
-                <option class="option-bg" value="100">100</option>
-            </select>
-            <small>entries</small>
+    <div class="modal-body px-4">
+        <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
+            <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
+                Approve</button>&nbsp;
+            <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
         </div>
        
-    <div class="form-group ml-auto col-md-3 mt10">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+       
+        <div class="form-group d-flex flex-row justify-content-between">
+            <div class="form-inline ml-2">
+                <small>View</small> 
+                <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+                    (change)="page=1">
+                    <option class="option-bg" selected value="10">10</option>
+                    <option class="option-bg" value="20">20</option>
+                    <option class="option-bg" value="50">50</option>
+                    <option class="option-bg" value="100">100</option>
+                </select>
+                <small>entries</small>
+            </div>
+           
+            <!-- <div class="form-group ml-auto col-md-3 mt10">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+            </div> -->
         </div>
-    </div>
-    <div class="modal-body ">
+        <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
             [tableTHeadTrId]="'leaveApplicationTHeadTr'">
             <table class="table leaveApplication-table" matSort (matSortChange)="sortData($event)" id="leaveApplication">
@@ -395,14 +400,13 @@
                 <!-- <th scope="col" class="info-label">Comments</th> -->
                 <th scope="col" class="info-label">Actions</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveApplicationColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody class="text-center">
-                <tr *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0 || (leaveApplicationList | colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
-                    status: data, createdByName: data, createdOn: data, reason: data}:false).length == 0">
+                <tr *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0 || (leaveApplicationList | colFilter:filters:false).length == 0">
                     <th colspan="12" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList| colFilter: {employeeName: data, leaveType: data, fromDate: data, toDate: data, noOfDays: data,
-                    status: data, createdByName: data, createdOn: data, reason: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <tr *ngFor="let leaveApplication of leaveApplicationList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                     <td><input class="homeLeave-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
@@ -439,10 +443,16 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="form-group ml-auto col-md-3 mt10">
+    <!-- <div class="form-group ml-auto col-md-3 mt10">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        </div> -->
+    <div class="modal-body px-4">
+        <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
         </div>
-    <div class="modal-body">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'" [tableTHeadId]="'compOffApplicationTHead'"
         [tableTHeadTrId]="'compOffApplicationTHeadTr'">
         <table class="table compOffApplication-table" matSort (matSortChange)="sortData($event)" id="compOffApplication">
@@ -458,12 +468,13 @@
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label">Actions</th>
              </tr>
+             <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="compOfApplicationColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-                <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0 || (allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status:data }:false).length == 0">
+                <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0 || (allCompOffApplications| colFilter:filters:false).length == 0">
                     <th colspan="10" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let compOffApp of allCompOffApplications| colFilter: {createdByName: data, compOffReasons: data, fromDate: data, toDate: data, noOfDays: data, description: data, status:data }:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                <tr *ngFor="let compOffApp of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{i+1}}</td>
                     <td>{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
@@ -495,27 +506,32 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
-        <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
-        <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
-      </div>
-      <div class="form-group d-flex justify-content-between">
-        <div class="form-inline col-md-3">
-          <small>View</small>
-          <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
-            <option class="option-bg" selected value="10">10</option>
-            <option class="option-bg" value="20">20</option>
-            <option class="option-bg" value="50">50</option>
-            <option class="option-bg" value="100">100</option>
-          </select>
-          <small>entries</small>
+    <div class="modal-body px-4">
+        <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
+            <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
+            <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
+          </div>
+          <div class="form-group d-flex justify-content-between">
+            <div class="form-inline col-md-3">
+              <small>View</small>
+              <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
+                <option class="option-bg" selected value="10">10</option>
+                <option class="option-bg" value="20">20</option>
+                <option class="option-bg" value="50">50</option>
+                <option class="option-bg" value="100">100</option>
+              </select>
+              <small>entries</small>
+            </div>
+            <!-- <div class="col-md-3 mt10">
+              <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div> -->
+          </div>
+        <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
         </div>
-        <div class="col-md-3 mt10">
-          <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-        </div>
-      </div>
-   
-    <div class="modal-body">
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'" [tableTHeadId]="'timesheetRequestTHead'"
         [tableTHeadTrId]="'timesheetRequestTHeadTr'">
         <table class="table teams-request-table" matSort (matSortChange)="sortData($event)" id="timesheetRequest">
@@ -527,7 +543,7 @@
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-                <th scope="col" colspan="4" class="info-label" mat-sort-header="description|string">Activity</th>
+                <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">Activity</th>
                 <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
                 <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
@@ -535,21 +551,20 @@
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label">Actions</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetApplicationsColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests | colFilter: {employeementId: data, employeeName: data, date: data, dayType: data,
-                description: data, officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, isNightShift: data, status: data}:false).length == 0">
+              <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests | colFilter:filters:false).length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter: {employeementId: data, employeeName: data, date: data, dayType: data,
-                description: data, officeInTime: data, officeOutTime: data, totalWorkingOfficeHours: data, isNightShift: data, status: data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+              <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                 <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                 <td>{{items*(page-1)+i+1}}</td>
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td colspan="4" [innerHTML]="timesheet.description"></td>
+                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
                 <td>{{timesheet.officeInTime}}</td>
                 <td>{{timesheet.officeOutTime}}</td>
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
