@@ -1357,12 +1357,12 @@ public class CronJobService {
 											hrMailAddress,
 											"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
 											"Dear IShine Members, <br><br>"
-		                                  + "This is to bring it to your attention that you are in the defaulters list."
-		                                  + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
-		                                  + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
-										  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
-										  + " from 23rd January onwards if it remains unfilled for consecutive 3 days. <br><br>"
-										  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+													+ "We regret to inform you that you have been added to our defaulters list due to your failure to submit your timesheets for three consecutive days. We would like to remind you that timely submission of timesheets is crucial for effective team planning, productivity, and accurate salary calculation.<br><br>"
+													+ "To encourage timely submission of timesheets, our system has implemented a three-day lock on timesheets that remain unfilled for three consecutive days starting from 20th February. We urge you to fill out your timesheets on a daily basis to avoid the lock and any adverse impact on your salary.<br><br>"
+													+ "In case you have a legitimate reason for not being able to submit your timesheets on time, please do not hesitate to reach out to your reporting manager or HR.<br><br>"
+													+ "Thank you for your attention to this matter.<br><br><br><br>"
+													+ "Sincerely,<br>"
+													+ "ApMoSys Technologies"
 										  +	html.toString());
 								} catch (MessagingException e) {
 									System.out.println(object.getName() + " dept name \n\n\n");
@@ -1375,12 +1375,12 @@ public class CronJobService {
 										mailService.sendMail(email,
 												"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
 												"Dear IShine Members, <br><br>"
-										      + "This is to bring it to your attention that you are in the defaulters list."
-										      + " You have missed filling Timesheets consecutively for 3 continuous days.<br><br>"
-										      + "Your team's planning, productivity and your salary calculation depend on timely filling of the Timesheets.<br><br>"
-											  + "To enable seriousness of filling timesheets in timely manner system is going to enforce locking 3 days of timesheet"
-											  + " from 23rd January onwards if it remains unfilled for consecutive 3 days. <br><br>"
-											  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
+													+ "We regret to inform you that you have been added to our defaulters list due to your failure to submit your timesheets for three consecutive days. We would like to remind you that timely submission of timesheets is crucial for effective team planning, productivity, and accurate salary calculation.<br><br>"
+													+ "To encourage timely submission of timesheets, our system has implemented a three-day lock on timesheets that remain unfilled for three consecutive days starting from 20th February. We urge you to fill out your timesheets on a daily basis to avoid the lock and any adverse impact on your salary.<br><br>"
+													+ "In case you have a legitimate reason for not being able to submit your timesheets on time, please do not hesitate to reach out to your reporting manager or HR.<br><br>"
+													+ "Thank you for your attention to this matter.<br><br><br><br>"
+													+ "Sincerely,<br>"
+													+ "ApMoSys Technologies"
 											  +	html.toString());
 									} catch (Exception e) {
 										e.printStackTrace();

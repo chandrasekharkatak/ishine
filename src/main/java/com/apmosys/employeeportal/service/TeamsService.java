@@ -1173,8 +1173,18 @@ public class TeamsService {
 			Project projectObj = projectRepository.findByProjectName(project.getProjectName());
 			
 			if(projectObj != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("project already present.");
+				
+				projectObj.setPoProjectId(project.getPoProjectId());
+				
+				Project projectDbResponse = projectRepository.save(projectObj);
+				
+				if(projectDbResponse != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Added PoProject Id.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Fail.");
+				}
 			}else {
 				
 				Integer clientId = null;
