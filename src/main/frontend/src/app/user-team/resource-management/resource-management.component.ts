@@ -148,7 +148,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    // this.getManagerList();
+    this.getManagerList();
     this.alreadyCreatedTeam();
   }
 

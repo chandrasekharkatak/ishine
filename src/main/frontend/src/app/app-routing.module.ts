@@ -127,6 +127,7 @@ const routes: Routes = [
   {path:'user-performance', component: UserPerformanceComponent, canActivate: [AuthGuard]},
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},
   {path:'helpdesk', component: HelpdeskComponent, canActivate: [AuthGuard]},
+  {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
