@@ -40,6 +40,7 @@ import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -96,6 +97,9 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	TimesheetActivityMapRepository timesheetActivityRepository;
+	
+	@Autowired
+	HolidayRepository holidayRepository;
 	
 	
 	@Transactional
@@ -255,6 +259,8 @@ public class EmployeeLeaveService {
 
 					long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
 					
+					List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate());
+					
 				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 				    if(!empTimeSheet.isEmpty()) {
 				    empTimeSheet.forEach((timesheet)->{
@@ -274,17 +280,20 @@ public class EmployeeLeaveService {
 				    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 
 					if((elapsedDays == 0)) {
-						Timesheet newTimesheet = new Timesheet();
 						
-						newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
-						newTimesheet.setDate(fromDate);
-						newTimesheet.setDayType("Leave");
-						newTimesheet.setDescription("On leave");
-						newTimesheet.setEmpId(leaveDTO.getEmpId());
-						newTimesheet.setStatus("Approved");
-						newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+						if(holidayList.isEmpty()) {
+							Timesheet newTimesheet = new Timesheet();
+							
+							newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
+							newTimesheet.setDate(fromDate);
+							newTimesheet.setDayType("Leave");
+							newTimesheet.setDescription("On leave");
+							newTimesheet.setEmpId(leaveDTO.getEmpId());
+							newTimesheet.setStatus("Approved");
+							newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 
-						timesheetsRepository.save(newTimesheet);
+							timesheetsRepository.save(newTimesheet);
+						}
 					}
 					if((elapsedDays != 0)) {
 						LocalDate tempDateToday = fromDate;
@@ -296,17 +305,38 @@ public class EmployeeLeaveService {
 							}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
 								System.out.println("To Date is Half Day");
 							}else {
-								Timesheet newTimesheet = new Timesheet();
+								boolean isHoliday = false;
+								
+								if(leaveDTO.getIsWeekOffsExcluded().equals("false")) {
+									if(!holidayList.isEmpty()) {
+										for(Object[] holiday: holidayList) {
+											if(holiday[1].toString() != null) {
+												LocalDate holidayDate = LocalDate.parse(holiday[1].toString());
+												
+												if(tempDateToday.isEqual(holidayDate)){
+													isHoliday = true;
+													break;
+												}
+											}
+										}
+									}	
+								}
+								
+								System.out.println("check Date : "+ tempDateToday.toString() +", isHoliday : "+ isHoliday);
+								
+								if(!isHoliday) {
+									Timesheet newTimesheet = new Timesheet();
 
-								newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
-								newTimesheet.setDate(tempDateToday);
-								newTimesheet.setDayType("Leave");
-								newTimesheet.setDescription("On leave");
-								newTimesheet.setEmpId(leaveDTO.getEmpId());
-								newTimesheet.setStatus("Approved");
-								newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+									newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
+									newTimesheet.setDate(tempDateToday);
+									newTimesheet.setDayType("Leave");
+									newTimesheet.setDescription("On leave");
+									newTimesheet.setEmpId(leaveDTO.getEmpId());
+									newTimesheet.setStatus("Approved");
+									newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 
-								timesheetsRepository.save(newTimesheet);
+									timesheetsRepository.save(newTimesheet);
+								}
 							}
 							
 							tempDateToday = tempDateToday.plusDays(1);

@@ -111,6 +111,7 @@ export class LeaveComponent implements OnInit {
 
   weekOffExcludedDepartmentList:any[] = [];
   previouslyAppliedLeavesList:any[] = [];
+  isWeekOffsExcluded:boolean = false;
   
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -373,6 +374,7 @@ export class LeaveComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    this.isWeekOffsExcluded = false;
     this.isSelfLeaveRevokeApplication = false;
     this.getAllMyTeamLeaveRevokeApplicationsByEmpId(this.currentUser);
   }
@@ -742,7 +744,9 @@ export class LeaveComponent implements OnInit {
   }
 
   async setNoOfDays(template: TemplateRef<any>) {
-    const dateFormat = 'YYYY-MM-DD';		
+    const dateFormat = 'YYYY-MM-DD';
+    this.isWeekOffsExcluded = false;
+
     if (!this.validationService.validateNullUndefinedEmptyString(this.leaveObj.fromDate)) {	
       this.alertMessage = "Please select from date !!"	
       this.openAlertMod(template, this.alertMessage);	
@@ -758,6 +762,7 @@ export class LeaveComponent implements OnInit {
 
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+        this.isWeekOffsExcluded = true;
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
           this.leaveObj.toDateDayType = 0;		
         }	
@@ -766,6 +771,7 @@ export class LeaveComponent implements OnInit {
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
         this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);	
       }else{
+        this.isWeekOffsExcluded = false;
         // get Holiday Count 	
         let getHolidayCountObj = new Leave();	
         getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)	
@@ -792,6 +798,7 @@ export class LeaveComponent implements OnInit {
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+        this.isWeekOffsExcluded = true;
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
           this.leaveObj.toDateDayType = 0;		
         }	
@@ -800,6 +807,7 @@ export class LeaveComponent implements OnInit {
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
         this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);	
       }else{
+        this.isWeekOffsExcluded = false;
         // get Holiday Count 	
         let getHolidayCountObj = new Leave();	
         getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)	
@@ -971,6 +979,7 @@ export class LeaveComponent implements OnInit {
       // this.leaveObj.empId = this.currentUser.empId; //! this empId will set in getLeaveMetadata()
       
       this.leaveObj.createdBy = this.currentUser.empId;
+      this.leaveObj.isWeekOffsExcluded = this.isWeekOffsExcluded;
 
       this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
       this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)

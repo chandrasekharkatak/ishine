@@ -123,4 +123,5 @@ public class LeaveDTO {
 	
 	private String teamName;
 	private String projectName;
+	private String isWeekOffsExcluded;
 }
