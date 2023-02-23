@@ -148,7 +148,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    // this.getManagerList();
+    this.getManagerList();
     this.alreadyCreatedTeam();
   }
 
@@ -759,6 +759,7 @@ export class ResourceManagementComponent implements OnInit {
   openTeamMemberModal(template: TemplateRef<any>, currentTeam){
     this.allTeamMembers = [];
     this.teamObj.teamLeadId = '';
+    this.newteamMember.empId = '';
     this.newteamMember.employeeRole = null;
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(currentTeam.departmentList);
