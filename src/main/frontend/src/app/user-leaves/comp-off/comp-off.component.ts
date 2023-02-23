@@ -31,7 +31,6 @@ export class CompOffComponent implements OnInit {
   isForm: boolean = false;
   isUpdation:boolean = false;
   isCompOffRequestsTable: boolean = false;
-  isCompOffApplicationsTable: boolean = false;
 
   //modal 
   alertMessage:any;
@@ -49,12 +48,10 @@ export class CompOffComponent implements OnInit {
   compOffReasons:any[] = [];
   allCompOffRequests:any[] = [];
   previousCompOffRequests:any[] = [];
-  allCompOffApplications:any[] = [];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
   compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','toDate','noOfDays','description','status'];
-  compOffAppColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
 
   constructor(
     private validationService:ValidationService,
@@ -91,8 +88,6 @@ export class CompOffComponent implements OnInit {
       this.showCreateForm();
     }else if(this.userMapping.view_comp_off_req_status || this.userMapping.update_comp_off_req){
       this.showCompOffRequestTable();
-    }else if(this.userMapping.view_reportee_comp_off_applications || this.userMapping.update_comp_off_applications_status){
-      this.showCompOffApplicationsTable();
     }
   }
 
@@ -105,7 +100,6 @@ export class CompOffComponent implements OnInit {
     this.isCreation = true;
 
     this.isCompOffRequestsTable = false;
-    this.isCompOffApplicationsTable = false;
 
     this.reset();
     this.getAllCompOffRequestsByEmpId();
@@ -117,7 +111,6 @@ export class CompOffComponent implements OnInit {
     this.isCreation = false;	
   
     this.isCompOffRequestsTable = false;
-    this.isCompOffApplicationsTable = false;
 
     this.compOffObj = Object.assign({}, compOff);
     this.compOffObj.leaveType = 'Compensatory Off'
@@ -133,23 +126,11 @@ export class CompOffComponent implements OnInit {
   showCompOffRequestTable(){
     this.isCompOffRequestsTable = true;
 
-    this.isCompOffApplicationsTable = false;
     this.isForm = false;
     this.isCreation = false;
     this.page=1;
     this.data=''
     this.getAllCompOffRequestsByEmpId();
-  }
-
-  showCompOffApplicationsTable(){
-    this.isCompOffApplicationsTable = true;
-    
-    this.isCompOffRequestsTable = false;
-    this.isForm = false;
-    this.isCreation = false;
-    this.page=1;
-    this.data=''
-    this.getPendingCompOffRequestsByManagerId();
   }
 
   reset(){
@@ -158,7 +139,6 @@ export class CompOffComponent implements OnInit {
     this.compOffObj.compOffId = '';
 
     this.allCompOffRequests = [];
-    this.allCompOffApplications = [];
   }
 
     // Modals
@@ -313,27 +293,6 @@ export class CompOffComponent implements OnInit {
       });
     }
 
-    onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
-      // 1 = pending , 2 = Approved , 3= Rejected
-      let compOff:Leave = new Leave();
-
-      compOff = Object.assign({},compOffObj);
-      compOff.leaveStatusId = updatedCompOffStatusId;
-      compOff.leaveStatusUpdatedBy = this.currentUser.empId
-      compOff.managerEmail = this.currentUser.email;
-      compOff.managerName = this.currentUser.name;
-      compOff.employeeName = compOff.createdByName;
-      console.log("Update Comp off : ", compOff);
-      this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.getPendingCompOffRequestsByManagerId();
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      });
-    }
-
 
     getAllCompOffRequestsByEmpId(){
       this.allCompOffRequests = [];
@@ -351,25 +310,6 @@ export class CompOffComponent implements OnInit {
             compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
           });
           console.log("allCompOffRequests : ", this.allCompOffRequests);
-        } else {
-          console.error(response.serviceResponse);
-        }
-      });
-    }
-  
-    getPendingCompOffRequestsByManagerId(){
-      this.allCompOffApplications = []
-  
-      let compOff = new Leave();
-      compOff.managerId = this.currentUser.empId;
-      this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.allCompOffApplications = response.serviceResponse;
-          this.allCompOffApplications.forEach(compOff => {
-            compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
-            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
-          });
-          console.log("allCompOffApplications : ", this.allCompOffApplications);
         } else {
           console.error(response.serviceResponse);
         }
@@ -432,10 +372,6 @@ export class CompOffComponent implements OnInit {
     if(this.isCompOffRequestsTable == true){
       this.elementName = 'compOffRequest-table';
       this.excelName = 'EmployeeCompOffRequest.xlsx'
-    }
-    if(this.isCompOffApplicationsTable == true){
-      this.elementName = 'compOffApplication-table';
-      this.excelName = 'CompOffRequestApplication.xlsx'
     }
 
     let element = document.getElementById(this.elementName);
