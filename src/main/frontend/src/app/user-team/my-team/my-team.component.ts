@@ -49,6 +49,7 @@ export class MyTeamComponent implements OnInit {
   isTeamRequest: boolean = false;
   isLeaveRequest: boolean = false;
   isCompOffRequest: boolean = false;
+  isLeaveRevokeRequest:boolean = false;
 
   // Obj
   leaveObj: Leave = new Leave();
@@ -85,6 +86,12 @@ export class MyTeamComponent implements OnInit {
   isLeaveHistoryOfDepartment:boolean = false;
   departmentLeaveHistoryList:any[] = [];
 
+  selectedDataIndex:any=0;
+  showReporteeLeaveBalance:boolean = false;
+  leaveBalanceList:any[] = [];
+
+  reporteeLeaveRevokeApplicationList:any[] = [];
+
   isActionEnabled:boolean = false;
 
   filters:any = {};
@@ -94,6 +101,7 @@ export class MyTeamComponent implements OnInit {
   teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
   teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
   teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -141,6 +149,7 @@ export class MyTeamComponent implements OnInit {
     this.isTeamLeaveHistory = false;
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
     this.isTeamRequest = false;
     this.page=1;
     this.isHierarchyTable = true;
@@ -161,6 +170,7 @@ export class MyTeamComponent implements OnInit {
 
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
     this.isViewTeam = false;
     this.isTeamRequest = false;
     this.page=1;
@@ -210,6 +220,7 @@ export class MyTeamComponent implements OnInit {
     this.isTeamRequest = true;
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
 
     this.isLeaveHistory = false;
     this.isCompOffHistory = false;
@@ -224,11 +235,13 @@ export class MyTeamComponent implements OnInit {
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
+    this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
   }
 
   viewTeamLeaveRequest() {
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
     this.page=1;
     this.data='';
     this.filters = {};
@@ -238,6 +251,17 @@ export class MyTeamComponent implements OnInit {
   viewTeamCompOffRequest() {
     this.isLeaveRequest = false;
     this.isCompOffRequest = true;
+    this.isLeaveRevokeRequest = false;
+    this.page=1;
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
+  }
+
+  viewTeamLeaveRevokeRequest() {
+    this.isLeaveRequest = false;
+    this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = true;
     this.page=1;
     this.data='';
     this.filters = {};
@@ -466,6 +490,45 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+  // Leave Revoke 
+  getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
+    this.reporteeLeaveRevokeApplicationList = [];
+
+    this.leaveObj.empId = this.currentUser.empId;
+    this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+        this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateRevokeLeaveStatus(template: TemplateRef<any>, leave, updatedLeaveStatusId){
+    this.cancelRequest();
+
+    leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
+    leave.leaveRevokeStatusId = updatedLeaveStatusId;
+    leave.approverEmail = this.currentUser.email;	
+    console.log(leave, " : RevokeLeaveObj");
+
+    this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+      this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+    });
+  }
+
+
   // download excel
   exportToExcel(): void {
 
@@ -560,6 +623,24 @@ export class MyTeamComponent implements OnInit {
           )
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
         }
+
+        if(this.isLeaveRevokeRequest == true){
+          this.excelName = 'ReporteeLeaveApplication.xlsx';
+    
+          const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
+            x => ({	
+              "leave Type": x.leaveType,	
+              "From Date": (x.fromDate)? x.fromDate : null,	
+              "To Date": (x.toDate)? x.toDate : null,	
+              "No Of Days": x.noOfDays,	
+              "status": x.status,	
+              "Created By Name": x.createdByName,	
+              "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
+              "Reason": x.reason	
+            })	
+          )	
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+        }
   }
 
   hierarchyBreadCrumb(index){	
@@ -570,6 +651,10 @@ export class MyTeamComponent implements OnInit {
 
   //myTeam-hierarchy	
   myTeamHierarchy(employeeObj:Employee) {
+    this.leaveBalanceList = [];
+    this.showReporteeLeaveBalance = false;
+    this.selectedDataIndex = 0;
+    
     let employee = Object.assign({}, employeeObj);
     employee.employeementId = employee.employeementId?.substring(2);
 
@@ -793,6 +878,36 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+
+  onGetEmpLeaveBalance(template: TemplateRef<any>, teamMember, recordIndex) {
+    this.leaveBalanceList = [];
+    this.showReporteeLeaveBalance = false;
+    this.selectedDataIndex = 0;
+    
+    let leaveObj: Leave = new Leave();
+    if(teamMember){
+      leaveObj.employeementId = teamMember.employeementId.substring(2);
+      this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.leaveBalanceList = response.serviceResponse;
+          console.log("leaveBalanceList : ", this.leaveBalanceList);
+          this.showReporteeLeaveBalance = true;
+          this.selectedDataIndex = recordIndex;
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }else{
+      console.error("Reportee Not Found.");
+    }
+  }
+
+  onHideEmpLeaveBalance(){
+    this.leaveBalanceList = [];
+    this.showReporteeLeaveBalance = false;
+    this.selectedDataIndex = 0;
+  }
+
   // Modals
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -807,6 +922,13 @@ export class MyTeamComponent implements OnInit {
   openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){
     this.modalRef = this.modalService.show(template);
     this.revokeLeaveHistoryInfo = leaveHistory;
+  }
+
+  openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.leaveObj.rejectReason = '';
+    this.cancelRequest();
+    this.leaveObj = leave;
+    this.modalRef = this.modalService.show(template);
   }
 
     //pagination 
