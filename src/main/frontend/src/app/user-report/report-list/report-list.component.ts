@@ -753,10 +753,10 @@ export class ReportListComponent implements OnInit {
       if (emittedArray[1] == 'Filter Leave Report') {
         this.showLeaveReportTable();
       }
-      if (emittedArray[1] == 'Filter Employee Report') {
+      if (emittedArray[1] == 'Filter Timesheet Report') {
         this.showTimesheetReportTable();
       }
-      if (emittedArray[1] == 'Filter Timesheet Report') {
+      if (emittedArray[1] == 'Filter Employee Report') {
         this.showEmployeeReportTable();
       }
     }
