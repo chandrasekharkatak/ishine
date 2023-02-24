@@ -17,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -37,6 +38,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,6 +51,8 @@ import org.dhatim.fastexcel.Worksheet;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
 import org.dhatim.fastexcel.reader.Row;
 import org.dhatim.fastexcel.reader.Sheet;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -58,8 +62,10 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
+import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -71,8 +77,11 @@ import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -83,12 +92,19 @@ import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
+import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @Service
 @EnableAsync
@@ -143,6 +159,15 @@ public class CronJobService {
 	DepartmentRepository departmentRepository;
 	
 	@Autowired
+	TeamRepository teamRepository;
+	
+	@Autowired
+	ClientsRepository clientsRepository;
+	
+	@Autowired
+	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
 	MailService mailService;
 
 	@Value("${po.db.url}")
@@ -165,6 +190,9 @@ public class CronJobService {
 	
 	@Value("${allEmployeeDSR.file.location}")
 	private String allEmployeeDSRFileLocation;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
 	
 	
 //	0 0 0 * * * for every midnight
@@ -1876,6 +1904,160 @@ public class CronJobService {
 				
 				System.out.println("LoggedOutusers : "+ loggedOutUsers.toString());
 				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		//0 0 0 1/3 * ? - At 00:00:00am, every 3 days starting on the 1st, every month
+		@Scheduled(cron = "0 0 0 1/3 * ?")
+		public void oldProjectAlertMail() {
+			try {
+				List<ResourceManagementDTO> dtoList = new ArrayList<ResourceManagementDTO>();
+				
+				OkHttpClient client = new OkHttpClient();
+				Request request = new Request.Builder()
+				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .get()
+				  .addHeader("accept", "application/json")
+				  .build();
+				Response httpResponse = client.newCall(request).execute();
+				String jsonData = httpResponse.body().string();
+				JSONArray jsonArr = new JSONArray(jsonData);
+				
+				for (int i = 0; i < jsonArr.length(); i++) {
+			        JSONObject jsonObj = jsonArr.getJSONObject(i);
+			        Long poProjectId = jsonObj.getLong("id");
+			        String projectName = jsonObj.getString("name");
+			        String createdOn = jsonObj.getString("createdOn");
+			        String clientName = jsonObj.getString("clientName");
+			        JSONArray deptartmentName = jsonObj.getJSONArray("department");
+			        
+			        Project projectObj = projectRepository.findByPoProjectId(poProjectId);
+			        
+			        if(projectObj != null) {
+			        	List<Team> isTeamCreated = teamRepository.findByProjectId(projectObj.getProjectId());
+			        	
+			        	if(isTeamCreated.isEmpty()) {
+			        		//Client info
+			        		Client clientObj = clientsRepository.findByClientId(projectObj.getClientId());
+			        		List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(projectObj.getProjectId());
+			        		List<String> deptList = new ArrayList<>();
+			        		
+			        		if(!projDeptMap.isEmpty()) {
+			        			projDeptMap.forEach((dept) -> {
+			        				Department deptObject = departmentRepository.findByDeptId(dept.getDeptId());
+			        				if(deptObject != null) {
+			        					deptList.add(deptObject.getName());			        							        					
+			        				}
+			        			});
+			        		}
+			        		
+			        		ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
+			        		
+			        		rmgDTO.setName(projectObj.getProjectName());
+			        		rmgDTO.setCreatedOn(projectObj.getCreatedOn().toString());
+			        		rmgDTO.setClientName(clientObj != null ? clientObj.getClientName() : null);
+			        		rmgDTO.setDeptName(!deptList.isEmpty() ? String.join(",", deptList) : null);
+			        		dtoList.add(rmgDTO);
+			        	}
+			        }else {
+			        	StringJoiner stringJoiner = new StringJoiner(",");
+
+			        	for (Object jsonValue : deptartmentName) {
+			        	    stringJoiner.add(jsonValue.toString());
+			        	}
+			        	
+			        	ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
+		        		
+		        		rmgDTO.setName(projectName);
+		        		rmgDTO.setCreatedOn(createdOn);
+		        		rmgDTO.setClientName(clientName);
+		        		rmgDTO.setDeptName(stringJoiner.toString());
+		        		dtoList.add(rmgDTO);
+			        }
+				}
+				
+				
+				List<Department> allDepartment = departmentRepository.findAll();
+				
+				if(!allDepartment.isEmpty()) {
+					allDepartment.forEach((dept) -> {
+						
+						List<ResourceManagementDTO> filteredList = new ArrayList<>();
+						
+						for (ResourceManagementDTO dto : dtoList) {
+						    if (dto.getDeptName().contains(dept.getName())) {
+						        filteredList.add(dto);
+						    }
+						}
+						
+						//Create Proj Info table
+		        		
+		        		StringBuilder html = new StringBuilder();
+						html.append("<html>\n" +
+					            "  <head>\n" +
+					            "    <style>\n" +
+					            "      table, th, td {\n" +
+					            "        border: 1px solid black;\n" +
+					            "      }\n" +
+					            "      table {\n" +
+					            "        border-collapse: collapse;\n" +
+					            "      }\n" +
+					            "    </style>\n" +
+					            "  </head>\n" +
+					            "  <body>\n" +
+					            "    <table>\n" +
+					            "      <tr>\n" +
+					            "        <th>Project Name</th>\n" +
+					            "        <th>Client Name</th>\n" +
+					            "        <th>Created On</th>\n" +
+					            "        <th>Project Department</th>\n" +
+					            "      </tr>\n");
+						// add rows to the table
+						for(ResourceManagementDTO rmgDTO: filteredList) {
+							
+							DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+							Date inputDate = null;
+							try {
+								inputDate = inputFormatter.parse(rmgDTO.getCreatedOn());
+							} catch (ParseException e) {
+								e.printStackTrace();
+							}
+
+							DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+							String outputDateStr = outputFormatter.format(inputDate);
+							
+							html.append("      <tr>\n");
+							  // add cells to the row
+							  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
+							  html.append("        <td>" + rmgDTO.getClientName() + "</td>\n");
+							  html.append("        <td>" + outputDateStr + "</td>\n");
+							  html.append("        <td>" + dept.getName() + "</td>\n");
+							  html.append("      </tr>\n");
+						}
+						
+						html.append("    </table>\n" +
+						            "  </body>\n" +
+						            "</html>");
+						
+						//Send Mail regarding oldProject where team not created
+						
+						Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
+						try {
+							mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
+									"Reminder for Project - Resource OnBoarding",
+									"Dear team, <br><br>" +
+									"Below projects are onboarded in PoPortal/Ishine in which team and resources are not added. Please take necessary action.<br><br>"
+								  +	html.toString());
+						} catch (AddressException e) {
+							e.printStackTrace();
+						} catch (MessagingException e) {
+							e.printStackTrace();
+						}
+						
+					});
+				}
 			}catch(Exception e) {
 				e.printStackTrace();
 			}

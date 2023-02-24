@@ -19,5 +19,7 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	Client findByPoClientId(Integer poClientId);
 
+	Client findByClientId(Integer clientId);
+
 
 }
