@@ -1992,70 +1992,72 @@ public class CronJobService {
 						    }
 						}
 						
-						//Create Proj Info table
-		        		
-		        		StringBuilder html = new StringBuilder();
-						html.append("<html>\n" +
-					            "  <head>\n" +
-					            "    <style>\n" +
-					            "      table, th, td {\n" +
-					            "        border: 1px solid black;\n" +
-					            "      }\n" +
-					            "      table {\n" +
-					            "        border-collapse: collapse;\n" +
-					            "      }\n" +
-					            "    </style>\n" +
-					            "  </head>\n" +
-					            "  <body>\n" +
-					            "    <table>\n" +
-					            "      <tr>\n" +
-					            "        <th>Project Name</th>\n" +
-					            "        <th>Client Name</th>\n" +
-					            "        <th>Created On</th>\n" +
-					            "        <th>Project Department</th>\n" +
-					            "      </tr>\n");
-						// add rows to the table
-						for(ResourceManagementDTO rmgDTO: filteredList) {
+						
+						if(!filteredList.isEmpty()) {
 							
-							DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-							Date inputDate = null;
+							//Create Proj Info table
+			        		StringBuilder html = new StringBuilder();
+							html.append("<html>\n" +
+						            "  <head>\n" +
+						            "    <style>\n" +
+						            "      table, th, td {\n" +
+						            "        border: 1px solid black;\n" +
+						            "      }\n" +
+						            "      table {\n" +
+						            "        border-collapse: collapse;\n" +
+						            "      }\n" +
+						            "    </style>\n" +
+						            "  </head>\n" +
+						            "  <body>\n" +
+						            "    <table>\n" +
+						            "      <tr>\n" +
+						            "        <th>Project Name</th>\n" +
+						            "        <th>Client Name</th>\n" +
+						            "        <th>Created On</th>\n" +
+						            "        <th>Project Department</th>\n" +
+						            "      </tr>\n");
+							// add rows to the table
+							for(ResourceManagementDTO rmgDTO: filteredList) {
+								
+								DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+								Date inputDate = null;
+								try {
+									inputDate = inputFormatter.parse(rmgDTO.getCreatedOn());
+								} catch (ParseException e) {
+									e.printStackTrace();
+								}
+
+								DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+								String outputDateStr = outputFormatter.format(inputDate);
+								
+								html.append("      <tr>\n");
+								  // add cells to the row
+								  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
+								  html.append("        <td>" + rmgDTO.getClientName() + "</td>\n");
+								  html.append("        <td>" + outputDateStr + "</td>\n");
+								  html.append("        <td>" + dept.getName() + "</td>\n");
+								  html.append("      </tr>\n");
+							}
+							
+							html.append("    </table>\n" +
+							            "  </body>\n" +
+							            "</html>");
+							
+							//Send Mail regarding oldProject where team not created
+							
+							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
 							try {
-								inputDate = inputFormatter.parse(rmgDTO.getCreatedOn());
-							} catch (ParseException e) {
+								mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
+										"Reminder for Project - Resource OnBoarding",
+										"Dear team, <br><br>" +
+										"Below projects are onboarded in PoPortal/Ishine in which team and resources are not added. Please take necessary action.<br><br>"
+									  +	html.toString());
+							} catch (AddressException e) {
+								e.printStackTrace();
+							} catch (MessagingException e) {
 								e.printStackTrace();
 							}
-
-							DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-							String outputDateStr = outputFormatter.format(inputDate);
-							
-							html.append("      <tr>\n");
-							  // add cells to the row
-							  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
-							  html.append("        <td>" + rmgDTO.getClientName() + "</td>\n");
-							  html.append("        <td>" + outputDateStr + "</td>\n");
-							  html.append("        <td>" + dept.getName() + "</td>\n");
-							  html.append("      </tr>\n");
 						}
-						
-						html.append("    </table>\n" +
-						            "  </body>\n" +
-						            "</html>");
-						
-						//Send Mail regarding oldProject where team not created
-						
-						Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
-						try {
-							mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
-									"Reminder for Project - Resource OnBoarding",
-									"Dear team, <br><br>" +
-									"Below projects are onboarded in PoPortal/Ishine in which team and resources are not added. Please take necessary action.<br><br>"
-								  +	html.toString());
-						} catch (AddressException e) {
-							e.printStackTrace();
-						} catch (MessagingException e) {
-							e.printStackTrace();
-						}
-						
 					});
 				}
 			}catch(Exception e) {
