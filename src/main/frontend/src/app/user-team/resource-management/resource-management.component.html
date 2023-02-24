@@ -369,7 +369,7 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3" (click)="addTeamMemberMapping()" [disabled]="allTeamMembers.length == 0 || (newteamMember.empId != null || newteamMember.employeeRole)">Add Team Member(s)</button>
                     <!-- <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button> -->
                 </div>
             </div>
