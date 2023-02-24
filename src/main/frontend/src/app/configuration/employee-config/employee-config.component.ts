@@ -1057,6 +1057,8 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
+    employee.empId = this.employeeObj.empId;
+    employee.email = this.employeeObj.email;
 
     if(this.employeeObj.employeementId.startsWith('A-')){
       if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){

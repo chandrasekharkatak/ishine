@@ -2228,11 +2228,11 @@ public class EmployeeService {
 			if (checkEmployeementId == null && checkDraftEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
-				if (checkEmployeementId != null) {
+				if (checkEmployeementId != null && !employeedto.getEmpId().equals(checkEmployeementId.getEmpId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employeement ID already exist!");
 				}
-				if (checkDraftEmployeementId != null) {
+				if (checkDraftEmployeementId != null && !employeedto.getEmail().equals(checkDraftEmployeementId.getEmail())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employeement ID already exist in Employee Draft!");
 				}
