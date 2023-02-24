@@ -93,7 +93,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allLeaveApplicationsList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
           [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
@@ -184,7 +184,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allTimesheetApplicationsList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
           [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
@@ -356,7 +356,7 @@
           </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div>
     </div> 
@@ -490,7 +490,7 @@
          <div class="col-md-12 d-flex justiy-content-center mt-2">
           <button type="button" class="btn btn-sm btn-outline-primary"
           (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2" (click)="exportToExcel()">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button" (click)="exportToExcel()">
             <em class="fa fa-file-arrow-down fa-2x"></em>
           </button>
          </div>
@@ -582,7 +582,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allLeaveTimesheets.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
           [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>

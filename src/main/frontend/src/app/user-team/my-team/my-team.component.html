@@ -132,7 +132,7 @@
           </div>
           <pagination-controls class="my-pagination" [hidden]="teamViewList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
             [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
@@ -245,7 +245,7 @@
                         </tbody>
                       </table>
                       <pagination-controls class="my-pagination" [hidden]="teamViewLeaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
               </div>
           </div>
@@ -324,7 +324,7 @@
           </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="teamViewCompOffHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div>
       </div>
@@ -445,7 +445,7 @@
             </div>
             <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0"
               (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
               [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>
@@ -515,7 +515,7 @@
               </table>
               <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                 [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em
                   class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
@@ -596,7 +596,7 @@
             </div>
             <pagination-controls class="my-pagination" [hidden]="reporteeLeaveRevokeApplicationList.length == 0"
               (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
               [hidden]="reporteeLeaveRevokeApplicationList.length == 0" (click)="exportToExcel()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>

@@ -172,7 +172,7 @@
                       </table>   
                 </div>    
                   <pagination-controls class="my-pagination" [hidden]="holidayListFilter.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
     </div>
@@ -315,7 +315,7 @@
                       </table> 
                 </div>
                   <pagination-controls class="my-pagination" [hidden]="leaveTypes.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>   
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>   
             </div>
         </div>
     </div>     
@@ -704,7 +704,7 @@
                           </table> 
                     </div>                         
                   <pagination-controls class="my-pagination" [hidden]="leavePolicyList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
             </div>
         </div>
     </div>   
