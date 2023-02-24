@@ -235,10 +235,18 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	/* Timesheet reconsilation */
 	@RequestMapping(value = "/fillTimesheetForOldLeaves" ,method = RequestMethod.GET)
 	public ServiceResponse fillTimesheetForOldLeaves() {
 		
 		ServiceResponse response = employeeLeaveService.fillTimesheetForOldLeaves();
+		return response;
+	}
+	
+	@RequestMapping(value = "/addTimesheetForHolidays" ,method = RequestMethod.POST)
+	public ServiceResponse addTimesheetForHolidays(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.addTimesheetForHolidays(leaveDTO);
 		return response;
 	}
 

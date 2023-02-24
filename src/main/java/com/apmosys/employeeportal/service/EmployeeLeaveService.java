@@ -2652,4 +2652,55 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		return response;
 	}
 
+	public ServiceResponse addTimesheetForHolidays(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			LocalDate holidayDate = LocalDate.parse("2023-02-18");
+			
+			List<Employee> allEmployee = employeeRepository.findAll();
+			
+			if(!allEmployee.isEmpty()) {
+				allEmployee.forEach((emp) -> {
+					
+					if(!emp.getEmploymentstatus().equals("InActive")) {
+						Timesheet timesheetObj = timesheetsRepository.findByEmpIdAndDate(emp.getEmpId(), holidayDate);
+						
+						if(timesheetObj == null) {
+							Timesheet newTimesheet = new Timesheet();
+							
+							newTimesheet.getCommonProperty().setCreatedBy(emp.getEmpId());
+							newTimesheet.setDate(holidayDate);
+							newTimesheet.setDayType("Holiday");
+							newTimesheet.setDescription("Public Holiday");
+							newTimesheet.setEmpId(emp.getEmpId());
+							newTimesheet.setStatus("Approved");
+							
+							Timesheet dbResponse = timesheetsRepository.save(newTimesheet);
+							
+							if(dbResponse != null) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("timesheet Added successfully");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to add Timesheet");
+							}
+						}
+					}
+				});
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is empty");
+			}
+			
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }

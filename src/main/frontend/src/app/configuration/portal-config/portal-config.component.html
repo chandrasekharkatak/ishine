@@ -5,7 +5,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_appreciation_event" [ngClass]="{'active' : viewEventConfig}" (click)="viewAppreciationEventOnClick()">View Appreciation Event</button>	
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_employees_appreciation" [ngClass]="{'active' : viewAppreciationForm || isAppreciationTable}"  (click)="viewAllAppreciation()">View Appreciation</button>
 
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isHelpConfiguration && isHelpTable}" (click)="viewHelpDocument()">View Help Documents</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.help_document_configuration" [ngClass]="{'active' : isHelpConfiguration && isHelpTable}" (click)="viewHelpDocument()">View Help Documents</button>
 
     </div>
 </div>
@@ -553,6 +553,7 @@
                                 <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteDocument(delete_helpDoc_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
                                 <button class="btn btn-sm btn-outline-primary" type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>&nbsp;
                                 <button class="btn btn-sm btn-outline-primary" (click)="previewHelpDocument(preview_document,doc)" type="submit"><em>Preview Document</em></button>&nbsp;
+                                <button class="btn btn-sm btn-outline-primary" (click)="copyHelpDocumentLink(doc, alert_message)" type="submit"><em>Copy Link</em></button>&nbsp;
                                 </td>
                             </tr>
                         </tbody>
@@ -586,7 +587,7 @@
                                 <div class="form-group">
                                     <label class="info-label mb-0"><span class="text-danger">*</span>Select File</label>
                                     <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto {{maxFileSize}}MB</small>
-                                    <input type="file" accept=".pdf,.doc" multiple class="form-control p-1" (change)="onFileSelect($event)">
+                                    <input type="file" accept=".pdf" multiple class="form-control p-1" (change)="onFileSelect($event)">
                                 </div>
                             </div>
                         </div>

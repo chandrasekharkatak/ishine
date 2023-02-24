@@ -21,6 +21,7 @@ import { Timesheet } from 'src/app/models/timesheet';
 import { HelpService } from 'src/app/services/help.service';
 import { Help } from 'src/app/models/help';
 import { saveAs } from "file-saver";
+import { ClipboardService } from 'ngx-clipboard';
 
 
 
@@ -116,7 +117,8 @@ export class PortalConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
     private departmentService: DepartmentService,
-    private helpService: HelpService
+    private helpService: HelpService,
+    private clipboardService: ClipboardService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1089,6 +1091,14 @@ export class PortalConfigComponent implements OnInit {
         this.openPreviewDocument(template);
       }
     });
+  }
+
+  copyHelpDocumentLink(doc:any,template: TemplateRef<any>) {
+    let url = window.location.href.split("#")[0].concat("#/helpdesk/").concat(doc.helpDocId);
+    console.log(url, " : url");
+    
+    this.clipboardService.copy(url);
+    this.openAlertMod(template, "Link copied to clipboard !!");
   }
 
   //Help Config :: end
