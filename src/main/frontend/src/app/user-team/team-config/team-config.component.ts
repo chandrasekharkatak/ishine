@@ -1204,35 +1204,9 @@ export class TeamConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateActivityTemplateObj(this.activityTemplateObj, template)
     if (!inputValidated) return;
     this.activityTemplateObj.templateActivityList = (Object.keys(this.allTemplateActivityList[0]).length === 0) ? null : this.allTemplateActivityList;
-
-    if (this.activityTemplateObj.templateActivityList) {
-      let newActivities = this.activityTemplateObj.templateActivityList.filter(activity => !activity.activityTemplateId);
-      console.log("newActivities : ", newActivities);
-
-      if (newActivities) {
-        if (this.updatedTemplateActivityList === undefined || this.updatedTemplateActivityList.length === 0) {
-          this.updatedTemplateActivityList = [];
-          
-        }
-        this.updatedTemplateActivityList.forEach(activity => {
-          if(activity.activityTemplateId == ""){
-            this.updatedTemplateActivityList.splice(activity,1);
-          }
-        });
-        this.updatedTemplateActivityList = this.updatedTemplateActivityList.concat(newActivities);
-      }
-    } else {
-      if (this.updatedTemplateActivityList == undefined || this.updatedTemplateActivityList[0].length == 0) {
-        this.updatedTemplateActivityList = null;
-      }
-    }
-
-    console.log(this.activityTemplateObj.templateActivityList, " : this.activityTemplateObj.templateActivityList");
-    console.log(this.updatedTemplateActivityList, " : this.activityTemplateObj.updatedTemplateActivityList");
     
     console.log(this.activityTemplateObj, " :this.activityTemplateObj");
     
-
     this.teamService.updateActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
