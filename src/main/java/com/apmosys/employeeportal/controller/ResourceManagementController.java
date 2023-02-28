@@ -89,4 +89,11 @@ public class ResourceManagementController {
 		          "<body>\n" + "<h1>Your Request for Project "+ id +" is "+ status +"!!</h1>" + "</body>\n" + "</html>";
 	}
 	
+	@RequestMapping(value = "/getInternalProject", method = RequestMethod.GET)
+	public ServiceResponse getInternalProject() {
+		
+		ServiceResponse response = resourceManagementService.getInternalProject();
+		return response;
+	}
+	
 }

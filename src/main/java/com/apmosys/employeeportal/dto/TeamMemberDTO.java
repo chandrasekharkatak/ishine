@@ -15,5 +15,6 @@ public class TeamMemberDTO {
 	private String departmentId;
 	private String[] employeeRole;
 	private String isTeamLead;
+	private String startDate;
 	
 }

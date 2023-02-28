@@ -34,4 +34,7 @@ public class ResourceManagementDTO {
 	private String createdOn;
 	private String deptName;
 	
+	private String projectType;
+	private Integer projectId;
+	
 }

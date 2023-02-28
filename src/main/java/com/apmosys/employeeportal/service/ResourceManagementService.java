@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -101,8 +102,14 @@ public class ResourceManagementService {
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			Project projObj = null;
+			if(resourceManagementDTO.getProjectType().equals("Internal")) {
+				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+			}else {
+				projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());				
+			}
 			
-			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			Project projectObj = projObj;
 			Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
 			
 			List<Long> allTeam = new ArrayList<>();
@@ -121,7 +128,7 @@ public class ResourceManagementService {
 					projectObj.setProjectName(resourceManagementDTO.getName());
 					projectObj.setProjectManagerId(projManagerId);
 					
-//					Project projectDbResponse = projectRepository.save(projectObj);
+					Project projectDbResponse = projectRepository.save(projectObj);
 				}else {
                     projectObj.setIsDraftProject("true");
                     projectObj.setProjectName(resourceManagementDTO.getName());
@@ -357,7 +364,7 @@ public class ResourceManagementService {
 				}
 				
 				//Send mail to RMG: if HOD has updated project/Team
-				if(resourceManagementDTO.getIsHOD().equals("true")) {
+				if(resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
 					try {
 						mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 								"Regarding Resource managment",
@@ -371,15 +378,20 @@ public class ResourceManagementService {
 				
 				// Send Project/Team detail JSON to PoPotal
 				
-				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-				
-				if(poPortalResponse.getServiceStatus().equals("Success")) {
+				if(!resourceManagementDTO.getProjectType().equals("Internal")) {
+					ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+					
+					if(poPortalResponse.getServiceStatus().equals("Success")) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Project updated successfully");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse(poPortalResponse.getServiceResponse());
+					}	
+				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project updated successfully");
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(poPortalResponse.getServiceResponse());
-				}		
+				}
 				
 			}else {
 				Integer clientId = null;
@@ -558,7 +570,7 @@ public class ResourceManagementService {
 					});	
 					
 					//Send mail to RMG: if HOD/SuperAdmin has created project/Team
-					if(resourceManagementDTO.getIsHOD().equals("true")) {
+					if(resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
 						try {
 							mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
 									"Regarding Resource managment",
@@ -572,14 +584,19 @@ public class ResourceManagementService {
 					
 					// Send Project/Team detail JSON to PoPotal
 					
-					ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-					
-					if(poPortalResponse.getServiceStatus().equals("Success")) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Project created successfully.");
+					if(!resourceManagementDTO.getProjectType().equals("Internal")) {
+						ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+						
+						if(poPortalResponse.getServiceStatus().equals("Success")) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Project updated successfully");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse(poPortalResponse.getServiceResponse());
+						}	
 					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse(poPortalResponse.getServiceResponse());
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Project updated successfully");
 					}
 				}
 			}
@@ -596,7 +613,12 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			Project projectObj = null;
+			if(resourceManagementDTO.getProjectType().equals("Internal")) {
+				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+			}else {
+				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());				
+			}
 			
 			if(projectObj != null) {
 				List<Team> teamList = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
@@ -629,12 +651,14 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
 									teamMemberDTO.setIsTeamLead("true");
+									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
 									teamMember.add(teamMemberDTO);
 								}else {
 									//Team Member
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
+									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
 									teamMember.add(teamMemberDTO);
 								}
@@ -683,6 +707,7 @@ public class ResourceManagementService {
 						resourceDTO.setName(projObject.getProjectName());
 						resourceDTO.setIsDraftProject(projObject.getIsDraftProject());
 						resourceDTO.setPoProjectId(projObject.getPoProjectId());
+						resourceDTO.setProjectId(projObject.getProjectId());
 						dtoList.add(resourceDTO);
 					}
 				});
@@ -1137,6 +1162,84 @@ public class ResourceManagementService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(syncResponse.getServiceResponse());
 				}	
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getInternalProject() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> allInternalProject = projectRepository.getAllInternalProject();
+			List<ResourceManagementDTO> projectInfo = new ArrayList<ResourceManagementDTO>();
+			
+			if(allInternalProject != null) {
+				allInternalProject.forEach((object) -> {
+					ResourceManagementDTO projectDTO = new ResourceManagementDTO();
+					
+					projectDTO.setProjectType("Internal");
+					projectDTO.setName(object[0] != null ? object[0].toString() : null);
+					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
+					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
+					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
+					
+					//Find ClientName
+					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
+					if(clientId != null) {
+						Client clientObj = clientsRepository.findByClientId(clientId);
+						
+						projectDTO.setClientName(clientObj.getClientName());
+					}else {
+						projectDTO.setClientName(null);
+					}
+					
+					projectDTO.setClientState(object[8] != null ? object[8].toString() : null);
+					projectDTO.setCreatedOn(object[5] != null ? object[5].toString() : null);
+					projectDTO.setIsDraftProject(object[9] != null ? object[9].toString() : null);
+					
+					//Find ClientLocation
+					if(clientId != null) {
+						List<ClientLocation> clientLocation = clientLocationRepository.findByClientId(clientId);
+						
+						if(clientLocation != null) {
+							
+							String[] locationList = clientLocation.stream()
+								    .map((ClientLocation location) -> location.getClientLocation()).collect(Collectors.toList())
+									.toArray(String[]::new);
+							
+							projectDTO.setClientLocation(locationList);
+						}
+					}
+					
+					//Find Project department
+					Integer projectId = object[3] != null ? Integer.parseInt(object[3].toString()) : null;
+					List<ProjectDepartmentMap> allDeptList = projectDepartmentMapRepository.findByProjectId(projectId);
+					List<String> deptList = new ArrayList<String>();
+					
+					if(allDeptList != null) {
+						allDeptList.forEach((dept) -> {
+							Department deptObj = departmentRepository.findByDeptId(dept.getDeptId());
+							
+							deptList.add(deptObj.getName());
+						});
+						
+						String[] department = deptList.stream().toArray(String[]::new);
+						projectDTO.setDepartment(department);
+					}
+					projectInfo.add(projectDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(projectInfo);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Internal project found.");
 			}
 			
 		}catch(Exception e) {

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,5 +22,6 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	Client findByClientId(Integer clientId);
 
-
+	Optional<Client> findFirstByClientNameLike(String name);
+	
 }

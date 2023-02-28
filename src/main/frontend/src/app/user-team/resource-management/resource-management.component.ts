@@ -18,6 +18,7 @@ import { TeamService } from 'src/app/services/team.service';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
+import { ProjectService } from 'src/app/services/project.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -50,11 +51,12 @@ export class ResourceManagementComponent implements OnInit {
   isEditProject:boolean = false;
   isUpdation:boolean = false;
   isHideButton:boolean = false;
-  // isMyDepartmentProject:boolean = false;
-  // isPendingProject:boolean = false;
   allProjectTable:boolean = false;
   isAllPendingProjectAllowed: boolean = false;
   isHOD:boolean = false;
+  isCreateForm:boolean = false;
+  isCreation:boolean = false;
+  isUpdateForm:boolean = false;
 
   currentTeam:any;
   selectedProjToReject:any;
@@ -74,6 +76,11 @@ export class ResourceManagementComponent implements OnInit {
   allTeamListCopy: any[] = [];
   managerList: any[] = [];
   bulkSyncList: any[] = [];
+  allClientList: any[] = [];
+  filteredClientList:any[] = [];
+  allClientLocationList:any[] = [];
+  clientLocationList:any[] = [];
+  internalProjectList:any[] = [];
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
@@ -90,6 +97,7 @@ export class ResourceManagementComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private route: ActivatedRoute,
     private router : Router,
+    private projectService: ProjectService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -123,12 +131,7 @@ export class ResourceManagementComponent implements OnInit {
 
     if (this.userMapping.view_all_rmg_projects) {
       this.showViewProjects();
-    } 
-    // else if (this.userMapping.view_my_department_rmg_projects) {
-    //   this.showDepartmentWiseProject();
-    // } else if (this.userMapping.view_pending_for_approval_rmg_projects) {
-    //   this.showPendingForApprovalProject();
-    // }
+    }
 
     if(this.currentProjectId != undefined || this.currentProjectId != null){
       this.showViewProjects();
@@ -141,8 +144,8 @@ export class ResourceManagementComponent implements OnInit {
     
     this.isHideButton = false;
     this.isEditProject = false;
-    // this.isMyDepartmentProject = false;
-    // this.isPendingProject = false;
+     this.isCreateForm = false;
+    this.isCreation = false;
     this.filters = {};
     this.isSearchEnabled = false;
 
@@ -168,117 +171,101 @@ export class ResourceManagementComponent implements OnInit {
     this.isHideButton = false;
   }
 
-  // showDepartmentWiseProject(){
-  //   this.allProjectList = [];
-  //   this.isMyDepartmentProject = true;
-  //   this.allProjectTable = true;
+  showCreateForm(){
+    this.isCreateForm = true;
+    this.isCreation = true;
 
-  //   this.isHideButton = false;
-  //   this.isEditProject = false;
-  //   this.isProjectTable = false;
-  //   this.isPendingProject = false;
-  //   this.alreadyCreatedTeam();
-  // }
+    this.isProjectTable = false;
+    this.allProjectTable = false;
+    this.isUpdateForm = false;
 
-  // showPendingForApprovalProject(){
-  //   this.allProjectList = [];
-  //   this.isPendingProject = true;
-  //   this.allProjectTable = true;
+    this.projectObj = new Project();
+    this.getAllDepartmentListForCreateProject();
+    this.getManagerList();
+    this.getAllClientList();
+    this.projectObj.clientId = '';
+  }
 
-  //   this.isHideButton = false;
-  //   this.isEditProject = false;
-  //   this.isProjectTable = false;
-  //   this.isMyDepartmentProject = false;
-  //   this.alreadyCreatedTeam();
-  // }
+  allStates: any[] = [
+    "Maharashtra",
+  ];
 
   getAllProjects(){
     // fetch('https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects').then(res => res.json()).then(data => {
-    fetch('http://192.168.21.175:8080/PoPortal/project/fixedCost/getAllProjects').then(res => res.json()).then(data => {
-      let _projectList = data;
-
-      if((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)){
-
-        //sort according to dateTime
-        _projectList = _projectList.sort((a, b) => (new Date(a.createdOn).getTime() < new Date(b.createdOn).getTime()) ? 1 : -1);
-
-        _projectList.sort((a) => {
-          if (a.isTeamCreated && a.isDraftProject == 'Pending For Approval') {
-            return -1;
-          } else {
-            return 1;
-          }
-        });
-
-        _projectList.forEach((proj) => {
-          let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
-          if(selectedProj){
-            proj.isTeamCreated = true;
-            proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
-            proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            console.log("proj.isDraftProject",  proj.isDraftProject);
-          }else{
-            proj.isTeamCreated = false;
-            proj.isDraftProject = "NA";
-            proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          }
-        });
-      }
-
-      this.allProjectList = _projectList;
-      console.log(this.allProjectList, " all projects");
+    fetch('http://192.168.21.175:8080/PoPortal/project/fixedCost/getAllProjects').then(res => res.json()).then(async data => {
+      let allPoProject = data;
       
-      // Navigate to Project when used link
+      this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.internalProjectList = response.serviceResponse;
 
-      if(this.currentProjectId != undefined || this.currentProjectId != null){
-        this.allProjectList.forEach((proj) => {
-          if(proj.id == this.currentProjectId){
-            proj.isEditProject = true;
-            this.showEditProjectForm(proj);
+          let _projectList = [...allPoProject,...this.internalProjectList];
+
+          if((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)){
+
+            //sort according to dateTime
+            _projectList = _projectList.sort((a, b) => (new Date(a.createdOn).getTime() < new Date(b.createdOn).getTime()) ? 1 : -1);
+    
+            _projectList.sort((a) => {
+              if (a.isTeamCreated && a.isDraftProject == 'Pending For Approval') {
+                return -1;
+              } else {
+                return 1;
+              }
+            });
+
+            console.log(this.teamCreatedProjectList, " : teamCreatedProjectList");
+            
+    
+            _projectList.forEach((proj) => {
+
+              if(proj.id != null){
+                let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
+                
+                if(selectedProj){
+                  proj.isTeamCreated = true;
+                  proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                  console.log("proj.isDraftProject",  proj.isDraftProject);
+                }else{
+                  proj.isTeamCreated = false;
+                  proj.isDraftProject = "NA";
+                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                }
+              }else{
+                let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
+
+                if(selectedProj){
+                  proj.isTeamCreated = true;
+                  proj.isDraftProject = proj.projectType;
+                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                }else{
+                  proj.isTeamCreated = false;
+                  proj.isDraftProject = proj.projectType;
+                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                }
+              }
+            });
           }
-        })
-      }
-
-      //View My Department project
-      // if(this.isMyDepartmentProject == true){
-      //   this.allProjectList = _projectList?.filter((proj) => proj.department?.includes(this.currentUser.departmentName));
-        
-      // }
-      //View Pending for approval projects
-      // else if(this.isPendingProject == true){
-      //   this.resourceManagementService.getPendingForApprovalProject().pipe(first()).subscribe((response: any) => {
-      //     if (response.serviceStatus == "Success") {
-      //       const pendingProject = response.serviceResponse;
-
-      //       if(this.userMapping.allow_all_rmg_pending_projects){
-      //         this.isAllPendingProjectAllowed = this.userMapping.allow_all_rmg_pending_projects;
-      //       }
-
-      //       if(this.isAllPendingProjectAllowed){
-      //         this.allProjectList = pendingProject;
-      //       }else{
-      //         this.allProjectList = pendingProject.filter((proj) => proj.department?.includes(this.currentUser.departmentName));
-      //       }
-
-      //       if(this.currentProjectId != undefined || this.currentProjectId != null){
-      //         this.allProjectList.forEach((proj) => {
-      //           if(proj.poProjectId == this.currentProjectId){
-      //             proj.isEditProject = true;
-      //             this.showEditProjectForm(proj);
-      //           }
-      //         })
-      //       }
-      //       console.log( this.allProjectList, " :  this.allProjectList");
-      //     } else {
-      //       this.allProjectList = [];
-      //       console.error(response.serviceResponse);
-      //     }
-      //   });
-
-      // }else{
-      //   this.allProjectList = _projectList;
-      //   console.log(this.allProjectList, " all projects");
-      // }
+    
+          this.allProjectList = _projectList;
+          console.log(this.allProjectList, " all projects");
+          
+          // Navigate to Project when used link
+    
+          if(this.currentProjectId != undefined || this.currentProjectId != null){
+            this.allProjectList.forEach((proj) => {
+              if(proj.id == this.currentProjectId){
+                proj.isEditProject = true;
+                this.showEditProjectForm(proj);
+              }
+            })
+          }
+          console.log(this.internalProjectList, " this.internalProjectList");
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
     });
   }
 
@@ -586,6 +573,9 @@ export class ResourceManagementComponent implements OnInit {
         this.projectObj.teamList = response.serviceResponse;
         this.projectObj.teamList.forEach((obj) =>{
           obj.departmentList = obj.departmentList?.map(x=>+x);
+          obj.teamMemberList.forEach((member) => {
+            member.startDate = (member.startDate)? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+          });
         });
         console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.previewTeamList = this.projectObj.teamList;
@@ -701,6 +691,127 @@ export class ResourceManagementComponent implements OnInit {
     }
   }
 
+  getAllClientList() {
+    this.allClientList = [];
+
+    this.projectService.getAllClients().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allClientList = response.serviceResponse;
+
+        //remove duplicate clients
+        this.filteredClientList = this.allClientList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.clientId === value.clientId
+          ))
+        )
+
+        console.log(this.filteredClientList, " : this.filteredClientList");
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllDepartmentListForCreateProject(){
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getClientLocationList(clientId: any){
+    this.clientLocationList = [];
+    this.allClientLocationList = [];
+
+    const key = "clientLocationId";
+    this.clientLocationList = [...new Map(this.allClientList.map((project: Project) => [project[key], project])).values()].filter((project: Project) => {
+      if (project.clientId == clientId) {
+        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
+      }
+    });
+    console.log("clientLocationList :", this.clientLocationList);
+  }
+
+  checkProjectName(template:TemplateRef<any>){
+    let projectObj = new Project();
+    projectObj.projectName = this.projectObj.projectName?.trim();
+
+    if(projectObj.projectName.length >= 5){
+      if (!this.validationService.validateProjectName(projectObj.projectName)) {
+        this.alertMessage = "Please enter valid Project Name !!"
+        this.projectObj.projectName = '';
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+    }else{
+      this.alertMessage = "Please enter more than 4 letters in Project Name !!"
+      this.projectObj.projectName = '';
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Fail"){
+        this.projectObj.projectName = '';
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+  }
+
+  validateCreateProjectObj(projectObj: Project, template: TemplateRef<any>){
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectName)) {
+      this.alertMessage = "Please enter Project name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.clientId)) {
+    //   this.alertMessage = "Please select a client !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectManagerId)) {
+      this.alertMessage = "Please select project manager !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.departmentName)) {
+      this.alertMessage = "Please select department !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.state)) {
+      this.alertMessage = "Please select state !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    return true;
+  }
+
+  createProject(template: TemplateRef<any>){
+    let inputValidated: boolean = this.validateCreateProjectObj(this.projectObj, template)
+    if (!inputValidated) return;
+
+    this.projectObj.departmentList = this.projectObj.departmentName;
+    this.projectObj.departmentName = null;
+    this.projectObj.projectName = this.projectObj.projectName?.trim();
+    this.projectObj.createdBy = this.currentUser.empId;
+    console.log("     :   ",this.projectObj);
+    
+    this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showViewProjects();
+      }else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   // Manage team & teamMemberList
 
   addInputTeamField(){
@@ -789,6 +900,10 @@ export class ResourceManagementComponent implements OnInit {
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  openShowCreateForm(template: TemplateRef<any>){
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
   cancelRequest() {
