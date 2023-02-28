@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -416,6 +417,16 @@ public class ResourceManagementService {
 							newClientLocation.setClientLocation(clientLocation);
 							locations.add(newClientLocation);
 						}
+						
+						//Add WFH location
+						boolean contains = Arrays.stream(resourceManagementDTO.getClientLocation()).anyMatch("WFH"::equals);
+						if(!contains) {
+							ClientLocation newClientLocation = new ClientLocation();
+							newClientLocation.setClientId(clientDbResponse.getClientId());
+							newClientLocation.setClientLocation("WFH");
+							locations.add(newClientLocation);
+						}
+						
 						List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
 						
 						if(!clientLocationDbResponse.isEmpty()) {
