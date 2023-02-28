@@ -1238,7 +1238,9 @@ public class ResourceManagementService {
 						allDeptList.forEach((dept) -> {
 							Department deptObj = departmentRepository.findByDeptId(dept.getDeptId());
 							
-							deptList.add(deptObj.getName());
+							if(deptObj != null) {
+								deptList.add(deptObj.getName());								
+							}
 						});
 						
 						String[] department = deptList.stream().toArray(String[]::new);
