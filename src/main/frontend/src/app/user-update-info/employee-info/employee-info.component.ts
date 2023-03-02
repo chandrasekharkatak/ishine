@@ -601,9 +601,9 @@ if(this.errorMsg == ""){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter views On Organisation !!"   
   }
-  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-    this.errorMsg = "Please enter valid views On Organisation !!"   
-}
+//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+//     this.errorMsg = "Please enter valid views On Organisation !!"   
+// }
   else{
   this.errorMsg = ""
 }
@@ -619,9 +619,9 @@ if(this.errorMsg == ""){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter About me !!"   
   }
-  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-    this.errorMsg = "Please enter valid About me !!"   
-}
+//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+//     this.errorMsg = "Please enter valid About me !!"   
+// }
   else{
   this.errorMsg = ""
 }
