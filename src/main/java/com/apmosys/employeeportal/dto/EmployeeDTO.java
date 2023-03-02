@@ -182,4 +182,10 @@ public class EmployeeDTO {
 	private String approvalsTo;
 	private String reportingManagerName;
 	private String reportingManagerEmail;
+	
+	private Long[] specializationList;
+	private Long[] domainList;
+	
+	private String specializationName;
+	private String domainName;
 }

@@ -27,17 +27,21 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Domain;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.Specialization;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.DomainRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.SpecializationRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -77,6 +81,12 @@ public class CustomFilterService {
 	
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
+	
+	@Autowired
+	SpecializationRepository specializationRepository;
+	
+	@Autowired
+	DomainRepository domainRepository;
 	
 	
 	@Value("${spring.datasource.url}")
@@ -447,6 +457,16 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Domain": {
+					query = query.append(" dm.domain_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Specialization": {
+					query = query.append(" s.specialization_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				default:
 					break;
 				}
@@ -459,22 +479,26 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {
-//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,"
-//						+ " e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,"
-//						+ " e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,"
-//						+ " e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,"
-//						+ " e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,"
-//						+ " e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,"
-//						+ " e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,"
-//						+ " e.previous_pf_account_number, e.relation, e.state, e.uan,"
-//						+ " e.views_on_organisation, e.year_of_passing,"
-//						+ "  jr.dept_id, jr.name as jobrolename,"
-//						+ " d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, "
-//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience "
-//						+ "FROM employee e "
-//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+//						+ "e.views_on_organisation, e.year_of_passing,\n"
+//						+ "jr.dept_id, jr.name as jobrolename,\n"
+//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
+//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName \n"
+//						+ "FROM employee e \n"
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+//						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
+//						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
+//						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
+//						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+//						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
@@ -485,17 +509,21 @@ public class CustomFilterService {
 						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
 						+ "e.views_on_organisation, e.year_of_passing,\n"
 						+ "jr.dept_id, jr.name as jobrolename,\n"
-						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName \n"
-						+ "FROM employee e \n"
-						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
-						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
-						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+						+ "s.specialization_name,dm.domain_name\n"
+						+ "FROM employee e\n"
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id\n"
+						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
+						+ "LEFT JOIN projects p on p.project_id = t.project_id\n"
+						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
+						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
+						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -595,6 +623,8 @@ public class CustomFilterService {
 					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);	
 					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
 					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
+					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
@@ -1473,6 +1503,32 @@ public class CustomFilterService {
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
             }
+            case "Specialization": {
+				List<Specialization> allSpecialization = specializationRepository.findAll();
+				if (!allSpecialization.isEmpty()) {
+					allSpecialization.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getSpecializationName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Domain": {
+            	List<Domain> allDomain = domainRepository.findAll();
+				if (!allDomain.isEmpty()) {
+					allDomain.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getDomainName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
 			default:
 				break;
 			}

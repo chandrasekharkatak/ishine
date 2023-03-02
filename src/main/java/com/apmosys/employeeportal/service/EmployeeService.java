@@ -9,8 +9,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +40,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
@@ -50,6 +53,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
@@ -109,6 +113,9 @@ public class EmployeeService {
 	
 	@Autowired
 	EmployeeOnBoardingMapRepository employeeOnboardingMapRepository;
+	
+	@Autowired
+	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
 
 	@Autowired
 	private ModelMapper mapper;
@@ -825,6 +832,7 @@ public class EmployeeService {
 			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
 			List<EmployeeCertificate> certificationsList = employeeCertificateRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
 			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
+			List<Object[]> domaninSpecializationList = employeeSpecializationMapRepository.getEmployeeDomainInfo(employeedto.getEmpId());
 
 			if (!objectList.isEmpty()) {
 
@@ -947,6 +955,19 @@ public class EmployeeService {
 						previousEmploymentDTOList.add(dto);
 					}
 					empDTO.setPreviousEmploymentList(previousEmploymentDTOList);
+				}
+				
+				if(!domaninSpecializationList.isEmpty()) {
+					Set<Long> domainIds = new HashSet<Long>();
+					Set<Long> specializationIds = new HashSet<Long>();
+					
+					domaninSpecializationList.forEach((object) -> {
+						domainIds.add(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+						specializationIds.add(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					});
+					
+					empDTO.setDomainList(domainIds.toArray(new Long[domainIds.size()]));
+					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1296,6 +1317,34 @@ public class EmployeeService {
 								.forEach((prevEmployer) -> {
 									previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
 								});
+					}
+				}
+				
+				//Employee Specialization Mapping
+				
+				List<EmployeeSpecializationMap> mappingObj = employeeSpecializationMapRepository.findByEmpId(employee.getEmpId());
+				if(!mappingObj.isEmpty()) {
+					mappingObj.forEach((object) -> {
+						boolean contains = Arrays.stream(employeedto.getSpecializationList()).anyMatch(i -> i.equals(object.getSpecializationId()));
+						
+						//Delete Specialization
+						if(!contains) {
+							employeeSpecializationMapRepository.deleteById(object.getEmpSpecializationMapId());
+						}
+						
+					});
+				}
+				for(Long specializationId: employeedto.getSpecializationList()) {
+					EmployeeSpecializationMap empMapObj = employeeSpecializationMapRepository.findByEmpIdAndSpecializationId(employee.getEmpId(),specializationId);
+					
+					//Add new Specialization
+					if(empMapObj == null) {
+							EmployeeSpecializationMap empSpecObj = new EmployeeSpecializationMap();
+							
+							empSpecObj.setEmpId(employee.getEmpId());
+							empSpecObj.setSpecializationId(specializationId);
+							
+							EmployeeSpecializationMap dbResponse = employeeSpecializationMapRepository.save(empSpecObj);
 					}
 				}
 

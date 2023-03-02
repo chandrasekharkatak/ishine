@@ -54,6 +54,26 @@
                                     <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="d-flex">
+                                        <p class="user-card__profile-info__label">Domain : &nbsp;</p>
+                                        <div *ngFor="let cat of domainSpecializationList">
+                                            <h6 class="badge badge-pill" [ngStyle]="{'background-color': cat.colorCode}">{{ cat.domainName }}</h6> &nbsp;
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> 
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="d-flex">
+                                        <p class="user-card__profile-info__label">Specialization : &nbsp;</p>
+                                        <h6 *ngFor="let cat of domainSpecializationList; let i=index">
+                                            <span class="badge badge-pill" *ngFor="let sub of cat.allSpecializationList" [ngStyle]="{'background-color': cat.colorCode}">{{ sub.specializationName}} &nbsp;</span>  &nbsp;
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>                                                    
                         </div>
                     </div>
                 </div>

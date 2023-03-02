@@ -22,13 +22,23 @@ import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { AppComponent } from 'src/app/app.component';
 import { SortPipe } from 'src/app/sort.pipe';
-
+import { Domain } from 'src/app/models/domain';
+import { DomainService } from 'src/app/services/domain.service';
+import { Query } from 'src/app/models/query';
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
+}
 @Component({
   selector: 'app-employee-config',
   templateUrl: './employee-config.component.html',
   styleUrls: ['./employee-config.component.css']
 })
 export class EmployeeConfigComponent implements OnInit {
+
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 
   feature = 'Employee Config';
   data:string;
@@ -38,6 +48,8 @@ export class EmployeeConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
+
+  domainToBeDeleted:any;
 
   //flags 
   isCreation: boolean = false;
@@ -50,6 +62,12 @@ export class EmployeeConfigComponent implements OnInit {
   isDraftTable: boolean = false;
   dateOfReleivingshow: boolean = false;
 
+  isDomain: boolean = false;
+  isDomainTable: boolean = false;
+  isDomainCreation: boolean = false;
+  isDomainUpdation: boolean = false;
+  isDomainForm: boolean = false;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -58,6 +76,7 @@ export class EmployeeConfigComponent implements OnInit {
   //Obj 
   currentUser: User;
   employeeObj: Employee = new Employee();
+  domainObj: Domain = new Domain();
   allEmployeeList: any;
   _allEmployeeList: any;	
   managerList: any = [];
@@ -67,6 +86,11 @@ export class EmployeeConfigComponent implements OnInit {
   filteredJobRoleList: any[] = [];
   employeeDataForExcel: any[] = [];
   portalConfigList:any[] = [];
+  allDomainList:any[] = [];
+  specializationList:any[] = [];
+  allSpecializationList:any[] = [];
+  storedDataList:any[] = [];
+  domainSpecializationList:any[] = [];
 
   employeeWorkingHistory:[]
   allCertificationList: any[] = [];
@@ -123,11 +147,16 @@ export class EmployeeConfigComponent implements OnInit {
   employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
   employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
   draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
+  domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
   
   workHistoryFilters:any = {};
   isworkHistorySearchEnabled:boolean = false;
   employeeWorkhistoryColumns:any[] = ['occasion','dayOfTheWeek','dateOfHoliday','state','createdOn','createdbyName','updatedOn','updatedByName'];
   
+
+  queryList: any[] = [];
+  filterData: any = new FilterData();
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
 
   constructor(
     private employeeService: EmployeeService,
@@ -142,7 +171,8 @@ export class EmployeeConfigComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private portalService:PortalService,
     private utilityService:UtilityService,
-    private locationStrategy:LocationStrategy) {
+    private locationStrategy:LocationStrategy,
+    private domainService:DomainService) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -196,21 +226,6 @@ export class EmployeeConfigComponent implements OnInit {
     let path;
 
     let data = []
-    
-    // const pincodeData = data.map(empObj => {
-    //     let pincode;
-    //     const matches:any = empObj.address.match(/[1-9]{1}\d{2}\s?\d{3}/gm);
-    //     if(matches){
-    //       pincode = matches[0];
-    //     }
-    //     return {
-    //       employeeId : empObj.employeementId,
-    //       pincode : pincode,
-    //       employeeName : empObj.name
-    //     }
-    // });
-
-    // console.log("pincode data : ", pincodeData);
 
     data.forEach(empData => {
       let pincode = empData.pincode;
@@ -298,6 +313,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isDraft = false;
     this.isDraftTable = false;
+    this.isDomain = false;
+    this.isDomainTable = false;
+    this.isDomainCreation = false;
+    this.isDomainUpdation = false;
+    this.isDomainForm = false;
     this.page=1;
 
     this.reset();
@@ -323,6 +343,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.workHistoryFilters = {};
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
+    this.isDomain = false;
+    this.isDomainTable = false;
+    this.isDomainCreation = false;
+    this.isDomainUpdation = false;
+    this.isDomainForm = false;
 
     this.managerList = [];
     this.getAllEmployeeList();
@@ -337,6 +362,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.isDeletion = false;
+    this.isDomain = false;
+    this.isDomainTable = false;
+    this.isDomainCreation = false;
+    this.isDomainUpdation = false;
+    this.isDomainForm = false;
     this.page=1;
     this.data='';
     this.filters = {};
@@ -375,9 +405,15 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
+    this.isDomain = false;
+    this.isDomainTable = false;
+    this.isDomainCreation = false;
+    this.isDomainUpdation = false;
+    this.isDomainForm = false;
 
     this.getManagerList(employee);
     this.getAllDepartmentList();
+    this.getAllDomain();
     this.allCertificationList = [];
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
@@ -390,6 +426,10 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
  
         this.employeeObj = Object.assign({}, response.serviceResponse);
+
+        if( this.employeeObj.domainList != null){
+          this.getDomainSpecialization();
+        }
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
         
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
@@ -415,9 +455,15 @@ export class EmployeeConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.isDraftTable = false;
+    this.isDomain = false;
+    this.isDomainTable = false;
+    this.isDomainCreation = false;
+    this.isDomainUpdation = false;
+    this.isDomainForm = false;
 
     this.getManagerList();
-    this.getAllDepartmentList();    
+    this.getAllDepartmentList();
+    this.getAllDomain();    
     
     employee.employeementId = this.utilityService.substringEmployeementid(employee.employeementId);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
@@ -449,6 +495,96 @@ export class EmployeeConfigComponent implements OnInit {
     });
     
     setTimeout(this.setCalenderMaxDate, 1000);
+  }
+
+  showAllDomain(){
+    this.isDomain = true;
+    this.isDomainTable = true;
+
+    this.isDomainCreation = false;
+    this.isDomainUpdation = false;
+    this.isDomainForm = false;
+    
+    this.isForm = false;
+    this.isTable = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isDraft = false;
+    this.isDraftTable = false;
+    this.isDeletion = false;
+    this.getAllDomain(this.alertTemplate);
+  }
+
+  showCreateDomainForm(){
+    this.isDomainCreation = true;
+    this.isDomainForm = true;
+    
+    this.isDomain = false;
+    this.isDomainTable = false;
+    this.isDomainUpdation = false;
+    
+    this.isForm = false;
+    this.isTable = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isDraft = false;
+    this.isDraftTable = false;
+    this.isDeletion = false;
+
+    this.domainObj = new Domain();
+    this.allSpecializationList = [];
+
+    //Template Activity
+    if (this.domainObj.allSpecializationList == undefined || this.domainObj.allSpecializationList.length == 0) {
+      this.addInputSpecializationField();
+    } else {
+      this.allSpecializationList = this.domainObj.allSpecializationList;
+    }
+  }
+
+  showUpdateDomainForm(domain:any){
+    this.isDomainForm = true;
+    this.isDomainUpdation = true;
+    
+    this.isDomainCreation = false;
+    this.isDomain = false;
+    this.isDomainTable = false;
+    
+    this.isForm = false;
+    this.isTable = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isDraft = false;
+    this.isDraftTable = false;
+    this.isDeletion = false;
+
+    this.domainService.getDomainSpecializationByDomainId(domain).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.domainObj = Object.assign({}, response.serviceResponse);
+
+        this.allSpecializationList = this.domainObj.allSpecializationList;
+
+        console.log(response.serviceResponse, " : response.serviceResponse");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  // Manage Domain / Specialization
+  addInputSpecializationField(){
+    let domainObj = new Domain();
+    this.allSpecializationList.push(domainObj);
+    console.log(this.allSpecializationList, " : this.allSpecializationList");
+  }
+
+  removeInputSpecializationField(spec:any){
+    this.allSpecializationList.forEach((value, index) => {
+      if (value == spec) {
+        this.allSpecializationList.splice(index, 1);
+      }
+    });
+    console.log(this.allSpecializationList, " :this.allSpecializationList");
   }
 
   // Manage employer
@@ -1122,6 +1258,7 @@ export class EmployeeConfigComponent implements OnInit {
   clearAfterChange(){
     this.employeeObj.totalExperience = ''
   }
+
   onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
@@ -1150,7 +1287,8 @@ export class EmployeeConfigComponent implements OnInit {
     }else {
       employee.employeementId  = this.employeeObj.employeementId
     }
-    
+
+    employee.specializationList = this.employeeObj.specializationList;
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1588,6 +1726,7 @@ export class EmployeeConfigComponent implements OnInit {
   async openViewEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
 
     console.log("employeeObj : ", employeeObj);
+    this.domainSpecializationList = [];
     
     let currentEmp = new Employee();
     currentEmp.employeementId = currentEmp.employeementId?.substring(2);
@@ -1611,6 +1750,17 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       console.log(docResponse.serviceResponse);
     }
+
+    let domainObj = new Domain();
+    domainObj.empId = employeeObj.empId;
+    const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
+      if (domainResponse.serviceStatus == "Success") {
+        this.domainSpecializationList = domainResponse.serviceResponse;
+        console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+      } else {
+        console.error(domainResponse.serviceResponse);
+      }
+
     this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
     setTimeout(()=>{
       this.previewEmployeeObj.documentList && this.previewEmployeeObj.documentList.forEach((doc, index) => {
@@ -1685,6 +1835,262 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  //Doamin & Specialization  :: start
+
+  getAllDomain(template?: TemplateRef<any>){
+    this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDomainList = response.serviceResponse;
+
+        this.allDomainList.forEach((domain) => {
+          domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        console.log(this.allDomainList, " : this.allDomainList");
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  getDomainSpecialization(){
+    this.specializationList = [];
+
+    let domainObj = new Domain();
+    domainObj.domainIdList = this.employeeObj.domainList;
+
+    console.log(domainObj, " : domainObj selected");
+    this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.specializationList = response.serviceResponse;        
+        this.specializationList = this.specializationList.sort((a, b) => a.specializationName.localeCompare(b.specializationName));
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+  
+  validateDomainObj(domainObj, template: TemplateRef<any>) {
+    let flag = true;
+
+    domainObj.domainName = domainObj.domainName?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(domainObj.domainName)) {
+      this.alertMessage = "Please enter Domain Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateTeamActivity(domainObj.domainName)) {
+      this.alertMessage = "Please enter Valid Domain Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    const uniqueSpecialization = new Set(this.allSpecializationList.map(x => x.specializationName));
+    if (uniqueSpecialization.size < this.allSpecializationList.length) {
+      this.alertMessage = "Duplicate Specialization Name are not allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.allSpecializationList.forEach((spec, index) => {
+
+      spec.specializationName = spec.specializationName?.trim();
+      if (!this.validationService.validateNullUndefinedEmptyString(spec.specializationName)) {
+        this.alertMessage = `Please enter Specialization - ${index + 1}!!`
+        flag = false;
+        return;
+      } if (!this.validationService.validateActivityName(spec.specializationName)) {
+        this.alertMessage = `Please enter valid Specialization - ${index + 1}!!`
+        flag = false;
+        return;
+      }
+    });
+
+    if (!flag) {
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else{
+      return true;
+    }
+  }
+
+  createDomain(template: TemplateRef<any>){
+
+    let inputValidated: boolean = this.validateDomainObj(this.domainObj, template)
+    if (!inputValidated) return;
+
+    this.domainObj.allSpecializationList = this.allSpecializationList;
+    this.domainObj.createdBy = this.currentUser.empId;
+    this.domainService.createDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showAllDomain();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  updateDomain(template: TemplateRef<any>){
+    let inputValidated: boolean = this.validateDomainObj(this.domainObj, template)
+    if (!inputValidated) return;
+
+    this.domainObj.allSpecializationList = this.allSpecializationList;
+    this.domainObj.updatedBy = this.currentUser.empId;
+    
+    this.domainService.updateDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showAllDomain();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  deleteDomain(template: TemplateRef<any>) {
+    this.domainToBeDeleted.updatedBy = this.currentUser.empId;
+
+    this.domainService.deleteDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showAllDomain();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  checkDomainName(domainName:any, template: TemplateRef<any>){
+
+    let domainObj = new Domain();
+    domainObj.domainName = domainName;
+    domainObj.domainId = this.domainObj.domainId;
+    this.domainService.checkDomainName(this.domainObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.domainObj.domainName = '';
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  //Doamin & Specialization  :: end
+
+
+  /* Filter */
+  openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
+    console.log("columns : ", columns);
+    this.queryList = [];
+
+    this.filterData.title = title;
+    this.filterData.columns = columns;
+
+    this.queryList = [
+      { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+    ]; 
+
+    this.storedDataList.forEach((data) => {
+      if (data.filterName == title) {
+        data.queryList.forEach((queryObj) => {
+          if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
+            queryObj.value = "A-".concat(queryObj.value);
+          }
+
+          if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
+            queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
+          } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
+            queryObj.value = (queryObj.value) ? moment(queryObj.value).format('DD-MM-YYYY HH:mm:ss') : '';
+          }
+        });
+        this.queryList = data.queryList;
+      }
+    });
+
+    this.filterData.queryList = JSON.stringify(this.queryList);
+
+    console.log("filterData : ", this.filterData);
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
+
+  getCustomEmployeesList(queryObjList: any, template: TemplateRef<any>) {
+    this.allEmployeeList = [];
+
+    let queryObj = new Query();
+    queryObj.queryList = queryObjList;
+
+    if (queryObjList == '') {
+      this.getAllEmployeeList();
+    } else {
+      this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployeeList = response.serviceResponse;
+
+          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+            index === self.findIndex((t) => (
+              t.employeementId === value.employeementId
+            ))
+          )
+
+          if (this.allEmployeeList.length == 0) {
+            this.openAlertMod(this.alertTemplate, "No Data found")
+          }
+          this.allEmployeeList.forEach(employee => {
+            employee.employeementId = "A-".concat(employee.employeementId);
+            employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
+            employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+            employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
+          console.log("allEmployeeList : ", this.allEmployeeList)
+        } else {
+          this.openAlertMod(template, response.serviceResponse)
+        }
+      });
+    }
+  }
+
+  onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
+    if (emittedArray[0].length != 0) {
+      console.log("queryList : ", emittedArray[0]);
+      this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
+      this.cancelRequest();
+
+      emittedArray[1].forEach((object) => {
+        if (Object.keys(object).length !== 0) {
+          if (this.storedDataList.find((x) => x.filterName == object.filterName)) {
+            this.storedDataList = this.storedDataList.map(arr1 => emittedArray[1].find(arr2 => arr2.filterName === arr1.filterName) || arr1);
+          } else {
+            this.storedDataList.push(object);
+          }
+        }
+      });
+
+      emittedArray[0].forEach(query => {
+        if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
+          query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD') : '';
+        } else if (query.column == 'Created On' || query.column == 'Updated On') {
+          query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
+        }
+        
+        if (query.column == 'Employee Id') {
+          query.value = query.value.split("-")[1];
+        }
+      });
+
+      if (this.filterData.title == 'Filter All Employee') {
+        this.getCustomEmployeesList(emittedArray[0], template);
+      }
+    }else{
+      let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
+      this.storedDataList.splice(clearedFilter);
+
+      
+      if (emittedArray[1] == 'Filter All Employee') {
+        this.showTable();
+      }
+    }
+  }
+
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -1709,6 +2115,11 @@ export class EmployeeConfigComponent implements OnInit {
   openApplicationApprovalMod(template: TemplateRef<any> , employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;    
+  }
+
+  openDeleteDomainMod(template: TemplateRef<any> , domain: any){
+    this.domainToBeDeleted = domain;
+    this.modalRef = this.modalService.show(template);
   }
 
   cancelApplication(){
