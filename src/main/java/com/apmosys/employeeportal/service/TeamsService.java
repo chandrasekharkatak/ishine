@@ -619,7 +619,72 @@ public class TeamsService {
 					response.setServiceResponse("Team not found.");
 				});
 			}
+			
+			//Add Default Activities which are not mapped
+			List<Activity> activityList = activitiesRepository.findByTeamId(teamDTO.getTeamId());
+			Set<Long> activityDeptId = new HashSet<>();
+			
+			if(!activityList.isEmpty()) {
+				activityList.forEach((object) -> {
+					String[] ids = object.getDeptIds().split(",");
+					for(String id : ids) {
+						activityDeptId.add(Long.parseLong(id));
+					}
+				});;
+			}
+			
+			//Add activities if not added
+			if(!activityDeptId.isEmpty()){
+				for(Long deptId : activityDeptId) {
+					List<Activity> activityPresent = activitiesRepository.findByDeptIdsContainsAndTeamId(deptId.toString(), teamDTO.getTeamId());
+					String[] employeeRoles = {"TeamLead","Employee", "HOD", "Manager"};
+					
+					if(!activityPresent.isEmpty()) {
+						for(String role : employeeRoles) {
+							boolean contain = containsEmployeeRole(activityPresent, role);
+							
+							if(!contain) {
+								List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptIdAndEmployeeRole(deptId, role);
+								if(!activityTemplate.isEmpty()) {
+									
+									for(ActivityTemplate object: activityTemplate) {
+										Activity newActivity = new Activity();
 
+										newActivity.setActivity(object.getTemplateActivity());
+										newActivity.setTeamId(teamDTO.getTeamId());
+										newActivity.setEmployeeRole(object.getEmployeeRole());
+										newActivity.setDeptIds(object.getDeptId().toString());
+										newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+
+										Activity newActivityCreated = activitiesRepository.save(newActivity);
+									}
+								}
+							}
+						}
+					}
+				}				
+			}
+			
+			// Add activity if new Department added in update team
+			for(String deptId: teamDTO.getDepartmentList()) {
+				if(!activityDeptId.contains(Long.parseLong(deptId))) {
+					List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(Long.parseLong(deptId));
+					if(!activityTemplate.isEmpty()) {
+						
+						for(ActivityTemplate object: activityTemplate) {
+							Activity newActivity = new Activity();
+
+							newActivity.setActivity(object.getTemplateActivity());
+							newActivity.setTeamId(teamDTO.getTeamId());
+							newActivity.setEmployeeRole(object.getEmployeeRole());
+							newActivity.setDeptIds(object.getDeptId().toString());
+							newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+
+							Activity newActivityCreated = activitiesRepository.save(newActivity);
+						}
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -627,6 +692,10 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	public boolean containsEmployeeRole(final List<Activity> list, final String employeeName){
+	    return list.stream().anyMatch(o -> o.getEmployeeRole().equals(employeeName));
 	}
 	
 	public ServiceResponse getAllMyTeamsByEmpId(EmployeeDTO employeeDTO) {
