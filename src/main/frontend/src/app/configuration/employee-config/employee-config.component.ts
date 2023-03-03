@@ -948,6 +948,25 @@ export class EmployeeConfigComponent implements OnInit {
         return false;
       }
     }
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.domainList)) {
+      this.alertMessage = "Please select Domain !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(employeeObj.domainList.length == 0){
+      this.alertMessage = "Please select Domain !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.specializationList)) {
+      this.alertMessage = "Please select Specialization(s) !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(employeeObj.specializationList.length == 0){
+      this.alertMessage = "Please select Specialization(s) !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
     // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
     //   this.alertMessage = "Please enter Valid Bank Name !!"
