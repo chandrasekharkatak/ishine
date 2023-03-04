@@ -158,4 +158,7 @@ export class Employee{
 
 	specializationList:any;
 	domainList:any;
+
+	designationId:any;
+	designationName:any;
 }

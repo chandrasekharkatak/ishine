@@ -540,7 +540,7 @@ export class MyTeamComponent implements OnInit {
           "Employee Id": x.employeementId,
           "Name": x.name,
           "Email": x.email,
-          "Designation": x.jobRoleName,
+          "Job Role": x.jobRoleName,
           "Mobile No": x.mobileNo,
           "Reports To": x.managerName
         })

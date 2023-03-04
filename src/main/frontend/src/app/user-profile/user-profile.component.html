@@ -25,7 +25,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <h2 class="user-card__profile-info__name mb-0">{{currentEmployeeInfo.name}}</h2>
-                                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.jobRoleName}}</span>
+                                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.designationName}}</span>
                                 </div>
                             </div>
                             <div class="row user-card__profile-info__container mt-4 mr-0">
@@ -439,10 +439,16 @@
                                             <p class="info-text">{{currentEmployeeInfo.departmentName}}</p>
                                         </div>
                                     </div>
+                                    <!-- <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Job Role Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.jobRoleName}}</p>
+                                        </div>
+                                    </div> -->
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Designation Name</p>
-                                            <p class="info-text">{{currentEmployeeInfo.jobRoleName}}</p>
+                                            <p class="info-label">Designation</p>
+                                            <p class="info-text">{{currentEmployeeInfo.designationName}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">

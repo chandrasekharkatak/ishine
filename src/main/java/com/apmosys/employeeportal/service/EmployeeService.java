@@ -353,6 +353,7 @@ public class EmployeeService {
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setReportingManagerId(employeedto.getReportingManagerId());
 			employee.setApprovalsTo(employeedto.getApprovalsTo());
+			employee.setDesignationId(employeedto.getDesignationId());
 
 			Employee newEmployee = employeeRepository.save(employee);
 
@@ -905,6 +906,8 @@ public class EmployeeService {
 					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
 					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
 					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
+					empDTO.setDesignationId(object[67] != null ? Long.parseLong(object[67].toString()) : null);
+					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
 					
 					if (object[42] != null) {
 
@@ -1215,6 +1218,7 @@ public class EmployeeService {
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setReportingManagerId(employeedto.getReportingManagerId());
 				employee.setApprovalsTo(employeedto.getApprovalsTo());
+				employee.setDesignationId(employeedto.getDesignationId());
 				
 				// Certification
 				// Case 1 : Updating Existing certification

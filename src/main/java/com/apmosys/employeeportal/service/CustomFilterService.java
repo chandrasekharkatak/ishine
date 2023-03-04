@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.Domain;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
@@ -35,6 +36,7 @@ import com.apmosys.employeeportal.model.Specialization;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.repository.DomainRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -87,6 +89,9 @@ public class CustomFilterService {
 	
 	@Autowired
 	DomainRepository domainRepository;
+	
+	@Autowired
+	DesignationRepository designationRepository;
 	
 	
 	@Value("${spring.datasource.url}")
@@ -432,6 +437,11 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Designation": {
+					query = query.append(" de.designation_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				case "Manager": {
 					query = query.append(" e2.name ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
@@ -511,7 +521,7 @@ public class CustomFilterService {
 						+ "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
 						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "s.specialization_name,dm.domain_name\n"
+						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name\n"
 						+ "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
@@ -523,7 +533,8 @@ public class CustomFilterService {
 						+ "LEFT JOIN projects p on p.project_id = t.project_id\n"
 						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
 						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
-						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id where "+customQuery;
+						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
+				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id where "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -625,6 +636,8 @@ public class CustomFilterService {
 					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
 					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
 					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
+					empDTO.setDesignationId(object[68] != null ? Long.parseLong(object[68].toString()) : null);
+					empDTO.setDesignationName(object[69] != null ? (object[69].toString()) : null);
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
@@ -1522,6 +1535,19 @@ public class CustomFilterService {
 					allDomain.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object.getDomainName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Designation": {
+            	List<Designation> allDesignation = designationRepository.findAll();
+				if (!allDesignation.isEmpty()) {
+					allDesignation.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getDesignationName());
 						dtoList.add(dto);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

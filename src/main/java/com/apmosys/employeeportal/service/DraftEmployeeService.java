@@ -136,7 +136,8 @@ public class DraftEmployeeService {
 			employee.setTotalExperience(employeedto.getTotalExperience());
 			employee.setReportingManagerId(employeedto.getReportingManagerId());
 			employee.setApprovalsTo(employeedto.getApprovalsTo());
-
+			employee.setDesignationId(employeedto.getDesignationId());
+			
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -792,6 +793,8 @@ public class DraftEmployeeService {
 					empDTO.setChild2(object[57] != null ? object[57].toString() : null);
 					empDTO.setChild3(object[58] != null ? object[58].toString() : null);
 					empDTO.setReportingManagerName(object[59] != null ? object[59].toString() : null);
+					empDTO.setDesignationId(object[60] != null ? Long.parseLong(object[60].toString()) : null);
+					empDTO.setDesignationName(object[61] != null ? object[61].toString() : null);
 
 //					if (object[42] != null) {
 //

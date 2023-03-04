@@ -17,7 +17,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Designation Name</label>
+                            <label class="info-label"><span class="text-danger">*</span>Job Role Name</label>
                             <input type="text" class="form-control" maxlength="255" (keyup)="checkJobRole(alert_message)" autocomplete="none"
                                [(ngModel)]="jobRoleObj.name">
                         </div>
@@ -111,7 +111,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Designations</h1>
+                <h1 class="table-header-title">Job Role(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -122,7 +122,7 @@
                             <label class="d-inline-block mr-2 mt-2"><strong>Department</strong></label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (ngModelChange)="onSelectDepartment()">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="all jobRole">All Designation</option>
+                                <option value="all jobRole">All Job Role(s)</option>
                                 <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                               </select>
                         </div>
@@ -147,7 +147,7 @@
                         <thead class="thead-light" id="roleInfoTHead">
                             <tr id="roleInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="name|string">Designation Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="name|string">Job Role Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Employee Role</th>
                                 <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdBy|string">Created by</th>
@@ -161,7 +161,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="filterAllJobRoleList && filterAllJobRoleList.length == 0 || (filterAllJobRoleList| colFilter:filters:false).length == 0 ">
-                                <th colspan="8" class="text-center info-label">No Designation to display...</th>
+                                <th colspan="8" class="text-center info-label">No Job Role to display...</th>
                             </tr>
                             <tr
                                 *ngFor="let jobRole of filterAllJobRoleList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
@@ -200,7 +200,7 @@
 <!-- Modals Template -->
 <ng-template #delete_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to delete the Designation ?</p>
+        <p>Are you sure you want to delete the Job Role ?</p>
         <button type="button" class="btn btn-success" (click)="onDeleteJobRole(update_employee_jobRole_template,alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
@@ -208,7 +208,7 @@
 
 <ng-template #update_employee_jobRole_template>
     <div class="modal-body text-center">
-        <p>Designation cannot be deleted as it is mapped to employee(s).<br>To delete Designation, map employee to other Designation.</p>
+        <p>Job Role cannot be deleted as it is mapped to employee(s).<br>To delete Job Role, map employee to other Job Role.</p>
         
         <div class="row">
             <div class="col-md-6 mb-0">
@@ -225,7 +225,7 @@
             <div class="col-md-6 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Select Designation</label>
+                        <label class="info-label"><span class="text-danger">*</span>Select Job Role</label>
                         <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.newJobRoleId">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let jobRole of filterJobRoleListForMapping" value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>

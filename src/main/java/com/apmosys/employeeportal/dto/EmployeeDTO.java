@@ -188,4 +188,7 @@ public class EmployeeDTO {
 	
 	private String specializationName;
 	private String domainName;
+	
+	private Long designationId;
+	private String designationName;
 }

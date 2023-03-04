@@ -554,7 +554,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Department</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId)">
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId)">
                                                     <option selected="selected" value="" >Select</option>
                                                     <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                                                 </select>
@@ -565,6 +565,17 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Designation</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId">
+                                                    <option selected="selected" value="" >Select</option>
+                                                    <option *ngFor="let designation of allDesignationList" value="{{designation.designationId}}">{{designation.designationName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Job Role</label>
                                                 <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.jobRoleId">
                                                     <option selected="selected" value="" >Select</option>
                                                     <option *ngFor="let jobRole of filteredJobRoleList" value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>
@@ -615,8 +626,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -869,7 +878,7 @@
 
             <!-- CustomFilter -->
             <div class="row">
-                <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <div class="col-2 col-sm-2 col-md-2 col-lg-2" *ngIf="!isDraftTable">
                     <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mt-1"
                         (click)="openFilterModal(filter, employeeColumns, 'Filter All Employee')">
                         <i class="fa-solid fa-filter"></i>
@@ -1133,7 +1142,7 @@
                     <!-- <th scope="col" class="info-label" mat-sort-header="dateOfJoining">Date Of Joining</th> -->
                     <!-- <th scope="col" class="info-label" *ngIf="employeeObj.employmentstatus == 'InActive'" mat-sort-header="dateOfResign">Date Of Resign</th> -->
                     <!-- <th scope="col" class="info-label ">Role</th> -->
-                    <th scope="col" class="info-label" >Designation</th>
+                    <th scope="col" class="info-label" >Job Role</th>
                     <th scope="col" class="info-label" >Client Location</th>
                     <th scope="col" class="info-label" >Client Name</th>
                     
@@ -2118,7 +2127,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Designation</p>
+                                                <p class="info-label">Job Role</p>
                                                 <p class="info-text">{{previewEmployeeObj.jobRoleName}}</p>
                                             </div>
                                         </div>

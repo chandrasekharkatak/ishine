@@ -83,6 +83,7 @@ import { SortPipe } from './sort.pipe';
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
 import { MultiColFilterPipe } from './multi-col-filter.pipe';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
 
 @NgModule({
   declarations: [
@@ -140,7 +141,8 @@ import { PdfViewerModule } from 'ng2-pdf-viewer';
     ColFilterPipe,
     SortPipe,
     ColumnFilterBarComponent,
-    MultiColFilterPipe
+    MultiColFilterPipe,
+    DesignationConfigComponent
   ],
   imports: [
     BrowserModule,

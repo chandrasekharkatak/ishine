@@ -200,12 +200,12 @@ export class RoleConfigComponent implements OnInit {
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
-      this.alertMessage = "Please enter Designation Name !!"
+      this.alertMessage = "Please enter Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
     if (!this.validationService.validateTeamName(jobRole.name)) {
-      this.alertMessage = "Please enter Valid Designation Name !!"
+      this.alertMessage = "Please enter Valid Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -304,7 +304,7 @@ export class RoleConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.newJobRoleId)) {
-      this.alertMessage = "Please select Designation !!"
+      this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -472,7 +472,7 @@ export class RoleConfigComponent implements OnInit {
 
       const onlySpecificDataArr = this.roleDataForExcel.map(
         x => ({
-          "Designation Name": x.name,
+          "Job Role Name": x.name,
           "Employee Role":x.employeeRole,
           "Department": x.departmentName,
           "Created by": x.createdBy,

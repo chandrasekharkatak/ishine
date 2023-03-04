@@ -45,6 +45,7 @@ import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.com
 import { UserExitComponent } from './user-exit/user-exit.component';
 import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
+import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -70,7 +71,8 @@ const routes: Routes = [
       { path: 'survey-config', component: SurveyConfigComponent, },
       { path: 'upload-policies', component: UploadPoliciesComponent, },
       { path: 'on-boarding', component: OnBoardingComponent, },
-      { path: 'project-config', component: ProjectConfigComponent, },
+      { path: 'designation', component: DesignationConfigComponent, },
+      // { path: 'project-config', component: ProjectConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

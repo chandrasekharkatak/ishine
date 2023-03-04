@@ -25,6 +25,8 @@ import { SortPipe } from 'src/app/sort.pipe';
 import { Domain } from 'src/app/models/domain';
 import { DomainService } from 'src/app/services/domain.service';
 import { Query } from 'src/app/models/query';
+import { DestinationService } from 'src/app/services/destination.service';
+import { Designation } from 'src/app/models/designation';
 class FilterData {
   title: any;
   columns: any;
@@ -91,6 +93,7 @@ export class EmployeeConfigComponent implements OnInit {
   allSpecializationList:any[] = [];
   storedDataList:any[] = [];
   domainSpecializationList:any[] = [];
+  allDesignationList:any[] = [];
 
   employeeWorkingHistory:[]
   allCertificationList: any[] = [];
@@ -156,7 +159,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   queryList: any[] = [];
   filterData: any = new FilterData();
-  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
 
   constructor(
     private employeeService: EmployeeService,
@@ -172,7 +175,8 @@ export class EmployeeConfigComponent implements OnInit {
     private portalService:PortalService,
     private utilityService:UtilityService,
     private locationStrategy:LocationStrategy,
-    private domainService:DomainService) {
+    private domainService:DomainService,
+    private destinationService:DestinationService) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -430,6 +434,7 @@ export class EmployeeConfigComponent implements OnInit {
         if( this.employeeObj.domainList != null){
           this.getDomainSpecialization();
         }
+        this.getDesignationByDeptId(this.employeeObj.departmentId);
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
         
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
@@ -896,8 +901,14 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.designationId)) {
       this.alertMessage = "Please select Designation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
+      this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1471,7 +1482,7 @@ export class EmployeeConfigComponent implements OnInit {
           "Created By":x.createdBy,
           "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
-          "Designation":x.jobRoleName,
+          "Job Role":x.jobRoleName,
 
         })
       )
@@ -1591,6 +1602,20 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
         console.log("allJobRoleList : ", this.allJobRoleList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getDesignationByDeptId(departmentId:any){
+    let designationObj = new Designation();
+    designationObj.deptId = departmentId;
+
+    this.destinationService.getDesignationByDeptId(designationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+       this.allDesignationList = response.serviceResponse;
+       console.log(this.allDesignationList, " : allDesignationList");
       } else {
         console.error(response.serviceResponse)
       }

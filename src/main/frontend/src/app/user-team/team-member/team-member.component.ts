@@ -92,7 +92,7 @@ export class TeamMemberComponent implements OnInit {
           "Employee Id": x.employeementId,
           "Name": x.name,
           "Email": x.email,
-          "Designation": x.jobRoleName,
+          "Job Role": x.jobRoleName,
           "Mobile No": x.mobileNo
         })
       )

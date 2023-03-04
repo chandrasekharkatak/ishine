@@ -157,4 +157,6 @@ public class Employee {
 	private String approvalsTo;
 
 	private LocalDateTime otpUpdatedOn;
+	
+	private Long designationId;
 }
