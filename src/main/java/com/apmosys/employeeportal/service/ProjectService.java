@@ -171,14 +171,13 @@ public class ProjectService {
 		try {
 			//Find client (Inhouse : Apmosys)
 			String internalClient = "Apmosys";
-			Optional<Client> firstClientOptional = clientsRepository.findFirstByClientNameLike(internalClient);
-			if (firstClientOptional.isPresent()) {
-			    Client firstClient = firstClientOptional.get();
+			Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
+			if (firstClientOptional != null) {
 			    
 			    Project projectObj = new Project();
 				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
 				projectObj.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
-				projectObj.setClientId(firstClient.getClientId());
+				projectObj.setClientId(firstClientOptional.getClientId());
 				projectObj.setState(poProjectSyncDTO.getState());
 				projectObj.setActive("true");
 				projectObj.setSyncProject("false");

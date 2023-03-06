@@ -1995,7 +1995,7 @@ export class EmployeeConfigComponent implements OnInit {
   deleteDomain(template: TemplateRef<any>) {
     this.domainToBeDeleted.updatedBy = this.currentUser.empId;
 
-    this.domainService.deleteDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
+    this.domainService.deleteDomain(this.domainToBeDeleted).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showAllDomain();

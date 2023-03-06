@@ -22,6 +22,9 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	Client findByClientId(Integer clientId);
 
-	Optional<Client> findFirstByClientNameLike(String name);
+	Optional<Client> findFirstByClientNameLike(String internalClient);
+
+	@Query(nativeQuery = true)
+	Client findByClientNameList(String internalClient);
 	
 }
