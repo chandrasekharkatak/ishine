@@ -8,6 +8,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -211,15 +212,7 @@ public class CustomFilterService {
 			
 			Session session = entityManager.unwrap(Session.class);
 			
-			try {				
-//				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date, "
-//						+ "el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-//						+ "el.updated_on, e3.name as statusUpdateBy from employee_leave el "
-//						+ "inner join employee e on el.emp_id = e.emp_id "
-//						+ "inner join leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
-//						+ "inner join leave_status ls on el.leave_status_id = ls.leave_status_id "
-//						+ "inner join employee e2 on el.manager_id = e2.emp_id "
-//						+ "inner join employee e3 on el.leave_status_updated_by = e3.emp_id where "+customQuery;
+			try {
 				
 				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
 						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type from employee_leave el "
@@ -232,7 +225,7 @@ public class CustomFilterService {
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery+" GROUP BY e.employeement_id, el.from_date";
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -534,7 +527,7 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
 						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
 						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
-				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id where "+customQuery;
+				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id where "+customQuery+" GROUP BY e.employeement_id";
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -777,12 +770,9 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
-						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery;
+						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery+" GROUP BY e1.employeement_id, et.date";
 				
-				System.out.println(q);
 				Query query = session.createSQLQuery(q);
-				System.out.println(query);
-				System.out.println(query.getResultList() + " ====");
 				return query.getResultList();
 				
 			}catch(Exception e) {

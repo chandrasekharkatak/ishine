@@ -630,11 +630,11 @@ export class ReportDashboardComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
-          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-          index === self.findIndex((t) => (
-            t.employeementId === value.employeementId
-          ))
-        )
+        //   this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+        //   index === self.findIndex((t) => (
+        //     t.employeementId === value.employeementId
+        //   ))
+        // )
 
           if(this.allEmployeeList.length == 0){
             this.openAlertMod(template, "No Data Found");

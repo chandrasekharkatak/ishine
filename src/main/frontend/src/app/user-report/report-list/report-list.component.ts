@@ -337,11 +337,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
 
-          this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId && t.fromDate === value.fromDate
-            ))
-          )
+          // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
+          //   index === self.findIndex((t) => (
+          //     t.employeementId === value.employeementId && t.fromDate === value.fromDate
+          //   ))
+          // )
 
           if (this.allLeaveApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
@@ -405,12 +405,6 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allTimesheetApplicationsList = response.serviceResponse;
 
-          this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId && t.date === value.date
-            ))
-          )
-
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
@@ -469,11 +463,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
-          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId
-            ))
-          )
+          // this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+          //   index === self.findIndex((t) => (
+          //     t.employeementId === value.employeementId
+          //   ))
+          // )
 
           if (this.allEmployeeList.length == 0) {
             this.openAlertMod(this.alertModal, "No Data found")
