@@ -193,75 +193,7 @@ public class CronJobService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
-	
-	
-//	0 0 0 * * * for every midnight
-//	*/20 * * * * *  for every 20 secs
-
-//	@Scheduled(cron = "0 0 0 * * *")
-//	public void authenticateUser() {
-//
-//		System.out.println(LocalDateTime.now());
-//		try {
-//
-//			String query = "SELECT cd.clientName,cd.clientLocation,cd.state,pfc.projectName,p.description,p.projectManagerId,u.empId,p.approvedOn,pfc.id FROM PoFixedCost pfc\n"
-//					+ "INNER JOIN ClientDetails cd ON pfc.clientId = cd.clientid\n"
-//					+ "INNER JOIN Project p ON p.name = pfc.projectName\n"
-//					+ "INNER JOIN User u ON u.id = p.projectManagerId\n"
-//					+ "WHERE p.status = \"Approved\" and p.approvedOn between now() - INTERVAL 5 DAY AND now() ORDER BY p.id DESC";
-//			Class.forName("com.mysql.cj.jdbc.Driver");
-//			int i = 0;
-//
-//			try (Connection con = DriverManager.getConnection(url, username, password)) {
-//				PreparedStatement ps = con.prepareStatement(query);
-//
-//				try (ResultSet rs = ps.executeQuery();) {
-//
-//					while (rs.next()) {
-//
-//						Project newProject = new Project();
-//
-//						newProject.setClientName(rs.getString(1) != null ? rs.getString(1) : null);
-//						newProject.setClientLocation(rs.getString(2) != null ? rs.getString(2) : null);
-//						newProject.setState(rs.getString(3) != null ? rs.getString(3) : null);
-//						newProject.setProjectName(rs.getString(4) != null ? rs.getString(4) : null);
-//						newProject.setDescription(rs.getString(5) != null ? rs.getString(5) : null);
-//						newProject.setProjectManagerId(rs.getLong(6) != 0L ? rs.getLong(6) : null);
-//
-//						if (rs.getString(7) != null) {
-//							String empIdString = rs.getString(7);
-//							empIdString = empIdString.replace("A-", "");
-//							newProject.setEmpId(Long.parseLong(empIdString));
-//
-//						}
-//						newProject.setApprovedOn(rs.getTimestamp(8) != null ? rs.getTimestamp(8) : null);
-//
-//						System.out.println(newProject);
-//						System.out.println(projectRepository.save(newProject) != null
-//								? "Project " + newProject.getProjectName() + " added to Employee portal"
-//								: "Failed to add " + newProject.getProjectName() + " project to Employee portal");
-//						i++;
-//					}
-//
-//					System.out.println(
-//							i == 0 ? "No new projects found at PO portal." : i + " new project(s) found at PO portal");
-//
-//				}
-//
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				System.out.println(
-//						i == 0 ? "No new projects found at PO portal." : i + " new project(s) found at PO portal");
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//
-//	}
-	
-	
-	
+		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
 	@Scheduled(cron = "0 0 12 1 * ?")
@@ -451,46 +383,6 @@ public class CronJobService {
 	@Scheduled(cron = "0 1 1 ? * *")
 	public void LeaveExpirationCronJob() {
 		try {
-//		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-//		     
-//		          for(LeaveTypeMaster ltm :leaveType) {
-//			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
-//			
-//			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-//			      
-//			          for(LeavePolicyMaster lpm : leavePolicy) {
-//				         if(lpm.getExpirationPeriod().equals("Yes")) {
-//				        	 
-//				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
-//				     	     Timestamp createdOnDate = lpm.getCreatedOn();
-//				     	     
-//				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
-//				   
-//				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-//				    		 String expiration = f.format(expirationDate);
-//				    		 System.out.println(expiration);
-//				     	     
-//				     	     LocalDateTime dateTime = LocalDateTime.now();
-//				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
-//				             System.out.println(todayDate);
-//					         
-//				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-//					
-//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-//						   
-//						              if(expiration.equals(todayDate)) {
-//						            	  float newBalance = 0;
-//						            	  elm.setBalance(newBalance);
-//							              employeeLeavesMapRepository.save(elm);
-//							              break;
-//						              }
-//					              }
-//				          }
-//			           }
-//		            }
-			
-			
-			
 			LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
 			
 			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
@@ -509,42 +401,48 @@ public class CronJobService {
 				        			 
 				        			 //Get CompOff leave applications
 				        			 Timestamp perv45Day = Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay());
-				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(object.getEmpId(), (short)2, perv45Day);
+//				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfterAndCompOffStatus(object.getEmpId(), (short)2, perv45Day, "Pending");
+				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findAllPendingApplicationByEmpId(object.getEmpId(), perv45Day, "Pending");
 				        			 if(!compOffLeaveObj.isEmpty()) {
 				        				 compOffLeaveObj.forEach((compOffObj) -> {
 				        					 
 				        					 if(compOffObj.getUpdatedOn() != null) {
 				        						 compOffObj.setApproverDate(compOffObj.getUpdatedOn().toLocalDate());
-					        					 compOffLeaveRepository.save(compOffObj); 
 				        					 }
 				        					 
-				        					 LocalDate expirationDate = compOffObj.getUpdatedOn().toLocalDate().plusDays(expirationPeriod);
+				        					 LocalDate expirationDate = compOffObj.getFromDate().plusDays(expirationPeriod);
 				        					 LocalDate dateToday = LocalDate.now();
 				        					 if(expirationDate.equals(dateToday)) {
 				        						 Float pervBalance = empLeaveMapObj.getBalance();
-				        						 Float newBalance = pervBalance - compOffObj.getNoOfDays();
 				        						 
-				        						 empLeaveMapObj.setBalance(newBalance);
-				        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
-				        						 
-				        						 if(dbResposne != null) {
-				        							 
-				        							 LeaveBalanceLog log = new LeaveBalanceLog();
+				        						 if(pervBalance != 0f) {
+				        							 Float newBalance;
+				        							 newBalance = pervBalance - compOffObj.getNoOfDays();
+				        							 compOffObj.setCompOffStatus("Expired");
+				        							 compOffLeaveRepository.save(compOffObj); 
+					        						 
+					        						 empLeaveMapObj.setBalance(newBalance);
+					        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
+					        						 
+					        						 if(dbResposne != null) {
+					        							 
+					        							 LeaveBalanceLog log = new LeaveBalanceLog();
 
-														log.setBalance(newBalance);
-														log.setEmpId(object.getEmpId());
-														log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-														log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
-																Float.toString(compOffObj.getNoOfDays())));
-														log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+															log.setBalance(newBalance);
+															log.setEmpId(object.getEmpId());
+															log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+															log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
+																	Float.toString(compOffObj.getNoOfDays())));
+						        							log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
 
-														leaveBalanceLogRepository.save(log);
-				        							 
-				        							 System.out.println("CompOff balance updated successfully");
-				        						 }else {
-				        							 System.out.println("CompOff balance updation failed");
+															leaveBalanceLogRepository.save(log);
+					        							 
+					        							 System.out.println("CompOff balance updated successfully");
+					        						 }else {
+					        							 System.out.println("CompOff balance updation failed");
+					        						 }
+					        					  }
 				        						 }
-				        					  }
 				        				 });
 				        			 }
 				        		 });

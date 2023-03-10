@@ -54,6 +54,8 @@ export class LeaveComponent implements OnInit {
   isSelfLeaveRevokeApplication:boolean = false;
   isTeamLeaveRevokeApplication:boolean = false;
 
+  isCompOffLeave:boolean = false;
+
   //modal 
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
@@ -451,6 +453,15 @@ export class LeaveComponent implements OnInit {
       this.cancelRequest();
       this.leaveObj = leave;
       this.modalRef = this.modalService.show(template);
+  }
+
+  isCompOffSelected(leaveTypeMasterId:any){
+    const isCompOff = this.leaveTypes.find(x => x.leaveTypeMasterId == leaveTypeMasterId);
+    if(isCompOff.leaveTypeCode == 'CO'){
+      this.isCompOffLeave = true;
+    }else{
+      this.isCompOffLeave = false;
+    }
   }
 
   validateLeavetObj(leaveObj:Leave, template: TemplateRef<any>){

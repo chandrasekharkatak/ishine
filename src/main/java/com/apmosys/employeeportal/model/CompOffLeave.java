@@ -50,5 +50,7 @@ public class CompOffLeave {
 	private Long leaveStatusUpdatedBy;
 	private Long hodId;
 	private LocalDate approverDate;
+	private String compOffStatus;
+	private Long leaveId;
 
 }

@@ -29,21 +29,25 @@ import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.projections.Leave;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
@@ -102,6 +106,12 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	HolidayRepository holidayRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Autowired
+	LeavePolicyMasterRepository leavePolicyMasterRepository;
 	
 	
 	@Transactional
@@ -180,6 +190,38 @@ public class EmployeeLeaveService {
 			EmployeeLeave dbResponse2 = employeeLeaveRepository.save(leaveApplication);
 
 			if (dbResponse1 != null && dbResponse2 != null) {
+				
+				// 4 : compOff leave type Id
+				if(leavetype.get().getLeaveTypeCode().equals("CO")) {
+					long elapsedDays = ChronoUnit.DAYS.between(dbResponse2.getFromDate(),dbResponse2.getToDate());
+					
+					if(elapsedDays == 0) {
+							CompOffLeave oldestCompOffApplication = compOffLeaveRepository.findOldestCompOffApplicationByEmpId(dbResponse2.getEmpId(), "Pending");
+							
+							if(oldestCompOffApplication != null) {
+								oldestCompOffApplication.setCompOffStatus("Pending For Approval");
+								oldestCompOffApplication.setLeaveId(dbResponse2.getLeaveId());
+								
+								compOffLeaveRepository.save(oldestCompOffApplication);
+							}
+					}
+					if((elapsedDays != 0)) {
+						LocalDate tempDate = dbResponse2.getFromDate();
+
+						while(tempDate.compareTo(dbResponse2.getToDate()) != 1) {
+								CompOffLeave oldestCompOffApplication = compOffLeaveRepository.findOldestCompOffApplicationByEmpId(dbResponse2.getEmpId(), "Pending");
+								
+								if(oldestCompOffApplication != null) {
+									oldestCompOffApplication.setCompOffStatus("Pending For Approval");
+									oldestCompOffApplication.setLeaveId(dbResponse2.getLeaveId());
+									
+									compOffLeaveRepository.save(oldestCompOffApplication);
+								}
+								tempDate = tempDate.plusDays(1);
+							}
+						}
+				}
+				
 				LeaveBalanceLog log = new LeaveBalanceLog();
 				
 				log.setBalance(balance);
@@ -390,33 +432,104 @@ public class EmployeeLeaveService {
 				EmployeeLeave leaveToBeDeleted = leaveObject.get();
 
 				employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+				
+				//Get Expiration Period of CompOff
+				Employee empObj = employeeRepository.findByEmpId(leaveToBeDeleted.getEmpId());
+				
+				Integer expirationPeriod = null;
+				Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+				LeaveTypeMaster leaveTypeObj = leaveType.get();
+				if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+					LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),empObj.getEmploymentstatus());
+				      if(leavePolicy != null){
+				    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+					        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
+			               }
+				      }
+				}
+				
+				if(!leaveTypeObj.getLeaveTypeCode().equals("CO")){
+					EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
+							leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
+					
+					Float balance = employeeLeavesMap.getBalance();
+					balance = balance + leaveDTO.getNoOfDays();
+					Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
+					pendingForApproval = pendingForApproval - leaveDTO.getNoOfDays();
+					
+					employeeLeavesMap.setBalance(balance);
+					employeeLeavesMap.setPendingForApproval(pendingForApproval);
+					
+					System.out.println(employeeLeavesMap + " employee leave");
+					EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
+					
+					if(dbResponse != null) {
+						LeaveBalanceLog log = new LeaveBalanceLog();
+						
+						log.setBalance(balance);
+						log.setEmpId(leaveToBeDeleted.getEmpId());
+						log.setLeaveTypeMasterId(leaveToBeDeleted.getLeaveTypeMasterId());
+						log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
+						log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+						
+						leaveBalanceLogRepository.save(log);
+					}
+				}
+				
 
-				EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
-						leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
-
-				Float balance = employeeLeavesMap.getBalance();
-				balance = balance + leaveDTO.getNoOfDays();
-				Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
-				pendingForApproval = pendingForApproval - leaveDTO.getNoOfDays();
-
-				employeeLeavesMap.setBalance(balance);
-				employeeLeavesMap.setPendingForApproval(pendingForApproval);
-
-				System.out.println(employeeLeavesMap + " employee leave");
-				EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
-
-				if (dbResponse != null) { 
-
-					LeaveBalanceLog log = new LeaveBalanceLog();
-
-					log.setBalance(balance);
-					log.setEmpId(leaveToBeDeleted.getEmpId());
-					log.setLeaveTypeMasterId(leaveToBeDeleted.getLeaveTypeMasterId());
-					log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
-					log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
-
-					leaveBalanceLogRepository.save(log);
-
+				// CompOff Leave : 4 (LeaveTypeMasterId)
+				if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+					
+					List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveToBeDeleted.getLeaveId());
+					
+					if(!compOffLeave.isEmpty()) {
+							
+							for(CompOffLeave leave: compOffLeave) {
+								
+								LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod);
+								if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
+									
+									leave.setCompOffStatus("Expired");
+									compOffLeaveRepository.save(leave);
+								}else {
+									
+									//Update Leave Balance
+									EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
+											leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
+									
+									Float balance = employeeLeavesMap.getBalance();
+									balance = balance + leave.getNoOfDays();
+									Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
+									pendingForApproval = pendingForApproval - leave.getNoOfDays();
+									
+									employeeLeavesMap.setBalance(balance);
+									employeeLeavesMap.setPendingForApproval(pendingForApproval);
+									
+									System.out.println(employeeLeavesMap + " employee leave");
+									EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
+									
+									if(dbResponse != null) {
+										LeaveBalanceLog log = new LeaveBalanceLog();
+										
+										log.setBalance(balance);
+										log.setEmpId(leaveToBeDeleted.getEmpId());
+										log.setLeaveTypeMasterId(leaveToBeDeleted.getLeaveTypeMasterId());
+										log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leave.getNoOfDays().toString()));
+										log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+										
+										leaveBalanceLogRepository.save(log);
+									}
+								
+									
+									// change compOff application status
+										leave.setCompOffStatus("Pending");
+										leave.setLeaveId(null);
+										
+										compOffLeaveRepository.save(leave);
+								}
+								
+							}
+					}
 				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -682,6 +795,7 @@ public class EmployeeLeaveService {
 			Optional<EmployeeLeave> leaveApplication = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
+			Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
 			System.out.println("leaveDTO.getEmpId() : -- " +leaveDTO.getEmpId());
 			System.out.println("leaveDTO.getLeaveTypeMasterId() : -- " +leaveDTO.getLeaveTypeMasterId());
 			if (leaveApplication.isPresent()) {
@@ -698,8 +812,6 @@ public class EmployeeLeaveService {
 					pendingLeaveApplication.setLeaveStatusId((short) 2);
 					
 					// Increase Notice period If employee resigned
-					
-					Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
 					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
 					
 					LeaveTypeMaster leaveTypeObj = leaveType.get();
@@ -749,28 +861,59 @@ public class EmployeeLeaveService {
 //					" <br> "+ "Your leave request from"+"&nbsp;"+ leaveDTO.getFromDate()+" to "+leaveDTO.getToDate() + " has been approved");
 					
 					
+					// CompOff Leave : 4 (LeaveTypeMasterId)
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						
+						List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(pendingLeaveApplication.getLeaveId());
+						
+						if(!compOffLeave.isEmpty()) {
+							compOffLeave.forEach((leave) -> {
+										leave.setCompOffStatus("Availed");
+										compOffLeaveRepository.save(leave);
+							});
+						}
+					}
+					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
-					pendingLeaveApplication.setLeaveStatusId((short) 3);
-					pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
-					employeeLeavesMap
-							.setBalance(employeeLeavesMap.getBalance() + pendingLeaveApplication.getNoOfDays());
+					
+					//Get Expiration Period of CompOff
+					Integer expirationPeriod = null;
+					boolean isExpirationValid = false;
+					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+					LeaveTypeMaster leaveTypeObj = leaveType.get();
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),employee.get().getEmploymentstatus());
+					      if(leavePolicy != null){
+					    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+					    		     isExpirationValid = true;
+						        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
+				               }
+					      }
+					}
+					
+					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						pendingLeaveApplication.setLeaveStatusId((short) 3);
+						pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
+						employeeLeavesMap
+								.setBalance(employeeLeavesMap.getBalance() + pendingLeaveApplication.getNoOfDays());
 
-					LeaveBalanceLog log = new LeaveBalanceLog();
-					log.setBalance(employeeLeavesMap.getBalance());
-					log.setEmpId(leaveDTO.getEmpId());
-					log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-					log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0",
-							pendingLeaveApplication.getNoOfDays().toString()));
-					log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
-					leaveBalanceLogRepository.save(log);
-					response.setServiceResponse("Leave application rejected.");
-					apiLogInfo.setApiResponse("Leave application rejected.");
+						LeaveBalanceLog log = new LeaveBalanceLog();
+						log.setBalance(employeeLeavesMap.getBalance());
+						log.setEmpId(leaveDTO.getEmpId());
+						log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+						log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0",
+								pendingLeaveApplication.getNoOfDays().toString()));
+						log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
+						leaveBalanceLogRepository.save(log);
+						response.setServiceResponse("Leave application rejected.");
+						apiLogInfo.setApiResponse("Leave application rejected.");
+					}
 					
-					Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
+					Optional<Employee> employeeInfo = employeeRepository.findById(leaveDTO.getEmpId());
 					
-					//send Approval Mail
-					if (!employee.isEmpty()) {
-						Employee empObj = employee.get();
+					//send reject Mail
+					if (!employeeInfo.isEmpty()) {
+						Employee empObj = employeeInfo.get();
 						Optional<Employee> approver = employeeRepository.findById(Long.parseLong(pendingLeaveApplication.getManagerId().toString()));
 						Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
 						
@@ -817,6 +960,58 @@ public class EmployeeLeaveService {
 					System.out.println(" leaveDTO.getEmployeementId() :  "+leaveDTO.getEmployeementId());
 					System.out.println(" leaveDTO.getEmail()  :  "+leaveDTO.getEmail());
 					System.out.println("  leaveDTO.getRejectReason()   :  "+leaveDTO.getRejectReason());
+					
+					// CompOff Leave : 4 (LeaveTypeMasterId)
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						
+						List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(pendingLeaveApplication.getLeaveId());
+						
+						if(!compOffLeave.isEmpty()) {
+								
+								for(CompOffLeave leave: compOffLeave) {
+									
+									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod);
+									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
+										pendingLeaveApplication.setLeaveStatusId((short) 3);
+										pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
+										
+										leave.setCompOffStatus("Expired");
+										compOffLeaveRepository.save(leave);
+										
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("CompOff Leave application rejected.");
+										apiLogInfo.setApiResponse("CompOff Leave application rejected.");
+									}else {
+										
+										//Update Leave Balance
+										
+										pendingLeaveApplication.setLeaveStatusId((short) 3);
+										pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
+										employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + leave.getNoOfDays());
+
+										LeaveBalanceLog log = new LeaveBalanceLog();
+										log.setBalance(employeeLeavesMap.getBalance());
+										log.setEmpId(leaveDTO.getEmpId());
+										log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+										log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0",
+													leave.getNoOfDays().toString()));									
+										log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+										leaveBalanceLogRepository.save(log);
+										
+										// change compOff application status
+										leave.setCompOffStatus("Pending");
+										leave.setLeaveId(null);
+											
+										compOffLeaveRepository.save(leave);
+										
+										response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+										response.setServiceResponse("CompOff Leave application rejected.");
+										apiLogInfo.setApiResponse("CompOff Leave application rejected.");
+									}
+									
+								}
+						}
+					}
 					
 				}
 				EmployeeLeave updatedLeaveApplication = employeeLeaveRepository.save(pendingLeaveApplication);
@@ -1976,7 +2171,8 @@ public class EmployeeLeaveService {
 			
 			Optional<LeaveRevokeApplication> leaveRevoke = leaveRevokeApplicationRepository.findById(leaveDTO.getLeaveRevokeId());
 			Optional<EmployeeLeave> employeeLeave = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-
+			Integer expirationPeriod = null;
+			
 			if(!employeeLeave.isEmpty()) {
 				EmployeeLeave leaveObj = employeeLeave.get();
 				if(!leaveRevoke.isEmpty()) {
@@ -2009,29 +2205,42 @@ public class EmployeeLeaveService {
 								empObj.setNoticePeriod((short) Math.floor(empObj.getNoticePeriod() - leaveObj.getNoOfDays()));
 								employeeRepository.save(empObj);
 							}
-						}	
+						}
+						
+						//Get Expiration Period of CompOff
+						if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+							LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),emp.get().getEmploymentstatus());
+						      if(leavePolicy != null){
+						    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+							        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
+					               }
+						      }
+						}
 						
 					//update leave balance bucket
-						EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
-								.findByEmpIdAndLeaveTypeMasterId(leaveObj.getEmpId(), leaveObj.getLeaveTypeMasterId());
-						
-						if(employeeLeaveMapObj != null) {
-							Float newBalance = employeeLeaveMapObj.getBalance() + leaveObj.getNoOfDays();
-							employeeLeaveMapObj.setBalance(newBalance);
+						if(!leaveTypeObj.getLeaveTypeCode().equals("CO")){
+							EmployeeLeavesMap employeeLeaveMapObj = employeeLeavesMapRepository
+									.findByEmpIdAndLeaveTypeMasterId(leaveObj.getEmpId(), leaveObj.getLeaveTypeMasterId());
 							
-							EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
-							
-							if(dbResponse != null) {
-								LeaveBalanceLog log = new LeaveBalanceLog();
+							if(employeeLeaveMapObj != null) {
+								Float newBalance = employeeLeaveMapObj.getBalance() + leaveObj.getNoOfDays();
+								employeeLeaveMapObj.setBalance(newBalance);
+								
+								EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObj);
+								
+								if(dbResponse != null) {
+									LeaveBalanceLog log = new LeaveBalanceLog();
 
-								log.setBalance(newBalance);
-								log.setEmpId(leaveObj.getEmpId());
-								log.setLeaveTypeMasterId(leaveObj.getLeaveTypeMasterId());
-								log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", leaveObj.getNoOfDays().toString()));
-								log.setUpdateBalanceBy("+" + leaveObj.getNoOfDays());
+									log.setBalance(newBalance);
+									log.setEmpId(leaveObj.getEmpId());
+									log.setLeaveTypeMasterId(leaveObj.getLeaveTypeMasterId());
+									log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", leaveObj.getNoOfDays().toString()));
+									log.setUpdateBalanceBy("+" + leaveObj.getNoOfDays());
 
-								leaveBalanceLogRepository.save(log);
+									leaveBalanceLogRepository.save(log);
+								}
 							}
+						
 						}
 						
 					//send Approval Mail
@@ -2081,7 +2290,64 @@ public class EmployeeLeaveService {
 							});
 						}
 						
-						
+						//If compOff leave is revoked : changes compOff application status
+						//CompOff leave type id : 4 (LeaveTypeMasterId)
+						if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+
+							
+							List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveObj.getLeaveId());
+							
+							if(!compOffLeave.isEmpty()) {
+									
+									for(CompOffLeave leave: compOffLeave) {
+										
+										LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod != null ? expirationPeriod : 30);
+										if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
+											
+											leave.setCompOffStatus("Expired");
+											compOffLeaveRepository.save(leave);
+										}else {
+											
+											//Update Leave Balance
+											
+
+											EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
+													leaveObj.getEmpId(), leaveObj.getLeaveTypeMasterId());
+											
+											Float balance = employeeLeavesMap.getBalance();
+											balance = balance + leave.getNoOfDays();
+											Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
+											pendingForApproval = pendingForApproval - leave.getNoOfDays();
+											
+											employeeLeavesMap.setBalance(balance);
+											employeeLeavesMap.setPendingForApproval(pendingForApproval);
+											
+											System.out.println(employeeLeavesMap + " employee leave");
+											EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
+											
+											if(dbResponse != null) {
+												LeaveBalanceLog log = new LeaveBalanceLog();
+												
+												log.setBalance(balance);
+												log.setEmpId(leaveObj.getEmpId());
+												log.setLeaveTypeMasterId(leaveObj.getLeaveTypeMasterId());
+												log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leave.getNoOfDays().toString()));
+												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+												
+												leaveBalanceLogRepository.save(log);
+											}
+										
+											
+											// change compOff application status
+												leave.setCompOffStatus("Pending");
+												leave.setLeaveId(null);
+												
+												compOffLeaveRepository.save(leave);
+										}
+										
+									}
+							}
+						}
 					}else if(leaveDTO.getLeaveRevokeStatusId() == 3){
 						
 					// change revoke leave application status

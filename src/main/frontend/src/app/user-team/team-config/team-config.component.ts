@@ -312,7 +312,15 @@ export class TeamConfigComponent implements OnInit {
     this.selectedDept = '';
     
     this.activityObj = Object.assign({}, activityObj);
+
+    console.log(this.activityObj, " : this.activityObj", " activityObj.departmentList" , activityObj.departmentList);
+    
+
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
+
+    console.log(this.activityObj, " : this.activityObj.departmentList");
+    
+
     this.getDepartmentByTeam(this.activityObj.teamId);
     this.getAllProjectListByProjectManagerId();
   }
@@ -698,7 +706,6 @@ export class TeamConfigComponent implements OnInit {
 
   getDepartmentByTeam(teamId: any){
     this.filteredDeptList = [];
-    this.activityObj.departmentList = ''; 
 
     const selectedTeam = this.allTeamList.find(x => x.teamId == teamId);
     let departmentList = selectedTeam.departmentList.map(x => +x);

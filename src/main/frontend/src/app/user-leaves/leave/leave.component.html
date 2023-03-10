@@ -59,7 +59,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId);getAllLeaveBalanceByEmpId(leaveObj)">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId);getAllLeaveBalanceByEmpId(leaveObj);isCompOffSelected(leaveObj.leaveTypeMasterId)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
@@ -97,7 +97,7 @@
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                             <select class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value=0.5>Half Day</option>
+                                <option *ngIf="!isCompOffLeave" value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>
                             </select>
                         </div>
@@ -125,7 +125,7 @@
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                             <select class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value=0.5>Half Day</option>
+                                <option *ngIf="!isCompOffLeave" value=0.5>Half Day</option>
                                 <option value=0 selected>Full Day</option>
                             </select>
                         </div>

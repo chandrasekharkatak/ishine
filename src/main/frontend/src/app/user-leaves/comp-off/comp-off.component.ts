@@ -98,6 +98,7 @@ export class CompOffComponent implements OnInit {
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
+    this.isUpdation = false;	
 
     this.isCompOffRequestsTable = false;
 
@@ -231,16 +232,16 @@ export class CompOffComponent implements OnInit {
       }
 
       if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.fromDate)){
-        this.alertMessage = "Please select from date !!"
+        this.alertMessage = "Please select date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
   
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.toDate)){
-        this.alertMessage = "Please select To Date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+      // if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.toDate)){
+      //   this.alertMessage = "Please select To Date !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
 
       if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
         this.alertMessage = "Please enter valid description !!"
@@ -265,7 +266,7 @@ export class CompOffComponent implements OnInit {
       // this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
       this.compOffObj.description = this.compOffObj.description?.trim();
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
-      this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
+      // this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
       this.compOffObj.createdBy = this.currentUser.empId; 
       this.compOffObj.employeementId = this.currentUser.employeementId;
@@ -325,7 +326,7 @@ export class CompOffComponent implements OnInit {
       compOff = Object.assign({}, this.compOffObj);
       compOff.description = this.compOffObj.description?.trim();
       compOff.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
-      compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
+      // compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       compOff.updatedBy = this.currentUser.empId;
   
       console.log("Update comp off : ", compOff);

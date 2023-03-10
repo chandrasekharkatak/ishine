@@ -22,8 +22,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -36,26 +34,38 @@
                     </div>
                 </div>
             </div>
+            <!-- <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>For</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="compOffObj.reasonId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let reason of compOffReasons" value="{{reason.compOffId}}">{{reason.compOffReasons}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <label class="info-label"><span class="text-danger">*</span>Date</label>
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" (keydown)="disableMannualDateInput()"
-                                placeholder="Choose a from date" [(ngModel)]="compOffObj.fromDate" (dateChange)="resetToDate()">
+                                placeholder="Choose comp Off Date" [(ngModel)]="compOffObj.fromDate" (dateChange)="resetToDate()">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker #fromDatePicker (closed)="input.blur()" disabled="false" ></mat-datepicker>
                         </div>
                     </div>
                 </div>
-                <div class="offset-md-2 col-md-4 mb-0">
+                <!-- <div class="offset-md-2 col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="compOffObj.toDate" (change)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" required> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter" placeholder="Choose a to date" (keydown)="disableMannualDateInput()"
                                 [(ngModel)]="compOffObj.toDate" (dateChange)="setNoOfDays(alert_message)">
@@ -64,9 +74,9 @@
                             <mat-datepicker #toDatePicker (closed)="input.blur()" disabled="false" [startAt]="compOffObj.fromDate"></mat-datepicker>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -75,7 +85,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -127,8 +137,8 @@
                           <tr>	
                             <th scope="col" class="info-label">Sr No.</th>	
                             <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Leave Applied For</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">Date</th>	
+                            <!-- <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	 -->
                             <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
                             <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
                             <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
@@ -144,7 +154,7 @@
                                 <td>{{20*(page-1)+i+1}}</td>
                                 <td>{{compOffReq.compOffReasons}}</td>
                                 <td>{{compOffReq.fromDate}}</td>
-                                <td>{{compOffReq.toDate}}</td>
+                                <!-- <td>{{compOffReq.toDate}}</td> -->
                                 <td>{{compOffReq.noOfDays}}</td>
                                 <td>{{compOffReq.description}}</td>
                                 <td>{{compOffReq.status}}</td>

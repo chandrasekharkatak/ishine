@@ -34,12 +34,15 @@ import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
@@ -49,12 +52,15 @@ import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -122,6 +128,15 @@ public class TeamsService {
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
+	
+	@Autowired
+	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	LeavePolicyMasterRepository leavePolicyMasterRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1825,68 +1840,134 @@ public class TeamsService {
 						});
 					}
 					
+					//Get Expiration Period of CompOff
+					Integer expirationPeriod = null;
+					Employee employeeObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveApplication.getLeaveTypeMasterId());
+					LeaveTypeMaster leaveTypeObj = leaveType.get();
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),employeeObj.getEmploymentstatus());
+					      if(leavePolicy != null){
+					    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+						        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
+				               }
+					      }
+					}
 					
 					//Manage Employee leave balance
 					
-					EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
-							.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
-					
-					if(empLeaveMapping != null) {
-						Float prevBalace = empLeaveMapping.getBalance();
-						empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
+					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")){
+						EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
 						
-						EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
-						
-						if(mapDbResponse != null) {
-							LeaveBalanceLog log = new LeaveBalanceLog();
+						if(empLeaveMapping != null) {
+							Float prevBalace = empLeaveMapping.getBalance();
+							empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
 							
-							log.setBalance(mapDbResponse.getBalance());
-							log.setEmpId(leaveApplication.getEmpId());
-							log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
-							log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
-							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+							EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+							
+							if(mapDbResponse != null) {
+								LeaveBalanceLog log = new LeaveBalanceLog();
+								
+								log.setBalance(mapDbResponse.getBalance());
+								log.setEmpId(leaveApplication.getEmpId());
+								log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+								log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
+								log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 
-							LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
-							
-							if(balanceDbResponse != null) {
+								LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
 								
-								Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
-								Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
-								
-								if(empObj != null && managerObj != null) {
+								if(balanceDbResponse != null) {
 									
-									//Send Mail to User with cc: HR,HOD,Manager
-									mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
-											"Regarding Revoke Leave Application By Manager",
-											"Dear "+ empObj.getName() + ","+"<br>"
-											+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
-											"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
-											"<br>"+
-											"EmpID :"+" "+ empObj.getEmployeementId()+
-											"<br>"+
-											"Name :"+" "+ empObj.getName()+
-											"<br>"+
-											" From :"+" "+ leaveApplication.getFromDate()+
-											"<br>"+
-											" To :"+" "+ leaveApplication.getToDate() +
-											"<br>"+
-											" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
-											+"<br>"+
-											" Leave Type :"+" "+leaveDTO.getLeaveType()+
-											"<br>"+
-											"leave Reason :"+" "+leaveDTO.getRevokeReason());
+									Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+									Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
+									
+									if(empObj != null && managerObj != null) {
+										
+										//Send Mail to User with cc: HR,HOD,Manager
+										mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+												"Regarding Revoke Leave Application By Manager",
+												"Dear "+ empObj.getName() + ","+"<br>"
+												+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
+												"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+												"<br>"+
+												"EmpID :"+" "+ empObj.getEmployeementId()+
+												"<br>"+
+												"Name :"+" "+ empObj.getName()+
+												"<br>"+
+												" From :"+" "+ leaveApplication.getFromDate()+
+												"<br>"+
+												" To :"+" "+ leaveApplication.getToDate() +
+												"<br>"+
+												" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
+												+"<br>"+
+												" Leave Type :"+" "+leaveDTO.getLeaveType()+
+												"<br>"+
+												"leave Reason :"+" "+leaveDTO.getRevokeReason());
+									}
+									
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Leave revoked successfully.");								
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Unable to revoke leave.");
 								}
-								
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Leave revoked successfully.");								
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Unable to revoke leave.");
 							}
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee Leave Balance details not found.");
 						}
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Employee Leave Balance details not found.");
+					}
+					
+					// CompOff Leave : 4 (LeaveTypeMasterId)
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveApplication.getLeaveId());
+						
+						if(!compOffLeave.isEmpty()) {
+								
+								for(CompOffLeave leave: compOffLeave) {
+									
+									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod != null ? expirationPeriod : 30);
+									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
+										
+										leave.setCompOffStatus("Expired");
+										compOffLeaveRepository.save(leave);
+									}else {
+										
+										//Update Leave Balance
+
+										EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+												.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
+										
+										if(empLeaveMapping != null) {
+											Float prevBalace = empLeaveMapping.getBalance();
+											empLeaveMapping.setBalance(prevBalace + leave.getNoOfDays());
+											
+											EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+											
+											if(mapDbResponse != null) {
+												LeaveBalanceLog log = new LeaveBalanceLog();
+												
+												log.setBalance(mapDbResponse.getBalance());
+												log.setEmpId(leaveApplication.getEmpId());
+												log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+												log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leave.getNoOfDays().toString()));
+												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+
+												LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
+											}
+										}
+									
+										
+										// change compOff application status
+										leave.setCompOffStatus("Pending");
+										leave.setLeaveId(null);
+										
+										compOffLeaveRepository.save(leave);
+									}
+									
+								}
+						}
 					}
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
