@@ -147,6 +147,8 @@ export class LoaderInterceptor implements HttpInterceptor {
 
     `${this.baseUrl}` + `api/bulkApproveLeaveRequest`,
     `${this.baseUrl}` + `api/bulkRejectLeaveRequest`,
+
+    `${this.baseUrl}` + `api/updateTeam`,
   ]
 
   constructor(private loaderService: LoaderService) { }

@@ -155,7 +155,7 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-success" (click)="onChangeEmployeeDesignationMapping(alert_message,designationObj.newDesignationId)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="designationObj.newDesignationId == null" (click)="onChangeEmployeeDesignationMapping(alert_message,designationObj.newDesignationId)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

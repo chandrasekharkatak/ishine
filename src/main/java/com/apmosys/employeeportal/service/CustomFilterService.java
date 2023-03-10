@@ -1517,7 +1517,7 @@ public class CustomFilterService {
 				response.setServiceResponse(dtoList);
             }
             case "Specialization": {
-				List<Specialization> allSpecialization = specializationRepository.findAll();
+				List<Specialization> allSpecialization = specializationRepository.findByIsActive("true");
 				if (!allSpecialization.isEmpty()) {
 					allSpecialization.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
@@ -1530,7 +1530,7 @@ public class CustomFilterService {
 				break;
 			}
             case "Domain": {
-            	List<Domain> allDomain = domainRepository.findAll();
+            	List<Domain> allDomain = domainRepository.findByIsActive("true");
 				if (!allDomain.isEmpty()) {
 					allDomain.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();

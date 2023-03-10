@@ -22,4 +22,6 @@ public interface SpecializationRepository extends JpaRepository<Specialization, 
 	List<Specialization> findByDomainIdAndSpecializationIdInAndIsActive(Long domainId, Set<Long> specializationIds,
 			String string);
 
+	List<Specialization> findByIsActive(String isActive);
+
 }

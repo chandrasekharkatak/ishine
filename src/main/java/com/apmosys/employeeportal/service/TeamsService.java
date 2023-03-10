@@ -651,7 +651,8 @@ public class TeamsService {
 			//Add activities if not added
 			if(!activityDeptId.isEmpty()){
 				for(Long deptId : activityDeptId) {
-					List<Activity> activityPresent = activitiesRepository.findByDeptIdsContainsAndTeamId(deptId.toString(), teamDTO.getTeamId());
+					String departmentId = String.valueOf(deptId);
+					List<Activity> activityPresent = activitiesRepository.findByTeamIdAndDeptIdsContaining(teamDTO.getTeamId(), departmentId);
 					String[] employeeRoles = {"TeamLead","Employee", "HOD", "Manager"};
 					
 					if(!activityPresent.isEmpty()) {

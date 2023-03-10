@@ -221,10 +221,9 @@ export class DesignationConfigComponent implements OnInit {
         this.showTable();
         this.openAlertMod(template, response.serviceResponse);
       } else {
+        this.designationObj.newDesignationId = null;
         this.filteredDesignationListByDept = response.serviceResponse;
-
-        console.log(this.filteredDesignationListByDept, " : this.filteredDesignationListByDept");
-        
+        this.filteredDesignationListByDept = this.filteredDesignationListByDept.filter(x => x.designationId != this.designationToBeDeleted.designationId)
 
         this.modalRef = this.modalService.show(deleteDesignation);
         this.page = 1;

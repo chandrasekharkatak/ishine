@@ -19,4 +19,6 @@ public interface DomainRepository extends JpaRepository<Domain, Long> {
 
 	List<Domain> findByDomainIdIn(Set<Long> domainIds);
 
+	List<Domain> findByIsActive(String isActive);
+
 }

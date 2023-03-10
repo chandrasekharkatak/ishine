@@ -959,24 +959,27 @@ export class EmployeeConfigComponent implements OnInit {
         return false;
       }
     }
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.domainList)) {
-      this.alertMessage = "Please select Domain !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(employeeObj.domainList.length == 0){
-      this.alertMessage = "Please select Domain !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.specializationList)) {
-      this.alertMessage = "Please select Specialization(s) !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else if(employeeObj.specializationList.length == 0){
-      this.alertMessage = "Please select Specialization(s) !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(this.isUpdation){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.domainList)) {
+        this.alertMessage = "Please select Domain !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(employeeObj.domainList.length == 0){
+        this.alertMessage = "Please select Domain !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.specializationList)) {
+        this.alertMessage = "Please select Specialization(s) !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(employeeObj.specializationList.length == 0){
+        this.alertMessage = "Please select Specialization(s) !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
 
     // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
@@ -1943,7 +1946,8 @@ export class EmployeeConfigComponent implements OnInit {
         this.alertMessage = `Please enter Specialization - ${index + 1}!!`
         flag = false;
         return;
-      } if (!this.validationService.validateActivityName(spec.specializationName)) {
+      }
+      if (!this.validationService.validateTeamActivity(spec.specializationName)) {
         this.alertMessage = `Please enter valid Specialization - ${index + 1}!!`
         flag = false;
         return;
