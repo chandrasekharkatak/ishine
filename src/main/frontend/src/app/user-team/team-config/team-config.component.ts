@@ -673,6 +673,7 @@ export class TeamConfigComponent implements OnInit {
 
   getAllTeamsByProjectId(projectId: any) {
     this.allTeamList = [];
+    this._allTeamList = [];
     this.allActivityList = [];
     this.filterStatus = "";
     this.activityObj.teamId = '';
@@ -681,6 +682,9 @@ export class TeamConfigComponent implements OnInit {
     
     if(projectId == 0){
         this.getAllMyTeamsByEmpId();
+    }
+    else if(projectId == -1){
+      this.getAllTeams()
     }else{
       let teamObj = new Team();
       teamObj.projectId = projectId;
@@ -735,6 +739,36 @@ export class TeamConfigComponent implements OnInit {
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
         console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+
+      this.filterStatus = "Active";
+      this.changeEvent();
+    });
+  }
+
+  getAllTeams() {
+    this.allTeamList = [];
+    this._allTeamList = [];
+    this.allActivityList = [];
+    this.filterStatus = "";
+    this.selectedProject = "-1";
+
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    employeeObj.departmentName = this.currentUser.departmentName;
+    employeeObj.employeeRole = this.currentUser.employeeRole;
+
+    this.teamService.getAllTeams().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamList = response.serviceResponse;
+        this.allTeamList.forEach(team => {
+          team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this._allTeamList = this.allTeamList
+        this.isDisabled = false;
+        console.log("getAllTeams :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -847,6 +881,13 @@ export class TeamConfigComponent implements OnInit {
             projectId : 0,
             projectName : 'My Teams'
           });
+
+          if(this.currentUser.employeeRole == 'SuperAdmin'){
+            this.allProjectListByManagerId.unshift({
+              projectId : -1,
+              projectName : 'All Teams'
+            });
+          }
         }
 
       } else {
