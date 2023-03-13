@@ -394,6 +394,7 @@ export class LeaveComponent implements OnInit {
     this.leaveHistoryList = [];
     this.leaveLogList = [];
     this.leaveBalanceList = [];
+    this.leaveDetails = [];
   }
 
   showUpdateForm(leaveHistory:Leave){	

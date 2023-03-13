@@ -453,7 +453,7 @@
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
-                                <mat-select #roleSelect class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
+                                <mat-select #roleSelect class="form-control" multiple [disabled]="newteamMember.empId == null || newteamMember.empId == ''" [(ngModel)]="newteamMember.employeeRole">
                                     <mat-option selected="selected" value="" disabled>Select</mat-option>
                                     <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
                                 </mat-select>

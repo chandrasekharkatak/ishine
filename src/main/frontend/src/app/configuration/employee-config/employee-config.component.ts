@@ -1195,6 +1195,7 @@ export class EmployeeConfigComponent implements OnInit {
     if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
         employee.email = this.employeeObj.email;
+        employee.empId = this.employeeObj.empId;
         this.employeeService.checkEmployeeEmail(employee).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Fail") {
             this.openAlertMod(template, response.serviceResponse);

@@ -124,7 +124,19 @@ export class HomeConfigComponent implements OnInit {
     this.notificationObj = new NotificationMessage();
   }
 
-  onImageSelect(event:any){
+  onImageSelect(event:any,template: TemplateRef<any>){
+    let isSizeInRange:boolean = false;
+
+    //Bits in  10mb : 10485760
+    if(event.target.files[0].size > 10485760){
+      this.openAlertMod(template, "File size is more than 10MB");
+      event.target.value = null;
+      isSizeInRange = false;
+   }else{
+    isSizeInRange = true;
+   }
+
+   if(isSizeInRange){
     this.files = [];
 
     const uploadedFiles = event.target.files;
@@ -140,6 +152,7 @@ export class HomeConfigComponent implements OnInit {
       };
     }
     console.log("Files : ", this.files);
+   }
   }
 
   onUploadImages(template: TemplateRef<any>){
