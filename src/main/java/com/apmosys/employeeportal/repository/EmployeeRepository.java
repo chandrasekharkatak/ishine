@@ -154,4 +154,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Long countByDesignationId(Long designationId);
 
 	public List<Employee> findByDesignationId(Long designationId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeesByRoleIds(List<Long> jobRoleIds);
 }

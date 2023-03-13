@@ -1924,8 +1924,10 @@ public class EmployeeService {
 			
 			if (!jobRoleObj.isEmpty()) {
 				
-				for (JobRole roleObj : jobRoleObj) {
-					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getJobRoleId());
+				List<Long> jobRoleIds = 
+						jobRoleObj.stream().map(JobRole::getJobRoleId).collect(Collectors.toList());
+				
+					List<Object[]> empList = employeeRepository.getEmployeesByRoleIds(jobRoleIds);
 
 					Optional.ofNullable(empList).ifPresentOrElse((list) -> {
 
@@ -1960,7 +1962,6 @@ public class EmployeeService {
 						apiLogInfo.setApiResponse("No Employee Found");			
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					});
-				}
 			}
 
 		} catch (Exception e) {
