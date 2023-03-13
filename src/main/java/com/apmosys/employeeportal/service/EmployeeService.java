@@ -2252,7 +2252,10 @@ public class EmployeeService {
 			if (employeedto.getEmail() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
-				if (checkEmployeeEmail != null) {
+				if ((employeedto.getEmpId() != null) && !checkEmployeeEmail.getEmpId().equals(employeedto.getEmpId()) && checkEmployeeEmail != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Email already exist!");
+				}else if((employeedto.getEmpId() == null) && checkEmployeeEmail != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Email already exist!");
 				}
