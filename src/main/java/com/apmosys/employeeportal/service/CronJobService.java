@@ -597,21 +597,25 @@ public class CronJobService {
 						for(Object[] employeeList: allEmployee) {
 							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
-
-							if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
-									|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
-								
-								Timesheet newTimesheet = new Timesheet();
-								
-								newTimesheet.getCommonProperty().setCreatedBy(empId);
-								newTimesheet.setDate(dateToday);
-								newTimesheet.setDayType("Holiday");
-								newTimesheet.setDescription("Public Holiday");
-								newTimesheet.setEmpId(empId);
-								newTimesheet.setStatus("Approved");
-								
-								timesheetsRepository.save(newTimesheet);
-								
+							
+							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
+							if(empTimesheet == null) {
+							
+								if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
+									
+									Timesheet newTimesheet = new Timesheet();
+									
+									newTimesheet.getCommonProperty().setCreatedBy(empId);
+									newTimesheet.setDate(dateToday);
+									newTimesheet.setDayType("Public Holiday");
+									newTimesheet.setDescription(holidays.getOccasion());
+									newTimesheet.setEmpId(empId);
+									newTimesheet.setStatus("Approved");
+									
+									timesheetsRepository.save(newTimesheet);
+									
+								}
 							}
 						}	
 					}
