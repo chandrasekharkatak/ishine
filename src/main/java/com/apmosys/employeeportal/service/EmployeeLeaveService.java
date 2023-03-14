@@ -2969,4 +2969,70 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		return response;
 	}
 
+	public ServiceResponse pendingForApprovalReconsilation() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Employee> allEmployeeList = employeeRepository.findAll();
+			List<LeaveDTO> dtoList = new ArrayList<>();
+			
+			if(!allEmployeeList.isEmpty()) {
+				allEmployeeList.forEach((object) -> {
+					List<LeaveTypeMaster> allLeaveType = leaveTypeMasterRepository.findAll();
+					
+					if(!allLeaveType.isEmpty()) {
+						allLeaveType.forEach((leaveType) -> {
+							//4 : compOff && 5 : ML
+							if(leaveType.getLeaveTypeMasterId() != 4 && leaveType.getLeaveTypeMasterId() != 5){
+								// 1 = pending							
+								List<EmployeeLeave> employeeLeave = employeeLeaveRepository
+										.findAllByEmpIdAndLeaveTypeMasterId(object.getEmpId(), leaveType.getLeaveTypeMasterId());
+									
+									//Get EmployeeLeaveMapping to update "Pending For Approval" count
+									
+									EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
+											findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), leaveType.getLeaveTypeMasterId());
+									
+									if(employeeLeaveMap != null) {
+										
+										Float pendingForApprovalCount = employeeLeaveMap.getPendingForApproval();
+										
+										if(!employeeLeave.isEmpty()) {
+											
+											for(EmployeeLeave leaveApplication: employeeLeave) {
+												if(leaveApplication.getLeaveStatusId() == 2) {
+													pendingForApprovalCount = pendingForApprovalCount - leaveApplication.getNoOfDays();
+												}
+											}
+										
+										employeeLeaveMap.setPendingForApproval(pendingForApprovalCount);
+										
+										LeaveDTO dto = new LeaveDTO();
+										dto.setEmpId(object.getEmpId());
+										dto.setEmployeementId(object.getEmployeementId());
+										dto.setPendingForApproval(pendingForApprovalCount);
+										
+										dtoList.add(dto);									
+										EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+									}
+								}
+							}
+						});
+					}
+					
+				});
+			}
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(dtoList);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }
