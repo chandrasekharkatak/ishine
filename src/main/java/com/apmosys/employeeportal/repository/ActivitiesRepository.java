@@ -20,8 +20,7 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 
 	public List<Activity> findByTeamIdAndEmployeeRoleIn(Long teamId, String[] employeeRole);
 
-	public List<Activity> findByDeptIdsContainingAndTeamId(String deptIds, Long teamId);
-
-	public List<Activity> findByTeamIdAndDeptIdsContaining(Long teamId, String departmentId);
+	@Query(nativeQuery = true)
+	public List<Activity> getActivityByTeamIdAndDepts(String departmentId, Long teamId);
 
 }

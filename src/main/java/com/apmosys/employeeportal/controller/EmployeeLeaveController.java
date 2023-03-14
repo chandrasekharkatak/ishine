@@ -249,5 +249,12 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.addTimesheetForHolidays(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/pendingForApprovalReconsilation" ,method = RequestMethod.GET)
+	public ServiceResponse pendingForApprovalReconsilation() {
+		
+		ServiceResponse response = employeeLeaveService.pendingForApprovalReconsilation();
+		return response;
+	}
 
 }
