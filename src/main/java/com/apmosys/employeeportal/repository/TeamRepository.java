@@ -37,4 +37,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	public Team findByTeamNameAndProjectIdAndIsActive(String teamName, Integer projectId, String string);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllTeams();
 }

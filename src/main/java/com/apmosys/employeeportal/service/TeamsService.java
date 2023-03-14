@@ -1989,4 +1989,58 @@ public class TeamsService {
 		return response;
 	}
 
+	
+	public ServiceResponse getAllTeams() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> objectList = teamRepository.getAllTeams();
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No teams found. Teams list is empty");
+				} else {
+					
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+						
+						list.forEach((object) -> {
+							TeamDTO dto = new TeamDTO();
+
+							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+							dto.setProjectName(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dto.setTeamName(object[3] != null ? object[3].toString() : null);
+							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
+							
+							dtoList.add(dto);
+						});
+						
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found.Teams list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }
