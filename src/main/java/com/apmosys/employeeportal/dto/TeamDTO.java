@@ -43,7 +43,7 @@ public class TeamDTO {
 	private Long poTeamId;
 	private Long teamMemberId;
 	private String poTeamLeadId;
-	private String[] teamMemberList;
+	private List<TeamMemberDTO> teamMemberList;
 	private String description;
 	private String departmentName;
 	private Long teamLeadDeptId;

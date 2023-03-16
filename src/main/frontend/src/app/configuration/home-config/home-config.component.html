@@ -29,7 +29,7 @@
                         <div class="form-group">
                             <label class="info-label mb-0"><span class="text-danger">*</span>Select Images</label>
                             <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 10MB</small>
-                            <input type="file" accept="image/x-png,image/jpeg,image/jpg" multiple class="form-control p-1" (change)="onImageSelect($event)">
+                            <input type="file" accept="image/x-png,image/jpeg,image/jpg" multiple class="form-control p-1" (change)="onImageSelect($event,alert_message)">
                         </div>
                     </div>
                 </div>
@@ -56,13 +56,13 @@
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
                     [tableTHeadTrId]="'eventInfoTHeadTr'">
-                    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortEventPhotos($event)">
+                    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
-                            <th scope="col" class="info-label" mat-sort-header="imageName">Image Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="eventName">Event Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdByName">Created by</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdOn">Created on</th>
+                            <th scope="col" class="info-label" mat-sort-header="imageName|string">Image Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="eventName|string">Event Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
                         </thead>
@@ -70,7 +70,7 @@
                             <tr *ngIf="eventImages.length == 0">
                                 <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
                             </tr>
-                          <tr *ngFor="let image of eventImages | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                          <tr *ngFor="let image of eventImages | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td>{{image.imageName}}</td>
                             <td>{{image.eventName}}</td>
                             <td>{{image.createdByName}}</td>

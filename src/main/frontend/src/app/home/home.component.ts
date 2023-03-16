@@ -45,6 +45,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
   userMapping: any = {};
   log: Log;
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   isReqPending: boolean = true;
   leaveApplicationCount: any = 0;
   leaveApplicationList: any[] = [];
@@ -117,6 +121,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   profileCompletedPercentage: any = 0;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
+
   constructor(
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
@@ -153,7 +163,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.getAllNotifications();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
     if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
     if (this.userMapping.view_all_team_requests) {
       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
@@ -167,6 +176,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.countMyRejectedLeaveApplicationsByLeaveType();
     }
     if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
 
 
     if (this.currentUser.isNew == "true") {
@@ -1091,6 +1101,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   openReqMod(template: TemplateRef<any>) {
+    this.filters = {};
+    this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -1465,18 +1477,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.isError = false;
     this.errorMsg = '';
 
-    this.user.empId = this.currentUser.empId;
-    this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+    if(this.password){
+      this.user.empId = this.currentUser.empId;
+      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
 
-    this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.oldPasswordValid = true;
-      } else {
-        this.isError = true;
-        this.errorMsg = response.serviceResponse;
-        this.oldPasswordValid = false;
-      }
-    });
+      this.employeeService.checkEmployeeOldPassword(this.user).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.oldPasswordValid = true;
+        } else {
+          this.isError = true;
+          this.errorMsg = response.serviceResponse;
+          this.oldPasswordValid = false;
+        }
+      });
+    }
   }
 
   openChangePassword(changePasswordTemplate) {
@@ -1560,156 +1574,25 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // sorting --
-
-  sortHomeTimesheet(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-    let data = this.allTeamTimesheetRequests;
-    console.log("anurag :", this.allTeamTimesheetRequests);
-
-    if (!sort.active || sort.direction === '') {
-      this.allTeamTimesheetRequests = data;
-      return;
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-    else {
-      this.allTeamTimesheetRequests = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc);
-
-            case 'employeeName':
-              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc);
-
-            case 'date':
-              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc);
-
-            case 'dayType':
-              return compare(a.dayType.toLowerCase(), b.dayType.toLowerCase(), isAsc);
-
-            case 'description':
-              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc);
-
-            case 'officeInTime':
-              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
-
-            case 'officeOutTime':
-              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
-
-            case 'totalWorkingOfficeHours':
-              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
-
-            case 'status':
-              return compare(a.status.toLowerCase(), b.status.toLowerCase(), isAsc);
-
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
   }
 
-  sortHomeCompOff(sort: Sort) {
-    console.log(sort);
-    let data = this.allCompOffApplications;
-    console.log("CompOff :", this.allCompOffApplications);
-
-    if (!sort.active || sort.direction === '') {
-      this.allCompOffApplications = data;
-      return;
-    }
-    else {
-      this.allCompOffApplications = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
-
-            case 'compOffReasons':
-              return compare(a.compOffReasons.toLowerCase(), b.compOffReasons.toLowerCase(), isAsc);
-
-            case 'fromDate':
-              return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
-
-            case 'toDate':
-              return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
-
-            case 'noOfDays':
-              return compare(a.noOfDays, b.noOfDays, isAsc);
-
-            case 'description':
-              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc);
-
-            case 'status':
-              return compare(a.status.toLowerCase(), b.status.toLowerCase(), isAsc);
-
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
   }
-  // sortLeave
-  sortHomeLeave(sort: Sort) {
-    console.log(sort);
-    let data = this.leaveApplicationList;
-    console.log("CompOff :", this.leaveApplicationList);
 
-    if (!sort.active || sort.direction === '') {
-      this.leaveApplicationList = data;
-      return;
-    }
-    else {
-      this.leaveApplicationList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-
-            case 'employeeName':
-              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc);
-
-
-            case 'leaveType':
-              return compare(a.leaveType.toLowerCase(), b.leaveType.toLowerCase(), isAsc);
-
-            case 'fromDate':
-              return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
-
-            case 'toDate':
-              return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
-
-            case 'noOfDays':
-              return compare(a.noOfDays, b.noOfDays, isAsc);
-
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
-
-            case 'status':
-              return compare(a.status.toLowerCase(), b.status.toLowerCase(), isAsc);
-
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-
-            case 'reason':
-              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc);
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

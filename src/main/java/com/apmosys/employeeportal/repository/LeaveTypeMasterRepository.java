@@ -18,4 +18,10 @@ public interface LeaveTypeMasterRepository extends JpaRepository<LeaveTypeMaster
 
 	@Query(nativeQuery = true)
 	public List<Object[]> findByLeaveTypeMasterId(Short leaveTypeMasterId);
+
+	public LeaveTypeMaster findByLeaveType(String leaveType);
+
+	public LeaveTypeMaster findByLeaveTypeAndLeaveTypeMasterIdIsNot(String leaveType, Short leaveTypeMasterId);
+
+	
 }

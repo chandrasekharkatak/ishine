@@ -59,6 +59,12 @@ public class DepartmentController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/checkDepartmentName", method = RequestMethod.POST)
+	public ServiceResponse checkDepartmentName(@RequestBody DepartmentDTO departmentDTO) {
+		ServiceResponse response = departmentService.checkDepartmentName(departmentDTO);
+		return response;
+	}
+	
 	/*
 	 API for PoPortal
 	 */

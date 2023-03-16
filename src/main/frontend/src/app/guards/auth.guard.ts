@@ -33,8 +33,16 @@ export class AuthGuard implements CanActivate {
 
         let queryParamId = route.params['id'];
         let url: string = state.url;
+
+        let rmgprojId = url.split("/")[3];
+        
         if(queryParamId != null && url != null){
           this.id = queryParamId;
+          this.currentUrl = url;
+        }
+
+        if((rmgprojId != undefined || rmgprojId != null) && url != null){
+          this.id = rmgprojId;
           this.currentUrl = url;
         }
 

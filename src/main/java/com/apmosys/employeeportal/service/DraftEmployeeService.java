@@ -134,7 +134,10 @@ public class DraftEmployeeService {
 			employee.setMothersName(employeedto.getMothersName());
 			employee.setSpouse(employeedto.getSpouse());
 			employee.setTotalExperience(employeedto.getTotalExperience());
-
+			employee.setReportingManagerId(employeedto.getReportingManagerId());
+			employee.setApprovalsTo(employeedto.getApprovalsTo());
+			employee.setDesignationId(employeedto.getDesignationId());
+			
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -291,7 +294,8 @@ public class DraftEmployeeService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-
+					empDTO.setReportingManagerName(object[60] != null ? object[60].toString() : null);
+					
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -788,6 +792,9 @@ public class DraftEmployeeService {
 					empDTO.setChild1(object[56] != null ? object[56].toString() : null);
 					empDTO.setChild2(object[57] != null ? object[57].toString() : null);
 					empDTO.setChild3(object[58] != null ? object[58].toString() : null);
+					empDTO.setReportingManagerName(object[59] != null ? object[59].toString() : null);
+					empDTO.setDesignationId(object[60] != null ? Long.parseLong(object[60].toString()) : null);
+					empDTO.setDesignationName(object[61] != null ? object[61].toString() : null);
 
 //					if (object[42] != null) {
 //
@@ -1064,25 +1071,33 @@ public class DraftEmployeeService {
 						String[] contents = directoryPath.list();
 
 						List<String> filesInFolder = Arrays.asList(contents);
+						List<String> finalDocFileNames = new ArrayList<String>();
 
 						for (EmployeeDocument document : documentList) {
 							document.setIsDraft("false");
 							document.setEmpId(employee.getEmpId());
+							
 							list.add(document);
-
+							finalDocFileNames.add(document.getDocumentName());
 						}
 						employeeDocumentRepository.saveAll(list);
 
-//						for (EmployeeDocument document : documentList) {
-//
-//							for (int i = 0; i < contents.length; i++) {
-//								if (contents[i].equals(document.getDocumentName())) {
-//									System.out.println(contents[i]);
-//								}
-//
-//							}
-//						}
-
+						
+						/* Delete old and junk documents from Employee Document Folder */
+						for(String fileName : filesInFolder) {
+							if (!finalDocFileNames.contains(fileName)) {
+								File junkFile = new File(imageFileLocation + File.separator + "Documents" + File.separator
+										+ "Draft" + File.separator + employeedto.getEmployeementId() + File.separator + fileName);
+								
+								if(junkFile.exists()) {
+									if(junkFile.delete()) {
+										System.out.println(fileName + " deleted !!");
+									}else {
+										System.out.println("Failed to delete file !!");
+									}
+								}
+							}
+						}
 					}
 
 					if (certificationsList != null) {

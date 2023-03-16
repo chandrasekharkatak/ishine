@@ -18,6 +18,7 @@ import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,29 +34,37 @@ import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -107,9 +116,27 @@ public class TeamsService {
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;
 
 	@PersistenceContext
     private EntityManager entityManager;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
+	@Autowired
+	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	LeavePolicyMasterRepository leavePolicyMasterRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -218,23 +245,40 @@ public class TeamsService {
 							Department departmentObj = departmentRepository.getById(Long.parseLong(deptId));
 							deptIds.add(Long.parseLong(deptId));
 							if(departmentObj != null) {
-								map = new EmployeeTeamMap();
-								map.setActive(1l);
-								map.setEmpId(departmentObj.getHodId());
-								map.setTeamId(teamCreated.getTeamId());
-								map.setEmployeeRole("HOD");
-								mapList.add(map);
+								
+								//Check if HOD is already added
+								EmployeeTeamMap isFound = mapList.stream().filter(team -> departmentObj.getHodId().equals(team.getEmpId())).findFirst().orElse(null);
+								
+								if(isFound != null) {
+									isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"HOD");
+								}else {
+									map = new EmployeeTeamMap();
+									map.setActive(1l);
+									map.setEmpId(departmentObj.getHodId());
+									map.setTeamId(teamCreated.getTeamId());
+									map.setEmployeeRole("HOD");
+									mapList.add(map);									
+								}
+								
 							}
 						}
 						
 						// Add project Manager
 						if(projectObj != null) {
-							map = new EmployeeTeamMap();
-							map.setActive(1l);
-							map.setEmpId(projectObj.getProjectManagerId());
-							map.setTeamId(teamCreated.getTeamId());
-							map.setEmployeeRole("Manager");
-							mapList.add(map);
+							
+							//Check if ProjManager is already added
+							EmployeeTeamMap isFound = mapList.stream().filter(team -> projectObj.getProjectManagerId().equals(team.getEmpId())).findFirst().orElse(null);
+							
+							if(isFound != null) {
+								isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"Manager");
+							}else {
+								map = new EmployeeTeamMap();
+								map.setActive(1l);
+								map.setEmpId(projectObj.getProjectManagerId());
+								map.setTeamId(teamCreated.getTeamId());
+								map.setEmployeeRole("Manager");
+								mapList.add(map);								
+							}
 						}
 
 						list.forEach((teamMember) -> {
@@ -590,7 +634,74 @@ public class TeamsService {
 					response.setServiceResponse("Team not found.");
 				});
 			}
+			
+			//Add Default Activities which are not mapped
+			List<Activity> activityList = activitiesRepository.findByTeamId(teamDTO.getTeamId());
+			Set<Long> activityDeptId = new HashSet<>();
+			
+			if(!activityList.isEmpty()) {
+				activityList.forEach((object) -> {
+					String[] ids = object.getDeptIds().split(",");
+					for(String id : ids) {
+						activityDeptId.add(Long.parseLong(id));
+					}
+				});;
+			}
+			
+			//Add activities if not added
+			if(!activityDeptId.isEmpty()){
+				for(Long deptId : activityDeptId) {
+					String departmentId = String.valueOf(deptId);
+					Long teamId = teamDTO.getTeamId();
+					List<Activity> activityPresent = activitiesRepository.getActivityByTeamIdAndDepts(departmentId, teamDTO.getTeamId());
+					String[] employeeRoles = {"TeamLead","Employee", "HOD", "Manager"};
+					
+					if(!activityPresent.isEmpty()) {
+						for(String role : employeeRoles) {
+							boolean contain = containsEmployeeRole(activityPresent, role);
+							
+							if(!contain) {
+								List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptIdAndEmployeeRole(deptId, role);
+								if(!activityTemplate.isEmpty()) {
+									
+									for(ActivityTemplate object: activityTemplate) {
+										Activity newActivity = new Activity();
 
+										newActivity.setActivity(object.getTemplateActivity());
+										newActivity.setTeamId(teamDTO.getTeamId());
+										newActivity.setEmployeeRole(object.getEmployeeRole());
+										newActivity.setDeptIds(object.getDeptId().toString());
+										newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+
+										Activity newActivityCreated = activitiesRepository.save(newActivity);
+									}
+								}
+							}
+						}
+					}
+				}				
+			}
+			
+			// Add activity if new Department added in update team
+			for(String deptId: teamDTO.getDepartmentList()) {
+				if(!activityDeptId.contains(Long.parseLong(deptId))) {
+					List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(Long.parseLong(deptId));
+					if(!activityTemplate.isEmpty()) {
+						
+						for(ActivityTemplate object: activityTemplate) {
+							Activity newActivity = new Activity();
+
+							newActivity.setActivity(object.getTemplateActivity());
+							newActivity.setTeamId(teamDTO.getTeamId());
+							newActivity.setEmployeeRole(object.getEmployeeRole());
+							newActivity.setDeptIds(object.getDeptId().toString());
+							newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+
+							Activity newActivityCreated = activitiesRepository.save(newActivity);
+						}
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -598,6 +709,10 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	public boolean containsEmployeeRole(final List<Activity> list, final String employeeName){
+	    return list.stream().anyMatch(o -> o.getEmployeeRole().equals(employeeName));
 	}
 	
 	public ServiceResponse getAllMyTeamsByEmpId(EmployeeDTO employeeDTO) {
@@ -861,6 +976,10 @@ public class TeamsService {
 					dto.setHodEmail(object[12] != null ? object[12].toString() : null);
 					dto.setDepartmentId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[14] != null ? object[14].toString() : null);
+					dto.setReportingManagerId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
+					dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
+					dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
 					
 					dtoList.add(dto);
 					
@@ -969,16 +1088,40 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			if(teamdto.getTeamId() != null) {
-				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectId(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId());
-				if(checkTeamNameByName != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Team Name already exist!");
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			if(teamdto.getTeamId() != null && teamdto.getProjectId() != null) {
+				
+				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectIdAndIsActive(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId(), "Y");
+//				if(checkTeamNameByName != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Team Name already exist!");
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+				if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
+					if(checkTeamNameByName != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Team Name already exist!");
+					}
+					System.out.println("   checkTeamNameByName = "+checkTeamNameByName);    
 				}
-				System.out.println("   checkTeamNameByName   "+checkTeamNameByName);    
+				
+			}else if(teamdto.getProjectId() == null && teamdto.getTeamName() != null && teamdto.getProjectName() != null) {
+				
+				Project projectObj = projectRepository.findByProjectName(teamdto.getProjectName());
+				
+				if(projectObj != null) {
+					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectIdAndIsActive(teamdto.getTeamName(), projectObj.getProjectId(), "Y");
+					
+					if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
+						if(checkTeamNameByName != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Team Name already exist!");
+						}
+						System.out.println("   checkTeamNameByName - "+checkTeamNameByName);
+					}
+				}
 			}else {
+				
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -986,17 +1129,8 @@ public class TeamsService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}
+				System.out.println("   checkTeamNameByName : "+checkTeamNameByName);
 			}
-			
-			
-//			if(checkTeamNameByName==null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				}else if(checkTeamNameByName != null) {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Team Name already exist!");
-//				}
-			
-			
 			 
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -1127,36 +1261,142 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			Employee getEmpData = null;
-			if(project.getEmployeementId() != null) {
-				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
-			}
+			Project projectObj = projectRepository.findByProjectName(project.getProjectName());
 			
-			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
-			
-			if(projectPresent == null) {
-				Project newProject = new Project();
-
-				newProject.setClientName(project.getClientName());
-				newProject.setClientLocation(project.getClientLocation());
-				newProject.setState(project.getState());
-				newProject.setProjectName(project.getProjectName());
-				newProject.setDescription(project.getDescription());
+			if(projectObj != null) {
 				
-				if(getEmpData != null) {
-					newProject.setProjectManagerId(getEmpData.getEmpId());
-				}
+				projectObj.setPoProjectId(project.getPoProjectId());
 				
-				Project projectCreated = projectRepository.save(newProject);
+				Project projectDbResponse = projectRepository.save(projectObj);
 				
-				if(projectCreated != null) {
+				if(projectDbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Project created");
+					response.setServiceResponse("Added PoProject Id.");
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("project creation failed");
+					response.setServiceResponse("Fail.");
 				}
+			}else {
+				
+				Integer clientId = null;
+				Optional<Client> clientObj = clientsRepository.findByClientName(project.getClientName());
+				if(!clientObj.isEmpty()) {
+					Client clientPresent = clientObj.get();
+					clientId = clientPresent.getClientId();
+				}else {
+					// Add Client & Client Location
+					
+					Client newClient = new Client();
+					newClient.setClientName(project.getClientName());
+					Client clientDbResponse = clientsRepository.save(newClient);
+					
+					if(clientDbResponse != null) {
+						clientId = clientDbResponse.getClientId();
+						List<ClientLocation> locations = new ArrayList<>();
+						
+							ClientLocation newClientLocation = new ClientLocation();
+							newClientLocation.setClientId(clientDbResponse.getClientId());
+							newClientLocation.setClientLocation(project.getClientLocation());
+							locations.add(newClientLocation);
+							
+						List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+						
+						if(!clientLocationDbResponse.isEmpty()) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Client Location added");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Failed to add client Location");
+							return response;
+						}
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Failed to add client");
+						return response;
+					}
+				}
+				
+				//Find ProjectManager empId
+				Long projManagerId = null;
+				if(project.getProjectManagerId() != null) {
+					Long employeementID = project.getProjectManagerId();
+					Employee employee = employeeRepository.findByEmployeementId(employeementID);
+					if(employee != null) {
+						projManagerId = employee.getEmpId();
+					}
+				}else {
+					Department dept = departmentRepository.findByName(project.getDepartmentName());
+					projManagerId = dept.getHodId();
+				}
+				
+				//Add project
+				Project newProject = new Project();
+				newProject.setProjectManagerId(projManagerId);
+				newProject.setProjectName(project.getProjectName());
+				newProject.setState(project.getState());
+				newProject.setClientId(clientId);
+				newProject.setPoProjectId(project.getPoProjectId());
+				newProject.setActive("true");
+				newProject.setSyncProject("true");
+				newProject.setCreatedBy(3l);
+				
+				Project projectDbResponse = projectRepository.save(newProject);
+				
+				if(projectDbResponse != null) {
+					
+						Department departmentObj = departmentRepository.findByName(project.getDepartmentName());
+						if(departmentObj != null) {
+							ProjectDepartmentMap projectDeptMapObj = projectDepartmentMapRepository.
+									findByProjectIdAndDeptId(projectDbResponse.getProjectId(),departmentObj.getDeptId());
+							if(projectDeptMapObj == null) {
+								//add department
+								ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+								projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+								projectDeptMap.setDeptId(departmentObj.getDeptId());
+								ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+							}
+						}
+					
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("project added successfully.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to add Project.");
+				}
+				
 			}
+			
+//			Employee getEmpData = null;
+//			if(project.getEmployeementId() != null) {
+//				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
+//			}
+//			
+//			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
+//			
+//			if(projectPresent == null) {
+//				Project newProject = new Project();
+//
+//				newProject.setClientName(project.getClientName());
+//				newProject.setClientLocation(project.getClientLocation());
+//				newProject.setState(project.getState());
+//				newProject.setProjectName(project.getProjectName());
+//				newProject.setDescription(project.getDescription());
+//				
+//				if(getEmpData != null) {
+//					newProject.setProjectManagerId(getEmpData.getEmpId());
+//				}
+//				
+//				Project projectCreated = projectRepository.save(newProject);
+//				
+//				if(projectCreated != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("Project created");
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("project creation failed");
+//				}
+//			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -1576,4 +1816,231 @@ public class TeamsService {
 		return response;
 	}
 
+	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			EmployeeLeave leaveApplication = employeeLeaveRepository.findByLeaveId(leaveDTO.getLeaveId());
+			
+			if(leaveApplication != null) {
+				leaveApplication.setLeaveStatusId((short)5);
+				leaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				
+				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveApplication);
+				
+				if(dbResponse != null) {
+					
+					//Delete Timesheet Application regarding leave
+					
+					List<Timesheet> empTimesheet = timesheetsRepository.
+							findTimesheetOnLeaveDate(leaveApplication.getEmpId(),leaveApplication.getFromDate().toString(),leaveApplication.getToDate().toString());
+
+					if (empTimesheet != null) {
+
+						empTimesheet.forEach((timesheet)->{
+							timesheetsRepository.deleteById(timesheet.getTimesheetId());
+						});
+					}
+					
+					//Get Expiration Period of CompOff
+					Integer expirationPeriod = null;
+					Employee employeeObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveApplication.getLeaveTypeMasterId());
+					LeaveTypeMaster leaveTypeObj = leaveType.get();
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),employeeObj.getEmploymentstatus());
+					      if(leavePolicy != null){
+					    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+						        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
+				               }
+					      }
+					}
+					
+					//Manage Employee leave balance
+					
+					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")){
+						EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
+						
+						if(empLeaveMapping != null) {
+							Float prevBalace = empLeaveMapping.getBalance();
+							empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
+							
+							EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+							
+							if(mapDbResponse != null) {
+								LeaveBalanceLog log = new LeaveBalanceLog();
+								
+								log.setBalance(mapDbResponse.getBalance());
+								log.setEmpId(leaveApplication.getEmpId());
+								log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+								log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
+								log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+
+								LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
+								
+								if(balanceDbResponse != null) {
+									
+									Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+									Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
+									
+									if(empObj != null && managerObj != null) {
+										
+										//Send Mail to User with cc: HR,HOD,Manager
+										mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+												"Regarding Revoke Leave Application By Manager",
+												"Dear "+ empObj.getName() + ","+"<br>"
+												+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
+												"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+												"<br>"+
+												"EmpID :"+" "+ empObj.getEmployeementId()+
+												"<br>"+
+												"Name :"+" "+ empObj.getName()+
+												"<br>"+
+												" From :"+" "+ leaveApplication.getFromDate()+
+												"<br>"+
+												" To :"+" "+ leaveApplication.getToDate() +
+												"<br>"+
+												" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
+												+"<br>"+
+												" Leave Type :"+" "+leaveDTO.getLeaveType()+
+												"<br>"+
+												"leave Reason :"+" "+leaveDTO.getRevokeReason());
+									}
+									
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Leave revoked successfully.");								
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Unable to revoke leave.");
+								}
+							}
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee Leave Balance details not found.");
+						}
+					}
+					
+					// CompOff Leave : 4 (LeaveTypeMasterId)
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveApplication.getLeaveId());
+						
+						if(!compOffLeave.isEmpty()) {
+								
+								for(CompOffLeave leave: compOffLeave) {
+									
+									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod != null ? expirationPeriod : 30);
+									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
+										
+										leave.setCompOffStatus("Expired");
+										compOffLeaveRepository.save(leave);
+									}else {
+										
+										//Update Leave Balance
+
+										EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+												.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
+										
+										if(empLeaveMapping != null) {
+											Float prevBalace = empLeaveMapping.getBalance();
+											empLeaveMapping.setBalance(prevBalace + leave.getNoOfDays());
+											
+											EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+											
+											if(mapDbResponse != null) {
+												LeaveBalanceLog log = new LeaveBalanceLog();
+												
+												log.setBalance(mapDbResponse.getBalance());
+												log.setEmpId(leaveApplication.getEmpId());
+												log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+												log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leave.getNoOfDays().toString()));
+												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+
+												LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
+											}
+										}
+									
+										
+										// change compOff application status
+										leave.setCompOffStatus("Pending");
+										leave.setLeaveId(null);
+										
+										compOffLeaveRepository.save(leave);
+									}
+									
+								}
+						}
+					}
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to revoke Leave Application.");
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leave Application not found.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	
+	public ServiceResponse getAllTeams() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> objectList = teamRepository.getAllTeams();
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No teams found. Teams list is empty");
+				} else {
+					
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+						
+						list.forEach((object) -> {
+							TeamDTO dto = new TeamDTO();
+
+							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+							dto.setProjectName(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dto.setTeamName(object[3] != null ? object[3].toString() : null);
+							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
+							
+							dtoList.add(dto);
+						});
+						
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found.Teams list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

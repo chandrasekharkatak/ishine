@@ -9,8 +9,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +40,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
@@ -50,6 +53,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
@@ -109,6 +113,9 @@ public class EmployeeService {
 	
 	@Autowired
 	EmployeeOnBoardingMapRepository employeeOnboardingMapRepository;
+	
+	@Autowired
+	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
 
 	@Autowired
 	private ModelMapper mapper;
@@ -344,6 +351,9 @@ public class EmployeeService {
 			employee.setChild3(employeedto.getChild3());
 			employee.setBillable(employeedto.getBillable());
 			employee.setIsTimesheetLockCheckEnable("true");
+			employee.setReportingManagerId(employeedto.getReportingManagerId());
+			employee.setApprovalsTo(employeedto.getApprovalsTo());
+			employee.setDesignationId(employeedto.getDesignationId());
 
 			Employee newEmployee = employeeRepository.save(employee);
 
@@ -823,6 +833,7 @@ public class EmployeeService {
 			List<Object[]> objectList = employeeRepository.getEmployeeByEmpId(employeedto.getEmpId());
 			List<EmployeeCertificate> certificationsList = employeeCertificateRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
 			List<PreviousEmployment> previousEmploymentList = previousEmploymentRepository.findByEmpIdAndIsDraft(employeedto.getEmpId(), employeedto.getIsDraft());
+			List<Object[]> domaninSpecializationList = employeeSpecializationMapRepository.getEmployeeDomainInfo(employeedto.getEmpId());
 
 			if (!objectList.isEmpty()) {
 
@@ -891,7 +902,13 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);	
+					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
+					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
+					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
+					empDTO.setDesignationId(object[67] != null ? Long.parseLong(object[67].toString()) : null);
+					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
+					
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -941,6 +958,19 @@ public class EmployeeService {
 						previousEmploymentDTOList.add(dto);
 					}
 					empDTO.setPreviousEmploymentList(previousEmploymentDTOList);
+				}
+				
+				if(!domaninSpecializationList.isEmpty()) {
+					Set<Long> domainIds = new HashSet<Long>();
+					Set<Long> specializationIds = new HashSet<Long>();
+					
+					domaninSpecializationList.forEach((object) -> {
+						domainIds.add(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+						specializationIds.add(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					});
+					
+					empDTO.setDomainList(domainIds.toArray(new Long[domainIds.size()]));
+					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1186,6 +1216,10 @@ public class EmployeeService {
 				employee.setSpouse(employeedto.getSpouse());
 				employee.setTotalExperience(employeedto.getTotalExperience());
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				employee.setReportingManagerId(employeedto.getReportingManagerId());
+				employee.setApprovalsTo(employeedto.getApprovalsTo());
+				employee.setDesignationId(employeedto.getDesignationId());
+				
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -1287,6 +1321,34 @@ public class EmployeeService {
 								.forEach((prevEmployer) -> {
 									previousEmploymentRepository.deleteById(prevEmployer.getPreviousEmploymentId());
 								});
+					}
+				}
+				
+				//Employee Specialization Mapping
+				
+				List<EmployeeSpecializationMap> mappingObj = employeeSpecializationMapRepository.findByEmpId(employee.getEmpId());
+				if(!mappingObj.isEmpty()) {
+					mappingObj.forEach((object) -> {
+						boolean contains = Arrays.stream(employeedto.getSpecializationList()).anyMatch(i -> i.equals(object.getSpecializationId()));
+						
+						//Delete Specialization
+						if(!contains) {
+							employeeSpecializationMapRepository.deleteById(object.getEmpSpecializationMapId());
+						}
+						
+					});
+				}
+				for(Long specializationId: employeedto.getSpecializationList()) {
+					EmployeeSpecializationMap empMapObj = employeeSpecializationMapRepository.findByEmpIdAndSpecializationId(employee.getEmpId(),specializationId);
+					
+					//Add new Specialization
+					if(empMapObj == null) {
+							EmployeeSpecializationMap empSpecObj = new EmployeeSpecializationMap();
+							
+							empSpecObj.setEmpId(employee.getEmpId());
+							empSpecObj.setSpecializationId(specializationId);
+							
+							EmployeeSpecializationMap dbResponse = employeeSpecializationMapRepository.save(empSpecObj);
 					}
 				}
 
@@ -1487,6 +1549,8 @@ public class EmployeeService {
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
 					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+					
+					
 					
 					dtoList.add(empDTO);
 				});
@@ -1860,8 +1924,10 @@ public class EmployeeService {
 			
 			if (!jobRoleObj.isEmpty()) {
 				
-				for (JobRole roleObj : jobRoleObj) {
-					List<Object[]> empList = employeeRepository.getEmployeesByRole(roleObj.getJobRoleId());
+				List<Long> jobRoleIds = 
+						jobRoleObj.stream().map(JobRole::getJobRoleId).collect(Collectors.toList());
+				
+					List<Object[]> empList = employeeRepository.getEmployeesByRoleIds(jobRoleIds);
 
 					Optional.ofNullable(empList).ifPresentOrElse((list) -> {
 
@@ -1871,6 +1937,7 @@ public class EmployeeService {
 							dto.setName(object[1] != null ? object[1].toString() : null);
 							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+							dto.setEmployeementId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 							employeeList.add(dto);
 						});
 						
@@ -1895,7 +1962,6 @@ public class EmployeeService {
 						apiLogInfo.setApiResponse("No Employee Found");			
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					});
-				}
 			}
 
 		} catch (Exception e) {
@@ -2186,7 +2252,10 @@ public class EmployeeService {
 			if (employeedto.getEmail() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
-				if (checkEmployeeEmail != null) {
+				if ((employeedto.getEmpId() != null) && !checkEmployeeEmail.getEmpId().equals(employeedto.getEmpId()) && checkEmployeeEmail != null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Email already exist!");
+				}else if((employeedto.getEmpId() == null) && checkEmployeeEmail != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Email already exist!");
 				}
@@ -2216,11 +2285,11 @@ public class EmployeeService {
 			if (checkEmployeementId == null && checkDraftEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
-				if (checkEmployeementId != null) {
+				if (checkEmployeementId != null && !employeedto.getEmpId().equals(checkEmployeementId.getEmpId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employeement ID already exist!");
 				}
-				if (checkDraftEmployeementId != null) {
+				if (checkDraftEmployeementId != null && !employeedto.getEmail().equals(checkDraftEmployeementId.getEmail())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employeement ID already exist in Employee Draft!");
 				}
@@ -2275,28 +2344,31 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeeAadharNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		List<Employee> existingEmployeeAadhar = null;
-		List<DraftEmployee> existingDraftEmployeeAadhar = null;
-
 		try {
-			if (employeedto.getEmpId() != null) {
-				existingEmployeeAadhar = employeeRepository.findByAadharAndEmpId(employeedto.getAadhar(),
-						employeedto.getEmpId());
-				existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadharAndDraftEmpId(employeedto.getAadhar(),
-						employeedto.getEmpId());
-			} else {
-				existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
-				existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
-			}
+			
+			List<Employee> existingEmployeeAadhar = employeeRepository.findByAadhar(employeedto.getAadhar());
+			List<DraftEmployee> existingDraftEmployeeAadhar = draftEmployeeRepository.findByAadhar(employeedto.getAadhar());
 
-			if (employeedto.getAadhar() != null && !existingEmployeeAadhar.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Aadhar Number already exist!");
-			} else if (employeedto.getAadhar() != null && !existingDraftEmployeeAadhar.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Aadhar Number already exist in Employee Draft!");
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			if(!existingEmployeeAadhar.isEmpty()) {
+				existingEmployeeAadhar.forEach((employee) -> {
+					if(!employee.getEmpId().equals(employeedto.getEmpId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Aadhaar Number already exists !!");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+				});
+			}
+			
+			if(!existingDraftEmployeeAadhar.isEmpty()) {
+				existingDraftEmployeeAadhar.forEach((employee) -> {
+					if(!employee.getDraftEmpId().equals(employeedto.getEmpId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Aadhaar Number already exists !!");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+				});
 			}
 
 		} catch (Exception e) {
@@ -2377,6 +2449,10 @@ public class EmployeeService {
 					employee.setHodName(object[17] != null ? object[17].toString() : null);
 					employee.setHodEmail(object[18] != null ? object[18].toString() : null);
 					employee.setIsTimesheetLockCheckEnable(object[19] != null ? object[19].toString() : null);
+					employee.setReportingManagerId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					employee.setApprovalsTo(object[21] != null ? object[21].toString() : null);
+					employee.setReportingManagerName(object[22] != null ? object[22].toString() : null);
+					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
 				});
 				return employee;
 			}

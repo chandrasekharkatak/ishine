@@ -49,6 +49,7 @@ public class PoTeamDTO {
 	private String updatedBy;
 	private String createdBy;
 	private String[] departmentList;
-
+	
+	private Long ishineTeamId;
 	
 }

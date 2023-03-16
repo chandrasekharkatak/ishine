@@ -8,6 +8,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,17 +28,23 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Designation;
+import com.apmosys.employeeportal.model.Domain;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.Specialization;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.DesignationRepository;
+import com.apmosys.employeeportal.repository.DomainRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.SpecializationRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -77,6 +84,15 @@ public class CustomFilterService {
 	
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
+	
+	@Autowired
+	SpecializationRepository specializationRepository;
+	
+	@Autowired
+	DomainRepository domainRepository;
+	
+	@Autowired
+	DesignationRepository designationRepository;
 	
 	
 	@Value("${spring.datasource.url}")
@@ -196,18 +212,10 @@ public class CustomFilterService {
 			
 			Session session = entityManager.unwrap(Session.class);
 			
-			try {				
-//				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date, "
-//						+ "el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-//						+ "el.updated_on, e3.name as statusUpdateBy from employee_leave el "
-//						+ "inner join employee e on el.emp_id = e.emp_id "
-//						+ "inner join leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
-//						+ "inner join leave_status ls on el.leave_status_id = ls.leave_status_id "
-//						+ "inner join employee e2 on el.manager_id = e2.emp_id "
-//						+ "inner join employee e3 on el.leave_status_updated_by = e3.emp_id where "+customQuery;
+			try {
 				
 				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,p.client_name from employee_leave el "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
@@ -217,7 +225,7 @@ public class CustomFilterService {
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery+" GROUP BY e.employeement_id, el.from_date";
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -263,6 +271,10 @@ public class CustomFilterService {
 					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
+					leavedto.setTeamName(object[13] != null ? object[13].toString() : null);
+					leavedto.setProjectName(object[14] != null ? object[14].toString() : null);
+					leavedto.setFromDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
+					leavedto.setToDateDayType(object[16] != null ? Float.parseFloat(object[16].toString()) : null);
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -418,6 +430,11 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Designation": {
+					query = query.append(" de.designation_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				case "Manager": {
 					query = query.append(" e2.name ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
@@ -443,6 +460,16 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
+				case "Domain": {
+					query = query.append(" dm.domain_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
+				case "Specialization": {
+					query = query.append(" s.specialization_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					break;
+				}
 				default:
 					break;
 				}
@@ -455,22 +482,26 @@ public class CustomFilterService {
 			Session session = entityManager.unwrap(Session.class);
 			
 			try {
-//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,"
-//						+ " e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,"
-//						+ " e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,"
-//						+ " e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,"
-//						+ " e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,"
-//						+ " e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,"
-//						+ " e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,"
-//						+ " e.previous_pf_account_number, e.relation, e.state, e.uan,"
-//						+ " e.views_on_organisation, e.year_of_passing,"
-//						+ "  jr.dept_id, jr.name as jobrolename,"
-//						+ " d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, "
-//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience "
-//						+ "FROM employee e "
-//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id where "+customQuery;
+//				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+//						+ "e.views_on_organisation, e.year_of_passing,\n"
+//						+ "jr.dept_id, jr.name as jobrolename,\n"
+//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
+//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName \n"
+//						+ "FROM employee e \n"
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+//						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
+//						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
+//						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
+//						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+//						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 				
 				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
@@ -481,17 +512,22 @@ public class CustomFilterService {
 						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
 						+ "e.views_on_organisation, e.year_of_passing,\n"
 						+ "jr.dept_id, jr.name as jobrolename,\n"
-						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience, \n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName \n"
-						+ "FROM employee e \n"
-						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-						+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
-						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id \n"
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
-						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
+						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name\n"
+						+ "FROM employee e\n"
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id\n"
+						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
+						+ "LEFT JOIN projects p on p.project_id = t.project_id\n"
+						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
+						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
+						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
+				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id where "+customQuery+" GROUP BY e.employeement_id";
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -591,6 +627,10 @@ public class CustomFilterService {
 					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);	
 					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
 					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
+					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
+					empDTO.setDesignationId(object[68] != null ? Long.parseLong(object[68].toString()) : null);
+					empDTO.setDesignationName(object[69] != null ? (object[69].toString()) : null);
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
@@ -730,12 +770,9 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
-						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery;
+						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery+" GROUP BY e1.employeement_id, et.date";
 				
-				System.out.println(q);
 				Query query = session.createSQLQuery(q);
-				System.out.println(query);
-				System.out.println(query.getResultList() + " ====");
 				return query.getResultList();
 				
 			}catch(Exception e) {
@@ -1469,6 +1506,45 @@ public class CustomFilterService {
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
             }
+            case "Specialization": {
+				List<Specialization> allSpecialization = specializationRepository.findByIsActive("true");
+				if (!allSpecialization.isEmpty()) {
+					allSpecialization.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getSpecializationName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Domain": {
+            	List<Domain> allDomain = domainRepository.findByIsActive("true");
+				if (!allDomain.isEmpty()) {
+					allDomain.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getDomainName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
+            case "Designation": {
+            	List<Designation> allDesignation = designationRepository.findAll();
+				if (!allDesignation.isEmpty()) {
+					allDesignation.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getDesignationName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+				break;
+			}
 			default:
 				break;
 			}
@@ -1485,7 +1561,7 @@ public class CustomFilterService {
 		ServiceResponse response = new ServiceResponse();
 		List<Object[]> list = new ArrayList<Object[]>();
 		Connection con = null;
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
 			
@@ -1503,56 +1579,65 @@ public class CustomFilterService {
 					Class.forName("com.mysql.cj.jdbc.Driver");
 					con = DriverManager.getConnection(dbURL,dbUsername,dbPassword);
 					
-					stmt = con.createStatement();
-					rs = stmt.executeQuery(q);
-					ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+					stmt = con.prepareStatement(q);
 					
-					int columnsNumber = rsmd.getColumnCount();
-					System.out.println("column size  : " + columnsNumber);
-					
-					Object[] headers = new Object[columnsNumber];
-					
-					for (int i = 1; i <= columnsNumber; i++) {
-						headers[i-1] = rsmd.getColumnLabel(i);
-					}
-					
-					list.add(headers);
-					
-					while (rs.next()) {
-						Object[] dataArr = new Object[columnsNumber];
+					if (stmt != null) {
+						rs = stmt.executeQuery();
+						ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+						
+						int columnsNumber = rsmd.getColumnCount();
+						System.out.println("column size  : " + columnsNumber);
+						
+						Object[] headers = new Object[columnsNumber];
 						
 						for (int i = 1; i <= columnsNumber; i++) {
-							String data = rs.getString(i);
-							dataArr[i-1] = data;
-							
+							headers[i-1] = rsmd.getColumnLabel(i);
 						}
 						
-						list.add(dataArr);
+						list.add(headers);
+						
+						while (rs.next()) {
+							Object[] dataArr = new Object[columnsNumber];
+							
+							for (int i = 1; i <= columnsNumber; i++) {
+								String data = rs.getString(i);
+								dataArr[i-1] = data;
+								
+							}
+							
+							list.add(dataArr);
+						}
+						
+						if (!list.isEmpty()){
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse(list);
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Result set is empty.");
+						}
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Invalid Query.");
 					}
 					
+				}catch(SQLException e) {
+					e.printStackTrace();
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid Query, Please Check entered query.");
+					response.setServiceError(e.getMessage());
 				}catch(Exception e) {
 					e.printStackTrace();
 					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 					response.setServiceResponse("Something Went Wrong.");
 					response.setServiceError(e.getMessage());
 				}finally {
-					stmt.close();
-					rs.close();
-					
 					try {
-						if (con != null)
-							con.close();
+						if (stmt != null) stmt.close();
+						if (rs != null) rs.close();
+						if (con != null) con.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
-				}
-
-				if (list != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(list);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Result set is empty.");
 				}
 				
 			}else {

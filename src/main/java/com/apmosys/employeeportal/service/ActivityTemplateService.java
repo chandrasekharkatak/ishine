@@ -27,10 +27,12 @@ public class ActivityTemplateService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<ActivityTemplate> dtoList = new ArrayList<ActivityTemplate>();
-			activityTemplateDTO.getTemplateActivityList().forEach((object) -> {
-				ActivityTemplate checkActivityName=activityTemplateRepository
-						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
 			
+			activityTemplateDTO.getTemplateActivityList().forEach((object) -> {
+				
+				ActivityTemplate checkActivityName = activityTemplateRepository
+						.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
+				
 				if(checkActivityName == null) {
 					ActivityTemplate activity = new ActivityTemplate();
 					
@@ -136,44 +138,56 @@ public class ActivityTemplateService {
 	public ServiceResponse updateActivityTemplate(ActivityTemplateDTO activityTemplateDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
 			List<Long> activityId = new ArrayList<Long>();
-			ActivityTemplate activityDbResponse = null;
-			ActivityTemplate dbResposne = null;
-			for (ActivityDTO object : activityTemplateDTO.getTemplateActivityList()) {
-				
-				if (object.getActivityTemplateId() != null) {
+			for(ActivityDTO object : activityTemplateDTO.getTemplateActivityList()) {
+				if(object.getActivityTemplateId() != null) {
 					ActivityTemplate activityTemplate = activityTemplateRepository.getById(object.getActivityTemplateId());
 					
-					activityId.add(object.getActivityTemplateId());
 					activityTemplate.setTemplateActivity(object.getActivity());
-					activityDbResponse = activityTemplateRepository.save(activityTemplate);
-				} else {
-					ActivityTemplate activity = new ActivityTemplate();
-
-					activity.setDeptId(activityTemplateDTO.getDeptId());
-					activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
-					activity.setTemplateActivity(object.getActivity());
-					dbResposne = activityTemplateRepository.save(activity);
-					activityId.add(dbResposne.getActivityTemplateId());
+					ActivityTemplate activityDbResponse = activityTemplateRepository.save(activityTemplate);
+					
+					if(activityDbResponse != null) {
+						activityId.add(object.getActivityTemplateId());
+						
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Activity template updated successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Activity template updation failed.");
+					}
+				}else {
+					ActivityTemplate checkActivityName = activityTemplateRepository
+							.findByTemplateActivityAndDeptIdAndEmployeeRole(object.getActivity(), activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
+					
+					if(checkActivityName == null) {
+						ActivityTemplate activity = new ActivityTemplate();
+						
+						activity.setDeptId(activityTemplateDTO.getDeptId());
+						activity.setEmployeeRole(activityTemplateDTO.getEmployeeRole());
+						activity.setTemplateActivity(object.getActivity());
+						ActivityTemplate dbResposne = activityTemplateRepository.save(activity);
+						
+						if(dbResposne != null) {
+							activityId.add(dbResposne.getActivityTemplateId());
+							
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("New Activity Added in Template Successfully.");
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Unable to add new Actvity in template.");
+						}						
+					}
 				}
 			}
+			
+			//Remove Activity from template
+			
 			List<ActivityTemplate> activityToBeDeleted = activityTemplateRepository
 					.findByActivityTemplateIdNotInAndDeptIdAndEmployeeRole(activityId, activityTemplateDTO.getDeptId(), activityTemplateDTO.getEmployeeRole());
 			if(!activityToBeDeleted.isEmpty()) {
 				activityToBeDeleted.forEach((object) -> {
 					activityTemplateRepository.deleteById(object.getActivityTemplateId());
 				});
-			}else {
-				response.setServiceResponse("No Activities found to delete.");
-			}
-			
-			if(activityDbResponse != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activity template updated successfully.");
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Activity template updation failed.");
 			}
 			
 		}catch(Exception e) {

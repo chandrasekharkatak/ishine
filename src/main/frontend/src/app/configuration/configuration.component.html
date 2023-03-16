@@ -10,6 +10,10 @@
                     <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" role="tab"
                         aria-controls="dept" aria-selected="false" routerLink="department">Department</a>
                 </li>
+                <li *ngIf="userMapping.designation_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" role="tab"
+                        aria-controls="designation" aria-selected="false" routerLink="designation">Designation</a>
+                </li>
                 <li *ngIf="userMapping.role_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="role-tab" data-toggle="tab" role="tab"
                         aria-controls="role" aria-selected="false" routerLink="role">Role</a>
@@ -42,10 +46,10 @@
                     <a class="nav-link config__tab-item__link" id="on-boarding-tab" data-toggle="tab" role="tab"
                         aria-controls="on-boarding" aria-selected="false" routerLink="on-boarding">On-Boarding</a>
                 </li>
-                <li *ngIf="userMapping.project_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
+                <!-- <li *ngIf="userMapping.project_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="project-config-tab" data-toggle="tab" role="tab"
                         aria-controls="project-config" aria-selected="false" routerLink="project-config">Project</a>
-                </li>
+                </li> -->
             </ul>
         
             <!-- tab Containers -->

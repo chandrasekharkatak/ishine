@@ -277,6 +277,12 @@ export class LoginComponent implements OnInit{
       this.user.compOffLockDays = user.compOffLockDays;
       this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
       this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
+      this.user.reportingManagerId = user.reportingManagerId;
+      this.user.reportingManagerName = user.reportingManagerName;
+      this.user.reportingManagerEmail = user.reportingManagerEmail;
+      this.user.approvalsTo = user.approvalsTo;
+      this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
+
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));
@@ -292,6 +298,12 @@ export class LoginComponent implements OnInit{
         }
         if(url.includes("user-exit")){
           this.router.navigate(['/user-exit', this.authGaurd.id]);
+        }
+        if(url.includes("resource-management")){
+          this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
+        }
+        if(url.includes("helpdesk")){
+          this.router.navigate(['/helpdesk', this.authGaurd.id]);
         }
       }else{
         this.router.navigate(['/home']);

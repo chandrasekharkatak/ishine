@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.service.LeaveTypeMasterService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -56,6 +57,13 @@ public class LeaveTypeMasterController {
 	public ServiceResponse changeLeaveTypeMapping(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = leaveTypeMasterService.changeLeaveTypeMapping(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/checkLeaveType", method = RequestMethod.POST)
+	public ServiceResponse checkLeaveType(@RequestBody LeaveDTO leaveDTO) {
+
+		ServiceResponse response = leaveTypeMasterService.checkLeaveType(leaveDTO);
 		return response;
 	}
 	

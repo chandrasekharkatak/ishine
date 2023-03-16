@@ -44,6 +44,10 @@ export class ReportListComponent implements OnInit {
   data: string; //Search Data
   designationData: string;   //Search Designation
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -85,7 +89,7 @@ export class ReportListComponent implements OnInit {
   employeeRole: any;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
   queryList: any[] = [];
   filterData: any = new FilterData();
@@ -101,6 +105,13 @@ export class ReportListComponent implements OnInit {
   startDate:any;
 
   customQuery:any;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  leaveReportColumns:any[] = ['employeementId','employeeName','leaveType','fromDate','toDate','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
+  timesheetReportColumns:any[] = ['employeementId','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  employeeReportColumn:any[] = ['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
+  leaveTimesheetReportColumn:any[] = ['employeementId','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -155,6 +166,9 @@ export class ReportListComponent implements OnInit {
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
 
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     console.log(this.storedDataList, " : storeddatalist");
 
 
@@ -186,6 +200,8 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
@@ -214,6 +230,8 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -255,6 +273,8 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.allLeaveTimesheets = [];
   }
@@ -290,6 +310,13 @@ export class ReportListComponent implements OnInit {
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           leave.updatedOn = (leave.updatedOn) ? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+          if(leave.fromDateDayType != null){
+            leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
+          }
+          if(leave.toDateDayType != null){
+            leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
+          }
         });
         console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
@@ -310,11 +337,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
 
-          this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId && t.fromDate === value.fromDate
-            ))
-          )
+          // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
+          //   index === self.findIndex((t) => (
+          //     t.employeementId === value.employeementId && t.fromDate === value.fromDate
+          //   ))
+          // )
 
           if (this.allLeaveApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
@@ -325,6 +352,13 @@ export class ReportListComponent implements OnInit {
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             leave.updatedOn = (leave.updatedOn) ? moment(leave.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+            if(leave.fromDateDayType != null){
+              leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
+            }
+            if(leave.toDateDayType != null){
+              leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
+            }
           });
           console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
         } else {
@@ -370,12 +404,6 @@ export class ReportListComponent implements OnInit {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allTimesheetApplicationsList = response.serviceResponse;
-
-          this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId && t.date === value.date
-            ))
-          )
 
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
@@ -435,11 +463,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
-          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId
-            ))
-          )
+          // this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+          //   index === self.findIndex((t) => (
+          //     t.employeementId === value.employeementId
+          //   ))
+          // )
 
           if (this.allEmployeeList.length == 0) {
             this.openAlertMod(this.alertModal, "No Data found")
@@ -719,10 +747,10 @@ export class ReportListComponent implements OnInit {
       if (emittedArray[1] == 'Filter Leave Report') {
         this.showLeaveReportTable();
       }
-      if (emittedArray[1] == 'Filter Employee Report') {
+      if (emittedArray[1] == 'Filter Timesheet Report') {
         this.showTimesheetReportTable();
       }
-      if (emittedArray[1] == 'Filter Timesheet Report') {
+      if (emittedArray[1] == 'Filter Employee Report') {
         this.showEmployeeReportTable();
       }
     }
@@ -773,8 +801,8 @@ export class ReportListComponent implements OnInit {
 
 
   // Custom Query Data 
-  getCustomQueryData(template: TemplateRef<any>) {
-    this.customQuery?.trim();
+  getCustomQueryData(template: TemplateRef<any>) {    
+    this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g,' ');
     if(!this.validationService.validateNullUndefinedEmptyString(this.customQuery)){
       this.alertMessage = "Please enter custom query !!";
       this.openAlertMod(template, this.alertMessage);
@@ -833,10 +861,13 @@ export class ReportListComponent implements OnInit {
           "Leave Type": x.leaveType,
           "From Date": x.fromDate,
           "To Date": x.toDate,
+          "From Date Day Type": x.fromDateDayType,
+          "To Date Day Type": x.toDateDayType,
           "No Of Days": x.noOfDays,
           "Reason": x.reason,
           "Status": x.status,
           "Manager Name": x.managerName,
+          "Department Name": x.departmentName,
           "Created On": x.createdOn,
           "Updated On": x.updatedOn,
           "Updated By": x.leaveStatusUpdatedByName
@@ -1004,312 +1035,23 @@ export class ReportListComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  // Sorting implementing 09/01/2023 
-
-  sortLeaveReportList(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-    const data = this.allLeaveApplicationsList;
-    if (!sort.active || sort.direction === '') {
-      this.allLeaveApplicationsList = data;
-      return;
-    } else {
-      this.allLeaveApplicationsList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc)
-            case 'employeeName':
-              return compare(a.employeeName.toLowerCase(), b.employeeName.toLowerCase(), isAsc)
-            case 'leaveType':
-              return compare(a.leaveType, b.leaveType, isAsc)
-            case 'fromDate':
-              return compare(new Date(a.fromDate).getTime(), new Date(b.fromDate).getTime(), isAsc);
-            case 'toDate':
-              return compare(new Date(a.toDate).getTime(), new Date(b.toDate).getTime(), isAsc);
-            case 'noOfDays':
-              return compare(a.noOfDays, b.noOfDays, isAsc);
-            case 'reason':
-              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc);
-            case 'managerName':
-              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc);
-            case 'departmentName':
-              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc);
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-            case 'leaveStatusUpdatedByName':
-              return compare(a.leaveStatusUpdatedByName, b.leaveStatusUpdatedByName, isAsc);
-
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
-  // sortTimesheetReportList($event)
-  sortTimesheetReportList(sort: Sort) {
-    console.log(sort);
-    const data = this.allTimesheetApplicationsList;
-    if (!sort.active || sort.direction === '') {
-      this.allTimesheetApplicationsList = data;
-      return;
-    } else {
-      this.allTimesheetApplicationsList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc)
-            case 'employeeName':
-              return compare(a.employeeName, b.employeeName, isAsc)
-            case 'date':
-              return compare(a.date, b.date, isAsc)
-            case 'dayType':
-              return compare(a.dayType, b.dayType, isAsc)
-            case 'officeInTime':
-              return compare(new Date(a.officeInTime).getTime(), new Date(b.officeInTime).getTime(), isAsc);
-            case 'officeOutTime':
-              return compare(new Date(a.officeOutTime).getTime(), new Date(b.officeOutTime).getTime(), isAsc);
-            case 'totalWorkingOfficeHours':
-              return compare(a.totalWorkingOfficeHours, b.totalWorkingOfficeHours, isAsc);
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'totalWorkingHours':
-              return compare(a.totalWorkingHours, b.totalWorkingHours, isAsc);
-            case 'timesheetStatusUpdatedByName':
-              return compare(a.timesheetStatusUpdatedByName, b.timesheetStatusUpdatedByName, isAsc);
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc)
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-  }
-  // sortEmployeeReportList($event)
-  sortEmployeeReportList(sort: Sort) {
-    console.log(sort);
-    let data = this.allEmployeeList;
-
-    if (!sort.active || sort.direction === '') {
-      this.allEmployeeList = data;
-      return;
-    }
-    else {
-      this.allEmployeeList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc);
-
-            case 'name':
-              return compare(a.name.toLowerCase(), b.name.toLowerCase(), isAsc);
-
-            case 'departmentName':
-              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc);
-
-            case 'jobRoleName':
-              return compare(a.jobRoleName.toLowerCase(), b.jobRoleName.toLowerCase(), isAsc);
-
-            case 'managerName':
-              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc);
-
-            case 'mobileNo':
-              return compare(a.mobileNo, b.mobileNo, isAsc);
-
-            case 'email':
-              return compare(a.email, b.email, isAsc);
-
-            case 'employmentstatus':
-              return compare(a.employmentstatus, b.employmentstatus, isAsc);
-
-            case 'dateOfJoining':
-              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc);
-
-            case 'aadhar':
-              return compare(a.aadhar, b.aadhar, isAsc);
-
-            case 'aboutMe':
-              return compare(a.aboutMe.toLowerCase(), b.aboutMe.toLowerCase(), isAsc);
-
-            case 'address':
-              return compare(a.address, b.address, isAsc);
-
-            case 'permanentAddress':
-              return compare(a.permanentAddress, b.permanentAddress, isAsc);
-
-            case 'city':
-              return compare(a.city, b.city, isAsc);
-
-            case 'bloodGroup':
-              return compare(a.bloodGroup, b.bloodGroup, isAsc);
-
-            case 'dateOfBirth':
-              return compare(a.dateOfBirth, b.dateOfBirth, isAsc);
-
-            case 'gender':
-              return compare(a.gender, b.gender, isAsc);
-
-            case 'fatherName':
-              return compare(a.fatherName, b.fatherName, isAsc);
-
-            case 'panNumber':
-              return compare(a.panNumber, b.panNumber, isAsc);
-
-            case 'placeOfBirth':
-              return compare(a.placeOfBirth, b.placeOfBirth, isAsc);
-
-            case 'workLocation':
-              return compare(a.workLocation, b.workLocation, isAsc);
-
-            case 'probationPeriod':
-              return compare(a.probationPeriod, b.probationPeriod, isAsc);
-
-            case 'noticePeriod':
-              return compare(a.noticePeriod, b.noticePeriod, isAsc);
-
-            case 'totalExperience':
-              return compare(a.totalExperience, b.totalExperience, isAsc);
-
-            case 'emergencyContactMobile':
-              return compare(a.emergencyContactMobile, b.emergencyContactMobile, isAsc);
-
-            case 'emergencyContactPerson':
-              return compare(a.emergencyContactPerson, b.emergencyContactPerson, isAsc);
-
-            case 'landline':
-              return compare(a.landline, b.landline, isAsc);
-
-            case 'maritalStatus':
-              return compare(a.maritalStatus, b.maritalStatus, isAsc);
-
-            case 'motherTongue':
-              return compare(a.motherTongue, b.motherTongue, isAsc);
-
-            case 'alternateMobileNo':
-              return compare(a.alternateMobileNo, b.alternateMobileNo, isAsc);
-
-            case 'pincode':
-              return compare(a.pincode, b.pincode, isAsc);
-
-            case 'relation':
-              return compare(a.relation, b.relation, isAsc);
-
-            case 'state':
-              return compare(a.state, b.state, isAsc);
-
-            case 'viewsOnOrganisation':
-              return compare(a.viewsOnOrganisation, b.viewsOnOrganisation, isAsc);
-
-            case 'passportNumber':
-              return compare(a.passportNumber, b.passportNumber, isAsc);
-
-            case 'bankAccountNo':
-              return compare(a.bankAccountNo, b.bankAccountNo, isAsc);
-
-            case 'bankIFSCCode':
-              return compare(a.bankIFSCCode, b.bankIFSCCode, isAsc);
-
-            case 'bankName':
-              return compare(a.bankName, b.bankName, isAsc);
-
-            case 'pfAccountNumber':
-              return compare(a.pfAccountNumber, b.pfAccountNumber, isAsc);
-
-            case 'previousPfAccountNumber':
-              return compare(a.previousPfAccountNumber, b.previousPfAccountNumber, isAsc);
-
-            case 'uan':
-              return compare(a.uan, b.uan, isAsc);
-
-            case 'esicNumber':
-              return compare(a.esicNumber, b.esicNumber, isAsc);
-
-            case 'graduationType':
-              return compare(a.graduationType, b.graduationType, isAsc);
-
-            case 'pursuing':
-              return compare(a.pursuing, b.pursuing, isAsc);
-
-            case 'passingGrade':
-              return compare(a.passingGrade, b.passingGrade, isAsc);
-
-            case 'yearOfPassing':
-              return compare(a.yearOfPassing, b.yearOfPassing, isAsc);
-
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
-
-            case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-
-            case 'updatedByName':
-              return compare(a.updatedByName, b.updatedByName, isAsc);
-
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
+  
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
   }
 
-  sortLeaveTimesheetReportList(sort: Sort) {
-    console.log(sort);
-    const data = this.allLeaveTimesheets;
-    if (!sort.active || sort.direction === '') {
-      this.allLeaveTimesheets = data;
-      return;
-    } else {
-      this.allLeaveTimesheets = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeementId':
-              return compare(a.employeementId, b.employeementId, isAsc)
-            case 'employeeName':
-              return compare(a.employeeName, b.employeeName, isAsc)
-            case 'date':
-              return compare(a.date, b.date, isAsc)
-            case 'dayType':
-              return compare(a.dayType, b.dayType, isAsc)
-            case 'managerName':
-              return compare(a.managerName, b.managerName, isAsc);
-            case 'departmentName':
-              return compare(a.departmentName, b.departmentName, isAsc);
-            case 'description':
-              return compare(a.description, b.description, isAsc);
-            case 'timesheetStatusUpdatedByName':
-              return compare(a.timesheetStatusUpdatedByName, b.timesheetStatusUpdatedByName, isAsc);
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-            case 'status':
-              return compare(a.status, b.status, isAsc)
-
-            default:
-              return 0;
-          }
-        }
-      )
-    }
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }
 

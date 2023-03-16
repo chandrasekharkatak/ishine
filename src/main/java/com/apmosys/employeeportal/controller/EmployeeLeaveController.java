@@ -227,5 +227,34 @@ public class EmployeeLeaveController {
 	}
 	
 	
+	/* Employee Leave Balance reconciliation */
+	@RequestMapping(value = "/setEmployeeLeaveEntitlement" ,method = RequestMethod.POST)
+	public ServiceResponse setEmployeeLeaveEntitlement(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.setEmployeeLeaveEntitlement(leaveDTO);
+		return response;
+	}
+	
+	/* Timesheet reconsilation */
+	@RequestMapping(value = "/fillTimesheetForOldLeaves" ,method = RequestMethod.GET)
+	public ServiceResponse fillTimesheetForOldLeaves() {
+		
+		ServiceResponse response = employeeLeaveService.fillTimesheetForOldLeaves();
+		return response;
+	}
+	
+	@RequestMapping(value = "/addTimesheetForHolidays" ,method = RequestMethod.POST)
+	public ServiceResponse addTimesheetForHolidays(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.addTimesheetForHolidays(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/pendingForApprovalReconsilation" ,method = RequestMethod.GET)
+	public ServiceResponse pendingForApprovalReconsilation() {
+		
+		ServiceResponse response = employeeLeaveService.pendingForApprovalReconsilation();
+		return response;
+	}
 
 }

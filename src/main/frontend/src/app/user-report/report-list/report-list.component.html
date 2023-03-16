@@ -28,46 +28,57 @@
               <i class="fa-solid fa-filter"></i>
             </button>
           </div>
-          <div class="col-10 col-sm-10 col-md-10 col-lg-10">
+          <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
             <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveReportInfo'"
           [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortLeaveReportList($event)" id="leaveReportInfo">
+          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
-                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Employee Id</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="employeeName">Full Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="leaveType">Leave Type</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="fromDate">From Date</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="toDate">To Date</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="noOfDays">No. of Days</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="reason">Reason</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="status">Status</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="managerName">Manager Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="createdOn">Created On</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn">Updated On</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="leaveStatusUpdatedByName">Updated By</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Employee Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Full Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="leaveType|string">Leave Type</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="fromDate|date">From Date</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="toDate|date">To Date</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="fromDateDayType|string">From Date Day Type</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="toDateDayType|string">To Date Day Type</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="noOfDays|number">No. of Days</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="reason|string">Reason</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="status|string">Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="leaveStatusUpdatedByName|string">Updated By</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isLeaveReportTable && isSearchEnabled" [columnList]="leaveReportColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allLeaveApplicationsList.length == 0">
+              <tr *ngIf="allLeaveApplicationsList.length == 0 || (allLeaveApplicationsList | colFilter:filters:false).length == 0">
                 <th colspan="16" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let leave of allLeaveApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>
                 <td>{{leave.toDate}}</td>
+                <td>{{leave.fromDateDayType}}</td>
+                <td>{{leave.toDateDayType}}</td>
                 <td>{{leave.noOfDays}}</td>
                 <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
@@ -82,7 +93,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allLeaveApplicationsList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
           [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
@@ -110,47 +121,54 @@
               <i class="fa-solid fa-filter"></i>
             </button>
           </div>
-          <div class="col-10 col-sm-10 col-md-10 col-lg-10">
+          <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
             <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
           [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortTimesheetReportList($event)" id="timesheetReportInfo">
+          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="timesheetReportInfo">
             <thead class="thead-light" id="timesheetReportTHead">
               <tr id="timesheetReportTHeadTr">
-                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                <th scope="col" class="info-label" mat-sort-header="employeeName">Full Name</th>
-                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
-                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
-                <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
-                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="totalWorkingHours">Total Working Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="officeInTime">Office In Time</th>
-                <th scope="col" class="info-label" mat-sort-header="officeOutTime">Office Out Time</th>
-                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours">Total Office Working Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="leaveType">Leave Type</th>
-                <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>
-                <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName">Updated By</th>
+                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
+                <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="totalWorkingHours|number">Total Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
+                <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
+                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName|string">Updated By</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isTimesheetReportTable && isSearchEnabled" [columnList]="timesheetReportColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allTimesheetApplicationsList.length == 0">
+              <tr *ngIf="allTimesheetApplicationsList.length == 0 || (allTimesheetApplicationsList | colFilter:filters:false).length == 0">
                 <th colspan="13" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let timesheet of allTimesheetApplicationsList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let timesheet of allTimesheetApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td colspan="4">{{timesheet.description}}</td>
+                <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.totalWorkingHours}}</td>
                 <td>{{timesheet.officeInTime}}</td>
@@ -166,7 +184,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allTimesheetApplicationsList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
           [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
@@ -194,79 +212,86 @@
                 <i class="fa-solid fa-filter"></i>
               </button>
             </div>
-            <div class="col-10 col-sm-10 col-md-10 col-lg-10">
+            <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
               <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-12">
+          <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'" [tableTHeadId]="'employeeReportInfoTHead'"
           [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortEmployeeReportList($event)">	
+          <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
             <thead class="thead-light">	
               <tr>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId">Employee Id</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="name">Full Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName">Department</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName">Job Role</th>
-                <th scope="col" class="info-label " mat-sort-header="managerName">Manager</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo">Mobile Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="email">Email Id</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus">Employment Status</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining">Date of Joining</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="aadhar">Aadhar Card</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="aboutMe">About Me</th>	
-                <th scope="col" class="info-label" mat-sort-header="address">Address</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="permanentAddress">Permanent Address</th>	
-                <th scope="col" class="info-label " mat-sort-header="city">City</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="bloodGroup">Blood Group</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="dateOfBirth">Date of Birth</th>	
-                <th scope="col" class="info-label" mat-sort-header="gender">Gender</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="fatherName">Father Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="panNumber">Pan Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="placeOfBirth">Place of Birth</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="workLocation">Work Location</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="probationPeriod">Probation Period</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="noticePeriod">Notice Period</th>	
-                <th scope="col" class="info-label" mat-sort-header="country">Country</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience">Experience</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="emergencyContactMobile">Emergency Contact Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="emergencyContactPerson">Emergency Contact Person</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="landline">Landline</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="maritalStatus">Marital Status</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="motherTongue">Mother Tongue</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="alternateMobileNo">Alternate Mobile Number</th>
-                <th scope="col" class="info-label" mat-sort-header="pincode">Pincode</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="relation">Relation</th>	
-                <th scope="col" class="info-label" mat-sort-header="state">State</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="viewsOnOrganisation">View On Organisation</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="passportNumber">Passport Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="bankAccountNo">Bank Account Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="bankIFSCCode">Bank IFSC Code</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="bankName">Bank Name</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="pfAccountNumber">PF Account Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="previousPfAccountNumber">Previous PF Account Number</th>	
-                <th scope="col" class="info-label" mat-sort-header="uan">UAN</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="esicNumber">ESIC Number</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="graduationType">Graduation Type</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="pursuing">Pursuing</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="passingGrade">Passing Grade</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="yearOfPassing">Year of Passing</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn">Updated on</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="updatedByName">Updated By</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="createdByName">Created By</th>	
-                <th scope="col" class="info-label wide-col" mat-sort-header="createdOn">Created On</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Employee Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName|string">Job Role</th>
+                <th scope="col" class="info-label " mat-sort-header="managerName|string">Manager</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">Date of Joining</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="aadhar|number">Aadhar Card</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="aboutMe|string">About Me</th>	
+                <th scope="col" class="info-label" mat-sort-header="address|string">Address</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="permanentAddress|string">Permanent Address</th>	
+                <th scope="col" class="info-label " mat-sort-header="city|string">City</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bloodGroup|string">Blood Group</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="dateOfBirth|date">Date of Birth</th>	
+                <th scope="col" class="info-label" mat-sort-header="gender|string">Gender</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="fatherName|string">Father Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="panNumber|number">Pan Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="placeOfBirth|string">Place of Birth</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="probationPeriod|number">Probation Period</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="noticePeriod|number">Notice Period</th>	
+                <th scope="col" class="info-label" mat-sort-header="country|string">Country</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|number">Experience</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="emergencyContactMobile|number">Emergency Contact Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="emergencyContactPerson|string">Emergency Contact Person</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="landline|number">Landline</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="maritalStatus|string">Marital Status</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="motherTongue|string">Mother Tongue</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="alternateMobileNo|number">Alternate Mobile Number</th>
+                <th scope="col" class="info-label" mat-sort-header="pincode|number">Pincode</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="relation|string">Relation</th>	
+                <th scope="col" class="info-label" mat-sort-header="state|string">State</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="viewsOnOrganisation|string">View On Organisation</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="passportNumber|number">Passport Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bankAccountNo|number">Bank Account Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bankIFSCCode|string">Bank IFSC Code</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="bankName|string">Bank Name</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="pfAccountNumber|number">PF Account Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="previousPfAccountNumber|number">Previous PF Account Number</th>	
+                <th scope="col" class="info-label" mat-sort-header="uan|number">UAN</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="esicNumber|string">ESIC Number</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="graduationType|string">Graduation Type</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="pursuing|string">Pursuing</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="passingGrade|string">Passing Grade</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="yearOfPassing|number">Year of Passing</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn|datetime">Updated on</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="updatedByName|string">Updated By</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="createdByName|string">Created By</th>	
+                <th scope="col" class="info-label wide-col" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label wide-col">Profile completion Percentage</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled" [columnList]="employeeReportColumn" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-                <tr *ngIf="allEmployeeList.length == 0">
+                <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
                     <th colspan="20" class="text-center info-label">No details to display...</th>
                 </tr>
-              <tr *ngFor="let employee of allEmployeeList |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+              <tr *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
@@ -331,7 +356,7 @@
           </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div>
     </div> 
@@ -465,7 +490,7 @@
          <div class="col-md-12 d-flex justiy-content-center mt-2">
           <button type="button" class="btn btn-sm btn-outline-primary"
           (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2" (click)="exportToExcel()">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button" (click)="exportToExcel()">
             <em class="fa fa-file-arrow-down fa-2x"></em>
           </button>
          </div>
@@ -502,42 +527,49 @@
           </div>
         </div>
       </div>
-      <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+      <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
         <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
-      </div>
+      </div> -->
     </div>
 
     <div class="row">
       <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
           [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortTimesheetReportList($event)" id="leaveTimesheetReportInfo">
+          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="leaveTimesheetReportInfo">
             <thead class="thead-light" id="leaveTimesheetReportTHead">
               <tr id="leaveTimesheetReportTHeadTr">
-                <th scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                <th scope="col" class="info-label" mat-sort-header="employeeName">Full Name</th>
-                <th scope="col" class="info-label" mat-sort-header="date">Date</th>
-                <th scope="col" class="info-label" mat-sort-header="dayType">Day Type</th>
-                <th scope="col" colspan="4" class="info-label" mat-sort-header="description">Description</th>
-                <th scope="col" class="info-label" mat-sort-header="status">Status</th>
-                <th scope="col" class="info-label" mat-sort-header="managerName">Manager Name</th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName">Department Name</th>
-                <th scope="col" class="info-label" mat-sort-header="createdOn">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn">Updated On</th>
-                <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName">Updated By</th>
+                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
+                <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
+                <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="timesheetStatusUpdatedByName|string">Updated By</th>
               </tr>
+              <tr app-column-filter-bar *ngIf="isLeaveTimesheetReportTable && isSearchEnabled" [columnList]="leaveTimesheetReportColumn" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="allLeaveTimesheets.length == 0">
+              <tr *ngIf="allLeaveTimesheets.length == 0 || (allLeaveTimesheets | colFilter:filters:false).length == 0">
                 <th colspan="12" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let timesheet of allLeaveTimesheets |filter:data |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let timesheet of allLeaveTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td colspan="4">{{timesheet.description}}</td>
+                <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
                 <td>{{timesheet.managerName}}</td>
                 <td>{{timesheet.departmentName}}</td>
@@ -550,7 +582,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allLeaveTimesheets.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
           [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>

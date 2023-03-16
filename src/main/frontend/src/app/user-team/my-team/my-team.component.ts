@@ -28,6 +28,11 @@ export class MyTeamComponent implements OnInit {
   feature = "My Team";
   currentUser: User;
   userMapping: any = {};
+  dateToday: any = new Date();
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
 
   // modal
   alertMessage: any
@@ -44,6 +49,7 @@ export class MyTeamComponent implements OnInit {
   isTeamRequest: boolean = false;
   isLeaveRequest: boolean = false;
   isCompOffRequest: boolean = false;
+  isLeaveRevokeRequest:boolean = false;
 
   // Obj
   leaveObj: Leave = new Leave();
@@ -60,6 +66,8 @@ export class MyTeamComponent implements OnInit {
   allCompOffApplicationsDataForExcel: any[];
   elementName = '';
   excelName = '';
+
+  revokeLeaveHistoryInfo:any;
 
   fromDate:any;
   toDate:any;
@@ -78,7 +86,22 @@ export class MyTeamComponent implements OnInit {
   isLeaveHistoryOfDepartment:boolean = false;
   departmentLeaveHistoryList:any[] = [];
 
+  selectedDataIndex:any=0;
+  showReporteeLeaveBalance:boolean = false;
+  leaveBalanceList:any[] = [];
+
+  reporteeLeaveRevokeApplicationList:any[] = [];
+
   isActionEnabled:boolean = false;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  teamViewColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo','managerName'];
+  teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType','remark'];
+  teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
+  teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -126,19 +149,18 @@ export class MyTeamComponent implements OnInit {
     this.isTeamLeaveHistory = false;
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
     this.isTeamRequest = false;
     this.page=1;
     this.isHierarchyTable = true;
     this.isHierarchyChart = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllManagers();
-    // this.getAllTeamView();    
+    this.getAllTeamView();    
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    employeeObj.managerId = this.currentUser.managerId;
-    this.myTeamHierarchy(employeeObj); 
   }
 
   viewTeamLeaveHistory() {
@@ -148,6 +170,7 @@ export class MyTeamComponent implements OnInit {
 
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
     this.isViewTeam = false;
     this.isTeamRequest = false;
     this.page=1;
@@ -159,6 +182,8 @@ export class MyTeamComponent implements OnInit {
     this.toDate = null;
     this.teamViewLeaveHistoryList = [];
     this.departmentLeaveHistoryList = [];
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
@@ -174,6 +199,8 @@ export class MyTeamComponent implements OnInit {
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
     this.isLeaveHistoryOfDepartment = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   viewCompOffHistory() {
@@ -185,12 +212,15 @@ export class MyTeamComponent implements OnInit {
     this.page=1;
     this.data='';
     this.isLeaveHistoryOfDepartment = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   viewTeamRequest() {
     this.isTeamRequest = true;
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
 
     this.isLeaveHistory = false;
     this.isCompOffHistory = false;
@@ -200,23 +230,42 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.isHierarchyChart = false;
     this.isHierarchyTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     this.getPendingCompOffRequestsByManagerId();
+    this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
   }
 
   viewTeamLeaveRequest() {
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   viewTeamCompOffRequest() {
     this.isLeaveRequest = false;
     this.isCompOffRequest = true;
+    this.isLeaveRevokeRequest = false;
     this.page=1;
     this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
+  }
+
+  viewTeamLeaveRevokeRequest() {
+    this.isLeaveRequest = false;
+    this.isCompOffRequest = false;
+    this.isLeaveRevokeRequest = true;
+    this.page=1;
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
   }
 
   getAllManagers() {
@@ -285,6 +334,13 @@ export class MyTeamComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.teamViewLeaveHistoryList = response.serviceResponse;
           this.teamViewLeaveHistoryList.forEach(leaveHistory => {
+
+            let revokeExpireDate = moment(leaveHistory.fromDate, "YYYY-MM-DD").add(this.currentUser.revokeReporteeLeaveValidity, 'days')?.format("YYYY-MM-DD");
+            let dateToday = moment(this.dateToday).format("YYYY-MM-DD");
+            if (revokeExpireDate > dateToday) {
+              leaveHistory.isExpire = "true";
+            }
+
             leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
@@ -434,6 +490,45 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+  // Leave Revoke 
+  getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
+    this.reporteeLeaveRevokeApplicationList = [];
+
+    this.leaveObj.empId = this.currentUser.empId;
+    this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+        this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateRevokeLeaveStatus(template: TemplateRef<any>, leave, updatedLeaveStatusId){
+    this.cancelRequest();
+
+    leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
+    leave.leaveRevokeStatusId = updatedLeaveStatusId;
+    leave.approverEmail = this.currentUser.email;	
+    console.log(leave, " : RevokeLeaveObj");
+
+    this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+      this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+    });
+  }
+
+
   // download excel
   exportToExcel(): void {
 
@@ -445,7 +540,7 @@ export class MyTeamComponent implements OnInit {
           "Employee Id": x.employeementId,
           "Name": x.name,
           "Email": x.email,
-          "Designation": x.jobRoleName,
+          "Job Role": x.jobRoleName,
           "Mobile No": x.mobileNo,
           "Reports To": x.managerName
         })
@@ -528,6 +623,24 @@ export class MyTeamComponent implements OnInit {
           )
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
         }
+
+        if(this.isLeaveRevokeRequest == true){
+          this.excelName = 'ReporteeLeaveApplication.xlsx';
+    
+          const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
+            x => ({	
+              "leave Type": x.leaveType,	
+              "From Date": (x.fromDate)? x.fromDate : null,	
+              "To Date": (x.toDate)? x.toDate : null,	
+              "No Of Days": x.noOfDays,	
+              "status": x.status,	
+              "Created By Name": x.createdByName,	
+              "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
+              "Reason": x.reason	
+            })	
+          )	
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+        }
   }
 
   hierarchyBreadCrumb(index){	
@@ -538,6 +651,10 @@ export class MyTeamComponent implements OnInit {
 
   //myTeam-hierarchy	
   myTeamHierarchy(employeeObj:Employee) {
+    this.leaveBalanceList = [];
+    this.showReporteeLeaveBalance = false;
+    this.selectedDataIndex = 0;
+    
     let employee = Object.assign({}, employeeObj);
     employee.employeementId = employee.employeementId?.substring(2);
 
@@ -740,6 +857,59 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+  revokeMyReporteeLeave(template: TemplateRef<any>){
+    this.cancelRequest();
+    let leaveHistory = this.revokeLeaveHistoryInfo;
+    leaveHistory.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveHistory.revokeReason = this.leaveObj.revokeReason;
+    let fromDate = this.fromDate;
+    let toDate = this.toDate;
+
+    this.teamViewService.revokeReporteeLeave(leaveHistory).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.viewLeaveHistory();
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+        this.getAllTeamLeaveHistoryView();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+
+  onGetEmpLeaveBalance(template: TemplateRef<any>, teamMember, recordIndex) {
+    this.leaveBalanceList = [];
+    this.showReporteeLeaveBalance = false;
+    this.selectedDataIndex = 0;
+    
+    let leaveObj: Leave = new Leave();
+    if(teamMember){
+      leaveObj.employeementId = teamMember.employeementId.substring(2);
+      this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.leaveBalanceList = response.serviceResponse;
+          console.log("leaveBalanceList : ", this.leaveBalanceList);
+          this.showReporteeLeaveBalance = true;
+          this.selectedDataIndex = recordIndex;
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }else{
+      console.error("Reportee Not Found.");
+    }
+  }
+
+  onHideEmpLeaveBalance(){
+    this.leaveBalanceList = [];
+    this.showReporteeLeaveBalance = false;
+    this.selectedDataIndex = 0;
+  }
+
+  // Modals
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -747,6 +917,18 @@ export class MyTeamComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){
+    this.modalRef = this.modalService.show(template);
+    this.revokeLeaveHistoryInfo = leaveHistory;
+  }
+
+  openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.leaveObj.rejectReason = '';
+    this.cancelRequest();
+    this.leaveObj = leave;
+    this.modalRef = this.modalService.show(template);
   }
 
     //pagination 
@@ -763,206 +945,15 @@ export class MyTeamComponent implements OnInit {
   }
     
   //Sorting team view table 	
-  sortViewTeamTable(sort:Sort){	
-    console.log(sort);	
-    const data=this.teamViewList;	
-   // console.log(data , "****************************");	
-   if(!sort.active || sort.direction==='')	
-   {	
-    this.teamViewList=data;	
-    return ;	
-   }else {	
-    this.teamViewList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'employeementId':	
-            return compare(a.employeementId , b.employeementId , isAsc)	
-            case 'name':	
-              return compare(a.name , b.name , isAsc)	
-              case 'email':	
-                return compare(a.email , b.email , isAsc)	
-                case 'jobRoleName':	
-                  return compare(a.jobRoleName , b.jobRoleName , isAsc)	
-                  case 'mobileNo':	
-                    return compare(a.mobileNo , b.mobileNo ,isAsc)	
-                    case 'managerName':	
-                      return compare(a.managerName , b.managerName , isAsc)	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-    	
-  }	
-
-  sortViewLeaveHistory(sort:Sort){	
-    console.log(sort);	
-    const data=this.teamViewLeaveHistoryList;	
-   // console.log(data , "=====================");	
-    	
-   if(!sort.active || sort.direction==='')	
-   {	
-    this.teamViewLeaveHistoryList=data;	
-    return ;	
-   }else {	
-    this.teamViewLeaveHistoryList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'createdOn':	
-                  return compare(a.createdOn , b.createdOn , isAsc)	
-                  case 'noOfDays':	
-                    return compare(a.noOfDays , b.noOfDays ,isAsc)	
-                    case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                       case 'leaveStatusUpdatedByName':	
-                         return compare(a.leaveStatusUpdatedByName , b.leaveStatusUpdatedByName , isAsc)	
-                         case 'reason':	
-                           return compare(a.reason , b.reason , isAsc)	
-                            case 'leaveType':	
-                             return compare(a.leaveType , b.leaveType , isAsc)	
-                             case 'remark':	
-                             return compare(a.remark , b.remark , isAsc)	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-    	
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
   }
-
-  sortViewCompOffLeave(sort:Sort){	
-    console.log(sort);	
-    const data=this.teamViewCompOffHistoryList;	
- //   console.log(data , "********************************************");	
-    if(!sort.active || sort.direction==='')	
-   {	
-    this.teamViewCompOffHistoryList=data;	
-    return ;	
-   }else {	
-    this.teamViewCompOffHistoryList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'createdOn':	
-                  return compare(a.createdOn , b.createdOn , isAsc)	
-                  case 'noOfDays':	
-                    return compare(a.noOfDays , b.noOfDays ,isAsc)	
-                    case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                       case 'leaveStatusUpdatedByName':	
-                         return compare(a.leaveStatusUpdatedByName , b.leaveStatusUpdatedByName , isAsc)	
-                         case 'reason':	
-                           return compare(a.reason , b.reason , isAsc)	
-                           	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-    	
-    	
-  }
-
-  sortLeaveRequestTable(sort:Sort){	
-    console.log(sort);	
-    const data =this.leaveApplicationList;	
-    console.log(data , "====================");	
-    	
-    if(!sort.active || sort.direction==='')	
-   {	
-    this.leaveApplicationList=data;	
-    return ;	
-   }else {	
-    this.leaveApplicationList=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'employeeName':	
-          return compare(a.employeeName , b.employeeName , isAsc)	
-          case 'leaveType':	
-            return compare(a.leaveType , b.leaveType , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays , isAsc)	
-                  case 'status':	
-                    return compare(a.status , b.status ,isAsc)	
-                    case 'createdByName':	
-                      return compare(a.createdByName , b.createdByName , isAsc)	
-                       case 'createdOn':	
-                         return compare(a.createdOn , b.createdOn , isAsc)	
-                         case 'reason':	
-                           return compare(a.reason , b.reason , isAsc)	
-                           	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-  }
-
-  sortCompOffRequestTable(sort:Sort){	
-    console.log(sort);	
-    const data=this.allCompOffApplications;	
-   // console.log(data , "++++++++++++++++++++++");	
-    	
-   if(!sort.active || sort.direction==='')	
-   {	
-    this.allCompOffApplications=data;	
-    return ;	
-   }else {	
-    this.allCompOffApplications=data.sort(	
-      (a , b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'compOffReasons':	
-              return compare(a.compOffReasons , b.compOffReasons , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays , isAsc)	
-                  case 'description':	
-                    return compare(a.description , b.description , isAsc)	
-                  case 'status':	
-                    return compare(a.status , b.status ,isAsc)	
-                   	
-                           	
-          default :	
-          return 0;	
-        }	
-      }	
-    )	
-   }	
-    	
-  }	
 
   
   selectAll(event){
@@ -1092,6 +1083,15 @@ export class MyTeamComponent implements OnInit {
       console.log("error")
       }
     });
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }
 

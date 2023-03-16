@@ -176,5 +176,19 @@ public class EmployeeDTO {
 	private Integer compOffLockDays;
 	private Integer leaveBackdatedLockDays;
 	private Integer leaveFuturedatedLockDays;
+	private Integer revokeReporteeLeaveValidity;
 
+	private Long reportingManagerId;
+	private String approvalsTo;
+	private String reportingManagerName;
+	private String reportingManagerEmail;
+	
+	private Long[] specializationList;
+	private Long[] domainList;
+	
+	private String specializationName;
+	private String domainName;
+	
+	private Long designationId;
+	private String designationName;
 }

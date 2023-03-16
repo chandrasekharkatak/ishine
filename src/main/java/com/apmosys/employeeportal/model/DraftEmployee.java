@@ -118,5 +118,8 @@ public class DraftEmployee {
 	private Float totalExperience;
 	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
 	private String billable;
+	private Long reportingManagerId;
+	private String approvalsTo;
 	
+	private Long designationId;
 }

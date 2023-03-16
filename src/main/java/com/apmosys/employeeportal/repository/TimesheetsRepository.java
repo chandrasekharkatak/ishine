@@ -59,5 +59,8 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplication(LocalDate start, LocalDate end);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getInactiveActivitiesByTimesheetId(Long timesheetId);
 
 }

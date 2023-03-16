@@ -40,6 +40,10 @@ export class TeamConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -108,6 +112,12 @@ export class TeamConfigComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   
   selectedDept:any;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  viewTeamColumns:any[] = ['blank', 'projectName','teamName','teamLeadName','projectManagerName','createdByName','createdOn'];
+  viewActivityColumns:any[] = ['blank','activity','eta','employeeRole','createdByName','createdOn'];
+  activityTemplateColumns:any[] = ['blank', 'employeeRole','activityDescription','departmentName'];
 
   constructor(
     private validationService: ValidationService,
@@ -194,6 +204,8 @@ export class TeamConfigComponent implements OnInit {
     this.filterStatus= '';
     this.selectedDept = '';
     this.isGoToTeamButton = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.allTeamList = [];
     this.getAllProjectListByProjectManagerId();
@@ -278,6 +290,8 @@ export class TeamConfigComponent implements OnInit {
     this.data = ''
     this.selectedDept = '';
     this.allActivityList = [];
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllProjectsByEmpId();
     this.getAllProjectListByProjectManagerId();
@@ -298,7 +312,15 @@ export class TeamConfigComponent implements OnInit {
     this.selectedDept = '';
     
     this.activityObj = Object.assign({}, activityObj);
+
+    console.log(this.activityObj, " : this.activityObj", " activityObj.departmentList" , activityObj.departmentList);
+    
+
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
+
+    console.log(this.activityObj, " : this.activityObj.departmentList");
+    
+
     this.getDepartmentByTeam(this.activityObj.teamId);
     this.getAllProjectListByProjectManagerId();
   }
@@ -351,6 +373,9 @@ export class TeamConfigComponent implements OnInit {
     this.isGoToTeamButton = false;
     this.templateActivityList = [];
     this.allTemplateActivityList = [];
+    this.filters = {};
+    this.isSearchEnabled = false;
+
   }
 
   showUpdateActivityTemplateForm(activityTemplate: Team){
@@ -648,13 +673,18 @@ export class TeamConfigComponent implements OnInit {
 
   getAllTeamsByProjectId(projectId: any) {
     this.allTeamList = [];
+    this._allTeamList = [];
     this.allActivityList = [];
     this.filterStatus = "";
+    this.activityObj.teamId = '';
 
     console.log("selectedProject : ", this.selectedProject);
     
     if(projectId == 0){
         this.getAllMyTeamsByEmpId();
+    }
+    else if(projectId == -1){
+      this.getAllTeams()
     }else{
       let teamObj = new Team();
       teamObj.projectId = projectId;
@@ -688,6 +718,7 @@ export class TeamConfigComponent implements OnInit {
 
   getAllMyTeamsByEmpId() {
     this.allTeamList = [];
+    this._allTeamList = [];
     this.allActivityList = [];
     this.filterStatus = "";
     this.selectedProject = "0";
@@ -708,6 +739,36 @@ export class TeamConfigComponent implements OnInit {
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
         console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+
+      this.filterStatus = "Active";
+      this.changeEvent();
+    });
+  }
+
+  getAllTeams() {
+    this.allTeamList = [];
+    this._allTeamList = [];
+    this.allActivityList = [];
+    this.filterStatus = "";
+    this.selectedProject = "-1";
+
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    employeeObj.departmentName = this.currentUser.departmentName;
+    employeeObj.employeeRole = this.currentUser.employeeRole;
+
+    this.teamService.getAllTeams().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamList = response.serviceResponse;
+        this.allTeamList.forEach(team => {
+          team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this._allTeamList = this.allTeamList
+        this.isDisabled = false;
+        console.log("getAllTeams :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -820,6 +881,13 @@ export class TeamConfigComponent implements OnInit {
             projectId : 0,
             projectName : 'My Teams'
           });
+
+          if(this.currentUser.employeeRole == 'SuperAdmin'){
+            this.allProjectListByManagerId.unshift({
+              projectId : -1,
+              projectName : 'All Teams'
+            });
+          }
         }
 
       } else {
@@ -1103,6 +1171,13 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
+    const uniqueActivity = new Set(this.allTemplateActivityList.map(x => x.activity));
+    if (uniqueActivity.size < this.allTemplateActivityList.length) {
+      this.alertMessage = "Duplicate Activities are not allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     this.allTemplateActivityList.forEach((activity, index) => {
 
       activity.activity = activity.activity?.trim();
@@ -1135,8 +1210,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.createActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showActivityTemplateTable();
         this.selectedDept = this.activityTemplateObj.deptId;
+        this.showActivityTemplateTable();
         this.getActivityTemplate(template);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -1177,39 +1252,14 @@ export class TeamConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateActivityTemplateObj(this.activityTemplateObj, template)
     if (!inputValidated) return;
     this.activityTemplateObj.templateActivityList = (Object.keys(this.allTemplateActivityList[0]).length === 0) ? null : this.allTemplateActivityList;
-
-    if (this.activityTemplateObj.templateActivityList) {
-      let newActivities = this.activityTemplateObj.templateActivityList.filter(activity => !activity.activityTemplateId);
-      console.log("newActivities : ", newActivities);
-
-      if (newActivities) {
-        if (this.updatedTemplateActivityList === undefined || this.updatedTemplateActivityList.length === 0) {
-          this.updatedTemplateActivityList = [];
-          
-        }
-        this.updatedTemplateActivityList.forEach(activity => {
-          if(activity.activityTemplateId == ""){
-            this.updatedTemplateActivityList.splice(activity,1);
-          }
-        });
-        this.updatedTemplateActivityList = this.updatedTemplateActivityList.concat(newActivities);
-      }
-    } else {
-      if (this.updatedTemplateActivityList == undefined || this.updatedTemplateActivityList[0].length == 0) {
-        this.updatedTemplateActivityList = null;
-      }
-    }
-
-    console.log(this.activityTemplateObj.templateActivityList, " : this.activityTemplateObj.templateActivityList");
-    console.log(this.updatedTemplateActivityList, " : this.activityTemplateObj.updatedTemplateActivityList");
     
     console.log(this.activityTemplateObj, " :this.activityTemplateObj");
     
-
     this.teamService.updateActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showActivityTemplateTable();
+        this.selectedDept = this.activityTemplateObj.deptId;
         this.getActivityTemplate(template);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -1326,90 +1376,23 @@ export class TeamConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortTeam(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allTeamList;
-    if (!sort.active || sort.direction === '') {
-      this.allTeamList = data;
-      return;
-    } else {
-      this.allTeamList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'projectName':
-              return compare(a.projectName.toLowerCase(), b.projectName.toLowerCase(), isAsc)
-            case 'teamName':
-              return compare(a.teamName.toLowerCase(), b.teamName.toLowerCase(), isAsc)
-            case 'teamLeadName':
-              return compare(a.teamLeadName, b.teamLeadName, isAsc)
-              case 'projectManagerName':
-              return compare(a.projectManagerName.toLowerCase(), b.projectManagerName.toLowerCase(), isAsc)
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-              case 'createdOn':	
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-  }
-  sortActivity(sort: Sort) {
-    console.log(sort);
-    const data = this.allActivityList;
-    if (!sort.active || sort.direction === '') {
-      this.allActivityList = data;
-      return;
-    } else {
-      this.allActivityList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'activity':
-              return compare(a.activity.toLowerCase(), b.activity.toLowerCase(), isAsc)
-            case 'eta':
-              return compare(a.eta, b.eta, isAsc)
-            case 'employeeRole':
-              return compare(a.employeeRole.toLowerCase(), b.employeeRole.toLowerCase(), isAsc)
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            case 'createdOn':	
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
 
-  // sortActivityTemplate
-  sortActivityTemplate(sort: Sort) {
-    console.log(sort);
-    const data = this.templateActivityList;
-    if (!sort.active || sort.direction === '') {
-      this.templateActivityList = data;
-      return;
-    } else {
-      this.templateActivityList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'employeeRole':
-              return compare(a.employeeRole.toLowerCase(), b.employeeRole.toLowerCase(), isAsc)
-            case 'activityDescription':
-              return compare(a.activityDescription, b.activityDescription, isAsc)
-            case 'departmentName':
-              return compare(a.departmentName.toLowerCase(), b.departmentName.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

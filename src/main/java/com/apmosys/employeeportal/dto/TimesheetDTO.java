@@ -88,4 +88,5 @@ public class TimesheetDTO {
 	private Long expectedEODCount;
 	
 	private String leaveType;
+	private List<ActivityDTO> inactiveTimesheetActivities;
 }

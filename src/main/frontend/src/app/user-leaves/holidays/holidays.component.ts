@@ -17,10 +17,14 @@ import { HolidayService } from 'src/app/services/holiday.service';
 })
 export class HolidaysComponent implements OnInit {
 
-    data:string;
+  data:string;
   feature="Holiday";
   currentUser:User;
   userMapping:any = {};
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
 
   holidayList:any[] = [];
 
@@ -28,6 +32,10 @@ export class HolidaysComponent implements OnInit {
   holidayList1:any[] = [];	
   years:any[]=[];
   currentYear:any;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  holidayColumns:any[] = ['blank','occasion','dayOfTheWeek','dateOfHoliday','state'];
 
   constructor(
     private holidayService : HolidayService,
@@ -74,22 +82,24 @@ export class HolidaysComponent implements OnInit {
 
         this.currentYear = new Date().getFullYear();	
         // sessionStorage.setItem('currentyear');
-        this.holidayList = this.holidayList.filter(x=>new Date (x.dateOfHoliday).getFullYear() == this.currentYear);
+        this.holidayList = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.currentYear);
 
 
-        console.log("holidayList : ", this.holidayList);
+        console.log("this.holidayList : ", this.holidayList);
+        console.log("this.holidayList1 : ", this.holidayList1);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
+
   getFilterHolidayList(value:any){	
     this.selectedYearholidayList = [];	
     let searchYear = parseInt(value);	
     console.log(searchYear,"searchYear")	
     console.log(this.holidayList,"this.holidayListthis.holidayList")	
     this.holidayList1.forEach(holiday =>{	
-      const year = new Date(holiday.dateOfHoliday).getFullYear();	
+      const year = moment(holiday.dateOfHoliday, "DD-MM-YYYY").year();	
       if(searchYear === year){	
         this.selectedYearholidayList.push(holiday);	
       }      	
@@ -105,37 +115,23 @@ export class HolidaysComponent implements OnInit {
     this.page = event;
   }
 
-  sortHoliday(sort:Sort){
+  sortData(sort: Sort){	
     console.log(sort);
-    const data=this.holidayList;
-    if(!sort.active || sort.direction===''){
-      this.holidayList=data;
-      return ;
-    }else {
-      this.holidayList=data.sort(
-        (a,b)=>{
-          const isAsc=sort.direction==='asc';
-          switch(sort.active){
-            case 'occasion':
-              return compare(a.occasion.toLowerCase() , b.occasion.toLowerCase() , isAsc)
-
-              case 'dayOfTheWeek':
-                return compare(a.dayOfTheWeek.toLowerCase() , b.dayOfTheWeek.toLowerCase() , isAsc)
-
-                case 'dateOfHoliday':
-                  return compare(a.dateOfHoliday , b.dateOfHoliday ,isAsc)
-
-                  case 'state':
-                    return compare(a.state , b.state , isAsc)
-
-                    default :
-                    return 0;
-              
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-    
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

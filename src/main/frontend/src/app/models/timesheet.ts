@@ -66,4 +66,5 @@ export class Timesheet{
 	month:any;
 
     displayTeam:any;
+    inactiveTimesheetActivities:any;
 }

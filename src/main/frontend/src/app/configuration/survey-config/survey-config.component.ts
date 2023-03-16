@@ -14,6 +14,8 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ClipboardService } from 'ngx-clipboard';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-survey-config',
@@ -25,6 +27,10 @@ export class SurveyConfigComponent implements OnInit {
   feature = "Survey Config";
   currentUser: User;
   userMapping: any = {};
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
 
   //modal 
   alertMessage: any;
@@ -66,7 +72,9 @@ export class SurveyConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private surveyService : SurveyService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private clipboardService: ClipboardService,
+    private router: Router
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -617,6 +625,14 @@ export class SurveyConfigComponent implements OnInit {
        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
 
+  copySurveyLinkToClipBoard(survey:any,template: TemplateRef<any>) {
+    let url = window.location.href.split("#")[0].concat("#/user-survey/").concat(survey.surveyId);
+    console.log(url, " : url");
+    
+    this.clipboardService.copy(url);
+    this.openAlertMod(template, "Link copied to clipboard !!");
+  }
+
 
 
   //modals
@@ -655,41 +671,15 @@ export class SurveyConfigComponent implements OnInit {
     this.page = event;
   }
 
-  // sortSurvey()
-  sortSurvey(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allSurveyList;
-
-    if (!sort.active || sort.direction === '') {
-      this.allSurveyList = data;
-      return;
-    }
-    else {
-      this.allSurveyList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'surveyName':
-              return compare(a.surveyName.toLowerCase(), b.surveyName.toLowerCase(), isAsc)
-            case 'description':
-              return compare(a.description.toLowerCase(), b.description.toLowerCase(), isAsc)
-            case 'isActive':
-              return compare(a.isActive.toLowerCase(), b.isActive.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
   }
-
 
 }
 

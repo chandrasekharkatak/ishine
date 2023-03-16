@@ -22,6 +22,11 @@ import { AppComponent } from 'src/app/app.component';
 })
 export class LeaveConfigComponent implements OnInit {
   data: string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -59,6 +64,7 @@ export class LeaveConfigComponent implements OnInit {
   filterLeaveType: any[] = [];
   newLeaveType: any;
   oldLeaveType: any;
+  selectedYear: any;
 
   leaveBalanceObj: Leave = new Leave();
   leaveBalanceList: any[] = [];
@@ -111,6 +117,13 @@ export class LeaveConfigComponent implements OnInit {
 
   // for View Holidays by State 
   selectedState: any = '';
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName'];
+  leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description'];
+  leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
+
 
   constructor(
     private validationService: ValidationService,
@@ -196,6 +209,9 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
     this.page = 1;
     this.data = ''
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.getAllHolidays();
   }
 
@@ -213,6 +229,9 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
     this.page = 1;
     this.data = ''
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.getAllLeaveTypes();
   }
 
@@ -330,7 +349,10 @@ export class LeaveConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.page = 1;
-    this.data = ''
+    this.data = '';
+    this.filters = {};
+    this.isSearchEnabled = false;
+    
     this.getAllLeavePolicies();
   }
 
@@ -372,6 +394,20 @@ export class LeaveConfigComponent implements OnInit {
     console.log(this.years, "dynamic year");
 
   }
+
+  checkLeaveType(leaveTypeObj:Leave, template: TemplateRef<any>){
+    let leaveCheck = Object.assign({}, leaveTypeObj);
+    console.log("Leave Check : ", leaveCheck);
+    this.leaveService.checkLeaveType(leaveCheck).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // Valid Leave Type
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+        this.leaveTypeObj.leaveType = "";
+      }
+    });
+  }
+
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -559,12 +595,22 @@ export class LeaveConfigComponent implements OnInit {
 
 
   onSelect() {
-    if (this.selectedState == 'all state') {
-      this.holidayListFilter = this.holidayList;
-      this.page = 1;
-    } else {
-      this.holidayListFilter = this.holidayList.filter(x => x.state == this.selectedState);
-      this.page = 1;
+    if(this.selectedYear != null){
+      if (this.selectedState == 'all state') {
+        this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear);
+        this.page = 1;
+      } else {
+        this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> (moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear) && holiday.state == this.selectedState);
+        this.page = 1;
+      }
+    }else{
+      if (this.selectedState == 'all state') {
+        this.holidayListFilter = this.holidayList;
+        this.page = 1;
+      } else {
+        this.holidayListFilter = this.holidayList.filter(x => x.state == this.selectedState);
+        this.page = 1;
+      }
     }
   }
 
@@ -577,40 +623,32 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayListFilter = response.serviceResponse;
+        this.holidayList = response.serviceResponse;
+
         this.holidayListFilter.forEach(holiday => {
           holiday.dateOfHoliday = (holiday.dateOfHoliday) ? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
           holiday.createdOn = (holiday.createdOn) ? moment(holiday.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           holiday.updatedOn = (holiday.updatedOn) ? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("holidayList : ", this.holidayListFilter);
-        // this.holidayListFilter = this.holidayList;
-        this.holidayList = this.holidayListFilter;
-        const currentYear = new Date().getFullYear();	
-        this.holidayListFilter = this.holidayListFilter.filter(x=>new Date (x.dateOfHoliday).getFullYear() == currentYear);
+
+        console.log(this.holidayListFilter, " : this.holidayListFilter");
+        this.filterHolidayListByYear(new Date().getFullYear());
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  getFilterHolidayList(value: any) {
-    this.selectedYearholidayList = [];
-    let searchYear = parseInt(value);
-    console.log(searchYear, "searchYear")
-    console.log(this.holidayList, "this.holidayListthis.holidayList")
-    this.holidayList.forEach(holiday => {
-      const year = new Date(holiday.dateOfHoliday).getFullYear();
-      if (searchYear === year) {
-        this.selectedYearholidayList.push(holiday);
-      }
-    });
-    this.holidayListFilter = this.selectedYearholidayList;
+  filterHolidayListByYear(value: any) {
+    this.selectedYear = value;
+    this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == value);
     console.log(this.holidayListFilter, "this.holidayListFilter")
   }
 
   checkOccasion(template: TemplateRef<any>) {
     this.holidayService.checkOccasionIfAlreadyExist(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
+        this.holidayObj.occasion = null;
         this.openAlertMod(template, response.serviceResponse);
       }
     });
@@ -729,6 +767,11 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   onAddLeaveType(template: TemplateRef<any>) {
+    this.leaveTypeObj.leaveType = this.leaveTypeObj.leaveType?.trim();
+    this.leaveTypeObj.leaveTypeCode = this.leaveTypeObj.leaveTypeCode?.trim();
+    this.leaveTypeObj.description = this.leaveTypeObj.description?.trim();
+    this.leaveTypeObj.rules = this.leaveTypeObj.rules?.trim();
+
     let inputValidated: boolean = this.validateLeaveTypeObj(this.leaveTypeObj, template)
     if (!inputValidated) return;
 
@@ -1131,109 +1174,23 @@ export class LeaveConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortHolidayData(sort: Sort) {
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.holidayListFilter;
-    if (!sort.active || sort.direction === '') {
-      this.holidayListFilter = data;
-      return;
-    } else {
-      this.holidayListFilter = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-
-            case 'occasion':
-              return compare(a.occasion.toLowerCase(), b.occasion.toLowerCase(), isAsc)
-            case 'dayOfTheWeek':
-              return compare(a.dayOfTheWeek.toLowerCase(), b.dayOfTheWeek.toLowerCase(), isAsc)
-            case 'dateOfHoliday':
-              return compare(a.dateOfHoliday.toLowerCase(), b.dateOfHoliday.toLowerCase(), isAsc)
-            case 'state':
-              return compare(a.state.toLowerCase(), b.state.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-
-            case 'createdByName':
-              return compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc);
-            case 'updatedOn':
-              return compare(new Date(a.updatedOn).getTime(), new Date(b.updatedOn).getTime(), isAsc);
-
-            case 'updatedByName':
-              return compare(a.updatedByName.toLowerCase(), b.updatedByName.toLowerCase(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-
   }
 
-  sortFunc(sort: Sort) {
-    console.log(sort);
-
-    const data = this.leaveTypes;
-    if (!sort.active || sort.direction === '') {
-      this.leaveTypes = data
-      return;
-    } else {
-      this.leaveTypes = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-
-            case 'leaveType':
-              return compare(a.leaveType.toLowerCase(), b.leaveType.toLowerCase(), isAsc)
-            case 'leaveTypeCode':
-              return compare(a.leaveTypeCode.toLowerCase(), b.leaveTypeCode.toLowerCase(), isAsc)
-            case 'gender':
-              return compare(a.gender.toLowerCase(), b.gender.toLowerCase(), isAsc)
-            case 'noOfDays':
-              compare(a.noOfDays, b.noOfDays, isAsc)
-            case 'rules':
-              return compare(a.rules, b.rules, isAsc)
-              case 'updatedOn':
-                return compare(a.updatedOn, b.updatedOn, isAsc)
-                case 'updatedByName':
-                  return compare(a.updatedByName, b.updatedByName, isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc)
-          }
-        }
-      )
-    }
-
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
   }
-  sortPolicy(sort: Sort) {
-    console.log(sort);
-    const data = this.leavePolicyList;
-    if (!sort.active || sort.direction === '') {
-      this.leavePolicyList = data;
-      return;
-    }
-    else {
-      this.leavePolicyList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            case 'leavePolicyName':
-              return compare(a.leavePolicyName.toLowerCase(), b.leavePolicyName.toLowerCase(), isAsc)
-            case 'leaveType':
-              return compare(a.leaveType.toLowerCase(), b.leaveType.toLowerCase(), isAsc)
-            case 'description':
-              return compare(a.description, b.description, isAsc)
-            case 'createdByName':
-              compare(a.createdByName.toLowerCase(), b.createdByName.toLowerCase(), isAsc)
-            case 'createdOn':
-              return compare(a.createdOn, b.createdOn, isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

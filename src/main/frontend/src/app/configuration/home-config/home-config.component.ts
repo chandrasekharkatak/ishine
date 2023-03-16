@@ -27,6 +27,10 @@ export class HomeConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isPhotoForm: boolean = false;
   isNotificationForm: boolean = false;
@@ -120,7 +124,19 @@ export class HomeConfigComponent implements OnInit {
     this.notificationObj = new NotificationMessage();
   }
 
-  onImageSelect(event:any){
+  onImageSelect(event:any,template: TemplateRef<any>){
+    let isSizeInRange:boolean = false;
+
+    //Bits in  10mb : 10485760
+    if(event.target.files[0].size > 10485760){
+      this.openAlertMod(template, "File size is more than 10MB");
+      event.target.value = null;
+      isSizeInRange = false;
+   }else{
+    isSizeInRange = true;
+   }
+
+   if(isSizeInRange){
     this.files = [];
 
     const uploadedFiles = event.target.files;
@@ -136,6 +152,7 @@ export class HomeConfigComponent implements OnInit {
       };
     }
     console.log("Files : ", this.files);
+   }
   }
 
   onUploadImages(template: TemplateRef<any>){
@@ -287,43 +304,16 @@ export class HomeConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortEventPhotos(sort:Sort){
-   
-      console.log(sort);  	
-         let data=this.eventImages;	
-         console.log("event Photos :" , this.eventImages );	
-           
-           if(!sort.active || sort.direction ===''){	
-            this.eventImages=data;	
-           return;	
-          }	
-           else {	
-            this.eventImages=data.sort(	
-               (a , b )=>{	
-                 const isAsc=sort.direction==='asc';	
-                 switch(sort.active){	
-                 
-                     case 'imageName':	
-                       return compare(a.imageName.toLowerCase() , b.imageName.toLowerCase() , isAsc);	
-  
-                       case 'eventName':	
-                       return compare(a.eventName.toLowerCase() , b.eventName.toLowerCase() , isAsc);	
-  
-                         case 'createdOn':	    
-                         return  compare(new Date(a.createdOn).getTime() ,  new Date(b.createdOn).getTime(), isAsc);	
-            
-                         case 'createdByName':	    
-                         return  compare(a.createdByName.toLowerCase() ,  b.createdByName.toLowerCase(), isAsc);	
-  
-                                               
-                     default:	
-                       return 0; 	
-                   }	
-               }	
-             )	
-           }	
-         }	
-  }
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
+  }	
+}
 
   function compare(a: number | string, b: number | string, isAsc: boolean) {	
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

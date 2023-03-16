@@ -18,6 +18,10 @@ import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import { DepartmentService } from 'src/app/services/department.service';
 import { Timesheet } from 'src/app/models/timesheet';
+import { HelpService } from 'src/app/services/help.service';
+import { Help } from 'src/app/models/help';
+import { saveAs } from "file-saver";
+import { ClipboardService } from 'ngx-clipboard';
 
 
 
@@ -43,6 +47,19 @@ export class PortalConfigComponent implements OnInit {
   allAppreciationEvent: any;
   data: any;
   appByCategory: any;
+  src: any;
+  fileName:any;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
+  helpObj:Help = new Help(); 
+
+  maxFileSize:any;
+	maxRequestSize:any;
+  fileSize: number = 0;
+  helpDocumentName:any;
 
   //flag	
   portalConfig: boolean = false;
@@ -55,6 +72,9 @@ export class PortalConfigComponent implements OnInit {
   isUpdation: boolean = false;
   fromDate: any;
   toDate: any;
+  isHelpConfiguration: boolean = false;
+  isHelpTable: boolean = false;
+  isUploadForm: boolean = false;
 
   alertMessage: any;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
@@ -64,7 +84,6 @@ export class PortalConfigComponent implements OnInit {
   timesheetObj: Timesheet = new Timesheet();
 
   portalConfigList: any[] = [];
-  // appreciationColumns:any[] = ['Employee Id','Full Name','Email Id','Employment Status','Date of Joining','Department'];
   appreciationColumns: any[] = ['Department'];
   queryList: any[] = [];
   filterData: any = new FilterData();
@@ -75,12 +94,20 @@ export class PortalConfigComponent implements OnInit {
 
   allDeptList: any[] = [];
   employeeList: any[] = [];
+  document: any[] = [];
+  files:any[] = [];
 
   allMonth: any[] = [
     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
   ]
 
   year: any[] = [];
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  employeeColumns:any[] = ['employeementId','name','email','departmentName','employmentstatus','dateOfJoining'];
+  appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
+  documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
 
   constructor(
     private portalService: PortalService,
@@ -90,6 +117,8 @@ export class PortalConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
     private departmentService: DepartmentService,
+    private helpService: HelpService,
+    private clipboardService: ClipboardService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -138,6 +167,43 @@ export class PortalConfigComponent implements OnInit {
       this.viewAllAppreciation();
     }
   }
+
+  viewHelpDocument(){
+    this.isHelpConfiguration = true;
+    this.isHelpTable = true;
+
+    this.isUploadForm = false;
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.isTable = false;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.viewEventConfig = false;
+    this.isTable = false;
+    this.isUpdation = false;
+
+    this.getAllHelpDocument();
+  }
+
+  showUploadForm(){
+    this.isHelpConfiguration = true;
+    this.isUploadForm = true;
+
+    this.isHelpTable = false;
+
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.isTable = false;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.viewEventConfig = false;
+    this.isTable = false;
+    this.isUpdation = false;
+
+    this.maxFileSize = parseInt(sessionStorage.maxFileSize);
+    this.maxRequestSize = parseInt(sessionStorage.maxRequestSize);
+  }
+
   getAllEvent() {
     this.allAppreciationEvent = [];
     this.portalService.getAllEvent().pipe(first()).subscribe((response: any) => {
@@ -229,11 +295,13 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = false;
     this.isTable = false;
     this.isUpdation = false;
+    this.isHelpConfiguration = false;
 
     this.getAllPortalConfigData();
     this.getAllDepartmentList();
     this.getEmployeeList();
   }
+
   getAllPortalConfigData() {
 
     this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
@@ -282,6 +350,7 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
+
   enableAppreciationOnclick() {
     this.appreciationObj.fromDate = ''
     this.appreciationObj.toDate = ''
@@ -297,9 +366,10 @@ export class PortalConfigComponent implements OnInit {
     this.isCreation = true;
     this.viewEventConfig = false;
     this.isUpdation = false;
+    this.isHelpConfiguration = false;
     this.reset();
-
   }
+
   getAllEmployees(template: TemplateRef<any>) {
     this.portalService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -314,6 +384,7 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
+
   viewAllAppreciation() {
     this.appreciationObj.appreciateType = '';
     this.appreciationObj.appreciationEventId = ''
@@ -328,7 +399,7 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = false;
     this.isCreation = false;
     this.isUpdation = false;
-
+    this.isHelpConfiguration = false;
   }
 
   changeEvent(template: TemplateRef<any>, columns: any[], title: any, value: string) {
@@ -349,17 +420,37 @@ export class PortalConfigComponent implements OnInit {
       this.alertMessage = "Please enter Probation Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }if (portalObj.probationPeriod > 365 || portalObj.probationPeriod < 0) {
+      this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(portalObj.probationPeriod)) {
+      this.alertMessage = "Please enter valid probation period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.probationMailTrigger)) {
       this.alertMessage = "Please enter Probation Period Mail Trigger !!"
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticePeriod)) {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
       return;
+    }if (portalObj.noticePeriod > 365 || portalObj.noticePeriod < 0) {
+      this.alertMessage = "Please enter value 0 to 365 in notice period field !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } if (!this.validationService.validateNumber(portalObj.noticePeriod)) {
+      this.alertMessage = "Please enter valid notice period !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticeMailTrigger)) {
       this.alertMessage = "Please enter Notice Period Mail Trigger !!"
       this.openAlertMod(template, this.alertMessage);
@@ -521,11 +612,19 @@ export class PortalConfigComponent implements OnInit {
 
   onFilterSubmit(queryList: any, template: TemplateRef<any>) {
     console.log("queryList : ", queryList);
-    this.queryList = queryList;
+
+    /* queryList Store query object and Stored data to re-populate same conditions if filter is re-opened.
+      Here we dont require any Stored data from Custom filter, hence assigning query object from queryList at index 0   
+    */
+
+    let queryObj = queryList[0]
+    this.queryList = queryList[0];
+    console.log("queryObj : ", queryObj);
+    
     this.cancelRequest();
 
     if (this.filterData.title == 'Filter Appreciation') {
-      this.getCustomEmployeeList(queryList, template);
+      this.getCustomEmployeeList(queryObj, template);
     }
   }
 
@@ -681,6 +780,9 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.viewAppreciations(appreciationObj, template);
 
 
@@ -870,11 +972,151 @@ export class PortalConfigComponent implements OnInit {
     });
   }
 
+  // Help Config :: start
+
+  onFileSelect(event: any) {
+    this.files = [];
+    let totalSize: number = 0;
+    this.fileSize = 0;
+    const uploadedFiles = event.target.files;
+    console.log("maxfilesize: " + this.maxFileSize);
+    if (uploadedFiles.length != 0) {
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        let document = uploadedFiles[i];
+        let fileName = document.name;
+        this.fileSize = this.fileSize + uploadedFiles[i].size / 1024 / 1024;
+        console.log(this.fileSize);
+        let fileObj1 = { document: document, fileName: fileName }
+        this.files.push(fileObj1);
+        console.log("Files : ", this.files);
+      }
+    };
+  }
+
+  onUploadFiles(template: TemplateRef<any>){
+
+    this.helpDocumentName = this.helpDocumentName?.trim();
+    if(!this.validationService.validateNullUndefinedEmptyString(this.helpDocumentName)){
+      this.alertMessage = "Please enter Help Document Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validateAlphaNumericWithSpace(this.helpDocumentName)){
+      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numericals & space allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (this.files.length == 0) {
+      this.alertMessage = "Kindly Select Document !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    let totalSize = parseFloat(this.fileSize.toFixed(2));
+    if(totalSize>this.maxFileSize && totalSize>this.maxRequestSize){
+      this.alertMessage ="File exceeds the size limit";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    const formData = new FormData();
+    this.files.forEach((file) =>{
+      formData.append(`file`, file.document , file.fileName);
+    });
+    formData.append("helpDocumentName", this.helpDocumentName);
+    formData.append("uploadedBy", this.currentUser.empId);
+
+    console.log("Upload files : ", formData);
+    this.helpService.uploadHelpDocument(formData).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.openAlertMod(template, response.serviceResponse);
+        this.reset();
+        this.viewHelpDocument();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+
+  }
+
+  getAllHelpDocument(){
+    this.data='';
+    this.document = [];
+    this.helpService.getAllHelpDocument().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.document =  response.serviceResponse;
+        this.document.forEach(doc => {
+          doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        console.log("DocumentList : ", this.document);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  onDeleteDocument(template: TemplateRef<any>) {
+    this.cancelRequest();
+
+    console.log(this.helpObj, " : this.helpObj");
+    
+
+    this.helpService.deleteHelpDocument(this.helpObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.viewHelpDocument();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  downloadFile(doc: any) {
+    this.helpService.downloadHelpDocument(doc.helpDocId).subscribe(blob => saveAs(blob,doc.fileName));
+  }
+
+  previewHelpDocument(template: TemplateRef<any>,doc: any) {
+    this.src = null;
+    this.fileName = doc.helpDocumentName;
+
+    this.helpService.downloadHelpDocument(doc.helpDocId).pipe(first()).subscribe((response:any) => {
+      const blob = new Blob([response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      this.src =  a.href;
+
+      if(this.src != null){
+        this.openPreviewDocument(template);
+      }
+    });
+  }
+
+  copyHelpDocumentLink(doc:any,template: TemplateRef<any>) {
+    let url = window.location.href.split("#")[0].concat("#/helpdesk/").concat(doc.helpDocId);
+    console.log(url, " : url");
+    
+    this.clipboardService.copy(url);
+    this.openAlertMod(template, "Link copied to clipboard !!");
+  }
+
+  //Help Config :: end
+
   //modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  openDeleteDocument(template: TemplateRef<any>, helpDoc: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.helpObj = helpDoc;
+  }
+
+  openPreviewDocument(template: TemplateRef<any>){
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
   cancelRequest() {
@@ -885,113 +1127,25 @@ export class PortalConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  sortData(sort: Sort) {
+  
+  sortData(sort: Sort){	
     console.log(sort);
-
-    const data = this.allEmployeeList;
-
-    if (!sort.active || sort.direction === '') {
-      this.allEmployeeList = data;
-      return;
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
     }
-    else {
-      this.allEmployeeList = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'empId':
-              return compare(a.empId, b.empId, isAsc)
-            case 'name':
-              return compare(a.name.toLowerCase(), b.name.toLowerCase(), isAsc)
-            case 'email':
-              return compare(a.email.toLowerCase(), b.email.toLowerCase(), isAsc)
-            case 'employmentstatus':
-              return compare(a.employmentstatus.toLowerCase(), b.employmentstatus.toLowerCase(), isAsc)
-            case 'dateOfJoining':
-              return compare(new Date(a.dateOfJoining).getTime(), new Date(b.dateOfJoining).getTime(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
-  }
-  // allAppreciationEvent
-  sortAppreciationEventHistoryData(sort: Sort) {
-    console.log(sort);
-
-    const data = this.allAppreciationEvent;
-
-    if (!sort.active || sort.direction === '') {
-      this.allAppreciationEvent = data;
-      return;
-    }
-    else {
-      this.allAppreciationEvent = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'appreciationEventName':
-              return compare(a.appreciationEventName.toLowerCase(), b.appreciationEventName.toLowerCase(), isAsc)
-            case 'fromDate':
-              return compare(a.fromDate, b.fromDate, isAsc)
-            case 'toDate':
-              return compare(a.toDate, b.toDate, isAsc)
-            case 'createdOn':
-              return compare(new Date(a.createdOn).getTime(), new Date(b.createdOn).getTime(), isAsc);
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
   }
 
-  sortViewAppreciationData(sort: Sort) {
-    console.log(sort);
-
-    const data = this.appByCategory;
-
-    if (!sort.active || sort.direction === '') {
-      this.appByCategory = data;
-      return;
-    }
-    else {
-      this.appByCategory = data.sort(
-        (a, b) => {
-          const isAsc = sort.direction === 'asc';
-          switch (sort.active) {
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'appreciateType':
-              return compare(a.appreciateType.toLowerCase(), b.appreciateType.toLowerCase(), isAsc)
-            case 'appreciationToName':
-              return compare(a.appreciationToName.toLowerCase(), b.appreciationToName.toLowerCase(), isAsc)
-            case 'appreciationByName':
-              return compare(a.appreciationByName.toLowerCase(), b.appreciationByName.toLowerCase(), isAsc)
-            case 'appreciationDate':
-              return compare(new Date(a.appreciationDate).getTime(), new Date(b.appreciationDate).getTime(), isAsc);
-            case 'managerName':
-              return compare(a.managerName.toLowerCase(), b.managerName.toLowerCase(), isAsc)
-            case 'reason':
-              return compare(a.reason.toLowerCase(), b.reason.toLowerCase(), isAsc)
-            default:
-              return 0;
-          }
-        }
-      )
-    }
-
-
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
   }
 
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

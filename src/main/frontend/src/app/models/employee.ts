@@ -150,4 +150,15 @@ export class Employee{
 	timesheetLockUpdatedOn:any;
 	timesheetBackDatedDays:any;
 	compOffLockDays:any;
+
+	reportingManagerId:any;
+	approvalsTo:any;
+	reportingManagerName:any;
+	reportingManagerEmail:any;
+
+	specializationList:any;
+	domainList:any;
+
+	designationId:any;
+	designationName:any;
 }

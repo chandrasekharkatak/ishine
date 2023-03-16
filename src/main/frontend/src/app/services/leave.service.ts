@@ -103,6 +103,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/changeLeaveTypeMapping`, leaveObj);
   }
 
+  checkLeaveType(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/checkLeaveType`, leaveObj);
+  }
+
   /* Comp off */
   getAllCompOffReasons(){
     return this.http.get(`${this.baseUrl}` + `api/getAllCompOffReasons`);
@@ -214,6 +218,5 @@ export class LeaveService {
 
   getHolidayWeekOffSize(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/getHolidayWeekOffSize`, leaveObj);
-
   }
 }

@@ -5,10 +5,12 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { certification } from '../models/certification';
+import { Domain } from '../models/domain';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
 import { PreviousEmployer } from '../models/previousEmployer';
 import { AuthenticationService } from '../services/authentication.service';
+import { DomainService } from '../services/domain.service';
 import { EmployeeService } from '../services/employee.service';
 import { ImageService } from '../services/image.service';
 import { ValidationService } from '../services/validation.service';
@@ -43,6 +45,7 @@ export class UserProfileComponent implements OnInit {
   updatedCertificationList:any[] = [];
   updatedPreviousEmployment:any[] = [];
   yearOfPassingList:any[] = [];
+  domainSpecializationList:any[] = [];
 
 
   @ViewChild('updateInfo')
@@ -56,7 +59,8 @@ export class UserProfileComponent implements OnInit {
     private modalService: BsModalService,
     private sanitizer: DomSanitizer,
     private imageService : ImageService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private domainService:DomainService
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
@@ -520,6 +524,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   async onGetEmployeeInfo(){
+    this.domainSpecializationList = [];
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
@@ -545,6 +550,28 @@ export class UserProfileComponent implements OnInit {
     } else {
       console.log(docResponse.serviceResponse);
     }
+
+    let domainObj = new Domain();
+    domainObj.empId = this.currentUser.empId;
+    const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
+      if (domainResponse.serviceStatus == "Success") {
+        this.domainSpecializationList = domainResponse.serviceResponse;
+
+        this.domainSpecializationList.forEach((object:Domain) =>{
+
+          var letters = 'BCDEF'.split('');
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * letters.length)];
+          }
+
+          object.colorCode = color;
+        });
+
+        console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+      } else {
+        console.error(domainResponse.serviceResponse);
+      }
 
     setTimeout(()=>{
       this.currentEmployeeInfo.documentList && this.currentEmployeeInfo.documentList.forEach((doc, index) => {

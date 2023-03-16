@@ -26,6 +26,10 @@ import { AppComponent } from '../app.component';
 export class UserPoliciesComponent implements OnInit {
   currentUser: User;
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   constructor(private policiesService : PoliciesService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -41,6 +45,10 @@ export class UserPoliciesComponent implements OnInit {
   alertMessage: any;
   allReadPoliciesList:any[] = [];
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  policyColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
+ 
 
   ngOnInit(): void {
 
@@ -123,40 +131,25 @@ export class UserPoliciesComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  sortData(sort:Sort){	
-    console.log(sort);	
-    	
-    const data=this.document;	
-   	
-    if(!sort.active || sort.direction==='')	
-    {	
-      this.document=data;	
-      return;	
-    }	
-    else {	
-      this.document=data.sort(	
-        (a,b)=>{	
-          const isAsc =sort.direction==='asc';	
-          switch(sort.active){	
-            // case 'i':	
-            // return compare(a.index , b.index , isAsc)	
-            case 'fileName':	
-              return compare(a.fileName.toLowerCase() , b.fileName.toLowerCase() , isAsc)	
-              case 'policyName':	
-                return compare(a.policyName.toLowerCase() , b.policyName.toLowerCase() , isAsc)	
-                case 'createdByName':	
-                  return compare(a.createdByName.toLowerCase() , b.createdByName.toLowerCase() , isAsc)	
-                  case 'createdOn':	
-                    return compare(a.createdOn , b.createdOn , isAsc)	
-                default:	
-                 return 0;	
-          }	
-        }	
-      )	
-    }	
-    	
-    	
-  }	
+
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
+  }
+  
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

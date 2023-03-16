@@ -136,6 +136,19 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/revokeApprovedLeaveApplication`,
     `${this.baseUrl}` + `api/updateRevokeLeaveStatus`,
     `${this.baseUrl}` + `api/generateAllEmployeeDSR`,
+    `${this.baseUrl}` + `api/getHierarchyByEmpId`,
+    `${this.baseUrl}` + `api/alreadyCreatedTeam`,
+    `${this.baseUrl}` + `api/createDraftProjectInfo`,
+    `${this.baseUrl}` + `api/approvePendingProject`,
+    `${this.baseUrl}` + `api/rejectPendingProject`,
+    `${this.baseUrl}` + `api/bulkSyncProject`,
+    `${this.baseUrl}` + `api/getInternalProject`,
+    `${this.baseUrl}` + `api/getDomainSpecialization`,
+
+    `${this.baseUrl}` + `api/bulkApproveLeaveRequest`,
+    `${this.baseUrl}` + `api/bulkRejectLeaveRequest`,
+
+    `${this.baseUrl}` + `api/updateTeam`,
   ]
 
   constructor(private loaderService: LoaderService) { }

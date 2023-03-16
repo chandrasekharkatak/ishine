@@ -77,6 +77,14 @@ import { ProjectConfigComponent } from './configuration/project-config/project-c
 import { NgxOrgChartModule } from 'ngx-org-chart';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
+import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
+import {ColFilterPipe} from './col-filter.pipe';
+import { SortPipe } from './sort.pipe';
+import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
+import { MultiColFilterPipe } from './multi-col-filter.pipe';
+import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -129,6 +137,12 @@ import {AutocompleteLibModule} from 'angular-ng-autocomplete';
     OnBoardingComponent,
     UserExitComponent,
     ProjectConfigComponent,
+    ResourceManagementComponent,
+    ColFilterPipe,
+    SortPipe,
+    ColumnFilterBarComponent,
+    MultiColFilterPipe,
+    DesignationConfigComponent
   ],
   imports: [
     BrowserModule,
@@ -169,7 +183,8 @@ import {AutocompleteLibModule} from 'angular-ng-autocomplete';
     NgxOrgChartModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
-    AutocompleteLibModule
+    AutocompleteLibModule,
+    PdfViewerModule
   ],
   providers: [
     BsModalService,

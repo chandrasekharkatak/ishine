@@ -503,9 +503,21 @@ public class ImageService {
 								File savedFile = new File(imageFileLocation + File.separator + "Documents"
 										+ File.separator + "Draft" + File.separator + newDoc.getEmployeementId()
 										+ File.separator + newDoc.getDocumentName());
+								
+								if(savedFile.exists()) {
+									if (savedFile.delete()) {
 
-								if (savedFile.delete()) {
+										newDoc.setDocumentName(doc.getDocumentName());
 
+										CommonProperties commonProp = new CommonProperties();
+										commonProp.setCreatedBy(doc.getCreatedBy());
+										commonProp.setUpdatedBy(employeeDTO.getEmpId());
+										newDoc.setCommonProperty(commonProp);
+
+										documentList.add(newDoc);
+									}
+								}else {
+									// If New File is uploaded but old file is not available on server, then update New File Entry
 									newDoc.setDocumentName(doc.getDocumentName());
 
 									CommonProperties commonProp = new CommonProperties();

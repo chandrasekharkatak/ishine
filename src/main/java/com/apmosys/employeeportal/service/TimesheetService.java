@@ -430,6 +430,24 @@ public class TimesheetService {
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
 						
+						// Get InActive Activities In Timesheet
+						if(dto.getStatus().equals("Pending")) {
+							List<Object[]> inactiveActivityList = timesheetsRepository
+									.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
+							
+							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
+							
+							if(!inactiveActivityList.isEmpty()) {
+								inactiveActivityList.forEach((actObject) -> {
+									ActivityDTO actDto = new ActivityDTO();
+									actDto.setTimesheetActivityMapId(actObject[0]!= null ? Long.parseLong(actObject[0].toString()) : null);
+									
+									inactiveDtoList.add(actDto);
+								});
+							
+								dto.setInactiveTimesheetActivities(inactiveDtoList);						}							
+						}
+						
 						dtoList.add(dto);
 					});
 
@@ -512,6 +530,24 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+						
+						// Get InActive Activities In Timesheet
+						if(dto.getDayType().equals("Working") && (dto.getStatus().equals("Pending") || dto.getStatus().equals("Rejected"))) {
+							List<Object[]> inactiveActivityList = timesheetsRepository
+									.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
+							
+							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
+							
+							if(!inactiveActivityList.isEmpty()) {
+								inactiveActivityList.forEach((actObject) -> {
+									ActivityDTO actDto = new ActivityDTO();
+									actDto.setTimesheetActivityMapId(actObject[0] != null ? Long.parseLong(actObject[0].toString()) : null);
+									
+									inactiveDtoList.add(actDto);
+								});
+							
+								dto.setInactiveTimesheetActivities(inactiveDtoList);						}							
+						}	
 						
 						dtoList.add(dto);
 					});

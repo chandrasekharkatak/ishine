@@ -129,6 +129,20 @@ public class TeamsController {
 		return response; 
 	}
 	
+	@RequestMapping(value="/revokeReporteeLeave" , method = RequestMethod.POST)
+	public ServiceResponse revokeReporteeLeave(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.revokeReporteeLeave(leaveDTO);	
+		return response; 
+	}
+	
+	@RequestMapping(value = "/getAllTeams", method = RequestMethod.GET)
+	public ServiceResponse getAllTeams() {
+
+		ServiceResponse response = teamsService.getAllTeams();
+		return response;
+	}
+	
 	/*
 	 Team, Project, Activity  Data Migration : 17/10/2022 - Harshit
 	  */

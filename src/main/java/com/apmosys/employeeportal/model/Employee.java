@@ -151,4 +151,12 @@ public class Employee {
 	private String isTimesheetLockCheckEnable;
 	
 	private LocalDate timesheetLockUpdatedOn;
+	
+	private Long reportingManagerId;
+	
+	private String approvalsTo;
+
+	private LocalDateTime otpUpdatedOn;
+	
+	private Long designationId;
 }

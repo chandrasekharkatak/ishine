@@ -32,6 +32,7 @@
     "mat-select-search": "^1.2.3",
     "moment": "^2.29.4",
     "ng-pick-datetime": "^7.0.0",
+    "ng2-pdf-viewer": "^7.0.2",
     "ng2-search-filter": "^0.5.1",
     "ngx-bootstrap": "^8.0.0",
     "ngx-clipboard": "^15.1.0",

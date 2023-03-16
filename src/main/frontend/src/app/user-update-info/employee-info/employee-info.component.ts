@@ -222,13 +222,17 @@ export class EmployeeInfoComponent implements OnInit{
 
   // Validations 
   checkEmployeeAadharNumber(template: TemplateRef<any>) {
-    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
-    this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Fail") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.employeeObj.aadhar = '';
-      }
-    });
+    if(this.employeeObj.aadhar != null){
+      this.employeeObj.aadhar = String(this.employeeObj.aadhar)?.trim();
+      this.employeeObj.empId = this.currentUser.empId;
+
+      this.employeeService.checkEmployeeAadharNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Fail") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.employeeObj.aadhar = '';
+        }
+      });
+    }
   }
 
   checkEmployeePanNumber(template: TemplateRef<any>) {
@@ -540,21 +544,23 @@ if(this.errorMsg == ""){
 
   validateAadhar(event, data:any){
     this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
+
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter aadhar card number !!"   
-  }
-   else if (data.toString().length != 12) {
+      this.errorMsg = "Please enter aadhar card number !!"
+    }
+    else if (data.toString().length != 12) {
       this.errorMsg = "Please enter Valid aadhar card number !!";
+    }
+    else {
+      this.errorMsg = ""
+    }
+    if (this.errorMsg === "") {
+      event.target.nextElementSibling.textContent = '';
+    } else {
+      event.target.nextElementSibling.textContent = this.errorMsg
+    }
   }
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
-  }
+
   validatePan(event, data:any){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter pan number !!"   
@@ -595,9 +601,9 @@ if(this.errorMsg == ""){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter views On Organisation !!"   
   }
-  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-    this.errorMsg = "Please enter valid views On Organisation !!"   
-}
+//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+//     this.errorMsg = "Please enter valid views On Organisation !!"   
+// }
   else{
   this.errorMsg = ""
 }
@@ -613,9 +619,9 @@ if(this.errorMsg == ""){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter About me !!"   
   }
-  else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-    this.errorMsg = "Please enter valid About me !!"   
-}
+//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+//     this.errorMsg = "Please enter valid About me !!"   
+// }
   else{
   this.errorMsg = ""
 }
@@ -783,71 +789,79 @@ if(this.errorMsg == ""){
   event.target.nextElementSibling.textContent =  this.errorMsg
 } 
   }
-//   validatepfAccountNumber(event, data:any){
-//     if(data === null){
-//       this.errorMsg = ""
-//     }
-//  else  if (!this.validationService.validateAlphaNumeric(data)) {
-//     this.errorMsg = "Please enter valid  PF account number !!"   
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-// if(this.errorMsg == ""){
-//   event.target.nextElementSibling.textContent = ""
-// }else{
-//   event.target.nextElementSibling.textContent =  this.errorMsg
-// } 
-//   }
-//   validatePreviouspfAccountNumber(event, data:any){
-//     if(data === null){
-//       this.errorMsg = ""
-//     }
-//  else  if (!this.validationService.validateAlphaNumeric(data)) {
-//     this.errorMsg = "Please enter valid  PF account number !!"   
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-// if(this.errorMsg == ""){
-//   event.target.nextElementSibling.textContent = ""
-// }else{
-//   event.target.nextElementSibling.textContent =  this.errorMsg
-// } 
-//   }
-//   validateUan(event, data:any){
-//     if(data === null){
-//       this.errorMsg = ""
-//     }
-//  else  if (!this.validationService.validateAlphaNumeric(data)) {
-//     this.errorMsg = "Please enter valid  UAN !!"   
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-// if(this.errorMsg == ""){
-//   event.target.nextElementSibling.textContent = ""
-// }else{
-//   event.target.nextElementSibling.textContent =  this.errorMsg
-// } 
-//   }
-  validateEsicNumber(event, data:any){
-    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter Esic number !!"   
+
+  validatePfAccountNumber(event, data: any) {
+
+    if(data != null){
+      this.employeeObj.pfAccountNumber = this.employeeObj.pfAccountNumber?.trim();
+      if (!this.validationService.validatePfAccountNumber(data)) {
+        this.errorMsg = "Please enter valid  Pf Account Number !!"
+      } else {
+        this.errorMsg = ""
+      }
+
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
   }
- else  if (!this.validationService.validateAlphaNumeric(data)) {
-    this.errorMsg = "Please enter valid  Esic number !!"   
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-} 
+
+  validatePreviousPfAccountNumber(event, data: any) {
+   
+    if(data != null){
+      this.employeeObj.previousPfAccountNumber = this.employeeObj.previousPfAccountNumber?.trim();
+      if (!this.validationService.validatePfAccountNumber(data)) {
+        this.errorMsg = "Please enter valid Pervious Pf Account Number !!"
+      } else {
+        this.errorMsg = ""
+      }
+
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
   }
+
+  validateUAN(event, data: any) {
+  
+    if(data != null){
+      this.employeeObj.uan = this.employeeObj.uan?.trim();
+      if (!this.validationService.validateUAN(data)) {
+        this.errorMsg = "Please enter valid UAN Number !!"
+      } else {
+        this.errorMsg = ""
+      }
+
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
+  }
+
+  validateEsicNumber(event, data: any) {
+
+    if (data != null) {
+      this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
+      if (!this.validationService.validateESICNumber(data)) {
+        this.errorMsg = "Please enter valid  Esic number !!"
+      }
+      else {
+        this.errorMsg = ""
+      }
+      if (this.errorMsg == "") {
+        event.target.nextElementSibling.textContent = ""
+      } else {
+        event.target.nextElementSibling.textContent = this.errorMsg
+      }
+    }
+  }
+
   validateemployerName(event, data:any){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter Employer name !!"  

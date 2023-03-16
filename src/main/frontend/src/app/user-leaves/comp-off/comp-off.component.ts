@@ -20,13 +20,17 @@ import * as XLSX from 'xlsx';
 })
 export class CompOffComponent implements OnInit {
 
-    data:string;
+  data:string;
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //flags 
   isCreation:boolean = false;
   isForm: boolean = false;
   isUpdation:boolean = false;
   isCompOffRequestsTable: boolean = false;
-  isCompOffApplicationsTable: boolean = false;
 
   //modal 
   alertMessage:any;
@@ -44,7 +48,10 @@ export class CompOffComponent implements OnInit {
   compOffReasons:any[] = [];
   allCompOffRequests:any[] = [];
   previousCompOffRequests:any[] = [];
-  allCompOffApplications:any[] = [];
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','toDate','noOfDays','description','status'];
 
   constructor(
     private validationService:ValidationService,
@@ -81,8 +88,6 @@ export class CompOffComponent implements OnInit {
       this.showCreateForm();
     }else if(this.userMapping.view_comp_off_req_status || this.userMapping.update_comp_off_req){
       this.showCompOffRequestTable();
-    }else if(this.userMapping.view_reportee_comp_off_applications || this.userMapping.update_comp_off_applications_status){
-      this.showCompOffApplicationsTable();
     }
   }
 
@@ -93,9 +98,9 @@ export class CompOffComponent implements OnInit {
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
+    this.isUpdation = false;	
 
     this.isCompOffRequestsTable = false;
-    this.isCompOffApplicationsTable = false;
 
     this.reset();
     this.getAllCompOffRequestsByEmpId();
@@ -107,7 +112,6 @@ export class CompOffComponent implements OnInit {
     this.isCreation = false;	
   
     this.isCompOffRequestsTable = false;
-    this.isCompOffApplicationsTable = false;
 
     this.compOffObj = Object.assign({}, compOff);
     this.compOffObj.leaveType = 'Compensatory Off'
@@ -123,23 +127,11 @@ export class CompOffComponent implements OnInit {
   showCompOffRequestTable(){
     this.isCompOffRequestsTable = true;
 
-    this.isCompOffApplicationsTable = false;
     this.isForm = false;
     this.isCreation = false;
     this.page=1;
     this.data=''
     this.getAllCompOffRequestsByEmpId();
-  }
-
-  showCompOffApplicationsTable(){
-    this.isCompOffApplicationsTable = true;
-    
-    this.isCompOffRequestsTable = false;
-    this.isForm = false;
-    this.isCreation = false;
-    this.page=1;
-    this.data=''
-    this.getPendingCompOffRequestsByManagerId();
   }
 
   reset(){
@@ -148,7 +140,6 @@ export class CompOffComponent implements OnInit {
     this.compOffObj.compOffId = '';
 
     this.allCompOffRequests = [];
-    this.allCompOffApplications = [];
   }
 
     // Modals
@@ -241,16 +232,16 @@ export class CompOffComponent implements OnInit {
       }
 
       if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.fromDate)){
-        this.alertMessage = "Please select from date !!"
+        this.alertMessage = "Please select date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
   
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.toDate)){
-        this.alertMessage = "Please select To Date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+      // if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.toDate)){
+      //   this.alertMessage = "Please select To Date !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
 
       if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
         this.alertMessage = "Please enter valid description !!"
@@ -275,42 +266,28 @@ export class CompOffComponent implements OnInit {
       // this.compOffObj.leaveTypeMasterId = COMP_OFF_MASTER_ID;
       this.compOffObj.description = this.compOffObj.description?.trim();
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
-      this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
+      // this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
-      this.compOffObj.managerEmail = this.currentUser.managerEmail;
-      this.compOffObj.managerName = this.currentUser.managerName;
-      this.compOffObj.createdBy = this.currentUser.empId;
-      this.compOffObj.managerId = this.currentUser.managerId; 
+      this.compOffObj.createdBy = this.currentUser.empId; 
       this.compOffObj.employeementId = this.currentUser.employeementId;
       this.compOffObj.email = this.currentUser.email;
       this.compOffObj.employeeName = this.currentUser.name;
+
+      if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+        this.compOffObj.managerId = this.currentUser.reportingManagerId;
+        this.compOffObj.managerEmail = this.currentUser.reportingManagerEmail;
+        this.compOffObj.managerName = this.currentUser.reportingManagerName;
+      }else{
+        this.compOffObj.managerId = this.currentUser.managerId;
+        this.compOffObj.managerEmail = this.currentUser.managerEmail;
+        this.compOffObj.managerName = this.currentUser.managerName;
+      }
   
       console.log("Apply Comp off : ", this.compOffObj);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
           this.showCompOffRequestTable();
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      });
-    }
-
-    onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId){
-      // 1 = pending , 2 = Approved , 3= Rejected
-      let compOff:Leave = new Leave();
-
-      compOff = Object.assign({},compOffObj);
-      compOff.leaveStatusId = updatedCompOffStatusId;
-      compOff.leaveStatusUpdatedBy = this.currentUser.empId
-      compOff.managerEmail = this.currentUser.email;
-      compOff.managerName = this.currentUser.name;
-      compOff.employeeName = compOff.createdByName;
-      console.log("Update Comp off : ", compOff);
-      this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.getPendingCompOffRequestsByManagerId();
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
@@ -339,25 +316,6 @@ export class CompOffComponent implements OnInit {
         }
       });
     }
-  
-    getPendingCompOffRequestsByManagerId(){
-      this.allCompOffApplications = []
-  
-      let compOff = new Leave();
-      compOff.managerId = this.currentUser.empId;
-      this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.allCompOffApplications = response.serviceResponse;
-          this.allCompOffApplications.forEach(compOff => {
-            compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
-            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
-          });
-          console.log("allCompOffApplications : ", this.allCompOffApplications);
-        } else {
-          console.error(response.serviceResponse);
-        }
-      });
-    }
 
     onUpdateCompOff(template: TemplateRef<any>){
       const dateFormat = 'YYYY-MM-DD';
@@ -368,7 +326,7 @@ export class CompOffComponent implements OnInit {
       compOff = Object.assign({}, this.compOffObj);
       compOff.description = this.compOffObj.description?.trim();
       compOff.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
-      compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
+      // compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       compOff.updatedBy = this.currentUser.empId;
   
       console.log("Update comp off : ", compOff);
@@ -410,97 +368,47 @@ export class CompOffComponent implements OnInit {
 
     // download excel
 
-exportToExcel(): void {
+  exportToExcel(): void {
 
-  if(this.isCompOffRequestsTable == true){
-    this.elementName = 'compOffRequest-table';
-    this.excelName = 'EmployeeCompOffRequest.xlsx'
-  }
-  if(this.isCompOffApplicationsTable == true){
-    this.elementName = 'compOffApplication-table';
-    this.excelName = 'CompOffRequestApplication.xlsx'
-  }
+    if(this.isCompOffRequestsTable == true){
+      this.elementName = 'compOffRequest-table';
+      this.excelName = 'EmployeeCompOffRequest.xlsx'
+    }
 
-  let element = document.getElementById(this.elementName);
-  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
+    let element = document.getElementById(this.elementName);
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
 
-  const book: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+    const book: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
 
-  XLSX.writeFile(book, this.excelName);
-}
-
-//pagination 
-
-page = 1;
-handlePageChange(event) {
-  this.page = event;
-}
-
-sortCompensatory(sort:Sort){	
-  console.log(sort);	
-  const data=this.allCompOffRequests;	
-  if(!sort.active || sort.direction===''){	
-    this.allCompOffRequests=data;	
-    return ;	
-  } else {	
-    this.allCompOffRequests=data.sort(	
-      (a,b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'compOffReasons':	
-            return compare(a.compOffReasons , b.compOffReasons , isAsc)	
-            case 'fromDate':	
-              return compare(a.fromDate , b.fromDate , isAsc)	
-              case 'toDate':	
-                return compare(a.toDate , b.toDate , isAsc)	
-                case 'noOfDays':	
-                  return compare(a.noOfDays , b.noOfDays , isAsc)	
-                  case 'description':	
-                    return compare(a.description , b.description , isAsc)	
-                    case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                    default :	
-                    return 0;	
-        }	
-      }	
-    )	
+    XLSX.writeFile(book, this.excelName);
   }
 
-}
+  //pagination 
 
-sortReporteeCompensatory(sort:Sort){	
-  console.log(sort);	
-  const data=this.allCompOffApplications;	
-  if(!sort.active || sort.direction===''){	
-    this.allCompOffApplications=data;	
-    return ;	
-  } else {	
-    this.allCompOffApplications=data.sort(	
-      (a,b)=>{	
-        const isAsc=sort.direction==='asc';	
-        switch(sort.active){	
-          case 'createdByName':	
-            return compare(a.createdByName , b.createdByName , isAsc)	
-            case 'compOffReasons':	
-              return compare(a.compOffReasons , b.compOffReasons , isAsc)	
-              case 'fromDate':	
-                return compare(a.fromDate , b.fromDate , isAsc)	
-                case 'toDate':	
-                  return compare(a.toDate , b.toDate , isAsc)	
-                  case 'noOfDays':	
-                    return compare(a.noOfDays , b.noOfDays , isAsc)	
-                    case 'description':	
-                      return compare(a.description , b.description , isAsc)	
-                      case 'status':	
-                      return compare(a.status , b.status , isAsc)	
-                    default :	
-                    return 0;	
-        }	
-      }	
-    )	
-  }	
-  }	
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+  this.filters = searchData;
+  console.log("Updated Filter : ", this.filters);
+  }
 
 }
 

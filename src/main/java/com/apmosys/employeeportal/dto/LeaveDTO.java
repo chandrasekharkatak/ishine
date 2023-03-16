@@ -115,4 +115,15 @@ public class LeaveDTO {
 	private String approverEmail;
 	private String name;
 	private String updatedByName;
+	
+	
+	private String dateOfJoining;
+	private Long employeeLeavesMapId;
+	private Float creditedBalance;
+	
+	private String teamName;
+	private String projectName;
+	private String isWeekOffsExcluded;
+	
+	private String compOffStatus;
 }

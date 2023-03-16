@@ -21,11 +21,19 @@ export class TeamMemberComponent implements OnInit {
   currentUser:User;
   userMapping:any = {};
 
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
   //excel
   excelName = '';
   elementName = '';
 
   viewTeamMemberList: any[] = []; 
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  teamMemberColumns:any[] = ['employeementId','name','email','jobRoleName','mobileNo'];
 
   constructor(
     private authenticationService : AuthenticationService,
@@ -84,7 +92,7 @@ export class TeamMemberComponent implements OnInit {
           "Employee Id": x.employeementId,
           "Name": x.name,
           "Email": x.email,
-          "Designation": x.jobRoleName,
+          "Job Role": x.jobRoleName,
           "Mobile No": x.mobileNo
         })
       )
@@ -98,48 +106,24 @@ export class TeamMemberComponent implements OnInit {
     this.page = event;
   }
 
-  sortTeamMemberDetails(sort:Sort){
+  sortData(sort: Sort){	
     console.log(sort);
-    const data=this.viewTeamMemberList;
-    //console.log(data , "-------------------------------///////////");
-      if(!sort.active || sort.direction==='')
-      {
-        this.viewTeamMemberList=data;
-        return ;
-      }else {
-        this.viewTeamMemberList=data.sort(
-          (a , b)=>{
-            const isAsc=sort.direction==='asc';
-            switch(sort.active){
-              case 'employeementId':
-                return compare(a.employeementId , b.employeementId , isAsc)
-
-                case 'name':
-                  return compare(a.name , b.name , isAsc)
-
-                  case 'email':
-                  return compare(a.email , b.email , isAsc)
-
-                    case 'jobRoleName':
-                      return compare(a.jobRoleName , b.jobRoleName , isAsc)
-
-                      case 'mobileNo':
-                        return compare(a.mobileNo , b.mobileNo , isAsc)
-
-
-                default:
-                  return 0;
-            }
-          }
-        )
-      }
-    
-
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
   }
 
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
 
-
-
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 
 }
 
