@@ -1966,4 +1966,110 @@ public class CronJobService {
 				e.printStackTrace();
 			}
 		}
+		
+		// 0 0 9 ? * * - At 09:00:00am every day
+		@Async
+		@Scheduled(cron = "0 0 9 ? * *")
+		public void pendingKycDefaulterMail() {
+			
+			List<Department> allDeptList = departmentRepository.findAll();
+			
+			if(!allDeptList.isEmpty()) {
+				allDeptList.forEach((dept) -> {
+					
+					if(!dept.getName().equals("Super Admin") && !dept.getName().equals("Director") && !dept.getName().equals("unKnown Department")) {
+						List<Object[]> managerList = employeeRepository.getManagerByDepartment(dept.getDeptId());
+						
+						if(!managerList.isEmpty()){
+							managerList.forEach((object) -> {
+								Long managerId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+								String managerName = object[1] != null ? object[1].toString() : null;
+								String hodMail = object[2] != null ? object[2].toString() : null;
+								String managerMail = object[3] != null ? object[3].toString() : null;
+								
+								List<Object[]> employeeList = employeeRepository.getEmployeeByManager(managerId);
+								
+								if(!employeeList.isEmpty()) {
+									StringBuilder defaulterMail = new StringBuilder();
+									
+									
+									StringBuilder html = new StringBuilder();
+									html.append("<html>\n" +
+								            "  <head>\n" +
+								            "    <style>\n" +
+								            "      table, th, td {\n" +
+								            "        border: 1px solid black;\n" +
+								            "      }\n" +
+								            "      table {\n" +
+								            "        border-collapse: collapse;\n" +
+								            "      }\n" +
+								            "    </style>\n" +
+								            "  </head>\n" +
+								            "  <body>\n" +
+								            "    <table>\n" +
+								            "      <tr>\n" +
+								            "        <th>Emp ID</th>\n" +
+								            "        <th>Name</th>\n" +
+								            "        <th>Email</th>\n" +
+								            "        <th>Manager Name</th>\n" +
+								            "        <th>Department</th>\n" +
+								            "      </tr>\n");
+									// add rows to the table
+									for(Object[] employee: employeeList) {
+										
+										Long employeementId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
+										String EmpName = employee[1] != null ? employee[1].toString() : null;
+										String email = employee[2] != null ? employee[2].toString() : null;
+										
+											defaulterMail.append(email);
+											defaulterMail.append(",");
+											html.append("      <tr>\n");
+											  // add cells to the row
+											  html.append("        <td>" + "A-"+employeementId + "</td>\n");
+											  html.append("        <td>" + EmpName + "</td>\n");
+											  html.append("        <td>" + email + "</td>\n");
+											  html.append("        <td>" + managerName + "</td>\n");
+											  html.append("        <td>" + dept.getName() + "</td>\n");
+											  html.append("      </tr>\n");
+									}
+									
+									html.append("    </table>\n" +
+									            "  </body>\n" +
+									            "</html>");
+									
+//										try {
+//											mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
+//													"Regarding Pending KYC",
+//													managerName
+//												  +	html.toString());
+//										} catch (Exception e) {
+//											e.printStackTrace();
+//										}
+									
+									try {
+										mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
+												"Regarding Pending KYC",
+												"Dear Ishine Member,"
+												+ "<br><br>"
+												+ "We are writing to bring to your attention the fact that there are some mandatory fields in your KYC that have yet to be filled out. It is important to note that if your KYC remains incomplete, failing which your March month salary will be put on hold.\n"
+												+ "<br><br>"
+												+ "In order to avoid any such complications, Please take immediate action and complete your KYC as soon as possible.\n"
+												+ "<br><br>"
+												+ "For any further assistance please reach out to HR department.For any technical challenge please mail with the screenshots to Prasad more (prasad.more@apmosys.com)/ Harshit Toxia (harshit.toxia@apmosys.com).\n"
+												+ "<br><br>"
+												+ "Sincerely,<br>"
+												+ "ApMoSys Technologies"
+												+ "<br> <br>"
+											  +	html.toString());
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									
+								}
+							});
+						}
+					}
+				});	
+			}
+		}
 }	

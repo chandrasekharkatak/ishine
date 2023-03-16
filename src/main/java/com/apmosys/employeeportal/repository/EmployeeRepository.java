@@ -157,4 +157,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByRoleIds(List<Long> jobRoleIds);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getManagerByDepartment(Long deptId);
+
+	public List<Employee> findByManagerIdAndGender(Long managerId, Object object);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeByManager(Long managerId);
 }

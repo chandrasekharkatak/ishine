@@ -1326,29 +1326,31 @@ public class EmployeeService {
 				
 				//Employee Specialization Mapping
 				
-				List<EmployeeSpecializationMap> mappingObj = employeeSpecializationMapRepository.findByEmpId(employee.getEmpId());
-				if(!mappingObj.isEmpty()) {
-					mappingObj.forEach((object) -> {
-						boolean contains = Arrays.stream(employeedto.getSpecializationList()).anyMatch(i -> i.equals(object.getSpecializationId()));
+				if(employeedto.getSpecializationList() != null && employeedto.getSpecializationList().length != 0) {
+					List<EmployeeSpecializationMap> mappingObj = employeeSpecializationMapRepository.findByEmpId(employee.getEmpId());
+					if(!mappingObj.isEmpty()) {
+						mappingObj.forEach((object) -> {
+							boolean contains = Arrays.stream(employeedto.getSpecializationList()).anyMatch(i -> i.equals(object.getSpecializationId()));
+							
+							//Delete Specialization
+							if(!contains) {
+								employeeSpecializationMapRepository.deleteById(object.getEmpSpecializationMapId());
+							}
+							
+						});
+					}
+					for(Long specializationId: employeedto.getSpecializationList()) {
+						EmployeeSpecializationMap empMapObj = employeeSpecializationMapRepository.findByEmpIdAndSpecializationId(employee.getEmpId(),specializationId);
 						
-						//Delete Specialization
-						if(!contains) {
-							employeeSpecializationMapRepository.deleteById(object.getEmpSpecializationMapId());
+						//Add new Specialization
+						if(empMapObj == null) {
+								EmployeeSpecializationMap empSpecObj = new EmployeeSpecializationMap();
+								
+								empSpecObj.setEmpId(employee.getEmpId());
+								empSpecObj.setSpecializationId(specializationId);
+								
+								EmployeeSpecializationMap dbResponse = employeeSpecializationMapRepository.save(empSpecObj);
 						}
-						
-					});
-				}
-				for(Long specializationId: employeedto.getSpecializationList()) {
-					EmployeeSpecializationMap empMapObj = employeeSpecializationMapRepository.findByEmpIdAndSpecializationId(employee.getEmpId(),specializationId);
-					
-					//Add new Specialization
-					if(empMapObj == null) {
-							EmployeeSpecializationMap empSpecObj = new EmployeeSpecializationMap();
-							
-							empSpecObj.setEmpId(employee.getEmpId());
-							empSpecObj.setSpecializationId(specializationId);
-							
-							EmployeeSpecializationMap dbResponse = employeeSpecializationMapRepository.save(empSpecObj);
 					}
 				}
 
