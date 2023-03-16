@@ -35,7 +35,7 @@ public class CompOffLeave {
 	@Column(length = 500)
 	private String description;
 	
-	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private Timestamp createdOn;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

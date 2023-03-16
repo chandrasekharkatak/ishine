@@ -31,5 +31,7 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	@Query(nativeQuery = true)
 	public List<CompOffLeave> findAllPendingApplicationByEmpId(Long empId, Timestamp perv45Day, String compOffStatus);
+
+	public List<CompOffLeave> findByEmpId(Long empId);
 	
 }

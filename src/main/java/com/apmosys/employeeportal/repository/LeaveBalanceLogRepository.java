@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,5 +12,13 @@ public interface LeaveBalanceLogRepository extends JpaRepository<LeaveBalanceLog
 
 	@Query(nativeQuery = true)
 	List<Object[]> getLeaveLogsByEmpId(Long empId);
+
+	List<LeaveBalanceLog> findByEmpIdAndLeaveTypeMasterId(Long empId, short s);
+
+//	@Query(nativeQuery = true)
+//	List<LeaveBalanceLog> findCompOffLogByEmpId(Long empId, short leaveTypeMasterId, String message);
+
+	@Query(nativeQuery = true)
+	LeaveBalanceLog findCompOffLogByEmpId(Long empId, short leaveTypeMasterId, String message, LocalDateTime updatedOn);
 
 }

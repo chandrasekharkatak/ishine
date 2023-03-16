@@ -72,6 +72,28 @@ public class CompOffLeaveController {
 		ServiceResponse response = compOffLeaveService.deleteCompOff(leaveDTO);
 		return response;
 	}
+	
+	/* CompOff reconsilation */
+	
+	@RequestMapping(value = "/getCompOffBalanceMigratedFromOldLeavePortal" ,method = RequestMethod.GET)
+	public ServiceResponse getCompOffBalanceMigratedFromOldLeavePortal() {
+		
+		ServiceResponse response = compOffLeaveService.getCompOffBalanceMigratedFromOldLeavePortal();
+		return response;
+	}
 
+	@RequestMapping(value = "/setCompOffStatusAndLeaveId" ,method = RequestMethod.GET)
+	public ServiceResponse setCompOffStatusAndLeaveId() {
+		
+		ServiceResponse response = compOffLeaveService.setCompOffStatusAndLeaveId();
+		return response;
+	}
+	
+	@RequestMapping(value = "/convertSingleCompOffApplicationToken" ,method = RequestMethod.GET)
+	public ServiceResponse convertSingleCompOffApplicationToken() {
+		
+		ServiceResponse response = compOffLeaveService.convertSingleCompOffApplicationToken();
+		return response;
+	}
 
 }

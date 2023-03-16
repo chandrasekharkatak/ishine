@@ -126,4 +126,7 @@ public class LeaveDTO {
 	private String isWeekOffsExcluded;
 	
 	private String compOffStatus;
+	
+	private Float compOffAppliedOnIshine;
+	private Float balanceFromOldPortal;
 }
