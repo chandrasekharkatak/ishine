@@ -155,4 +155,10 @@ export class Employee{
 	approvalsTo:any;
 	reportingManagerName:any;
 	reportingManagerEmail:any;
+
+	specializationList:any;
+	domainList:any;
+
+	designationId:any;
+	designationName:any;
 }

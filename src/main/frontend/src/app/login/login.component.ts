@@ -302,6 +302,9 @@ export class LoginComponent implements OnInit{
         if(url.includes("resource-management")){
           this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
         }
+        if(url.includes("helpdesk")){
+          this.router.navigate(['/helpdesk', this.authGaurd.id]);
+        }
       }else{
         this.router.navigate(['/home']);
       }

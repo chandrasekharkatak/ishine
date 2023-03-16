@@ -90,6 +90,9 @@ export class ProjectConfigComponent implements OnInit {
   ];
 
   data:any;
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  projectColumns:any[] = ['blank','projectName', 'employeeName', 'clientName', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'state'];
 
   constructor(
     private departmentService: DepartmentService,
@@ -185,6 +188,8 @@ export class ProjectConfigComponent implements OnInit {
     this.isCreateForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.filters = {};
+
     this.getAllProjects();
   }
 
@@ -469,6 +474,15 @@ export class ProjectConfigComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

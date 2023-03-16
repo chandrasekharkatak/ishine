@@ -25,7 +25,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <h2 class="user-card__profile-info__name mb-0">{{currentEmployeeInfo.name}}</h2>
-                                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.jobRoleName}}</span>
+                                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.designationName}}</span>
                                 </div>
                             </div>
                             <div class="row user-card__profile-info__container mt-4 mr-0">
@@ -54,6 +54,26 @@
                                     <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="d-flex">
+                                        <p class="user-card__profile-info__label">Domain : &nbsp;</p>
+                                        <div *ngFor="let cat of domainSpecializationList">
+                                            <h6 class="badge badge-pill" [ngStyle]="{'background-color': cat.colorCode}">{{ cat.domainName }}</h6> &nbsp;
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> 
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="d-flex">
+                                        <p class="user-card__profile-info__label">Specialization : &nbsp;</p>
+                                        <h6 *ngFor="let cat of domainSpecializationList; let i=index">
+                                            <span class="badge badge-pill" *ngFor="let sub of cat.allSpecializationList" [ngStyle]="{'background-color': cat.colorCode}">{{ sub.specializationName}} &nbsp;</span>  &nbsp;
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>                                                    
                         </div>
                     </div>
                 </div>
@@ -419,10 +439,16 @@
                                             <p class="info-text">{{currentEmployeeInfo.departmentName}}</p>
                                         </div>
                                     </div>
+                                    <!-- <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Job Role Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.jobRoleName}}</p>
+                                        </div>
+                                    </div> -->
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Designation Name</p>
-                                            <p class="info-text">{{currentEmployeeInfo.jobRoleName}}</p>
+                                            <p class="info-label">Designation</p>
+                                            <p class="info-text">{{currentEmployeeInfo.designationName}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">

@@ -34,12 +34,15 @@ import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
+import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
@@ -49,12 +52,15 @@ import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -122,6 +128,15 @@ public class TeamsService {
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
+	
+	@Autowired
+	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	LeavePolicyMasterRepository leavePolicyMasterRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -619,7 +634,74 @@ public class TeamsService {
 					response.setServiceResponse("Team not found.");
 				});
 			}
+			
+			//Add Default Activities which are not mapped
+			List<Activity> activityList = activitiesRepository.findByTeamId(teamDTO.getTeamId());
+			Set<Long> activityDeptId = new HashSet<>();
+			
+			if(!activityList.isEmpty()) {
+				activityList.forEach((object) -> {
+					String[] ids = object.getDeptIds().split(",");
+					for(String id : ids) {
+						activityDeptId.add(Long.parseLong(id));
+					}
+				});;
+			}
+			
+			//Add activities if not added
+			if(!activityDeptId.isEmpty()){
+				for(Long deptId : activityDeptId) {
+					String departmentId = String.valueOf(deptId);
+					Long teamId = teamDTO.getTeamId();
+					List<Activity> activityPresent = activitiesRepository.getActivityByTeamIdAndDepts(departmentId, teamDTO.getTeamId());
+					String[] employeeRoles = {"TeamLead","Employee", "HOD", "Manager"};
+					
+					if(!activityPresent.isEmpty()) {
+						for(String role : employeeRoles) {
+							boolean contain = containsEmployeeRole(activityPresent, role);
+							
+							if(!contain) {
+								List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptIdAndEmployeeRole(deptId, role);
+								if(!activityTemplate.isEmpty()) {
+									
+									for(ActivityTemplate object: activityTemplate) {
+										Activity newActivity = new Activity();
 
+										newActivity.setActivity(object.getTemplateActivity());
+										newActivity.setTeamId(teamDTO.getTeamId());
+										newActivity.setEmployeeRole(object.getEmployeeRole());
+										newActivity.setDeptIds(object.getDeptId().toString());
+										newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+
+										Activity newActivityCreated = activitiesRepository.save(newActivity);
+									}
+								}
+							}
+						}
+					}
+				}				
+			}
+			
+			// Add activity if new Department added in update team
+			for(String deptId: teamDTO.getDepartmentList()) {
+				if(!activityDeptId.contains(Long.parseLong(deptId))) {
+					List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(Long.parseLong(deptId));
+					if(!activityTemplate.isEmpty()) {
+						
+						for(ActivityTemplate object: activityTemplate) {
+							Activity newActivity = new Activity();
+
+							newActivity.setActivity(object.getTemplateActivity());
+							newActivity.setTeamId(teamDTO.getTeamId());
+							newActivity.setEmployeeRole(object.getEmployeeRole());
+							newActivity.setDeptIds(object.getDeptId().toString());
+							newActivity.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+
+							Activity newActivityCreated = activitiesRepository.save(newActivity);
+						}
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -627,6 +709,10 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	public boolean containsEmployeeRole(final List<Activity> list, final String employeeName){
+	    return list.stream().anyMatch(o -> o.getEmployeeRole().equals(employeeName));
 	}
 	
 	public ServiceResponse getAllMyTeamsByEmpId(EmployeeDTO employeeDTO) {
@@ -1756,68 +1842,134 @@ public class TeamsService {
 						});
 					}
 					
+					//Get Expiration Period of CompOff
+					Integer expirationPeriod = null;
+					Employee employeeObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+					Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveApplication.getLeaveTypeMasterId());
+					LeaveTypeMaster leaveTypeObj = leaveType.get();
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),employeeObj.getEmploymentstatus());
+					      if(leavePolicy != null){
+					    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+						        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
+				               }
+					      }
+					}
 					
 					//Manage Employee leave balance
 					
-					EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
-							.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
-					
-					if(empLeaveMapping != null) {
-						Float prevBalace = empLeaveMapping.getBalance();
-						empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
+					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")){
+						EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
 						
-						EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
-						
-						if(mapDbResponse != null) {
-							LeaveBalanceLog log = new LeaveBalanceLog();
+						if(empLeaveMapping != null) {
+							Float prevBalace = empLeaveMapping.getBalance();
+							empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
 							
-							log.setBalance(mapDbResponse.getBalance());
-							log.setEmpId(leaveApplication.getEmpId());
-							log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
-							log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
-							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+							EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+							
+							if(mapDbResponse != null) {
+								LeaveBalanceLog log = new LeaveBalanceLog();
+								
+								log.setBalance(mapDbResponse.getBalance());
+								log.setEmpId(leaveApplication.getEmpId());
+								log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+								log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leaveDTO.getNoOfDays().toString()));
+								log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 
-							LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
-							
-							if(balanceDbResponse != null) {
+								LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
 								
-								Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
-								Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
-								
-								if(empObj != null && managerObj != null) {
+								if(balanceDbResponse != null) {
 									
-									//Send Mail to User with cc: HR,HOD,Manager
-									mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
-											"Regarding Revoke Leave Application By Manager",
-											"Dear "+ empObj.getName() + ","+"<br>"
-											+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
-											"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
-											"<br>"+
-											"EmpID :"+" "+ empObj.getEmployeementId()+
-											"<br>"+
-											"Name :"+" "+ empObj.getName()+
-											"<br>"+
-											" From :"+" "+ leaveApplication.getFromDate()+
-											"<br>"+
-											" To :"+" "+ leaveApplication.getToDate() +
-											"<br>"+
-											" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
-											+"<br>"+
-											" Leave Type :"+" "+leaveDTO.getLeaveType()+
-											"<br>"+
-											"leave Reason :"+" "+leaveDTO.getRevokeReason());
+									Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
+									Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
+									
+									if(empObj != null && managerObj != null) {
+										
+										//Send Mail to User with cc: HR,HOD,Manager
+										mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
+												"Regarding Revoke Leave Application By Manager",
+												"Dear "+ empObj.getName() + ","+"<br>"
+												+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been revoked by "+managerObj.getName()+
+												"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+												"<br>"+
+												"EmpID :"+" "+ empObj.getEmployeementId()+
+												"<br>"+
+												"Name :"+" "+ empObj.getName()+
+												"<br>"+
+												" From :"+" "+ leaveApplication.getFromDate()+
+												"<br>"+
+												" To :"+" "+ leaveApplication.getToDate() +
+												"<br>"+
+												" No. Of Days : "+ leaveApplication.getNoOfDays() + " day(s)" 
+												+"<br>"+
+												" Leave Type :"+" "+leaveDTO.getLeaveType()+
+												"<br>"+
+												"leave Reason :"+" "+leaveDTO.getRevokeReason());
+									}
+									
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Leave revoked successfully.");								
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Unable to revoke leave.");
 								}
-								
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Leave revoked successfully.");								
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Unable to revoke leave.");
 							}
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee Leave Balance details not found.");
 						}
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Employee Leave Balance details not found.");
+					}
+					
+					// CompOff Leave : 4 (LeaveTypeMasterId)
+					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+						List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveApplication.getLeaveId());
+						
+						if(!compOffLeave.isEmpty()) {
+								
+								for(CompOffLeave leave: compOffLeave) {
+									
+									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod != null ? expirationPeriod : 30);
+									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
+										
+										leave.setCompOffStatus("Expired");
+										compOffLeaveRepository.save(leave);
+									}else {
+										
+										//Update Leave Balance
+
+										EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+												.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
+										
+										if(empLeaveMapping != null) {
+											Float prevBalace = empLeaveMapping.getBalance();
+											empLeaveMapping.setBalance(prevBalace + leave.getNoOfDays());
+											
+											EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+											
+											if(mapDbResponse != null) {
+												LeaveBalanceLog log = new LeaveBalanceLog();
+												
+												log.setBalance(mapDbResponse.getBalance());
+												log.setEmpId(leaveApplication.getEmpId());
+												log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+												log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leave.getNoOfDays().toString()));
+												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+
+												LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
+											}
+										}
+									
+										
+										// change compOff application status
+										leave.setCompOffStatus("Pending");
+										leave.setLeaveId(null);
+										
+										compOffLeaveRepository.save(leave);
+									}
+									
+								}
+						}
 					}
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1837,4 +1989,58 @@ public class TeamsService {
 		return response;
 	}
 
+	
+	public ServiceResponse getAllTeams() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> objectList = teamRepository.getAllTeams();
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No teams found. Teams list is empty");
+				} else {
+					
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+						
+						list.forEach((object) -> {
+							TeamDTO dto = new TeamDTO();
+
+							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+							dto.setProjectName(object[1] != null ? object[1].toString() : null);
+							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+							dto.setTeamName(object[3] != null ? object[3].toString() : null);
+							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+							dto.setIsActive(object[11] != null ? object[11].toString() : null);
+							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
+							
+							dtoList.add(dto);
+						});
+						
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found.Teams list is null");
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 }

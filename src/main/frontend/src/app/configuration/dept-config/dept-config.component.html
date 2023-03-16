@@ -57,13 +57,19 @@
                 <h1 class="table-header-title">Departments</h1>
             </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
             <div class="form-group d-flex flex-row ml-auto col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
                 </div>
-        </div>
+        </div> -->
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'departmentInfo'" [tableTHeadId]="'departmentInfoTHead'"
                     [tableTHeadTrId]="'departmentInfoTHeadTr'">
                     <table class="table table-responsive" id="departmentInfo" matSort
@@ -80,15 +86,14 @@
                                 <th *ngIf="userMapping.update_department || userMapping.delete_department" scope="col"
                                     class="info-label">Actions</th>
                             </tr>
+                            <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" [columnList]="departmentColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allDeptList.length == 0 || (allDeptList | colFilter: {name: data, hodName: data, createdByName: data,
-                                createdOn: data, updatedOn: data, updatedByName: data}:false).length == 0">
+                            <tr *ngIf="allDeptList.length == 0 || (allDeptList | colFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
-                                *ngFor="let dept of allDeptList | colFilter: {name: data, hodName: data, createdByName: data,
-                                    createdOn: data, updatedOn: data, updatedByName: data}:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                *ngFor="let dept of allDeptList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{dept.name}}</td>
                                 <td>{{dept.hodName}}</td>
@@ -109,7 +114,7 @@
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allDeptList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allDeptList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>

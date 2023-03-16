@@ -59,7 +59,9 @@ export class DeptConfigComponent implements OnInit {
   userMapping: any = {};
   name = 'Department.xlsx';
 
-
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName'];
 
   constructor(
     private validationService: ValidationService,
@@ -374,6 +376,15 @@ export class DeptConfigComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }	
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

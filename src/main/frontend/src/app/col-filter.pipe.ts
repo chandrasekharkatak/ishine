@@ -23,7 +23,7 @@ export class ColFilterPipe implements PipeTransform {
       }
       else {
         return items.filter(item => {
-          return filterKeys.some((keyName) => {
+          return filterKeys.every((keyName) => {
             return new RegExp(filter[keyName], 'gi').test(item[keyName]) || filter[keyName] == "";
           });
         });

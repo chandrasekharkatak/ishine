@@ -32,13 +32,19 @@
             </div>
           </div>
         </div>
-        <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+        <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
           <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
-        </div>
+        </div> -->
       </div>
 
       <div class="row">
         <div class="col-md-12">
+          <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'allTimesheetInfo'"
           [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'">
           <table class="table table-responsive" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">	
@@ -49,7 +55,7 @@
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>	
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>	
-                <th scope="col" colspan="4" class="info-label wide-col" mat-sort-header="description|string">Activity</th>
+                <th scope="col" style="min-width: 250px;" class="info-label wide-col" mat-sort-header="description|string">Activity</th>
                 <th scope="col" class="info-label" mat-sort-header="totalTime|number">Working Hours</th>
                 <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
                 <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
@@ -60,20 +66,19 @@
                 <th scope="col" class="info-label" mat-sort-header="remarks|string">Remarks</th>
                     <th scope="col" class="info-label">Actions</th>
                   </tr>
+                  <tr app-column-filter-bar *ngIf="isAllTimesheetTable && isSearchEnabled" [columnList]="allTimesheetColumns" (onSearch)="onSearch($event);page=1" ></tr>
                 </thead>
                 <tbody>
-                  <tr *ngIf="allTeamTimesheets.length == 0 || (allTeamTimesheets | colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data,
-                    totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data, leaveType:data, remarks:data}:false).length == 0">
+                  <tr *ngIf="allTeamTimesheets.length == 0 || (allTeamTimesheets | colFilter:filters:false).length == 0">
                     <th colspan="16" class="text-center info-label">No details to display...</th>
                   </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheets | colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data,
-                     totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data, leaveType:data, remarks:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                  <tr *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                     <td>{{20*(page-1)+i+1}}</td>
                     <td>{{timesheet.employeementId}}</td>
                     <td>{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
-                    <td colspan="4" [innerHTML]="timesheet.description"></td>
+                    <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
                     <td>{{timesheet.totalTime}}</td>
                     <td>{{timesheet.officeInTime}}</td>
                     <td>{{timesheet.officeOutTime}}</td>
@@ -91,7 +96,7 @@
               </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div> 
   </div>
@@ -126,12 +131,18 @@
       </select>
       <small>entries</small>
     </div>
-    <div class="form-group col-md-3 ml-auto mb-2 mt-4 pt-2">
+    <!-- <div class="form-group col-md-3 ml-auto mb-2 mt-4 pt-2">
       <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-    </div>
+    </div> -->
   </div>
   <div class="row">
     <div class="col-md-12">
+      <div class="selector-toggle" (click)="toggleSearch()">
+        <a href="javascript:void(0)">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+        </a>
+      </div>
       <div class="overflow-auto" bassHorizontalScroll [tableId]="'myTimesheetInfo'"
         [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'">
         <table class="table table-responsive" id="teams-request-table" matSort
@@ -145,7 +156,7 @@
               <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
               <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
               <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-              <th scope="col" colspan="4" class="info-label wide-col" mat-sort-header="description|string">Activity</th>
+              <th scope="col" style="min-width: 250px;" class="info-label wide-col" mat-sort-header="description|string">Activity</th>
               <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
               <th scope="col" class="info-label" mat-sort-header="totalTime|number">Working Hours</th>
               <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
@@ -155,21 +166,22 @@
               <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
               <th scope="col" class="info-label">Actions</th>
             </tr>
+            <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled" [columnList]="allTimesheetReqColumns" (onSearch)="onSearch($event);page=1" ></tr>
           </thead>
           <tbody>
-            <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data, createdByName:data, totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data}:false).length == 0">
+            <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter:filters:false).length == 0">
               <th colspan="14" class="text-center info-label">No details to display...</th>
             </tr>
             <tr
-              *ngFor="let timesheet of allTeamTimesheetRequests| colFilter: {employeementId:data, employeeName:data, date:data, dayType:data, description:data, createdByName:data, totalTime:data, officeInTime:data, officeOutTime:data, totalWorkingOfficeHours:data, status:data}:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-              <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected"
+              *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+              <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
                   (change)="select(timesheet,$event)"></td>
               <td>{{items*(page-1)+i+1}}</td>
               <td>{{timesheet.employeementId}}</td>
               <td>{{timesheet.employeeName}}</td>
               <td>{{timesheet.date}}</td>
               <td>{{timesheet.dayType}}</td>
-              <td colspan="4" [innerHTML]="timesheet.description"></td>
+              <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
               <td>{{timesheet.createdByName}}</td>
               <td>{{timesheet.totalTime}}</td>
               <td>{{timesheet.officeInTime}}</td>
@@ -194,7 +206,7 @@
       </div>
       <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
       (pageChange)="handlePageChange($event)"></pagination-controls>
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
       [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
         class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>

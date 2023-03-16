@@ -120,4 +120,6 @@ public class DraftEmployee {
 	private String billable;
 	private Long reportingManagerId;
 	private String approvalsTo;
+	
+	private Long designationId;
 }

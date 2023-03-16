@@ -17,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -33,9 +34,12 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +51,8 @@ import org.dhatim.fastexcel.Worksheet;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
 import org.dhatim.fastexcel.reader.Row;
 import org.dhatim.fastexcel.reader.Sheet;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -56,8 +62,10 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
+import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -69,8 +77,11 @@ import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -81,12 +92,19 @@ import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
+import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @Service
 @EnableAsync
@@ -141,6 +159,15 @@ public class CronJobService {
 	DepartmentRepository departmentRepository;
 	
 	@Autowired
+	TeamRepository teamRepository;
+	
+	@Autowired
+	ClientsRepository clientsRepository;
+	
+	@Autowired
+	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
 	MailService mailService;
 
 	@Value("${po.db.url}")
@@ -164,74 +191,9 @@ public class CronJobService {
 	@Value("${allEmployeeDSR.file.location}")
 	private String allEmployeeDSRFileLocation;
 	
-	
-//	0 0 0 * * * for every midnight
-//	*/20 * * * * *  for every 20 secs
-
-//	@Scheduled(cron = "0 0 0 * * *")
-//	public void authenticateUser() {
-//
-//		System.out.println(LocalDateTime.now());
-//		try {
-//
-//			String query = "SELECT cd.clientName,cd.clientLocation,cd.state,pfc.projectName,p.description,p.projectManagerId,u.empId,p.approvedOn,pfc.id FROM PoFixedCost pfc\n"
-//					+ "INNER JOIN ClientDetails cd ON pfc.clientId = cd.clientid\n"
-//					+ "INNER JOIN Project p ON p.name = pfc.projectName\n"
-//					+ "INNER JOIN User u ON u.id = p.projectManagerId\n"
-//					+ "WHERE p.status = \"Approved\" and p.approvedOn between now() - INTERVAL 5 DAY AND now() ORDER BY p.id DESC";
-//			Class.forName("com.mysql.cj.jdbc.Driver");
-//			int i = 0;
-//
-//			try (Connection con = DriverManager.getConnection(url, username, password)) {
-//				PreparedStatement ps = con.prepareStatement(query);
-//
-//				try (ResultSet rs = ps.executeQuery();) {
-//
-//					while (rs.next()) {
-//
-//						Project newProject = new Project();
-//
-//						newProject.setClientName(rs.getString(1) != null ? rs.getString(1) : null);
-//						newProject.setClientLocation(rs.getString(2) != null ? rs.getString(2) : null);
-//						newProject.setState(rs.getString(3) != null ? rs.getString(3) : null);
-//						newProject.setProjectName(rs.getString(4) != null ? rs.getString(4) : null);
-//						newProject.setDescription(rs.getString(5) != null ? rs.getString(5) : null);
-//						newProject.setProjectManagerId(rs.getLong(6) != 0L ? rs.getLong(6) : null);
-//
-//						if (rs.getString(7) != null) {
-//							String empIdString = rs.getString(7);
-//							empIdString = empIdString.replace("A-", "");
-//							newProject.setEmpId(Long.parseLong(empIdString));
-//
-//						}
-//						newProject.setApprovedOn(rs.getTimestamp(8) != null ? rs.getTimestamp(8) : null);
-//
-//						System.out.println(newProject);
-//						System.out.println(projectRepository.save(newProject) != null
-//								? "Project " + newProject.getProjectName() + " added to Employee portal"
-//								: "Failed to add " + newProject.getProjectName() + " project to Employee portal");
-//						i++;
-//					}
-//
-//					System.out.println(
-//							i == 0 ? "No new projects found at PO portal." : i + " new project(s) found at PO portal");
-//
-//				}
-//
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				System.out.println(
-//						i == 0 ? "No new projects found at PO portal." : i + " new project(s) found at PO portal");
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//
-//	}
-	
-	
-	
+	@Value("${rmg.mail}")
+	private String rmgMail;
+		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
 	@Scheduled(cron = "0 0 12 1 * ?")
@@ -421,46 +383,6 @@ public class CronJobService {
 	@Scheduled(cron = "0 1 1 ? * *")
 	public void LeaveExpirationCronJob() {
 		try {
-//		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-//		     
-//		          for(LeaveTypeMaster ltm :leaveType) {
-//			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
-//			
-//			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-//			      
-//			          for(LeavePolicyMaster lpm : leavePolicy) {
-//				         if(lpm.getExpirationPeriod().equals("Yes")) {
-//				        	 
-//				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
-//				     	     Timestamp createdOnDate = lpm.getCreatedOn();
-//				     	     
-//				     	     Timestamp expirationDate = Timestamp.valueOf(createdOnDate.toLocalDateTime().plusDays(expirationPeriod));
-//				   
-//				    		 DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
-//				    		 String expiration = f.format(expirationDate);
-//				    		 System.out.println(expiration);
-//				     	     
-//				     	     LocalDateTime dateTime = LocalDateTime.now();
-//				             String todayDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime);
-//				             System.out.println(todayDate);
-//					         
-//				             List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-//					
-//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-//						   
-//						              if(expiration.equals(todayDate)) {
-//						            	  float newBalance = 0;
-//						            	  elm.setBalance(newBalance);
-//							              employeeLeavesMapRepository.save(elm);
-//							              break;
-//						              }
-//					              }
-//				          }
-//			           }
-//		            }
-			
-			
-			
 			LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
 			
 			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
@@ -479,42 +401,48 @@ public class CronJobService {
 				        			 
 				        			 //Get CompOff leave applications
 				        			 Timestamp perv45Day = Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay());
-				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(object.getEmpId(), (short)2, perv45Day);
+//				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfterAndCompOffStatus(object.getEmpId(), (short)2, perv45Day, "Pending");
+				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findAllPendingApplicationByEmpId(object.getEmpId(), perv45Day, "Pending");
 				        			 if(!compOffLeaveObj.isEmpty()) {
 				        				 compOffLeaveObj.forEach((compOffObj) -> {
 				        					 
 				        					 if(compOffObj.getUpdatedOn() != null) {
 				        						 compOffObj.setApproverDate(compOffObj.getUpdatedOn().toLocalDate());
-					        					 compOffLeaveRepository.save(compOffObj); 
 				        					 }
 				        					 
-				        					 LocalDate expirationDate = compOffObj.getUpdatedOn().toLocalDate().plusDays(expirationPeriod);
+				        					 LocalDate expirationDate = compOffObj.getFromDate().plusDays(expirationPeriod);
 				        					 LocalDate dateToday = LocalDate.now();
 				        					 if(expirationDate.equals(dateToday)) {
 				        						 Float pervBalance = empLeaveMapObj.getBalance();
-				        						 Float newBalance = pervBalance - compOffObj.getNoOfDays();
 				        						 
-				        						 empLeaveMapObj.setBalance(newBalance);
-				        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
-				        						 
-				        						 if(dbResposne != null) {
-				        							 
-				        							 LeaveBalanceLog log = new LeaveBalanceLog();
+				        						 if(pervBalance != 0f) {
+				        							 Float newBalance;
+				        							 newBalance = pervBalance - compOffObj.getNoOfDays();
+				        							 compOffObj.setCompOffStatus("Expired");
+				        							 compOffLeaveRepository.save(compOffObj); 
+					        						 
+					        						 empLeaveMapObj.setBalance(newBalance);
+					        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
+					        						 
+					        						 if(dbResposne != null) {
+					        							 
+					        							 LeaveBalanceLog log = new LeaveBalanceLog();
 
-														log.setBalance(newBalance);
-														log.setEmpId(object.getEmpId());
-														log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-														log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
-																Float.toString(compOffObj.getNoOfDays())));
-														log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+															log.setBalance(newBalance);
+															log.setEmpId(object.getEmpId());
+															log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+															log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
+																	Float.toString(compOffObj.getNoOfDays())));
+						        							log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
 
-														leaveBalanceLogRepository.save(log);
-				        							 
-				        							 System.out.println("CompOff balance updated successfully");
-				        						 }else {
-				        							 System.out.println("CompOff balance updation failed");
+															leaveBalanceLogRepository.save(log);
+					        							 
+					        							 System.out.println("CompOff balance updated successfully");
+					        						 }else {
+					        							 System.out.println("CompOff balance updation failed");
+					        						 }
+					        					  }
 				        						 }
-				        					  }
 				        				 });
 				        			 }
 				        		 });
@@ -669,21 +597,25 @@ public class CronJobService {
 						for(Object[] employeeList: allEmployee) {
 							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
-
-							if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
-									|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
-								
-								Timesheet newTimesheet = new Timesheet();
-								
-								newTimesheet.getCommonProperty().setCreatedBy(empId);
-								newTimesheet.setDate(dateToday);
-								newTimesheet.setDayType("Holiday");
-								newTimesheet.setDescription("Public Holiday");
-								newTimesheet.setEmpId(empId);
-								newTimesheet.setStatus("Approved");
-								
-								timesheetsRepository.save(newTimesheet);
-								
+							
+							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
+							if(empTimesheet == null) {
+							
+								if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
+									
+									Timesheet newTimesheet = new Timesheet();
+									
+									newTimesheet.getCommonProperty().setCreatedBy(empId);
+									newTimesheet.setDate(dateToday);
+									newTimesheet.setDayType("Public Holiday");
+									newTimesheet.setDescription(holidays.getOccasion());
+									newTimesheet.setEmpId(empId);
+									newTimesheet.setStatus("Approved");
+									
+									timesheetsRepository.save(newTimesheet);
+									
+								}
 							}
 						}	
 					}
@@ -1813,4 +1745,225 @@ public class CronJobService {
 			return response;
 		}
 		
+		
+		// To Remove any InActive / Blocked / LoggedIn user with 6hrs^
+		// "0 0 0/6 ? * *" - Run at every 6Hrs
+		// "0 0/1 * ? * *" - Run at every 1 min
+		
+		@Scheduled(cron = "0 0 0/6 ? * *")
+		public void loggedInUserAudit() {
+			
+			System.out.println("Running LoggedIn User Audit ... ");
+			
+			try {
+				ConcurrentHashMap<Long, String> userSessionList = AuthenticationService.userSessionList;
+				List<String> loggedOutUsers = new ArrayList<String>();
+				
+				for (Entry<Long, String> entry : userSessionList.entrySet()) {
+				      Long key = entry.getKey();
+				      String value = entry.getValue();
+				      String timeStr = value.substring(0, 29);
+				      String userEmail = value.substring(29);
+				      String user = null;
+				      
+				      LocalDateTime loginTime = LocalDateTime.parse(timeStr);
+				      LocalDateTime today = LocalDateTime.now();
+				      Long elapsedHours = ChronoUnit.HOURS.between(loginTime, today);
+				      Long elapsedMins = ChronoUnit.MINUTES.between(loginTime, today);
+				      
+//				      System.out.println("key: " + key + " value: " + value + " loginTime : "+ loginTime+ " currentDateTime : "+ today + " elapsedHours : "+ elapsedHours);
+				      
+				      if(key != null) {
+				    	  List<Object[]> employeeData =  employeeRepository.getEmploymentStatusAndInvalidAccessAttemptByEmpId(key);
+				    	  
+				    	  EmployeeDTO employee = new EmployeeDTO();
+				    	  
+				    	  if (!employeeData.isEmpty()) {
+				    		  employeeData.forEach((data) -> {
+				    			  employee.setEmpId((data[0] != null) ? Long.parseLong(data[0].toString()) : null);
+				    			  employee.setEmploymentstatus((data[1] != null) ? data[1].toString() : null);
+				    			  employee.setInvalidAccessAttempt((data[0] != null) ? Integer.parseInt(data[2].toString()) : null);
+								});
+				    	  };
+				    	  
+				    	  
+				    	  final long INVALID_ATTEMPT_LIMIT = 5;
+				    	  final long LOGGEDIN_HOURS_LIMIT = 6;
+				    	  
+				    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > INVALID_ATTEMPT_LIMIT)) {
+				    		  user = userEmail + " - "+ "InActive/Blocked";
+				    		  AuthenticationService.userSessionList.remove(key);
+				    	  }else if(elapsedHours >= LOGGEDIN_HOURS_LIMIT){
+				    		  user = userEmail + " - "+ "Logged In for "+ elapsedHours + " Hrs.";
+				    		  AuthenticationService.userSessionList.remove(key);
+				    	  }
+				    	  
+				    	  if(user != null) {
+				    		  loggedOutUsers.add(user);				    		  
+				    	  } 
+				      }
+				}
+				
+				System.out.println("LoggedOutusers : "+ loggedOutUsers.toString());
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		//0 0 0 1/3 * ? - At 00:00:00am, every 3 days starting on the 1st, every month
+		@Scheduled(cron = "0 0 0 1/3 * ?")
+		public void oldProjectAlertMail() {
+			try {
+				List<ResourceManagementDTO> dtoList = new ArrayList<ResourceManagementDTO>();
+				
+				OkHttpClient client = new OkHttpClient();
+				Request request = new Request.Builder()
+				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .get()
+				  .addHeader("accept", "application/json")
+				  .build();
+				Response httpResponse = client.newCall(request).execute();
+				String jsonData = httpResponse.body().string();
+				JSONArray jsonArr = new JSONArray(jsonData);
+				
+				for (int i = 0; i < jsonArr.length(); i++) {
+			        JSONObject jsonObj = jsonArr.getJSONObject(i);
+			        Long poProjectId = jsonObj.getLong("id");
+			        String projectName = jsonObj.getString("name");
+			        String createdOn = jsonObj.getString("createdOn");
+			        String clientName = jsonObj.getString("clientName");
+			        JSONArray deptartmentName = jsonObj.getJSONArray("department");
+			        
+			        Project projectObj = projectRepository.findByPoProjectId(poProjectId);
+			        
+			        if(projectObj != null) {
+			        	List<Team> isTeamCreated = teamRepository.findByProjectId(projectObj.getProjectId());
+			        	
+			        	if(isTeamCreated.isEmpty()) {
+			        		//Client info
+			        		Client clientObj = clientsRepository.findByClientId(projectObj.getClientId());
+			        		List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(projectObj.getProjectId());
+			        		List<String> deptList = new ArrayList<>();
+			        		
+			        		if(!projDeptMap.isEmpty()) {
+			        			projDeptMap.forEach((dept) -> {
+			        				Department deptObject = departmentRepository.findByDeptId(dept.getDeptId());
+			        				if(deptObject != null) {
+			        					deptList.add(deptObject.getName());			        							        					
+			        				}
+			        			});
+			        		}
+			        		
+			        		ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
+			        		
+			        		rmgDTO.setName(projectObj.getProjectName());
+			        		rmgDTO.setCreatedOn(projectObj.getCreatedOn().toString());
+			        		rmgDTO.setClientName(clientObj != null ? clientObj.getClientName() : null);
+			        		rmgDTO.setDeptName(!deptList.isEmpty() ? String.join(",", deptList) : null);
+			        		dtoList.add(rmgDTO);
+			        	}
+			        }else {
+			        	StringJoiner stringJoiner = new StringJoiner(",");
+
+			        	for (Object jsonValue : deptartmentName) {
+			        	    stringJoiner.add(jsonValue.toString());
+			        	}
+			        	
+			        	ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
+		        		
+		        		rmgDTO.setName(projectName);
+		        		rmgDTO.setCreatedOn(createdOn);
+		        		rmgDTO.setClientName(clientName);
+		        		rmgDTO.setDeptName(stringJoiner.toString());
+		        		dtoList.add(rmgDTO);
+			        }
+				}
+				
+				
+				List<Department> allDepartment = departmentRepository.findAll();
+				
+				if(!allDepartment.isEmpty()) {
+					allDepartment.forEach((dept) -> {
+						
+						List<ResourceManagementDTO> filteredList = new ArrayList<>();
+						
+						for (ResourceManagementDTO dto : dtoList) {
+						    if (dto.getDeptName().contains(dept.getName())) {
+						        filteredList.add(dto);
+						    }
+						}
+						
+						
+						if(!filteredList.isEmpty()) {
+							
+							//Create Proj Info table
+			        		StringBuilder html = new StringBuilder();
+							html.append("<html>\n" +
+						            "  <head>\n" +
+						            "    <style>\n" +
+						            "      table, th, td {\n" +
+						            "        border: 1px solid black;\n" +
+						            "      }\n" +
+						            "      table {\n" +
+						            "        border-collapse: collapse;\n" +
+						            "      }\n" +
+						            "    </style>\n" +
+						            "  </head>\n" +
+						            "  <body>\n" +
+						            "    <table>\n" +
+						            "      <tr>\n" +
+						            "        <th>Project Name</th>\n" +
+						            "        <th>Client Name</th>\n" +
+						            "        <th>Created On</th>\n" +
+						            "        <th>Project Department</th>\n" +
+						            "      </tr>\n");
+							// add rows to the table
+							for(ResourceManagementDTO rmgDTO: filteredList) {
+								
+								DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+								Date inputDate = null;
+								try {
+									inputDate = inputFormatter.parse(rmgDTO.getCreatedOn());
+								} catch (ParseException e) {
+									e.printStackTrace();
+								}
+
+								DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+								String outputDateStr = outputFormatter.format(inputDate);
+								
+								html.append("      <tr>\n");
+								  // add cells to the row
+								  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
+								  html.append("        <td>" + rmgDTO.getClientName() + "</td>\n");
+								  html.append("        <td>" + outputDateStr + "</td>\n");
+								  html.append("        <td>" + dept.getName() + "</td>\n");
+								  html.append("      </tr>\n");
+							}
+							
+							html.append("    </table>\n" +
+							            "  </body>\n" +
+							            "</html>");
+							
+							//Send Mail regarding oldProject where team not created
+							
+							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
+							try {
+								mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
+										"Reminder for Project - Resource OnBoarding",
+										"Dear team, <br><br>" +
+										"Below projects are onboarded in PoPortal/Ishine in which team and resources are not added. Please take necessary action.<br><br>"
+									  +	html.toString());
+							} catch (AddressException e) {
+								e.printStackTrace();
+							} catch (MessagingException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 }	

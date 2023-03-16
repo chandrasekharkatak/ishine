@@ -142,6 +142,7 @@ export class DocumentUploadComponent implements OnInit {
     this.documentList = this.documentList.filter(doc => doc.documentName != null);
     
     let employeeObj = new Employee();
+    employeeObj.createdBy = this.currentEmployeeInfo.createdBy;
     employeeObj.employeementId = this.currentEmployeeInfo.employeementId;
     employeeObj.empId = this.currentEmployeeInfo.draftEmpId;
     employeeObj.documentList = this.documentList;
@@ -165,9 +166,11 @@ export class DocumentUploadComponent implements OnInit {
     const image = event.target.files[0];
     let imageSize = parseInt((image.size/1000).toFixed(2));
     let imgHeight; 
-    let imgWidth; 
+    let imgWidth;
+    let imgExtension; 
     let img = new Image();    
-    img.src = window.URL.createObjectURL(image);   
+    img.src = window.URL.createObjectURL(image);  
+    imgExtension =  extensionRE.exec(image.name)[1];
 
     img.onload = getImageDimesions.bind(this)
 
@@ -191,6 +194,11 @@ export class DocumentUploadComponent implements OnInit {
       return false;
     } 
 
+    if(imgExtension != 'jpeg' && imgExtension != 'jpg'){
+      this.alertMessage = "Please upload valid file with jpeg/jpg extension"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     
     const imageName = documentObj.documentType.replaceAll(" ", "-")+"_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
     const inputName = event.target.id;

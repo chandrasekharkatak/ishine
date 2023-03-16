@@ -89,7 +89,7 @@ export class ReportListComponent implements OnInit {
   employeeRole: any;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
   queryList: any[] = [];
   filterData: any = new FilterData();
@@ -105,6 +105,13 @@ export class ReportListComponent implements OnInit {
   startDate:any;
 
   customQuery:any;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  leaveReportColumns:any[] = ['employeementId','employeeName','leaveType','fromDate','toDate','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
+  timesheetReportColumns:any[] = ['employeementId','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  employeeReportColumn:any[] = ['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
+  leaveTimesheetReportColumn:any[] = ['employeementId','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -159,6 +166,9 @@ export class ReportListComponent implements OnInit {
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
 
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     console.log(this.storedDataList, " : storeddatalist");
 
 
@@ -190,6 +200,8 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
@@ -218,6 +230,8 @@ export class ReportListComponent implements OnInit {
     this.isAccessControlListTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -259,6 +273,8 @@ export class ReportListComponent implements OnInit {
     this.isEmployeeReportTable = false;
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.allLeaveTimesheets = [];
   }
@@ -321,11 +337,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
 
-          this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId && t.fromDate === value.fromDate
-            ))
-          )
+          // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
+          //   index === self.findIndex((t) => (
+          //     t.employeementId === value.employeementId && t.fromDate === value.fromDate
+          //   ))
+          // )
 
           if (this.allLeaveApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
@@ -389,12 +405,6 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allTimesheetApplicationsList = response.serviceResponse;
 
-          this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId && t.date === value.date
-            ))
-          )
-
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
@@ -453,11 +463,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
-          this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-              t.employeementId === value.employeementId
-            ))
-          )
+          // this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
+          //   index === self.findIndex((t) => (
+          //     t.employeementId === value.employeementId
+          //   ))
+          // )
 
           if (this.allEmployeeList.length == 0) {
             this.openAlertMod(this.alertModal, "No Data found")
@@ -737,10 +747,10 @@ export class ReportListComponent implements OnInit {
       if (emittedArray[1] == 'Filter Leave Report') {
         this.showLeaveReportTable();
       }
-      if (emittedArray[1] == 'Filter Employee Report') {
+      if (emittedArray[1] == 'Filter Timesheet Report') {
         this.showTimesheetReportTable();
       }
-      if (emittedArray[1] == 'Filter Timesheet Report') {
+      if (emittedArray[1] == 'Filter Employee Report') {
         this.showEmployeeReportTable();
       }
     }
@@ -1033,6 +1043,15 @@ export class ReportListComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+  
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }
 

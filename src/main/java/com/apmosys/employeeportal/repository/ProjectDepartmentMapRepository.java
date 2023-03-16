@@ -16,4 +16,6 @@ public interface ProjectDepartmentMapRepository extends JpaRepository<ProjectDep
 	@Query(nativeQuery = true)
 	public List<Object[]> getDepartmentByProjectId(int projectId);
 
+	public List<ProjectDepartmentMap> findByProjectId(Integer projectId);
+
 }

@@ -263,6 +263,7 @@ export class UserSurveyComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.router.navigate(['/user-survey']);
+        this.showSurveys();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

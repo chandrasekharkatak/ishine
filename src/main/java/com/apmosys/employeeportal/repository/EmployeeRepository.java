@@ -147,4 +147,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getElapsedEmpInProbationAndNotice();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmploymentStatusAndInvalidAccessAttemptByEmpId(Long empId);
+
+	public Long countByDesignationId(Long designationId);
+
+	public List<Employee> findByDesignationId(Long designationId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeesByRoleIds(List<Long> jobRoleIds);
 }

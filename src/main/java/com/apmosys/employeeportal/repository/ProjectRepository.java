@@ -36,5 +36,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> findProjectByIsDraftProject();
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllInternalProject();
+
+	public Project findByProjectId(Integer projectId);
+
 
 }

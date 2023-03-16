@@ -54,6 +54,11 @@ export class TeamTimesheetComponent implements OnInit {
   bulkApprove: any = [];
   bulkReject: any = [];
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  allTimesheetColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
+  allTimesheetReqColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','createdByName','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
+
   constructor(
     public validationService: ValidationService,
     private modalService: BsModalService,
@@ -505,6 +510,14 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 
 
 }

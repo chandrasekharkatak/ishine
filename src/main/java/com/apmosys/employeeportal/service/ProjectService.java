@@ -169,31 +169,40 @@ public class ProjectService {
 	public ServiceResponse createProject(PoProjectSyncDTO poProjectSyncDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
-			Project projectObj = new Project();
-			projectObj.setProjectName(poProjectSyncDTO.getProjectName());
-			projectObj.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
-			projectObj.setClientId(poProjectSyncDTO.getClientId());
-			projectObj.setState(poProjectSyncDTO.getState());
-			projectObj.setActive("true");
-			projectObj.setSyncProject(poProjectSyncDTO.getSyncProject());
-			projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
-			Project projectDbResponse =  projectRepository.save(projectObj);
-			
-			if(projectDbResponse != null) {
-				// Add department mapping
-				for(String department: poProjectSyncDTO.getDepartmentList()) {
-					Department departmentObj = departmentRepository.findByName(department);
-					ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
-					projectDeptMap.setProjectId(projectDbResponse.getProjectId());
-					projectDeptMap.setDeptId(departmentObj.getDeptId());
-					ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+			//Find client (Inhouse : Apmosys)
+			String internalClient = "Apmosys";
+			Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
+			if (firstClientOptional != null) {
+			    
+			    Project projectObj = new Project();
+				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
+				projectObj.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
+				projectObj.setClientId(firstClientOptional.getClientId());
+				projectObj.setState(poProjectSyncDTO.getState());
+				projectObj.setActive("true");
+				projectObj.setSyncProject("false");
+				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+				Project projectDbResponse =  projectRepository.save(projectObj);
+				
+				if(projectDbResponse != null) {
+					// Add department mapping
+					for(String department: poProjectSyncDTO.getDepartmentList()) {
+						Department departmentObj = departmentRepository.findByName(department);
+						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+						projectDeptMap.setDeptId(departmentObj.getDeptId());
+						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project created successfully.");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to create project.");
 				}
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Project created successfully.");
+			    
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Unable to create project.");
+				response.setServiceResponse("Unable to find ApMoSys as internal client.");
 			}
 		}catch(Exception e) {
 			e.printStackTrace();

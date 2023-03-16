@@ -41,5 +41,9 @@ export class ResourceManagementService {
   bulkSyncProject(projectObj: Project){
     return this.http.post(`${this.baseUrl}` + `api/bulkSyncProject`, projectObj);
   }
+
+  getInternalProject(){
+    return this.http.get(`${this.baseUrl}` + `api/getInternalProject`);
+  }
   
 }

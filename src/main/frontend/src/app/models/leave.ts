@@ -102,4 +102,5 @@ export class Leave{
 	checkDate:any;
 	managerEmail:any;
 	
+	isWeekOffsExcluded:any;
 }

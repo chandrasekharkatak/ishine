@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,5 +20,11 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	Client findByPoClientId(Integer poClientId);
 
+	Client findByClientId(Integer clientId);
 
+	Optional<Client> findFirstByClientNameLike(String internalClient);
+
+	@Query(nativeQuery = true)
+	Client findByClientNameList(String internalClient);
+	
 }

@@ -66,4 +66,6 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	public List<EmployeeLeave> findByFromDateAfterAndLeaveStatusId(LocalDate leaveFromDate, short s);
 
+	public List<EmployeeLeave> findAllByEmpIdAndLeaveTypeMasterId(Long empId, Short leaveTypeMasterId);
+
 }

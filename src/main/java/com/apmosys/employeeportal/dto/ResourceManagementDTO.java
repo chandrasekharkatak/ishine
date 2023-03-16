@@ -31,4 +31,10 @@ public class ResourceManagementDTO {
 	private Long createdBy;
 	private Long updatedBy;
 	
+	private String createdOn;
+	private String deptName;
+	
+	private String projectType;
+	private Integer projectId;
+	
 }

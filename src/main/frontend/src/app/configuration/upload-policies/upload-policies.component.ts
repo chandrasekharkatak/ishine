@@ -56,6 +56,10 @@ export class UploadPoliciesComponent implements OnInit {
   isreadEnabled: boolean = false;
   responsedata:any;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  documentsColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
+  readResponseColumns:any[] = ['blank','name','empId','policyName','readEnabled'];
 
   constructor(private uploadPoliciesService : UploadPoliciesService,
   private validationService: ValidationService,
@@ -105,6 +109,9 @@ export class UploadPoliciesComponent implements OnInit {
     this.isTable = true;
     this.isDocumentForm = false;
     this.isreadEnabled = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.getAllDocuments();
   }
 
@@ -272,6 +279,9 @@ export class UploadPoliciesComponent implements OnInit {
   policyReadResponseById(fileObj){
     this.isreadEnabled = true;
     this.isTable = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
+
     this.showPolicyReadResponse(fileObj);
 
   }
@@ -310,6 +320,15 @@ export class UploadPoliciesComponent implements OnInit {
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;      
     }
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 }
   function compare(a: number | string, b: number | string, isAsc: boolean) {	

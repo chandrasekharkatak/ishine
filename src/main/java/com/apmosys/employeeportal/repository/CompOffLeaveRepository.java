@@ -21,5 +21,15 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	public List<CompOffLeave> findByLeaveTypeMasterId(Short oldLeaveTypeMasterId);
 
-	public List<CompOffLeave> findByEmpIdAndLeaveStatusIdAndCreatedOnAfter(Long empId, short s, Timestamp perv45Day);
+	public List<CompOffLeave> findByEmpIdAndLeaveStatusIdAndCreatedOnAfterAndCompOffStatus(Long empId, short s,
+			Timestamp perv45Day, String compOffStatus);
+
+	public List<CompOffLeave> findByLeaveId(Long leaveId);
+
+	@Query(nativeQuery = true)
+	public CompOffLeave findOldestCompOffApplicationByEmpId(Long empId, String compOffStatus);
+
+	@Query(nativeQuery = true)
+	public List<CompOffLeave> findAllPendingApplicationByEmpId(Long empId, Timestamp perv45Day, String compOffStatus);
+	
 }

@@ -82,6 +82,8 @@ import {ColFilterPipe} from './col-filter.pipe';
 import { SortPipe } from './sort.pipe';
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
 import { MultiColFilterPipe } from './multi-col-filter.pipe';
+import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
 
 @NgModule({
   declarations: [
@@ -139,7 +141,8 @@ import { MultiColFilterPipe } from './multi-col-filter.pipe';
     ColFilterPipe,
     SortPipe,
     ColumnFilterBarComponent,
-    MultiColFilterPipe
+    MultiColFilterPipe,
+    DesignationConfigComponent
   ],
   imports: [
     BrowserModule,
@@ -180,7 +183,8 @@ import { MultiColFilterPipe } from './multi-col-filter.pipe';
     NgxOrgChartModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
-    AutocompleteLibModule
+    AutocompleteLibModule,
+    PdfViewerModule
   ],
   providers: [
     BsModalService,

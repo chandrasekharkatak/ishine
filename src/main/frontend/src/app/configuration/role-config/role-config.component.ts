@@ -69,6 +69,10 @@ export class RoleConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -147,7 +151,9 @@ export class RoleConfigComponent implements OnInit {
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
-    this.selectedDept = ''
+    this.selectedDept = '';
+    this.filters = {};
+    this.isSearchEnabled = false;
 
     this.getAllJobRoleList();
     this.getAllSubFeatures();
@@ -194,12 +200,12 @@ export class RoleConfigComponent implements OnInit {
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
-      this.alertMessage = "Please enter Designation Name !!"
+      this.alertMessage = "Please enter Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
     if (!this.validationService.validateTeamName(jobRole.name)) {
-      this.alertMessage = "Please enter Valid Designation Name !!"
+      this.alertMessage = "Please enter Valid Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -298,7 +304,7 @@ export class RoleConfigComponent implements OnInit {
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(jobRole.newJobRoleId)) {
-      this.alertMessage = "Please select Designation !!"
+      this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -466,7 +472,7 @@ export class RoleConfigComponent implements OnInit {
 
       const onlySpecificDataArr = this.roleDataForExcel.map(
         x => ({
-          "Designation Name": x.name,
+          "Job Role Name": x.name,
           "Employee Role":x.employeeRole,
           "Department": x.departmentName,
           "Created by": x.createdBy,
@@ -525,6 +531,15 @@ export class RoleConfigComponent implements OnInit {
       this.sortDirection = sort.direction;      
     }
   }
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
