@@ -1979,6 +1979,7 @@ public class CronJobService {
 					
 					if(!dept.getName().equals("Super Admin") && !dept.getName().equals("Director") && !dept.getName().equals("unKnown Department")) {
 						List<Object[]> managerList = employeeRepository.getManagerByDepartment(dept.getDeptId());
+						List<EmployeeDTO> finalPendingList = new ArrayList<>();
 						
 						if(!managerList.isEmpty()){
 							managerList.forEach((object) -> {
@@ -1990,84 +1991,175 @@ public class CronJobService {
 								List<Object[]> employeeList = employeeRepository.getEmployeeByManager(managerId);
 								
 								if(!employeeList.isEmpty()) {
-									StringBuilder defaulterMail = new StringBuilder();
-									
-									
-									StringBuilder html = new StringBuilder();
-									html.append("<html>\n" +
-								            "  <head>\n" +
-								            "    <style>\n" +
-								            "      table, th, td {\n" +
-								            "        border: 1px solid black;\n" +
-								            "      }\n" +
-								            "      table {\n" +
-								            "        border-collapse: collapse;\n" +
-								            "      }\n" +
-								            "    </style>\n" +
-								            "  </head>\n" +
-								            "  <body>\n" +
-								            "    <table>\n" +
-								            "      <tr>\n" +
-								            "        <th>Emp ID</th>\n" +
-								            "        <th>Name</th>\n" +
-								            "        <th>Email</th>\n" +
-								            "        <th>Manager Name</th>\n" +
-								            "        <th>Department</th>\n" +
-								            "      </tr>\n");
-									// add rows to the table
-									for(Object[] employee: employeeList) {
+									employeeList.forEach((employee) -> {
 										
-										Long employeementId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
-										String EmpName = employee[1] != null ? employee[1].toString() : null;
-										String email = employee[2] != null ? employee[2].toString() : null;
+										EmployeeDTO dto = new EmployeeDTO();
 										
-											defaulterMail.append(email);
-											defaulterMail.append(",");
-											html.append("      <tr>\n");
-											  // add cells to the row
-											  html.append("        <td>" + "A-"+employeementId + "</td>\n");
-											  html.append("        <td>" + EmpName + "</td>\n");
-											  html.append("        <td>" + email + "</td>\n");
-											  html.append("        <td>" + managerName + "</td>\n");
-											  html.append("        <td>" + dept.getName() + "</td>\n");
-											  html.append("      </tr>\n");
-									}
-									
-									html.append("    </table>\n" +
-									            "  </body>\n" +
-									            "</html>");
-									
-//										try {
-//											mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
-//													"Regarding Pending KYC",
-//													managerName
-//												  +	html.toString());
-//										} catch (Exception e) {
-//											e.printStackTrace();
-//										}
-									
-									try {
-										mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
-												"Regarding Pending KYC",
-												"Dear Ishine Member,"
-												+ "<br><br>"
-												+ "We are writing to bring to your attention the fact that there are some mandatory fields in your KYC that have yet to be filled out. It is important to note that if your KYC remains incomplete, failing which your March month salary will be put on hold.\n"
-												+ "<br><br>"
-												+ "In order to avoid any such complications, Please take immediate action and complete your KYC as soon as possible.\n"
-												+ "<br><br>"
-												+ "For any further assistance please reach out to HR department.For any technical challenge please mail with the screenshots to Prasad more (prasad.more@apmosys.com)/ Harshit Toxia (harshit.toxia@apmosys.com).\n"
-												+ "<br><br>"
-												+ "Sincerely,<br>"
-												+ "ApMoSys Technologies"
-												+ "<br> <br>"
-											  +	html.toString());
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-									
+										dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+										dto.setName(employee[1] != null ? employee[1].toString() : null);
+										dto.setEmail(employee[2] != null ? employee[2].toString() : null);
+										dto.setHodEmail(hodMail);
+										dto.setManagerName(managerName);
+										dto.setManagerEmail(managerMail);
+										
+										finalPendingList.add(dto);
+									});
 								}
 							});
 						}
+						
+						if(!finalPendingList.isEmpty()) {
+							StringBuilder defaulterMail = new StringBuilder();
+							Set<String> managerMail = new HashSet<>();
+							Set<String> hodMail = new HashSet<>();
+							
+							StringBuilder html = new StringBuilder();
+							html.append("<html>\n" +
+						            "  <head>\n" +
+						            "    <style>\n" +
+						            "      table, th, td {\n" +
+						            "        border: 1px solid black;\n" +
+						            "      }\n" +
+						            "      table {\n" +
+						            "        border-collapse: collapse;\n" +
+						            "      }\n" +
+						            "    </style>\n" +
+						            "  </head>\n" +
+						            "  <body>\n" +
+						            "    <table>\n" +
+						            "      <tr>\n" +
+						            "        <th>Emp ID</th>\n" +
+						            "        <th>Name</th>\n" +
+						            "        <th>Email</th>\n" +
+						            "        <th>Manager Name</th>\n" +
+						            "        <th>Department</th>\n" +
+						            "      </tr>\n");
+							// add rows to the table
+							for(EmployeeDTO employee: finalPendingList) {
+									defaulterMail.append(employee.getEmail());
+									defaulterMail.append(",");
+									managerMail.add(employee.getManagerEmail());
+									hodMail.add(employee.getHodEmail());
+									
+									html.append("      <tr>\n");
+									  // add cells to the row
+									  html.append("        <td>" + "A-"+employee.getEmployeementId()+ "</td>\n");
+									  html.append("        <td>" + employee.getName() + "</td>\n");
+									  html.append("        <td>" + employee.getEmail() + "</td>\n");
+									  html.append("        <td>" + employee.getManagerName() + "</td>\n");
+									  html.append("        <td>" + dept.getName() + "</td>\n");
+									  html.append("      </tr>\n");
+							}
+							
+							html.append("    </table>\n" +
+							            "  </body>\n" +
+							            "</html>");
+							
+							try {
+								mailService.sendMailWithCC(defaulterMail.toString(), String.join(",", hodMail)+","+String.join(",", managerMail),
+										"Deafulter : Profile not yet updated in ishine",
+										"Dear Ishine Member,"
+										+ "<br><br>"
+										+ "You are in Defaulters list !"
+										+ "<br><br>"
+										+ "You are receiving this email because either you or your reportee has not filled the ishine Profile completely."
+										+ "<br><br>"
+										+ "We are writing to bring to your attention the fact that there are some mandatory fields in your KYC that have yet to be filled out. It is important to note that if your KYC remains incomplete, failing which your March month salary will be put on hold.\n"
+										+ "<br><br>"
+										+ "In order to avoid any such complications, Please take immediate action and complete your KYC as soon as possible.\n"
+										+ "<br><br>"
+										+ "For any further assistance please reach out to HR department.For any technical challenge please mail with the screenshots to Prasad more (prasad.more@apmosys.com)/ Harshit Toxia (harshit.toxia@apmosys.com).\n"
+										+ "<br><br>"
+										+ "Sincerely,<br>"
+										+ "ApMoSys Technologies"
+										+ "<br> <br>"
+									  +	html.toString());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+								
+//								if(!employeeList.isEmpty()) {
+//									StringBuilder defaulterMail = new StringBuilder();
+//									
+//									
+//									StringBuilder html = new StringBuilder();
+//									html.append("<html>\n" +
+//								            "  <head>\n" +
+//								            "    <style>\n" +
+//								            "      table, th, td {\n" +
+//								            "        border: 1px solid black;\n" +
+//								            "      }\n" +
+//								            "      table {\n" +
+//								            "        border-collapse: collapse;\n" +
+//								            "      }\n" +
+//								            "    </style>\n" +
+//								            "  </head>\n" +
+//								            "  <body>\n" +
+//								            "    <table>\n" +
+//								            "      <tr>\n" +
+//								            "        <th>Emp ID</th>\n" +
+//								            "        <th>Name</th>\n" +
+//								            "        <th>Email</th>\n" +
+//								            "        <th>Manager Name</th>\n" +
+//								            "        <th>Department</th>\n" +
+//								            "      </tr>\n");
+//									// add rows to the table
+//									for(Object[] employee: employeeList) {
+//										
+//										Long employeementId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
+//										String EmpName = employee[1] != null ? employee[1].toString() : null;
+//										String email = employee[2] != null ? employee[2].toString() : null;
+//										
+//											defaulterMail.append(email);
+//											defaulterMail.append(",");
+//											html.append("      <tr>\n");
+//											  // add cells to the row
+//											  html.append("        <td>" + "A-"+employeementId + "</td>\n");
+//											  html.append("        <td>" + EmpName + "</td>\n");
+//											  html.append("        <td>" + email + "</td>\n");
+//											  html.append("        <td>" + managerName + "</td>\n");
+//											  html.append("        <td>" + dept.getName() + "</td>\n");
+//											  html.append("      </tr>\n");
+//									}
+//									
+//									html.append("    </table>\n" +
+//									            "  </body>\n" +
+//									            "</html>");
+//									
+////										try {
+////											mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
+////													"Regarding Pending KYC",
+////													managerName
+////												  +	html.toString());
+////										} catch (Exception e) {
+////											e.printStackTrace();
+////										}
+//									
+//									try {
+//										mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
+//												"Deafulter : Profile not yet updated in ishine",
+//												"Dear Ishine Member,"
+//												+ "<br><br>"
+//												+ "You are in Defaulters list !"
+//												+ "<br><br>"
+//												+ "You are receiving this email because either you or your reportee has not filled the ishine Profile completely."
+//												+ "<br><br>"
+//												+ "We are writing to bring to your attention the fact that there are some mandatory fields in your KYC that have yet to be filled out. It is important to note that if your KYC remains incomplete, failing which your March month salary will be put on hold.\n"
+//												+ "<br><br>"
+//												+ "In order to avoid any such complications, Please take immediate action and complete your KYC as soon as possible.\n"
+//												+ "<br><br>"
+//												+ "For any further assistance please reach out to HR department.For any technical challenge please mail with the screenshots to Prasad more (prasad.more@apmosys.com)/ Harshit Toxia (harshit.toxia@apmosys.com).\n"
+//												+ "<br><br>"
+//												+ "Sincerely,<br>"
+//												+ "ApMoSys Technologies"
+//												+ "<br> <br>"
+//											  +	html.toString());
+//									} catch (Exception e) {
+//										e.printStackTrace();
+//									}
+//									
+//								}
 					}
 				});	
 			}
