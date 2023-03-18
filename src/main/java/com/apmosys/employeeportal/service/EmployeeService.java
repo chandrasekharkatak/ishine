@@ -1357,6 +1357,34 @@ public class EmployeeService {
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {
+					
+					//Update Draft
+					DraftEmployee draftEmployee = draftEmployeeRepository.findByEmployeementId(dbResponse.getEmployeementId());
+					
+					if(draftEmployee != null) {
+						draftEmployee.setName(dbResponse.getName());
+						draftEmployee.setDateOfBirth(dbResponse.getDateOfBirth());
+						draftEmployee.setDateOfJoining(dbResponse.getDateOfJoining());
+						draftEmployee.setManagerId(dbResponse.getManagerId());
+						draftEmployee.setEmail(dbResponse.getEmail());
+						draftEmployee.setMobileNo(dbResponse.getMobileNo());
+						draftEmployee.setNoticePeriod(dbResponse.getNoticePeriod());
+						draftEmployee.setEmploymentstatus(dbResponse.getEmploymentstatus());
+						draftEmployee.setJobRoleId(dbResponse.getJobRoleId());
+						draftEmployee.setExperience(dbResponse.getExperience());
+						draftEmployee.setRole(dbResponse.getRole());
+						draftEmployee.setWorkLocation(dbResponse.getWorkLocation());
+						draftEmployee.setUpdatedBy(Integer.parseInt(dbResponse.getUpdatedBy().toString()));
+						draftEmployee.setBillable(dbResponse.getBillable());
+						draftEmployee.setTotalExperience(dbResponse.getTotalExperience());
+						draftEmployee.setUpdatedOn(dbResponse.getUpdatedOn());
+						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
+						draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
+						draftEmployee.setDesignationId(dbResponse.getDesignationId());
+						
+						draftEmployeeRepository.save(draftEmployee);
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee Profile Updated.");
 					

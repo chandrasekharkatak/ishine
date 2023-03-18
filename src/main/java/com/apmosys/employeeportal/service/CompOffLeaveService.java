@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.CompOffMaster;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
@@ -24,7 +26,9 @@ import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -61,8 +65,14 @@ public class CompOffLeaveService {
 	@Autowired
 	MailService mailService;
 	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 
 	public ServiceResponse getAllCompOffReasons() {
 		ServiceResponse response = new ServiceResponse();
@@ -596,6 +606,171 @@ public class CompOffLeaveService {
 		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse getCompOffBalanceMigratedFromOldLeavePortal() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Employee> employeeList = employeeRepository.findAll();
+			List<LeaveDTO> dtoList = new ArrayList<>();
+			
+			if(!employeeList.isEmpty()) {
+				employeeList.forEach((object) -> {
+					List<CompOffLeave> compOffList = compOffLeaveRepository.findByEmpId(object.getEmpId());
+					
+					Float compOffAppliedOnIShine = 0f;
+					
+					if(!compOffList.isEmpty()) {
+						for(CompOffLeave application: compOffList) {
+							compOffAppliedOnIShine = compOffAppliedOnIShine + application.getNoOfDays();
+						}
+					}
+					
+					EmployeeLeavesMap empLeave = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short)4);
+					
+					if(empLeave != null) {
+						Float balanceToBeReconsile = empLeave.getBalance() - compOffAppliedOnIShine;
+						
+						LeaveDTO dto = new LeaveDTO();
+						
+						dto.setEmployeementId(object.getEmployeementId());
+						dto.setName(object.getName());
+						dto.setCompOffAppliedOnIshine(compOffAppliedOnIShine);
+						dto.setBalanceFromOldPortal(balanceToBeReconsile); //Balance to be reconsiled
+						dto.setBalance(empLeave.getBalance());
+						
+						dtoList.add(dto);
+					}
+				});
+			}
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(dtoList);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse setCompOffStatusAndLeaveId() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			//set correct compOff balance 
+			
+//			List<Employee> employeeList = employeeRepository.findAll();
+//			
+//			if(!employeeList.isEmpty()) {
+//				employeeList.forEach((emp) -> {
+//					List<LeaveBalanceLog> leaveLogs = leaveBalanceLogRepository.findByEmpIdAndLeaveTypeMasterId(emp.getEmpId(), (short) 4); 
+//					
+//					if(!leaveLogs.isEmpty()) {
+//						
+//					}
+//				});
+//			}
+			
+			//Add CompOff Status & leaveID
+			List<CompOffLeave> compOffApplication = compOffLeaveRepository.findAll();
+			
+			if(!compOffApplication.isEmpty()) {
+				compOffApplication.forEach((object) -> {
+					
+					LocalDate dateToday = LocalDate.now().minusDays(30);
+					if(object.getFromDate().isBefore(dateToday)) {
+						object.setCompOffStatus("Expired");
+						
+						compOffLeaveRepository.save(object);
+					}else {
+						LeaveBalanceLog compOffLogs = leaveBalanceLogRepository.findCompOffLogByEmpId(object.getEmpId(), (short)4, "Employee requested for leave", object.getUpdatedOn());
+						
+						if(compOffLogs != null) {
+								LocalDate createdOn = compOffLogs.getCreatedOn().toLocalDateTime().toLocalDate();
+								EmployeeLeave compOffLeave = employeeLeaveRepository.findLeaveApplicationByCreatedOnDate(object.getEmpId(), (short)4, createdOn);
+								
+								if(compOffLeave != null) {
+									//1 : pending, 2: Approved, 3 : Rejected
+									if(compOffLeave.getLeaveStatusId() == 1) {
+										object.setCompOffStatus("Pending For Approval");										
+									}else if(compOffLeave.getLeaveStatusId() == 2) {
+										object.setCompOffStatus("Availed");
+									}else {
+										object.setCompOffStatus("Pending");
+									}
+									object.setLeaveId(compOffLeave.getLeaveId());
+									
+									compOffLeaveRepository.save(object);
+								}
+						}else {
+							object.setCompOffStatus("Pending");
+							compOffLeaveRepository.save(object);
+						}
+					}
+				});
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse convertSingleCompOffApplicationToken() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<CompOffLeave> allCompOffApplication = compOffLeaveRepository.findAll();
+			
+			if(!allCompOffApplication.isEmpty()) {
+				allCompOffApplication.forEach((object) -> {
+					
+					if(!object.getCompOffStatus().equals("Expired")) {
+						if(object.getNoOfDays() > 1f) {
+							Float tempNoOfDays = object.getNoOfDays();
+							LocalDate fromDate = object.getFromDate().plusDays(1);
+							while(tempNoOfDays != 1f) {
+								CompOffLeave leave = new CompOffLeave();
+
+								leave.setEmpId(object.getEmpId());
+								leave.setManagerId(object.getManagerId());
+								leave.setLeaveStatusId(object.getLeaveStatusId());
+								leave.setLeaveCode("CO");
+								leave.setReason(object.getReason());
+								leave.setCreatedBy(object.getCreatedBy());
+								leave.setFromDate(fromDate);
+								leave.setToDate(fromDate);
+								leave.setNoOfDays(1F);
+								leave.setDescription(object.getDescription());
+								leave.setCreatedOn(Timestamp.valueOf(fromDate.atTime(00,00,00)));	
+								
+								compOffLeaveRepository.save(leave);
+								
+								tempNoOfDays = tempNoOfDays - 1;
+								fromDate = fromDate.plusDays(1);
+							}
+							
+							object.setToDate(object.getFromDate());
+							object.setNoOfDays(1F);
+							
+							compOffLeaveRepository.save(object);
+						}
+					}
+				});
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -67,5 +68,12 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<EmployeeLeave> findByFromDateAfterAndLeaveStatusId(LocalDate leaveFromDate, short s);
 
 	public List<EmployeeLeave> findAllByEmpIdAndLeaveTypeMasterId(Long empId, Short leaveTypeMasterId);
+
+	@Query(nativeQuery = true)
+	public List<EmployeeLeave> findLeaveApplicationByCreatedOnDate(Long empId, short leaveTypeMasterId, Timestamp createdOn);
+
+	@Query(nativeQuery = true)
+	public EmployeeLeave findLeaveApplicationByCreatedOnDate(Long empId, short leaveTypeMasterId,
+			LocalDate createdOn);
 
 }
