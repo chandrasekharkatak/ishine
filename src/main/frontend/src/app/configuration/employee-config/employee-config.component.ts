@@ -434,7 +434,6 @@ export class EmployeeConfigComponent implements OnInit {
         if( this.employeeObj.domainList != null){
           this.getDomainSpecialization();
         }
-        this.getDesignationByDeptId(this.employeeObj.departmentId);
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
         
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
@@ -444,6 +443,7 @@ export class EmployeeConfigComponent implements OnInit {
         // Job Role
         if (this.employeeObj.departmentId) {
           this.getJobRolesByDept(this.employeeObj.departmentId, this.employeeObj.jobRoleId);
+          this.getDesignationByDeptId(this.employeeObj.departmentId);
         }
       } else {
         console.error(response.serviceResponse)

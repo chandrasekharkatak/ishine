@@ -310,5 +310,15 @@ public class EmployeeController {
 		}	
 		return response;	
 	}
+	
+	/*Audit APIs*/
+	
+	@RequestMapping(value = "/getEmployeeAuditInfo", method = RequestMethod.GET)
+	public ServiceResponse getEmployeeAuditInfo() {
+
+		ServiceResponse response = employeeService.getEmployeeAuditInfo();
+		return response;
+	}
+	
 
 }

@@ -191,4 +191,6 @@ public class EmployeeDTO {
 	
 	private Long designationId;
 	private String designationName;
+	
+	private String bucketName;
 }

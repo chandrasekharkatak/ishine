@@ -1,16 +1,20 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +51,7 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.PreviousEmployment;
+import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -65,6 +70,10 @@ import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+
+import de.danielbechler.diff.ObjectDifferBuilder;
+import de.danielbechler.diff.node.DiffNode;
+import de.danielbechler.diff.node.Visit;
 
 @Service
 public class EmployeeService {
@@ -140,6 +149,9 @@ public class EmployeeService {
 	
 	@Value("${timesheet.reconcile.days}")
 	private Long timesheetReconcileDays;
+	
+	@Autowired
+	AuditCustomRepository auditCustomRepository;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -3186,6 +3198,176 @@ public class EmployeeService {
 				response.setServiceResponse("Employee email not found");
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse getEmployeeAuditInfo() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<EmployeeDTO> finalList = new ArrayList<>();
+			Map<String,EmployeeDTO> auditList = new HashMap<String,EmployeeDTO>();
+
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+			SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			
+			StringBuilder employeeInfoQuery = new StringBuilder("SELECT e.emp_id, e.aadhar , e.about_me,e.address,e.bank_account_no,e.bankifsccode,e.bank_name,\n"
+					+ "e.blood_group,e.city,e.country,e.date_of_birth,e.date_of_joining,e.email,e.emergency_contact_mobile,\n"
+					+ "e.employmentstatus,e.esic_number,e.father_name,e.gender,e.graduation_type,e.pursuing,e.landline,e.marital_status\n"
+					+ ",e.mobile_no,e.mother_tongue,e.name,e.notice_period,e.alternate_mobile_no,e.pan_number,e.passport_number,\n"
+					+ "e.permanent_address,e.pf_account_number,e.pincode,e.place_of_birth,e.passing_grade,\n"
+					+ "e.previous_pf_account_number,e.relation,e.state,e.uan,e.views_on_organisation,e.year_of_passing,\n"
+					+ "e.pincode as p,e.emergency_contact_person,e.profile_image_name,\n"
+					+ "em.name as manager, j.name as jobrole , d.name as department , d.dept_id , j.job_role_id ,e.manager_id, e.work_location,\n"
+					+ "e.experience, e.role, e.employeement_id, e.probation_period, e.date_of_resign,\n"
+					+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience , e.secondary_email,e.date_of_relieving, e.reporting_manager_id,\n"
+					+ "e.approvals_to,rm.name as reportingManager,e.designation_id,de.designation_name, e.created_on\n"
+					+ "FROM employee_aud e\n"
+					+ "INNER JOIN employee em ON e.manager_id = em.emp_id\n"
+					+ "INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
+					+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+					+ "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id\n"
+					+ "LEFT JOIN designation de ON de.designation_id = e.designation_id\n"
+					+ "WHERE e.emp_id = 1341\n"
+					+ "order by e.created_on");
+			
+			List<Object[]> employeeAudit = auditCustomRepository.readAuditCustomNativeQuery(employeeInfoQuery.toString());
+			
+			
+			for (Object[] object : employeeAudit) {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					
+					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
+					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
+					empDTO.setBankAccountNo(object[4] != null ? object[4].toString() : null);
+					empDTO.setBankIFSCCode(object[5] != null ? object[5].toString() : null);
+					empDTO.setBankName(object[6] != null ? object[6].toString() : null);
+					empDTO.setBloodGroup(object[7] != null ? object[7].toString() : null);
+					empDTO.setCity(object[8] != null ? object[8].toString() : null);
+					empDTO.setCountry(object[9] != null ? object[9].toString() : null);
+					empDTO.setDateOfBirth(
+							object[10] != null ? format.format(format.parse(object[10].toString())) : null);
+					empDTO.setDateOfJoining(
+							object[11] != null ? format.format(format.parse(object[11].toString())) : null);
+					empDTO.setEmail(object[12] != null ? object[12].toString() : null);
+					empDTO.setEmergencyContactMobile(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+					empDTO.setEmploymentstatus(object[14] != null ? object[14].toString() : null);
+					empDTO.setEsicNumber(object[15] != null ? object[15].toString() : null);
+					empDTO.setFatherName(object[16] != null ? object[16].toString() : null);
+					empDTO.setGender(object[17] != null ? object[17].toString() : null);
+					empDTO.setGraduationType(object[18] != null ? object[18].toString() : null);
+					empDTO.setPursuing(object[19] != null ? object[19].toString() : null);
+					empDTO.setLandline(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					empDTO.setMaritalStatus(object[21] != null ? object[21].toString() : null);
+					empDTO.setMobileNo(object[22] != null ? Long.parseLong(object[22].toString()) : null);
+					empDTO.setMotherTongue(object[23] != null ? object[23].toString() : null);
+					empDTO.setName(object[24] != null ? object[24].toString() : null);
+					empDTO.setNoticePeriod(object[25] != null ? Short.parseShort(object[25].toString()) : null);
+					empDTO.setAlternateMobileNo(object[26] != null ? Long.parseLong(object[26].toString()) : null);
+					empDTO.setPanNumber(object[27] != null ? object[27].toString() : null);
+					empDTO.setPassportNumber(object[28] != null ? object[28].toString() : null);
+					empDTO.setPermanentAddress(object[29] != null ? object[29].toString() : null);
+					empDTO.setPfAccountNumber(object[30] != null ? object[30].toString() : null);
+					empDTO.setPincode(object[31] != null ? Integer.parseInt(object[31].toString()) : null);
+					empDTO.setPlaceOfBirth(object[32] != null ? object[32].toString() : null);
+					empDTO.setPassingGrade(object[33] != null ? object[33].toString() : null);
+					empDTO.setPreviousPfAccountNumber(object[34] != null ? object[34].toString() : null);
+					empDTO.setRelation(object[35] != null ? object[35].toString() : null);
+					empDTO.setState(object[36] != null ? object[36].toString() : null);
+					empDTO.setUan(object[37] != null ? object[37].toString() : null);
+					empDTO.setViewsOnOrganisation(object[38] != null ? object[38].toString() : null);
+					empDTO.setYearOfPassing(object[39] != null ? Short.parseShort(object[39].toString()) : null);
+					empDTO.setEmergencyContactPerson(object[41] != null ? object[41].toString() : null);
+					empDTO.setManagerName(object[43] != null ? object[43].toString() : null);
+					empDTO.setJobRoleName(object[44] != null ? object[44].toString() : null);
+					empDTO.setDepartmentName(object[45] != null ? object[45].toString() : null);
+					empDTO.setDepartmentId(object[46] != null ? Long.parseLong(object[46].toString()) : null);
+					empDTO.setJobRoleId(object[47] != null ? Long.parseLong(object[47].toString()) : null);
+					empDTO.setManagerId(object[48] != null ? Long.parseLong(object[48].toString()) : null);
+					empDTO.setWorkLocation(object[49] != null ? (object[49].toString()) : null);
+					empDTO.setExperience(object[50] != null ? (object[50].toString()) : null);
+					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
+					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
+					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
+					empDTO.setDateOfResign(
+							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
+					empDTO.setBillable(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild1(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setChild2(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setChild3(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setMothersName(object[59] != null ? (object[59].toString()) : null);
+					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
+					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
+					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
+					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
+					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
+					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
+					empDTO.setDesignationId(object[67] != null ? Long.parseLong(object[67].toString()) : null);
+					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
+					empDTO.setCreatedOn(
+							object[69] != null ? dateTimeFormat.format(dateTimeFormat.parse(object[69].toString())) : null);
+				
+					finalList.add(empDTO);
+			}
+			
+			
+			for (int i = 0; i < finalList.size() - 1; i++) {
+			    final int currentIndex = i;
+			    if (auditList.isEmpty()) {
+			    	auditList.put(finalList.get(0).getCreatedOn(), finalList.get(0));
+			    } else {
+			        DiffNode diff = ObjectDifferBuilder.buildDefault().compare(finalList.get(currentIndex), finalList.get(currentIndex + 1));
+			        if (diff.hasChanges()) {
+			            EmployeeDTO empDTO = new EmployeeDTO();
+			            diff.visit(new DiffNode.Visitor() {
+			                public void node(DiffNode node, Visit visit) {
+			                    if (!node.hasChildren()) {
+			                        final Object oldValue = node.canonicalGet(finalList.get(currentIndex));
+			                        final Object newValue = node.canonicalGet(finalList.get(currentIndex + 1));
+			                        try {
+			                            Field field = EmployeeDTO.class.getDeclaredField(node.getPropertyName());
+			                            field.setAccessible(true);
+			                            field.set(empDTO, newValue);
+			                            
+			                            if(node.getPropertyName().equals("name") || node.getPropertyName().equals("managerId")
+			                            		|| node.getPropertyName().equals("dateOfJoining") || node.getPropertyName().equals("email")
+			                            		|| node.getPropertyName().equals("jobRoleId") || node.getPropertyName().equals("departmentId")
+			                            		|| node.getPropertyName().equals("reportingManagerId") || node.getPropertyName().equals("designationId") || node.getPropertyName().equals("approvalsTo")) {
+			                            	empDTO.setBucketName("Employment Info Changes");
+			                            }else if(node.getPropertyName().equals("employmentstatus")) {
+			                            	empDTO.setBucketName("Lifecycle Changes");
+			                            }else {
+			                            	empDTO.setBucketName("KYC Update");
+			                            }
+			                            
+			                        } catch (NoSuchFieldException | IllegalAccessException e) {
+			                            e.printStackTrace();
+			                        }
+			                    }
+			                }
+			            });
+			            auditList.put(finalList.get(currentIndex + 1).getCreatedOn(), empDTO);
+			        }
+			    }
+			}
+			
+			
+			StringBuilder teamInfoQuery = new StringBuilder("SELECT etma.employee_team_map_id, etma.active, etma.emp_id, etma.employee_role, etma.start_date, etma.team_id, etma.updated_on, t.created_on, t.team_name, t.team_lead_id, p.project_name FROM employee_team_mapping_aud etma\n"
+					+ "INNER JOIN teams t ON t.team_id = etma.team_id\n"
+					+ "INNER JOIN projects p ON p.project_id = t.project_id\n"
+					+ "WHERE etma.emp_id = 1341");
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(auditList);
+			
+		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

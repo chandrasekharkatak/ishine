@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,6 +21,7 @@ import lombok.ToString;
 @ToString
 @Entity
 @Table(name = "teams")
+@Audited
 public class Team {
 	
 	@Id
