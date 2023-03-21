@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +61,7 @@ import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
@@ -116,6 +118,9 @@ public class EmployeeService {
 	
 	@Autowired
 	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;;
 
 	@Autowired
 	private ModelMapper mapper;
@@ -2543,6 +2548,18 @@ public class EmployeeService {
 				apiLogInfo.setApiResponse("No Hierarchy found");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
+				
+				// Date Range to Check Timesheet
+				int currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
+				
+				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				LocalDate end = LocalDate.now().minusDays(1);
+				
+				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+				
+				// Get Filled EOD Count for Team Members
+				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
@@ -2555,6 +2572,26 @@ public class EmployeeService {
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
+					
+					
+					timesheetList.forEach((timesheet) -> {
+
+						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+						Long employeeEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+
+						if (timesheetEmpId.equals(employeeEmpId)) {
+							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+							Long pendingEodCount = period - filledEodCount;
+
+							if(pendingEodCount >= 3) {
+								dto.setTimesheetStatus("Defaulter");
+							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
+								dto.setTimesheetStatus("Pending Timesheet(s)");
+							}else {
+								dto.setTimesheetStatus("Timesheets upto date");
+							}
+						}
+					});
 					
 					dtoList.add(dto);
 				});
