@@ -1112,6 +1112,7 @@ public class ResourceManagementService {
 					System.out.println(jsonarray  + " : jsonarray \n\n\n");
 					
 					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/sync";
+//					final String syncUrl = "https://poportal.apmosys.com/PoPortal/ishine/sync";
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.postForObject(syncUrl, projectInfo, String.class);
 					
