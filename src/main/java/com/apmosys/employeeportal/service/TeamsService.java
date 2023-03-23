@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -920,6 +921,18 @@ public class TeamsService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
 			} else {
+				
+				// Date Range to Check Timesheet
+				int currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
+				
+				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				LocalDate end = LocalDate.now().minusDays(1);
+				
+				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+				
+				// Get Filled EOD Count for Team Members
+				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
@@ -932,6 +945,26 @@ public class TeamsService {
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()): null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString(): null);
+					
+					timesheetList.forEach((timesheet) -> {
+
+						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+						Long employeeEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+
+						if (timesheetEmpId.equals(employeeEmpId)) {
+							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+							Long pendingEodCount = period - filledEodCount;
+
+							if(pendingEodCount >= 3) {
+								dto.setTimesheetStatus("Defaulter");
+							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
+								dto.setTimesheetStatus("Pending Timesheets : "+ pendingEodCount);
+							}else {
+								dto.setTimesheetStatus("Timesheets upto date");
+							}
+						}
+					});
+					
 					dtoList.add(dto);
 				});
 
