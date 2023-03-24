@@ -254,7 +254,7 @@
 @media (min-width: 1024px){
     .home-container{
         display: grid;
-        grid-template-columns: 60% 8% 34%;
+        grid-template-columns: 60% 6% 34%;
         grid-template-rows: 50px 100px 200px 75px 135px 1fr;
         gap: 0 0.25em;
     }
@@ -288,6 +288,8 @@
         grid-column: 2 / 3;
 
         flex-direction: column;
+
+        height: 99%;
     }
 
     .timesheet-display{
@@ -314,10 +316,6 @@
     .spinner-container{
         height: 100%;
         overflow: hidden;
-    }
-
-    .quick-links{
-        height: 100%;
     }
 
     .request-title{
