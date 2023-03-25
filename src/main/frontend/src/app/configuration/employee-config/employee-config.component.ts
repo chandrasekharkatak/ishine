@@ -1323,6 +1323,10 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     employee.specializationList = this.employeeObj.specializationList;
+    if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
+      employee.reportingManagerId = null;
+      employee.approvalsTo = null;
+    }
 
     if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
       employee.reportingManagerId = null;
