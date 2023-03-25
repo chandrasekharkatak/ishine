@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -157,4 +158,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByRoleIds(List<Long> jobRoleIds);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getManagerByDepartment(Long deptId);
+
+	public List<Employee> findByManagerIdAndGender(Long managerId, Object object);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeByManager(Long managerId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDetailForDSRCron(LocalDate startDate, LocalDate endDate);
 }
