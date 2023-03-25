@@ -1618,7 +1618,7 @@ public class CronJobService {
 						
 						int rowNum = 1;
 
-						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
 						for (Object[] empObj : employeeList) {
 
 							Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;

@@ -1328,6 +1328,11 @@ export class EmployeeConfigComponent implements OnInit {
       employee.approvalsTo = null;
     }
 
+    if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
+      employee.reportingManagerId = null;
+      employee.approvalsTo = null;
+    }
+
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1699,7 +1704,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.cancelRequest();
     this.cancelApplication();
-    this.employeeObj.updateApplicationStatus = 'In-Progress';
+    this.employeeObj.updateApplicationStatus = 'Rejected';
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
