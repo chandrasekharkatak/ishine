@@ -1700,7 +1700,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.cancelRequest();
     this.cancelApplication();
-    this.employeeObj.updateApplicationStatus = 'In-Progress';
+    this.employeeObj.updateApplicationStatus = 'Rejected';
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);

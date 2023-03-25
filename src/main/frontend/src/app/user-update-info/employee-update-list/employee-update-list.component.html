@@ -21,7 +21,7 @@
             <td>{{employee.email}}</td>
             <td>{{employee.updateApplicationStatus}}</td>
             <td>{{employee.createdOn}}</td>
-            <td *ngIf="employee.updateApplicationStatus == 'In-Progress'">
+            <td *ngIf="employee.updateApplicationStatus == 'In-Progress' || employee.updateApplicationStatus == 'Rejected'">
               <button class="btn btn-sm btn-outline-primary" (click)="onEdit()" type="submit"><em
                   class="fa fa-edit"></em></button>&nbsp;
               <button class="btn btn-sm btn-outline-danger" (click)="onDelete()" type="submit"><em
