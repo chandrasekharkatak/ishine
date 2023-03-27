@@ -38,6 +38,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
+import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -3206,11 +3207,14 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse getEmployeeAuditInfo() {
+	public ServiceResponse getEmployeeAuditInfo(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<EmployeeDTO> finalList = new ArrayList<>();
-			Map<String,EmployeeDTO> auditList = new HashMap<String,EmployeeDTO>();
+			Map<String,Object> auditList = new HashMap<String,Object>();
+			Map<String,Object> teamAuditHistory = new HashMap<String,Object>();
+			
+			List<EmployeeDTO> employeeDtoList = new ArrayList<>();
+			List<TeamDTO> teamDtoList = new ArrayList<TeamDTO>();
 
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -3225,20 +3229,22 @@ public class EmployeeService {
 					+ "em.name as manager, j.name as jobrole , d.name as department , d.dept_id , j.job_role_id ,e.manager_id, e.work_location,\n"
 					+ "e.experience, e.role, e.employeement_id, e.probation_period, e.date_of_resign,\n"
 					+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience , e.secondary_email,e.date_of_relieving, e.reporting_manager_id,\n"
-					+ "e.approvals_to,rm.name as reportingManager,e.designation_id,de.designation_name, e.created_on\n"
+					+ "e.approvals_to,rm.name as reportingManager,e.designation_id,de.designation_name, e.created_on,e.updated_by, e.created_by, createdBy.name as createdByName, updatedBy.name as updateByName\n"
 					+ "FROM employee_aud e\n"
 					+ "INNER JOIN employee em ON e.manager_id = em.emp_id\n"
 					+ "INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
 					+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
 					+ "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id\n"
 					+ "LEFT JOIN designation de ON de.designation_id = e.designation_id\n"
-					+ "WHERE e.emp_id = 1341\n"
+					+ "LEFT JOIN employee createdBy ON e.created_by = createdBy.emp_id\n"
+					+ "LEFT JOIN employee updatedBy ON e.updated_by = updatedBy.emp_id\n"
+					+ "WHERE e.emp_id ="+employeedto.getEmpId()+"\n"
 					+ "order by e.created_on");
 			
 			List<Object[]> employeeAudit = auditCustomRepository.readAuditCustomNativeQuery(employeeInfoQuery.toString());
 			
-			
-			for (Object[] object : employeeAudit) {
+			if(!employeeAudit.isEmpty()) {
+				for (Object[] object : employeeAudit) {
 					EmployeeDTO empDTO = new EmployeeDTO();
 					
 					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
@@ -3313,28 +3319,36 @@ public class EmployeeService {
 					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
 					empDTO.setCreatedOn(
 							object[69] != null ? dateTimeFormat.format(dateTimeFormat.parse(object[69].toString())) : null);
-				
-					finalList.add(empDTO);
+					empDTO.setUpdatedBy(object[70] != null ? Long.parseLong(object[70].toString()) : null);
+					empDTO.setCreatedBy(object[71] != null ? Integer.parseInt(object[71].toString()) : null);
+					empDTO.setCreatedByName(object[72] != null ? object[72].toString() : null);
+					empDTO.setUpdatedByName(object[73] != null ? object[73].toString() : null);
+					
+					employeeDtoList.add(empDTO);
+			    }
 			}
 			
-			
-			for (int i = 0; i < finalList.size() - 1; i++) {
+			for (int i = 0; i < employeeDtoList.size() - 1; i++) {
 			    final int currentIndex = i;
 			    if (auditList.isEmpty()) {
-			    	auditList.put(finalList.get(0).getCreatedOn(), finalList.get(0));
-			    } else {
-			        DiffNode diff = ObjectDifferBuilder.buildDefault().compare(finalList.get(currentIndex), finalList.get(currentIndex + 1));
+			    	employeeDtoList.get(0).setBucketName("Employment Info Changes");
+			    	auditList.put(employeeDtoList.get(0).getCreatedOn(), employeeDtoList.get(0));
+			    }
+			        DiffNode diff = ObjectDifferBuilder.buildDefault().compare(employeeDtoList.get(currentIndex), employeeDtoList.get(currentIndex + 1));
 			        if (diff.hasChanges()) {
 			            EmployeeDTO empDTO = new EmployeeDTO();
 			            diff.visit(new DiffNode.Visitor() {
 			                public void node(DiffNode node, Visit visit) {
 			                    if (!node.hasChildren()) {
-			                        final Object oldValue = node.canonicalGet(finalList.get(currentIndex));
-			                        final Object newValue = node.canonicalGet(finalList.get(currentIndex + 1));
+			                        final Object oldValue = node.canonicalGet(employeeDtoList.get(currentIndex));
+			                        final Object newValue = node.canonicalGet(employeeDtoList.get(currentIndex + 1));
 			                        try {
 			                            Field field = EmployeeDTO.class.getDeclaredField(node.getPropertyName());
 			                            field.setAccessible(true);
 			                            field.set(empDTO, newValue);
+			                            
+			                            empDTO.setUpdatedBy(employeeDtoList.get(currentIndex + 1).getUpdatedBy());
+			                            empDTO.setUpdatedByName(employeeDtoList.get(currentIndex + 1).getUpdatedByName());
 			                            
 			                            if(node.getPropertyName().equals("name") || node.getPropertyName().equals("managerId")
 			                            		|| node.getPropertyName().equals("dateOfJoining") || node.getPropertyName().equals("email")
@@ -3353,16 +3367,83 @@ public class EmployeeService {
 			                    }
 			                }
 			            });
-			            auditList.put(finalList.get(currentIndex + 1).getCreatedOn(), empDTO);
+			            auditList.put(employeeDtoList.get(currentIndex + 1).getCreatedOn(), empDTO);
 			        }
-			    }
 			}
 			
 			
-			StringBuilder teamInfoQuery = new StringBuilder("SELECT etma.employee_team_map_id, etma.active, etma.emp_id, etma.employee_role, etma.start_date, etma.team_id, etma.updated_on, t.created_on, t.team_name, t.team_lead_id, p.project_name FROM employee_team_mapping_aud etma\n"
-					+ "INNER JOIN teams t ON t.team_id = etma.team_id\n"
-					+ "INNER JOIN projects p ON p.project_id = t.project_id\n"
-					+ "WHERE etma.emp_id = 1341");
+			StringBuilder teamInfoQuery = new StringBuilder("SELECT etma.employee_team_map_id, etma.active, etma.emp_id, etma.employee_role, etma.start_date, etma.updated_on, etma.team_id, t.team_name, \n"
+					+ " t.team_lead_id, p.project_name, createdBy.name as createdByName, updatedBy.name as updateByName FROM employee_team_mapping_aud etma \n"
+					+ "INNER JOIN teams t ON t.team_id = etma.team_id \n"
+					+ "INNER JOIN projects p ON p.project_id = t.project_id \n"
+					+ "LEFT JOIN employee createdBy ON t.created_by = createdBy.emp_id \n"
+					+ "LEFT JOIN employee updatedBy ON t.updated_by = updatedBy.emp_id \n"
+					+ "WHERE etma.emp_id ="+employeedto.getEmpId());
+			
+			List<Object[]> teamAudit = auditCustomRepository.readAuditCustomNativeQuery(teamInfoQuery.toString());
+			
+			if(!teamAudit.isEmpty()) {
+				for(Object[] teamObject :teamAudit) {
+					TeamDTO teamDTO = new TeamDTO();
+					
+					teamDTO.setEmployeeTeamMapId(teamObject[0] != null ? Long.parseLong(teamObject[0].toString()) : null);
+					teamDTO.setActive(teamObject[1] != null ? teamObject[1].toString() : null);
+					teamDTO.setEmpId(teamObject[2] != null ? Long.parseLong(teamObject[2].toString()) : null);
+					teamDTO.setEmployeeTeamRole(teamObject[3] != null ? teamObject[3].toString() : null);
+					teamDTO.setStartDate(teamObject[4] != null ? dateTimeFormat.format(dateTimeFormat.parse(teamObject[4].toString())) : null);
+					teamDTO.setUpdatedOn(teamObject[5] != null ? dateTimeFormat.format(dateTimeFormat.parse(teamObject[5].toString())) : null);
+					
+					teamDTO.setTeamId(teamObject[6] != null ? Long.parseLong(teamObject[6].toString()) : null);
+					teamDTO.setTeamName(teamObject[7] != null ? teamObject[7].toString() : null);
+					teamDTO.setTeamLeadId(teamObject[8] != null ? Long.parseLong(teamObject[8].toString()) : null);
+					teamDTO.setProjectName(teamObject[9] != null ? teamObject[9].toString() : null);
+					
+					teamDTO.setCreatedByName(teamObject[10] != null ? teamObject[10].toString() : null);
+					teamDTO.setUpdatedByName(teamObject[11] != null ? teamObject[11].toString() : null);		
+					
+					teamDtoList.add(teamDTO);
+				}
+			}
+			
+			if(!teamDtoList.isEmpty()) {
+				for (int i = 0; i < teamDtoList.size() - 1; i++) {
+				    final int currentIndex = i;
+				    
+				    if (teamAuditHistory.isEmpty()) {
+				    	teamDtoList.get(currentIndex).setBucketName("Team/Project Changes");
+				    	teamAuditHistory.put(teamDtoList.get(currentIndex).getStartDate(), teamDtoList.get(currentIndex));
+				    }
+				    	 DiffNode diff = ObjectDifferBuilder.buildDefault().compare(teamDtoList.get(currentIndex), teamDtoList.get(currentIndex + 1));
+					        if (diff.hasChanges()) {
+					        	TeamDTO teamDTO = new TeamDTO();
+					        	
+					            diff.visit(new DiffNode.Visitor() {
+					                public void node(DiffNode node, Visit visit) {
+					                    if (!node.hasChildren()) {
+					                        final Object oldValue = node.canonicalGet(teamDtoList.get(currentIndex));
+					                        final Object newValue = node.canonicalGet(teamDtoList.get(currentIndex + 1));
+					                        try {
+					                            Field field = TeamDTO.class.getDeclaredField(node.getPropertyName());
+					                            field.setAccessible(true);
+					                            field.set(teamDTO, newValue);
+					                            teamDTO.setBucketName("Team/Project Changes");
+					                            
+					                            teamDTO.setTeamName(teamDtoList.get(currentIndex + 1).getTeamName());
+				                            	teamDTO.setProjectName(teamDtoList.get(currentIndex + 1).getProjectName());
+				                            	teamDTO.setUpdatedByName(teamDtoList.get(currentIndex + 1).getUpdatedByName());
+				                            	
+					                        } catch (NoSuchFieldException | IllegalAccessException e) {
+					                            e.printStackTrace();
+					                        }
+					                    }
+					                }
+					            });
+					            teamAuditHistory.put(teamDtoList.get(currentIndex + 1).getStartDate(), teamDTO);
+					        }
+				}
+			}
+			
+			auditList.putAll(teamAuditHistory);
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(auditList);

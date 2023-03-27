@@ -313,10 +313,10 @@ public class EmployeeController {
 	
 	/*Audit APIs*/
 	
-	@RequestMapping(value = "/getEmployeeAuditInfo", method = RequestMethod.GET)
-	public ServiceResponse getEmployeeAuditInfo() {
+	@RequestMapping(value = "/getEmployeeAuditInfo", method = RequestMethod.POST)
+	public ServiceResponse getEmployeeAuditInfo(@RequestBody EmployeeDTO employeedto) {
 
-		ServiceResponse response = employeeService.getEmployeeAuditInfo();
+		ServiceResponse response = employeeService.getEmployeeAuditInfo(employeedto);
 		return response;
 	}
 	
