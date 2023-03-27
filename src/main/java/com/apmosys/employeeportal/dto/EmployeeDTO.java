@@ -193,4 +193,6 @@ public class EmployeeDTO {
 	private String designationName;
 	
 	private String timesheetStatus;
+	
+	private String isAllPolicyMarkAsRead;
 }

@@ -19,4 +19,6 @@ public interface UploadPolicyRepository extends JpaRepository<UploadPolicy, Long
 	@Query(nativeQuery = true)
 	public List<Object[]> findByPolicyID(Long policyID);
 
+	public long countByReadEnabled(String string);
+
 }
