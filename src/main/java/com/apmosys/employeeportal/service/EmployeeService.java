@@ -60,8 +60,10 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
+import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
@@ -120,8 +122,14 @@ public class EmployeeService {
 	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
 	
 	@Autowired
-	TimesheetsRepository timesheetsRepository;;
+	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	private  UploadPolicyRepository uploadPolicyRepository;
 
+	@Autowired
+	PolicyReadResponseRepository policyReadResponseRepository;
+	
 	@Autowired
 	private ModelMapper mapper;
 
@@ -2489,6 +2497,16 @@ public class EmployeeService {
 					employee.setReportingManagerName(object[22] != null ? object[22].toString() : null);
 					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
 				});
+				
+				//Check if user has read all the policy
+				long policyCount = uploadPolicyRepository.countByReadEnabled("true");
+				long empResponseCount = policyReadResponseRepository.countByEmpId(employee.getEmpId());
+				
+				if(policyCount > empResponseCount) {
+					employee.setIsAllPolicyMarkAsRead("false");
+				}else {
+					employee.setIsAllPolicyMarkAsRead("true");
+				}
 				return employee;
 			}
 

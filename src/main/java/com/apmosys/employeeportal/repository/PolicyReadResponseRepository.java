@@ -15,4 +15,6 @@ public interface PolicyReadResponseRepository  extends JpaRepository<PolicyReadR
 	@Query(nativeQuery = true)
 	List<Object[]> getReadPoliciesByEmpId(Long empId);
 
+	long countByEmpId(Long empId);
+
 }

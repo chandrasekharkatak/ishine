@@ -27,6 +27,10 @@ export class PoliciesService {
   getReadPoliciesByEmpId(fileObj:UploadPolicy){
     return this.http.post(`${this.baseUrl}` + `api/getReadPoliciesByEmpId`, fileObj);
 }
+  
+  isAllPolicyRead(policyObj : UploadPolicy) {
+    return this.http.post(`${this.baseUrl}` + `api/isAllPolicyRead`, policyObj);
+  }
 
 
 }
