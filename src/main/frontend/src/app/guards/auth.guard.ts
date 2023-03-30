@@ -33,19 +33,23 @@ export class AuthGuard implements CanActivate {
           return false;
         }
 
-        let policyObj = new UploadPolicy();
-        policyObj.empId = currentUser.empId;
-        this.policiesService.isAllPolicyRead(policyObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            let policy = response.serviceResponse;
+        if (currentUser.isAllPolicyMarkAsRead == 'false') {
+          let policyObj = new UploadPolicy();
+          policyObj.empId = currentUser.empId;
+          this.policiesService.isAllPolicyRead(policyObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              let policy = response.serviceResponse;
 
-            if (currentUser.tabList.find(e => e.tabName === 'HR Policies')) {
-              if(policy.isAllPolicyMarkAsRead == 'false'){
-                this.router.navigate(['/user-policies']);
+              if (currentUser.tabList.find(e => e.tabName === 'HR Policies')) {
+                if (policy.isAllPolicyMarkAsRead == 'false') {
+                  this.router.navigate(['/user-policies']);
+                } else if (policy.isAllPolicyMarkAsRead == 'true') {
+                  currentUser.isAllPolicyMarkAsRead = 'true';
+                }
               }
             }
-          }
-        });
+          });
+        }
         return true;
       }else{
 
