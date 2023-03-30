@@ -2394,18 +2394,16 @@ public class EmployeeService {
 
 			if(!existingEmployeeAadhar.isEmpty()) {
 				existingEmployeeAadhar.forEach((employee) -> {
-					if(!employee.getEmpId().equals(employeedto.getEmpId())) {
+					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Aadhaar Number already exists !!");
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 				});
 			}
 			
 			if(!existingDraftEmployeeAadhar.isEmpty()) {
 				existingDraftEmployeeAadhar.forEach((employee) -> {
-					if(!employee.getDraftEmpId().equals(employeedto.getEmpId())) {
+					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Aadhaar Number already exists !!");
 					}else {
@@ -2425,31 +2423,33 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeePanNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		List<Employee> existingEmployeePan = null;
-		List<DraftEmployee> existingEmployeeDraftPan = null;
-
 		try {
+			
+			if(employeedto.getPanNumber() != null) {
+				List<Employee> existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
+				List<DraftEmployee> existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumber(employeedto.getPanNumber());
 
-			if (employeedto.getEmpId() != null) {
-				existingEmployeePan = employeeRepository.findByPanNumberAndEmpId(employeedto.getPanNumber(),
-						employeedto.getEmpId());
-				existingEmployeeDraftPan = draftEmployeeRepository
-						.findByPanNumberAndDraftEmpId(employeedto.getPanNumber(), employeedto.getEmpId());
-			} else {
-				existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
-				existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumber(employeedto.getPanNumber());
-			}
-
-			if (employeedto.getPanNumber() != null && !existingEmployeePan.isEmpty()) {
+				if(!existingEmployeePan.isEmpty()){
+					for(Employee empObj :existingEmployeePan) {
+						if(!employeedto.getEmployeementId().equals(empObj.getEmployeementId())) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("PAN Number already exist!");
+						}
+					}
+				}
+				
+				if(!existingEmployeeDraftPan.isEmpty()){
+					for(DraftEmployee draftEmpObj :existingEmployeeDraftPan) {
+						if(!employeedto.getEmployeementId().equals(draftEmpObj.getEmployeementId())) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("PAN Number already exist!");
+						}
+					}
+				}
+			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PAN Number already exist!");
-			} else if (employeedto.getPanNumber() != null && !existingEmployeeDraftPan.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PAN Number already exist in Employee Draft!");
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Please enter Pan Number!");
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
