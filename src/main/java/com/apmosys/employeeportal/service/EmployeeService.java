@@ -3351,9 +3351,14 @@ public class EmployeeService {
 			                            empDTO.setUpdatedByName(employeeDtoList.get(currentIndex + 1).getUpdatedByName());
 			                            
 			                            if(node.getPropertyName().equals("name") || node.getPropertyName().equals("managerId")
-			                            		|| node.getPropertyName().equals("dateOfJoining") || node.getPropertyName().equals("email")
+			                            	    || node.getPropertyName().equals("email")
 			                            		|| node.getPropertyName().equals("jobRoleId") || node.getPropertyName().equals("departmentId")
-			                            		|| node.getPropertyName().equals("reportingManagerId") || node.getPropertyName().equals("designationId") || node.getPropertyName().equals("approvalsTo")) {
+			                            		|| node.getPropertyName().equals("reportingManagerId") || node.getPropertyName().equals("designationId")
+			                            		|| node.getPropertyName().equals("approvalsTo") || node.getPropertyName().equals("dateOfBirth")
+			                            		|| node.getPropertyName().equals("experience") || node.getPropertyName().equals("mobileNo")
+			                            		|| node.getPropertyName().equals("noticePeriod") || node.getPropertyName().equals("probationPeriod")
+			                            		|| node.getPropertyName().equals("billable")
+			                            		|| node.getPropertyName().equals("dateOfRelieving")) {
 			                            	empDTO.setBucketName("Employment Info Changes");
 			                            }else if(node.getPropertyName().equals("employmentstatus")) {
 			                            	empDTO.setBucketName("Lifecycle Changes");

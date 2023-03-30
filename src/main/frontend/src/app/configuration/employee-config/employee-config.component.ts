@@ -94,6 +94,8 @@ export class EmployeeConfigComponent implements OnInit {
   storedDataList:any[] = [];
   domainSpecializationList:any[] = [];
   allDesignationList:any[] = [];
+  employeeAuditHistory:any[] = [];
+  filteredEmployeeAuditHistory:any[] = [];
 
   employeeWorkingHistory:[]
   allCertificationList: any[] = [];
@@ -155,6 +157,10 @@ export class EmployeeConfigComponent implements OnInit {
   workHistoryFilters:any = {};
   isworkHistorySearchEnabled:boolean = false;
   employeeWorkhistoryColumns:any[] = ['occasion','dayOfTheWeek','dateOfHoliday','state','createdOn','createdbyName','updatedOn','updatedByName'];
+
+  auditFilters:any = {};
+  isAuditSearchEnabled:boolean = false;
+  employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'blank'];
   
 
   queryList: any[] = [];
@@ -345,8 +351,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.workHistoryFilters = {};
+    this.auditFilters = {};
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
+    this.isAuditSearchEnabled = false;
     this.isDomain = false;
     this.isDomainTable = false;
     this.isDomainCreation = false;
@@ -1883,6 +1891,105 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  // Employee Audit :: start
+
+  getEmployeeAuditInfo(employee:any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>){
+    this.filteredEmployeeAuditHistory = [];
+    this.employeeAuditHistory = [];
+    this.filters = {};
+
+    let employeeObj = new Employee();
+    employeeObj.empId = employee.empId;
+
+    this.employeeService.getEmployeeAuditInfo(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeAuditHistory = response.serviceResponse;
+
+        Object.keys(this.employeeAuditHistory).forEach(key => {
+          let obj = this.employeeAuditHistory[key];
+          Object.keys(obj).forEach(innerKey => {
+            if(obj[innerKey] !== null){
+              let newObj = {
+                "date": key,
+                "field": innerKey,
+                "value": obj[innerKey],
+                "bucketName": obj["bucketName"],
+                "updatedByName": obj["updatedByName"] ? obj["updatedByName"] : null,
+                "createdByName": obj["createdByName"] ? obj["createdByName"] : null,
+                "color": '#FFFFFF'
+              };
+  
+              if(newObj.field !== 'bucketName' && newObj.field !== 'designationId' && newObj.field !== 'jobRoleId'
+               && newObj.field !== 'createdBy' && newObj.field !== 'updatedBy' &&  newObj.field !== 'departmentId'
+               &&  newObj.field !== 'updatedByName' &&  newObj.field !== 'createdOn' &&  newObj.field !== 'createdByName'
+               &&  newObj.field !== 'updatedOn' &&  newObj.field !== 'empId' &&  newObj.field !== 'teamId' &&  newObj.field !== 'employeeTeamMapId'
+               &&  newObj.field !== 'teamLeadId' && newObj.field !== 'reportingManagerId' && newObj.field !== 'managerId'){
+
+                if(newObj.field == 'employmentstatus'){
+                  newObj.bucketName = 'Lifecycle Changes';
+                }
+
+                if(newObj.bucketName == 'Employment Info Changes'){
+                  newObj.color = '#9FE2BF';
+                }else if(newObj.bucketName == 'Lifecycle Changes'){
+                  newObj.color = '#40E0D0';
+                }else if(newObj.bucketName == 'KYC Update'){
+                  newObj.color = '#CCCCFF';
+                }else if(newObj.bucketName == 'Team/Project Changes'){
+                  newObj.color = '#F1948A';
+                }
+
+                if(newObj.field == 'active'){
+                  newObj.value = newObj.value == '1' ? 'Yes' : 'No';
+                }
+
+                if(newObj.field == 'startDate'){
+                  newObj.value = (newObj.value)? moment(newObj.value).format(AppComponent.DATETIME_FORMAT) : null;
+                }
+
+                newObj.date = ( newObj.date)? moment( newObj.date).format(AppComponent.DATETIME_FORMAT) : null;
+
+                if(newObj.field == 'dateOfRelieving' || newObj.field == 'dateOfResign'){
+                  newObj.value = (newObj.value)? moment(newObj.value).format(AppComponent.DATE_FORMAT) : null;
+                }
+
+                const fieldConversion = newObj.field.replace(/([A-Z])/g, " $1");
+                const finalField = fieldConversion.charAt(0).toUpperCase() + fieldConversion.slice(1);
+
+                newObj.field = finalField;
+
+                this.filteredEmployeeAuditHistory.push(newObj);
+              }
+            }
+          });
+        });
+
+        this.filteredEmployeeAuditHistory.sort((a, b) => (b.date > a.date) ? 1 : -1);
+
+        this.filteredEmployeeAuditHistory.forEach((object) => {
+          let date;
+          if(object.bucketName == 'Team/Project Changes'){
+            if(object.field == 'Active' && object.value == 'No'){
+              date = object.date;
+            }
+            let updateField = this.filteredEmployeeAuditHistory.find(x => x.date == date && x.field == 'Start Date');
+              if(updateField){
+                updateField.field = 'End Date';
+              }
+          }
+        });
+
+        this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
+
+        console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
+      } else {
+        console.log(response.serviceResponse, " audit response");
+      }
+    });
+  }
+
+  // Employee Audit :: end
+
   //Doamin & Specialization  :: start
 
   getAllDomain(template?: TemplateRef<any>){
@@ -2195,6 +2302,11 @@ export class EmployeeConfigComponent implements OnInit {
   handlePageChanges(event) {
     this.pageNo = event;
   }
+
+  handleAuditPageChanges(event) {
+    this.pageNo = event;
+  }
+
   handleItemChanges(event) {
     this.pageNo = event;
   }
@@ -2269,9 +2381,18 @@ export class EmployeeConfigComponent implements OnInit {
     this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
   }
 
+  toggleAuditSearch(){
+    this.isAuditSearchEnabled = !this.isAuditSearchEnabled;
+  }
+
   onWorkHistorySearch(searchData){
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
+  }
+
+  onAuditSearch(searchData){
+    this.filters = searchData;
+    console.log("Audit Updated Filter : ", this.filters);
   }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

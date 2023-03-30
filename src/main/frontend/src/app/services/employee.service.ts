@@ -101,6 +101,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeBasicInfo`, employeeObj);
   }
 
+  getEmployeeAuditInfo(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeAuditInfo`, employeeObj);
+  }
+
   /* Profile Image Upload */
   previewImage(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`api/previewImage`,formData);
