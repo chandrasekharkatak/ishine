@@ -608,7 +608,7 @@ public class CronJobService {
 									
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
-									newTimesheet.setDayType("Public Holiday");
+									newTimesheet.setDayType("Public Holiday : " + holidays.getOccasion());
 									newTimesheet.setDescription(holidays.getOccasion());
 									newTimesheet.setEmpId(empId);
 									newTimesheet.setStatus("Approved");

@@ -20,8 +20,10 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -42,6 +44,9 @@ public class HolidayService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
@@ -373,6 +378,78 @@ public class HolidayService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());		
 			
+		}
+		return response;
+	}
+	
+	public ServiceResponse reconsileHolidayTimesheet(HolidayDTO holidayDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			LocalDate holidayDate = LocalDate.parse(holidayDTO.getDateOfHoliday());
+			Holiday holidayObj = holidayRepository.findFirstByDateOfHolidayAndState(holidayDate,"all");
+			
+			List<Employee> allEmployee = employeeRepository.findAll();
+			
+			if(holidayObj != null){
+				if(!allEmployee.isEmpty()) {
+					allEmployee.forEach((emp) -> {
+						
+						if(!emp.getEmploymentstatus().equals("InActive")) {
+							Timesheet timesheetObj = timesheetsRepository.findByEmpIdAndDate(emp.getEmpId(), holidayDate);
+							
+							if(timesheetObj == null) {
+								Timesheet newTimesheet = new Timesheet();
+								
+								newTimesheet.getCommonProperty().setCreatedBy(emp.getEmpId());
+								newTimesheet.setDate(holidayDate);
+								
+								if(holidayObj.getHolidayType().equals("Festival")) {
+									newTimesheet.setDayType("Holiday");
+									newTimesheet.setDescription("Public Holiday : " + holidayObj.getOccasion());
+									newTimesheet.setTotalTime((float)0);
+									newTimesheet.setTotalWorkingHours("0");
+								}
+								
+								if(holidayObj.getHolidayType().equals("WeekOff")) {
+									if(holidayObj.getOccasion().equals("Saturday : second saturday") || holidayObj.getOccasion().equals("Saturday : fourth saturday")) {
+										newTimesheet.setDescription("WeekOff : Saturday");
+										newTimesheet.setDayType("Week Off");
+										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalWorkingHours("0");
+									}else{
+										newTimesheet.setDescription("WeekOff : Sunday");
+										newTimesheet.setDayType("Week Off");
+										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalWorkingHours("0");
+									}
+								}
+								
+								newTimesheet.setEmpId(emp.getEmpId());
+								newTimesheet.setStatus("Approved");
+								
+								Timesheet dbResponse = timesheetsRepository.save(newTimesheet);
+								
+								if(dbResponse != null) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Timesheet Added successfully");
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Unable to add Timesheet");
+								}
+							}
+						}
+					});
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Employee List is empty");
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
