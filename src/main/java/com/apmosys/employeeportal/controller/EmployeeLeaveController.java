@@ -249,5 +249,12 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.pendingForApprovalReconsilation();
 		return response;
 	}
+	
+	@RequestMapping(value = "/reconsileCasualBalance" ,method = RequestMethod.GET)
+	public ServiceResponse reconsileCasualBalance() {
+		
+		ServiceResponse response = employeeLeaveService.reconsileCasualBalance();
+		return response;
+	}
 
 }

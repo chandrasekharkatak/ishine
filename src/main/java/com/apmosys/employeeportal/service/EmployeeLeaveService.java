@@ -2984,4 +2984,82 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		return response;
 	}
 
+	public ServiceResponse reconsileCasualBalance() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Employee> allEmployee = employeeRepository.findAll();
+			
+			List<Employee> json = new ArrayList<>();
+			
+			if(!allEmployee.isEmpty()) {
+				allEmployee.forEach((object) -> {
+					List<LeaveBalanceLog> balanceLogObj = leaveBalanceLogRepository
+							.findLogToReconsile(object.getEmpId(), (short) 2);
+					
+					Float updatedBalance = (float) 0;
+					
+					for(LeaveBalanceLog logObj : balanceLogObj) {
+						String message = logObj.getUpdateBalanceBy();
+						float number = Float.parseFloat(message.replaceAll("[^\\d.]", ""));
+						
+						System.out.println(number + " number \n\n\n");
+						
+						updatedBalance = updatedBalance + number;
+					}
+					
+					EmployeeLeavesMap empLeaveMap = employeeLeavesMapRepository
+							.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short) 2);
+					
+					if(empLeaveMap != null) {
+						empLeaveMap.setBalance(updatedBalance);
+						EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(empLeaveMap);		
+						
+						if(dbResponse != null) {
+							LeaveBalanceLog log = new LeaveBalanceLog();
+
+							log.setBalance(updatedBalance);
+							log.setEmpId(object.getEmpId());
+							log.setLeaveTypeMasterId((short) 2);
+							log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+									Float.toString(updatedBalance)));
+							log.setUpdateBalanceBy("-" + updatedBalance);
+
+							LeaveBalanceLog logResponse = leaveBalanceLogRepository.save(log);
+							
+							if(logResponse != null) {
+								
+//								Employee newObj = new Employee();
+//								newObj.setEmpId(object.getEmpId());
+//								newObj.setEmployeementId(object.getEmployeementId());
+//								newObj.setName(object.getName());
+//								newObj.setPreviousLog(balanceLogObj.get(0).getMessage());
+//								newObj.setNewLog(log.getMessage());
+//								
+//								json.add(newObj);
+								
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Casual Leave recosiled Successfully.");
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to reconsile Casual Leave.");
+							}
+						}
+					}
+					
+				});
+			}
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse1(json);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 }
