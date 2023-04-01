@@ -283,7 +283,8 @@ export class LoginComponent implements OnInit{
       this.user.approvalsTo = user.approvalsTo;
       this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
       this.user.isAllPolicyMarkAsRead = user.isAllPolicyMarkAsRead;
-
+      this.user.notificationConsent = user.notificationConsent;
+      
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

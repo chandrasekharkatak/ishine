@@ -12,4 +12,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllNotications();
 
+	public Notification findByNotificationId(Integer notificationId);
+
+	public List<Notification> findByNotificationTypeAndIsActive(String string, String string2);
+
 }

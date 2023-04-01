@@ -12,6 +12,7 @@ import { NotificationMessage } from 'src/app/models/notification';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -35,9 +36,14 @@ export class HomeConfigComponent implements OnInit {
   isPhotoForm: boolean = false;
   isNotificationForm: boolean = false;
   isTable: boolean = false;
+  isNotificationTable: boolean = false;
+  isNotificationCreate: boolean = false;
+  isNotificationUpdate: boolean = false;
+  isConsentNotificationResponseTable: boolean = false;
 
   //modal 
   alertMessage: any;
+  excelName: any;
   modalRef: BsModalRef = new BsModalRef();
 
   imageObj:EventPhoto = new EventPhoto();  
@@ -46,6 +52,14 @@ export class HomeConfigComponent implements OnInit {
 
   eventImages:any[] = [];
   isPreviewLoaded:boolean = false;
+
+  allNotification:any[] = [];
+  consentNotificationResponse:any[] = [];
+  notificationToBeDeleted:any;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name', 'notificationMessage', 'consentDate'];
 
   notificationObj: NotificationMessage = new NotificationMessage();
 
@@ -57,7 +71,8 @@ export class HomeConfigComponent implements OnInit {
     private imageService: ImageService,
     private sanitizer: DomSanitizer,
     private notificationService: NotificationService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private exportExcelService: ExportExcelService,
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
@@ -96,17 +111,45 @@ export class HomeConfigComponent implements OnInit {
 
     this.isTable = false;
     this.isNotificationForm = false;
+    this.isNotificationTable = false;
+    this.isConsentNotificationResponseTable = false;
     this.reset();
   }
 
   showNotificationForm() {
+    this.isNotificationCreate = true;
     this.isNotificationForm = true;
-    
+
+    this.isNotificationUpdate = false;
+    this.isNotificationTable = false;
+    this.isConsentNotificationResponseTable = false;
     this.isPhotoForm = false;
     this.isTable = false;
     this.reset();
+  }
+
+  showNotificationTable(){
+    this.isNotificationTable = true;
+    this.isNotificationForm = false;
+    
+    this.isPhotoForm = false;
+    this.isConsentNotificationResponseTable = false;
+    this.isTable = false;
 
     this.getAllNotifications();
+  }
+
+  showUpdateNotificationForm(notificationObj:any){
+    this.isNotificationUpdate = true;
+    this.isNotificationForm = true;
+
+    this.isNotificationCreate = false;
+    this.isNotificationTable = false;
+    this.isConsentNotificationResponseTable = false;
+    this.isPhotoForm = false;
+    this.isTable = false;
+
+    this.notificationObj = Object.assign({}, notificationObj);
   }
 
   showTable() {
@@ -114,6 +157,8 @@ export class HomeConfigComponent implements OnInit {
 
     this.isPhotoForm = false;
     this.isNotificationForm = false;
+    this.isNotificationTable = false;
+    this.isConsentNotificationResponseTable = false;
     this.getAllEventPhotos();
   }
 
@@ -246,12 +291,53 @@ export class HomeConfigComponent implements OnInit {
       return false;
     }
 
+    if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationType)){
+      this.alertMessage = "Please select Notification Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    this.notificationObj.createdBy = this.currentUser.empId;
+    this.notificationService.addNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showNotificationTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateNotification(template: TemplateRef<any>) {
+    if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
+      this.alertMessage = "Please enter Notification Message !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(this.notificationObj.notificationMessage.length > 5000){
+      this.alertMessage = "Please enter Valid Notification Message, Use under 5000 characters !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     this.notificationObj.updatedBy = this.currentUser.empId;
     this.notificationService.updateNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.reset();
-        setTimeout(() => {this.getAllNotifications()}, 2000);
+        this.showNotificationTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onDeleteNotification(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    this.notificationToBeDeleted.updatedBy = this.currentUser.empId;
+    this.notificationService.onDeleteNotification(this.notificationToBeDeleted).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showNotificationTable();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -265,13 +351,55 @@ export class HomeConfigComponent implements OnInit {
 
     this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
-        let notificationList:any[] =  response.serviceResponse;
-        console.log("notificationList : ", notificationList);
-        if(notificationList) this.notificationObj = notificationList[0]; 
+        this.allNotification =  response.serviceResponse;
+
+        this.allNotification.forEach((notification) => {
+          notification.createdOn = (notification.createdOn)? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        console.log("notificationList : ", this.allNotification);
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  getConsentNotificationResponse(notificationObj, consentNotificationTemplate: TemplateRef<any>, template: TemplateRef<any>){
+
+    this.notificationService.getConsentNotificationResponse(notificationObj).pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.isConsentNotificationResponseTable = true;
+        this.consentNotificationResponse = response.serviceResponse;
+
+        this.consentNotificationResponse.forEach((object) => {
+          object.employeementId = ("A-").concat(object.employeementId);
+          object.consentOn = (object.consentOn)? moment(object.consentOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.modalRef = this.modalService.show(consentNotificationTemplate, { class: 'modal-lg' });
+        console.log("consentNotificationResponse : ", this.consentNotificationResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  //Export Excel
+  exportToExcel(){
+
+    if(this.isConsentNotificationResponseTable){
+      this.excelName = "consentNotificationResponse.xlsx"
+      const onlySpecificDataArr = this.consentNotificationResponse.map(
+        x => ({
+          "Employment Id": ("A-").concat(x.employeementId),
+          "Employee Name": x.name,
+          "Notification Message": x.notificationMessage,
+          "Consent Date": (x.consentOn)? moment(x.consentOn).format(AppComponent.DATETIME_FORMAT) : null,
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+    }
   }
 
   //modals
@@ -279,6 +407,12 @@ export class HomeConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.imageObj = imageObj;
     console.log(this.imageObj);
+  }
+
+  openDeleteNotificationModal(notificationObj:any, template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.notificationToBeDeleted = notificationObj;
+    console.log(this.notificationObj);
   }
 
   openPreviewEventPhoto(template: TemplateRef<any>, imageObj: any) {
@@ -313,6 +447,15 @@ export class HomeConfigComponent implements OnInit {
       this.sortDirection = sort.direction;      
     }
   }	
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
 }
 
   function compare(a: number | string, b: number | string, isAsc: boolean) {	

@@ -1,6 +1,7 @@
 export class NotificationMessage {
     notificationId : any;	
 	notificationMessage : any;
+	notificationType:any;
 
 	createdOn : any;	
 	createdBy : any;	
@@ -8,4 +9,5 @@ export class NotificationMessage {
 	updatedOn : any;	
 	updatedBy : any;
 	updatedByName : any;
+	empId:any;
 }

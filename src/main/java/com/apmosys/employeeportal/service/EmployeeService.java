@@ -41,16 +41,19 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
+import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -60,6 +63,7 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
+import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -147,6 +151,12 @@ public class EmployeeService {
 	
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	NotificationRepository notificationRepository;
+	
+	@Autowired
+	EmployeeNotificationConsentRepository employeeNotificationConsentRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -2507,6 +2517,23 @@ public class EmployeeService {
 				}else {
 					employee.setIsAllPolicyMarkAsRead("true");
 				}
+				
+				//Check if all Notification consent given.
+				List<Notification> allConsentNotification = notificationRepository
+						.findByNotificationTypeAndIsActive("consentNotification", "true");
+				
+				if(!allConsentNotification.isEmpty()) {
+					for(Notification object: allConsentNotification) {
+						EmployeeNotificationConsent consentObj = employeeNotificationConsentRepository
+								.findByEmpIdAndNotificationId(employee.getEmpId(), object.getNotificationId());
+						
+						if(consentObj == null) {
+							employee.setNotificationConsent(object);
+							break;
+						}
+					}
+				}
+				
 				return employee;
 			}
 

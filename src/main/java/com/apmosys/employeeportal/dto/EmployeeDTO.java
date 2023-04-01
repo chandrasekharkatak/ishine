@@ -195,4 +195,6 @@ public class EmployeeDTO {
 	private String timesheetStatus;
 	
 	private String isAllPolicyMarkAsRead;
+	
+	private Object notificationConsent;
 }

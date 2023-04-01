@@ -27,4 +27,20 @@ export class NotificationService {
   getAllNotifications() {
     return this.http.get(`${this.baseUrl}` + `api/getAllNotifications`);
   }
+
+  getNotificationById(notificationObj: NotificationMessage) {
+    return this.http.post(`${this.baseUrl}` + `api/getNotificationById`, notificationObj);
+  }
+
+  onDeleteNotification(notificationObj: NotificationMessage) {
+    return this.http.post(`${this.baseUrl}` + `api/onDeleteNotification`, notificationObj);
+  }
+
+  submitNotificationConsent(notificationObj: NotificationMessage) {
+    return this.http.post(`${this.baseUrl}` + `api/submitNotificationConsent`, notificationObj);
+  }
+
+  getConsentNotificationResponse(notificationObj: NotificationMessage) {
+    return this.http.post(`${this.baseUrl}` + `api/getConsentNotificationResponse`, notificationObj);
+  }
 }

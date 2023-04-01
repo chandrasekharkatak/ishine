@@ -71,6 +71,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   rejectedLeavesList: any[] = [];
   approvedLeavesList: any[] = [];
   pendingLeavesList: any[] = [];
+  allNotification: any[] = [];
 
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
@@ -92,6 +93,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild('updateInfo')
   private updateInfoTempRef: TemplateRef<any>;
 
+  @ViewChild('consent_notification_template')
+  private consentNotificationTemplate: TemplateRef<any>;
+
   // TOP BAR
   @ViewChild("change_password")
   changePasswordTemplate: TemplateRef<any>;
@@ -107,6 +111,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   newpassword: any;
   errorMsg: any;
   empId: any;
+  consentNotificationMessage: any;
   user: User = new User();
 
   leaveTypes: Leave[] = [];
@@ -118,6 +123,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
     ignoreBackdropClick: true,
     keyboard: false
   };
+
+  consentModalConfig = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard: false,
+    class : 'modal-lg'
+  }
 
   profileCompletedPercentage: any = 0;
 
@@ -198,6 +210,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.currentUser.updateFormCounter = 1;
     }
 
+    if(this.currentUser.isNew == "false"){
+      console.log("this.currentUser : ", this.currentUser);
+      this.openConsentNotificationModal();
+    }
   }
 
   reset() {
@@ -750,20 +766,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
           '#ffe2f8', '#00a0da', '#ffb380', '#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
           '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647', '#c6f5e4', '#e7dbce', '#ccfeff', '#f5f3e9', '#f0f7f7'
         ],
-    });
-  }
-
-  /* Notification */
-  getAllNotifications() {
-    this.eventImages = [];
-    this.notificationService.getAllNotifications().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let notificationList: any[] = response.serviceResponse;
-        console.log("notificationList : ", notificationList);
-        if (notificationList) this.notificationObj = notificationList[0];
-      } else {
-        console.error(response.serviceResponse);
-      }
     });
   }
 
@@ -1572,6 +1574,56 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.errorMsg = 'Password and Confirm Password do not match !!';
       return;
     }
+  }
+
+  //Notification Consent
+
+  getAllNotifications(){
+    this.notificationObj = new NotificationMessage();
+
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.allNotification =  response.serviceResponse;
+
+        this.allNotification.forEach((notification) => {
+          notification.createdOn = (notification.createdOn)? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.allNotification = this.allNotification.filter(x => x.isActive == 'true');
+
+        console.log("notificationList : ", this.allNotification);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  openConsentNotificationModal(){
+    console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
+    
+    if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
+      this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
+      this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+    }
+  }
+
+  submitNotificationConsent(){
+    this.cancelRequest();
+
+    let notificationObj = new NotificationMessage();
+
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.notificationConsent = dtoResponse.notificationConsent;
+        
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.openConsentNotificationModal();
+      }
+    });
   }
 
   sortData(sort: Sort){	
