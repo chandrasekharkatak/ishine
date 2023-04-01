@@ -2,7 +2,7 @@
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_event_photos || userMapping.delete_event_photos" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Event Photos List</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isNotificationTable}" (click)="showNotificationTable()">View Notification</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_notification" [ngClass]="{'active' : isNotificationTable}" (click)="showNotificationTable()">View Notification</button>
     </div>
 </div>
 
@@ -181,9 +181,9 @@
                             <td>{{notification.updatedByName}}</td>
                             <td>{{notification.updatedOn}}</td>
                             <td>
-                                <button *ngIf="notification.isActive == 'true'" class="btn btn-sm btn-outline-primary" type="submit" title="Update Notification" (click)="showUpdateNotificationForm(notification)"><em class="fa fa-edit"></em></button>&nbsp;
-                                <button *ngIf="notification.isActive == 'true'" class="btn btn-sm btn-outline-danger" type="submit" title="Delete Notification" (click)="openDeleteNotificationModal(notification,delete_notification_template)"><em class="fa fa-trash"></em></button>&nbsp;
-                                <button *ngIf="notification.notificationType == 'consentNotification'" class="btn btn-sm btn-outline-primary" type="submit" title="View Response" (click)="getConsentNotificationResponse(notification, consent_notification_response_template, alert_message)"><em class="fa fa-eye"></em></button>
+                                <button *ngIf="userMapping.update_notification && notification.isActive == 'true'" class="btn btn-sm btn-outline-primary" type="submit" title="Update Notification" (click)="showUpdateNotificationForm(notification)"><em class="fa fa-edit"></em></button>&nbsp;
+                                <button *ngIf="userMapping.delete_notification && notification.isActive == 'true'" class="btn btn-sm btn-outline-danger" type="submit" title="Delete Notification" (click)="openDeleteNotificationModal(notification,delete_notification_template)"><em class="fa fa-trash"></em></button>&nbsp;
+                                <button *ngIf="userMapping.view_notification_response && notification.notificationType == 'consentNotification'" class="btn btn-sm btn-outline-primary" type="submit" title="View Response" (click)="getConsentNotificationResponse(notification, consent_notification_response_template, alert_message)"><em class="fa fa-eye"></em></button>
                             </td>
                           </tr>
                         </tbody>
