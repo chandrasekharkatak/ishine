@@ -16,6 +16,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { AngularEditorConfig } from '@kolkov/angular-editor';
 
 @Component({
   selector: 'app-home-config',
@@ -56,12 +57,35 @@ export class HomeConfigComponent implements OnInit {
   allNotification:any[] = [];
   consentNotificationResponse:any[] = [];
   notificationToBeDeleted:any;
+  notificationResponseView: any;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
   consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name', 'notificationMessage', 'consentDate'];
 
   notificationObj: NotificationMessage = new NotificationMessage();
+
+  //Angular Editor
+
+  editorConfig: AngularEditorConfig = {
+    editable: true,
+      spellcheck: true,
+      height: 'auto',
+      minHeight: '0',
+      maxHeight: 'auto',
+      width: 'auto',
+      minWidth: '0',
+      translate: 'yes',
+      enableToolbar: true,
+      showToolbar: true,
+      placeholder: 'Enter text here...',
+      defaultParagraphSeparator: '',
+      defaultFontName: '',
+      defaultFontSize: '',
+    uploadWithCredentials: false,
+    sanitize: true,
+    toolbarPosition: 'top'
+};
 
   constructor(
     private validationService: ValidationService,
@@ -298,6 +322,7 @@ export class HomeConfigComponent implements OnInit {
     }
 
     this.notificationObj.createdBy = this.currentUser.empId;
+    
     this.notificationService.addNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -366,6 +391,7 @@ export class HomeConfigComponent implements OnInit {
   }
 
   getConsentNotificationResponse(notificationObj, consentNotificationTemplate: TemplateRef<any>, template: TemplateRef<any>){
+    this.notificationResponseView = notificationObj;
 
     this.notificationService.getConsentNotificationResponse(notificationObj).pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
@@ -389,16 +415,18 @@ export class HomeConfigComponent implements OnInit {
   exportToExcel(){
 
     if(this.isConsentNotificationResponseTable){
-      this.excelName = "consentNotificationResponse.xlsx"
-      const onlySpecificDataArr = this.consentNotificationResponse.map(
-        x => ({
-          "Employment Id": ("A-").concat(x.employeementId),
-          "Employee Name": x.name,
-          "Notification Message": x.notificationMessage,
-          "Consent Date": (x.consentOn)? moment(x.consentOn).format(AppComponent.DATETIME_FORMAT) : null,
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      this.excelName = "consentNotificationResponse.xlsx";
+      
+      const temp = document.createElement('div');
+      temp.innerHTML = this.notificationResponseView.notificationMessage;
+      let notificationMessage = temp.textContent;
+
+      const dataArr = [["Notification Message : ", notificationMessage, "", ""],
+      ["Employment Id", "Employee Name", "Consent Date"],
+      ...this.consentNotificationResponse.map(x => [x.employeementId, x.name, (x.consentOn) ? moment(x.consentOn).format(AppComponent.DATETIME_FORMAT) : null])
+      ];
+
+      this.exportExcelService.exportTableDataToExcelWithDescription(dataArr, this.excelName);
     }
   }
 

@@ -100,11 +100,18 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6 mb-0">
+                <!-- <div class="col-md-6 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Notification Message</label>
                             <textarea class="form-control" id="notificationMsg" maxlength="5000" rows="1" [(ngModel)]="notificationObj.notificationMessage"></textarea>
+                        </div>
+                    </div>
+                </div> -->
+                 <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <angular-editor id="myEditor" rows="2" [(ngModel)]="notificationObj.notificationMessage" [config]="editorConfig"></angular-editor>
                         </div>
                     </div>
                 </div>
@@ -157,7 +164,7 @@
                         <thead class="thead-light" id="notificationInfoTHead">
                           <tr id="notificationInfoTHeadTr">
                             <th scope="col" class="info-label">Sr No.</th>
-                            <th scope="col" class="info-label" mat-sort-header="notificationMessage|string">Notification Message</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="notificationMessage|string">Notification Message</th>
                             <th scope="col" class="info-label" mat-sort-header="notificationType|string">Notification Type</th>
                             <th scope="col" class="info-label" mat-sort-header="isActive|string">Active</th>
                             <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
@@ -173,7 +180,7 @@
                             </tr>
                           <tr *ngFor="let notification of allNotification | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <th class="info-label">{{20*(page-1)+i+1}}</th>
-                            <td>{{notification.notificationMessage}}</td>
+                            <td [innerHTML]="notification.notificationMessage"></td>
                             <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : 'Notification'}}</td>
                             <td>{{notification.isActive == 'true' ? 'Yes' : 'No'}}</td>
                             <td>{{notification.createdByName}}</td>
@@ -259,7 +266,6 @@
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
                 <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
-                <th scope="col" class="info-label" mat-sort-header="notificationMessage|string">Notification Message</th>
                 <th scope="col" class="info-label" mat-sort-header="consentOn|date">Consent Date</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="consentNotificationResponseColumns" (onSearch)="onSearch($event);page=1" ></tr>
@@ -272,7 +278,6 @@
                 <td>{{20*(page-1)+i+1}}</td>
                 <td>{{consent.employeementId}}</td>
                 <td>{{consent.name}}</td>
-                <td>{{consent.notificationMessage}}</td>
                 <td>{{consent.consentOn}}</td>
               </tr>
             </tbody>

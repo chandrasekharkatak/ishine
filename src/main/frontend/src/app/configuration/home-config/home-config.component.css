@@ -37,3 +37,15 @@
 .info-label{
     width: 450px;
 }
+
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Image"],
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Video"],
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Link"],
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Unlink"]{
+    display: none
+}
+
+.wide-col{
+    word-wrap: break-word;
+    min-width: 350px;
+}
