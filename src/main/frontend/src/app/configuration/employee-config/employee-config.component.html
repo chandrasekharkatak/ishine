@@ -960,10 +960,10 @@
                                         class="btn btn-sm btn-outline-danger mb-1" type="submit"
                                         (click)="openDeleteEmployee(delete_template,employee)"><em
                                             class="fa fa-trash"></em></button>&nbsp;
-                                    <button type="submit"
+                                    <!-- <button type="submit"
                                         (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
                                         class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
-                                            aria-hidden="true"></i></button>&nbsp;
+                                            aria-hidden="true"></i></button>&nbsp; -->
                                     <button
                                         *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"

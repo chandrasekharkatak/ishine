@@ -405,7 +405,7 @@ public class HolidayService {
 								newTimesheet.setDate(holidayDate);
 								
 								if(holidayObj.getHolidayType().equals("Festival")) {
-									newTimesheet.setDayType("Holiday");
+									newTimesheet.setDayType("Public Holiday");
 									newTimesheet.setDescription("Public Holiday : " + holidayObj.getOccasion());
 									newTimesheet.setTotalTime((float)0);
 									newTimesheet.setTotalWorkingHours("0");

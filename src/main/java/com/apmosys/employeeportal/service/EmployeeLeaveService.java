@@ -308,7 +308,7 @@ public class EmployeeLeaveService {
 				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 				    if(!empTimeSheet.isEmpty()) {
 				    empTimeSheet.forEach((timesheet)->{
-				    	
+				     	
 				    	List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository.getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
 				    	
 				    	timesheetactivities.forEach((timesheetactivity)->{
@@ -317,7 +317,9 @@ public class EmployeeLeaveService {
 
 				    	});
 				    	
-				    	timesheetsRepository.deleteById(timesheet.getTimesheetId());
+				    	if(!timesheet.getDayType().equals("Public Holiday") && !timesheet.getDayType().equals("Week Off")) {
+				    		timesheetsRepository.deleteById(timesheet.getTimesheetId());				    		
+				    	}
 				    });
 				    }
 				    //after timesheet deletion
