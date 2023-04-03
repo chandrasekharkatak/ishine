@@ -865,6 +865,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
+        allActivityList = allActivityList.sort((a, b) =>  a.activity.localeCompare(b.activity));
         console.log("Team name :  ", timesheetObj.teamName);
         console.log("allActivityList :", allActivityList);
         if(this.timesheetObj.timesheetAppliedFor == "team"){

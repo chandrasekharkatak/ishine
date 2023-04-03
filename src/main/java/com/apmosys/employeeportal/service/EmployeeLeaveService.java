@@ -1182,54 +1182,52 @@ public class EmployeeLeaveService {
 					leaveDTO.getEmployeeLeaveList().forEach((dto) -> {
 
 						if (leave.getLeaveTypeMasterId() == dto.getLeaveTypeMasterId()) {
-
-							if (leave.getBalance() == 0) {
-								// set leaves to newly created employee when his/her bucket is 0.0 for all leave
-								// types
-								LeaveBalanceLog log = new LeaveBalanceLog();
-								log.setBalance(dto.getBalance());
-								log.setEmpId(leaveDTO.getEmpId());
-								log.setLeaveTypeMasterId(dto.getLeaveTypeMasterId());
-								log.setMessage(
-										LeaveLogMessage.adminAddLeave.replace("0.0", dto.getBalance().toString()));
-								log.setUpdateBalanceBy("+" + dto.getBalance());
-								leaveBalanceLogRepository.save(log);
-
-								leave.setBalance(dto.getBalance());
-							} else {
-
-								if (dto.getBalance().equals(leave.getBalance())) {
-									// No change in balance leave
-									leave.setBalance(dto.getBalance());
-								} else {
-
+							if(dto.getBalance() != 0) {
+								if (leave.getBalance() == 0) {
+									// set leaves to newly created employee when his/her bucket is 0.0 for all leave
+									// types
 									LeaveBalanceLog log = new LeaveBalanceLog();
 									log.setBalance(dto.getBalance());
 									log.setEmpId(leaveDTO.getEmpId());
 									log.setLeaveTypeMasterId(dto.getLeaveTypeMasterId());
-
-									if (dto.getBalance() > leave.getBalance()) {
-										// leave added to bucket balance
-										Float change = dto.getBalance() - leave.getBalance();
-										log.setMessage(LeaveLogMessage.adminAddLeave.replace("0.0", change.toString()));
-										log.setUpdateBalanceBy("+" + change);
-
-									} else if (dto.getBalance() < leave.getBalance()) {
-										// leave deducted from bucket balance
-										Float change = dto.getBalance() - leave.getBalance();
-										log.setMessage(
-												LeaveLogMessage.adminDeductLeave.replace("0.0", (change * -1) + ""));
-										log.setUpdateBalanceBy(change.toString());
-									}
-									leave.setBalance(dto.getBalance());
+									log.setMessage(
+											LeaveLogMessage.adminAddLeave.replace("0.0", dto.getBalance().toString()));
+									log.setUpdateBalanceBy("+" + dto.getBalance());
 									leaveBalanceLogRepository.save(log);
+
+									leave.setBalance(dto.getBalance());
+								} else {
+
+									if (dto.getBalance().equals(leave.getBalance())) {
+										// No change in balance leave
+										leave.setBalance(dto.getBalance());
+									} else {
+
+										LeaveBalanceLog log = new LeaveBalanceLog();
+										log.setBalance(dto.getBalance());
+										log.setEmpId(leaveDTO.getEmpId());
+										log.setLeaveTypeMasterId(dto.getLeaveTypeMasterId());
+
+										if (dto.getBalance() > leave.getBalance()) {
+											// leave added to bucket balance
+											Float change = dto.getBalance() - leave.getBalance();
+											log.setMessage(LeaveLogMessage.adminAddLeave.replace("0.0", change.toString()));
+											log.setUpdateBalanceBy("+" + change);
+
+										} else if (dto.getBalance() < leave.getBalance()) {
+											// leave deducted from bucket balance
+											Float change = dto.getBalance() - leave.getBalance();
+											log.setMessage(
+													LeaveLogMessage.adminDeductLeave.replace("0.0", (change * -1) + ""));
+											log.setUpdateBalanceBy(change.toString());
+										}
+										leave.setBalance(dto.getBalance());
+										leaveBalanceLogRepository.save(log);
+									}
 								}
 							}
-
 						}
-
 					});
-
 				});
 			}
 
