@@ -10,17 +10,21 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -42,6 +46,9 @@ public class DepartmentService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	EmployeeRepository employeeRepository;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -311,11 +318,54 @@ public class DepartmentService {
 					JobRole dbResponse = jobRoleRepository.save(jobrole);
 
 					if (dbResponse != null) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Department Deleted");
 						
-						apiLogInfo.setApiResponse("Department Deleted");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+//						http://192.168.21.175:8080/ishine/updateDepartment/{id}
+//							Type: POST
+//							PathVariable : id of department to be deleted
+//							RequestBody:  New department to be replaced in place of deleted one.
+//							{
+//							    "deptId":10,
+//							    "deptName":"development",
+//							    "hodId":234
+//							}
+						
+						//Sync Deleted Dept with PoPortal
+						Department deptObj = departmentRepository.findByDeptId(departmentDTO.getDeptId());
+						
+						if(deptObj != null) {
+							Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
+							
+							DepartmentDTO syncObject = new DepartmentDTO();
+							syncObject.setDeptId(deptObj.getDeptId());
+							syncObject.setDeptName(deptObj.getName());
+							syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
+							
+							final String syncUrl = "http://192.168.21.175:8080/ishine/updateDepartment/{id}";
+							RestTemplate restTemplate = new RestTemplate();
+							String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
+							
+							JSONObject json = new JSONObject(syncResponse);
+							
+							if(json.getInt("httpStatusCode") == 200) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Department Deleted & Synced with PoPortal");
+								
+								apiLogInfo.setApiResponse("Department Deleted & Synced with PoPortal");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Department Deleted, but unable to Sync with PoPortal");
+								
+								apiLogInfo.setApiResponse("Department Deleted, but unable to Sync with PoPortal");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+							}
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Department Deleted, but unable to Sync with PoPortal");
+							
+							apiLogInfo.setApiResponse("Department Deleted, but unable to Sync with PoPortal");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+						}
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Job Role Updation Failed.");
