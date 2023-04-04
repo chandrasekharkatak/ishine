@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
@@ -59,9 +60,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
@@ -163,6 +168,12 @@ public class CronJobService {
 	
 	@Autowired
 	ClientsRepository clientsRepository;
+	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
@@ -2080,6 +2091,69 @@ public class CronJobService {
 						}
 					}
 				});	
+			}
+		}
+		
+//		0 0 2 ? * * : At 02:00:00am every day
+		@Async
+		@Scheduled(cron = "0 0 2 ? * *")
+		public void updateProjectStatus() {
+			LogDTO apiLogInfo = new LogDTO();
+			apiLogInfo.setSubFeatureName("Update Project Status CronJob");
+			apiLogInfo.setApiUrl("updateProjectStatus");
+			apiLogInfo.setLogLevel("INFO");
+			StringBuilder logBuilder = new StringBuilder();
+			
+			try {
+				
+				OkHttpClient client = new OkHttpClient();
+				Request request = new Request.Builder()
+				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .get()
+				  .addHeader("accept", "application/json")
+				  .build();
+				Response httpResponse = client.newCall(request).execute();
+				String jsonData = httpResponse.body().string();
+				JSONArray jsonArr = new JSONArray(jsonData);
+				
+				for (int i = 0; i < jsonArr.length(); i++) {
+			        JSONObject jsonObj = jsonArr.getJSONObject(i);
+			        Long poProjectId = jsonObj.getLong("id");
+			        
+			        if(jsonObj.getString("status").equals("Completed")){
+			        	Project projectObj = projectRepository.findByPoProjectId(poProjectId);
+			        	
+			        	if(projectObj != null) {
+			        		logBuilder.append("PoProject Id : " + poProjectId + "Project Name : " + projectObj.getProjectName() + "projectId : " + projectObj.getProjectId());
+				        	
+				        	projectObj.setActive("false");
+				        	
+				        	Project dbResponse = projectRepository.save(projectObj);
+				        	
+				        	if(dbResponse != null) {
+				        		apiLogInfo.setApiResponse("Project Status Updated Successfully.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				        	}else {
+				        		apiLogInfo.setApiResponse("Unable to Update Project Status." + "projectId : " + projectObj.getProjectId());
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				        	}
+			        	}else {
+			        		apiLogInfo.setApiResponse("Unable to find Project." + "poProjectId : " + poProjectId);
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			        	}
+			        }
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+			}
+			
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+			if (attributes != null) {
+			    HttpServletRequest request = ((ServletRequestAttributes) attributes).getRequest();
+			    logService.logMyInfo(request, apiLogInfo);
 			}
 		}
 }	
