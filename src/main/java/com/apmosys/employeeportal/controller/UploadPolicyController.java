@@ -89,6 +89,14 @@ public class UploadPolicyController {
 		return response;
 		
 	}
+	
+	@RequestMapping(value = "/isAllPolicyRead", method = RequestMethod.POST)
+	public ServiceResponse isAllPolicyRead(@RequestBody UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = uploadPolicyService.isAllPolicyRead(uploadPolicyDTO);
+
+		return response;
+		
+	}
 
 	
 

@@ -282,7 +282,9 @@ export class LoginComponent implements OnInit{
       this.user.reportingManagerEmail = user.reportingManagerEmail;
       this.user.approvalsTo = user.approvalsTo;
       this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
-
+      this.user.isAllPolicyMarkAsRead = user.isAllPolicyMarkAsRead;
+      this.user.notificationConsent = user.notificationConsent;
+      
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));
@@ -308,6 +310,13 @@ export class LoginComponent implements OnInit{
       }else{
         this.router.navigate(['/home']);
       }
+
+      if (this.user.tabList.find(e => e.tabName === 'HR Policies')) {
+        if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
+          this.router.navigate(['/user-policies']);
+        }
+      }
+      
       this.authenticationService.startUserSessionCheck();
       }
     } else {

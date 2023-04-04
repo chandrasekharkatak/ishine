@@ -977,27 +977,27 @@ export class EmployeeConfigComponent implements OnInit {
       }
     }
 
-    if(this.isUpdation){
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.domainList)) {
-        this.alertMessage = "Please select Domain !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }else if(employeeObj.domainList.length == 0){
-        this.alertMessage = "Please select Domain !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+    // if(this.isUpdation){
+    //   if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.domainList)) {
+    //     this.alertMessage = "Please select Domain !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }else if(employeeObj.domainList.length == 0){
+    //     this.alertMessage = "Please select Domain !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }
   
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.specializationList)) {
-        this.alertMessage = "Please select Specialization(s) !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }else if(employeeObj.specializationList.length == 0){
-        this.alertMessage = "Please select Specialization(s) !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    }
+    //   if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.specializationList)) {
+    //     this.alertMessage = "Please select Specialization(s) !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }else if(employeeObj.specializationList.length == 0){
+    //     this.alertMessage = "Please select Specialization(s) !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }
+    // }
 
     // if (this.validationService.validateNullUndefinedEmptyString(employeeObj.bankName) && !this.validationService.validateAlphaWithSpace(employeeObj.bankName)) {
     //   this.alertMessage = "Please enter Valid Bank Name !!"
@@ -1340,6 +1340,15 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
     employee.specializationList = this.employeeObj.specializationList;
+    if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
+      employee.reportingManagerId = null;
+      employee.approvalsTo = null;
+    }
+
+    if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
+      employee.reportingManagerId = null;
+      employee.approvalsTo = null;
+    }
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1712,7 +1721,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.cancelRequest();
     this.cancelApplication();
-    this.employeeObj.updateApplicationStatus = 'In-Progress';
+    this.employeeObj.updateApplicationStatus = 'Rejected';
     this.employeeObj.updatedBy = this.currentUser.empId ;
     if(this.employeeObj.documentList){
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);

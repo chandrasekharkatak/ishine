@@ -1,4 +1,4 @@
-import { Component, OnInit,TemplateRef } from '@angular/core';
+import { AfterViewInit, Component, OnInit,TemplateRef, ViewChild } from '@angular/core';
 import { User } from 'src/app/models/user';
 import { PoliciesService } from '../services/policies.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -23,8 +23,12 @@ import { AppComponent } from '../app.component';
   templateUrl: './user-policies.component.html',
   styleUrls: ['./user-policies.component.css']
 })
-export class UserPoliciesComponent implements OnInit {
+export class UserPoliciesComponent implements OnInit, AfterViewInit {
   currentUser: User;
+
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
+
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -55,6 +59,13 @@ export class UserPoliciesComponent implements OnInit {
     this.getAllDocuments();
     this.preventBackButton();
   }
+
+  ngAfterViewInit(): void {
+    if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
+      this.openAlertMod(this.alertTemplate, "Please read all the policies and mark them as read to proceed further.")
+    }
+  }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{

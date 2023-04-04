@@ -340,12 +340,12 @@ export class InformationPreviewComponent implements OnInit {
           certFlag = false;
           return;
         }
-        if(!this.validationService.validateAlphabetAtLeastTwoCharacter(certification.certificationName)){
-          this.alertMessage = `Please Enter valid Certification Name - ${index+1}!!`;
-          this.openAlertMod(template, this.alertMessage);
-          certFlag = false;
-          return;
-        }
+        // if(!this.validationService.validateAlphabetAtLeastTwoCharacter(certification.certificationName)){
+        //   this.alertMessage = `Please Enter valid Certification Name - ${index+1}!!`;
+        //   this.openAlertMod(template, this.alertMessage);
+        //   certFlag = false;
+        //   return;
+        // }
 
         if(!this.validationService.validateNullUndefinedEmptyString(certification.duration)){
           this.alertMessage = `Please Select Duration - ${index+1}!!`;

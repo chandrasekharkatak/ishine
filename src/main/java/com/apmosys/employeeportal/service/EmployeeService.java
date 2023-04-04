@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,17 +46,20 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
+import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -65,7 +69,11 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
+import com.apmosys.employeeportal.repository.NotificationRepository;
+import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
@@ -126,7 +134,16 @@ public class EmployeeService {
 	
 	@Autowired
 	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
+	
+	@Autowired
+	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	private  UploadPolicyRepository uploadPolicyRepository;
 
+	@Autowired
+	PolicyReadResponseRepository policyReadResponseRepository;
+	
 	@Autowired
 	private ModelMapper mapper;
 
@@ -144,6 +161,12 @@ public class EmployeeService {
 	
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	NotificationRepository notificationRepository;
+	
+	@Autowired
+	EmployeeNotificationConsentRepository employeeNotificationConsentRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -1370,6 +1393,34 @@ public class EmployeeService {
 				Employee dbResponse = employeeRepository.save(employee);
 
 				if (dbResponse != null) {
+					
+					//Update Draft
+					DraftEmployee draftEmployee = draftEmployeeRepository.findByEmployeementId(dbResponse.getEmployeementId());
+					
+					if(draftEmployee != null) {
+						draftEmployee.setName(dbResponse.getName());
+						draftEmployee.setDateOfBirth(dbResponse.getDateOfBirth());
+						draftEmployee.setDateOfJoining(dbResponse.getDateOfJoining());
+						draftEmployee.setManagerId(dbResponse.getManagerId());
+						draftEmployee.setEmail(dbResponse.getEmail());
+						draftEmployee.setMobileNo(dbResponse.getMobileNo());
+						draftEmployee.setNoticePeriod(dbResponse.getNoticePeriod());
+						draftEmployee.setEmploymentstatus(dbResponse.getEmploymentstatus());
+						draftEmployee.setJobRoleId(dbResponse.getJobRoleId());
+						draftEmployee.setExperience(dbResponse.getExperience());
+						draftEmployee.setRole(dbResponse.getRole());
+						draftEmployee.setWorkLocation(dbResponse.getWorkLocation());
+						draftEmployee.setUpdatedBy(Integer.parseInt(dbResponse.getUpdatedBy().toString()));
+						draftEmployee.setBillable(dbResponse.getBillable());
+						draftEmployee.setTotalExperience(dbResponse.getTotalExperience());
+						draftEmployee.setUpdatedOn(dbResponse.getUpdatedOn());
+						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
+						draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
+						draftEmployee.setDesignationId(dbResponse.getDesignationId());
+						
+						draftEmployeeRepository.save(draftEmployee);
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee Profile Updated.");
 					
@@ -2366,18 +2417,16 @@ public class EmployeeService {
 
 			if(!existingEmployeeAadhar.isEmpty()) {
 				existingEmployeeAadhar.forEach((employee) -> {
-					if(!employee.getEmpId().equals(employeedto.getEmpId())) {
+					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Aadhaar Number already exists !!");
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 				});
 			}
 			
 			if(!existingDraftEmployeeAadhar.isEmpty()) {
 				existingDraftEmployeeAadhar.forEach((employee) -> {
-					if(!employee.getDraftEmpId().equals(employeedto.getEmpId())) {
+					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Aadhaar Number already exists !!");
 					}else {
@@ -2397,31 +2446,33 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeePanNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		List<Employee> existingEmployeePan = null;
-		List<DraftEmployee> existingEmployeeDraftPan = null;
-
 		try {
+			
+			if(employeedto.getPanNumber() != null) {
+				List<Employee> existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
+				List<DraftEmployee> existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumber(employeedto.getPanNumber());
 
-			if (employeedto.getEmpId() != null) {
-				existingEmployeePan = employeeRepository.findByPanNumberAndEmpId(employeedto.getPanNumber(),
-						employeedto.getEmpId());
-				existingEmployeeDraftPan = draftEmployeeRepository
-						.findByPanNumberAndDraftEmpId(employeedto.getPanNumber(), employeedto.getEmpId());
-			} else {
-				existingEmployeePan = employeeRepository.findByPanNumber(employeedto.getPanNumber());
-				existingEmployeeDraftPan = draftEmployeeRepository.findByPanNumber(employeedto.getPanNumber());
-			}
-
-			if (employeedto.getPanNumber() != null && !existingEmployeePan.isEmpty()) {
+				if(!existingEmployeePan.isEmpty()){
+					for(Employee empObj :existingEmployeePan) {
+						if(!employeedto.getEmployeementId().equals(empObj.getEmployeementId())) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("PAN Number already exist!");
+						}
+					}
+				}
+				
+				if(!existingEmployeeDraftPan.isEmpty()){
+					for(DraftEmployee draftEmpObj :existingEmployeeDraftPan) {
+						if(!employeedto.getEmployeementId().equals(draftEmpObj.getEmployeementId())) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("PAN Number already exist!");
+						}
+					}
+				}
+			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PAN Number already exist!");
-			} else if (employeedto.getPanNumber() != null && !existingEmployeeDraftPan.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PAN Number already exist in Employee Draft!");
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Please enter Pan Number!");
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2469,6 +2520,33 @@ public class EmployeeService {
 					employee.setReportingManagerName(object[22] != null ? object[22].toString() : null);
 					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
 				});
+				
+				//Check if user has read all the policy
+				long policyCount = uploadPolicyRepository.countByReadEnabled("true");
+				long empResponseCount = policyReadResponseRepository.countByEmpId(employee.getEmpId());
+				
+				if(policyCount > empResponseCount) {
+					employee.setIsAllPolicyMarkAsRead("false");
+				}else {
+					employee.setIsAllPolicyMarkAsRead("true");
+				}
+				
+				//Check if all Notification consent given.
+				List<Notification> allConsentNotification = notificationRepository
+						.findByNotificationTypeAndIsActive("consentNotification", "true");
+				
+				if(!allConsentNotification.isEmpty()) {
+					for(Notification object: allConsentNotification) {
+						EmployeeNotificationConsent consentObj = employeeNotificationConsentRepository
+								.findByEmpIdAndNotificationId(employee.getEmpId(), object.getNotificationId());
+						
+						if(consentObj == null) {
+							employee.setNotificationConsent(object);
+							break;
+						}
+					}
+				}
+				
 				return employee;
 			}
 
@@ -2528,6 +2606,18 @@ public class EmployeeService {
 				apiLogInfo.setApiResponse("No Hierarchy found");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
+				
+				// Date Range to Check Timesheet
+				int currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
+				
+				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				LocalDate end = LocalDate.now().minusDays(1);
+				
+				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+				
+				// Get Filled EOD Count for Team Members
+				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
@@ -2540,6 +2630,26 @@ public class EmployeeService {
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
+					
+					
+					timesheetList.forEach((timesheet) -> {
+
+						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+						Long employeeEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+
+						if (timesheetEmpId.equals(employeeEmpId)) {
+							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+							Long pendingEodCount = period - filledEodCount;
+
+							if(pendingEodCount >= 3) {
+								dto.setTimesheetStatus("Defaulter");
+							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
+								dto.setTimesheetStatus("Pending Timesheet(s)");
+							}else {
+								dto.setTimesheetStatus("Timesheets upto date");
+							}
+						}
+					});
 					
 					dtoList.add(dto);
 				});

@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
@@ -59,9 +60,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BirthdayMail;
@@ -163,6 +168,12 @@ public class CronJobService {
 	
 	@Autowired
 	ClientsRepository clientsRepository;
+	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
@@ -609,7 +620,7 @@ public class CronJobService {
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
 									newTimesheet.setDayType("Public Holiday");
-									newTimesheet.setDescription(holidays.getOccasion());
+									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
 									newTimesheet.setEmpId(empId);
 									newTimesheet.setStatus("Approved");
 									
@@ -1618,7 +1629,7 @@ public class CronJobService {
 						
 						int rowNum = 1;
 
-						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
 						for (Object[] empObj : employeeList) {
 
 							Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
@@ -2078,90 +2089,71 @@ public class CronJobService {
 								e.printStackTrace();
 							}
 						}
-								
-//								if(!employeeList.isEmpty()) {
-//									StringBuilder defaulterMail = new StringBuilder();
-//									
-//									
-//									StringBuilder html = new StringBuilder();
-//									html.append("<html>\n" +
-//								            "  <head>\n" +
-//								            "    <style>\n" +
-//								            "      table, th, td {\n" +
-//								            "        border: 1px solid black;\n" +
-//								            "      }\n" +
-//								            "      table {\n" +
-//								            "        border-collapse: collapse;\n" +
-//								            "      }\n" +
-//								            "    </style>\n" +
-//								            "  </head>\n" +
-//								            "  <body>\n" +
-//								            "    <table>\n" +
-//								            "      <tr>\n" +
-//								            "        <th>Emp ID</th>\n" +
-//								            "        <th>Name</th>\n" +
-//								            "        <th>Email</th>\n" +
-//								            "        <th>Manager Name</th>\n" +
-//								            "        <th>Department</th>\n" +
-//								            "      </tr>\n");
-//									// add rows to the table
-//									for(Object[] employee: employeeList) {
-//										
-//										Long employeementId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
-//										String EmpName = employee[1] != null ? employee[1].toString() : null;
-//										String email = employee[2] != null ? employee[2].toString() : null;
-//										
-//											defaulterMail.append(email);
-//											defaulterMail.append(",");
-//											html.append("      <tr>\n");
-//											  // add cells to the row
-//											  html.append("        <td>" + "A-"+employeementId + "</td>\n");
-//											  html.append("        <td>" + EmpName + "</td>\n");
-//											  html.append("        <td>" + email + "</td>\n");
-//											  html.append("        <td>" + managerName + "</td>\n");
-//											  html.append("        <td>" + dept.getName() + "</td>\n");
-//											  html.append("      </tr>\n");
-//									}
-//									
-//									html.append("    </table>\n" +
-//									            "  </body>\n" +
-//									            "</html>");
-//									
-////										try {
-////											mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
-////													"Regarding Pending KYC",
-////													managerName
-////												  +	html.toString());
-////										} catch (Exception e) {
-////											e.printStackTrace();
-////										}
-//									
-//									try {
-//										mailService.sendMailWithCC(defaulterMail.toString(), hodMail+","+managerMail,
-//												"Deafulter : Profile not yet updated in ishine",
-//												"Dear Ishine Member,"
-//												+ "<br><br>"
-//												+ "You are in Defaulters list !"
-//												+ "<br><br>"
-//												+ "You are receiving this email because either you or your reportee has not filled the ishine Profile completely."
-//												+ "<br><br>"
-//												+ "We are writing to bring to your attention the fact that there are some mandatory fields in your KYC that have yet to be filled out. It is important to note that if your KYC remains incomplete, failing which your March month salary will be put on hold.\n"
-//												+ "<br><br>"
-//												+ "In order to avoid any such complications, Please take immediate action and complete your KYC as soon as possible.\n"
-//												+ "<br><br>"
-//												+ "For any further assistance please reach out to HR department.For any technical challenge please mail with the screenshots to Prasad more (prasad.more@apmosys.com)/ Harshit Toxia (harshit.toxia@apmosys.com).\n"
-//												+ "<br><br>"
-//												+ "Sincerely,<br>"
-//												+ "ApMoSys Technologies"
-//												+ "<br> <br>"
-//											  +	html.toString());
-//									} catch (Exception e) {
-//										e.printStackTrace();
-//									}
-//									
-//								}
 					}
 				});	
+			}
+		}
+		
+//		0 0 2 ? * * : At 02:00:00am every day
+		@Async
+		@Scheduled(cron = "0 0 2 ? * *")
+		public void updateProjectStatus() {
+			LogDTO apiLogInfo = new LogDTO();
+			apiLogInfo.setSubFeatureName("Update Project Status CronJob");
+			apiLogInfo.setApiUrl("updateProjectStatus");
+			apiLogInfo.setLogLevel("INFO");
+			StringBuilder logBuilder = new StringBuilder();
+			
+			try {
+				
+				OkHttpClient client = new OkHttpClient();
+				Request request = new Request.Builder()
+				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .get()
+				  .addHeader("accept", "application/json")
+				  .build();
+				Response httpResponse = client.newCall(request).execute();
+				String jsonData = httpResponse.body().string();
+				JSONArray jsonArr = new JSONArray(jsonData);
+				
+				for (int i = 0; i < jsonArr.length(); i++) {
+			        JSONObject jsonObj = jsonArr.getJSONObject(i);
+			        Long poProjectId = jsonObj.getLong("id");
+			        
+			        if(jsonObj.getString("status").equals("Completed")){
+			        	Project projectObj = projectRepository.findByPoProjectId(poProjectId);
+			        	
+			        	if(projectObj != null) {
+			        		logBuilder.append("PoProject Id : " + poProjectId + "Project Name : " + projectObj.getProjectName() + "projectId : " + projectObj.getProjectId());
+				        	
+				        	projectObj.setActive("false");
+				        	
+				        	Project dbResponse = projectRepository.save(projectObj);
+				        	
+				        	if(dbResponse != null) {
+				        		apiLogInfo.setApiResponse("Project Status Updated Successfully.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				        	}else {
+				        		apiLogInfo.setApiResponse("Unable to Update Project Status." + "projectId : " + projectObj.getProjectId());
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				        	}
+			        	}else {
+			        		apiLogInfo.setApiResponse("Unable to find Project." + "poProjectId : " + poProjectId);
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			        	}
+			        }
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+			}
+			
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+			if (attributes != null) {
+			    HttpServletRequest request = ((ServletRequestAttributes) attributes).getRequest();
+			    logService.logMyInfo(request, apiLogInfo);
 			}
 		}
 }	

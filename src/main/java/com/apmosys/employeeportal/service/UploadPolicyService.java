@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.model.CommonProperties;
@@ -526,6 +527,32 @@ public class UploadPolicyService {
 	}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+
+	public ServiceResponse isAllPolicyRead(UploadPolicyDTO uploadPolicyDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			EmployeeDTO employee = new EmployeeDTO();
+			
+			long policyCount = UploadPolicyRepository.countByReadEnabled("true");
+			long empResponseCount = PolicyReadResponseRepository.countByEmpId(uploadPolicyDTO.getEmpId());
+			
+			if(policyCount > empResponseCount) {
+				employee.setIsAllPolicyMarkAsRead("false");
+			}else {
+				employee.setIsAllPolicyMarkAsRead("true");
+			}
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employee);
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 	

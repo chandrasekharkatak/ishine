@@ -161,4 +161,6 @@ export class Employee{
 
 	designationId:any;
 	designationName:any;
+
+	timesheetStatus:any;
 }

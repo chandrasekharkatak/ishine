@@ -459,7 +459,7 @@
                                         </p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <div class="col-md-4 mb-0" *ngIf="employeeObj.employmentstatus != 'Probation'">
                                     <div class="info-wrapper">
                                         <p class="info-label">Notice Period</p>
                                         <p class="info-text">{{employeeObj.noticePeriod}} Days</p>
@@ -514,12 +514,12 @@
                                         <p class="info-text info-highlight">{{employeeObj.workLocation}}</p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-0">
+                                <!-- <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Billable</p>
                                         <p class="info-text info-highlight">{{employeeObj.billable}}</p>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </app-accordion-item>

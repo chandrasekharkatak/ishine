@@ -144,7 +144,7 @@
                 </div>
             </div>
             <div class="alert alert-primary p-0 m-0" role="alert">
-                <p class="p-1 m-0">"Generate Pervious Month DSR" button will generate DSR for each employee in different excel report which will be saved on server.<small>*(Note : This will generate huge data kindly use sparingly)*</small></p>
+                <p class="p-1 m-0">"Generate Pervious Month DSR" button will generate DSR for each employee in different excel report which will be saved on server.<small>*(Note : This will generate huge data, kindly use sparingly)*</small></p>
             </div>
             <div class="row">
                 <div class="col-md-4 mb-0">
@@ -194,6 +194,24 @@
                 </div>
                 <div class="col-md-4 mb-0">
                     <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="generateAllEmployeeDSR(alert_message)">Mail All Employee's DSR report</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Holiday Date</label>
+                            <div class="d-flex">
+                                <input class="form-control" matInput id="holidayDate" #input (focus)="holidayDatePicker.open()" [matDatepicker]="holidayDatePicker" [matDatepickerFilter]="holidayDateFilter"
+                                 placeholder="Choose a from date" [(ngModel)]="holidayObj.dateOfHoliday" (keydown)="disableMannualDateInput()">
+                                <mat-datepicker-toggle matSuffix [for]="holidayDatePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker #holidayDatePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="reconsileHolidayTimesheet(alert_message)">Reconsile Holiday/ WeekOff Timesheet</button>
                 </div>
             </div>
             <!-- <div class="row">

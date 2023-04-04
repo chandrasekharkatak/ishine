@@ -17,5 +17,12 @@ public class NotificationDTO {
 	private String updatedOn;	
 	private Long updatedBy;
 	private String updatedByName;
+	private String notificationType;
+	private String isActive;
+	private Long empId;
+	
+	private Long employeementId;
+	private String name;
+	private String consentOn;
 
 }

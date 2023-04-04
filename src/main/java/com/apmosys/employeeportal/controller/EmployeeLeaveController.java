@@ -243,17 +243,17 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/addTimesheetForHolidays" ,method = RequestMethod.POST)
-	public ServiceResponse addTimesheetForHolidays(@RequestBody LeaveDTO leaveDTO) {
-		
-		ServiceResponse response = employeeLeaveService.addTimesheetForHolidays(leaveDTO);
-		return response;
-	}
-	
 	@RequestMapping(value = "/pendingForApprovalReconsilation" ,method = RequestMethod.GET)
 	public ServiceResponse pendingForApprovalReconsilation() {
 		
 		ServiceResponse response = employeeLeaveService.pendingForApprovalReconsilation();
+		return response;
+	}
+	
+	@RequestMapping(value = "/reconsileCasualBalance" ,method = RequestMethod.GET)
+	public ServiceResponse reconsileCasualBalance() {
+		
+		ServiceResponse response = employeeLeaveService.reconsileCasualBalance();
 		return response;
 	}
 

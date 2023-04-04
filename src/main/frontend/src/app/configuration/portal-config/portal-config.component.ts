@@ -14,7 +14,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { Query } from 'src/app/models/query';
 import { enableAppreciation } from 'src/app/models/enableAppreciation';
 import * as moment from 'moment';
-import { LocationStrategy } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import { DepartmentService } from 'src/app/services/department.service';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -22,6 +22,8 @@ import { HelpService } from 'src/app/services/help.service';
 import { Help } from 'src/app/models/help';
 import { saveAs } from "file-saver";
 import { ClipboardService } from 'ngx-clipboard';
+import { HolidayService } from 'src/app/services/holiday.service';
+import { Holiday } from 'src/app/models/holiday';
 
 
 
@@ -54,7 +56,8 @@ export class PortalConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  helpObj:Help = new Help(); 
+  helpObj:Help = new Help();
+  holidayObj:Holiday = new Holiday(); 
 
   maxFileSize:any;
 	maxRequestSize:any;
@@ -91,6 +94,8 @@ export class PortalConfigComponent implements OnInit {
   appreciationObj: enableAppreciation = new enableAppreciation();
   all: any;
   enableAppreciationList: any[] = [];
+  holidayList:any[] = [];
+  holidayDates:any[] = [];
 
   allDeptList: any[] = [];
   employeeList: any[] = [];
@@ -118,7 +123,9 @@ export class PortalConfigComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private departmentService: DepartmentService,
     private helpService: HelpService,
+    private datePipe: DatePipe,
     private clipboardService: ClipboardService,
+    private holidayService : HolidayService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -134,6 +141,7 @@ export class PortalConfigComponent implements OnInit {
     this.getAllEvent();
     this.sectionViewInit();
     this.preventBackButton();
+    this.getAllHolidays();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -300,6 +308,40 @@ export class PortalConfigComponent implements OnInit {
     this.getAllPortalConfigData();
     this.getAllDepartmentList();
     this.getEmployeeList();
+  }
+
+  holidayDateFilter = (d: Date)=>{
+    const time=d?.getTime();
+
+    return (this.holidayDates.find(x=>x.getTime()==time));
+  }
+
+  getAllHolidays(){
+    this.holidayList = [];
+    this.holidayDates = [];
+
+    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.holidayList = response.serviceResponse;
+        this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
+        console.log("holidayDates : ", this.holidayDates); 
+        console.log("holidayList : ", this.holidayList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  reconsileHolidayTimesheet(template: TemplateRef<any>){
+    this.holidayObj.dateOfHoliday = (this.holidayObj.dateOfHoliday)? moment(this.holidayObj.dateOfHoliday).format(AppComponent.DB_DATE_FORMAT) : null;
+
+    this.holidayService.reconsileHolidayTimesheet(this.holidayObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
   getAllPortalConfigData() {
