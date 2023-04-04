@@ -52,7 +52,10 @@ public class TeamDTO {
 	private Long deptId;
 	private String[] departmentList;
 	private String[] employeeRole;
-//	private String updatedBy;
+	private String active;            // employee team map : is employee active in team
+	private String bucketName;
+	private String employeeTeamRole;   // comma seperated string of employeeRole
+	private String updatedByName;
 //	private String createdBy;
 
 }

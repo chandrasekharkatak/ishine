@@ -12,6 +12,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
@@ -23,6 +26,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Audited
 public class Employee {
 
 	@Id
@@ -66,7 +70,6 @@ public class Employee {
 	private String employmentstatus;
 	private Short noticePeriod;
 
-
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
@@ -95,7 +98,10 @@ public class Employee {
 	@Column(columnDefinition="varchar(1000) DEFAULT 'Add your views.'")
 	private String viewsOnOrganisation;	
 	
+	@NotAudited
 	private String password;
+	
+	@NotAudited
 	private Integer otp;
 	private String profileImageName;
 	
@@ -111,6 +117,7 @@ public class Employee {
 	private String workLocation;
 	
 	@Column(nullable = false)
+	@NotAudited
 	private Integer invalidAccessAttempt;
 	private Short probationPeriod;
 	
@@ -144,18 +151,22 @@ public class Employee {
 	private String reference;
 	private String backgroundVerificationStatus;
 	
+	@NotAudited
 	@Column(columnDefinition = "varchar(10) DEFAULT 'False'")
 	private String isAppreciationEnable; //added for appreciation by suchi
 	
+	@NotAudited
 	@Column(columnDefinition = "varchar(10) DEFAULT 'true'")
 	private String isTimesheetLockCheckEnable;
 	
+	@NotAudited
 	private LocalDate timesheetLockUpdatedOn;
 	
 	private Long reportingManagerId;
 	
 	private String approvalsTo;
 
+	@NotAudited
 	private LocalDateTime otpUpdatedOn;
 	
 	private Long designationId;
