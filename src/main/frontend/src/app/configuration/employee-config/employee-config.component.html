@@ -955,13 +955,15 @@
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-danger mb-1" type="submit"
-                                        (click)="openDeleteEmployee(delete_template,employee)"><em
+                                        class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em
                                             class="fa fa-trash"></em></button>&nbsp;
-                                    <button type="submit"
+                                    <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
+                                                class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
+                                    <!-- <button type="submit"
                                         (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
                                         class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
-                                            aria-hidden="true"></i></button>&nbsp;
+                                            aria-hidden="true"></i></button>&nbsp; -->
                                     <button
                                         *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
@@ -973,9 +975,7 @@
                                         (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
-                                    <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em>Audit</em></button>    
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>  
                                 </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
@@ -2327,48 +2327,260 @@
         </button>
     </div>
     <div class="modal-body">
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleAuditSearch()">
-                    <a href="javascript:void(0)">
-                        <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
-                    </a>
-                </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                    [tableTHeadTrId]="'auditInfoTHeadTr'">
-                    <table class="table" id="auditInfo">
-                        <thead class="thead-light" id="auditInfoTHead">
-                            <tr id="auditInfoTHeadTr">
-                                <th scope="col">Sr No.</th>
-                                <th scope="col" class="info-label">Date</th>
-                                <th scope="col" class="info-label">Field</th>
-                                <th scope="col" class="info-label">Value</th>
-                                <th scope="col" class="info-label">Bucket</th>
-                                <th scope="col" class="info-label">Updated By</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled" [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1" ></tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngIf="filteredEmployeeAuditHistory.length == 0 || (filteredEmployeeAuditHistory | colFilter:filters:false).length == 0"> 
-                                <th colspan="11" class="text-center info-label">No details to display...</th>
-                            </tr>
-                            <tr *ngFor="let audit of filteredEmployeeAuditHistory | colFilter:filters:false | paginate: { id: 'auditHistory' , itemsPerPage: 20, currentPage: pageNo };let i = index">
-                                <td>{{i+1}}</td>
-                                <td>{{audit.date}}</td>
-                                <td>{{audit.field}}</td>
-                                <td>{{audit.value}}</td>
-                                <td><span class="badge badge-pill" [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span></td>
-                                <td>{{audit.updatedByName}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="my-buttons">
-                    <pagination-controls id="auditHistory" class="my-pagination" [hidden]="filteredEmployeeAuditHistory.length == 0" (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+    
+        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" title="Full Journey" [showBody]="isFullJourneyAccordianBody">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="selector-toggle" (click)="toggleAuditSearch()">
+                            <a href="javascript:void(0)">
+                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                            [tableTHeadTrId]="'auditInfoTHeadTr'">
+                            <table class="table" id="auditInfo">
+                                <thead class="thead-light" id="auditInfoTHead">
+                                    <tr id="auditInfoTHeadTr">
+                                        <th scope="col">Sr No.</th>
+                                        <th scope="col" class="info-label">Date</th>
+                                        <th scope="col" class="info-label">Field</th>
+                                        <th scope="col" class="info-label">Value</th>
+                                        <th scope="col" class="info-label">Bucket</th>
+                                        <th scope="col" class="info-label">Updated By</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled" [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1" ></tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngIf="filteredEmployeeAuditHistory.length == 0 || (filteredEmployeeAuditHistory | colFilter:auditFilter:false).length == 0"> 
+                                        <th colspan="11" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                    <tr *ngFor="let audit of filteredEmployeeAuditHistory | colFilter:auditFilter:false | paginate: { id: 'fullJourney' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{audit.date}}</td>
+                                        <td>{{audit.field}}</td>
+                                        <td>{{audit.value}}</td>
+                                        <td><span class="badge badge-pill" [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span></td>
+                                        <td>{{audit.updatedByName}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="my-buttons">
+                            <pagination-controls id="fullJourney" class="my-pagination" [hidden]="filteredEmployeeAuditHistory.length == 0" (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </app-accordion-item>
+
+        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Life Cycle Change')" title="Life Cycle Change(s)" [showBody]="isLifeCycleAccordianBody">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="selector-toggle" (click)="toggleAuditSearch()">
+                            <a href="javascript:void(0)">
+                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                            [tableTHeadTrId]="'auditInfoTHeadTr'">
+                            <table class="table" id="auditInfo">
+                                <thead class="thead-light" id="auditInfoTHead">
+                                    <tr id="auditInfoTHeadTr">
+                                        <th scope="col">Sr No.</th>
+                                        <th scope="col" class="info-label">Date</th>
+                                        <th scope="col" class="info-label">Field</th>
+                                        <th scope="col" class="info-label">Value</th>
+                                        <th scope="col" class="info-label">Bucket</th>
+                                        <th scope="col" class="info-label">Updated By</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
+                                        [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngIf="lifeCycleChangeList.length == 0 || (lifeCycleChangeList | colFilter:auditFilter:false).length == 0">
+                                        <th colspan="11" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                    <tr
+                                        *ngFor="let audit of lifeCycleChangeList | colFilter:auditFilter:false | paginate: { id: 'lifeCycle' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{audit.date}}</td>
+                                        <td>{{audit.field}}</td>
+                                        <td>{{audit.value}}</td>
+                                        <td><span class="badge badge-pill"
+                                                [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span></td>
+                                        <td>{{audit.updatedByName}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="my-buttons">
+                            <pagination-controls id="lifeCycle" class="my-pagination" [hidden]="lifeCycleChangeList.length == 0"
+                                (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </app-accordion-item>
+
+        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Team/Project Change')" title="Team/ Project Change(s)" [showBody]="isTeamProjectAccordianBody">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="selector-toggle" (click)="toggleAuditSearch()">
+                            <a href="javascript:void(0)">
+                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                            [tableTHeadTrId]="'auditInfoTHeadTr'">
+                            <table class="table" id="auditInfo">
+                                <thead class="thead-light" id="auditInfoTHead">
+                                    <tr id="auditInfoTHeadTr">
+                                        <th scope="col">Sr No.</th>
+                                        <th scope="col" class="info-label">Date</th>
+                                        <th scope="col" class="info-label">Field</th>
+                                        <th scope="col" class="info-label">Value</th>
+                                        <th scope="col" class="info-label">Bucket</th>
+                                        <th scope="col" class="info-label">Updated By</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
+                                        [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngIf="teamProjectChangeList.length == 0 || (teamProjectChangeList | colFilter:auditFilter:false).length == 0">
+                                        <th colspan="11" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                    <tr
+                                        *ngFor="let audit of teamProjectChangeList | colFilter:auditFilter:false | paginate: { id: 'teamProject' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{audit.date}}</td>
+                                        <td>{{audit.field}}</td>
+                                        <td>{{audit.value}}</td>
+                                        <td><span class="badge badge-pill"
+                                                [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span></td>
+                                        <td>{{audit.updatedByName}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="my-buttons">
+                            <pagination-controls id="teamProject" class="my-pagination" [hidden]="teamProjectChangeList.length == 0"
+                                (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </app-accordion-item>
+
+        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Kyc Update')" title="Kyc Update(s)" [showBody]="isKycUpdateAccordianBody">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="selector-toggle" (click)="toggleAuditSearch()">
+                            <a href="javascript:void(0)">
+                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                            [tableTHeadTrId]="'auditInfoTHeadTr'">
+                            <table class="table" id="auditInfo">
+                                <thead class="thead-light" id="auditInfoTHead">
+                                    <tr id="auditInfoTHeadTr">
+                                        <th scope="col">Sr No.</th>
+                                        <th scope="col" class="info-label">Date</th>
+                                        <th scope="col" class="info-label">Field</th>
+                                        <th scope="col" class="info-label">Value</th>
+                                        <th scope="col" class="info-label">Bucket</th>
+                                        <th scope="col" class="info-label">Updated By</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
+                                        [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngIf="kycUpdateList.length == 0 || (kycUpdateList | colFilter:auditFilter:false).length == 0">
+                                        <th colspan="11" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                    <tr
+                                        *ngFor="let audit of kycUpdateList | colFilter:auditFilter:false | paginate: { id: 'kycUpdate' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{audit.date}}</td>
+                                        <td>{{audit.field}}</td>
+                                        <td>{{audit.value}}</td>
+                                        <td><span class="badge badge-pill"
+                                                [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span></td>
+                                        <td>{{audit.updatedByName}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="my-buttons">
+                            <pagination-controls id="kycUpdate" class="my-pagination" [hidden]="kycUpdateList.length == 0"
+                                (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </app-accordion-item>
+
+        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Employee Info Change')" title="Employee Info Change(s)" [showBody]="isEmployeeInfoAccordianBody">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="selector-toggle" (click)="toggleAuditSearch()">
+                            <a href="javascript:void(0)">
+                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                            [tableTHeadTrId]="'auditInfoTHeadTr'">
+                            <table class="table" id="auditInfo">
+                                <thead class="thead-light" id="auditInfoTHead">
+                                    <tr id="auditInfoTHeadTr">
+                                        <th scope="col">Sr No.</th>
+                                        <th scope="col" class="info-label">Date</th>
+                                        <th scope="col" class="info-label">Field</th>
+                                        <th scope="col" class="info-label">Value</th>
+                                        <th scope="col" class="info-label">Bucket</th>
+                                        <th scope="col" class="info-label">Updated By</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
+                                        [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngIf="employeeInfoChangeList.length == 0 || (employeeInfoChangeList | colFilter:auditFilter:false).length == 0">
+                                        <th colspan="11" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                    <tr
+                                        *ngFor="let audit of employeeInfoChangeList | colFilter:auditFilter:false | paginate: { id: 'employeeInfo' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{audit.date}}</td>
+                                        <td>{{audit.field}}</td>
+                                        <td>{{audit.value}}</td>
+                                        <td><span class="badge badge-pill"
+                                                [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span></td>
+                                        <td>{{audit.updatedByName}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="my-buttons">
+                            <pagination-controls id="employeeInfo" class="my-pagination" [hidden]="employeeInfoChangeList.length == 0"
+                                (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </app-accordion-item>
     </div>
 </ng-template>

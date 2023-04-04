@@ -1,5 +1,5 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 @Component({
   selector: 'app-accordion-item',
@@ -37,6 +37,8 @@ export class AccordionItemComponent implements OnInit {
   @Input()titleColor: string = '#000';
   @Input()showBody = false;
 
+  @Output() isBodyToggled:EventEmitter<Boolean> = new EventEmitter<boolean>();
+
   constructor() { }
 
   ngOnInit(): void {
@@ -44,5 +46,6 @@ export class AccordionItemComponent implements OnInit {
 
   toggle(){
     this.showBody = !this.showBody;
+    this.isBodyToggled.emit(this.showBody);
   }
 }

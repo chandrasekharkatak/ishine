@@ -70,6 +70,12 @@ export class EmployeeConfigComponent implements OnInit {
   isDomainUpdation: boolean = false;
   isDomainForm: boolean = false;
 
+  isFullJourneyAccordianBody: boolean = false;
+  isLifeCycleAccordianBody: boolean = false;
+  isKycUpdateAccordianBody: boolean = false;
+  isEmployeeInfoAccordianBody: boolean = false;
+  isTeamProjectAccordianBody: boolean = false;
+
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -96,6 +102,10 @@ export class EmployeeConfigComponent implements OnInit {
   allDesignationList:any[] = [];
   employeeAuditHistory:any[] = [];
   filteredEmployeeAuditHistory:any[] = [];
+  lifeCycleChangeList:any[] = [];
+  teamProjectChangeList:any[] = [];
+  kycUpdateList:any[] = [];
+  employeeInfoChangeList:any[] = [];
 
   employeeWorkingHistory:[]
   allCertificationList: any[] = [];
@@ -158,7 +168,7 @@ export class EmployeeConfigComponent implements OnInit {
   isworkHistorySearchEnabled:boolean = false;
   employeeWorkhistoryColumns:any[] = ['occasion','dayOfTheWeek','dateOfHoliday','state','createdOn','createdbyName','updatedOn','updatedByName'];
 
-  auditFilters:any = {};
+  auditFilter:any = {};
   isAuditSearchEnabled:boolean = false;
   employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'blank'];
   
@@ -351,7 +361,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.workHistoryFilters = {};
-    this.auditFilters = {};
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
     this.isAuditSearchEnabled = false;
@@ -1893,10 +1902,46 @@ export class EmployeeConfigComponent implements OnInit {
 
   // Employee Audit :: start
 
+  resetAuditSearchFilter(event, title?:any){
+    this.isAuditSearchEnabled = false;
+    this.auditFilter = {};
+
+    if(title == 'Full Journey'){
+      this.isFullJourneyAccordianBody = true;
+    }else{
+      this.isFullJourneyAccordianBody = false;
+    }
+    if(title == 'Life Cycle Change'){
+      this.isLifeCycleAccordianBody = true;
+    }else{
+      this.isLifeCycleAccordianBody = false;
+    }
+    if(title == 'Kyc Update'){
+      this.isKycUpdateAccordianBody = true;
+    }else{
+      this.isKycUpdateAccordianBody = false;
+    }
+    if(title == 'Employee Info Change'){
+      this.isEmployeeInfoAccordianBody = true;
+    }else{
+      this.isEmployeeInfoAccordianBody = false;
+    }
+    if(title == 'Team/Project Change'){
+      this.isTeamProjectAccordianBody = true;
+    }else{
+      this.isTeamProjectAccordianBody = false;
+    }
+  }
+
   getEmployeeAuditInfo(employee:any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>){
     this.filteredEmployeeAuditHistory = [];
     this.employeeAuditHistory = [];
     this.filters = {};
+    this.isEmployeeInfoAccordianBody = false;
+    this.isTeamProjectAccordianBody = false;
+    this.isKycUpdateAccordianBody  = false;
+    this.isLifeCycleAccordianBody = false;
+    this.isFullJourneyAccordianBody = false;
 
     let employeeObj = new Employee();
     employeeObj.empId = employee.empId;
@@ -1978,6 +2023,11 @@ export class EmployeeConfigComponent implements OnInit {
               }
           }
         });
+
+        this.lifeCycleChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Lifecycle Changes');
+        this.teamProjectChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Team/Project Changes');
+        this.kycUpdateList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'KYC Update');
+        this.employeeInfoChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Employment Info Changes');
 
         this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
 
@@ -2372,8 +2422,10 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   onSearch(searchData){
-    this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    if(this.isSearchEnabled == true){
+      this.filters = searchData;
+      console.log("Updated Filter : ", this.filters);
+    }
   }
 
   // Work History 
@@ -2381,17 +2433,17 @@ export class EmployeeConfigComponent implements OnInit {
     this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
   }
 
-  toggleAuditSearch(){
-    this.isAuditSearchEnabled = !this.isAuditSearchEnabled;
-  }
-
   onWorkHistorySearch(searchData){
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
 
+  toggleAuditSearch(){
+    this.isAuditSearchEnabled = !this.isAuditSearchEnabled;
+  }
+
   onAuditSearch(searchData){
-    this.filters = searchData;
+    this.auditFilter = searchData;
     console.log("Audit Updated Filter : ", this.filters);
   }
 }
