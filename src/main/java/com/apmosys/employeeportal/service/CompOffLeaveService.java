@@ -139,7 +139,7 @@ public class CompOffLeaveService {
 				apiLogInfo.setApiResponse("Compoff Request applied.");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
-				
+				CompOffMaster compOffObject = compOffMasterRepository.findByCompOffId(leaveDTO.getReasonId());
 				
 				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Comp-Off Request", 
 						"Dear "+ leaveDTO.getManagerName()+","+
@@ -155,7 +155,9 @@ public class CompOffLeaveService {
 				"<br>"+
 				"No. Of Days :"+" 1 "+"day(s)"
 				+"<br>"+
-				"comp-Off Description :"+" "+leaveDTO.getDescription() + ".");
+				"comp-Off Description :"+" "+leaveDTO.getDescription() + "."
+				+"<br>"+
+				"comp-Off Reason : " + compOffObject.getCompOffReasons());
 				
 				
 				
@@ -379,6 +381,8 @@ public class CompOffLeaveService {
 						"<br>"+
 						"No. Of Days :"+" 1 "+"day(s)"
 						+"<br>"+
+						"Comp-off Description :"+" "+leaveDTO.getDescription()+ "."
+						+"<br>"+
 						"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+ ".");
 						
 					}else if(leaveDTO.getLeaveStatusId() == 3){
@@ -399,6 +403,8 @@ public class CompOffLeaveService {
 						"<br>"+
 						"No. Of Days :"+" 1 "+"day(s)"
 						+"<br>"+
+						"Comp-off Description :"+" "+leaveDTO.getDescription()+ "."
+					    +"<br>"+
 						"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+".");
 						
 					}
