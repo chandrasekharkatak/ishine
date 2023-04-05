@@ -1279,7 +1279,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   checkEmployeeMobileNo(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
+    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
+    employee.mobileNo = this.employeeObj.mobileNo;
+
+    console.log(employee, " : employee");
+    
     this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);

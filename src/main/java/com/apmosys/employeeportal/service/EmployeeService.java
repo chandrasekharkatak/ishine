@@ -2309,27 +2309,26 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeeEmail(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-
 		try {
-
 			Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
 			DraftEmployee checkDraftEmployeementEmail = draftEmployeeRepository.findByEmail(employeedto.getEmail());
 
-			if (employeedto.getEmail() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				if ((employeedto.getEmpId() != null) && !checkEmployeeEmail.getEmpId().equals(employeedto.getEmpId()) && checkEmployeeEmail != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Email already exist!");
-				}else if((employeedto.getEmpId() == null) && checkEmployeeEmail != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Email already exist!");
-				}
-				if (checkDraftEmployeementEmail != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Email already exist in Employee Draft!");
-				}
+			if(checkEmployeeEmail != null) {
+					if(!checkEmployeeEmail.getEmployeementId().equals(employeedto.getEmployeementId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Email already exists !!");
+					}
 			}
+			
+			if(checkDraftEmployeementEmail != null) {
+					if(!checkDraftEmployeementEmail.getEmployeementId().equals(employeedto.getEmployeementId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Email already exists !!");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+			}
+
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2372,31 +2371,52 @@ public class EmployeeService {
 
 	public ServiceResponse checkEmployeeMobileNo(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
-		List<Employee> checkEmployeeMobileNo = null;
-		List<DraftEmployee> checkDraftEmployeeMobileNo = null;
 		try {
 
-			if (employeedto.getEmpId() != null) {
-				checkEmployeeMobileNo = employeeRepository.findByMobileNoAndEmpId(employeedto.getMobileNo(),
-						employeedto.getEmpId());
-				checkDraftEmployeeMobileNo = draftEmployeeRepository
-						.findByMobileNoAndDraftEmpId(employeedto.getMobileNo(), employeedto.getEmpId());
-			} else {
-				checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
-				checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
-			}
+//			if (employeedto.getEmpId() != null) {
+//				checkEmployeeMobileNo = employeeRepository.findByMobileNoAndEmpId(employeedto.getMobileNo(),
+//						employeedto.getEmpId());
+//				checkDraftEmployeeMobileNo = draftEmployeeRepository
+//						.findByMobileNoAndDraftEmpId(employeedto.getMobileNo(), employeedto.getEmpId());
+//			} else {
+//				checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
+//				checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
+//			}
+//
+//			if (employeedto.getMobileNo() == null) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			} else {
+//				if (!checkEmployeeMobileNo.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Mobile Number already exist!");
+//				}
+//				if (!checkDraftEmployeeMobileNo.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Mobile Number already exist in Employee Draft!");
+//				}
+//			}
+			
+			List<Employee> checkEmployeeMobileNo = checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
+			List<DraftEmployee> checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
 
-			if (employeedto.getMobileNo() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				if (!checkEmployeeMobileNo.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Mobile Number already exist!");
-				}
-				if (!checkDraftEmployeeMobileNo.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Mobile Number already exist in Employee Draft!");
-				}
+			if(!checkEmployeeMobileNo.isEmpty()) {
+				checkEmployeeMobileNo.forEach((employee) -> {
+					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Mobile Number already exist!");
+					}
+				});
+			}
+			
+			if(!checkDraftEmployeeMobileNo.isEmpty()) {
+				checkDraftEmployeeMobileNo.forEach((employee) -> {
+					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Mobile Number already exist in Employee Draft!");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+				});
 			}
 
 		} catch (Exception e) {
