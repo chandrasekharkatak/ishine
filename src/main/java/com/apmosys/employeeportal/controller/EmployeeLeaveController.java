@@ -82,6 +82,13 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getOverlappedTeamMemberLeave" ,method = RequestMethod.POST)
+	public ServiceResponse getOverlappedTeamMemberLeave(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getOverlappedTeamMemberLeave(leaveDTO);
+		return response;
+	}
+	
 	/*		
 	 *	Data migration - updateleavebalance, oldleaveApplication 		
 	 */		

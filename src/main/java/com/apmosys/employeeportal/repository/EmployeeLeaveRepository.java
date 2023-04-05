@@ -76,4 +76,7 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public EmployeeLeave findLeaveApplicationByCreatedOnDate(Long empId, short leaveTypeMasterId,
 			LocalDate createdOn);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> findOverlappedTeamMemberLeave(Long empId, String toDate, String fromDate);
+
 }

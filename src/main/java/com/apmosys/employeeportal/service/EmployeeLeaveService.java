@@ -2844,6 +2844,41 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		return response;
 	}
 
+	public ServiceResponse getOverlappedTeamMemberLeave(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> overLappedTeamMember = employeeLeaveRepository
+					.findOverlappedTeamMemberLeave(leaveDTO.getEmpId(), leaveDTO.getToDate(), leaveDTO.getFromDate());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			
+			if(!overLappedTeamMember.isEmpty()) {
+				overLappedTeamMember.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					
+					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					dto.setName(object[2] != null ? object[2].toString() : null);
+					dto.setFromDate(object[3] != null ? object[3].toString() : null);
+					dto.setToDate(object[4] != null ? object[4].toString() : null);
+					
+					dtoList.add(dto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Overlapped Leave found.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 
 	public ServiceResponse setEmployeeLeaveEntitlement(LeaveDTO leaveDTO) {
 
