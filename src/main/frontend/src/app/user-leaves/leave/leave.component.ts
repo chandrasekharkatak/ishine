@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -30,6 +30,9 @@ import { EmployeeService } from 'src/app/services/employee.service';
   styleUrls: ['./leave.component.css']
 })
 export class LeaveComponent implements OnInit {
+
+  @ViewChild("alert_message")
+  alertTemplate:TemplateRef<any>
 
   data:string;
 
@@ -659,6 +662,11 @@ export class LeaveComponent implements OnInit {
 
     let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+
+    //If isUpdate is true then unlock the dates of current leave
+    if(this.isUpdation == true){
+      this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(x => x.fromDate != this.leaveObj.fromDate);
+    }
     
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
@@ -722,6 +730,11 @@ export class LeaveComponent implements OnInit {
     }
     let checkDate = this.leaveObj.fromDate;
 
+    //If isUpdate is true then unlock the dates of current leave
+    if(this.isUpdation == true){
+      this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(x => x.toDate != this.leaveObj.toDate);
+    }
+
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
         return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
@@ -735,7 +748,7 @@ export class LeaveComponent implements OnInit {
       }else{
         return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
       } 
-    }  
+    }
   }
 
   setMinToDate(template: TemplateRef<any>){
@@ -771,6 +784,20 @@ export class LeaveComponent implements OnInit {
         return false;	
       }	
     }	
+
+    //Check if leave has been already applied between from date & toDate
+
+    let fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
+    let toDate = moment(this.leaveObj.toDate).format(dateFormat);
+    let isLeaveContained = this.previouslyAppliedLeavesList.find(object => object.toDate <= toDate && object.fromDate >= fromDate);
+
+    if(isLeaveContained){
+      this.leaveObj.toDate = null;
+      this.leaveObj.fromDate = null;
+      this.openAlertMod(this.alertTemplate, "Already Leave has been applied between the dates, please update the existing leave.");
+      return;
+    }
+    
 
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
@@ -1014,9 +1041,15 @@ export class LeaveComponent implements OnInit {
 
   onUpdateLeave(template: TemplateRef<any>) {
     this.cancelRequest();
+    const dateFormat = 'YYYY-MM-DD';
     let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
     if(!inputValidated) return;
 
+    this.leaveObj.updatedBy = this.currentUser.empId;
+    this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
+    this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
+    console.log(" this.leaveObj : ", this.leaveObj);
+    
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
