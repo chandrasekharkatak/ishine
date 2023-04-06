@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.hibernate.internal.build.AllowSysOut;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -62,6 +63,9 @@ public class JobRoleService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Value("${poPortal.api.syncJobRole}")
+	private String syncJobRoleApi;
 	
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -432,7 +436,7 @@ public class JobRoleService {
 							syncObject.setRoleName(jobRoleObject.getName());
 							syncObject.setDeptId(jobRoleObject.getDeptId());
 							
-							final String syncUrl = "http://192.168.21.175:8080/ishine/updateRole/{id}";
+							final String syncUrl = syncJobRoleApi;
 							RestTemplate restTemplate = new RestTemplate();
 							String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, jobRoleDTO.getOldJobRoleId());
 							

@@ -198,4 +198,5 @@ public class EmployeeDTO {
 	private String isAllPolicyMarkAsRead;
 	
 	private Object notificationConsent;
+	private String poPortalAllProjectApi;
 }

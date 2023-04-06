@@ -191,8 +191,7 @@ export class ResourceManagementComponent implements OnInit {
   ];
 
   getAllProjects(){
-    // fetch('https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects').then(res => res.json()).then(data => {
-    fetch('http://192.168.21.175:8080/PoPortal/project/fixedCost/getAllProjects').then(res => res.json()).then(async data => {
+    fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
       
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {

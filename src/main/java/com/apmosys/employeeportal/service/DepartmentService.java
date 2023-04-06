@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,9 @@ public class DepartmentService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Value("${poPortal.api.syncDepartment}")
+	private String syncDepartmentApi;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -340,7 +344,7 @@ public class DepartmentService {
 							syncObject.setDeptName(deptObj.getName());
 							syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
 							
-							final String syncUrl = "http://192.168.21.175:8080/ishine/updateDepartment/{id}";
+							final String syncUrl = syncDepartmentApi;
 							RestTemplate restTemplate = new RestTemplate();
 							String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
 							
