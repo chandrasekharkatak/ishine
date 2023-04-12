@@ -122,9 +122,6 @@ export class MyResignationComponent implements OnInit {
 
     this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
 
-    //Default Resignation mail
-    this.employeeExitObj.resignationMail = "<div><div style='text-align: left;'><br></div><div style='text-align: left;'>Dear HR,</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I am writing to formally submit my resignation from my position at ApMoSys.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I have truly appreciated the opportunities I have had during my time at ApMoSys. I have learned and grown both professionally and personally, and I am grateful for the support and guidance provided by the entire team.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I will do my best to ensure a smooth transition during my remaining time at the company.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>Thank you again for the opportunities and experiences I have had at ApMoSys. I am grateful for the relationships I have formed during my tenure here.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>Sincerely,</div><div style='text-align: left;'>"+this.currentUserName+"<br></div></div>";
-
     this.getExitSurvey();
     this.sectionViewInit();
     this.preventBackButton();
@@ -168,6 +165,9 @@ export class MyResignationComponent implements OnInit {
 
   showTextEditor(){
     this.isViewTextEditor = true;
+    
+    //Default Resignation mail
+    this.employeeExitObj.resignationMail = "<div><div style='text-align: left;'><br></div><div style='text-align: left;'>Dear HR,</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I am writing to formally submit my resignation from my position at ApMoSys.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I have truly appreciated the opportunities I have had during my time at ApMoSys. I have learned and grown both professionally and personally, and I am grateful for the support and guidance provided by the entire team.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I will do my best to ensure a smooth transition during my remaining time at the company.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>Thank you again for the opportunities and experiences I have had at ApMoSys. I am grateful for the relationships I have formed during my tenure here.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>Sincerely,</div><div style='text-align: left;'>"+this.currentUserName+"<br></div></div>";
   }
 
   consentCheckbox(event){
