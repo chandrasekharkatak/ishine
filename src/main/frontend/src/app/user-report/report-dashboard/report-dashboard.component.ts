@@ -778,7 +778,7 @@ export class ReportDashboardComponent implements OnInit {
       else if(employee.relievingMonth == 'December' && moment(employee.dateOfRelieving).year() == currentYear)resignDecCount++;
 
       if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
-        if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months') > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
+        if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
       }
     });
   
@@ -1891,7 +1891,7 @@ export class ReportDashboardComponent implements OnInit {
     if(title == 'All Active Employee'){
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
     }else{
-      this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months') > 6 && x.employmentstatus == 'Probation');
+      this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months', true) > 6 && x.employmentstatus == 'Probation');
     }
     this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }

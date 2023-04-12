@@ -1,0 +1,153 @@
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
+}
+
+.row {
+    margin-right: 0 !important;
+}
+
+.user-card{
+    width: 60%;
+    padding: 0.9375rem 0;
+    margin: 0 0 0 0;
+}
+
+.retain-card{
+    width: 38%;
+    margin: 0 0 0 1rem;
+
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 60% 40%;
+}
+
+.retain-card--image{
+    display: flex;
+    align-items: end;
+}
+
+.user-card__profile-avatar{
+    display: flex;
+    justify-content: center;
+    align-items: center ;
+    padding: 2rem;
+}
+
+.user-card__profile-info__label{
+    color: var(--middle-grey);
+    margin-bottom: 0.3125rem;
+    margin-left: 0.3125rem;
+    font-weight: 500;
+}
+
+.user-card__profile-info__text{
+    margin-top: 0.3125rem;
+    font-weight: 600;
+}
+
+.card-info-text{
+    margin: 0.8rem 3rem 0.8rem;
+}
+
+.card-view-info{
+    margin-left: auto;
+    color: var(--dark-cornflower-blue);
+    cursor: pointer;
+}
+
+@media (max-width: 960px){
+    .user-card{
+        width: 100%;
+        padding: 0.9375rem 0;
+        margin: 0 0 0 0;
+    }
+
+    .retain-card {
+        width: 100%;
+        margin: 0 0 0 0;
+        display: grid;
+        grid-template-rows: 1fr;
+        grid-template-columns: 1fr;
+    }
+
+    .retain-card--content {
+        width: 100%;
+        padding: 1em;
+        background-image: url(/assets/Images/exit.svg);
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position-x: right;
+        background-position-y: bottom;
+    }
+
+    .retain-card--image{
+       display: none;
+    }
+
+    .exit-avatar__img{
+        /* width: 200px; */
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .user-card__profile-info{
+        padding-right: 0;
+        margin-left: 1em;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 768px){
+
+    .retain-card--content h4{
+        max-width: 350px;
+    }
+
+    .user-card__profile-info{
+        padding-right: 0;
+        margin-left: 1em;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 550px){
+
+    .retain-card--content{
+        background: none;
+        text-align: center;
+
+        max-width: 100%;
+    }
+    
+    .user-card__profile-info{
+        padding-right: 0;
+        margin-left: 1em;
+        overflow: hidden;
+    }
+}
+
+/* profie photo*/
+.user-card__profile-avatar__img{
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.exit-avatar__img{
+    width: 100%;
+    object-fit: cover;
+}
+
+.navigation-card{
+    margin-top: 3rem;
+}
+
+.navigation-card--text{
+    width:800px;
+    padding-left: 3rem;
+}

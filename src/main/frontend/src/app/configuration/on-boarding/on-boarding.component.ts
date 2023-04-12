@@ -37,29 +37,50 @@ export class OnBoardingComponent implements OnInit {
   ngOnInit(): void {   
   }
 
-  getAssetDataFromSnipitPortal(template: TemplateRef<any>){
-    this.cancelRequest();
-    this.onBoardingService.getAssetDataFromSnipitPortal(this.assetObj).pipe(first()).subscribe((response:any) => {
-      if(response.serviceStatus == "Success"){
-        this.openAlertMod(template, response.serviceResponse);
-        this.getEmployeeOnBoardingDetailByEmployeementId(template);
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
-        this.getEmployeeOnBoardingDetailByEmployeementId(template);
-      }
-    });
-  }
+  // getAssetDataFromSnipitPortal(template: TemplateRef<any>){
+  //   this.cancelRequest();
+
+  //   let assetObj = {...this.assetObj};
+
+  //   if (assetObj.employeementId.startsWith('A-')) {
+  //     if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
+  //       this.alertMessage = "Please enter EmployeementId !!"
+  //       this.openAlertMod(template, this.alertMessage);
+  //       return false;
+  //     }
+  //     assetObj.employeementId = assetObj.employeementId.substring(2);
+  //   } else {
+  //     assetObj.employeementId  = assetObj.employeementId;
+  //   }
+
+  //   this.onBoardingService.getAssetDataFromSnipitPortal(assetObj).pipe(first()).subscribe((response:any) => {
+  //     if(response.serviceStatus == "Success"){
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.getEmployeeOnBoardingDetailByEmployeementId(template);
+  //     }else{
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.getEmployeeOnBoardingDetailByEmployeementId(template);
+  //     }
+  //   });
+  // }
 
   getEmployeeOnBoardingDetailByEmployeementId(template: TemplateRef<any>){
-
-    if(!this.validationService.validateNullUndefinedEmptyString(this.assetObj.employeementId)){
-      this.alertMessage = "Please enter EmployeementId !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
     this.cancelRequest();
 
-    this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(this.assetObj).pipe(first()).subscribe((response: any) => {
+    let assetObj = {...this.assetObj};
+
+    if (assetObj.employeementId.startsWith('A-')) {
+      if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
+        this.alertMessage = "Please enter EmployeementId !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      assetObj.employeementId = assetObj.employeementId.substring(2);
+    } else {
+      assetObj.employeementId  = assetObj.employeementId;
+    }
+
+    this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeOnBoardingDetailList = response.serviceResponse;
         this.employeeDetailList = response.serviceResponse1;

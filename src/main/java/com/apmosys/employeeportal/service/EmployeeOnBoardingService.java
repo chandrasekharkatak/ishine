@@ -59,6 +59,8 @@ public class EmployeeOnBoardingService {
 		try {
 			
 			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());
+			ServiceResponse snipitAssetApiResponse =  getAssetDataFromSnipitPortal(assetDTO);
+			
 			if(empObj != null) {
 				
 				List<Object[]> assetDetails = employeeOnboardingRepository.getAssetListByEmpId(empObj.getEmpId());
@@ -83,6 +85,8 @@ public class EmployeeOnBoardingService {
 						dto.setDepartmentName(object[3] != null ? object[3].toString() : null);
 						dto.setDeptId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 						dto.setEmpId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+						dto.setAssetType(object[6] != null ? object[6].toString() : null);
+						dto.setAssetDetail(object[7] != null ? object[7].toString() : null);
 						
 						dtoList.add(dto);
 					});
@@ -275,6 +279,8 @@ public class EmployeeOnBoardingService {
 					        id = snipitResponse.getJSONObject(i).getInt("id");
 					    }
 						
+						List<String> assetDetailList = new ArrayList<>();
+						
 						// SNIPIT API call to get asset details by user Id
 						JSONArray snipitAssetResponse = snipitAssetAPICall(id);
 						if(snipitAssetResponse.length() != 0) {
@@ -286,14 +292,35 @@ public class EmployeeOnBoardingService {
 								if(category != null) {
 									
 									List<Object[]> employeeAssetMapObj = employeeOnboardingMapRepository.findAssetByAssetNameAndEmpId(category,empObj.getEmpId());
+									
 									Long empAssetMapId = null;
+									String modalName = snipitAssetResponse.getJSONObject(i).getJSONObject("model").getString("name");
+									String assetTag = snipitAssetResponse.getJSONObject(i).getString("asset_tag");
+									
 									if(!employeeAssetMapObj.isEmpty()) {
 										for(Object[] object : employeeAssetMapObj) {
 											empAssetMapId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
 										}
 										if(empAssetMapId != null) {
 											EmployeeAssetMap empAsset = employeeOnboardingMapRepository.getById(empAssetMapId);
+											
 											empAsset.setIsAssigned("true");
+											
+											if(modalName != null && assetTag != null) {
+												String updatedAssetDetail = modalName+"("+assetTag+")";
+												
+												if(empAsset.getAssetDetail() != null) {
+													if(!assetDetailList.isEmpty() && !assetDetailList.contains(updatedAssetDetail)) {
+														
+														empAsset.setAssetDetail(String.join(",", assetDetailList));
+														assetDetailList.add(updatedAssetDetail);
+													}
+												}else {
+													assetDetailList.add(updatedAssetDetail);
+													empAsset.setAssetDetail(updatedAssetDetail);
+												}
+											}
+											
 											EmployeeAssetMap dbResponse = employeeOnboardingMapRepository.save(empAsset);
 											
 											if(dbResponse != null) {
@@ -326,10 +353,17 @@ public class EmployeeOnBoardingService {
 										}
 										
 										if(dbResponse != null) {
+											
 											EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
 											employeeAssetMap.setAssetId(dbResponse.getAssetId());
 											employeeAssetMap.setEmpId(empObj.getEmpId());
 											employeeAssetMap.setIsAssigned("true");
+											
+											if(modalName != null && assetTag != null) {
+												String updatedAssetDetail = modalName+"("+assetTag+")";
+												employeeAssetMap.setAssetDetail(updatedAssetDetail);
+											}
+											
 											EmployeeAssetMap assetMappingResponse = employeeOnboardingMapRepository.save(employeeAssetMap);
 											
 											if(assetMappingResponse != null) {

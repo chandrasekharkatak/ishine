@@ -4,6 +4,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Asset } from '../models/asset';
 import { certification } from '../models/certification';
 import { Domain } from '../models/domain';
 import { Employee } from '../models/employee';
@@ -13,6 +14,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { DomainService } from '../services/domain.service';
 import { EmployeeService } from '../services/employee.service';
 import { ImageService } from '../services/image.service';
+import { OnBoardingService } from '../services/on-boarding.service';
 import { ValidationService } from '../services/validation.service';
 
 @Component({
@@ -46,6 +48,7 @@ export class UserProfileComponent implements OnInit {
   updatedPreviousEmployment:any[] = [];
   yearOfPassingList:any[] = [];
   domainSpecializationList:any[] = [];
+  allAssetList:any[] = [];
 
 
   @ViewChild('updateInfo')
@@ -60,13 +63,15 @@ export class UserProfileComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private imageService : ImageService,
     private locationStrategy: LocationStrategy,
-    private domainService:DomainService
+    private domainService:DomainService,
+    private onBoardingService : OnBoardingService,
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
+    this.getMyAssetList();
 
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -115,23 +120,6 @@ export class UserProfileComponent implements OnInit {
     this.isUpdateProfile = true;
 
     this.openUpdateInfo(this.updateInfoTempRef);
-    
-    // this.UpdateEmployeeInfo = Object.assign(this.currentEmployeeInfo,{});
-    // this.addInputCertificationField();
-    // if(this.UpdateEmployeeInfo.certifications){
-    //   this.allCertificationList = this.UpdateEmployeeInfo.certifications;
-    // }
-    // // else{
-    // //   this.addInputCertificationField();
-    // // }
-
-    // this.addInputPreviousEmployerField();
-    // if(this.UpdateEmployeeInfo.previousEmploymentList){
-    //   this.allPreviousEmployment = this.UpdateEmployeeInfo.previousEmploymentList;
-    // }
-    // // else{
-    // //   this.addInputPreviousEmployerField();
-    // // }
   }
 
   showViewProfile(){
@@ -690,6 +678,22 @@ export class UserProfileComponent implements OnInit {
         this.showViewProfile();
       } else {
         this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getMyAssetList(){
+
+    let assetObj = new Asset();
+    assetObj.employeementId = this.currentUser.employeementId;
+    this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allAssetList = response.serviceResponse;
+
+        this.allAssetList = this.allAssetList.filter(x => x.assetType == 'both');
+        console.log("this.allAssetList :", this.allAssetList);
+      } else {
+        console.error(response.serviceResponse);
       }
     });
   }

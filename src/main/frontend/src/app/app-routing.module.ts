@@ -46,6 +46,8 @@ import { UserExitComponent } from './user-exit/user-exit.component';
 import { ProjectConfigComponent } from './configuration/project-config/project-config.component';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
+import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
+import { ResignationComponent } from './user-exit/resignation/resignation.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -121,8 +123,13 @@ const routes: Routes = [
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
-  {path:'user-exit', component: UserExitComponent, canActivate: [AuthGuard]},
-  {path:'user-exit/:id', component: UserExitComponent, canActivate: [AuthGuard]},
+  {path: 'user-exit', component: UserExitComponent, canActivate: [AuthGuard],
+    children: [
+      { path: 'my-resignation', component: MyResignationComponent, },
+      { path:'my-resignation/:id', component: MyResignationComponent, },
+      { path: 'resignation', component: ResignationComponent, },
+    ]
+  },
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},

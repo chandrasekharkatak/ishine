@@ -204,6 +204,12 @@ public class CronJobService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
+	
+	@Value("${poPortal.api.allProjects}")
+	private String allPoPortalProjects;
+	
+	@Value("${resignation.consent.link}")
+	private String resignationConsentLink;
 		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
@@ -1138,7 +1144,7 @@ public class CronJobService {
 									+ "Date Of resignation : " + dateOfResign + "<br>"
 									+ "Date of relieving : " + dateOfRelieving + "<br>"
 									+ "<br>"
-									+ "Link :  http://localhost:4200/#/user-exit/" +empId);
+									+ "Link : "+resignationConsentLink +empId);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -1162,7 +1168,7 @@ public class CronJobService {
 										+ "Date Of resignation : " + dateOfResign + "<br>"
 										+ "Date of relieving : " + dateOfRelieving + "<br>"
 										+ "<br>"
-										+ "Link :  http://localhost:4200/#/user-exit/" +empId);
+										+ "Link : "+resignationConsentLink +empId);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -1830,7 +1836,7 @@ public class CronJobService {
 				
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
-				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .url(allPoPortalProjects)
 				  .get()
 				  .addHeader("accept", "application/json")
 				  .build();
@@ -2108,7 +2114,7 @@ public class CronJobService {
 				
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
-				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .url(allPoPortalProjects)
 				  .get()
 				  .addHeader("accept", "application/json")
 				  .build();

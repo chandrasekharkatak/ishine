@@ -1,0 +1,251 @@
+<div class="row">
+    <div class="col-md-12">
+
+        <!-- Resignation Application :: start  -->
+
+        <div *ngIf="!isViewEmployeeInfo">
+            <div class="row">
+                <div class="col-md-12 table-header">
+                    <h1 class="table-header-title">Resignation Application</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="selector-toggle" (click)="toggleSearch()">
+                        <a href="javascript:void(0)">
+                            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        </a>
+                    </div>
+                    <div class="overflow-auto" bassHorizontalScroll [tableId]="'resignationInfo'"
+                        [tableTHeadId]="'resignationInfoTHead'" [tableTHeadTrId]="'resignationInfoTHeadTr'">
+                        <table class="table" matSort (matSortChange)="sortData($event)" id="resignationInfoInfo">
+                            <thead class="thead-light" id="resignationInfoTHead">
+                                <tr id="resignationInfoTHeadTr">
+                                    <th scope="col" class="info-label">Sr No.</th>
+                                    <th scope="col" class="info-label" mat-sort-header="employmentId|string">Employment Id
+                                    </th>
+                                    <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
+                                    <th scope="col" class="info-label" mat-sort-header="resignationStatus|string">
+                                        Resignation Status</th>
+                                    <th scope="col" class="info-label" mat-sort-header="statusUpdatedByName|string">Status
+                                        Updated By</th>
+                                    <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Resignation Date
+                                    </th>
+                                    <th scope="col" class="info-label" mat-sort-header="statusUpdatedOn|string">Status
+                                        Updated On</th>
+                                    <th scope="col" class="info-label">Action</th>
+                                </tr>
+                                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="resignationColumns" (onSearch)="onSearch($event);page=1"></tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngIf="allResignationApplicationList.length == 0 || (allResignationApplicationList | colFilter:filters:false).length == 0">
+                                    <th colspan="8" class="text-center info-label">No Application(s) to display...
+                                    </th>
+                                </tr>
+                                <tr
+                                    *ngFor="let resignation of allResignationApplicationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                                    <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                    <td>{{resignation.employmentId}}</td>
+                                    <td>{{resignation.name}}</td>
+                                    <td>{{resignation.resignationStatus}}</td>
+                                    <td>{{resignation.statusUpdatedByName}}</td>
+                                    <td>{{resignation.createdOn}}</td>
+                                    <td>{{resignation.statusUpdatedOn}}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-success" *ngIf="userMapping.approve_resignation && resignation.resignationStatus == 'Pending'" (click)="approveResignationApplication(resignation, alert_message)"
+                                            type="submit" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-danger" *ngIf="userMapping.reject_resignation && resignation.resignationStatus == 'Pending'" (click)="openRejectResignationModal(reject_modal, resignation)" type="submit"
+                                            title="Reject"><em class="fa-solid fa-xmark"></em></button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary" *ngIf="userMapping.view_resignation" type="submit" title="View Employee Info"
+                                            (click)="viewEmployeeInfo(resignation)"><em>View</em></button>&nbsp;
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <pagination-controls class="my-pagination" [hidden]="allResignationApplicationList.length == 0"
+                        (pageChange)="handlePageChange($event)"></pagination-controls>
+                </div>
+            </div>
+        </div>
+        <!-- Resignation Application :: end  -->
+
+        <!-- View Employee Info :: start -->
+
+        <div *ngIf="isViewEmployeeInfo">
+            <div class="px-0">
+                <button class="btn btn-sm btn-outline-primary mb-1" (click)="goToApplicationPage()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+            </div>
+            <div class="row">
+                <div class="card user-card">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row justify-content-between">
+                                <div class="col-xs-12 col-sm-12 col-md-4 d-flex flex-column user-card__profile-avatar">
+                                    <img src="assets/Images/default-user-image.jpeg"
+                                        id="user-avatar" class="user-card__profile-avatar__img" alt="Avatar" />
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-8 user-card__profile-info">
+                                    <div class="row user-card__profile-info__container mt-4 mr-0">
+                                        <div class="col-sm-6 col-md-4 user-card__profile-info__container-blocks">
+                                            <p class="user-card__profile-info__label">Emp ID</p>
+                                            <p class="user-card__profile-info__text">A-{{employeeInfoObj.employeementId}}</p>
+                                        </div>
+                                        <div class="col-sm-6 col-md-4 user-card__profile-info__container-blocks">
+                                            <p class="user-card__profile-info__label">Reporting To</p>
+                                            <p class="user-card__profile-info__text">{{employeeInfoObj.managerName}}</p>
+                                        </div>
+                                        <div class="col-sm-6 col-md-4 user-card__profile-info__container-blocks">
+                                            <p class="user-card__profile-info__label">Department</p>
+                                            <p class="user-card__profile-info__text">{{employeeInfoObj.departmentName}}</p>
+                                        </div>
+                                    </div>     
+                                    <div class="row user-card__profile-info__container mt-4 mr-0">
+                                        <div class="col-sm-6 col-md-4 user-card__profile-info__container-blocks">
+                                            <p class="user-card__profile-info__label">Designation</p>
+                                            <p class="user-card__profile-info__text">{{employeeInfoObj.designationName}}</p>
+                                        </div>
+                                        <div class="col-sm-6 col-md-4 user-card__profile-info__container-blocks">
+                                            <p class="user-card__profile-info__label">Date Of Resign</p>
+                                            <p class="user-card__profile-info__text">{{employeeInfoObj.dateOfResign}}</p>
+                                        </div>
+                                        <div class="col-sm-6 col-md-4 user-card__profile-info__container-blocks">
+                                            <p class="user-card__profile-info__label">Application Status</p>
+                                            <p class="user-card__profile-info__text">{{employeeInfoObj.resignationStatus}}</p>
+                                        </div>
+                                    </div>                                                  
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card retain-card">
+                    <div class="retain-card--content">
+                        <div class="col-md-12">
+                            <h4 class="mt-5">Do you want to retain this employee?</h4>
+                            <h6 class="text-secondary mt-5">Revoke the application</h6>
+                            <button class="btn btn-primary mt-4" *ngIf="userMapping.revoke_resignation" [disabled]="employeeInfoObj.resignationStatus != 'Approved'" (click)="revokeResignationApplication(alert_message)">Revoke</button>
+                        </div>
+                    </div>
+                    <div class="retain-card--image">
+                        <img src="/assets/Images/exit.svg" id="exit-avatar" class="exit-avatar__img" alt="Avatar" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12 px-0 mt-3">
+                <div class="row">
+                    <div class="col-md-4 px-0">
+                        <div class="card" [ngStyle]="isViewProject && {'border-bottom': '5px solid #193d8aff'}">
+                            <div class="card-info-text">
+                                <div class="row">
+                                    <h4>{{allProjectCount}}</h4>
+                                </div>
+                                <div class="row">
+                                    <h6 class="text-secondary">Project(s)</h6>
+                                    <h6 class="card-view-info" *ngIf="!isViewProject" (click)="openProjectView()">View All Project &nbsp;<em><i class="fa-solid fa-chevron-down"></i></em></h6>
+                                    <h6 class="card-view-info" *ngIf="isViewProject" (click)="openProjectView()">View All Project &nbsp;<em><i class="fa-solid fa-chevron-up"></i></em></h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="col-md-4 px-0">
+                        <div class="card" [ngStyle]="isViewRating && {'border-bottom': '5px solid #193d8aff'}">
+                            <div class="card-info-text">
+                                <div class="row">
+                                    <h4>E</h4>
+                                </div>
+                                <div class="row">
+                                    <h6 class="text-secondary">Average Rating</h6>
+                                    <h6 class="card-view-info" *ngIf="!isViewRating">All Cycle Rating &nbsp;<em><i class="fa-solid fa-chevron-down"></i></em></h6>
+                                    <h6 class="card-view-info" *ngIf="isViewRating">All Cycle Rating &nbsp;<em><i class="fa-solid fa-chevron-up"></i></em></h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <!-- <div class="col-md-4 px-0">
+                        <div class="card" [ngStyle]="isViewBilling && {'border-bottom': '5px solid #193d8aff'}">
+                            <div class="card-info-text">
+                                <div class="row">
+                                    <h4>18,00,984</h4>
+                                </div>
+                                <div class="row">
+                                    <h6 class="text-secondary">Total Billing</h6>
+                                    <h6 class="card-view-info" *ngIf="!isViewBilling">View Yearly Billing &nbsp;<em><i class="fa-solid fa-chevron-down"></i></em></h6>
+                                    <h6 class="card-view-info" *ngIf="isViewBilling">View Yearly Billing &nbsp;<em><i class="fa-solid fa-chevron-up"></i></em></h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+
+            <div class="col-md-12 px-0 mt-3" *ngIf="isViewProject">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'"
+                    [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                    <table class="table" matSort (matSortChange)="sortData($event)" id="resignationInfoInfo">
+                        <thead class="thead-light" id="projectInfoTHead">
+                            <tr id="projectInfoTHeadTr">
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="active|string">Active</th>
+                                <th scope="col" class="info-label" mat-sort-header="startDate|datetime">Start Date</th>
+                                <th scope="col" class="info-label" mat-sort-header="endDate|datetime">End Date</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns"
+                                    (onSearch)="onSearch($event);page=1"></tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                *ngIf="projectList.length == 0  || (projectList | colFilter:filters:false).length == 0">
+                                <th colspan="8" class="text-center info-label">No Projects to display...
+                                </th>
+                            </tr>
+                            <tr
+                                *ngFor="let project of projectList | colFilter:filters:false |  sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                                <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                <td>{{project.projectName}}</td>
+                                <td>{{project.teamName}}</td>
+                                <td>{{project.active  == '1' ? 'Yes' : 'No'}}</td>
+                                <td>{{project.startDate}}</td>
+                                <td>{{project.endDate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="projectList.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+            
+        </div>
+
+        <!-- View Employee Info :: end -->
+    </div>
+</div>
+
+<!-- Modal Templates-->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #reject_modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to reject Resignation Application?</p>
+        <textarea rows="3" class="form-group" cols="50" [(ngModel)]="employeeExitObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeExitObj.rejectReason)" (click)="rejectResignationApplication(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>
