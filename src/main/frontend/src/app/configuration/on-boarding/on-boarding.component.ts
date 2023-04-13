@@ -69,15 +69,22 @@ export class OnBoardingComponent implements OnInit {
 
     let assetObj = {...this.assetObj};
 
+    if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
+      this.alertMessage = "Please enter EmployeementId !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
     if (assetObj.employeementId.startsWith('A-')) {
-      if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
-        this.alertMessage = "Please enter EmployeementId !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
       assetObj.employeementId = assetObj.employeementId.substring(2);
     } else {
       assetObj.employeementId  = assetObj.employeementId;
+    }
+
+    if (!this.validationService.validateEmployeementId(assetObj.employeementId)) {
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetObj).pipe(first()).subscribe((response: any) => {
