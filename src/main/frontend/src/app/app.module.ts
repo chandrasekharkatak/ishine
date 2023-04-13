@@ -87,6 +87,7 @@ import { DesignationConfigComponent } from './configuration/designation-config/d
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
 import { ResignationComponent } from './user-exit/resignation/resignation.component';
+import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
 
 @NgModule({
   declarations: [
@@ -147,7 +148,8 @@ import { ResignationComponent } from './user-exit/resignation/resignation.compon
     MultiColFilterPipe,
     DesignationConfigComponent,
     MyResignationComponent,
-    ResignationComponent
+    ResignationComponent,
+    DomainConfigComponent
   ],
   imports: [
     BrowserModule,

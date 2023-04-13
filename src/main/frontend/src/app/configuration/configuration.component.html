@@ -10,6 +10,10 @@
                     <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" role="tab"
                         aria-controls="dept" aria-selected="false" routerLink="department">Department</a>
                 </li>
+                <li *ngIf="userMapping.domain_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="domain-tab" data-toggle="tab" role="tab"
+                        aria-controls="domain" aria-selected="true" routerLink="domain">Domain</a>
+                </li>
                 <li *ngIf="userMapping.designation_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="dept-tab" data-toggle="tab" role="tab"
                         aria-controls="designation" aria-selected="false" routerLink="designation">Designation</a>

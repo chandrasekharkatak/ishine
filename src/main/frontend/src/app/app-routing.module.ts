@@ -48,6 +48,7 @@ import { ResourceManagementComponent } from './user-team/resource-management/res
 import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
 import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
 import { ResignationComponent } from './user-exit/resignation/resignation.component';
+import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -64,10 +65,11 @@ const routes: Routes = [
   {path:'configuration', component: ConfigurationComponent, canActivate: [AuthGuard], 
     children: [
       { path: 'employee', component: EmployeeConfigComponent, },
+      { path: 'domain', component: DomainConfigComponent, },
       { path: 'department', component: DeptConfigComponent, },
       { path: 'role', component: RoleConfigComponent, },
       { path: 'leave', component: LeaveConfigComponent, },
-     // { path: 'team', component: TeamConfigComponent, },
+    //  { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
       { path: 'portal-config', component: PortalConfigComponent, },
       { path: 'survey-config', component: SurveyConfigComponent, },
