@@ -1,17 +1,20 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_holidays" [ngClass]="{'active' : isHolidayForm && isCreation}" (click)="showAddHolidayForm()">Add Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_holidays || userMapping.update_holidays || userMapping.delete_holiday" [ngClass]="{'active' : isHolidayTable}" (click)="showHoliaysTable()">View Holidays</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_type" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()">Add Leave Type</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_types || userMapping.update_leave_type || userMapping.delete_leave_type" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">View Leave Types</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.manage_employee_leave_balance" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">View Leave Policies</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_holidays" [ngClass]="{'active' : isHolidayForm && isCreation}" (click)="showAddHolidayForm()">Add Holidays</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_holidays || userMapping.update_holidays || userMapping.delete_holiday) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isHolidayTable}" (click)="showHoliaysTable()">Holidays</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_type" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()">Add Leave Type</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_leave_types || userMapping.update_leave_type || userMapping.delete_leave_type) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeaveRuleTable}" (click)="showLeaveTypesTable()">Leave Types</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.manage_employee_leave_balance) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">Leave Policies</button>
     </div>
 </div>
 
 <!-- start :: Add & Update Holiday Form -->
 <div class="row">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHolidayTable && isHolidayForm" (click)="showHoliaysTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0" *ngIf="isHolidayForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Add Holidays</strong>
@@ -99,6 +102,11 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_holidays" [ngClass]="{'active' : isHolidayForm && isCreation}" (click)="showAddHolidayForm()"><em class="fa-solid fa-plus"></em>&nbsp; Add Holidays</button>
+            </div>
+        </div>
+        <div class="row">
             <div  class="col-md-2 ml-auto mb-2">	
                 <div class="form-inline input-group">	
                     <label class="d-inline-block mr-2 mt-2"><strong>Year</strong></label>	
@@ -181,6 +189,9 @@
 
 <!-- start :: Add & Update Leave Type Form -->
 <div class="row">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isLeaveRuleTable && isLeaveTypeForm" (click)="showLeaveTypesTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0" *ngIf="isLeaveTypeForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Add Leave Type</strong>
@@ -261,6 +272,11 @@
         <div class="row">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">Leave Types</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_type" [ngClass]="{'active' : isLeaveTypeForm && isCreation}" (click)="showAddLeaveTypeForm()"><em class="fa-solid fa-plus"></em>&nbsp;Add Leave Type</button>
             </div>
         </div>
         <!-- <div class="row">
@@ -386,6 +402,9 @@
 
 <!-- start :: Add & Update Leave Policy Form -->
 <div class="row">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isLeavePolicyTable && isLeavePolicyForm" (click)="showLeavePoliciesTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0" *ngIf="isLeavePolicyForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Add Leave Policy</strong>
@@ -650,6 +669,11 @@
         <div class="row">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">Leave Policies</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()"><em class="fa-solid fa-plus"></em>&nbsp;Add Leave Policy</button>
             </div>
         </div>
         <!-- <div class="row">
