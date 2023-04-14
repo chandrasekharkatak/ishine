@@ -222,16 +222,24 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.create_employee){
-      this.showCreateForm()
-    }else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    // if(this.userMapping.create_employee){
+    //   this.showCreateForm()
+    // }else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    //   //for employee table data 
+    //   this.showTable();
+    // } else if (this.userMapping.update_draft) {
+    //   //for employee draft table data 
+    //   this.showDraftTable();
+    // }
+    // this.addDemographiscInfo();
+
+    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {
       //for employee draft table data 
       this.showDraftTable();
     }
-    // this.addDemographiscInfo();
   }
 
   addDemographiscInfo(){

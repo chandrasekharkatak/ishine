@@ -1,13 +1,16 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Employee</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_employee || userMapping.update_employee || userMapping.delete_employee || userMapping.enable_employee_login" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Employees</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_draft" [ngClass]="{'active' : isDraftTable}" (click)="showDraftTable()">View All Employees Draft</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Employee</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_all_employee || userMapping.update_employee || userMapping.delete_employee || userMapping.enable_employee_login) && !isForm && !isDraft" [ngClass]="{'active' : isTable}" (click)="showTable()">Employees</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_draft && !isForm && !isDraft" [ngClass]="{'active' : isDraftTable}" (click)="showDraftTable()">Employees Draft</button>
     </div>
 </div>
 
 <!-- start :: Create & Update Form -->
 <div class="row" *ngIf="isForm || isDraft">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isForm || !isDraft" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Employee</strong>
@@ -842,6 +845,13 @@
             <div class="col-md-12 table-header">
                 <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
                 <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee && isTable" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()"><em class="fa-solid fa-plus"></em>&nbsp; Add New Employee</button> 
+                </div>
             </div>
         </div>
         <div class="row">
