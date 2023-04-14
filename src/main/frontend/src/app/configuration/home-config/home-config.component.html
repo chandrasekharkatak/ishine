@@ -1,13 +1,16 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_event_photos || userMapping.delete_event_photos" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Event Photos List</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_notification" [ngClass]="{'active' : isNotificationTable}" (click)="showNotificationTable()">View Notification</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_all_event_photos || userMapping.delete_event_photos) && !isPhotoForm && !isNotificationForm" [ngClass]="{'active' : isTable}" (click)="showTable()">All Event Photos List</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_notification && !isPhotoForm && !isNotificationForm" [ngClass]="{'active' : isNotificationTable}" (click)="showNotificationTable()">Notification</button>
     </div>
 </div>
 
 <!-- start :: upload Images Form -->
 <div class="row">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="(userMapping.view_all_event_photos || userMapping.delete_event_photos) && !isTable && isPhotoForm" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0" *ngIf="isPhotoForm">
         <div class="card-header text-center text-uppercase">
             <strong>Upload Images</strong>
@@ -53,6 +56,11 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()"><em class="fa-solid fa-plus"></em>&nbsp;Upload Event Photos</button>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-12">
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
                     [tableTHeadTrId]="'eventInfoTHeadTr'">
@@ -93,6 +101,9 @@
 
 <!-- start :: Set Notification -->
 <div class="row">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="userMapping.view_all_notification && !isNotificationTable && isNotificationForm" (click)="showNotificationTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0" *ngIf="isNotificationForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isNotificationCreate">Set Notification</strong>

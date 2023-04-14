@@ -13,7 +13,7 @@
 <!-- start :: Add & Update Holiday Form -->
 <div class="row">
     <div class="px-0">
-        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHolidayTable && isHolidayForm" (click)="showHoliaysTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="(userMapping.view_holidays || userMapping.update_holidays || userMapping.delete_holiday) && !isHolidayTable && isHolidayForm" (click)="showHoliaysTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
     </div>
     <div class="card col-md-12 px-0" *ngIf="isHolidayForm">
         <div class="card-header text-center text-uppercase">
@@ -190,7 +190,7 @@
 <!-- start :: Add & Update Leave Type Form -->
 <div class="row">
     <div class="px-0">
-        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isLeaveRuleTable && isLeaveTypeForm" (click)="showLeaveTypesTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="(userMapping.view_leave_types || userMapping.update_leave_type || userMapping.delete_leave_type) && !isLeaveRuleTable && isLeaveTypeForm" (click)="showLeaveTypesTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
     </div>
     <div class="card col-md-12 px-0" *ngIf="isLeaveTypeForm">
         <div class="card-header text-center text-uppercase">
@@ -403,7 +403,7 @@
 <!-- start :: Add & Update Leave Policy Form -->
 <div class="row">
     <div class="px-0">
-        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isLeavePolicyTable && isLeavePolicyForm" (click)="showLeavePoliciesTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="(userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy) && !isLeavePolicyTable && isLeavePolicyForm" (click)="showLeavePoliciesTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
     </div>
     <div class="card col-md-12 px-0" *ngIf="isLeavePolicyForm">
         <div class="card-header text-center text-uppercase">
