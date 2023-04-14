@@ -126,8 +126,8 @@
                     <div class="retain-card--content">
                         <div class="col-md-12">
                             <h4 class="mt-5">Do you want to retain this employee?</h4>
-                            <h6 class="text-secondary mt-5">Revoke the application</h6>
-                            <button class="btn btn-primary mt-4" *ngIf="userMapping.revoke_resignation" [disabled]="employeeInfoObj.resignationStatus != 'Approved'" (click)="revokeResignationApplication(alert_message)">Revoke</button>
+                            <h6 class="text-secondary mt-5">Retain the employee</h6>
+                            <button class="btn btn-primary mt-4" *ngIf="userMapping.revoke_resignation" [disabled]="employeeInfoObj.resignationStatus != 'Approved'" (click)="revokeResignationApplication(alert_message)">Retain</button>
                         </div>
                     </div>
                     <div class="retain-card--image">

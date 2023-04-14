@@ -993,29 +993,29 @@ public class EmployeeExitService {
 									"Date Of Resignation :"+" "+ dateOfResign);
 							
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Application retained successfully and Employee info changed.");
+							response.setServiceResponse("Employee retained successfully and Employee info changed.");
 							
-							apiLogInfo.setApiResponse("Application retained successfully and Employee info changed.");
+							apiLogInfo.setApiResponse("Employee retained successfully and Employee info changed.");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Application retained, but unable to change Employee info.");
+							response.setServiceResponse("Employee retained, but unable to change Employee info.");
 							
-							apiLogInfo.setApiResponse("Application retained, but unable to change Employee info.");
+							apiLogInfo.setApiResponse("Employee retained, but unable to change Employee info.");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Application retained, but unable to find Employee.");
+						response.setServiceResponse("Employee retained, but unable to find Employee.");
 						
-						apiLogInfo.setApiResponse("Application retained, but unable to find Employee.");
+						apiLogInfo.setApiResponse("Employee retained, but unable to find Employee.");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to retain Resignation Application.");
+					response.setServiceResponse("Unable to retain Employee.");
 					
-					apiLogInfo.setApiResponse("Unable to retain Resignation Application.");
+					apiLogInfo.setApiResponse("Unable to retain Employee.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
