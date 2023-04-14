@@ -90,9 +90,13 @@ export class UploadPoliciesComponent implements OnInit {
 
 
   sectionViewInit() {
-    if(this.userMapping.upload_policy){
-      this.showDocumentForm();
-    }else if(this.userMapping.view_all_documents){
+    // if(this.userMapping.upload_policy){
+    //   this.showDocumentForm();
+    // }else if(this.userMapping.view_all_documents){
+    //   this.showTable();
+    // }
+
+    if (this.userMapping.view_all_documents) {
       this.showTable();
     }
   }
