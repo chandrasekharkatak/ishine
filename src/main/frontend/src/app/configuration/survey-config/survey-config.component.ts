@@ -103,7 +103,7 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showSurveyForm();
+    this.showSurveys();
   }
 
   showSurveyForm(){

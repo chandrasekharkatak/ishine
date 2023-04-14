@@ -1,12 +1,15 @@
-<div class="row mb-3">
+<!-- <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_survey" [ngClass]="{'active' : isSurveyForm && isCreation}" (click)="showSurveyForm()">Create Survey</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_surveys || userMapping.update_survey_status" [ngClass]="{'active' : isSurveyList}" (click)="showSurveys()">View All Surveys</button>
     </div>
-</div>
+</div> -->
 
 <!-- start :: Create Survey Form -->
 <div class="row" *ngIf="isSurveyForm">
+    <div class="px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="(userMapping.view_all_surveys || userMapping.update_survey_status) && !isSurveyList" [ngClass]="{'active' : isSurveyList}" (click)="showSurveys()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Survey</strong>
@@ -127,6 +130,14 @@
         <div class="row">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">Surveys</h1>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_survey" [ngClass]="{'active' : isSurveyForm && isCreation}" (click)="showSurveyForm()"><em class="fa-solid fa-plus"></em>&nbsp; Create Survey</button>
+                </div>
             </div>
         </div>
         
