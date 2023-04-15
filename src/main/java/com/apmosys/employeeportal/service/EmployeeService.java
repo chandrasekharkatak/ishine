@@ -54,7 +54,9 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
+import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
@@ -2541,14 +2543,19 @@ public class EmployeeService {
 					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
 				});
 				
-				//Check if user has read all the policy
-				long policyCount = uploadPolicyRepository.countByReadEnabled("true");
-				long empResponseCount = policyReadResponseRepository.countByEmpId(employee.getEmpId());
+				//Check if all Policy read.
+				List<UploadPolicy> allPolicy = uploadPolicyRepository.findByReadEnabled("true");
 				
-				if(policyCount > empResponseCount) {
-					employee.setIsAllPolicyMarkAsRead("false");
-				}else {
-					employee.setIsAllPolicyMarkAsRead("true");
+				if(!allPolicy.isEmpty()) {
+					for(UploadPolicy object: allPolicy) {
+						PolicyReadResponse readResponse = policyReadResponseRepository
+								.findByEmpIdAndPolicyID(employee.getEmpId(), object.getPolicyID());
+						
+						if(readResponse == null) {
+							employee.setPolicyReadConsent(object);
+							break;
+						}
+					}
 				}
 				
 				//Check if all Notification consent given.

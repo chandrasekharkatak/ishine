@@ -108,9 +108,10 @@
                                 <button  class="btn btn-sm btn-outline-primary"  type="submit" ><em class="fa fa-download" (click)="downloadFile(doc)"></em></button>&nbsp;  
                             </td>
                             <td>
-                                <button  *ngIf="doc.readEnabled == 'false'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="openReadEnabledMod(read_enabled,doc)">Enable</button>
+                                <button  *ngIf="doc.readEnabled == 'false'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="openReadEnabledMod(read_enabled,doc)">Enable</button>&nbsp;
                                 <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="onReadDisabledMod(read_disabled,doc)">Disable</button>&nbsp; 
-                                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="policyReadResponseById(doc)">View Response</button>  
+                                <button  *ngIf="doc.readEnabled == 'true'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="policyReadResponseById(doc)">View Response</button>&nbsp;
+                                <button class="btn btn-sm btn-outline-primary"  type="submit" (click)="previewPolicyDocument(preview_document,doc)" >Preview Policy</button>  
                 
                             </td>
                         </tr>
@@ -212,3 +213,37 @@
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #preview_document>
+    <div class="modal-body">
+        
+        <div class="row">
+            <div class="card col-md-12 p-0">
+                <div class="card-header text-center text-uppercase">
+                    <strong>{{fileName}}</strong><br>
+                </div>
+                <div class="card-body">
+                    <div id="outerContainer">
+                        <div class="pdf-container">
+                          <pdf-viewer
+                            [src]="src"
+                            [rotation]="0"
+                            [original-size]="false"
+                            [show-all]="true"
+                            [fit-to-page]="false"
+                            [zoom]="1"
+                            [zoom-scale]="'page-width'"
+                            [stick-to-page]="false"
+                            [render-text]="true"
+                            [external-link-target]="'blank'"
+                            [autoresize]="true"
+                            [show-borders]="false"
+                            style="width: 100%; height: 600px;"
+                          ></pdf-viewer>
+                        </div>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </ng-template>

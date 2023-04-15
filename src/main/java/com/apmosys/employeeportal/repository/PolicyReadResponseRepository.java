@@ -17,4 +17,6 @@ public interface PolicyReadResponseRepository  extends JpaRepository<PolicyReadR
 
 	long countByEmpId(Long empId);
 
+	PolicyReadResponse findByEmpIdAndPolicyID(Long empId, Long policyID);
+
 }

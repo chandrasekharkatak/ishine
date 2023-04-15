@@ -195,7 +195,7 @@ public class EmployeeDTO {
 	private String bucketName;
 	private String timesheetStatus;
 	
-	private String isAllPolicyMarkAsRead;
+	private Object policyReadConsent;
 	
 	private Object notificationConsent;
 	private String poPortalAllProjectApi;

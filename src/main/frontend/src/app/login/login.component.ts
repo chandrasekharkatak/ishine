@@ -282,7 +282,7 @@ export class LoginComponent implements OnInit{
       this.user.reportingManagerEmail = user.reportingManagerEmail;
       this.user.approvalsTo = user.approvalsTo;
       this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
-      this.user.isAllPolicyMarkAsRead = user.isAllPolicyMarkAsRead;
+      this.user.policyReadConsent = user.policyReadConsent;
       this.user.notificationConsent = user.notificationConsent;
       this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
       
@@ -313,7 +313,10 @@ export class LoginComponent implements OnInit{
       }
 
       if (this.user.tabList.find(e => e.tabName === 'HR Policies')) {
-        if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
+        // if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
+        //   this.router.navigate(['/user-policies']);
+        // }
+        if(this.currentUser.policyReadConsent != null){
           this.router.navigate(['/user-policies']);
         }
       }

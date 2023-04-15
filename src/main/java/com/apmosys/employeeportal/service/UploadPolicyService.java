@@ -24,6 +24,8 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
+import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -361,51 +363,65 @@ public class UploadPolicyService {
 	public ServiceResponse setPolicyReadResponseByEmpId(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("Appreciation");
+		// apiLogInfo.setSubFeatureName("Appreciation");
 		apiLogInfo.setApiUrl("/api/setPolicyReadResponseByEmpId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("policyID : " +uploadPolicyDTO.getPolicyID()+ "empID :" +uploadPolicyDTO.getEmpId());
+		logBuilder.append("policyID : " + uploadPolicyDTO.getPolicyID() + "empID :" + uploadPolicyDTO.getEmpId());
 		try {
-		if (!validationService.validateEmpId(uploadPolicyDTO.getEmpId())) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Employee Id does not exists.");
+			if (!validationService.validateEmpId(uploadPolicyDTO.getEmpId())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Id does not exists.");
+
+				apiLogInfo.setApiResponse("Employee Id does not exists");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
 			
-			apiLogInfo.setApiResponse("Employee Id does not exists");			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			return response;
-		}
-		PolicyReadResponse policyreadresponse = new PolicyReadResponse();
-		policyreadresponse.setEmpId(uploadPolicyDTO.getEmpId());
-		policyreadresponse.setPolicyID(uploadPolicyDTO.getPolicyID());
-		PolicyReadResponse dbResponse = PolicyReadResponseRepository.save(policyreadresponse);
-		if(dbResponse!=null) {
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Your response has been submitted");
+			PolicyReadResponse policyreadresponse = new PolicyReadResponse();
+			policyreadresponse.setEmpId(uploadPolicyDTO.getEmpId());
+			policyreadresponse.setPolicyID(uploadPolicyDTO.getPolicyID());
+			PolicyReadResponse dbResponse = PolicyReadResponseRepository.save(policyreadresponse);
 			
-			apiLogInfo.setApiResponse("Your response has been submitted");			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			//return response;	
-		}else {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Appreciation not submitted.");
-			
-			apiLogInfo.setApiResponse("Appreciation not submitted.");			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		}
-		}catch (Exception e) {
-			// TODO Auto-generated catch block
+			if (dbResponse != null) {
+				
+				EmployeeDTO dto = new EmployeeDTO();
+				
+				List<UploadPolicy> allPolicy = UploadPolicyRepository.findByReadEnabled("true");
+
+				if (!allPolicy.isEmpty()) {
+					for (UploadPolicy object : allPolicy) {
+						PolicyReadResponse readResponse = PolicyReadResponseRepository
+								.findByEmpIdAndPolicyID(dbResponse.getEmpId(), object.getPolicyID());
+
+						if (readResponse == null) {
+							dto.setPolicyReadConsent(object);
+							break;
+						}
+					}
+				}
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dto);
+				
+				apiLogInfo.setApiResponse("Your response has been submitted");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Appreciation not submitted.");
+
+				apiLogInfo.setApiResponse("Appreciation not submitted.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
-			
 		}
-		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
@@ -534,19 +550,19 @@ public class UploadPolicyService {
 	public ServiceResponse isAllPolicyRead(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			EmployeeDTO employee = new EmployeeDTO();
+			UploadPolicyDTO policyDto = new UploadPolicyDTO();
 			
 			long policyCount = UploadPolicyRepository.countByReadEnabled("true");
 			long empResponseCount = PolicyReadResponseRepository.countByEmpId(uploadPolicyDTO.getEmpId());
 			
 			if(policyCount > empResponseCount) {
-				employee.setIsAllPolicyMarkAsRead("false");
+				policyDto.setIsAllPolicyMarkAsRead("false");
 			}else {
-				employee.setIsAllPolicyMarkAsRead("true");
+				policyDto.setIsAllPolicyMarkAsRead("true");
 			}
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(employee);
+			response.setServiceResponse(policyDto);
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

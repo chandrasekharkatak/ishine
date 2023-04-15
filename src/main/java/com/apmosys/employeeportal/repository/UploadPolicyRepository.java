@@ -21,4 +21,6 @@ public interface UploadPolicyRepository extends JpaRepository<UploadPolicy, Long
 
 	public long countByReadEnabled(String string);
 
+	public List<UploadPolicy> findByReadEnabled(String readEnable);
+
 }

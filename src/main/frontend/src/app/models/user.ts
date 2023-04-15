@@ -52,8 +52,8 @@ export class User{
     reportingManagerEmail:any;
 
     revokeReporteeLeaveValidity:any;
-    isAllPolicyMarkAsRead:any;
     notificationConsent:any;
+    policyReadConsent:any;
     
     poPortalAllProjectApi:any;
 }
