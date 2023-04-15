@@ -192,7 +192,10 @@ public class EmployeeDTO {
 	private Long designationId;
 	private String designationName;
 	
+	private String bucketName;
 	private String timesheetStatus;
 	
 	private String isAllPolicyMarkAsRead;
+	
+	private Object notificationConsent;
 }

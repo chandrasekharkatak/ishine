@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,5 +21,8 @@ public interface LeaveBalanceLogRepository extends JpaRepository<LeaveBalanceLog
 
 	@Query(nativeQuery = true)
 	LeaveBalanceLog findCompOffLogByEmpId(Long empId, short leaveTypeMasterId, String message, LocalDateTime updatedOn);
+
+	@Query(nativeQuery = true)
+	List<LeaveBalanceLog> findLogToReconsile(Long empId, short leaveTypeMasterId);
 
 }

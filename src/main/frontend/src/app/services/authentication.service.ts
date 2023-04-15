@@ -30,6 +30,7 @@ export class AuthenticationService {
   }
 
   setcurrentUserSubject(user: User) {
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
 

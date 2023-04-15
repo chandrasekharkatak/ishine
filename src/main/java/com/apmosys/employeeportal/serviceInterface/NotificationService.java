@@ -13,4 +13,12 @@ public interface NotificationService {
 
 	ServiceResponse getAllNotifications();
 
+	ServiceResponse getNotificationById(NotificationDTO notificationDTO);
+
+	ServiceResponse onDeleteNotification(NotificationDTO notificationDTO);
+
+	ServiceResponse submitNotificationConsent(NotificationDTO notificationDTO);
+
+	ServiceResponse getConsentNotificationResponse(NotificationDTO notificationDTO);
+
 }

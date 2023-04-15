@@ -677,9 +677,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body">
-        <p>{{notificationObj.notificationMessage}}</p>
-    </div>
+        <ul class="list-group">
+            <li class="list-group-item" [innerHTML]="notification.notificationMessage" *ngFor="let notification of allNotification"></li>
+        </ul>
 </ng-template>
 
 <!-- Night shift confirmation template -->
@@ -700,4 +700,28 @@
         <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift Request(s)</button>&nbsp;
     </div>
   </ng-template>
+
+  <!-- <ng-template #consent_notification_template>
+    <div class="modal-body text-center">
+        <p>{{consentNotificationMessage}}</p>
+        <button type="button" class="btn btn-outline-success" (click)="submitNotificationConsent()">I agree</button>&nbsp;
+    </div>
+  </ng-template> -->
+
+
+  <ng-template #consent_notification_template>
+    <div class="modal-body">
+        <div class="modal-header">
+            <h5 class="modal-title">Notification</h5>
+          </div>
+          <div class="modal-body">
+            <p  innerHtml="{{consentNotificationMessage}}"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" (click)="submitNotificationConsent()">I agree</button>&nbsp;
+          </div>
+    </div>
+  </ng-template>
+
+
   

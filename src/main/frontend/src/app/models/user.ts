@@ -53,4 +53,5 @@ export class User{
 
     revokeReporteeLeaveValidity:any;
     isAllPolicyMarkAsRead:any;
+    notificationConsent:any;
 }

@@ -8,9 +8,11 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.hibernate.internal.build.AllowSysOut;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -409,11 +411,53 @@ public class JobRoleService {
 					Employee dbResponse = employeeRepository.save(newJobRole);
 
 					if (dbResponse != null) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Job Role deleted");
 						
-						apiLogInfo.setApiResponse("Job Role deleted");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//						http://192.168.21.175:8080/ishine/updateRole/{id}
+//							Type: POST
+//							PathVariable : id of job role to be deleted
+//							RequestBody:  New role to be replaced in place of deleted one.
+//							{
+//							    "roleId":10,
+//							    "roleName":"testRole",
+//							    "deptId":5
+//							}
+						
+						//Sync deleted jobRole with PoPortal
+						JobRole jobRoleObject = jobRoleRepository.findByjobRoleId(jobRoleDTO.getJobRoleId());
+						
+						if(jobRoleObject != null) {
+							JobRoleDTO syncObject = new JobRoleDTO();
+							
+							syncObject.setRoleId(jobRoleObject.getJobRoleId());
+							syncObject.setRoleName(jobRoleObject.getName());
+							syncObject.setDeptId(jobRoleObject.getDeptId());
+							
+							final String syncUrl = "http://192.168.21.175:8080/ishine/updateRole/{id}";
+							RestTemplate restTemplate = new RestTemplate();
+							String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, jobRoleDTO.getOldJobRoleId());
+							
+							JSONObject json = new JSONObject(syncResponse);
+							
+							if(json.getInt("httpStatusCode") == 200) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Job Role deleted & Synced with PoPortal");
+								
+								apiLogInfo.setApiResponse("Job Role deleted & Synced with PoPortal");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Job Role deleted, but unable to Sync with PoPortal");
+								
+								apiLogInfo.setApiResponse("Job Role deleted, but unable to Sync with PoPortal");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							}
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Job Role deleted, but unable to Sync with PoPortal");
+							
+							apiLogInfo.setApiResponse("Job Role deleted, but unable to Sync with PoPortal");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Employee Job role mapping Failed.");

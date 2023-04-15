@@ -84,6 +84,7 @@ import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-fil
 import { MultiColFilterPipe } from './multi-col-filter.pipe';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
+import { AngularEditorModule } from '@kolkov/angular-editor';
 
 @NgModule({
   declarations: [
@@ -184,7 +185,8 @@ import { DesignationConfigComponent } from './configuration/designation-config/d
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
     AutocompleteLibModule,
-    PdfViewerModule
+    PdfViewerModule,
+    AngularEditorModule
   ],
   providers: [
     BsModalService,

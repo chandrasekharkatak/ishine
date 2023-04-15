@@ -29,4 +29,8 @@ public class JobRoleDTO {
 	private String employeeRole;
 	private List<EmployeeDTO> updatedJobRoleFeatureMapping;
 	
+	private Long roleId;
+	private String roleName;
+	private Long deptId;
+	
 }

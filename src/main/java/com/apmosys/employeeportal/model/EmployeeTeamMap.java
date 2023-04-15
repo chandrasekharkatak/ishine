@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
@@ -20,6 +22,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Entity
+@Audited
 @Table(name = "EmployeeTeamMapping")
 public class EmployeeTeamMap {
 	

@@ -26,6 +26,9 @@ public class DepartmentDTO {
 	private Long oldDeptId;
 	private String updatedByName;
 	
+	private String deptName;
+	private String hodEmploymentId;
+	
 	
 	
 	
