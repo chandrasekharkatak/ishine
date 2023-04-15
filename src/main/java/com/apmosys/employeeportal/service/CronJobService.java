@@ -1830,7 +1830,7 @@ public class CronJobService {
 				
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
-				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .url("http://192.168.21.175:8080/PoPortal/project/fixedCost/getAllProjects")
 				  .get()
 				  .addHeader("accept", "application/json")
 				  .build();
@@ -2095,6 +2095,7 @@ public class CronJobService {
 		}
 		
 //		0 0 2 ? * * : At 02:00:00am every day
+//      0 0/1 * ? * * - Run at every 1 min
 		@Async
 		@Scheduled(cron = "0 0 2 ? * *")
 		public void updateProjectStatus() {
@@ -2108,7 +2109,7 @@ public class CronJobService {
 				
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
-				  .url("https://poportal.apmosys.com/PoPortal/project/fixedCost/getAllProjects")
+				  .url("http://192.168.21.175:8080/PoPortal/project/fixedCost/getAllProjects")
 				  .get()
 				  .addHeader("accept", "application/json")
 				  .build();
