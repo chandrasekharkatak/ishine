@@ -3081,11 +3081,7 @@ public class CronJobService {
 				
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
-<<<<<<< HEAD
 				  .url(allPoPortalProjects)
-=======
-				  .url("http://192.168.21.175:8080/PoPortal/project/fixedCost/getAllProjects")
->>>>>>> refs/heads/uat
 				  .get()
 				  .addHeader("accept", "application/json")
 				  .build();
