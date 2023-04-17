@@ -33,6 +33,7 @@
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Your views on our Organisation</label>
                                             <textarea type="text" class="form-control" placeholder="Add your views" autocomplete="none" rows="1" [(ngModel)]="employeeObj.viewsOnOrganisation" (blur)="validateViewOnOrganisation($event,employeeObj.viewsOnOrganisation)" ></textarea>
+                                            <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>
                                 </div>
@@ -41,6 +42,7 @@
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>About me</label>
                                             <textarea type="text" class="form-control" autocomplete="none" placeholder="Add about yourself" rows="1" [(ngModel)]="employeeObj.aboutMe" (blur)="validateAboutMe($event,employeeObj.aboutMe)" ></textarea>
+                                            <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>
                                 </div>
