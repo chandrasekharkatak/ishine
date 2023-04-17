@@ -86,17 +86,20 @@ export class EmployeeInfoComponent implements OnInit{
       this.allPreviousEmployment = this.employeeObj.previousEmploymentList;
     }
     
-    if(this.employeeObj.child1 == null && this.employeeObj.child2 == null && this.employeeObj.child3 ){
+    if(this.employeeObj.child1 == null && this.employeeObj.child2 == null && this.employeeObj.child3 == null ){
       this.addInputChildField();
     }else{
       let childList = [this.employeeObj.child1, this.employeeObj.child2 , this.employeeObj.child3];
       childList.forEach(child => {
         if(child != null){
           this.allChildList.push(new Child(child));
-        }else{
-          this.addInputChildField();
-          return;
         }
+        // if(child != null){
+        //   this.allChildList.push(new Child(child));
+        // }else{
+        //   this.addInputChildField();
+        //   return;
+        // }
       });
     }
 
@@ -596,22 +599,23 @@ if(this.errorMsg == ""){
 }
   }
 
-  validateViewOnOrganisation(event , data:any){
+  validateViewOnOrganisation(event, data: any) {
     this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please enter views On Organisation !!"   
-  }
-//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-//     this.errorMsg = "Please enter valid views On Organisation !!"   
-// }
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+      this.errorMsg = "Please enter views On Organisation !!";
+    }
+    else {
+      this.errorMsg = ""
+    }
+
+    if (this.errorMsg == "") {
+      event.target.nextElementSibling.textContent = ""
+    } else {
+      event.target.nextElementSibling.textContent = this.errorMsg
+    }
+    //   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
+    //     this.errorMsg = "Please enter valid views On Organisation !!"   
+    // }
   }
 
   validateAboutMe(event , data:any){

@@ -33,7 +33,7 @@ export class TeamMemberComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  teamMemberColumns:any[] = ['employeementId','name','email','jobRoleName','mobileNo'];
+  teamMemberColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo'];
 
   constructor(
     private authenticationService : AuthenticationService,
