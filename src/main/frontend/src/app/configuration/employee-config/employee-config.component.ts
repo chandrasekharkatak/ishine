@@ -1182,8 +1182,6 @@ export class EmployeeConfigComponent implements OnInit {
     let employee = new Employee();
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
     const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-    // this.employeeObj.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
-   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
     if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
         employee.email = this.employeeObj.email;
@@ -1194,14 +1192,18 @@ export class EmployeeConfigComponent implements OnInit {
             this.employeeObj.email = '';
           }
         });
-      }
-      else {
+      }else {
         this.openAlertMod(template, "Please enter valid email id !!");
         this.employeeObj.email = '';
       }
-    } 
 
-    
+      if (!this.validationService.validateEmail(this.employeeObj.email)) {
+        this.alertMessage = "Please enter valid email id !!"
+        this.openAlertMod(template, this.alertMessage);
+        this.employeeObj.email = '';
+        return false;
+      }
+    }
   }
 
   checkSecondaryEmail(template: TemplateRef<any>) {
