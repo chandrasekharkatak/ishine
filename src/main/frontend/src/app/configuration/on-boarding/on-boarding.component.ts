@@ -70,7 +70,7 @@ export class OnBoardingComponent implements OnInit {
     let assetObj = {...this.assetObj};
 
     if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
-      this.alertMessage = "Please enter EmployeementId !!"
+      this.alertMessage = "Please enter Employee ID !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

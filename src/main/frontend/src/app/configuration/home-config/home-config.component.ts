@@ -80,7 +80,8 @@ export class HomeConfigComponent implements OnInit {
       showToolbar: true,
       defaultParagraphSeparator: '',
       defaultFontSize: '',
-      fonts: [{class: 'arial', name: 'Arial'},],
+      fonts: [{class: 'arial', name: 'Arial'},
+      {class: 'calibri', name: 'Calibri'}],
     uploadWithCredentials: false,
     sanitize: true,
     toolbarPosition: 'top'
