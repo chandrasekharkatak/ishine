@@ -387,7 +387,7 @@ public class ResourceManagementService {
 						response.setServiceResponse("Project updated successfully");
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse(poPortalResponse.getServiceResponse());
+						response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
 					}	
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -603,7 +603,7 @@ public class ResourceManagementService {
 							response.setServiceResponse("Project updated successfully");
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse(poPortalResponse.getServiceResponse());
+							response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
 						}	
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -833,7 +833,7 @@ public class ResourceManagementService {
 							response.setServiceResponse("Project Approved.");
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse(poPortalResponse.getServiceResponse());
+							response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
 						}				
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1172,7 +1172,7 @@ public class ResourceManagementService {
 					response.setServiceResponse("Project Synced successfully.");
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(syncResponse.getServiceResponse());
+					response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+syncResponse.getServiceResponse());
 				}	
 			}
 			
