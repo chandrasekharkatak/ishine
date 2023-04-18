@@ -7,7 +7,7 @@
             <div class="card-body">
                 <div class="resign" *ngIf="isResign">
                     <h4 class="card-title mt-5">Hey, {{currentUserName}}</h4>
-                    <h5 class="card-text" *ngIf="!isViewTextEditor">Are you sure you want to resign ?</h5>
+                    <h5 class="card-text" *ngIf="!isViewTextEditor">Do you want to resign ?</h5>
                     <h5 class="card-text info-text" *ngIf="isViewTextEditor">Please proceed with Resignation  letter.</h5>
                     <button class="btn btn-primary mb-5" *ngIf="!isViewTextEditor" (click)="showTextEditor()">Proceed</button>
 
@@ -109,6 +109,53 @@
                 <!-- releiving day template : end -->
             </div>
         </div>
+
+
+        <div *ngIf="isResign && !isViewTextEditor">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="selector-toggle" (click)="toggleSearch()">
+                        <a href="javascript:void(0)">
+                            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        </a>
+                    </div>
+                    <div class="overflow-auto" bassHorizontalScroll [tableId]="'myResignationInfo'"
+                        [tableTHeadId]="'myResignationInfoTHead'" [tableTHeadTrId]="'myResignationInfoTHeadTr'">
+                        <table class="table" matSort (matSortChange)="sortData($event)" id="myResignationInfoInfo">
+                            <thead class="thead-light" id="myResignationInfoTHead">
+                                <tr id="myResignationInfoTHeadTr">
+                                    <th scope="col" class="info-label">Sr No.</th>
+                                    <th scope="col" class="info-label" mat-sort-header="createdOn|string">Apply Date</th>
+                                    <th scope="col" class="info-label" mat-sort-header="resignationStatus|string">Application Status</th>
+                                    <th scope="col" class="info-label" mat-sort-header="rejectReason|string">Remarks</th>
+                                    <th scope="col" class="info-label" mat-sort-header="statusUpdatedByName|string">Status Updated By</th>
+                                </tr>
+                                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="myResignationColumns" (onSearch)="onSearch($event);page=1"></tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngIf="resignationApplicationList.length == 0 || (resignationApplicationList | colFilter:filters:false).length == 0">
+                                    <th colspan="8" class="text-center info-label">No Application(s) to display...
+                                    </th>
+                                </tr>
+                                <tr
+                                    *ngFor="let resignation of resignationApplicationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                                    <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                    <td>{{resignation.createdOn | date: 'dd-MM-yyyy'}}</td>
+                                    <td>{{resignation.resignationStatus}}</td>
+                                    <td>{{resignation.rejectReason}}</td>
+                                    <td>{{resignation.statusUpdatedByName}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <pagination-controls class="my-pagination" [hidden]="resignationApplicationList.length == 0"
+                        (pageChange)="handlePageChange($event)"></pagination-controls>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 

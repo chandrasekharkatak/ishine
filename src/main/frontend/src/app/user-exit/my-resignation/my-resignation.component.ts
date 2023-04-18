@@ -1,5 +1,6 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import * as moment from 'moment';
@@ -72,6 +73,15 @@ export class MyResignationComponent implements OnInit {
   dateOfRelieving:any;
   currentUserName:any;
   data:string;
+
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  myResignationColumns:any[] = ['blank','createdOn','resignationStatus','rejectReason', 'statusUpdatedByName'];
 
   //Text Editor
   editorConfig: AngularEditorConfig = {
@@ -583,6 +593,31 @@ export class MyResignationComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
+  sortData(sort: Sort){	
+    console.log(sort);
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;      
+    }
+  }
+  
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

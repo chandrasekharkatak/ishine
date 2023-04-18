@@ -150,6 +150,7 @@ public class EmployeeExitService {
 					empDTO.setStatusUpdatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 					empDTO.setDateOfResign(object[6] != null ? object[6].toString() : null);
 					empDTO.setDateOfRelieving(object[7] != null ? object[7].toString() : null);
+					empDTO.setStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
 					
 					dtoList.add(empDTO);
 				});

@@ -46,7 +46,7 @@
                                 </tr>
                                 <tr
                                     *ngFor="let resignation of allResignationApplicationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                                    <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                    <th class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td>{{resignation.employmentId}}</td>
                                     <td>{{resignation.name}}</td>
                                     <td>{{resignation.resignationStatus}}</td>
@@ -54,7 +54,7 @@
                                     <td>{{resignation.createdOn}}</td>
                                     <td>{{resignation.statusUpdatedOn}}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-success" *ngIf="userMapping.approve_resignation && resignation.resignationStatus == 'Pending'" (click)="approveResignationApplication(resignation, alert_message)"
+                                        <button class="btn btn-sm btn-outline-success" *ngIf="userMapping.approve_resignation && resignation.resignationStatus == 'Pending'" (click)="openApproveResignationModal(approve_modal, resignation)"
                                             type="submit" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-danger" *ngIf="userMapping.reject_resignation && resignation.resignationStatus == 'Pending'" (click)="openRejectResignationModal(reject_modal, resignation)" type="submit"
                                             title="Reject"><em class="fa-solid fa-xmark"></em></button>&nbsp;
@@ -246,6 +246,14 @@
         <p>Are you sure you want to reject Resignation Application?</p>
         <textarea rows="3" class="form-group" cols="50" [(ngModel)]="employeeExitObj.rejectReason"> </textarea><br>
         <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeExitObj.rejectReason)" (click)="rejectResignationApplication(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #approve_modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to approve Application?</p>
+        <button type="button" class="btn btn-success" (click)="approveResignationApplication(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
   </ng-template>

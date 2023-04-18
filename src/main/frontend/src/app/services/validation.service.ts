@@ -395,7 +395,8 @@ export class ValidationService {
   validateAlphaNumericSpecialCharacters(text: string): boolean {
 
  
-    const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
+    // const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
+    const regex = /(?=^.{8,}$)(?=.*\d)(?=.*[!@#$%^&*]+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
 
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {

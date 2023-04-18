@@ -34,6 +34,7 @@ export class ResignationComponent implements OnInit {
   employeeExitObj: EmployeeExit = new EmployeeExit();
   employeeInfoObj: Employee = new Employee();
 
+  applicationToBeApproved: any;
   applicationToBeRejected: any;
   allProjectCount: any;
   viewedApplication: any;
@@ -148,8 +149,10 @@ export class ResignationComponent implements OnInit {
     }
   }
 
-  approveResignationApplication(resignation:any, template: TemplateRef<any>){
+  approveResignationApplication(template: TemplateRef<any>){
     this.cancelRequest();
+
+    let resignation: EmployeeExit = this.applicationToBeApproved;
 
     resignation.statusUpdatedBy = this.currentUser.empId;
     if(resignation.employmentId.startsWith('A-')){
@@ -269,6 +272,11 @@ export class ResignationComponent implements OnInit {
     this.employeeExitObj = new EmployeeExit();
     this.modalRef = this.modalService.show(template);
     this.applicationToBeRejected = resignationObj;
+  }
+
+  openApproveResignationModal(template: TemplateRef<any>, resignationObj:any){
+    this.modalRef = this.modalService.show(template);
+    this.applicationToBeApproved = resignationObj;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
