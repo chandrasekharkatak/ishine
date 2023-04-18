@@ -15,7 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -298,6 +301,7 @@ public class DepartmentService {
 		return response;
 	}
 	
+	@Transactional
 	public ServiceResponse changeDepartmentJobRoleMapping(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
@@ -340,31 +344,43 @@ public class DepartmentService {
 							syncObject.setDeptName(deptObj.getName());
 							syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
 							
-							final String syncUrl = "http://192.168.21.175:8080/ishine/updateDepartment/{id}";
-							RestTemplate restTemplate = new RestTemplate();
-							String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
-							
-							JSONObject json = new JSONObject(syncResponse);
-							
-							if(json.getInt("httpStatusCode") == 200) {
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Department Deleted & Synced with PoPortal");
+							try {
 								
-								apiLogInfo.setApiResponse("Department Deleted & Synced with PoPortal");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
-							}else {
+								final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/updateDepartment/{id}";
+								RestTemplate restTemplate = new RestTemplate();
+								String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
+								
+								JSONObject json = new JSONObject(syncResponse);
+								
+								if(json.getInt("httpStatusCode") == 200) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Department Deleted & Synced with PoPortal");
+									
+									apiLogInfo.setApiResponse("Department Deleted & Synced with PoPortal");			
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+								}
+								
+							}catch(InternalServerError e) {
+								TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+								JSONObject json = new JSONObject(e.getResponseBodyAsString());
+								
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Department Deleted, but unable to Sync with PoPortal");
+								response.setServiceResponse(json.get("message"));
 								
-								apiLogInfo.setApiResponse("Department Deleted, but unable to Sync with PoPortal");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+							}catch(HttpClientErrorException e) {
+								TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			                    JSONObject json = new JSONObject(e.getResponseBodyAsString());
+								
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse(json.get("message"));
 							}
 						}else {
+							TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Department Deleted, but unable to Sync with PoPortal");
+							response.setServiceResponse("Department not found.");
 							
-							apiLogInfo.setApiResponse("Department Deleted, but unable to Sync with PoPortal");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+							apiLogInfo.setApiResponse("Department not found.");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
 						}
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
