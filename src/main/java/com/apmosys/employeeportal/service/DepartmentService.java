@@ -286,9 +286,9 @@ public class DepartmentService {
 						}
 						
 						if(json.get("message").equals("1")) {
-							//Delete dept from poPortal http://192.168.21.175:8080/ishine/deleteDepartment/{id}
+							//Delete dept from poPortal http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}
 							
-							final String deleteUrl = "http://192.168.21.175:8080/ishine/deleteDepartment/{id}";
+							final String deleteUrl = "http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}";
 							RestTemplate deleteRestTemplate = new RestTemplate();
 							restTemplate.delete(deleteUrl, departmentToBeDeleted.getDeptId());
 						}

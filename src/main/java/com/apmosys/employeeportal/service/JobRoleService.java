@@ -380,7 +380,7 @@ public class JobRoleService {
 						if(json.get("message").equals("1")) {
 							//Delete jobRole from poPortal http://192.168.21.175:8080/ishine/deleteRole/{id}
 							
-							final String deleteUrl = "http://192.168.21.175:8080/ishine/deleteRole/{id}";
+							final String deleteUrl = "http://192.168.21.175:8080/PoPortal/ishine/deleteRole/{id}";
 							RestTemplate deleteRestTemplate = new RestTemplate();
 							restTemplate.delete(deleteUrl, jobRoleToBeDeleted.getJobRoleId());
 						}
