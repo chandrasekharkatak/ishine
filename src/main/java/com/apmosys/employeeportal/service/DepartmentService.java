@@ -247,6 +247,7 @@ public class DepartmentService {
 		return response;
 	}
 
+	@Transactional
 	public ServiceResponse deleteDepartment(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
@@ -306,6 +307,7 @@ public class DepartmentService {
 					
 				}catch(HttpClientErrorException e) {
 					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+					
                     JSONObject json = new JSONObject(e.getResponseBodyAsString());
 					
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -334,7 +336,6 @@ public class DepartmentService {
 					}else {
 						dtoObject.setIsDeptUsedInPoPortal("false");
 					}
-					
 					
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(dtoObject);

@@ -288,11 +288,13 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
-      } else {
+      } else if(response.serviceStatus == "Fail") {
         this.jobRoleObj.departmentId = '';
         this.jobRoleObj.newJobRoleId = '';
         this.onDeleteJobRoleResponse = response.serviceResponse;
         this.modalRef = this.modalService.show(template);
+      }else{
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }

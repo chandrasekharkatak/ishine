@@ -340,6 +340,7 @@ public class JobRoleService {
 		return response;
 	}
 
+	@Transactional
 	public ServiceResponse deleteJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

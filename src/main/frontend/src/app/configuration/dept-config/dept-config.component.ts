@@ -213,11 +213,12 @@ export class DeptConfigComponent implements OnInit {
         this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
         this.page=1;
-      } else {
-        // this.openAlertMod(template, response.serviceResponse);
+      } else if(response.serviceStatus == "Fail") {
         this.deptObj.newDeptId = '';
         this.onDeleteDepartmentResponse = response.serviceResponse;
         this.modalRef = this.modalService.show(template);
+      }else{
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }
