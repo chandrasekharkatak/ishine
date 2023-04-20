@@ -3598,4 +3598,93 @@ public class EmployeeService {
 		}
 		return response;
 	}
+
+	public ServiceResponse unlockAllTimesheet(EmployeeDTO employeeDto) {
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("unlockAllTimesheet");
+		apiLogInfo.setApiUrl("/api/unlockAllTimesheet");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeeDto.getEmpId());
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> employeeObject = null;
+			if(employeeDto.getUnlockTimesheetFor().equals("All")) {
+				employeeObject = employeeRepository.getEmployeeDetailForCron();
+			}else if(employeeDto.getUnlockTimesheetFor().equals("MyTeam")) {
+				employeeObject = employeeRepository.getAllTeamView(employeeDto.getManagerId());
+			}
+			
+			if(!employeeObject.isEmpty()) {
+				employeeObject.forEach((object) -> {
+					Long empId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+					
+					if(empId != null) {
+						
+						Optional<Employee> employeeFound = employeeRepository.findById(empId);
+						if (employeeFound.isPresent()) {
+							Employee employee = employeeFound.get();
+
+							employee.setIsTimesheetLockCheckEnable(employeeDto.getIsTimesheetLockCheckEnable());
+							employee.setUpdatedBy(Integer.parseInt(employeeDto.getUpdatedBy().toString()));
+							employee.setTimesheetLockUpdatedOn(LocalDate.now());
+							
+							Employee dbResponse = employeeRepository.save(employee);
+
+							if (dbResponse != null) {
+								if(dbResponse.getIsTimesheetLockCheckEnable().equals("true")) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Timesheet Check Enabled.");
+									
+									apiLogInfo.setApiResponse("Timesheet Check Enabled.");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Timesheet Check Disabled.");
+									
+									apiLogInfo.setApiResponse("Timesheet Check Disabled, It will enabled automatically in "+ timesheetReconcileDays +" day(s) if not enabled");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+								}
+								
+							} else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Timesheet Check Updation Failed.");
+
+								apiLogInfo.setApiResponse("Timesheet Check Updation Failed.");
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							}
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee Not Found");
+
+							apiLogInfo.setApiResponse("Employee Not Found.");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
+					}
+				});
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Not Found");
+
+				apiLogInfo.setApiResponse("Employee Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }

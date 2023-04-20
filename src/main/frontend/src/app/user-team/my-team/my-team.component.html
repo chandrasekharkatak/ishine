@@ -18,10 +18,15 @@
     </div>
 
     <div class="row mb-2">
-      <div class="col-md-12">
-        <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="hierarchy-switch" (change)="toggleHierarchyView($event)">
-          <label class="custom-control-label" for="hierarchy-switch">View Hierarchy Chart</label>
+      <div class="col-md-12 col-sm-12">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch" (change)="toggleHierarchyView($event)">
+            <label class="custom-control-label" for="hierarchy-switch">View Hierarchy Chart</label>
+          </div>
+          <div class="col-md-3 col-sm-6 ml-auto d-flex justify-content-end align-items-start">
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="unlockAllTimesheet(alert_message)"><i class="fa-solid fa-lock-open"></i>&nbsp; Unlock My Team Timesheet</button>
+          </div>
         </div>
       </div>
     </div>

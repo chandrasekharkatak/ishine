@@ -1358,6 +1358,24 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  unlockAllTimesheet(template: TemplateRef<any>){
+    this.cancelRequest();
+    let employeeObj = new Employee();
+
+    employeeObj.unlockTimesheetFor = "All";
+    employeeObj.updatedBy = this.currentUser.empId;
+    employeeObj.isTimesheetLockCheckEnable = "false";
+
+    this.employeeService.unlockAllTimesheet(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   onChangeManagerMapping(template: TemplateRef<any>) {
     this.cancelRequest();
     this.isDeletion = false;

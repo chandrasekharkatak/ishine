@@ -304,6 +304,25 @@ export class MyTeamComponent implements OnInit {
 
   }  
 
+  unlockAllTimesheet(template: TemplateRef<any>){
+    this.cancelRequest();
+    let employeeObj = new Employee();
+
+    employeeObj.unlockTimesheetFor = "MyTeam";
+    employeeObj.updatedBy = this.currentUser.empId;
+    employeeObj.managerId = this.currentUser.empId;
+    employeeObj.isTimesheetLockCheckEnable = "false";
+
+    this.employeeService.unlockAllTimesheet(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.viewTeam();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
     

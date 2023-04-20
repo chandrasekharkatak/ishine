@@ -160,6 +160,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/createResignationApplication`,
     `${this.baseUrl}` + `api/revokeResignationApplication`,
     `${this.baseUrl}` + `api/revokeMyResignationApplication`,
+
+    `${this.baseUrl}` + `api/unlockAllTimesheet`,
   ]
 
   constructor(private loaderService: LoaderService) { }

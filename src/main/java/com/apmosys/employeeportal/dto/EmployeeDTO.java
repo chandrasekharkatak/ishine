@@ -199,4 +199,6 @@ public class EmployeeDTO {
 	
 	private Object notificationConsent;
 	private String poPortalAllProjectApi;
+	
+	private String unlockTimesheetFor;
 }
