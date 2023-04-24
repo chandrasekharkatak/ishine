@@ -56,4 +56,6 @@ export class User{
     policyReadConsent:any;
     
     poPortalAllProjectApi:any;
+
+    probationPeriod: any;
 }

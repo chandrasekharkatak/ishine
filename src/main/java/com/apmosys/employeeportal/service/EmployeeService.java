@@ -2541,6 +2541,7 @@ public class EmployeeService {
 					employee.setApprovalsTo(object[21] != null ? object[21].toString() : null);
 					employee.setReportingManagerName(object[22] != null ? object[22].toString() : null);
 					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
+					employee.setProbationPeriod(object[24] != null ? Short.parseShort(object[24].toString()) : null);
 				});
 				
 				//Check if all Policy read.

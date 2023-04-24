@@ -285,6 +285,7 @@ export class LoginComponent implements OnInit{
       this.user.policyReadConsent = user.policyReadConsent;
       this.user.notificationConsent = user.notificationConsent;
       this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
+      this.user.probationPeriod = user.probationPeriod;
       
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);

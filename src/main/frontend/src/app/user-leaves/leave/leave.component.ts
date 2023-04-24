@@ -547,6 +547,9 @@ export class LeaveComponent implements OnInit {
   setLeaveTypeCode(leaveTypeMasterId:any){
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
+
+    this.leaveObj.fromDate = '';
+    this.leaveObj.toDate = '';
   }
 
   setPolicyObj(leaveTypeMasterId:any){
@@ -781,6 +784,19 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.toDate = '';
     this.leaveObj.noOfDays = '';
     this.overLappingTeamMemberList = [];
+
+    //Check if employee was in probation by fromDate
+    let leaveType = this.leaveTypes.find(x => x.leaveTypeMasterId == this.leaveObj.leaveTypeMasterId);
+
+    if(leaveType != null && (leaveType.leaveTypeCode != 'LWP' && leaveType.leaveTypeCode != 'CO')){
+      if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
+        let confirmationDate = moment(this.currentUser.dateOfJoining).add(this.currentUser.probationPeriod, 'days');
+        if(confirmationDate.format('YYYY-MM-DD') > moment(this.leaveObj.fromDate).format('YYYY-MM-DD')){
+          this.openAlertMod(this.alertTemplate, "Only LWP & CompOff can be applied during probation period.");
+          this.leaveObj.fromDate = '';
+        }
+      }
+    }
   }
 
   async setNoOfDays(template: TemplateRef<any>) {
