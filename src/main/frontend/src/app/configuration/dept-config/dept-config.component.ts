@@ -50,6 +50,7 @@ export class DeptConfigComponent implements OnInit {
   hodListFilter: any = [];
   oldDepartment: any;
   newDepartment: any;
+  onDeleteDepartmentResponse: any;
 
   //excel
   departmentDataForExcel: any[];
@@ -203,6 +204,7 @@ export class DeptConfigComponent implements OnInit {
 
   onDeleteDepartment(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
+    this.onDeleteDepartmentResponse = null;
     this.filterAllDeptList = this.allDeptList.filter(x => x.deptId !== this.deptObj.deptId);
 
     //! Need to check this
@@ -215,10 +217,12 @@ export class DeptConfigComponent implements OnInit {
         this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
         this.page=1;
-      } else {
-        // this.openAlertMod(template, response.serviceResponse);
+      } else if(response.serviceStatus == "Fail") {
         this.deptObj.newDeptId = '';
+        this.onDeleteDepartmentResponse = response.serviceResponse;
         this.modalRef = this.modalService.show(template);
+      }else{
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }
@@ -241,6 +245,10 @@ export class DeptConfigComponent implements OnInit {
     let department: Department = new Department();
     department.deptId = this.deptObj.newDeptId;
     department.oldDeptId = this.oldDepartment;
+    department.isDeptUsedInIshine = this.onDeleteDepartmentResponse.isDeptUsedInIshine;
+    department.isDeptUsedInPoPortal = this.onDeleteDepartmentResponse.isDeptUsedInPoPortal;
+
+    console.log(department, " : department");
 
     this.departmentService.changeDepartmentJobRoleMapping(department).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

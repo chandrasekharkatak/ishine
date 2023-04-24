@@ -33,4 +33,8 @@ public class JobRoleDTO {
 	private String roleName;
 	private Long deptId;
 	
+	private String isJobRoleUsedInIshine;
+	private String isJobRoleUsedInPoPortal;
+	
+	
 }

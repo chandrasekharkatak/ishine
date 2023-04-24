@@ -45,6 +45,7 @@ export class RoleConfigComponent implements OnInit {
   oldJobRole: any;
   newJobRole: any;
   allJobRoleList: any;
+  onDeleteJobRoleResponse: any;
   filterJobRoleListForMapping: any;
   filteredJobRoleList: any[] = [];
   allDeptList: any
@@ -282,6 +283,7 @@ export class RoleConfigComponent implements OnInit {
 
   onDeleteJobRole(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
+    this.onDeleteJobRoleResponse = null;
    // this.getJobRolesByDept(this.jobRoleObj.departmentId);
 
     this.newJobRole = this.jobRoleObj.newJobRoleId;
@@ -290,11 +292,13 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
-      } else {
+      } else if(response.serviceStatus == "Fail") {
         this.jobRoleObj.departmentId = '';
-      //  this.jobRoleObj.newJobRoleId = this.jobRoleObj.jobRoleId;
         this.jobRoleObj.newJobRoleId = '';
+        this.onDeleteJobRoleResponse = response.serviceResponse;
         this.modalRef = this.modalService.show(template);
+      }else{
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }
@@ -322,7 +326,11 @@ export class RoleConfigComponent implements OnInit {
 
     this.jobRoleObj.jobRoleId = this.jobRoleObj.newJobRoleId;
     this.jobRoleObj.oldJobRoleId = this.oldJobRole;
-    
+    this.jobRoleObj.isJobRoleUsedInIshine = this.onDeleteJobRoleResponse.isJobRoleUsedInIshine;
+    this.jobRoleObj.isJobRoleUsedInPoPortal = this.onDeleteJobRoleResponse.isJobRoleUsedInPoPortal;
+
+    console.log(this.jobRoleObj, " : this.jobRoleObj");
+
     this.jobRoleService.changeEmployeeJobRoleMapping(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
 
