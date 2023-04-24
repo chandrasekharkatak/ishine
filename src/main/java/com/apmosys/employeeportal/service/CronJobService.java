@@ -1054,7 +1054,7 @@ public class CronJobService {
 		}
 		
 //		0 0 7 ? * * - At 07:00:00am every day
-		@Scheduled(cron = "0 0 7 ? * *")
+		@Scheduled(cron="${birthdaymail.cron.expression}")
 		public void birthdayGreetingMail() {
 			StringBuilder builder = new StringBuilder();
 			

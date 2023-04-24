@@ -71,6 +71,12 @@ public class JobRoleService {
 	@Value("${poPortal.api.syncJobRole}")
 	private String syncJobRoleApi;
 	
+	@Value("${poPortal.api.isJobRoleUsed}")
+	private String isJobRoleUsedPoPortal;
+	
+	@Value("${poPortal.api.deleteJobRole}")
+	private String deleteJobRolePoPortal;
+	
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -365,7 +371,7 @@ public class JobRoleService {
 				//check JobRole in PoPortal
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/isRoleUsed/{roleId}";
+					final String syncUrl = isJobRoleUsedPoPortal;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.getForObject(syncUrl, String.class, jobRoleToBeDeleted.getJobRoleId());
 					
@@ -384,7 +390,7 @@ public class JobRoleService {
 						if(json.get("message").equals("1")) {
 							//Delete jobRole from poPortal http://192.168.21.175:8080/ishine/deleteRole/{id}
 							
-							final String deleteUrl = "http://192.168.21.175:8080/PoPortal/ishine/deleteRole/{id}";
+							final String deleteUrl = deleteJobRolePoPortal;
 							RestTemplate deleteRestTemplate = new RestTemplate();
 							restTemplate.delete(deleteUrl, jobRoleToBeDeleted.getJobRoleId());
 						}
@@ -567,7 +573,7 @@ public class JobRoleService {
 				
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/updateRole/{id}";
+					final String syncUrl = syncJobRoleApi;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, jobRoleDTO.getOldJobRoleId());	
 					

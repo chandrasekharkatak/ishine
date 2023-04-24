@@ -56,6 +56,12 @@ public class DepartmentService {
 	
 	@Value("${poPortal.api.syncDepartment}")
 	private String syncDepartmentApi;
+	
+	@Value("${poPortal.api.isDepartmentUsed}")
+	private String isDeparmentUsedPoPortal;
+	
+	@Value("${poPortal.api.deleteDepartment}")
+	private String deleteDeparmentPoPortal;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -273,7 +279,7 @@ public class DepartmentService {
 				//check Dept in PoPortal
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/isDepartmentUsed/{deptId}";
+					final String syncUrl = isDeparmentUsedPoPortal;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.getForObject(syncUrl, String.class, departmentToBeDeleted.getDeptId());
 					
@@ -292,7 +298,7 @@ public class DepartmentService {
 						if(json.get("message").equals("1")) {
 							//Delete dept from poPortal http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}
 							
-							final String deleteUrl = "http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}";
+							final String deleteUrl = deleteDeparmentPoPortal;
 							RestTemplate deleteRestTemplate = new RestTemplate();
 							restTemplate.delete(deleteUrl, departmentToBeDeleted.getDeptId());
 						}
@@ -480,7 +486,7 @@ public class DepartmentService {
 				
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/updateDepartment/{id}";
+					final String syncUrl = syncDepartmentApi;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
 					
