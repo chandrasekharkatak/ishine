@@ -95,7 +95,7 @@
           <div class="card col-md-12 p-0">
               <div class="card-header text-center text-uppercase">
                   <strong>{{fileName}}</strong><br>
-                  <small *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead">Please read the policies and mark them as read to proceed further.</small>
+                  <small *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead">Please read the policies and mark as read to proceed further.</small>
               </div>
               <div class="card-body">
                   <div id="outerContainer">
@@ -122,5 +122,6 @@
       </div>
 
       <button  class="btn btn-sm btn-outline-primary mt-1" *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, currentDoc)" >Mark As Read</button>
+      <button type="button" class="btn btn-outline-primary" *ngIf="currentDoc.isRead"  (click)="cancelRequest()">Cancel</button>&nbsp;
   </div>
 </ng-template>
