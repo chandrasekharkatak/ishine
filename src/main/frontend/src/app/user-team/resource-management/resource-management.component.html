@@ -38,6 +38,7 @@
                             <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
                             <th scope="col" class="info-label" mat-sort-header="clientState|string">State</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Project Status</th>
                             <th scope="col" class="info-label" mat-sort-header="isDraftProject|string">Approval Status</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
@@ -56,6 +57,7 @@
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.clientState}}</td>
                                     <td>{{project.createdOn}}</td>
+                                    <td>{{project.status}}</td>
                                     <td [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}"><em>{{project.isDraftProject}}</em></td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'" (click)="openProjectPreviewModal(preview_team, project);isEditProject = false" type="submit">Preview</button>&nbsp;
@@ -140,6 +142,14 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="col-md-4 mb-0">
+                                                            <div class="info-wrapper">
+                                                                <div class="form-group">
+                                                                    <label>Project Status</label>
+                                                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.status">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <hr>
                                         
@@ -207,7 +217,10 @@
                             </ng-container>
                         </tbody>
                       </table>
-                      <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                      <div class="row col-md-12">
+                          <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                          <button type="button" class="btn btn-sm btn-outline-primary ml-auto  mr-5 mt-2 mb-2 excel-button" [hidden]="allProjectList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                      </div>
                 </div>
             </div>  
         </div>  

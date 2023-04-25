@@ -19,6 +19,7 @@ import { ActivatedRoute, Router, Params } from '@angular/router';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { ProjectService } from 'src/app/services/project.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -62,6 +63,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedProjToReject:any;
   currentProjectId:any;
   selectedProjectManager:any;
+  excelName:any;
 
   allProjectList:any[] = [];
   allDeptList:any[] = [];
@@ -98,6 +100,7 @@ export class ResourceManagementComponent implements OnInit {
     private route: ActivatedRoute,
     private router : Router,
     private projectService: ProjectService,
+    private exportExcelService: ExportExcelService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -244,6 +247,19 @@ export class ResourceManagementComponent implements OnInit {
                   proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
                 }
               }
+
+              if (proj.status != null) {
+                if (proj.status == "true") {
+                  proj.status = "InProgress";
+                } else if (proj.status == "false") {
+                  proj.status = "Completed";
+                } else {
+                  proj.status = proj.status;
+                }
+              } else {
+                return null;
+              }
+              
             });
           }
     
@@ -971,6 +987,25 @@ export class ResourceManagementComponent implements OnInit {
 
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
+}
+
+// Excel Export
+
+exportToExcel(){
+  this.excelName = 'Projects.xlsx';
+
+  const onlySpecificDataArr = this.allProjectList.map(
+    x => ({
+      "Project Name": x.name,
+      "Project Manager": x.projectManagerName,
+      "Client Name": x.clientName,
+      "Client State": x.clientState,
+      "Created On": x.createdOn,
+      "Approval Status": x.isDraftProject,
+      "Project Status": x.status
+    })
+  )
+  this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
 }
 
 }

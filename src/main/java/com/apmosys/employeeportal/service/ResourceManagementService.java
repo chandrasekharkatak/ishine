@@ -129,17 +129,13 @@ public class ResourceManagementService {
 				
 				if(resourceManagementDTO.getIsHOD().equals("true")) {
 					projectObj.setIsDraftProject("false");
-					projectObj.setProjectName(resourceManagementDTO.getName());
-					projectObj.setProjectManagerId(projManagerId);
-					
-					Project projectDbResponse = projectRepository.save(projectObj);
 				}else {
                     projectObj.setIsDraftProject("true");
-                    projectObj.setProjectName(resourceManagementDTO.getName());
-					projectObj.setProjectManagerId(projManagerId);
-					
-					Project projectDbResponse = projectRepository.save(projectObj);
 				}
+				
+				projectObj.setProjectName(resourceManagementDTO.getName());
+				projectObj.setProjectManagerId(projManagerId);
+				Project projectDbResponse = projectRepository.save(projectObj);
 				
 				resourceManagementDTO.getTeamList().forEach((teamObj) -> {
 					//Check if team present
@@ -1203,6 +1199,7 @@ public class ResourceManagementService {
 					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
 					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
 					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
+					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
 					
 					//Find ClientName
 					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
