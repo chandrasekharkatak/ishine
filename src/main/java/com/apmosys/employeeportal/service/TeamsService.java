@@ -138,6 +138,12 @@ public class TeamsService {
 	
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Value("${timesheet.check.period}")
+	private String timesheetCheckPeriod;
+	
+	@Value("${maximum.timesheetCanBeFilledByMember}")
+	private String maximumTimesheetCanBeFilledByTeamMember;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -985,6 +991,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
+			LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
 			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
@@ -1013,6 +1020,15 @@ public class TeamsService {
 					dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
 					dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
 					dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
+					
+					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
+					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);
+					
+					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
+						dto.setIsTimesheetFilledByMember("true");
+					}else {
+						dto.setIsTimesheetFilledByMember("false");
+					}
 					
 					dtoList.add(dto);
 					

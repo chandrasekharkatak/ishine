@@ -201,4 +201,5 @@ public class EmployeeDTO {
 	private String poPortalAllProjectApi;
 	
 	private String unlockTimesheetFor;
+	private String isTimesheetFilledByMember;
 }

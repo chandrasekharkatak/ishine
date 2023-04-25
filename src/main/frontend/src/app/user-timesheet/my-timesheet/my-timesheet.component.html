@@ -343,7 +343,7 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation && userMapping.add_timesheet" type="submit"
-                        class="btn btn-primary btn-sm mx-1" (click)="onCreateTimesheet(alert_message)">Create
+                        class="btn btn-primary btn-sm mx-1" [disabled]="disableCreateUpdateTimesheet" (click)="onCreateTimesheet(alert_message)">Create
                         Timesheet</button>
                     <button *ngIf="isUpdation && userMapping.update_timesheet" type="submit"
                         class="btn btn-primary btn-sm mx-1"
@@ -481,7 +481,7 @@
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
                                         (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
                                     <button
-                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
+                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Public Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
                                         class="btn btn-sm btn-outline-primary mb3" type="submit"
                                         (click)="checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
                                             class="fa fa-edit"></em></button>
