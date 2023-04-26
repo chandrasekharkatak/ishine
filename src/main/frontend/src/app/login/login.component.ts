@@ -301,7 +301,7 @@ export class LoginComponent implements OnInit{
           this.router.navigate(['/user-survey', this.authGaurd.id]);
         }
         if(url.includes("my-resignation")){
-          this.router.navigate(['/my-resignation', this.authGaurd.id]);
+          this.router.navigate(['/user-exit/my-resignation', this.authGaurd.id]);
         }
         if(url.includes("resource-management")){
           this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);

@@ -146,11 +146,13 @@ export class MyResignationComponent implements OnInit {
 
   sectionViewInit(){
     if(this.exitEmployeeId != null && (this.currentUser.employeeRole != 'Employee' && this.currentUser.employeeRole != 'TeamLead')){
+      console.log("get empInfo", this.exitEmployeeId);
+      
       this.getEmployeeInfo(this.exitEmployeeId);
     }else{
       this.getEmployeeResignationDetails();
     }
-
+    
     if(this.currentUser.employeementId == this.exitEmployeeId || this.exitEmployeeId == undefined){
       this.isCurrentUser = true;
       this.router.navigate(['/user-exit/my-resignation']);
@@ -197,12 +199,14 @@ export class MyResignationComponent implements OnInit {
         this.employeeInfo.forEach((obj) => {
           if(obj.dateOfResign != null){
             this.isReleivingDate = true;
+            this.isResign = false;
+            this.showResignationApplication = false;
+            this.isResignDetails = false;
             this.getEmployeeExitAssetDetails(this.alertTemplate, this.exitEmployeeId);
           }else{
             this.employeeInfo = [];
             this.exitEmployeeId = null;
             this.router.navigate(['/user-exit/my-resignation']);
-            // this.getEmployeeResignationDetails();
           }
         });
         console.log(this.employeeInfo, " :   this.employeeInfo");
@@ -285,7 +289,7 @@ export class MyResignationComponent implements OnInit {
     });
   }
 
-  getEmployeeExitAssetDetails(template: TemplateRef<any>, exitEmployeeId:any){
+  getEmployeeExitAssetDetails(template: TemplateRef<any>, exitEmployeeId?:any){
     this.cancelRequest();
 
     if(exitEmployeeId != null){
@@ -321,6 +325,10 @@ export class MyResignationComponent implements OnInit {
             x.isAssigned = 'No';
           }
         });
+
+        if(this.exitEmployeeId != null){
+          this.router.navigate(['/user-exit/my-resignation', this.exitEmployeeId]);
+        }
         console.log(this.exitAssetDetailList, " : exitAssetDetailList");
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -351,7 +359,7 @@ export class MyResignationComponent implements OnInit {
     this.exitService.setDeptHeadConcent(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.getEmployeeResignationDetails();
+        this.getEmployeeExitAssetDetails(template, this.exitEmployeeId);
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }

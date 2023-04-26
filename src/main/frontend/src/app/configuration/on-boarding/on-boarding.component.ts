@@ -139,10 +139,20 @@ export class OnBoardingComponent implements OnInit {
     //   this.assetObj.departmentWiseAssetList.push(...asset.assetList);
     // });
     // console.log(this.assetObj.departmentWiseAssetList, " list");
-    
-    this.assetObj.departmentWiseAssetList = this.updatedAssetList;
-    this.assetObj.updatedBy = this.currentUser.empId;
-    this.onBoardingService.updateOnBoardingCheckList(this.assetObj).pipe(first()).subscribe((response: any) => {
+
+    let assetObj = new Asset();
+    assetObj.employeementId = this.assetObj.employeementId;
+    assetObj.departmentWiseAssetList = this.updatedAssetList;
+    assetObj.updatedBy = this.currentUser.empId;
+    assetObj.empId = this.assetObj.empId;
+
+    if (assetObj.employeementId.startsWith('A-')) {
+      assetObj.employeementId = assetObj.employeementId.substring(2);
+    } else {
+      assetObj.employeementId  = assetObj.employeementId;
+    }
+
+    this.onBoardingService.updateOnBoardingCheckList(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {

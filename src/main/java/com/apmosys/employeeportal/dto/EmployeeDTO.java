@@ -202,4 +202,5 @@ public class EmployeeDTO {
 	
 	private String unlockTimesheetFor;
 	private String isTimesheetFilledByMember;
+	private String isDateOfRelievingToday;
 }
