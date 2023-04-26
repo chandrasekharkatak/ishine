@@ -139,7 +139,7 @@ public class CompOffLeaveService {
 				apiLogInfo.setApiResponse("Compoff Request applied.");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
-				CompOffMaster compOffObject = compOffMasterRepository.findByCompOffId(leaveDTO.getReasonId());
+				CompOffMaster compOffObject = compOffMasterRepository.findByCompOffId(leaveDTO.getReasonId().shortValue());
 				
 				mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Comp-Off Request", 
 						"Dear "+ leaveDTO.getManagerName()+","+
