@@ -20,4 +20,6 @@ public interface DesignationDepartmentMapRepository extends JpaRepository<Design
 	@Query(nativeQuery = true)
 	List<Object[]> getFilteredDesignation(Set<Long> deptIds, int deptIdsLength);
 
+	List<DesignationDepartmentMap> findByDeptId(Long oldDeptId);
+
 }

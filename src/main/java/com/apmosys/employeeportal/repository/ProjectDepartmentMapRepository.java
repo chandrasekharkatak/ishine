@@ -18,4 +18,6 @@ public interface ProjectDepartmentMapRepository extends JpaRepository<ProjectDep
 
 	public List<ProjectDepartmentMap> findByProjectId(Integer projectId);
 
+	public List<ProjectDepartmentMap> findByDeptId(Long oldDeptId);
+
 }

@@ -14,4 +14,6 @@ public interface EmployeeOnBoardingRepository extends JpaRepository<Asset, Long>
 
 	Asset findByAssetName(String category);
 
+	List<Asset> findByDeptId(Long oldDeptId);
+
 }
