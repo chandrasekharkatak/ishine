@@ -100,7 +100,9 @@ export class MyResignationComponent implements OnInit {
     defaultFontSize: '',
     uploadWithCredentials: false,
     sanitize: false,
-    toolbarPosition: 'top'
+    toolbarPosition: 'top',
+    fonts: [{class: 'arial', name: 'Arial'},
+      {class: 'calibri', name: 'Calibri'}],
   };
 
   constructor(

@@ -55,7 +55,8 @@
 :host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Image"],
 :host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Video"],
 :host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Link"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Unlink"]{
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Unlink"],
+:host /deep/ #fontSelector-{
     display: none
 }
 
@@ -65,4 +66,8 @@
 
 .my-pagination::ng-deep{
     padding-top: 10px;
+}
+
+:host /deep/ angular-editor#myEditor .angular-editor-textarea{
+    padding-inline: 2rem;
 }
