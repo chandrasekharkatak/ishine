@@ -46,7 +46,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="allProjectList.length == 0 && (allProjectList | multicolFilter:filters:false).length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                                <th colspan="9" class="text-center info-label">No details to display...</th>
                             </tr>
                             <ng-container *ngFor="let project of allProjectList | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <tr>
@@ -68,7 +68,7 @@
                                     </td>
                                 </tr>
                                 <tr *ngIf="project.isEditProject && isEditProject">
-                                    <td colspan="9">
+                                    <td colspan="10">
                                         <!-- project Edit :: start -->
                                         <div class="row">
                                             <!-- Project Info -->

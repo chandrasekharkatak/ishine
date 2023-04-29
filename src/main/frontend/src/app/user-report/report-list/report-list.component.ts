@@ -60,6 +60,8 @@ export class ReportListComponent implements OnInit {
   isAccessControlListTable: boolean = false;
   isLeaveTimesheetReportTable: boolean = false
   isCustomQueryForm: boolean = false;
+  isAccessFeatureMapping: boolean = false;
+  isDefaultFeatureMapping: boolean = false;
 
   allEmployeeList: any[] = [];
 
@@ -87,6 +89,7 @@ export class ReportListComponent implements OnInit {
   jobRoleName: any;
   departmentId: any;
   employeeRole: any;
+  selectedColumnToShow: any;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On'];
@@ -261,6 +264,8 @@ export class ReportListComponent implements OnInit {
     this.data = '';
     this.columns = [];
     this.paginateData = [];
+    this.finalColumns = [];
+    this.toggleAccessList();
   }
 
   showLeaveTimesheetReportTable(){
@@ -493,6 +498,7 @@ export class ReportListComponent implements OnInit {
   selectPersona(event) {
     this.employeeRole = event.target.value;
     this.showColumnList = [];
+    this.hiddenColumnObj = [];
     this.getAllJobRoleList(this.employeeRole);
   }
 
@@ -541,7 +547,7 @@ export class ReportListComponent implements OnInit {
             });
 
             this.finalColumns = final;
-            console.log(this.finalColumns, " : funal arr");
+            console.log(this.finalColumns, " : final arr");
 
             // Generate Template
             this.subfeatureList.forEach(subfeature => {
@@ -650,18 +656,33 @@ export class ReportListComponent implements OnInit {
   }
 
   hideColumn(column: any) {
-    this.hiddenColumnObj = this.columns.find(x => x.header == column);
-    this.columns = this.columns.filter(x => x.header != column);
+    this.hiddenColumnObj = this.finalColumns.find(x => x.header == column);
+    this.finalColumns = this.finalColumns.filter(x => x.header != column);
     this.showColumnList.push(this.hiddenColumnObj);
   }
 
-  showColumn() {
-    let headerId = this.employeeObj.columnHeader;
-    let hiddenFound = this.showColumnList.find(x => x.field == headerId);
+  showColumn(selectedColumn: string) {
+    let hiddenFound = this.showColumnList.find(x => x.header === selectedColumn);
+    this.selectedColumnToShow = "select";
+  
     if (hiddenFound) {
-      this.columns.push(hiddenFound);
-      this.showColumnList.splice(hiddenFound, 1);
-      this.employeeObj.columnHeader = '';
+      this.finalColumns.push(hiddenFound);
+      this.showColumnList = this.showColumnList.filter(x => x !== hiddenFound);
+    }
+  }  
+
+  toggleAccessList(event?:any){
+
+    if(this.isAccessFeatureMapping == false && this.isDefaultFeatureMapping == false){
+      this.isAccessFeatureMapping = true;
+    }
+
+    if(event.target.checked){
+      this.isAccessFeatureMapping = false;
+      this.isDefaultFeatureMapping = true;
+    }else{
+      this.isAccessFeatureMapping = true;
+      this.isDefaultFeatureMapping = false;
     }
   }
 
