@@ -371,10 +371,10 @@
     <h1 class="table-header-title">Access Control List</h1>
   </div>
 
-  <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch ml-4">
+  <div class="col-md-3 col-sm-6 custom-control custom-switch ml-4">
     <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
     <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
-  </div> -->
+  </div>
 
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
@@ -409,7 +409,7 @@
     <div class="col-md-12">
       <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'" [tableTHeadId]="'aclReportInfoTHead'"
         [tableTHeadTrId]="'aclReportInfoTHeadTr'" style="max-height: 65vh;">
-        <table class="table table-bordered table-hover table-sticky" id="aclReportInfo">
+        <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
               (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
@@ -507,6 +507,88 @@
   </div>
 
   <div class="col-md-12" *ngIf="isDefaultFeatureMapping">
+
+    <div class="row">
+      <div class="col-md-12">
+        <!-- <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div> -->
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'defaultMappInfo'"
+          [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
+          <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
+            <thead class="thead-light acl-header" id="defaultMappInfoTHead">
+              <tr id="defaultMappInfoTHeadTr">
+                <th scope="col" class="info-label wide-col" mat-sort-header="tabName|string">Tab Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="featureName|string">Feature</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="subFeatureName|string">Sub Feature</th>
+                <th scope="col" class="info-label wide-col">Employee</th>
+                <th scope="col" class="info-label wide-col">Team Lead</th>
+                <th scope="col" class="info-label wide-col">Manager</th>
+                <th scope="col" class="info-label wide-col">HoD</th>
+                <th scope="col" class="info-label wide-col">Super Admin</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isDefaultFeatureMapping && isSearchEnabled" [columnList]="defaultMappingColumns" (onSearch)="onSearch($event);page=1" ></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="defaultMappingListFilter.length == 0 || (defaultMappingListFilter | colFilter:filters:false).length == 0">
+                <th colspan="16" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let map of defaultMappingListFilter| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection], let i = index">
+                <td [attr.rowspan]="map.tabSpan" *ngIf="map.tabSpan">{{map.tabName}}</td>
+                <td [attr.rowspan]="map.featureSpan" *ngIf="map.featureSpan">{{map.featureName}}</td>
+                <td>{{map.subFeatureName}}</td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.Employee"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Employee, 'Employee', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.TeamLead"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.TeamLead, 'TeamLead', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.Manager"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Manager, 'Manager', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.HOD"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.HOD, 'HOD', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.SuperAdmin"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.SuperAdmin, 'SuperAdmin', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row" [hidden]="defaultMappingListFilter.length == 0">
+          <div class="col-md-12 d-flex justiy-content-center mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="updateDefaultFeatureMapping(alert_message)">Update</button>
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="defaultMappingListFilter.length == 0" (click)="exportToExcel()"><em
+                  class="fa fa-file-arrow-down fa-2x"></em></button> -->
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 

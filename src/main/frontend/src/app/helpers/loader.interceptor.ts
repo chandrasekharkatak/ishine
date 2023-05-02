@@ -165,6 +165,9 @@ export class LoaderInterceptor implements HttpInterceptor {
 
     `${this.baseUrl}` + `api/changeDepartmentJobRoleMapping`,
     `${this.baseUrl}` + `api/updateOnBoardingCheckList`,
+
+    `${this.baseUrl}`+`api/updateDefaultFeatureMapping`,
+    `${this.baseUrl}`+`api/getDefaultMapping`
   ]
 
   constructor(private loaderService: LoaderService) { }

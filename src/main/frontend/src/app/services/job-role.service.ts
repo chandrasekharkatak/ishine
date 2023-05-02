@@ -52,4 +52,12 @@ export class JobRoleService {
     return this.http.post(`${this.baseUrl}`+`api/getMappedSubFeatureList`, employeeObj);
   }
 
+  getDefaultMapping(){
+    return this.http.get(`${this.baseUrl}`+`api/getDefaultMapping`);
+  }
+
+  updateDefaultFeatureMapping(jobRoleObj :JobRole){
+    return this.http.post(`${this.baseUrl}`+`api/updateDefaultFeatureMapping`, jobRoleObj);
+  }
+
 }

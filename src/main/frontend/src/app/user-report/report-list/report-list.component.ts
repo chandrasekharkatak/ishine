@@ -76,6 +76,9 @@ export class ReportListComponent implements OnInit {
   accessControlList: any[] = [];
   mappedSubFeatureList: any[] = [];
   subfeatureList: any[] = [];
+  defaultMappingList: any[] = [];
+  defaultMappingListFilter: any[] = [];
+  updateDefaultMapping: any[] = [];
 
   updatedRoleSubFeature: any[] = [];
   hiddenColumnObj: any[] = [];
@@ -115,6 +118,7 @@ export class ReportListComponent implements OnInit {
   timesheetReportColumns:any[] = ['employeementId','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   employeeReportColumn:any[] = ['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
   leaveTimesheetReportColumn:any[] = ['employeementId','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -261,6 +265,8 @@ export class ReportListComponent implements OnInit {
     this.isTimesheetReportTable = false;
     this.isCustomQueryForm = false;
     this.isLeaveTimesheetReportTable = false;
+    this.isAccessFeatureMapping = false;
+    this.isDefaultFeatureMapping = false;
     this.data = '';
     this.columns = [];
     this.paginateData = [];
@@ -293,6 +299,10 @@ export class ReportListComponent implements OnInit {
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isLeaveTimesheetReportTable = false;
+  }
+
+  showDefaultMappingTable(){
+    this.getDefaultMapping(this.alertModal);
   }
 
   disableMannualDateInput() {
@@ -680,10 +690,94 @@ export class ReportListComponent implements OnInit {
     if(event.target.checked){
       this.isAccessFeatureMapping = false;
       this.isDefaultFeatureMapping = true;
+      this.showDefaultMappingTable();
     }else{
       this.isAccessFeatureMapping = true;
       this.isDefaultFeatureMapping = false;
     }
+  }
+
+  getDefaultMapping(template: TemplateRef<any>){
+
+    this.jobRoleService.getDefaultMapping().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.defaultMappingList = response.serviceResponse;
+
+        this.defaultMappingList.forEach((object) => {
+          const formattedPermissions = object.permissionList.reduce((permissions, permission) => {
+
+            if(permission.permission == "N"){
+              permission.permission = false;
+            }else if(permission.permission == "Y"){
+              permission.permission = true;
+            }
+            permissions[permission.employeeRole] = permission.permission;
+            return permissions;
+          }, {});
+
+          object.permissionList = formattedPermissions;
+        });
+
+        this.processData();
+        console.log( this.defaultMappingList , " :  this.defaultMappingList ");
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  selectDefaultMapCellCheckbox(subFeatureId:any, isAssigned:any ,roleName:any, subFeatureName:any){
+    const alreadyUpdatedMapping = this.updateDefaultMapping.findIndex((x) => x.subFeatureId == subFeatureId && x.employeeRole == roleName);
+    if (alreadyUpdatedMapping >= 0) {
+      this.updateDefaultMapping.splice(alreadyUpdatedMapping, 1);
+    } else {
+      this.updateDefaultMapping.push({
+        "subFeatureId": subFeatureId,
+        "employeeRole": roleName,
+        "permission": isAssigned,
+        "subFeatureName": subFeatureName
+      });
+    }
+    console.log(this.updateDefaultMapping, " :   updateDefaultMapping");
+  }
+
+  updateDefaultFeatureMapping(template: TemplateRef<any>){
+    let jobRoleObj = new JobRole();
+    jobRoleObj.updateDefaultFeatureMapping = this.updateDefaultMapping;
+    jobRoleObj.updatedBy = this.currentUser.empId;
+
+    this.jobRoleService.updateDefaultFeatureMapping(jobRoleObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  processData() {
+    const tabSeen = {};
+    const featureSeen = {};
+
+    this.defaultMappingListFilter = this.defaultMappingList.sort((a, b) => {
+      const tabComp = a.tabName.localeCompare(b.tabName);
+      return tabComp ? tabComp : a.featureName.localeCompare(b.featureName);
+    }).map(x => {
+      const tabSpan = tabSeen[x.tabName] ? 0 :
+        this.defaultMappingList.filter(y => y.tabName === x.tabName).length;
+
+        tabSeen[x.tabName] = true;
+
+      const featureSpan = featureSeen[x.tabName] && featureSeen[x.tabName][x.featureName] ? 0 :
+        this.defaultMappingList.filter(y => y.tabName === x.tabName && y.featureName === x.featureName).length;
+
+      featureSeen[x.tabName] = featureSeen[x.featureName] || {};
+      featureSeen[x.tabName][x.featureName] = true;
+
+      return { ...x, tabSpan, featureSpan };
+    });
+
+    console.log(this.defaultMappingListFilter,  " : defaultMappingListFilter");
   }
 
   // ACL end
