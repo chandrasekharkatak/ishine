@@ -2061,7 +2061,8 @@ export class EmployeeConfigComponent implements OnInit {
 
         console.log(this.allDomainList, " : this.allDomainList");
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        // this.openAlertMod(template, response.serviceResponse);
+        console.error(response.serviceResponse);
       }
     });
   }
