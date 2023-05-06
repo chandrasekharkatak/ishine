@@ -705,7 +705,7 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  getTimesheetMetadata() {
+  getTimesheetMetadata(eventTarget?:any) {
     console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
     let userObj: User = new User();
     if (this.timesheetObj.timesheetAppliedFor == 'self') {
@@ -726,6 +726,7 @@ export class MyTimesheetComponent implements OnInit {
 
       if(teamMember.isTimesheetFilledByMember == "true"){
         this.timesheetObj.empId = '';
+        eventTarget.value = "";
         this.disableCreateUpdateTimesheet = true;
         this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
       }else{

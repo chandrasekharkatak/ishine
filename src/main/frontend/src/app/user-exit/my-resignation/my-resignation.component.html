@@ -252,9 +252,11 @@
 
 <ng-template #revoke_application_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to revoke Resignation Application?</p>
-        <textarea rows="3" class="form-group" cols="50" [(ngModel)]="employeeExitObj.revokeReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeExitObj.revokeReason)" (click)="revokeMyResignationApplication(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <div class="col-md-12">
+            <p>Are you sure you want to revoke Resignation Application?</p>
+            <textarea rows="3" class="col-md-12 form-group" style="padding-left: 20px;" [(ngModel)]="employeeExitObj.revokeReason"> </textarea><br>
+            <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeExitObj.revokeReason)" (click)="revokeMyResignationApplication(alert_message)">Yes, proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        </div>
     </div>
 </ng-template>
