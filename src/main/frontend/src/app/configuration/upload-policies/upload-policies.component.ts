@@ -55,6 +55,8 @@ export class UploadPoliciesComponent implements OnInit {
   responseList:any[] = [];
   isreadEnabled: boolean = false;
   responsedata:any;
+  fileName: any;
+  src:any;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -90,9 +92,13 @@ export class UploadPoliciesComponent implements OnInit {
 
 
   sectionViewInit() {
-    if(this.userMapping.upload_policy){
-      this.showDocumentForm();
-    }else if(this.userMapping.view_all_documents){
+    // if(this.userMapping.upload_policy){
+    //   this.showDocumentForm();
+    // }else if(this.userMapping.view_all_documents){
+    //   this.showTable();
+    // }
+
+    if (this.userMapping.view_all_documents) {
       this.showTable();
     }
   }
@@ -206,6 +212,25 @@ export class UploadPoliciesComponent implements OnInit {
       }
     });
   }
+
+  previewPolicyDocument(template: TemplateRef<any>,doc: any) {
+    this.src = null;
+    this.fileName = doc.policyName;
+
+   this.uploadPoliciesService.downloadDocument( doc.policyID).pipe(first()).subscribe((response:any) => {
+      const blob = new Blob([response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      this.src =  a.href;
+
+      if(this.src != null){
+        this.openPreviewDocument(template);
+      }
+    });
+  }
+
    //modals
    openDeleteDocument(template: TemplateRef<any>, fileObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -274,6 +299,10 @@ export class UploadPoliciesComponent implements OnInit {
   }
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  openPreviewDocument(template: TemplateRef<any>){
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
   policyReadResponseById(fileObj){

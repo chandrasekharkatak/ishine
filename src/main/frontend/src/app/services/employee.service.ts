@@ -29,6 +29,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/deleteEmployeeByEmpId`, employeeObj);
   }
 
+  unlockAllTimesheet(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/unlockAllTimesheet`, employeeObj);
+  }
+
   getAllEmployees() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }

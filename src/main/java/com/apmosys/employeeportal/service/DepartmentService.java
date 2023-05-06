@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,12 +24,18 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.DesignationDepartmentMap;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -51,7 +58,25 @@ public class DepartmentService {
 	private HttpServletRequest httpRequest;
 	
 	@Autowired
+	DesignationDepartmentMapRepository designationDepartmentMapRepository;
+	
+	@Autowired
+	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	EmployeeOnBoardingRepository employeeOnBoardingRepository;
+	
+	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Value("${poPortal.api.syncDepartment}")
+	private String syncDepartmentApi;
+	
+	@Value("${poPortal.api.isDepartmentUsed}")
+	private String isDeparmentUsedPoPortal;
+	
+	@Value("${poPortal.api.deleteDepartment}")
+	private String deleteDeparmentPoPortal;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -269,7 +294,7 @@ public class DepartmentService {
 				//check Dept in PoPortal
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/isDepartmentUsed/{deptId}";
+					final String syncUrl = isDeparmentUsedPoPortal;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.getForObject(syncUrl, String.class, departmentToBeDeleted.getDeptId());
 					
@@ -288,7 +313,7 @@ public class DepartmentService {
 						if(json.get("message").equals("1")) {
 							//Delete dept from poPortal http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}
 							
-							final String deleteUrl = "http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}";
+							final String deleteUrl = deleteDeparmentPoPortal;
 							RestTemplate deleteRestTemplate = new RestTemplate();
 							restTemplate.delete(deleteUrl, departmentToBeDeleted.getDeptId());
 						}
@@ -392,11 +417,93 @@ public class DepartmentService {
 					}
 
 					if (dbResponse != null) {
+						//Change Designation Department Mapping
+						List<DesignationDepartmentMap> designationDepartmentMapList = designationDepartmentMapRepository.findByDeptId(departmentDTO.getOldDeptId());
+						
+						if(!designationDepartmentMapList.isEmpty()) {
+							List<DesignationDepartmentMap> updatedDept = new ArrayList<DesignationDepartmentMap>();
+							
+							designationDepartmentMapList.forEach((object) -> {
+								object.setDeptId(departmentDTO.getDeptId());
+								updatedDept.add(object);
+							});
+							
+							List<DesignationDepartmentMap> designationDepResponse = designationDepartmentMapRepository.saveAll(updatedDept);
+							
+							if(!designationDepResponse.isEmpty()) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Designation Department Mapping Changed successfully.");
+								
+								apiLogInfo.setApiResponse("Designation Department Mapping Changed successfully.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to change Designation Department Mapping.");
+								
+								apiLogInfo.setApiResponse("Unable to change Designation Department Mapping.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							}
+						}
+						
+						//Change Project Department Mapping
+						List<ProjectDepartmentMap> projectDepartmentMapping = projectDepartmentMapRepository.findByDeptId(departmentDTO.getOldDeptId());
+						
+						if(!projectDepartmentMapping.isEmpty()) {
+							List<ProjectDepartmentMap> updatedMapping = new ArrayList<ProjectDepartmentMap>();
+							
+							projectDepartmentMapping.forEach((object) -> {
+								object.setDeptId(departmentDTO.getDeptId());
+								updatedMapping.add(object);
+							});
+							List<ProjectDepartmentMap> projectDepartmentMapResponse =  projectDepartmentMapRepository.saveAll(updatedMapping);
+							
+							if(!projectDepartmentMapResponse.isEmpty()) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Project Department Mapping Changed successfully.");
+								
+								apiLogInfo.setApiResponse("Project Department Mapping Changed successfully.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to change Project Department Mapping.");
+								
+								apiLogInfo.setApiResponse("Unable to change Project Department Mapping.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							}
+						}
+						
+						//Change Asset Department Mapping
+						List<Asset> assetDeptList = employeeOnBoardingRepository.findByDeptId(departmentDTO.getOldDeptId());
+						
+						if(!assetDeptList.isEmpty()) {
+							List<Asset> updatedMappingList = new ArrayList<Asset>();
+							
+							assetDeptList.forEach((object) -> {
+								object.setDeptId(departmentDTO.getDeptId());
+								updatedMappingList.add(object);
+							});
+							List<Asset> assetDeptResponse = employeeOnBoardingRepository.saveAll(updatedMappingList);
+							
+							if(!assetDeptResponse.isEmpty()) {
+								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								response.setServiceResponse("Asset Department Mapping Changed successfully.");
+								
+								apiLogInfo.setApiResponse("Asset Department Mapping Changed successfully.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Unable to change Asset Department Mapping.");
+								
+								apiLogInfo.setApiResponse("Unable to change Asset Department Mapping.");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							}
+						}
+						
 						if(departmentDTO.getIsDeptUsedInPoPortal().equals("true")) {
+							
 							ServiceResponse syncDeleteResponse = syncDeleteDepartmentWithPoPortal(departmentDTO);
 							
 							if(syncDeleteResponse.getServiceStatus().equals("Success")) {
-								
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse(syncDeleteResponse.getServiceResponse());
 							}else {
@@ -476,7 +583,7 @@ public class DepartmentService {
 				
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/updateDepartment/{id}";
+					final String syncUrl = syncDepartmentApi;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
 					

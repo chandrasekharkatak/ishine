@@ -157,6 +157,8 @@ public class EmployeeDTO {
 	private String featureName;
 	private String permission;
 	private String isAssigned;
+	private Long tabId;
+	private List<FeatureMasterDTO> permissionList;
 	
 	private Integer reporteeCount;
 	private String hierarchyType;
@@ -195,7 +197,12 @@ public class EmployeeDTO {
 	private String bucketName;
 	private String timesheetStatus;
 	
-	private String isAllPolicyMarkAsRead;
+	private Object policyReadConsent;
 	
 	private Object notificationConsent;
+	private String poPortalAllProjectApi;
+	
+	private String unlockTimesheetFor;
+	private String isTimesheetFilledByMember;
+	private String isDateOfRelievingToday;
 }

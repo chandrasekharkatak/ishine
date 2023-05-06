@@ -282,8 +282,10 @@ export class LoginComponent implements OnInit{
       this.user.reportingManagerEmail = user.reportingManagerEmail;
       this.user.approvalsTo = user.approvalsTo;
       this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
-      this.user.isAllPolicyMarkAsRead = user.isAllPolicyMarkAsRead;
+      this.user.policyReadConsent = user.policyReadConsent;
       this.user.notificationConsent = user.notificationConsent;
+      this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
+      this.user.probationPeriod = user.probationPeriod;
       
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
@@ -298,8 +300,8 @@ export class LoginComponent implements OnInit{
         if(url.includes("user-survey")){
           this.router.navigate(['/user-survey', this.authGaurd.id]);
         }
-        if(url.includes("user-exit")){
-          this.router.navigate(['/user-exit', this.authGaurd.id]);
+        if(url.includes("my-resignation")){
+          this.router.navigate(['/user-exit/my-resignation', this.authGaurd.id]);
         }
         if(url.includes("resource-management")){
           this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
@@ -312,7 +314,10 @@ export class LoginComponent implements OnInit{
       }
 
       if (this.user.tabList.find(e => e.tabName === 'HR Policies')) {
-        if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
+        // if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
+        //   this.router.navigate(['/user-policies']);
+        // }
+        if(this.currentUser.policyReadConsent != null){
           this.router.navigate(['/user-policies']);
         }
       }

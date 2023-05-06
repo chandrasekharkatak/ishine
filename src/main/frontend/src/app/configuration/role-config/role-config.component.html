@@ -1,12 +1,15 @@
-<div class="row mb-3">
+<!-- <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_role" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Add New Role</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_role" [ngClass]="{'active' : isTable}" (click)="showTable()">View All Roles</button>
     </div>
-</div>
+</div> -->
 
 <!-- start :: Create & Update Form -->
 <div class="row">
+    <div class="px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="userMapping.view_all_role && !isTable" [ngClass]="{'active' : isTable}" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="card col-md-12 px-0" *ngIf="isForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Role</strong>
@@ -116,8 +119,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="row">
-                    <div class="col-md-3 ml-auto mb-0">
+                <div class="row px-3 mb-1">
+                    <div class="col-md-3 px-0 pr-1 ml-auto mb-0">
                         <div class="form-inline input-group">
                             <label class="d-inline-block mr-2 mt-2"><strong>Department</strong></label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (ngModelChange)="onSelectDepartment()">
@@ -127,9 +130,7 @@
                               </select>
                         </div>
                     </div>
-                    <!-- <div class="form-group col-md-3">
-                        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
-                    </div> -->
+                    <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="userMapping.create_role" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()"><em class="fa-solid fa-plus"></em>&nbsp; Add New Role</button>
                 </div>
             </div>
         </div>

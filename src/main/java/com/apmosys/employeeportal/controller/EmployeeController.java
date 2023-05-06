@@ -320,5 +320,12 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/unlockAllTimesheet", method = RequestMethod.POST)
+	public ServiceResponse unlockAllTimesheet(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.unlockAllTimesheet(employeedto);
+		return response;
+	}
+	
 
 }

@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate {
           return false;
         }
 
-        if (currentUser.isAllPolicyMarkAsRead == 'false') {
+        if (currentUser.policyReadConsent != null) {
           let policyObj = new UploadPolicy();
           policyObj.empId = currentUser.empId;
           this.policiesService.isAllPolicyRead(policyObj).pipe(first()).subscribe((response: any) => {
@@ -44,7 +44,7 @@ export class AuthGuard implements CanActivate {
                 if (policy.isAllPolicyMarkAsRead == 'false') {
                   this.router.navigate(['/user-policies']);
                 } else if (policy.isAllPolicyMarkAsRead == 'true') {
-                  currentUser.isAllPolicyMarkAsRead = 'true';
+                  currentUser.policyReadConsent = null;
                 }
               }
             }

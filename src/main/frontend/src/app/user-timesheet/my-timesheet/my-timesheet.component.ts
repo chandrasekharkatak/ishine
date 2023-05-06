@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
@@ -28,6 +28,9 @@ import { EmployeeService } from 'src/app/services/employee.service';
   styleUrls: ['./my-timesheet.component.css']
 })
 export class MyTimesheetComponent implements OnInit {
+
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 
   data: string;
   feature = "My Timesheets";
@@ -85,6 +88,7 @@ export class MyTimesheetComponent implements OnInit {
 
   leaveHistoryList: any[] = [];
   maxOutTimeDate: any;
+  disableCreateUpdateTimesheet:boolean = false;
  
   isTimesheetLockCheckEnable:any = "true";
 
@@ -203,6 +207,19 @@ export class MyTimesheetComponent implements OnInit {
 
     this.filters = {};
     this.isSearchEnabled = false;
+
+    this.teamMemberList = [];
+    
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.teamMemberList = response.serviceResponse;
+        console.log("teamMemberList : ", this.teamMemberList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
@@ -356,7 +373,7 @@ export class MyTimesheetComponent implements OnInit {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
     }
 
-    const dateObj = new Date(this.serverDate + 'T00:00:00');
+    const dateObj = new Date(this.serverDate + 'T23:59:59');
     let serverDate = dateObj;
 
     console.log(serverDate, " : serverDate");
@@ -688,7 +705,7 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  getTimesheetMetadata() {
+  getTimesheetMetadata(eventTarget?:any) {
     console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
     let userObj: User = new User();
     if (this.timesheetObj.timesheetAppliedFor == 'self') {
@@ -706,6 +723,15 @@ export class MyTimesheetComponent implements OnInit {
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = teamMember.empId; 
+
+      if(teamMember.isTimesheetFilledByMember == "true"){
+        this.timesheetObj.empId = '';
+        eventTarget.value = "";
+        this.disableCreateUpdateTimesheet = true;
+        this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
+      }else{
+        this.disableCreateUpdateTimesheet = false;
+      }
     }
 
     const timesheetBkp = Object.assign({}, this.timesheetObj);
@@ -1075,9 +1101,11 @@ export class MyTimesheetComponent implements OnInit {
         let inactiveActivities:any[] = timesheet.inactiveTimesheetActivities;
 
         // Removing Inactive Activities from AllTimesheetActivities and added in UpdatedTimesheetActivities
-        allActivities.forEach(activityObj => {
-          if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
-        });
+        if(inactiveActivities != null){
+          allActivities.forEach(activityObj => {
+            if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
+          });
+        }
 
       } else {
         console.error(response.serviceResponse)

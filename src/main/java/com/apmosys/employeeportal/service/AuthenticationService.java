@@ -84,6 +84,9 @@ public class AuthenticationService {
 	@Value("${otp.timeout.period}")
 	private Long otpTimeoutPeriod;
 	
+	@Value("${poPortal.api.allProjects}")
+	private String poPortalAllProjectApi;
+	
 	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
 
@@ -221,6 +224,7 @@ public class AuthenticationService {
 				currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
 				currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
 				currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
+				currentEmployeeDto.setPoPortalAllProjectApi(poPortalAllProjectApi);
 				
 				logInfo.setLoginTime(df.format(new Date()));
 				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());

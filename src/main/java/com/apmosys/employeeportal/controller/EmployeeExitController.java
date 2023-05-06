@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeExitDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.service.EmployeeExitService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -18,11 +19,13 @@ public class EmployeeExitController {
 	
 	@Autowired
 	EmployeeExitService employeeExitService;
+	
+                               /* Employee Exit Controller*/
 
 	@RequestMapping(value = "/getEmployeeResignationDetails" ,method = RequestMethod.POST)
-	public ServiceResponse getEmployeeResignationDetails(@RequestBody EmployeeDTO employeeDTO) {
+	public ServiceResponse getEmployeeResignationDetails(@RequestBody EmployeeExitDTO employeeExitDTO) {
 		
-		ServiceResponse response = employeeExitService.getEmployeeResignationDetails(employeeDTO);
+		ServiceResponse response = employeeExitService.getEmployeeResignationDetails(employeeExitDTO);
 		return response;
 	}
 	
@@ -72,6 +75,57 @@ public class EmployeeExitController {
 	public ServiceResponse getExitInterviewResponseBySurveyIdAndEmp(@RequestBody SurveyDTO surveyDTO) {
 		
 		ServiceResponse response = employeeExitService.getExitInterviewResponseBySurveyIdAndEmp(surveyDTO);
+		return response;
+	}
+	
+                                  /* Employee Resignation Application Controller*/
+	
+	@RequestMapping(value = "/createResignationApplication" ,method = RequestMethod.POST)
+	public ServiceResponse createResignationApplication(@RequestBody EmployeeExitDTO employeeExitDTO) {
+		
+		ServiceResponse response = employeeExitService.createResignationApplication(employeeExitDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllResignationApplication" ,method = RequestMethod.GET)
+	public ServiceResponse getAllResignationApplication() {
+		
+		ServiceResponse response = employeeExitService.getAllResignationApplication();
+		return response;
+	}
+	
+	@RequestMapping(value = "/approveResignationApplication" ,method = RequestMethod.POST)
+	public ServiceResponse approveResignationApplication(@RequestBody EmployeeExitDTO employeeExitDTO) {
+		
+		ServiceResponse response = employeeExitService.approveResignationApplication(employeeExitDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/rejectResignationApplication" ,method = RequestMethod.POST)
+	public ServiceResponse rejectResignationApplication(@RequestBody EmployeeExitDTO employeeExitDTO) {
+		
+		ServiceResponse response = employeeExitService.rejectResignationApplication(employeeExitDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllProjectByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllProjectByEmpId(@RequestBody EmployeeExitDTO employeeExitDTO) {
+		
+		ServiceResponse response = employeeExitService.getAllProjectByEmpId(employeeExitDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/revokeResignationApplication" ,method = RequestMethod.POST)
+	public ServiceResponse revokeResignationApplication(@RequestBody EmployeeExitDTO employeeExitDTO) {
+		
+		ServiceResponse response = employeeExitService.revokeResignationApplication(employeeExitDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/revokeMyResignationApplication" ,method = RequestMethod.POST)
+	public ServiceResponse revokeMyResignationApplication(@RequestBody EmployeeExitDTO employeeExitDTO) {
+		
+		ServiceResponse response = employeeExitService.revokeMyResignationApplication(employeeExitDTO);
 		return response;
 	}
 	

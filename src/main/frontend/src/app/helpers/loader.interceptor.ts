@@ -155,7 +155,19 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updatePendingLeave`,
     `${this.baseUrl}` + `api/deletePendingLeave`,
 
+    `${this.baseUrl}` + `api/approveResignationApplication`,
+    `${this.baseUrl}` + `api/rejectResignationApplication`,
+    `${this.baseUrl}` + `api/createResignationApplication`,
+    `${this.baseUrl}` + `api/revokeResignationApplication`,
+    `${this.baseUrl}` + `api/revokeMyResignationApplication`,
+
+    `${this.baseUrl}` + `api/unlockAllTimesheet`,
+
     `${this.baseUrl}` + `api/changeDepartmentJobRoleMapping`,
+    `${this.baseUrl}` + `api/updateOnBoardingCheckList`,
+
+    `${this.baseUrl}`+`api/updateDefaultFeatureMapping`,
+    `${this.baseUrl}`+`api/getDefaultMapping`
   ]
 
   constructor(private loaderService: LoaderService) { }

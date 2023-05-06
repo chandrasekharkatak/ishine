@@ -66,4 +66,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getMyTeamsFilledEodCountByManagerId(LocalDate start, LocalDate end, Long managerId);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getTimesheetFilledByMember(Long empId, LocalDate date);
+
 }

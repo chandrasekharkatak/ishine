@@ -1,11 +1,11 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_portal_global_configuration" [ngClass]="{'active' : portalConfig}" (click)="getAllPortalConfig()">Portal Global Configuration</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.appreciation_configuration" [ngClass]="{'active' : appreciationConfig  || isTable }"  (click)="enableAppreciationOnclick()">Enable Appreciation Event</button>	
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_appreciation_event" [ngClass]="{'active' : viewEventConfig}" (click)="viewAppreciationEventOnClick()">View Appreciation Event</button>	
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_employees_appreciation" [ngClass]="{'active' : viewAppreciationForm || isAppreciationTable}"  (click)="viewAllAppreciation()">View Appreciation</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.update_portal_global_configuration && !isUploadForm" [ngClass]="{'active' : portalConfig}" (click)="getAllPortalConfig()">Portal Global Configuration</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.appreciation_configuration && !isUploadForm" [ngClass]="{'active' : appreciationConfig  || isTable }"  (click)="enableAppreciationOnclick()">Enable Appreciation Event</button>	
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_appreciation_event && !isUploadForm" [ngClass]="{'active' : viewEventConfig}" (click)="viewAppreciationEventOnClick()">View Appreciation Event</button>	
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_employees_appreciation && !isUploadForm" [ngClass]="{'active' : viewAppreciationForm || isAppreciationTable}"  (click)="viewAllAppreciation()">View Appreciation</button>
 
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.help_document_configuration" [ngClass]="{'active' : isHelpConfiguration && isHelpTable}" (click)="viewHelpDocument()">View Help Documents</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.help_document_configuration && !isUploadForm" [ngClass]="{'active' : isHelpConfiguration && isHelpTable}" (click)="viewHelpDocument()">Help Documents</button>
 
     </div>
 </div>
@@ -512,6 +512,9 @@
 <!-- Help Configuration :: start -->
 
 <div class="row" *ngIf="isHelpConfiguration">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="userMapping.help_document_configuration && !isHelpTable && isUploadForm" (click)="viewHelpDocument()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">

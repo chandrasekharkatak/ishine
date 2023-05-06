@@ -54,7 +54,9 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
+import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
@@ -2539,16 +2541,22 @@ public class EmployeeService {
 					employee.setApprovalsTo(object[21] != null ? object[21].toString() : null);
 					employee.setReportingManagerName(object[22] != null ? object[22].toString() : null);
 					employee.setReportingManagerEmail(object[23] != null ? object[23].toString() : null);
+					employee.setProbationPeriod(object[24] != null ? Short.parseShort(object[24].toString()) : null);
 				});
 				
-				//Check if user has read all the policy
-				long policyCount = uploadPolicyRepository.countByReadEnabled("true");
-				long empResponseCount = policyReadResponseRepository.countByEmpId(employee.getEmpId());
+				//Check if all Policy read.
+				List<UploadPolicy> allPolicy = uploadPolicyRepository.findByReadEnabled("true");
 				
-				if(policyCount > empResponseCount) {
-					employee.setIsAllPolicyMarkAsRead("false");
-				}else {
-					employee.setIsAllPolicyMarkAsRead("true");
+				if(!allPolicy.isEmpty()) {
+					for(UploadPolicy object: allPolicy) {
+						PolicyReadResponse readResponse = policyReadResponseRepository
+								.findByEmpIdAndPolicyID(employee.getEmpId(), object.getPolicyID());
+						
+						if(readResponse == null) {
+							employee.setPolicyReadConsent(object);
+							break;
+						}
+					}
 				}
 				
 				//Check if all Notification consent given.
@@ -3589,6 +3597,95 @@ public class EmployeeService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 		}
+		return response;
+	}
+
+	public ServiceResponse unlockAllTimesheet(EmployeeDTO employeeDto) {
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("unlockAllTimesheet");
+		apiLogInfo.setApiUrl("/api/unlockAllTimesheet");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + employeeDto.getEmpId());
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> employeeObject = null;
+			if(employeeDto.getUnlockTimesheetFor().equals("All")) {
+				employeeObject = employeeRepository.getEmployeeDetailForCron();
+			}else if(employeeDto.getUnlockTimesheetFor().equals("MyTeam")) {
+				employeeObject = employeeRepository.getAllTeamView(employeeDto.getManagerId());
+			}
+			
+			if(!employeeObject.isEmpty()) {
+				employeeObject.forEach((object) -> {
+					Long empId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+					
+					if(empId != null) {
+						
+						Optional<Employee> employeeFound = employeeRepository.findById(empId);
+						if (employeeFound.isPresent()) {
+							Employee employee = employeeFound.get();
+
+							employee.setIsTimesheetLockCheckEnable(employeeDto.getIsTimesheetLockCheckEnable());
+							employee.setUpdatedBy(Integer.parseInt(employeeDto.getUpdatedBy().toString()));
+							employee.setTimesheetLockUpdatedOn(LocalDate.now());
+							
+							Employee dbResponse = employeeRepository.save(employee);
+
+							if (dbResponse != null) {
+								if(dbResponse.getIsTimesheetLockCheckEnable().equals("true")) {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Timesheet Check Enabled.");
+									
+									apiLogInfo.setApiResponse("Timesheet Check Enabled.");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Timesheet Check Disabled.");
+									
+									apiLogInfo.setApiResponse("Timesheet Check Disabled, It will enabled automatically in "+ timesheetReconcileDays +" day(s) if not enabled");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+								}
+								
+							} else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Timesheet Check Updation Failed.");
+
+								apiLogInfo.setApiResponse("Timesheet Check Updation Failed.");
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							}
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Employee Not Found");
+
+							apiLogInfo.setApiResponse("Employee Not Found.");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
+					}
+				});
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Not Found");
+
+				apiLogInfo.setApiResponse("Employee Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 }

@@ -51,8 +51,6 @@ export class EmployeeConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  domainToBeDeleted:any;
-
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -63,12 +61,6 @@ export class EmployeeConfigComponent implements OnInit {
   isDraft: boolean = false;
   isDraftTable: boolean = false;
   dateOfReleivingshow: boolean = false;
-
-  isDomain: boolean = false;
-  isDomainTable: boolean = false;
-  isDomainCreation: boolean = false;
-  isDomainUpdation: boolean = false;
-  isDomainForm: boolean = false;
 
   isFullJourneyAccordianBody: boolean = false;
   isLifeCycleAccordianBody: boolean = false;
@@ -96,7 +88,7 @@ export class EmployeeConfigComponent implements OnInit {
   portalConfigList:any[] = [];
   allDomainList:any[] = [];
   specializationList:any[] = [];
-  allSpecializationList:any[] = [];
+  // allSpecializationList:any[] = [];
   storedDataList:any[] = [];
   domainSpecializationList:any[] = [];
   allDesignationList:any[] = [];
@@ -230,16 +222,24 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.create_employee){
-      this.showCreateForm()
-    }else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    // if(this.userMapping.create_employee){
+    //   this.showCreateForm()
+    // }else if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
+    //   //for employee table data 
+    //   this.showTable();
+    // } else if (this.userMapping.update_draft) {
+    //   //for employee draft table data 
+    //   this.showDraftTable();
+    // }
+    // this.addDemographiscInfo();
+
+    if (this.userMapping.view_all_employee || this.userMapping.update_employee || this.userMapping.delete_employee || this.revoke_template) {
       //for employee table data 
       this.showTable();
     } else if (this.userMapping.update_draft) {
       //for employee draft table data 
       this.showDraftTable();
     }
-    // this.addDemographiscInfo();
   }
 
   addDemographiscInfo(){
@@ -333,11 +333,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isDraft = false;
     this.isDraftTable = false;
-    this.isDomain = false;
-    this.isDomainTable = false;
-    this.isDomainCreation = false;
-    this.isDomainUpdation = false;
-    this.isDomainForm = false;
     this.page=1;
 
     this.reset();
@@ -364,11 +359,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
     this.isAuditSearchEnabled = false;
-    this.isDomain = false;
-    this.isDomainTable = false;
-    this.isDomainCreation = false;
-    this.isDomainUpdation = false;
-    this.isDomainForm = false;
 
     this.managerList = [];
     this.getAllEmployeeList();
@@ -383,11 +373,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.isCreation = false;
     this.isDraft = false;
     this.isDeletion = false;
-    this.isDomain = false;
-    this.isDomainTable = false;
-    this.isDomainCreation = false;
-    this.isDomainUpdation = false;
-    this.isDomainForm = false;
     this.page=1;
     this.data='';
     this.filters = {};
@@ -426,11 +411,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
-    this.isDomain = false;
-    this.isDomainTable = false;
-    this.isDomainCreation = false;
-    this.isDomainUpdation = false;
-    this.isDomainForm = false;
 
     this.getManagerList(employee);
     this.getAllDepartmentList();
@@ -477,11 +457,6 @@ export class EmployeeConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.isDraftTable = false;
-    this.isDomain = false;
-    this.isDomainTable = false;
-    this.isDomainCreation = false;
-    this.isDomainUpdation = false;
-    this.isDomainForm = false;
 
     this.getManagerList();
     this.getAllDepartmentList();
@@ -519,95 +494,95 @@ export class EmployeeConfigComponent implements OnInit {
     setTimeout(this.setCalenderMaxDate, 1000);
   }
 
-  showAllDomain(){
-    this.isDomain = true;
-    this.isDomainTable = true;
+  // showAllDomain(){
+  //   this.isDomain = true;
+  //   this.isDomainTable = true;
 
-    this.isDomainCreation = false;
-    this.isDomainUpdation = false;
-    this.isDomainForm = false;
+  //   this.isDomainCreation = false;
+  //   this.isDomainUpdation = false;
+  //   this.isDomainForm = false;
     
-    this.isForm = false;
-    this.isTable = false;
-    this.isUpdation = false;
-    this.isCreation = false;
-    this.isDraft = false;
-    this.isDraftTable = false;
-    this.isDeletion = false;
-    this.getAllDomain(this.alertTemplate);
-  }
+  //   this.isForm = false;
+  //   this.isTable = false;
+  //   this.isUpdation = false;
+  //   this.isCreation = false;
+  //   this.isDraft = false;
+  //   this.isDraftTable = false;
+  //   this.isDeletion = false;
+  //   this.getAllDomain(this.alertTemplate);
+  // }
 
-  showCreateDomainForm(){
-    this.isDomainCreation = true;
-    this.isDomainForm = true;
+  // showCreateDomainForm(){
+  //   this.isDomainCreation = true;
+  //   this.isDomainForm = true;
     
-    this.isDomain = false;
-    this.isDomainTable = false;
-    this.isDomainUpdation = false;
+  //   this.isDomain = false;
+  //   this.isDomainTable = false;
+  //   this.isDomainUpdation = false;
     
-    this.isForm = false;
-    this.isTable = false;
-    this.isUpdation = false;
-    this.isCreation = false;
-    this.isDraft = false;
-    this.isDraftTable = false;
-    this.isDeletion = false;
+  //   this.isForm = false;
+  //   this.isTable = false;
+  //   this.isUpdation = false;
+  //   this.isCreation = false;
+  //   this.isDraft = false;
+  //   this.isDraftTable = false;
+  //   this.isDeletion = false;
 
-    this.domainObj = new Domain();
-    this.allSpecializationList = [];
+  //   this.domainObj = new Domain();
+  //   this.allSpecializationList = [];
 
-    //Template Activity
-    if (this.domainObj.allSpecializationList == undefined || this.domainObj.allSpecializationList.length == 0) {
-      this.addInputSpecializationField();
-    } else {
-      this.allSpecializationList = this.domainObj.allSpecializationList;
-    }
-  }
+  //   //Template Activity
+  //   if (this.domainObj.allSpecializationList == undefined || this.domainObj.allSpecializationList.length == 0) {
+  //     this.addInputSpecializationField();
+  //   } else {
+  //     this.allSpecializationList = this.domainObj.allSpecializationList;
+  //   }
+  // }
 
-  showUpdateDomainForm(domain:any){
-    this.isDomainForm = true;
-    this.isDomainUpdation = true;
+  // showUpdateDomainForm(domain:any){
+  //   this.isDomainForm = true;
+  //   this.isDomainUpdation = true;
     
-    this.isDomainCreation = false;
-    this.isDomain = false;
-    this.isDomainTable = false;
+  //   this.isDomainCreation = false;
+  //   this.isDomain = false;
+  //   this.isDomainTable = false;
     
-    this.isForm = false;
-    this.isTable = false;
-    this.isUpdation = false;
-    this.isCreation = false;
-    this.isDraft = false;
-    this.isDraftTable = false;
-    this.isDeletion = false;
+  //   this.isForm = false;
+  //   this.isTable = false;
+  //   this.isUpdation = false;
+  //   this.isCreation = false;
+  //   this.isDraft = false;
+  //   this.isDraftTable = false;
+  //   this.isDeletion = false;
 
-    this.domainService.getDomainSpecializationByDomainId(domain).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.domainObj = Object.assign({}, response.serviceResponse);
+  //   this.domainService.getDomainSpecializationByDomainId(domain).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.domainObj = Object.assign({}, response.serviceResponse);
 
-        this.allSpecializationList = this.domainObj.allSpecializationList;
+  //       this.allSpecializationList = this.domainObj.allSpecializationList;
 
-        console.log(response.serviceResponse, " : response.serviceResponse");
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
+  //       console.log(response.serviceResponse, " : response.serviceResponse");
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+  // }
 
   // Manage Domain / Specialization
-  addInputSpecializationField(){
-    let domainObj = new Domain();
-    this.allSpecializationList.push(domainObj);
-    console.log(this.allSpecializationList, " : this.allSpecializationList");
-  }
+  // addInputSpecializationField(){
+  //   let domainObj = new Domain();
+  //   this.allSpecializationList.push(domainObj);
+  //   console.log(this.allSpecializationList, " : this.allSpecializationList");
+  // }
 
-  removeInputSpecializationField(spec:any){
-    this.allSpecializationList.forEach((value, index) => {
-      if (value == spec) {
-        this.allSpecializationList.splice(index, 1);
-      }
-    });
-    console.log(this.allSpecializationList, " :this.allSpecializationList");
-  }
+  // removeInputSpecializationField(spec:any){
+  //   this.allSpecializationList.forEach((value, index) => {
+  //     if (value == spec) {
+  //       this.allSpecializationList.splice(index, 1);
+  //     }
+  //   });
+  //   console.log(this.allSpecializationList, " :this.allSpecializationList");
+  // }
 
   // Manage employer
   addInputPreviousEmployerField() {
@@ -1207,8 +1182,6 @@ export class EmployeeConfigComponent implements OnInit {
     let employee = new Employee();
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
     const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-    // this.employeeObj.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
-   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
     if (this.employeeObj.email != null){
       if (regex.test(this.employeeObj.email)) {
         employee.email = this.employeeObj.email;
@@ -1219,14 +1192,18 @@ export class EmployeeConfigComponent implements OnInit {
             this.employeeObj.email = '';
           }
         });
-      }
-      else {
+      }else {
         this.openAlertMod(template, "Please enter valid email id !!");
         this.employeeObj.email = '';
       }
-    } 
 
-    
+      if (!this.validationService.validateEmail(this.employeeObj.email)) {
+        this.alertMessage = "Please enter valid email id !!"
+        this.openAlertMod(template, this.alertMessage);
+        this.employeeObj.email = '';
+        return false;
+      }
+    }
   }
 
   checkSecondaryEmail(template: TemplateRef<any>) {
@@ -1377,6 +1354,24 @@ export class EmployeeConfigComponent implements OnInit {
         this.employeeObj.newManagerId = '';
         this.getManagerList(this.employeeObj);
         this.modalRef = this.modalService.show(updatetemplate);
+      }
+    });
+  }
+
+  unlockAllTimesheet(template: TemplateRef<any>){
+    this.cancelRequest();
+    let employeeObj = new Employee();
+
+    employeeObj.unlockTimesheetFor = "All";
+    employeeObj.updatedBy = this.currentUser.empId;
+    employeeObj.isTimesheetLockCheckEnable = "false";
+
+    this.employeeService.unlockAllTimesheet(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
@@ -2053,7 +2048,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   // Employee Audit :: end
 
-  //Doamin & Specialization  :: start
+  // //Doamin & Specialization  :: start
 
   getAllDomain(template?: TemplateRef<any>){
     this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
@@ -2066,7 +2061,8 @@ export class EmployeeConfigComponent implements OnInit {
 
         console.log(this.allDomainList, " : this.allDomainList");
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        // this.openAlertMod(template, response.serviceResponse);
+        console.error(response.serviceResponse);
       }
     });
   }
@@ -2088,112 +2084,112 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
   
-  validateDomainObj(domainObj, template: TemplateRef<any>) {
-    let flag = true;
+  // validateDomainObj(domainObj, template: TemplateRef<any>) {
+  //   let flag = true;
 
-    domainObj.domainName = domainObj.domainName?.trim();
-    if (!this.validationService.validateNullUndefinedEmptyString(domainObj.domainName)) {
-      this.alertMessage = "Please enter Domain Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateTeamActivity(domainObj.domainName)) {
-      this.alertMessage = "Please enter Valid Domain Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+  //   domainObj.domainName = domainObj.domainName?.trim();
+  //   if (!this.validationService.validateNullUndefinedEmptyString(domainObj.domainName)) {
+  //     this.alertMessage = "Please enter Domain Name !!"
+  //     this.openAlertMod(template, this.alertMessage);
+  //     return false;
+  //   }
+  //   if (!this.validationService.validateTeamActivity(domainObj.domainName)) {
+  //     this.alertMessage = "Please enter Valid Domain Name !!"
+  //     this.openAlertMod(template, this.alertMessage);
+  //     return false;
+  //   }
 
-    const uniqueSpecialization = new Set(this.allSpecializationList.map(x => x.specializationName));
-    if (uniqueSpecialization.size < this.allSpecializationList.length) {
-      this.alertMessage = "Duplicate Specialization Name are not allowed !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+  //   const uniqueSpecialization = new Set(this.allSpecializationList.map(x => x.specializationName));
+  //   if (uniqueSpecialization.size < this.allSpecializationList.length) {
+  //     this.alertMessage = "Duplicate Specialization Name are not allowed !!"
+  //     this.openAlertMod(template, this.alertMessage);
+  //     return false;
+  //   }
 
-    this.allSpecializationList.forEach((spec, index) => {
+  //   this.allSpecializationList.forEach((spec, index) => {
 
-      spec.specializationName = spec.specializationName?.trim();
-      if (!this.validationService.validateNullUndefinedEmptyString(spec.specializationName)) {
-        this.alertMessage = `Please enter Specialization - ${index + 1}!!`
-        flag = false;
-        return;
-      }
-      if (!this.validationService.validateTeamActivity(spec.specializationName)) {
-        this.alertMessage = `Please enter valid Specialization - ${index + 1}!!`
-        flag = false;
-        return;
-      }
-    });
+  //     spec.specializationName = spec.specializationName?.trim();
+  //     if (!this.validationService.validateNullUndefinedEmptyString(spec.specializationName)) {
+  //       this.alertMessage = `Please enter Specialization - ${index + 1}!!`
+  //       flag = false;
+  //       return;
+  //     }
+  //     if (!this.validationService.validateTeamActivity(spec.specializationName)) {
+  //       this.alertMessage = `Please enter valid Specialization - ${index + 1}!!`
+  //       flag = false;
+  //       return;
+  //     }
+  //   });
 
-    if (!flag) {
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }else{
-      return true;
-    }
-  }
+  //   if (!flag) {
+  //     this.openAlertMod(template, this.alertMessage);
+  //     return false;
+  //   }else{
+  //     return true;
+  //   }
+  // }
 
-  createDomain(template: TemplateRef<any>){
+  // createDomain(template: TemplateRef<any>){
 
-    let inputValidated: boolean = this.validateDomainObj(this.domainObj, template)
-    if (!inputValidated) return;
+  //   let inputValidated: boolean = this.validateDomainObj(this.domainObj, template)
+  //   if (!inputValidated) return;
 
-    this.domainObj.allSpecializationList = this.allSpecializationList;
-    this.domainObj.createdBy = this.currentUser.empId;
-    this.domainService.createDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showAllDomain();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
+  //   this.domainObj.allSpecializationList = this.allSpecializationList;
+  //   this.domainObj.createdBy = this.currentUser.empId;
+  //   this.domainService.createDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.showAllDomain();
+  //     } else {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
+  // }
 
-  updateDomain(template: TemplateRef<any>){
-    let inputValidated: boolean = this.validateDomainObj(this.domainObj, template)
-    if (!inputValidated) return;
+  // updateDomain(template: TemplateRef<any>){
+  //   let inputValidated: boolean = this.validateDomainObj(this.domainObj, template)
+  //   if (!inputValidated) return;
 
-    this.domainObj.allSpecializationList = this.allSpecializationList;
-    this.domainObj.updatedBy = this.currentUser.empId;
+  //   this.domainObj.allSpecializationList = this.allSpecializationList;
+  //   this.domainObj.updatedBy = this.currentUser.empId;
     
-    this.domainService.updateDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showAllDomain();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
+  //   this.domainService.updateDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.showAllDomain();
+  //     } else {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
+  // }
 
-  deleteDomain(template: TemplateRef<any>) {
-    this.domainToBeDeleted.updatedBy = this.currentUser.empId;
+  // deleteDomain(template: TemplateRef<any>) {
+  //   this.domainToBeDeleted.updatedBy = this.currentUser.empId;
 
-    this.domainService.deleteDomain(this.domainToBeDeleted).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showAllDomain();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
+  //   this.domainService.deleteDomain(this.domainToBeDeleted).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.showAllDomain();
+  //     } else {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
+  // }
 
-  checkDomainName(domainName:any, template: TemplateRef<any>){
+  // checkDomainName(domainName:any, template: TemplateRef<any>){
 
-    let domainObj = new Domain();
-    domainObj.domainName = domainName;
-    domainObj.domainId = this.domainObj.domainId;
-    this.domainService.checkDomainName(this.domainObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Fail") {
-        this.domainObj.domainName = '';
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
+  //   let domainObj = new Domain();
+  //   domainObj.domainName = domainName;
+  //   domainObj.domainId = this.domainObj.domainId;
+  //   this.domainService.checkDomainName(this.domainObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Fail") {
+  //       this.domainObj.domainName = '';
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
+  // }
 
-  //Doamin & Specialization  :: end
+  // //Doamin & Specialization  :: end
 
 
   /* Filter */
@@ -2336,10 +2332,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj = employee;    
   }
 
-  openDeleteDomainMod(template: TemplateRef<any> , domain: any){
-    this.domainToBeDeleted = domain;
-    this.modalRef = this.modalService.show(template);
-  }
+  // openDeleteDomainMod(template: TemplateRef<any> , domain: any){
+  //   this.domainToBeDeleted = domain;
+  //   this.modalRef = this.modalService.show(template);
+  // }
 
   cancelApplication(){
     this.previewModalRef.hide();

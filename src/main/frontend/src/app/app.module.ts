@@ -85,6 +85,9 @@ import { MultiColFilterPipe } from './multi-col-filter.pipe';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { DesignationConfigComponent } from './configuration/designation-config/designation-config.component';
 import { AngularEditorModule } from '@kolkov/angular-editor';
+import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
+import { ResignationComponent } from './user-exit/resignation/resignation.component';
+import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
 
 @NgModule({
   declarations: [
@@ -143,7 +146,10 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     SortPipe,
     ColumnFilterBarComponent,
     MultiColFilterPipe,
-    DesignationConfigComponent
+    DesignationConfigComponent,
+    MyResignationComponent,
+    ResignationComponent,
+    DomainConfigComponent
   ],
   imports: [
     BrowserModule,

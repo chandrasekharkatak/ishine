@@ -1,0 +1,73 @@
+.concent{
+    font-size: 14px;
+    line-height: 2px;
+}
+
+.cell-checkbox {
+    background-color: #fff;
+    display: inline-block;
+    height: 24px;
+    margin: 0 .25em;
+    width: 24px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.cell-checkbox input {
+    display: none
+}
+
+.cell-checkbox input:checked+span:after {
+    -webkit-animation: check .8s;
+    -moz-animation: check .8s;
+    -o-animation: check .8s;
+    animation: check .8s;
+    border-color: #555
+}
+
+.cell-checkbox input:checked+.primary:after {
+    border-color: var(--dark-cornflower-blue);
+}
+
+.info-wrapper .info-label{
+    font-size: 1.05rem;    
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+
+.info-wrapper .info-text{
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--middle-grey);
+}
+
+.text-editor {
+    display: flex;
+    justify-content: center;
+}
+
+.info-text{
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--middle-grey);
+}
+
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Image"],
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Video"],
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Link"],
+:host /deep/ angular-editor#myEditor .angular-editor-button[title="Unlink"],
+:host /deep/ #fontSelector-{
+    display: none
+}
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
+}
+
+:host /deep/ angular-editor#myEditor .angular-editor-textarea{
+    padding-inline: 2rem;
+}

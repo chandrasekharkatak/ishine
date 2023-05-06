@@ -157,21 +157,32 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.add_holidays) {
-      this.showAddHolidayForm();
-    } else if (this.userMapping.view_holidays || this.userMapping.update_holidays || this.userMapping.delete_holiday) {
+    // if (this.userMapping.add_holidays) {
+    //   this.showAddHolidayForm();
+    // } else if (this.userMapping.view_holidays || this.userMapping.update_holidays || this.userMapping.delete_holiday) {
+    //   this.showHoliaysTable();
+    // } else if (this.userMapping.add_leave_type) {
+    //   this.showAddLeaveTypeForm();
+    // } else if (this.userMapping.view_leave_types || this.userMapping.update_leave_type || this.userMapping.delete_leave_type) {
+    //   this.showLeaveTypesTable();
+    // } else if (this.userMapping.manage_employee_leave_balance) {
+    //   this.showLeaveBalanceForm();
+    // } else if (this.userMapping.add_leave_policy) {
+    //   this.showAddLeavePolicyForm();
+    // } else if (this.userMapping.view_leave_policies || this.userMapping.update_leave_policy || this.userMapping.delete_leave_policy) {
+    //   this.showLeavePoliciesTable();
+    // }
+
+    if (this.userMapping.view_holidays || this.userMapping.update_holidays || this.userMapping.delete_holiday) {
       this.showHoliaysTable();
-    } else if (this.userMapping.add_leave_type) {
-      this.showAddLeaveTypeForm();
     } else if (this.userMapping.view_leave_types || this.userMapping.update_leave_type || this.userMapping.delete_leave_type) {
       this.showLeaveTypesTable();
     } else if (this.userMapping.manage_employee_leave_balance) {
       this.showLeaveBalanceForm();
-    } else if (this.userMapping.add_leave_policy) {
-      this.showAddLeavePolicyForm();
     } else if (this.userMapping.view_leave_policies || this.userMapping.update_leave_policy || this.userMapping.delete_leave_policy) {
       this.showLeavePoliciesTable();
     }
+
   }
 
   disableMannualDateInput() {

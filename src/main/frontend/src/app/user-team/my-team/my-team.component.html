@@ -18,10 +18,15 @@
     </div>
 
     <div class="row mb-2">
-      <div class="col-md-12">
-        <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="hierarchy-switch" (change)="toggleHierarchyView($event)">
-          <label class="custom-control-label" for="hierarchy-switch">View Hierarchy Chart</label>
+      <div class="col-md-12 col-sm-12">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch" (change)="toggleHierarchyView($event)">
+            <label class="custom-control-label" for="hierarchy-switch">View Hierarchy Chart</label>
+          </div>
+          <div class="col-md-3 col-sm-6 ml-auto d-flex justify-content-end align-items-start">
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="unlockAllTimesheet(alert_message)"><i class="fa-solid fa-lock-open"></i>&nbsp; Unlock My Team Timesheet</button>
+          </div>
         </div>
       </div>
     </div>
@@ -71,7 +76,7 @@
                 <tr>
                   <th scope="col" class="info-label">Sr No.</th>
                   <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
-                  <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                  <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Name</th>
                   <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>
                   <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Job Role</th>
                   <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
@@ -89,8 +94,7 @@
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
                     <td class="info-label">{{teamView.employeementId}}</td>
-                    <td class="info-label myTeam-hierarchy" (click)="myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap"
-                        *ngIf="teamView.isHierarchy"></i></td>
+                    <td class="info-label myTeam-hierarchy" (click)="myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
                     <td class="info-label">{{teamView.email}}</td>
                     <td class="info-label">{{teamView.jobRoleName}}</td>
                     <td class="info-label">{{teamView.mobileNo}}</td>
@@ -109,6 +113,7 @@
                         (click)="onGetEmpLeaveBalance(alert_message,teamView,i)"><em><i class="fa-solid fa-eye"></i>&nbsp; Balance</em></button>
                         <button *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="btn btn-sm btn-outline-danger mb-1" type="submit"
                         (click)="onHideEmpLeaveBalance()"><em><i class="fa-solid fa-eye-slash"></i>&nbsp; Balance</em></button>
+                        <button *ngIf="teamView.isDateOfRelievingToday == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit" (click)="navigateToAssetConsent(teamView)"><em>Asset Consent</em></button>
                       <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
                     </td>
                   </tr>

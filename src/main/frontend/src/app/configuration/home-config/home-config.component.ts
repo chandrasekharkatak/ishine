@@ -80,7 +80,8 @@ export class HomeConfigComponent implements OnInit {
       showToolbar: true,
       defaultParagraphSeparator: '',
       defaultFontSize: '',
-      fonts: [{class: 'arial', name: 'Arial'},],
+      fonts: [{class: 'arial', name: 'Arial'},
+      {class: 'calibri', name: 'Calibri'}],
     uploadWithCredentials: false,
     sanitize: true,
     toolbarPosition: 'top'
@@ -119,12 +120,18 @@ export class HomeConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.upload_event_photos){
-      this.showUploadPhotosForm();
-    }else if(this.userMapping.view_all_event_photos || this.userMapping.delete_event_photos){
+    // if(this.userMapping.upload_event_photos){
+    //   this.showUploadPhotosForm();
+    // }else if(this.userMapping.view_all_event_photos || this.userMapping.delete_event_photos){
+    //   this.showTable();
+    // }else if(this.userMapping.set_notifications){
+    //   this.showNotificationForm();
+    // }
+
+    if(this.userMapping.view_all_event_photos || this.userMapping.delete_event_photos){
       this.showTable();
-    }else if(this.userMapping.set_notifications){
-      this.showNotificationForm();
+    }else if(this.userMapping.view_all_notification){
+      this.showNotificationTable();
     }
 
   }

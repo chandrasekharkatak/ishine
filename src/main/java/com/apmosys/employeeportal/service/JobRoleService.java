@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.hibernate.internal.build.AllowSysOut;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -66,6 +67,15 @@ public class JobRoleService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Value("${poPortal.api.syncJobRole}")
+	private String syncJobRoleApi;
+	
+	@Value("${poPortal.api.isJobRoleUsed}")
+	private String isJobRoleUsedPoPortal;
+	
+	@Value("${poPortal.api.deleteJobRole}")
+	private String deleteJobRolePoPortal;
 	
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -361,7 +371,7 @@ public class JobRoleService {
 				//check JobRole in PoPortal
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/isRoleUsed/{roleId}";
+					final String syncUrl = isJobRoleUsedPoPortal;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.getForObject(syncUrl, String.class, jobRoleToBeDeleted.getJobRoleId());
 					
@@ -380,7 +390,7 @@ public class JobRoleService {
 						if(json.get("message").equals("1")) {
 							//Delete jobRole from poPortal http://192.168.21.175:8080/ishine/deleteRole/{id}
 							
-							final String deleteUrl = "http://192.168.21.175:8080/PoPortal/ishine/deleteRole/{id}";
+							final String deleteUrl = deleteJobRolePoPortal;
 							RestTemplate deleteRestTemplate = new RestTemplate();
 							restTemplate.delete(deleteUrl, jobRoleToBeDeleted.getJobRoleId());
 						}
@@ -487,8 +497,8 @@ public class JobRoleService {
 						if(jobRoleDTO.getIsJobRoleUsedInPoPortal().equals("true")) {
 							
 							ServiceResponse deleteSyncResposne = syncDeleteJobRoleWithPoPortal(jobRoleDTO);
+							
 							if(deleteSyncResposne.getServiceStatus().equals("Success")) {
-								
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse(deleteSyncResposne.getServiceResponse());
 							}else {
@@ -563,7 +573,7 @@ public class JobRoleService {
 				
 				try {
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/updateRole/{id}";
+					final String syncUrl = syncJobRoleApi;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, jobRoleDTO.getOldJobRoleId());	
 					
