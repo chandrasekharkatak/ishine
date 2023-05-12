@@ -1030,6 +1030,8 @@ public class TeamsService {
 					dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
 					dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
 					dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
+					dto.setDateOfJoining(object[19] != null ? object[19].toString() : null);
+					dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);

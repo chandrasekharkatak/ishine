@@ -172,6 +172,12 @@ export class ResignationComponent implements OnInit {
   rejectResignationApplication(template: TemplateRef<any>){
     this.cancelRequest();
 
+    if (!this.validationService.validateAlphabetAtLeastTwoCharacter(this.employeeExitObj.rejectReason)) {
+      this.alertMessage = "Please enter valid resignation reject reason!!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+  }
+
     this.applicationToBeRejected.statusUpdatedBy = this.currentUser.empId;
     this.applicationToBeRejected.rejectReason = this.employeeExitObj.rejectReason;
     if(this.applicationToBeRejected.employmentId.startsWith('A-')){

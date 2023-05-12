@@ -184,9 +184,9 @@ public class EmployeeOnBoardingService {
 			}
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Employee OnBoarding check List updated.");
+			response.setServiceResponse("Employee On-Boarding check list updated.");
 			
-			apiLogInfo.setApiResponse("Employee OnBoarding check List updated.");
+			apiLogInfo.setApiResponse("Employee On-Boarding check list updated.");
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			
 		}catch(Exception e) {

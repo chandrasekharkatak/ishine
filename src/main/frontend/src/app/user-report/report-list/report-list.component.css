@@ -119,11 +119,6 @@
     border-color: #006400;
 }
 
-.table-hover tr,
-td {
-    cursor: move;
-}
-
 .progress-bar-success {
     color: #fff;
     background-color: #28a745;
@@ -136,3 +131,27 @@ td {
     color: #193d8a;
     font-weight: bold;
 }
+
+.acl-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--ghost-white);
+}
+
+.sticky-col {
+    position: -webkit-sticky;
+    position: sticky;
+    background-color: white;
+    left: 0;
+    z-index: 1;
+}
+
+#BassScrollBar {
+    overflow-x: hidden !important;
+}
+
+.acl-table{
+    cursor: move;
+}
+  

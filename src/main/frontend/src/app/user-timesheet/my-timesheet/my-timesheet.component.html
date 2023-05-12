@@ -45,7 +45,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Member</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
-                                [disabled]="isUpdation" (change)="getTimesheetMetadata()">
+                                [disabled]="isUpdation" (change)="getTimesheetMetadata($event.target)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
                                     {{teamMember.name}}</option>

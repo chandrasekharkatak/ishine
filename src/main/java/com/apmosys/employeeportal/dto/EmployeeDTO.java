@@ -157,6 +157,8 @@ public class EmployeeDTO {
 	private String featureName;
 	private String permission;
 	private String isAssigned;
+	private Long tabId;
+	private List<FeatureMasterDTO> permissionList;
 	
 	private Integer reporteeCount;
 	private String hierarchyType;

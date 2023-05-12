@@ -371,39 +371,46 @@
     <h1 class="table-header-title">Access Control List</h1>
   </div>
 
-  <div class="col-md-12 ml-auto d-flex">
-    <div class="col-md-8">
-      <input class="ml-5 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
-      <label for="Employee">Employee</label>
-      <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
-      <label for="TeamLead">Team Lead</label>
-      <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
-      <label for="Manager">Manager</label>
-      <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
-      <label for="HR">HR</label>
-      <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
-      <label for="HOD">HOD</label>
-      <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin"
-        (click)="selectPersona($event)">
-      <label for="SuperAdmin">Super Admin</label>
+  <div class="col-md-3 col-sm-6 custom-control custom-switch ml-4">
+    <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
+    <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
+  </div>
+
+  <div class="col-md-12" *ngIf="isAccessFeatureMapping">
+    <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
+      <div class="col-md-8 mb-2 mb-md-0">
+        <input class="ml-4 mr-1" type="radio" name="persona" id="Employee" value="Employee" (click)="selectPersona($event)">
+        <label for="Employee">Employee</label>
+        <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead" (click)="selectPersona($event)">
+        <label for="TeamLead">Team Lead</label>
+        <br class="d-md-none">
+        <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager" (click)="selectPersona($event)">
+        <label for="Manager">Manager</label>
+        <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
+        <label for="HR">HR</label>
+        <br class="d-md-none">
+        <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
+        <label for="HOD">HOD</label>
+        <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin"
+          (click)="selectPersona($event)">
+        <label for="SuperAdmin">Super Admin</label>
+      </div>
+    
+      <div class="col-md-2 ml-auto mb-2">
+        <label class="info-label">Show Column</label>
+        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedColumnToShow"
+          (change)="showColumn(selectedColumnToShow)">
+          <option selected value="select">Select</option>
+          <option *ngFor="let show of showColumnList" [value]="show.header">{{show.header}}</option>
+        </select>
+      </div>
     </div>
-
-    <div class="col-md-2 ml-auto mb-2">
-      <label class="info-label">Show Column</label>
-      <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.columnHeader" (click)="showColumn()">
-        <option selected="selected" value="" disabled>Select</option>
-        <option *ngFor="let show of showColumnList" value="{{show.field}}">{{show.header}}</option>
-      </select>
-    </div>
-
-  </div>  
-
+    
     <div class="col-md-12">
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'"
-        [tableTHeadId]="'aclReportInfoTHead'" [tableTHeadTrId]="'aclReportInfoTHeadTr'"
-        style="max-height: 65vh;">
-        <table class="table table-responsive table-bordered table-hover" id="aclReportInfo">
-          <thead id="aclReportInfoTHead">
+      <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'" [tableTHeadId]="'aclReportInfoTHead'"
+        [tableTHeadTrId]="'aclReportInfoTHeadTr'" style="max-height: 65vh;">
+        <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
+          <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
               (cdkDragReleased)="release = true" (cdkDropListDropped)="dropCol($event)">
               <ng-container *ngFor="let column of finalColumns; let i = index">
@@ -413,11 +420,12 @@
                     {{ column.header }}
                   </ng-container>
                   <ng-container *ngIf="i != 0">
-                    {{ column.header }}<button class="btn" (click)="hideColumn(column.header)"><em class="fa-regular fa-eye"></em></button>
+                    {{ column.header }}<button class="btn" (click)="hideColumn(column.header)"><em
+                        class="fa-regular fa-eye"></em></button>
                   </ng-container>
                   <div *cdkDragPreview>
                     <div [style.width]="pos?.width" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x">
-                      <thead>
+                      <thead class="acl-header">
                         <tr>
                           <th>
                             {{ column.header }}
@@ -436,7 +444,7 @@
                 <ng-container *ngIf="!column.department">
                   <th></th>
                 </ng-container>
-        
+    
                 <ng-container *ngFor="let subColumn of column.department">
                   <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
                     {{subColumn.header}}
@@ -448,31 +456,31 @@
           <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
             <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
               (cdkDragReleased)="onDragRelease($event)" *ngFor="let element of paginateData">
-
-                <ng-container *ngFor="let cell of finalColumns; let i = index">
-                  <ng-container *ngIf="i == 0">
-                    <td *ngFor="let x of cell.department">{{ element[x.field] }}</td>
-                  </ng-container>
-                  <ng-container *ngIf="i != 0">
-                    <td *ngFor="let x of cell.department">
-                      <label class="cell-checkbox">
-                        <input type="checkbox" [(ngModel)]="element[x.field]"
-                        (change)="selectCellCheckbox(x.field,element[x.field], element.subfeatureId)" />
-                        <span class="primary"></span>
-                    </label>
-                    </td>
-                  </ng-container>
-                </ng-container>
-                
-              <!-- <ng-container *ngFor="let cell of columns; let i = index">
+    
+              <ng-container *ngFor="let cell of finalColumns; let i = index">
                 <ng-container *ngIf="i == 0">
-                  <td>{{ element[cell.field] }}</td>
+                  <td class="sticky-col" *ngFor="let x of cell.department">{{ element[x.field] }}</td>
                 </ng-container>
                 <ng-container *ngIf="i != 0">
-                  <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
-                      (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
+                  <td *ngFor="let x of cell.department">
+                    <label class="cell-checkbox">
+                      <input type="checkbox" [(ngModel)]="element[x.field]"
+                        (change)="selectCellCheckbox(x.field,element[x.field], element.subfeatureId)" />
+                      <span class="primary"></span>
+                    </label>
+                  </td>
                 </ng-container>
-              </ng-container> -->
+              </ng-container>
+    
+              <!-- <ng-container *ngFor="let cell of columns; let i = index">
+                        <ng-container *ngIf="i == 0">
+                          <td>{{ element[cell.field] }}</td>
+                        </ng-container>
+                        <ng-container *ngIf="i != 0">
+                          <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
+                              (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
+                        </ng-container>
+                      </ng-container> -->
               <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
                 [style.width]="pos?.width">
                 <table>
@@ -487,15 +495,103 @@
         </table>
       </div>
       <div class="row" [hidden]="paginateData.length == 0">
-         <div class="col-md-12 d-flex justiy-content-center mt-2">
+        <div class="col-md-12 d-flex justiy-content-center mt-2">
           <button type="button" class="btn btn-sm btn-outline-primary"
-          (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+            (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button" (click)="exportToExcel()">
             <em class="fa fa-file-arrow-down fa-2x"></em>
           </button>
-         </div>
+        </div>
       </div>
     </div>
+  </div>
+
+  <div class="col-md-12" *ngIf="isDefaultFeatureMapping">
+
+    <div class="row">
+      <div class="col-md-12">
+        <!-- <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div> -->
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'defaultMappInfo'"
+          [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
+          <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
+            <thead class="thead-light acl-header" id="defaultMappInfoTHead">
+              <tr id="defaultMappInfoTHeadTr">
+                <th scope="col" class="info-label wide-col" mat-sort-header="tabName|string">Tab Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="featureName|string">Feature</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="subFeatureName|string">Sub Feature</th>
+                <th scope="col" class="info-label wide-col">Employee</th>
+                <th scope="col" class="info-label wide-col">Team Lead</th>
+                <th scope="col" class="info-label wide-col">Manager</th>
+                <th scope="col" class="info-label wide-col">HoD</th>
+                <th scope="col" class="info-label wide-col">Super Admin</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isDefaultFeatureMapping && isSearchEnabled" [columnList]="defaultMappingColumns" (onSearch)="onSearch($event);page=1" ></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="defaultMappingListFilter.length == 0 || (defaultMappingListFilter | colFilter:filters:false).length == 0">
+                <th colspan="16" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let map of defaultMappingListFilter| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection], let i = index">
+                <td [attr.rowspan]="map.tabSpan" *ngIf="map.tabSpan">{{map.tabName}}</td>
+                <td [attr.rowspan]="map.featureSpan" *ngIf="map.featureSpan">{{map.featureName}}</td>
+                <td>{{map.subFeatureName}}</td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.Employee"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Employee, 'Employee', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.TeamLead"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.TeamLead, 'TeamLead', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.Manager"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Manager, 'Manager', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.HOD"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.HOD, 'HOD', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.SuperAdmin"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.SuperAdmin, 'SuperAdmin', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row" [hidden]="defaultMappingListFilter.length == 0">
+          <div class="col-md-12 d-flex justiy-content-center mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="updateDefaultFeatureMapping(alert_message)">Update</button>
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="defaultMappingListFilter.length == 0" (click)="exportToExcel()"><em
+                  class="fa fa-file-arrow-down fa-2x"></em></button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 <!-- end :: ACL (access control list) -->
 

@@ -14,6 +14,7 @@ export class JobRole{
 	newJobRoleId:any;
 	employeeRole:any;
 	updatedJobRoleFeatureMapping:any[] = [];
+	updateDefaultFeatureMapping:any[] = [];
 
 	isJobRoleUsedInIshine :any;
 	isJobRoleUsedInPoPortal :any;

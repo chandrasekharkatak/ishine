@@ -790,7 +790,14 @@ export class LeaveComponent implements OnInit {
 
     if(leaveType != null && (leaveType.leaveTypeCode != 'LWP' && leaveType.leaveTypeCode != 'CO')){
       if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
-        let confirmationDate = moment(this.currentUser.dateOfJoining).add(this.currentUser.probationPeriod, 'days');
+
+        let confirmationDate;
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          confirmationDate = moment(this.currentUser.dateOfJoining).add(this.currentUser.probationPeriod, 'days');
+        }else{
+          let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId);
+          confirmationDate = moment(teamMember.dateOfJoining).add(teamMember.probationPeriod, 'days');     
+        }
         if(confirmationDate.format('YYYY-MM-DD') > moment(this.leaveObj.fromDate).format('YYYY-MM-DD')){
           this.openAlertMod(this.alertTemplate, "Only LWP & CompOff can be applied during probation period.");
           this.leaveObj.fromDate = '';

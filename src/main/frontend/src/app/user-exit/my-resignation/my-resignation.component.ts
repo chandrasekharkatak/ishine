@@ -101,8 +101,7 @@ export class MyResignationComponent implements OnInit {
     uploadWithCredentials: false,
     sanitize: false,
     toolbarPosition: 'top',
-    fonts: [{class: 'arial', name: 'Arial'},
-      {class: 'calibri', name: 'Calibri'}],
+    fonts: [{class: 'arial', name: 'Arial'}],
   };
 
   constructor(
@@ -164,6 +163,20 @@ export class MyResignationComponent implements OnInit {
   }
 
   openResignRuleModal(template: TemplateRef<any>){
+
+    // var tempDivElement = document.createElement("div");
+    // tempDivElement.innerHTML = this.employeeExitObj.resignationMail;
+    // let resignationMail = tempDivElement.textContent
+
+    // console.log(resignationMail,  ": resignationMail");
+
+    // if (!this.validationService.validateAlphabetAtLeastTwoCharacter(resignationMail)) {
+    //   this.alertMessage = "Please enter Valid resignation mail!!"
+    //   this.openAlertMod(this.alertTemplate, this.alertMessage);
+    //   return;
+    // }
+
+    this.cancelRequest();
     this.isConsentCheck = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
@@ -384,6 +397,12 @@ export class MyResignationComponent implements OnInit {
 
   revokeMyResignationApplication(template: TemplateRef<any>){
     this.cancelRequest();
+    
+    if (!this.validationService.validateAlphabetAtLeastTwoCharacter(this.employeeExitObj.revokeReason)) {
+        this.alertMessage = "Please enter valid resignation revoke reason!!"
+        this.openAlertMod(this.alertTemplate, this.alertMessage);
+        return;
+    }
 
     let employeeExitObj = new EmployeeExit();
     employeeExitObj.empId = this.currentUser.empId;

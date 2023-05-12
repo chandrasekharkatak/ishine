@@ -735,6 +735,7 @@ export class MyTimesheetComponent implements OnInit {
       if(teamMember.isTimesheetFilledByMember == "true"){
         this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
         this.timesheetObj.empId = '';
+        eventTarget.value = "";
         this.disableCreateUpdateTimesheet = true;
         eventTarget.value = '';
         //console.log(eventTarget.value, " : eventTarget");

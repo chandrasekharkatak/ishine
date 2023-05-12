@@ -22,4 +22,6 @@ public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole
 	@Query(nativeQuery = true)
 	public List<EmployeeRole> findBySubFeatureMasterId(Long subFeatureMasterId);
 
+	public EmployeeRole findBySubFeatureMasterIdAndEmployeeRole(Long subFeatureId, String employeeRole);
+
 }
