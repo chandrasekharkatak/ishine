@@ -134,7 +134,7 @@ input[type=number] {
 
 .ngx-org-connector-vertical {
     height: 1em;
-}  
+}
 
 .ngx-org-name{
     font-weight: bold;
@@ -173,7 +173,7 @@ body.modal-open {
 }
 
 body.viewport-lg {
-    position: absolute; 
+    position: absolute;
 }
 
 body {
@@ -192,9 +192,6 @@ body {
     caret-color: transparent;
 }
 
-
-
-
 /* search toggle styles */
 .selector-toggle{
     position: relative;
@@ -203,7 +200,7 @@ body {
 .selector-toggle a{
     display: block;
     cursor: pointer;
-    position: absolute;
+    /* position: absolute; */
     left: -27px;
     top: 0px;
     z-index: 3;

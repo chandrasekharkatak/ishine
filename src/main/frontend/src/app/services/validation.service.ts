@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class ValidationService {
-  
+
   constructor() { }
 
   validateAlphaNumeric(text: string): boolean {
@@ -72,10 +72,38 @@ export class ValidationService {
     else {
       return false;
     }
-
-
   }
 
+  validatePFNumber(text: string): boolean {
+    const regex =  /^[A-Za-z]{5}[0-9]{17}$/;  //  /^[A-Za-z]{5}[0-9]{17}$/;     //  /^\w{5}\d{17}$/ ;  // (/^[A-Za-z]{5}[0-9]{17}$/);
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  validateUANNumber(text: string): boolean {
+    const regex = /^[0-9]{12}$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+  }
   // /^(?:[0-9]{11}|[0-9]{2}-[0-9]{3}-[0-9]{6})$/
   validateAccountNumber(text: string): boolean {
 
@@ -116,7 +144,7 @@ export class ValidationService {
     }
   }
 
-  //^[1-9][0-9]?$ 
+  //^[1-9][0-9]?$
   validateExperiencedNumber(text: string): boolean {
 
     const regex = /^[0-9]{0,2}(\.([1-9]|1[0-1]){0,2})?$/;
@@ -135,7 +163,21 @@ export class ValidationService {
 
   }
 
-
+   validateApmosysEmail(text: string): boolean {
+    //const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
+    const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+   }
   validateEmail(text: string): boolean {
 
     const regex = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/;
@@ -150,11 +192,10 @@ export class ValidationService {
     else {
       return false;
     }
-
   }
 
   validateMobileNumber(text: string): boolean {
-    const regex = /^[6-9]\d{9}$/;
+    const regex = /^[6-9]{1}[0-9]{9}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -166,7 +207,6 @@ export class ValidationService {
     else {
       return false;
     }
-
   }
 
   validateNullUndefinedEmptyString(text: any): boolean {
@@ -363,7 +403,7 @@ export class ValidationService {
   }
 
   validateEmployeementId(text: any): boolean {
-    const regex = /^[1-9]\d{3,6}$/;
+    const regex = /^[1-9]{3,6}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -394,7 +434,7 @@ export class ValidationService {
 
   validateAlphaNumericSpecialCharacters(text: string): boolean {
 
- 
+
     // const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
     const regex = /(?=^.{8,}$)(?=.*\d)(?=.*[!@#$%^&*]+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
 
@@ -446,7 +486,7 @@ export class ValidationService {
 
 
   //
-  
+
   validateAboutMeUserProfile(text:string): boolean {
     const regex = (/^[A-Za-z ]*$/) ;
     if (text !== "" || text !== undefined || text !== null) {
@@ -515,7 +555,7 @@ export class ValidationService {
 
 
   validateTeamActivity(text:string): boolean {
-    const regex = (/^[A-Za-z][A-Za-z\s]*$/) ;
+    const regex = (/^[A-Za-z]{3}[A-Za-z\s]*$/);
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -548,10 +588,22 @@ export class ValidationService {
 
   }
 
+  // validateIFSCCodeRegexWithBankName(data: string ,bankName: string): boolean {
+  //   let bankNameValue = bankName?.trim().toUpperCase();
+  //    if(data.toUpperCase().slice(1,5) == bankNameValue)
+  //    {
+  //     return true;
+  //    }
+  //    return false;
+  // }
+
+
+
 
   // ^[A-Z]{4}0[A-Z0-9]{6}$
 
   validateIFSCCodeRegex(text:string): boolean {
+
     const regex = (/^[A-Z]{4}0[A-Z0-9]{6}$/) ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
@@ -567,7 +619,7 @@ export class ValidationService {
   }
 
   validateAlphaWithSpaceInbetween(text:string):boolean{
-    const regex = (/[^-\s][a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;     // minor changes in Regex 
+    const regex = (/[^-\s][a-zA-Z][a-zA-Z ]+[a-zA-Z]$/gm) ;     // minor changes in Regex
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -582,11 +634,11 @@ export class ValidationService {
   }
 
   validateUrl(url:any){
-    try { 
-      return Boolean(new URL(url)); 
+    try {
+      return Boolean(new URL(url));
     }
-    catch(e){ 
-      return false; 
+    catch(e){
+      return false;
     }
   }
 
@@ -604,7 +656,7 @@ export class ValidationService {
       return false;
     }
   }
-  
+
   validateAlphabetAtLeastTwoCharacter(text:string): boolean {
     const regex = (/^[A-Za-z]{2}[A-Za-z\s?]*$/i) ;
     if (text !== "" || text !== undefined || text !== null) {
@@ -639,7 +691,7 @@ export class ValidationService {
   }
 
   validatePfAccountNumber(text:string): boolean {
-    const regex = (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
+    const regex = /^[A-Z]{5}[0-9]{17}$/;  // (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

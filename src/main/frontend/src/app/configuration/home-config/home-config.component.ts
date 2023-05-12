@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
+import { Component, HostListener, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
@@ -16,7 +16,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { AngularEditorConfig } from '@kolkov/angular-editor';
+import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
 
 @Component({
   selector: 'app-home-config',
@@ -24,6 +24,9 @@ import { AngularEditorConfig } from '@kolkov/angular-editor';
   styleUrls: ['./home-config.component.css']
 })
 export class HomeConfigComponent implements OnInit {
+
+  @ViewChild('editor') editor: AngularEditorComponent;
+  @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
 
   feature = "Home Config";
   currentUser: User;
@@ -33,7 +36,7 @@ export class HomeConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //flags 
+  //flags
   isPhotoForm: boolean = false;
   isNotificationForm: boolean = false;
   isTable: boolean = false;
@@ -42,12 +45,12 @@ export class HomeConfigComponent implements OnInit {
   isNotificationUpdate: boolean = false;
   isConsentNotificationResponseTable: boolean = false;
 
-  //modal 
+  //modal
   alertMessage: any;
   excelName: any;
   modalRef: BsModalRef = new BsModalRef();
 
-  imageObj:EventPhoto = new EventPhoto();  
+  imageObj:EventPhoto = new EventPhoto();
   files:any[] = [];
   eventName:any;
 
@@ -102,7 +105,7 @@ export class HomeConfigComponent implements OnInit {
      }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -136,6 +139,21 @@ export class HomeConfigComponent implements OnInit {
 
   }
 
+  @HostListener('paste', ['$event'])
+  onPaste(event: ClipboardEvent) {
+    const clipboardData = event.clipboardData || (window as any).clipboardData;
+    const pastedData = clipboardData.getData('text/plain');
+    const isImage = clipboardData.types.includes('Files');
+
+    if (isImage) {
+      event.preventDefault();
+      this.alertMessage = "You cannot paste images into the editor, please enter text !!"
+      this.openAlertMod(this.alertTemplate, this.alertMessage);
+      return false;
+    }
+  }
+
+
   showUploadPhotosForm() {
     this.isPhotoForm = true;
 
@@ -161,7 +179,7 @@ export class HomeConfigComponent implements OnInit {
   showNotificationTable(){
     this.isNotificationTable = true;
     this.isNotificationForm = false;
-    
+
     this.isPhotoForm = false;
     this.isConsentNotificationResponseTable = false;
     this.isTable = false;
@@ -216,7 +234,7 @@ export class HomeConfigComponent implements OnInit {
 
     const uploadedFiles = event.target.files;
     console.log("uploadedFiles : ", uploadedFiles);
-    
+
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
         let image = uploadedFiles[i];
@@ -247,7 +265,7 @@ export class HomeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
+
     const formData = new FormData();
     this.files.forEach((file) =>{
       formData.append(`image`, file.image, file.imageName);
@@ -328,7 +346,7 @@ export class HomeConfigComponent implements OnInit {
     }
 
     this.notificationObj.createdBy = this.currentUser.empId;
-    
+
     this.notificationService.addNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -422,7 +440,7 @@ export class HomeConfigComponent implements OnInit {
 
     if(this.isConsentNotificationResponseTable){
       this.excelName = "consentNotificationResponse.xlsx";
-      
+
       const temp = document.createElement('div');
       temp.innerHTML = this.notificationResponseView.notificationMessage;
       let notificationMessage = temp.textContent;
@@ -457,7 +475,7 @@ export class HomeConfigComponent implements OnInit {
     document.getElementById(`photoPreview`).style.display = 'none';
     setTimeout(()=>{this.loadPreviewImage(imageObj);}, 1000);
   }
-  
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -472,15 +490,15 @@ export class HomeConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
-  }	
+  }
 
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
@@ -492,8 +510,8 @@ export class HomeConfigComponent implements OnInit {
   }
 }
 
-  function compare(a: number | string, b: number | string, isAsc: boolean) {	
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+  function compare(a: number | string, b: number | string, isAsc: boolean) {
+    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   }
-  
+
 
