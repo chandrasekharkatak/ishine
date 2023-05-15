@@ -403,7 +403,7 @@ export class ValidationService {
   }
 
   validateEmployeementId(text: any): boolean {
-    const regex = /^[1-9]{3,6}$/;
+    const regex = /^[1-9]\d{3,6}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
