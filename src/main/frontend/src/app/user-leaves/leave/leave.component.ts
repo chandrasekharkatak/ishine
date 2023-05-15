@@ -800,7 +800,9 @@ export class LeaveComponent implements OnInit {
         }
         if(confirmationDate.format('YYYY-MM-DD') > moment(this.leaveObj.fromDate).format('YYYY-MM-DD')){
           this.openAlertMod(this.alertTemplate, "Only LWP & CompOff can be applied during probation period.");
-          this.leaveObj.fromDate = '';
+          setTimeout(() => {
+            this.leaveObj.fromDate = '';
+          }, 100)
         }
       }
     }
