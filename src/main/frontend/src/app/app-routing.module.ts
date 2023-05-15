@@ -52,7 +52,7 @@ import { DomainConfigComponent } from './configuration/domain-config/domain-conf
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
-  {path:'login', component: LoginComponent},
+  {path:'login', component: LoginComponent, canActivate: [AuthGuard]},
   {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
   {path:'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
     children: [

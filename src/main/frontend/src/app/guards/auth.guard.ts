@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
       if (currentUser) {
         if(!currentUser.tabList.find(tab => tab.tabRouteName == route.routeConfig.path?.split("/")[0])){
           // role not authorised so redirect to home page
-          this.router.navigate(['/user-profile']); // home not mapped for default features yet
+          this.router.navigate(['/home']);
           return false;
         }
 
@@ -50,6 +50,10 @@ export class AuthGuard implements CanActivate {
             }
           });
         }
+        return true;
+      }
+      else if(route.routeConfig.path == "" || route.routeConfig.path == "login"){
+        // If User is going to Login for the first Time
         return true;
       }else{
 
