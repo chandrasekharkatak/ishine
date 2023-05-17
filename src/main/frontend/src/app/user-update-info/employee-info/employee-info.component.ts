@@ -226,6 +226,24 @@ export class EmployeeInfoComponent implements OnInit{
     });
   }
 
+  // calculate Experience in Years from DOJ and DOR for prev. employers
+  setExperienceForPrevEmployer(previousEmployer:PreviousEmployer){
+    if(previousEmployer.dateOfJoining != null && previousEmployer.dateOfRelieving){
+      const fromDate = moment(new Date(previousEmployer.dateOfJoining));
+      const toDate = moment(new Date(previousEmployer.dateOfRelieving));
+  
+      const diffDuration = moment.duration(toDate.diff(fromDate));
+      console.log(`Get Experience : ${fromDate} - ${toDate} ==>  ${diffDuration.years()} years ${diffDuration.months()} months ===>  ${diffDuration.years()}.${diffDuration.months()} for ID :`);
+      const experience  = `${diffDuration.years()}.${diffDuration.months()}`;
+      previousEmployer.yearsOfExperience = experience;
+    }
+  }
+
+  resetExperienceOnDOJChange(previousEmployer:PreviousEmployer){
+    previousEmployer.dateOfRelieving = "";
+    previousEmployer.yearsOfExperience = "";
+  }
+
   // Validations
   checkEmployeeAadharNumber(template: TemplateRef<any>) {
     if(this.employeeObj.aadhar != null){

@@ -546,7 +546,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label "><span class="text-danger">*</span>Date Of Joining</label>
-                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" >
+                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" (change)="resetExperienceOnDOJChange(previousEmployer);setExperienceForPrevEmployer(previousEmployer)">
                                         </div>
                                     </div>
                                 </div>
@@ -554,7 +554,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Relieving</label>
-                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
+                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()" [disabled]="!previousEmployer.dateOfJoining" (change)="setExperienceForPrevEmployer(previousEmployer)" [min]="previousEmployer.dateOfJoining">
                                         </div>
                                     </div>
                                 </div>
@@ -562,7 +562,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Years of Experience</label>
-                                            <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" (blur)="validatYearsOfExperience($event,previousEmployer.yearsOfExperience)">
+                                            <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" disabled>
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
