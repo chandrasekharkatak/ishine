@@ -691,7 +691,8 @@ export class ValidationService {
   }
 
   validatePfAccountNumber(text:string): boolean {
-    const regex = /^[A-Z]{5}[0-9]{17}$/;  // (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
+    // const regex = /^[A-Z]{5}[0-9]{17}$/;  // eg. MHMUM12345670001234567
+    const regex = (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -706,7 +707,7 @@ export class ValidationService {
   }
 
   validateUAN(text:string): boolean {
-    const regex = /^\d{12}$/;
+    const regex = /^\d{12}$/; // eg.123456789012
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
