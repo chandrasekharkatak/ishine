@@ -21,9 +21,9 @@ export class SortPipe implements PipeTransform {
 
     value.sort((a: any, b: any) => {
       if (sortFieldType == "string") {
-        if (a[sortField].toLowerCase() < b[sortField].toLowerCase()) {
+        if (a[sortField]?.toLowerCase() < b[sortField]?.toLowerCase()) {
           return -1 * multiplier;
-        } else if (a[sortField].toLowerCase() > b[sortField].toLowerCase()) {
+        } else if (a[sortField]?.toLowerCase() > b[sortField]?.toLowerCase()) {
           return 1 * multiplier;
         } else {
           return 0;
@@ -52,7 +52,7 @@ export class SortPipe implements PipeTransform {
         }
       } else if (sortFieldType == "empId") {
         // For Employment ID Sorting
-        if (a[sortField].startsWith("A-") && b[sortField].startsWith("A-")) {
+        if (a[sortField]?.startsWith("A-") && b[sortField]?.startsWith("A-")) {
 
           const empIdA = +a[sortField].substring(2);
           const empIdB = +b[sortField].substring(2);
