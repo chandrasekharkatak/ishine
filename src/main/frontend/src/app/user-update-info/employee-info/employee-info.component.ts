@@ -738,14 +738,14 @@ export class EmployeeInfoComponent implements OnInit{
 
 
     if(this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber)){
-      if(!this.validationService.validatePFNumber(employeeObj.pfAccountNumber)) {
+      if(!this.validationService.validatePfAccountNumber(employeeObj.pfAccountNumber)) {
         this.openAlertMod(template, 'Please Enter Valid PF Account Number !!')
         return false;
       }
     }
     
     if(this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber)){
-      if(!this.validationService.validatePFNumber(employeeObj.previousPfAccountNumber)) {
+      if(!this.validationService.validatePfAccountNumber(employeeObj.previousPfAccountNumber)) {
         this.openAlertMod(template, 'Please Enter Valid Previous PF Account Number !!')
         return false;
       }
@@ -1207,28 +1207,23 @@ if(this.errorMsg == ""){
   event.target.nextElementSibling.textContent =  this.errorMsg
 }
   }
+
   validateValidEmptyNullUndefinedemergencyContactMobile(event, data:any){
-//     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-//       this.errorMsg = "Please enter emergency contact number !!"
-//   }
-//  else  if (!this.validationService.validateMobileNumber(data)) {
-//     this.errorMsg = "Please enter valid emergency contact number !!"
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-if (!this.validationService.validateMobileNumber(data)) {
-this.errorMsg = "Please enter valid emergency contact number !!"
-}
-else{
-this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
+          this.errorMsg = "Please enter emergency contact number !!"
+    }else if (!this.validationService.validateMobileNumber(data)) {
+        this.errorMsg = "Please enter valid emergency contact number !!"
+    }else{
+      this.errorMsg = ""
+    }
+    
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
   }
+  
   validatebankName(event, data:any){
     this.employeeObj.bankName = this.employeeObj.bankName?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {

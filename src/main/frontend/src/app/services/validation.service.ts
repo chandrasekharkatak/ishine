@@ -75,7 +75,7 @@ export class ValidationService {
   }
 
   validatePFNumber(text: string): boolean {
-    const regex =  /^[A-Za-z]{5}[0-9]{17}$/;  //  /^[A-Za-z]{5}[0-9]{17}$/;     //  /^\w{5}\d{17}$/ ;  // (/^[A-Za-z]{5}[0-9]{17}$/);
+    const regex =  /^[A-Z]{5}[0-9]{17}$/;  //  /^[A-Za-z]{5}[0-9]{17}$/;     //  /^\w{5}\d{17}$/ ;  // (/^[A-Za-z]{5}[0-9]{17}$/);
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
