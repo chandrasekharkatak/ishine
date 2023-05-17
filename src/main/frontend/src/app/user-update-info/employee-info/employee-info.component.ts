@@ -315,6 +315,9 @@ export class EmployeeInfoComponent implements OnInit{
 
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>) {
 
+    employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
+    employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.viewsOnOrganisation)){
       this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
@@ -728,45 +731,38 @@ export class EmployeeInfoComponent implements OnInit{
       this.alertMessage = "Please enter Bank IFSC Code !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateIFSCCodeRegex(employeeObj.bankIFSCCode)){
+    }else if(!this.validationService.validateIFSCCodeRegex(employeeObj.bankIFSCCode)){
       this.openAlertMod(template , 'Please Enter Valid IFSC Code !!');
       return false;
     }
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber)){
-      //this.alertMessage = "Please enter Bank IFSC Code !!"
-      //this.openAlertMod(template, this.alertMessage);
-      return true;
+
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.pfAccountNumber)){
+      if(!this.validationService.validatePFNumber(employeeObj.pfAccountNumber)) {
+        this.openAlertMod(template, 'Please Enter Valid PF Account Number !!')
+        return false;
+      }
     }
-    if(!this.validationService.validatePFNumber(employeeObj.pfAccountNumber)) {
-      this.openAlertMod(template, 'Please Enter Valid PF Account Number !!')
-      return false;
+    
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber)){
+      if(!this.validationService.validatePFNumber(employeeObj.previousPfAccountNumber)) {
+        this.openAlertMod(template, 'Please Enter Valid Previous PF Account Number !!')
+        return false;
+      }
     }
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber)){
-      //this.alertMessage = "Please enter Previous PF Account Number !!"
-      //this.openAlertMod(template, this.alertMessage);
-      return true;
+    
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.uan)){
+      if(!this.validationService.validateUAN(employeeObj.uan)) {
+        this.openAlertMod(template, 'Please Enter Valid UAN Number !!')
+        return false;
+      }
     }
-    if(!this.validationService.validatePFNumber(employeeObj.previousPfAccountNumber)) {
-      this.openAlertMod(template, 'Please Enter Valid Previous PF Account Number !!')
-      return false;
-    }
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.uan)){
-      //this.alertMessage = "Please enter UAN Number!!"
-      //this.openAlertMod(template, this.alertMessage);
-      return true;
-    }
-    if(!this.validationService.validatePFNumber(employeeObj.uan)) {
-      this.openAlertMod(template, 'Please Enter Valid UAN Number !!')
-      return false;
-    }
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber)){
-      //this.alertMessage = "Please enter ESIC Number!!"
-      //this.openAlertMod(template, this.alertMessage);
-      return true;
-    }
-    if(!this.validationService.validatePFNumber(employeeObj.esicNumber)) {
-      this.openAlertMod(template, 'Please Enter Valid ESIC Number !!')
-      return false;
+   
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber)){
+      if(!this.validationService.validateESICNumber(employeeObj.esicNumber)) {
+        this.openAlertMod(template, 'Please Enter Valid ESIC Number !!')
+        return false;
+      }
     }
 
     return true;
