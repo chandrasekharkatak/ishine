@@ -19,6 +19,10 @@ public class FeatureMasterDTO {
 	private Long tabId;
 	private List<SubFeatureMasterDTO> subFeatures;
 	private Long jobRoleId;
+	private String permission;
+	private String employeeRole;
+	private Long subFeatureId;
+	private String subFeatureName;
 	
 	
 	

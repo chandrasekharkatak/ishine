@@ -98,7 +98,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/timesheetReport`,
     `${this.baseUrl}` + `api/leaveReport`,
     `${this.baseUrl}` + `api/customQueryForEmployeeReport`,
-    
+
     `${this.baseUrl}` + `api/createSurvey`,
     `${this.baseUrl}` + `api/getAllSurveys`,
     `${this.baseUrl}` + `api/getAllQuestionsBySurveyId`,
@@ -149,6 +149,27 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/bulkRejectLeaveRequest`,
 
     `${this.baseUrl}` + `api/updateTeam`,
+
+    `${this.baseUrl}` + `api/reconsileHolidayTimesheet`,
+
+    `${this.baseUrl}` + `api/updatePendingLeave`,
+    `${this.baseUrl}` + `api/deletePendingLeave`,
+
+    `${this.baseUrl}` + `api/approveResignationApplication`,
+    `${this.baseUrl}` + `api/rejectResignationApplication`,
+    `${this.baseUrl}` + `api/createResignationApplication`,
+    `${this.baseUrl}` + `api/revokeResignationApplication`,
+    `${this.baseUrl}` + `api/revokeMyResignationApplication`,
+
+    `${this.baseUrl}` + `api/unlockAllTimesheet`,
+
+    `${this.baseUrl}` + `api/changeDepartmentJobRoleMapping`,
+    `${this.baseUrl}` + `api/updateOnBoardingCheckList`,
+
+    `${this.baseUrl}` + `api/updateEmployeePassword`,
+
+    `${this.baseUrl}`+`api/updateDefaultFeatureMapping`,
+    `${this.baseUrl}`+`api/getDefaultMapping`
   ]
 
   constructor(private loaderService: LoaderService) { }
@@ -160,7 +181,7 @@ export class LoaderInterceptor implements HttpInterceptor {
 
 
       if (element === request.url) {
-        
+
         request = request.clone({
           setHeaders: {
             loader: 'true'
@@ -176,7 +197,7 @@ export class LoaderInterceptor implements HttpInterceptor {
       this.loaderService.requestStarted();
       return this.handle(next, request);
     }
-  
+
     return next.handle(request);
 
   }

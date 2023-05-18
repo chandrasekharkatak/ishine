@@ -30,21 +30,22 @@ export class RoleConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //flags 
+  //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
   isForm: boolean = false;
   isTable: boolean = false;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
-  //obj 
+  //obj
   jobRoleObj: JobRole = new JobRole();
   oldJobRole: any;
   newJobRole: any;
   allJobRoleList: any;
+  onDeleteJobRoleResponse: any;
   filterJobRoleListForMapping: any;
   filteredJobRoleList: any[] = [];
   allDeptList: any
@@ -60,7 +61,7 @@ export class RoleConfigComponent implements OnInit {
 
   name = 'JobRole.xlsx';
 
-  // for View Role By department 
+  // for View Role By department
   selectedDept:any = '';
   filterAllJobRoleList: any;
 
@@ -88,7 +89,7 @@ export class RoleConfigComponent implements OnInit {
   ngOnInit(): void {
     this.getAllDepartmentList();
 
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -109,11 +110,15 @@ export class RoleConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.create_role){
-      this.showCreateForm();
-    }
-   else if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
-      //for role table data 
+  //   if(this.userMapping.create_role){
+  //     this.showCreateForm();
+  //   }
+  //  else if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
+  //     //for role table data
+  //     this.showTable();
+  //   }
+    if (this.userMapping.view_all_role || this.userMapping.update_role || this.userMapping.update_role_feature_mapping || this.userMapping.delete_role) {
+      //for role table data
       this.showTable();
     }
   }
@@ -194,7 +199,7 @@ export class RoleConfigComponent implements OnInit {
     }else{
       this.filterAllJobRoleList = this.allJobRoleList.filter(x => x.departmentId == this.selectedDept);
       this.page = 1;
-    } 
+    }
   }
 
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
@@ -248,7 +253,7 @@ export class RoleConfigComponent implements OnInit {
 
     });
   }
-  
+
   checkJobRole(template : TemplateRef<any>){
         this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
           if(response.serviceStatus =='Fail'){
@@ -258,7 +263,7 @@ export class RoleConfigComponent implements OnInit {
             this.jobRoleObj.departmentId = ''
             }
         })
- 
+
   }
 
   onUpdateJobRole(template: TemplateRef<any>) {
@@ -278,6 +283,7 @@ export class RoleConfigComponent implements OnInit {
 
   onDeleteJobRole(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
+    this.onDeleteJobRoleResponse = null;
    // this.getJobRolesByDept(this.jobRoleObj.departmentId);
 
     this.newJobRole = this.jobRoleObj.newJobRoleId;
@@ -286,11 +292,13 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
-      } else {
+      } else if(response.serviceStatus == "Fail") {
         this.jobRoleObj.departmentId = '';
-      //  this.jobRoleObj.newJobRoleId = this.jobRoleObj.jobRoleId;
         this.jobRoleObj.newJobRoleId = '';
+        this.onDeleteJobRoleResponse = response.serviceResponse;
         this.modalRef = this.modalService.show(template);
+      }else{
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }
@@ -318,7 +326,11 @@ export class RoleConfigComponent implements OnInit {
 
     this.jobRoleObj.jobRoleId = this.jobRoleObj.newJobRoleId;
     this.jobRoleObj.oldJobRoleId = this.oldJobRole;
-    
+    this.jobRoleObj.isJobRoleUsedInIshine = this.onDeleteJobRoleResponse.isJobRoleUsedInIshine;
+    this.jobRoleObj.isJobRoleUsedInPoPortal = this.onDeleteJobRoleResponse.isJobRoleUsedInPoPortal;
+
+    console.log(this.jobRoleObj, " : this.jobRoleObj");
+
     this.jobRoleService.changeEmployeeJobRoleMapping(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
 
@@ -384,13 +396,13 @@ export class RoleConfigComponent implements OnInit {
                 const _sub = new SubFeature();
                 _sub.subFeatureMasterId =  subFeature.subFeatureMasterId;
                 updatedSubFeatureList.push(_sub);
-              }        
+              }
           });
         }
     });
-    
+
     let updateFeatureObj = new Feature();
-    updateFeatureObj.updatedBy = this.currentUser.empId; 
+    updateFeatureObj.updatedBy = this.currentUser.empId;
     updateFeatureObj.subFeatures = updatedSubFeatureList;
     updateFeatureObj.jobRoleId = this.jobRoleObj.jobRoleId;
 
@@ -468,6 +480,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.roleDataForExcel = response.serviceResponse;
+        console.log("response.serviceResponse: ",response.serviceResponse);
       }
 
       const onlySpecificDataArr = this.roleDataForExcel.map(
@@ -477,7 +490,7 @@ export class RoleConfigComponent implements OnInit {
           "Department": x.departmentName,
           "Created by": x.createdBy,
           "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          "Updated by": x.updatedBy,
+          "Updated by": x.updatedByName,
           "Updated on": (x.updatedOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
         })
       )
@@ -522,13 +535,13 @@ export class RoleConfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
   toggleSearch(){
@@ -541,14 +554,14 @@ export class RoleConfigComponent implements OnInit {
   }
 
 }
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
 
 
 /*
 
----- DUMMY DATA ---- 
+---- DUMMY DATA ----
 
 
 featureList:Feature[] =[

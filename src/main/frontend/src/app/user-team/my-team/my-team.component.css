@@ -51,3 +51,13 @@
 .info-label{
     width: 300px;
 }
+
+.resign-pill{
+    background-color: var(--dark-cornflower-blue);
+    color: white;
+}
+
+.wide-col{
+    word-wrap: break-word;
+    min-width: 300px;
+}

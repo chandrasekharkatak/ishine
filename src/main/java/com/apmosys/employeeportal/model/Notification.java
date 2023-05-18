@@ -30,6 +30,8 @@ public class Notification {
 	@Column(columnDefinition = "varchar(5000) DEFAULT NULL")
 	private String notificationMessage;
 	
+	private String notificationType;
+	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
@@ -39,5 +41,7 @@ public class Notification {
 	private LocalDateTime updatedOn;
 	
 	private Long updatedBy;
+	
+	private String isActive;
 
 }

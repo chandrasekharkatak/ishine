@@ -19,6 +19,7 @@ import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { ColFilterPipe } from 'src/app/col-filter.pipe';
 
+
 @Component({
   selector: 'app-dept-config',
   templateUrl: './dept-config.component.html',
@@ -26,7 +27,7 @@ import { ColFilterPipe } from 'src/app/col-filter.pipe';
 })
 export class DeptConfigComponent implements OnInit {
 
-  //flags 
+  //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
   isForm: boolean = false;
@@ -37,7 +38,7 @@ export class DeptConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
@@ -50,14 +51,16 @@ export class DeptConfigComponent implements OnInit {
   hodListFilter: any = [];
   oldDepartment: any;
   newDepartment: any;
+  onDeleteDepartmentResponse: any;
 
   //excel
   departmentDataForExcel: any[];
+  name = 'Department.xlsx';
 
   feature = "Department Config";
   currentUser: User;
   userMapping: any = {};
-  name = 'Department.xlsx';
+
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -78,7 +81,7 @@ export class DeptConfigComponent implements OnInit {
   ngOnInit(): void {
     this.getHODList(); // for HOD List
 
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -96,11 +99,15 @@ export class DeptConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.create_department){
-      this.showCreateForm();
-    }
-    else if (this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department) {
-      //for dept table data 
+    // if(this.userMapping.create_department){
+    //   this.showCreateForm();
+    // }
+    // else if (this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department) {
+    //   //for dept table data
+    //   this.showTable();
+    // }
+    if (this.userMapping.view_all_department || this.userMapping.update_department || this.userMapping.delete_department) {
+      //for dept table data
       this.showTable();
     }
   }
@@ -163,7 +170,7 @@ export class DeptConfigComponent implements OnInit {
     return true;
   }
 
-  // CRUD 
+  // CRUD
   onCreateDepartment(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
@@ -199,6 +206,7 @@ export class DeptConfigComponent implements OnInit {
 
   onDeleteDepartment(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
+    this.onDeleteDepartmentResponse = null;
     this.filterAllDeptList = this.allDeptList.filter(x => x.deptId !== this.deptObj.deptId);
 
     //! Need to check this
@@ -211,10 +219,12 @@ export class DeptConfigComponent implements OnInit {
         this.openAlertMod(alertTemplate, response.serviceResponse);
         this.showTable();
         this.page=1;
-      } else {
-        // this.openAlertMod(template, response.serviceResponse);
+      } else if(response.serviceStatus == "Fail") {
         this.deptObj.newDeptId = '';
+        this.onDeleteDepartmentResponse = response.serviceResponse;
         this.modalRef = this.modalService.show(template);
+      }else{
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }
@@ -237,10 +247,14 @@ export class DeptConfigComponent implements OnInit {
     let department: Department = new Department();
     department.deptId = this.deptObj.newDeptId;
     department.oldDeptId = this.oldDepartment;
+    department.isDeptUsedInIshine = this.onDeleteDepartmentResponse.isDeptUsedInIshine;
+    department.isDeptUsedInPoPortal = this.onDeleteDepartmentResponse.isDeptUsedInPoPortal;
+
+    console.log(department, " : department");
 
     this.departmentService.changeDepartmentJobRoleMapping(department).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        
+
         department.deptId = this.oldDepartment;
         this.departmentService.deleteDepartment(department).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
@@ -330,6 +344,7 @@ export class DeptConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.departmentDataForExcel = response.serviceResponse;
+        console.log("response.serviceResponse: ",response.serviceResponse);
       }
 
       const onlySpecificDataArr = this.departmentDataForExcel.map(
@@ -338,8 +353,11 @@ export class DeptConfigComponent implements OnInit {
           "Head of Department": x.hodName,
           "Created by": x.createdByName,
           "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+          "Updaeted by": x.updatedByName ??' - ',
+          "Updated On": (x.updatedOn)? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
         })
       )
+      //console.log("Excel Array: ",onlySpecificDataArr);
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
@@ -361,20 +379,20 @@ export class DeptConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -386,8 +404,8 @@ export class DeptConfigComponent implements OnInit {
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
-}	
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
+}
+function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

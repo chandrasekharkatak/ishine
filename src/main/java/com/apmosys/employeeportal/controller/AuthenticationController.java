@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.time.LocalDate;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,13 @@ public class AuthenticationController {
 
 		ServiceResponse response = authenticationService.resendOTP(employeedto);
 		return response;
+	}
+	
+	@RequestMapping(value = "/getServerDate", method = RequestMethod.GET)
+	public LocalDate getServerDate() {
+
+		LocalDate dateToday = LocalDate.now();
+		return dateToday;
 	}
 
 }

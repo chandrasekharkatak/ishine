@@ -9,4 +9,7 @@ export class Department{
 	updatedOn:any;	
 	updatedBy:any;
 	newDeptId:any;
+
+	isDeptUsedInIshine :any;
+	isDeptUsedInPoPortal :any;
 }

@@ -44,5 +44,33 @@ public class NotificationController {
 		ServiceResponse response = notificationService.getAllNotifications();
 		return response;
 	}
+	
+	@RequestMapping(value = "/getNotificationById", method = RequestMethod.POST)
+	public ServiceResponse getNotificationById(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.getNotificationById(notificationDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/onDeleteNotification", method = RequestMethod.POST)
+	public ServiceResponse onDeleteNotification(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.onDeleteNotification(notificationDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/submitNotificationConsent", method = RequestMethod.POST)
+	public ServiceResponse submitNotificationConsent(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.submitNotificationConsent(notificationDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getConsentNotificationResponse", method = RequestMethod.POST)
+	public ServiceResponse getConsentNotificationResponse(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.getConsentNotificationResponse(notificationDTO);
+		return response;
+	}
 
 }

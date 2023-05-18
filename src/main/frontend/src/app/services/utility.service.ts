@@ -18,8 +18,19 @@ export class UtilityService {
   substringEmployeementid(emp): string {
     if (emp.startsWith("A-")) {
       return emp.substring(2);
-    } else {
-      console.error("invalid data found")
+    }
+    else {
+      console.error("invalid data found");
+      //return emp;
+    }
+  }
+
+  substringEmployeementid2(employeementId): string {
+    if (employeementId.startsWith("A-")) {
+      return employeementId.substring(2);
+    }
+    else {
+      return employeementId;
     }
   }
 

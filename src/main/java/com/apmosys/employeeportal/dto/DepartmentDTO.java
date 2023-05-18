@@ -25,6 +25,11 @@ public class DepartmentDTO {
 	private List<HolidayDTO> holidays;
 	private Long oldDeptId;
 	private String updatedByName;
+	private String isDeptUsedInIshine;
+	private String isDeptUsedInPoPortal;
+	
+	private String deptName;
+	private String hodEmploymentId;
 	
 	
 	

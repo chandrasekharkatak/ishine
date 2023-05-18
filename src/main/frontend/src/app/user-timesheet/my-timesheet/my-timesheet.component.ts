@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Activity } from 'src/app/models/activity';
@@ -29,6 +29,9 @@ import { EmployeeService } from 'src/app/services/employee.service';
 })
 export class MyTimesheetComponent implements OnInit {
 
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
+
   data: string;
   feature = "My Timesheets";
   currentUser: User;
@@ -38,7 +41,7 @@ export class MyTimesheetComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //flags 
+  //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
 
@@ -51,7 +54,7 @@ export class MyTimesheetComponent implements OnInit {
   isSelfTimesheets: boolean = false;
   isTeamTimesheets: boolean = false;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
@@ -81,10 +84,12 @@ export class MyTimesheetComponent implements OnInit {
 
   teamMemberList: any[] = [];
   errorMsg: any;
+  serverDate: any;
 
   leaveHistoryList: any[] = [];
   maxOutTimeDate: any;
- 
+  disableCreateUpdateTimesheet:boolean = false;
+
   isTimesheetLockCheckEnable:any = "true";
 
   selectedTimesheet:any;
@@ -112,17 +117,21 @@ export class MyTimesheetComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
 
+    this.timesheetService.getServerDate().pipe(first()).subscribe((response: any) => {
+      this.serverDate = response;
+    });
+
     this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
-    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);	
+    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -198,6 +207,19 @@ export class MyTimesheetComponent implements OnInit {
 
     this.filters = {};
     this.isSearchEnabled = false;
+
+    this.teamMemberList = [];
+
+    let employeeObj = new Employee();
+    employeeObj.empId = this.currentUser.empId;
+    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.teamMemberList = response.serviceResponse;
+        console.log("teamMemberList : ", this.teamMemberList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
@@ -210,12 +232,12 @@ export class MyTimesheetComponent implements OnInit {
       if(timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities){
           this.openInActiveUpdateConfimationModal(template, timesheetObj);
       }else{
-          this.showUpdateTimesheetForm(timesheetObj);      
+          this.showUpdateTimesheetForm(timesheetObj);
       }
   }
 
   updateInactiveActivitiesTimesheet(){
-    this.showUpdateTimesheetForm(this.selectedTimesheet);  
+    this.showUpdateTimesheetForm(this.selectedTimesheet);
   }
 
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
@@ -258,7 +280,7 @@ export class MyTimesheetComponent implements OnInit {
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
     }
-    
+
     this.getAllProjectsByEmpId(userObj);
     this.getAllAvailableTimesheetByEmpId(userObj);
     setTimeout(()=>{
@@ -277,10 +299,12 @@ export class MyTimesheetComponent implements OnInit {
   }
 
 
+
   addInputActivityField(activityObj?: Activity) {
 
     console.log("before allTimesheetActivities : ", this.allTimesheetActivities)
     let newActivityObj = new Activity();
+
     if (activityObj != undefined) {
       newActivityObj.clientId = activityObj.clientId;
       newActivityObj.clientLocationId = activityObj.clientLocationId;
@@ -351,8 +375,14 @@ export class MyTimesheetComponent implements OnInit {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
     }
 
+    const dateObj = new Date(this.serverDate + 'T23:59:59');
+    let serverDate = dateObj;
+
+    console.log(serverDate, " : serverDate");
+
+
     // timesheetLockDays (days) + 1 current Day
-    let endDate = currentDate;
+    let endDate = serverDate;
     let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + CURRENT_DAY) * DAY_IN_MS));
 
     if (this.isTimesheetForm && this.isUpdation) {
@@ -360,15 +390,15 @@ export class MyTimesheetComponent implements OnInit {
     }
 
     console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
-  
+
 
     if(this.isTimesheetLockCheckEnable == "false"){
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
     }else{
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;	
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
     }
-  } 
+  }
 
   outTimeFilter = (checkDate: Date) => {
     const dateFormat = 'YYYY-MM-DD';
@@ -381,9 +411,10 @@ export class MyTimesheetComponent implements OnInit {
 
   setMaxInTimeDate(timesheetDate: any) {
     console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
-    
+
     if(this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave"){
       let inTimeDate = document.getElementById('officeInTime');
+     // console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
       inTimeDate.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
       officeOutTime.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
@@ -449,11 +480,11 @@ export class MyTimesheetComponent implements OnInit {
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
 
-      let hm = (timesheetObj.totalWorkingOfficeHours)? timesheetObj.totalWorkingOfficeHours : '00:00';         
-      let timeData = hm.split(':'); 
+      let hm = (timesheetObj.totalWorkingOfficeHours)? timesheetObj.totalWorkingOfficeHours : '00:00';
+      let timeData = hm.split(':');
 
       // minutes are worth 60 seconds. Hours are worth 60 minutes.
-      totalWorkingHoursInSeconds = (+timeData[0]) * 60 * 60 + (+timeData[1]) * 60; 
+      totalWorkingHoursInSeconds = (+timeData[0]) * 60 * 60 + (+timeData[1]) * 60;
 
       console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
 
@@ -476,6 +507,7 @@ export class MyTimesheetComponent implements OnInit {
       }
 
       this.allTimesheetActivities.forEach((activity, index) => {
+        if(!flag) return;
 
         if (activity.description) activity.description = activity.description?.trim();
 
@@ -491,17 +523,20 @@ export class MyTimesheetComponent implements OnInit {
           return;
         }
 
+        if (!this.validationService.validateNullUndefinedEmptyString(activity.activityId)) {
+          this.alertMessage = `Please select Activity - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+
+
         // if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
         //   this.alertMessage = `Please select Project - ${index + 1}!!`
         //   flag = false;
         //   return;
         // }
 
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.activityId)) {
-          this.alertMessage = `Please select Activity - ${index + 1}!!`
-          flag = false;
-          return;
-        }
+
         if (activity.description != '') {
 
           if (!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
@@ -521,6 +556,7 @@ export class MyTimesheetComponent implements OnInit {
           flag = false;
           return;
         }
+
         // validateCompletionTime
         // if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
         //   this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
@@ -528,7 +564,7 @@ export class MyTimesheetComponent implements OnInit {
         //   return;
         // }
         totalActivityTime = totalActivityTime + activity.completionTime;
-        console.log(totalActivityTime, " totalActivityTime");
+
       });
 
       if (!flag) {
@@ -668,7 +704,7 @@ export class MyTimesheetComponent implements OnInit {
       if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
         this.timesheetObj.description = (this.__tempDescription != null)? this.__tempDescription : '';
         if(this.timesheetObj.description){
-          this.__tempDescription = this.timesheetObj.description; 
+          this.__tempDescription = this.timesheetObj.description;
         }
       } else if(this.timesheetObj.dayType == "Working" || this.timesheetObj.dayType == "Non-working"){
         this.__tempDescription = (this.timesheetObj.description != null) ? this.timesheetObj.description : '';
@@ -677,13 +713,13 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  getTimesheetMetadata() {
+  getTimesheetMetadata(eventTarget?:any) {
     console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
     let userObj: User = new User();
     if (this.timesheetObj.timesheetAppliedFor == 'self') {
       userObj.empId = this.currentUser.empId;
       userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      this.timesheetObj.empId = this.currentUser.empId; 
+      this.timesheetObj.empId = this.currentUser.empId;
       this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
       console.log("this.currentUser  : ", this.currentUser);
       console.log("userObj  : ", userObj);
@@ -694,18 +730,32 @@ export class MyTimesheetComponent implements OnInit {
       userObj.empId = teamMember.empId;
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.timesheetObj.empId = teamMember.empId; 
+      this.timesheetObj.empId = teamMember.empId;
+
+      if(teamMember.isTimesheetFilledByMember == "true"){
+        this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
+        this.timesheetObj.empId = '';
+        eventTarget.value = "";
+        this.disableCreateUpdateTimesheet = true;
+        eventTarget.value = '';
+        //console.log(eventTarget.value, " : eventTarget");
+
+
+
+      }else{
+        this.disableCreateUpdateTimesheet = false;
+      }
     }
 
     const timesheetBkp = Object.assign({}, this.timesheetObj);
 
-    // reset timesheet 
+    // reset timesheet
     this.timesheetObj = new Timesheet();
     this.timesheetObj.dayType = '';
     this.allTimesheetActivities = [];
     this.addInputActivityField()
 
-    // set leave AppliedFor User data to fetch activities for project & for display 
+    // set leave AppliedFor User data to fetch activities for project & for display
     this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
     this.timesheetObj.empId = timesheetBkp.empId;
 
@@ -851,11 +901,11 @@ export class MyTimesheetComponent implements OnInit {
     timesheetObj.teamId = activityObj.teamId;
     console.log(this.allProjectsList, " : all project list");
     console.log(timesheetObj.teamId, " : timesheetObj.teamId");
-    
-    
+
+
     let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
     console.log(" projectTimesheet  :  ", projectTimesheet)
-    
+
 
     timesheetObj.projectId = projectTimesheet.projectId;
     timesheetObj.clientId = this.timesheetObj.clientId;
@@ -865,6 +915,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
+        allActivityList = allActivityList.sort((a, b) =>  a.activity.localeCompare(b.activity));
         console.log("Team name :  ", timesheetObj.teamName);
         console.log("allActivityList :", allActivityList);
         if(this.timesheetObj.timesheetAppliedFor == "team"){
@@ -922,7 +973,7 @@ export class MyTimesheetComponent implements OnInit {
       timesheetObj.empId = employeeObj.empId;
       timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
       timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
-      
+
       console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
       this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -1059,13 +1110,15 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetActivities = response.serviceResponse;
-        const allActivities = [...this.allTimesheetActivities]; 
+        const allActivities = [...this.allTimesheetActivities];
         let inactiveActivities:any[] = timesheet.inactiveTimesheetActivities;
 
         // Removing Inactive Activities from AllTimesheetActivities and added in UpdatedTimesheetActivities
-        allActivities.forEach(activityObj => {
-          if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
-        });
+        if(inactiveActivities != null){
+          allActivities.forEach(activityObj => {
+            if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
+          });
+        }
 
       } else {
         console.error(response.serviceResponse)
@@ -1110,7 +1163,7 @@ export class MyTimesheetComponent implements OnInit {
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.isTimesheetLockCheckEnable = employeeInfo.isTimesheetLockCheckEnable;
         console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
-        
+
         let userObj: User = new User();
         userObj.empId = this.currentUser.empId;
         userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
@@ -1228,7 +1281,7 @@ export class MyTimesheetComponent implements OnInit {
   // validateDescription(event,data:any){
 
   // if (!this.validationService.validateActivityTimesheetDiscription(data)) {
-  //   this.errorMsg = "Please enter valid Description !!"   
+  //   this.errorMsg = "Please enter valid Description !!"
   // }
   // else{
   //   this.errorMsg = ""
@@ -1246,7 +1299,7 @@ export class MyTimesheetComponent implements OnInit {
       this.errorMsg = "Please enter Valid Time !!"
     }
     else if (data <= 0 || data > 24) {
-      this.errorMsg = "Total time must be greater than 0 hrs and maximum upto 24 hrs!! "
+      this.errorMsg = "Total Time Must be greater than 0 hrs and maximum upto 24 hrs!! "
     }
     else {
       this.errorMsg = ""
@@ -1269,7 +1322,7 @@ export class MyTimesheetComponent implements OnInit {
       return (false);
     }
     else {
-      return (true);
+      return (true)
     }
     //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
   }
@@ -1338,20 +1391,20 @@ export class MyTimesheetComponent implements OnInit {
       event.target.nextElementSibling.textContent = this.errorMsg
     }
   }
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 

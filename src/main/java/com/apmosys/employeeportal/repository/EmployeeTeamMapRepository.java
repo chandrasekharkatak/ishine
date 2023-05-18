@@ -39,4 +39,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId, long l);
 
+	@Query(nativeQuery = true)
+	List<Object[]> getAllProjectByEmpId(Long empId);
+
 }

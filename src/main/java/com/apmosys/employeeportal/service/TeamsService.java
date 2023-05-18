@@ -138,6 +138,12 @@ public class TeamsService {
 	
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Value("${timesheet.check.period}")
+	private String timesheetCheckPeriod;
+	
+	@Value("${maximum.timesheetCanBeFilledByMember}")
+	private String maximumTimesheetCanBeFilledByTeamMember;
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -945,6 +951,16 @@ public class TeamsService {
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()): null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString(): null);
+					dto.setEmploymentstatus(object[9] != null ? object[9].toString(): null);
+					
+					LocalDate dateOfRelieving = object[10] != null ? LocalDate.parse(object[10].toString()) : null;
+					
+					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
+						dto.setIsDateOfRelievingToday("true");
+					}else {
+						dto.setIsDateOfRelievingToday("false");
+					}
+					
 					
 					timesheetList.forEach((timesheet) -> {
 
@@ -985,6 +1001,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
+			LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
 			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
@@ -1013,6 +1030,17 @@ public class TeamsService {
 					dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
 					dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
 					dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
+					dto.setDateOfJoining(object[19] != null ? object[19].toString() : null);
+					dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
+					
+					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
+					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);
+					
+					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
+						dto.setIsTimesheetFilledByMember("true");
+					}else {
+						dto.setIsTimesheetFilledByMember("false");
+					}
 					
 					dtoList.add(dto);
 					

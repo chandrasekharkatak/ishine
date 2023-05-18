@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -31,6 +31,9 @@ import { EmployeeService } from 'src/app/services/employee.service';
 })
 export class LeaveComponent implements OnInit {
 
+  @ViewChild("alert_message")
+  alertTemplate:TemplateRef<any>
+
   data:string;
 
   sortDirection = 'asc';
@@ -53,6 +56,7 @@ export class LeaveComponent implements OnInit {
   isLeaveRevokeApplicationTable:boolean = false;
   isSelfLeaveRevokeApplication:boolean = false;
   isTeamLeaveRevokeApplication:boolean = false;
+  isOverlapsedLeaveTable:boolean = false;
 
   isCompOffLeave:boolean = false;
 
@@ -98,6 +102,7 @@ export class LeaveComponent implements OnInit {
   LeaveObj = new Leave();
   filterLeaveHistoryList:any;
   leaveHistoryListForTable:any[] = [];
+  overLappingTeamMemberList:any[] = [];
 
   leaveBalance:any[] = [];	
   leaveDetails = [];	
@@ -123,6 +128,7 @@ export class LeaveComponent implements OnInit {
   leaveLogColumns:any[] = ['rowNumber','leaveType','updateBalanceBy','balance','message','createdOn'];
   selfLeaveRevokeHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','approverName','remark'];
   teamLeaveRevokeHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','revokeReason','approverName','remark'];
+  overlapsedLeaveColumns:any[] = ['employeementId', 'name', 'fromDate', 'toDate'];
 
   constructor(
     public validationService:ValidationService,
@@ -238,6 +244,7 @@ export class LeaveComponent implements OnInit {
 
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
     this.showSelfLeaveHistoryTable();
   }
 
@@ -259,6 +266,7 @@ export class LeaveComponent implements OnInit {
     this.isTeamLeaveRevokeApplication = false;
 
     this.isTeamLeaveHistory = false;
+    this.isOverlapsedLeaveTable = false;
 
     this.filters = {};
     this.isSearchEnabled = false;
@@ -280,6 +288,7 @@ export class LeaveComponent implements OnInit {
     this.data='';
 
     this.isSelfLeaveHistory = false;
+    this.isOverlapsedLeaveTable = false;
     this.filters = {};
     this.isSearchEnabled = false;
     this.getAllTeamMemberList()
@@ -300,6 +309,7 @@ export class LeaveComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
     this.getMyLeaveBalancesByEmpId();
   }
 
@@ -317,6 +327,7 @@ export class LeaveComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
     this.getLeaveLogsByEmpId();
   }
 
@@ -335,6 +346,7 @@ export class LeaveComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
 
     this.isTeamLeaveRevokeApplication = false;
     this.getRevokeLeaveApplicationByEmpId();
@@ -355,6 +367,7 @@ export class LeaveComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
 
     this.isTeamLeaveRevokeApplication = false;
     this.getRevokeLeaveApplicationByEmpId();
@@ -375,6 +388,7 @@ export class LeaveComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
 
     this.isWeekOffsExcluded = false;
     this.isSelfLeaveRevokeApplication = false;
@@ -388,6 +402,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
     this.leaveObj.leaveAppliedFor = "self"
+    this.isOverlapsedLeaveTable = false;
     // to set empId of current User in leaveObj for initial Leave Application
     this.getLeaveMetadata(); 
 
@@ -395,6 +410,7 @@ export class LeaveComponent implements OnInit {
     this.leaveLogList = [];
     this.leaveBalanceList = [];
     this.leaveDetails = [];
+    this.overLappingTeamMemberList = [];
   }
 
   showUpdateForm(leaveHistory:Leave){	
@@ -404,6 +420,7 @@ export class LeaveComponent implements OnInit {
     this.isLeaveApplicationsTable = false;	
     this.isLeaveHistoryTable = false;	
     this.isLeaveBalanceTable = false;
+    this.isOverlapsedLeaveTable = false;
     
     this.leaveObj = Object.assign({}, leaveHistory);	
     this.leaveObj.fromDateDayType = leaveHistory.fromDateDayType;
@@ -530,6 +547,9 @@ export class LeaveComponent implements OnInit {
   setLeaveTypeCode(leaveTypeMasterId:any){
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
+
+    this.leaveObj.fromDate = '';
+    this.leaveObj.toDate = '';
   }
 
   setPolicyObj(leaveTypeMasterId:any){
@@ -659,6 +679,11 @@ export class LeaveComponent implements OnInit {
 
     let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
     let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+
+    //If isUpdate is true then unlock the dates of current leave
+    if(this.isUpdation == true){
+      this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(x => x.fromDate != this.leaveObj.fromDate);
+    }
     
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
@@ -722,6 +747,11 @@ export class LeaveComponent implements OnInit {
     }
     let checkDate = this.leaveObj.fromDate;
 
+    //If isUpdate is true then unlock the dates of current leave
+    if(this.isUpdation == true){
+      this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(x => x.toDate != this.leaveObj.toDate);
+    }
+
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
         return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
@@ -735,7 +765,7 @@ export class LeaveComponent implements OnInit {
       }else{
         return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
       } 
-    }  
+    }
   }
 
   setMinToDate(template: TemplateRef<any>){
@@ -753,6 +783,29 @@ export class LeaveComponent implements OnInit {
   resetToDate(){
     this.leaveObj.toDate = '';
     this.leaveObj.noOfDays = '';
+    this.overLappingTeamMemberList = [];
+
+    //Check if employee was in probation by fromDate
+    let leaveType = this.leaveTypes.find(x => x.leaveTypeMasterId == this.leaveObj.leaveTypeMasterId);
+
+    if(leaveType != null && (leaveType.leaveTypeCode != 'LWP' && leaveType.leaveTypeCode != 'CO')){
+      if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
+
+        let confirmationDate;
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          confirmationDate = moment(this.currentUser.dateOfJoining).add(this.currentUser.probationPeriod, 'days');
+        }else{
+          let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId);
+          confirmationDate = moment(teamMember.dateOfJoining).add(teamMember.probationPeriod, 'days');     
+        }
+        if(confirmationDate.format('YYYY-MM-DD') > moment(this.leaveObj.fromDate).format('YYYY-MM-DD')){
+          this.openAlertMod(this.alertTemplate, "Only LWP & CompOff can be applied during probation period.");
+          setTimeout(() => {
+            this.leaveObj.fromDate = '';
+          }, 100)
+        }
+      }
+    }
   }
 
   async setNoOfDays(template: TemplateRef<any>) {
@@ -771,6 +824,22 @@ export class LeaveComponent implements OnInit {
         return false;	
       }	
     }	
+
+    //Get Overlaping leave Application
+    this.getOverlappedTeamMemberLeave();
+
+    //Check if leave has been already applied between from date & toDate
+    let fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
+    let toDate = moment(this.leaveObj.toDate).format(dateFormat);
+    let isLeaveContained = this.previouslyAppliedLeavesList.find(object => object.toDate <= toDate && object.fromDate >= fromDate);
+
+    if(isLeaveContained){
+      this.leaveObj.toDate = null;
+      this.leaveObj.fromDate = null;
+      this.openAlertMod(this.alertTemplate, "Already Leave has been applied between the dates, please update the existing leave.");
+      return;
+    }
+    
 
     if(this.leaveObj.leaveAppliedFor == 'self'){
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
@@ -1014,9 +1083,15 @@ export class LeaveComponent implements OnInit {
 
   onUpdateLeave(template: TemplateRef<any>) {
     this.cancelRequest();
+    const dateFormat = 'YYYY-MM-DD';
     let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
     if(!inputValidated) return;
 
+    this.leaveObj.updatedBy = this.currentUser.empId;
+    this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
+    this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
+    console.log(" this.leaveObj : ", this.leaveObj);
+    
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.openAlertMod(template, response.serviceResponse);	
@@ -1031,6 +1106,36 @@ export class LeaveComponent implements OnInit {
     });	
   }	
 
+  getOverlappedTeamMemberLeave(overLapLeaveTemplate?: TemplateRef<any>){
+    let leaveObj = new Leave();
+    const dateFormat = 'YYYY-MM-DD';
+
+    this.isOverlapsedLeaveTable = true;
+
+    leaveObj.empId = this.currentUser.empId;
+    leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
+    leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat);
+
+    this.leaveService.getOverlappedTeamMemberLeave(leaveObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {
+        this.overLappingTeamMemberList = response.serviceResponse;
+        this.overLappingTeamMemberList = this.overLappingTeamMemberList.filter(x => x.empId != this.currentUser.empId);
+
+        this.overLappingTeamMemberList.forEach((object) => {
+          object.employeementId = ("A-").concat(object.employeementId);
+          object.fromDate = (object.fromDate)? moment(object.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          object.toDate = (object.toDate)? moment(object.toDate).format(AppComponent.DATE_FORMAT) : null;
+        });
+
+        if(overLapLeaveTemplate != null && overLapLeaveTemplate != undefined){
+          this.modalRef = this.modalService.show(overLapLeaveTemplate, { class: 'modal-lg' });
+        }
+        console.log("this.overLappingTeamMemberList : ", this.overLappingTeamMemberList);
+      } else {
+        console.error(response.serviceResponse);
+      }	
+    });
+  }
   
   deletePendingLeave(template: TemplateRef<any>) {	
     this.cancelRequest();	
@@ -1393,6 +1498,11 @@ export class LeaveComponent implements OnInit {
     if(this.isTeamLeaveRevokeApplication == true){
       this.elementName = 'revoke-history-table';	
       this.excelName = 'TeamRevokeLeaveHistory.xlsx';
+    }
+
+    if(this.isOverlapsedLeaveTable == true){
+      this.elementName = 'overlapsedInfo';	
+      this.excelName = 'overlapsedLeaveReport.xlsx';
     }
     
     let element = document.getElementById(this.elementName);	

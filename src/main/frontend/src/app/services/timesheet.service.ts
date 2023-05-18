@@ -104,4 +104,9 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/getCustomFilteredTimesheet`, timesheetObj);
   }
 
+  /* Server Date*/
+
+  getServerDate(){
+    return this.http.get(`${this.baseUrl}` + `api/getServerDate`);
+  }
 }

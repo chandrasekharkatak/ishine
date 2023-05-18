@@ -18,4 +18,14 @@ export class ExportExcelService {
       XLSX.writeFile(book, name);
   }
 
+  exportTableDataToExcelWithDescription(arr: any[], name: string) {
+    const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(arr);
+
+    const book: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+
+    XLSX.writeFile(book, name);
+  }
+  
+
 }

@@ -157,21 +157,32 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.add_holidays) {
-      this.showAddHolidayForm();
-    } else if (this.userMapping.view_holidays || this.userMapping.update_holidays || this.userMapping.delete_holiday) {
+    // if (this.userMapping.add_holidays) {
+    //   this.showAddHolidayForm();
+    // } else if (this.userMapping.view_holidays || this.userMapping.update_holidays || this.userMapping.delete_holiday) {
+    //   this.showHoliaysTable();
+    // } else if (this.userMapping.add_leave_type) {
+    //   this.showAddLeaveTypeForm();
+    // } else if (this.userMapping.view_leave_types || this.userMapping.update_leave_type || this.userMapping.delete_leave_type) {
+    //   this.showLeaveTypesTable();
+    // } else if (this.userMapping.manage_employee_leave_balance) {
+    //   this.showLeaveBalanceForm();
+    // } else if (this.userMapping.add_leave_policy) {
+    //   this.showAddLeavePolicyForm();
+    // } else if (this.userMapping.view_leave_policies || this.userMapping.update_leave_policy || this.userMapping.delete_leave_policy) {
+    //   this.showLeavePoliciesTable();
+    // }
+
+    if (this.userMapping.view_holidays || this.userMapping.update_holidays || this.userMapping.delete_holiday) {
       this.showHoliaysTable();
-    } else if (this.userMapping.add_leave_type) {
-      this.showAddLeaveTypeForm();
     } else if (this.userMapping.view_leave_types || this.userMapping.update_leave_type || this.userMapping.delete_leave_type) {
       this.showLeaveTypesTable();
     } else if (this.userMapping.manage_employee_leave_balance) {
       this.showLeaveBalanceForm();
-    } else if (this.userMapping.add_leave_policy) {
-      this.showAddLeavePolicyForm();
     } else if (this.userMapping.view_leave_policies || this.userMapping.update_leave_policy || this.userMapping.delete_leave_policy) {
       this.showLeavePoliciesTable();
     }
+
   }
 
   disableMannualDateInput() {
@@ -889,11 +900,16 @@ export class LeaveConfigComponent implements OnInit {
       (k == 80) || (k == 81) || (k == 82) || (k == 83) || (k == 84) ||
       (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
       (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
-      (k == 95) || (k == 96) || (k == 123) || (k == 124) || (k == 125) || (k == 126)) {
+      (k == 95) || (k == 96) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103) ||
+      (k == 104) || (k == 105) || (k == 106) || (k == 107) || (k == 108) ||
+      (k == 109) || (k == 110) || (k == 111) || (k == 112) || (k == 113) ||
+      (k == 114) || (k == 115) || (k == 116) || (k == 117) || (k == 118) ||
+      (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123) ||
+      (k == 124) || (k == 125) || (k == 126)) {
       return (false);
     }
     return (true);
-
   }
 
   // Manage Leave Balance

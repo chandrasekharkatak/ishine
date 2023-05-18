@@ -3,12 +3,18 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.FeatureMasterDTO;
+import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -25,6 +31,12 @@ public class ReportService {
 	
 	@Autowired
 	EmployeeRoleMasterRepository employeeRoleMasterRepository;
+	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 
 	public ServiceResponse leaveReport() {
 		ServiceResponse response = new ServiceResponse();
@@ -188,6 +200,148 @@ public class ReportService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 		}
+		return response;
+	}
+
+	public ServiceResponse getDefaultMapping() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList();
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			
+			if(!subFeatureList.isEmpty()) {
+				subFeatureList.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+
+					empDTO.setSubFeatureId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setSubFeatureName(object[1] != null ? object[1].toString() : null);
+					empDTO.setFeatureId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					empDTO.setFeatureName(object[3] != null ? object[3].toString() : null);
+					empDTO.setTabId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+					empDTO.setTabName(object[5] != null ? object[5].toString() : null);
+					
+					Long subFeatureId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(subFeatureId);
+					List<FeatureMasterDTO> permissionList = new ArrayList<FeatureMasterDTO>();
+					
+					if(!employeeRoleMaster.isEmpty()) {
+						employeeRoleMaster.forEach((featureObject) -> {
+							FeatureMasterDTO featureDto = new FeatureMasterDTO();
+							
+							featureDto.setEmployeeRole(featureObject.getEmployeeRole());
+							featureDto.setPermission(featureObject.getPermission());
+							permissionList.add(featureDto);
+						});
+					}
+					
+					empDTO.setPermissionList(permissionList);
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Sub-Feature & Feature list is empty.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	public ServiceResponse updateDefaultFeatureMapping(JobRoleDTO jobRoleDTO) {
+		
+		String message = "";
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("updateDefaultFeatureMapping");
+		apiLogInfo.setApiUrl("/api/updateDefaultFeatureMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Update Default Feature Mapping |  Updated By : " + jobRoleDTO.getUpdatedBy());
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			if(!jobRoleDTO.getUpdateDefaultFeatureMapping().isEmpty()) {
+				
+				jobRoleDTO.getUpdateDefaultFeatureMapping().forEach((object) -> {
+					
+					if(object.getPermission().equals("true")) {
+						object.setPermission("Y");
+					}else {
+						object.setPermission("N");
+					}
+					
+					EmployeeRole defaultRole = employeeRoleMasterRepository
+							.findBySubFeatureMasterIdAndEmployeeRole(object.getSubFeatureId(), object.getEmployeeRole());
+					
+					if(defaultRole != null) {
+						
+						defaultRole.setPermission(object.getPermission());
+						EmployeeRole dbResponse = employeeRoleMasterRepository.save(defaultRole);
+						
+						if(dbResponse != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Default role sub-feature mapping updated successfully.");
+							
+							apiLogInfo.setApiResponse("Default role sub-feature mapping updated successfully.");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Unable to update default role and sub-feature mapping.");
+							
+							apiLogInfo.setApiResponse("Unable to update default role and sub-feature mapping.");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+						}
+					}else {
+						//Add new role mapping
+						EmployeeRole employeeRole = new EmployeeRole();
+
+						employeeRole.setSubFeatureMasterId(object.getSubFeatureId());
+						employeeRole.setSubFeatureName(object.getSubFeatureName());
+						employeeRole.setEmployeeRole(object.getEmployeeRole());
+						employeeRole.setPermission(object.getPermission());
+
+						EmployeeRole newEmployeeRoleMapping = employeeRoleMasterRepository.save(employeeRole);
+						
+						if(newEmployeeRoleMapping != null) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("New Role sub-feature mapping added successfully.");
+							
+							apiLogInfo.setApiResponse("New Role sub-feature mapping added successfully.");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						}else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Unable to add new role sub-feature mapping.");
+							
+							apiLogInfo.setApiResponse("Unable to add new role sub-feature mapping.");		
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
+					}
+				});
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Please select atleast one sub-feature to update default mapping.");
+				
+				apiLogInfo.setApiResponse("Please select atleast one sub-feature to update default mapping.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

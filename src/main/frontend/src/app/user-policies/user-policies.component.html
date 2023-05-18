@@ -15,6 +15,10 @@
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
               </div>
             </div> -->
+
+            <div class="alert alert-primary p-0 m-0 mb-2" role="alert">
+              <p class="p-1 m-0">Please read all the policies and mark them as read to proceed further.</p>
+            </div>
       
             <div class="row">
               <div class="col-md-12">
@@ -49,8 +53,9 @@
                         <td>{{doc.createdByName}}</td>
                         <td>{{doc.createdOn}}</td>
                         <td>
-                          <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> &nbsp;
-                          <button  class="btn btn-sm btn-outline-primary" *ngIf="doc.readEnabled == 'true'&& !doc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, doc)" >Mark As Read</button> 
+                          <button  class="btn btn-sm btn-outline-primary" *ngIf="(doc.readEnabled == 'true' && doc.isRead) || (doc.readEnabled == 'false')"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> &nbsp;
+                          <button class="btn btn-sm btn-outline-primary" (click)="previewPolicyDocument(preview_document,doc)" type="submit"><em>Read Policy</em></button>&nbsp;
+                          <!-- <button  class="btn btn-sm btn-outline-primary" *ngIf="doc.readEnabled == 'true'&& !doc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, doc)" >Mark As Read</button>  -->
                         </td> 
                     </tbody>
                   </table>
@@ -79,6 +84,44 @@
     <p>By my consent, I acknowledge that I have read, understood, and agree to
       the policies and conditions mention in the document </p>
     <button type="button" class="btn btn-success" (click)="onReadPolicy(alert_message)">Yes, proceed</button>&nbsp;
-    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest();previewPolicyDocument(preview_document, fileObj)">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #preview_document>
+  <div class="modal-body">
+      
+      <div class="row">
+          <div class="card col-md-12 p-0">
+              <div class="card-header text-center text-uppercase">
+                  <strong>{{fileName}}</strong><br>
+                  <small *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead">Please read the policies and mark as read to proceed further.</small>
+              </div>
+              <div class="card-body">
+                  <div id="outerContainer">
+                      <div class="pdf-container">
+                        <pdf-viewer
+                          [src]="src"
+                          [rotation]="0"
+                          [original-size]="false"
+                          [show-all]="true"
+                          [fit-to-page]="false"
+                          [zoom]="1"
+                          [zoom-scale]="'page-width'"
+                          [stick-to-page]="false"
+                          [render-text]="true"
+                          [external-link-target]="'blank'"
+                          [autoresize]="true"
+                          [show-borders]="false"
+                          style="width: 100%; height: 500px;"
+                        ></pdf-viewer>
+                      </div>
+                    </div>
+              </div>
+          </div>
+      </div>
+
+      <button  class="btn btn-sm btn-outline-primary mt-1" *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, currentDoc)" >Mark As Read</button>
+      <button type="button" class="btn btn-outline-primary" *ngIf="(currentDoc.readEnabled == 'true' && currentDoc.isRead) || currentDoc.readEnabled == 'false'"  (click)="cancelRequest()">Cancel</button>&nbsp;
   </div>
 </ng-template>

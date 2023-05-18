@@ -23,6 +23,8 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	@Query(nativeQuery = true)
 	List<Object[]> getAllHolidaysList();
 
+	Holiday findFirstByDateOfHolidayAndState(LocalDate holidayDate, String state);
+
 	
 //	public List<Holiday> findByCustomHoliday(String customHoliday);
 

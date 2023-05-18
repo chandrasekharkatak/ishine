@@ -24,7 +24,7 @@
                     </div>
                 </div>
             </li>
-          </ul>        
+          </ul>
     </div>
     <div class="event-photos mb-2">
         <div *ngIf="userMapping.view_event_photos" class="event-photos-card card">
@@ -59,7 +59,7 @@
             <div class="card-title px-1 pt-2">
                 <p class="section-heading m-0 pl-2">Team Request</p>
             </div>
-        
+
             <div class="team-requests-body">
                 <div class="text-center p-0">
                     <p class="request-title">Leave</p>
@@ -78,9 +78,9 @@
                             class="badge badge-secondary">{{compOffApplicationCount}}</span></h4>
                 </div>
             </div>
-        
+
         </div>
-        <div *ngIf="userMapping.view_my_leave_details" class="leave-details card" style="width: 100%;">
+        <div *ngIf="userMapping.view_my_leave_details" class="leave-details card" style="width:100%;">
             <div class="card-title px-1 pt-2">
                 <p class="section-heading m-0 pl-2">My Leave Details</p>
             </div>
@@ -106,7 +106,7 @@
                     </tbody>
                   </table>
             </div>
-    
+
         </div>
     </div>
     <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
@@ -147,7 +147,7 @@
         <div class="text-center quick-link" (click)="showHolidayList()">
             <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
             <p class="text-uppercase m-0 quick-link-text" >View Holidays</p>
-        </div>  
+        </div>
     </div>
     <!-- Timesheet Display -->
     <div *ngIf="userMapping.view_timesheet_display" class="timesheet-display card mb-2">
@@ -165,7 +165,7 @@
                 href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
             </li>
         </ul>
-    
+
         <!-- tab Containers -->
         <div class="tab-content timesheetTabContent" id="timesheetTabContent">
             <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
@@ -280,7 +280,7 @@
         </div>
       </div>
       <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
-       
+
         <table class="table timesheet-details-table">
             <thead class="thead-light">
               <tr>
@@ -305,7 +305,7 @@
                 <td>{{activity.completionTime}}</td>
               </tr>
             </tbody>
-        </table> 
+        </table>
       </div>
     </div>
     <div class="modal-footer">
@@ -356,11 +356,11 @@
                 Approve</button>&nbsp;
             <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
         </div>
-       
-       
+
+
         <div class="form-group d-flex flex-row justify-content-between">
             <div class="form-inline ml-2">
-                <small>View</small> 
+                <small>View</small>
                 <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
                     (change)="page=1">
                     <option class="option-bg" selected value="10">10</option>
@@ -370,17 +370,19 @@
                 </select>
                 <small>entries</small>
             </div>
-           
+
             <!-- <div class="form-group ml-auto col-md-3 mt10">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
             </div> -->
         </div>
-        <div class="selector-toggle" (click)="toggleSearch()">
+
+        <div  class="selector-toggle" (click)="toggleSearch()">
             <a href="javascript:void(0)">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
-        </div>
+
+      </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
             [tableTHeadTrId]="'leaveApplicationTHeadTr'">
             <table class="table leaveApplication-table" matSort (matSortChange)="sortData($event)" id="leaveApplication">
@@ -425,7 +427,7 @@
                     </td>
                 </tr>
             </tbody>
-          </table> 
+          </table>
         </div>
           <div class="my-buttons">
             <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
@@ -444,7 +446,7 @@
         </button>
     </div>
     <!-- <div class="form-group ml-auto col-md-3 mt10">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">	
+        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
         </div> -->
     <div class="modal-body px-4">
         <div class="selector-toggle" (click)="toggleSearch()">
@@ -489,7 +491,7 @@
                     </td>
                 </tr>
             </tbody>
-          </table>  
+          </table>
         </div>
           <div class="my-buttons">
           <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
@@ -582,10 +584,10 @@
                 </td>
               </tr>
             </tbody>
-          </table> 
-        </div>  
+          </table>
+        </div>
           <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
     </div>
@@ -632,12 +634,12 @@
         <div *ngIf="isError">
           <p class="form-text text-danger">{{errorMsg}}</p>
         </div>
-  
+
         <div class="form-group">
           <label for="newPass" class="sr-only">Old Password</label>
           <div class="d-flex pt-3">
               <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
-              placeholder="Enter Old Password" (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
+              placeholder="Enter Old Password." (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
               <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
                   <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
               </span>
@@ -647,7 +649,7 @@
             <label for="newPass" class="sr-only">New Password</label>
             <div class="d-flex">
                 <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
-                placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off"/>
+                placeholder="Enter New Password." [(ngModel)]="userNewPass" autocomplete="off"/>
                 <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                 </span>
@@ -657,17 +659,27 @@
             <label for="confirmPass" class="sr-only">Confirm New Password</label>
             <div class="d-flex">
                 <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
-                placeholder="Confirm New Password" [(ngModel)]="newpassword" autocomplete="off"/>
+                placeholder="Confirm New Password." [(ngModel)]="newpassword" autocomplete="off"/>
                 <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
                 </span>
             </div>
         </div>
-  
+
         <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm" (click)="cancelRequest()">Close</button>&nbsp;
         <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
     </div>
   </ng-template>
+
+  <!--Loading page after password reset -->
+  <ng-template #LoadingLogin>
+    <div class="modal-body text-center">
+      <div>
+        <p>Password Update, You will be redirected to login page in a while... </p>
+        </div>
+     </div>
+  </ng-template>
+
 
   <!-- Notiication Modal -->
   <ng-template #notification_template>
@@ -677,9 +689,9 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body">
-        <p>{{notificationObj.notificationMessage}}</p>
-    </div>
+        <ul class="list-group">
+            <li class="list-group-item" [innerHTML]="notification.notificationMessage" *ngFor="let notification of allNotification"></li>
+        </ul>
 </ng-template>
 
 <!-- Night shift confirmation template -->
@@ -700,4 +712,27 @@
         <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift Request(s)</button>&nbsp;
     </div>
   </ng-template>
-  
+
+  <!-- <ng-template #consent_notification_template>
+    <div class="modal-body text-center">
+        <p>{{consentNotificationMessage}}</p>
+        <button type="button" class="btn btn-outline-success" (click)="submitNotificationConsent()">I agree</button>&nbsp;
+    </div>
+  </ng-template> -->
+
+
+  <ng-template #consent_notification_template>
+    <div class="modal-body">
+        <div class="modal-header">
+            <h5 class="modal-title">Notification</h5>
+          </div>
+          <div class="modal-body">
+            <p  innerHtml="{{consentNotificationMessage}}"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" (click)="submitNotificationConsent()">I agree</button>&nbsp;
+          </div>
+    </div>
+  </ng-template>
+
+

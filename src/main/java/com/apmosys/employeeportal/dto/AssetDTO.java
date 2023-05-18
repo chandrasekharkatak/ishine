@@ -26,5 +26,7 @@ public class AssetDTO {
 	private String employeeName;
 	private Long employeeAssetMapId;
 	private String updatedByName;
+	private String assetType;
+	private String assetDetail;
 	
 }

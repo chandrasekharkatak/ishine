@@ -310,5 +310,22 @@ public class EmployeeController {
 		}	
 		return response;	
 	}
+	
+	/*Audit APIs*/
+	
+	@RequestMapping(value = "/getEmployeeAuditInfo", method = RequestMethod.POST)
+	public ServiceResponse getEmployeeAuditInfo(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.getEmployeeAuditInfo(employeedto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/unlockAllTimesheet", method = RequestMethod.POST)
+	public ServiceResponse unlockAllTimesheet(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.unlockAllTimesheet(employeedto);
+		return response;
+	}
+	
 
 }

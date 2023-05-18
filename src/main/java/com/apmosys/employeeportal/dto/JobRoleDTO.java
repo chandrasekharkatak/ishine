@@ -28,5 +28,14 @@ public class JobRoleDTO {
 	private Long oldJobRoleId;
 	private String employeeRole;
 	private List<EmployeeDTO> updatedJobRoleFeatureMapping;
+	private List<FeatureMasterDTO> updateDefaultFeatureMapping;
+	
+	private Long roleId;
+	private String roleName;
+	private Long deptId;
+	
+	private String isJobRoleUsedInIshine;
+	private String isJobRoleUsedInPoPortal;
+	
 	
 }

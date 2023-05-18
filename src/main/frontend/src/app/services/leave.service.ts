@@ -78,6 +78,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/updateRevokeLeaveStatus`, leaveObj);
   }
 
+  getOverlappedTeamMemberLeave(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getOverlappedTeamMemberLeave`, leaveObj);
+  }
+
+  checkEmployeeInProbationByFromDate(leaveObj : Leave){
+    return this.http.post(`${this.baseUrl}` + `api/checkEmployeeInProbationByFromDate`, leaveObj);
+  }
+
   /* Leave Type */
   createLeaveType(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/createLeaveType`, leaveObj);

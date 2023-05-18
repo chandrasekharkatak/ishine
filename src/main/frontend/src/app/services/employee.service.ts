@@ -29,6 +29,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/deleteEmployeeByEmpId`, employeeObj);
   }
 
+  unlockAllTimesheet(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/unlockAllTimesheet`, employeeObj);
+  }
+
   getAllEmployees() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
@@ -99,6 +103,10 @@ export class EmployeeService {
   
   getEmployeeBasicInfo(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeBasicInfo`, employeeObj);
+  }
+
+  getEmployeeAuditInfo(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeAuditInfo`, employeeObj);
   }
 
   /* Profile Image Upload */

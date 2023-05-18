@@ -99,6 +99,9 @@ public class ResourceManagementService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
+	
+	@Value("${poPortal.api.syncProject}")
+	private String syncProjectApi;
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -126,17 +129,13 @@ public class ResourceManagementService {
 				
 				if(resourceManagementDTO.getIsHOD().equals("true")) {
 					projectObj.setIsDraftProject("false");
-					projectObj.setProjectName(resourceManagementDTO.getName());
-					projectObj.setProjectManagerId(projManagerId);
-					
-					Project projectDbResponse = projectRepository.save(projectObj);
 				}else {
                     projectObj.setIsDraftProject("true");
-                    projectObj.setProjectName(resourceManagementDTO.getName());
-					projectObj.setProjectManagerId(projManagerId);
-					
-					Project projectDbResponse = projectRepository.save(projectObj);
 				}
+				
+				projectObj.setProjectName(resourceManagementDTO.getName());
+				projectObj.setProjectManagerId(projManagerId);
+				Project projectDbResponse = projectRepository.save(projectObj);
 				
 				resourceManagementDTO.getTeamList().forEach((teamObj) -> {
 					//Check if team present
@@ -387,7 +386,7 @@ public class ResourceManagementService {
 						response.setServiceResponse("Project updated successfully");
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse(poPortalResponse.getServiceResponse());
+						response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
 					}	
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -603,7 +602,7 @@ public class ResourceManagementService {
 							response.setServiceResponse("Project updated successfully");
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse(poPortalResponse.getServiceResponse());
+							response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
 						}	
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -833,7 +832,7 @@ public class ResourceManagementService {
 							response.setServiceResponse("Project Approved.");
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse(poPortalResponse.getServiceResponse());
+							response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
 						}				
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1111,8 +1110,7 @@ public class ResourceManagementService {
 					
 					System.out.println(jsonarray  + " : jsonarray \n\n\n");
 					
-					final String syncUrl = "http://192.168.21.175:8080/PoPortal/ishine/sync";
-//					final String syncUrl = "https://poportal.apmosys.com/PoPortal/ishine/sync";
+					final String syncUrl = syncProjectApi;
 					RestTemplate restTemplate = new RestTemplate();
 					String syncResponse = restTemplate.postForObject(syncUrl, projectInfo, String.class);
 					
@@ -1172,7 +1170,7 @@ public class ResourceManagementService {
 					response.setServiceResponse("Project Synced successfully.");
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(syncResponse.getServiceResponse());
+					response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+syncResponse.getServiceResponse());
 				}	
 			}
 			
@@ -1201,6 +1199,7 @@ public class ResourceManagementService {
 					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
 					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
 					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
+					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
 					
 					//Find ClientName
 					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;

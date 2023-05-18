@@ -6,4 +6,6 @@ import com.apmosys.employeeportal.model.CompOffMaster;
 
 public interface CompOffMasterRepository extends JpaRepository<CompOffMaster, Short> {
 
+	CompOffMaster findByCompOffId(short reasonId);
+
 }

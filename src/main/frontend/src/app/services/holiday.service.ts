@@ -36,4 +36,8 @@ export class HolidayService {
     return this.http.post(`${this.baseUrl}` + `api/checkOccasionIfAlreadyExist`, holidayObj);
   }
 
+  reconsileHolidayTimesheet(holidayObj: Holiday){
+    return this.http.post(`${this.baseUrl}` + `api/reconsileHolidayTimesheet`, holidayObj);
+  }
+
 }

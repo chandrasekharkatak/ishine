@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.service.ReportService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -42,6 +43,20 @@ public class ReportController {
 	public ServiceResponse getAllSubFeatureList() {		
 		
 		ServiceResponse response =	reportService.getAllSubFeatureList();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getDefaultMapping", method = RequestMethod.GET)
+	public ServiceResponse getDefaultMapping() {
+
+		ServiceResponse response = reportService.getDefaultMapping();
+		return response;
+	}
+	
+	@RequestMapping(value = "/updateDefaultFeatureMapping", method = RequestMethod.POST)
+	public ServiceResponse updateDefaultFeatureMapping(@RequestBody JobRoleDTO jobRoleDTO) {
+
+		ServiceResponse response = reportService.updateDefaultFeatureMapping(jobRoleDTO);
 		return response;
 	}
 

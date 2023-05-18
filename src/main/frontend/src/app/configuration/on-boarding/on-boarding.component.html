@@ -10,12 +10,12 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="assetObj.employeementId" placeholder="Please Enter Employee ID without prefix A">
+                            <input type="text" class="form-control" autocomplete="none" (keypress)="fieldRestictCharacter($event)" [(ngModel)]="assetObj.employeementId" placeholder="eg. A-1101">
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-0 mt-4 pt-2">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="getAssetDataFromSnipitPortal(alert_message)">Get Employee On-Boarding Details</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="getEmployeeOnBoardingDetailByEmployeementId(alert_message)">Get Employee On-Boarding Details</button>
                 </div>
             </div>
             <hr>
@@ -52,7 +52,7 @@
                                     <div class="list-container">
                                         <ul class="list-group list-group-flush">
                                             <li *ngFor="let checkList of dept.assetList" class="list-group-item">
-                                                {{checkList.assestName}}
+                                                {{checkList.assestName}} &nbsp; {{checkList.assetDetail}}
                                                 <label class="onBoarding-checkbox">
                                                     <input class="checkboxs" type="checkbox" [(ngModel)]="checkList.isAssigned" (change)="selectAssetCheckbox(checkList)"/>
                                                     <span class="primary"></span>

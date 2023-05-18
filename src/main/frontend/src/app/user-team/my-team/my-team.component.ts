@@ -16,6 +16,7 @@ import { HierarchyUser } from 'src/app/models/hierarchyUser';
 import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-my-team',
@@ -111,7 +112,8 @@ export class MyTeamComponent implements OnInit {
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     public validationService:ValidationService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private router: Router,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -303,6 +305,25 @@ export class MyTeamComponent implements OnInit {
     });
 
   }  
+
+  unlockAllTimesheet(template: TemplateRef<any>){
+    this.cancelRequest();
+    let employeeObj = new Employee();
+
+    employeeObj.unlockTimesheetFor = "MyTeam";
+    employeeObj.updatedBy = this.currentUser.empId;
+    employeeObj.managerId = this.currentUser.empId;
+    employeeObj.isTimesheetLockCheckEnable = "false";
+
+    this.employeeService.unlockAllTimesheet(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.viewTeam();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
   getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
@@ -526,6 +547,17 @@ export class MyTeamComponent implements OnInit {
       }
       this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
     });
+  }
+
+  navigateToAssetConsent(teamView:any){
+
+    if (teamView.employeementId.startsWith('A-')) {
+      let employmentId = teamView.employeementId?.substring(2);
+      this.router.navigate(['/user-exit/my-resignation', employmentId]);
+    } else {
+      let employmentId = teamView.employeementId;
+     this.router.navigate(['/user-exit/my-resignation', employmentId]);
+    }
   }
 
 

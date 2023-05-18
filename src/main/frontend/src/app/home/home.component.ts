@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Leave } from '../models/leave';
@@ -35,7 +35,7 @@ import { AppComponent } from '../app.component';
 export class HomeComponent implements OnInit, AfterViewInit {
 
   data: string;
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
@@ -71,6 +71,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   rejectedLeavesList: any[] = [];
   approvedLeavesList: any[] = [];
   pendingLeavesList: any[] = [];
+  allNotification: any[] = [];
 
   notificationObj: NotificationMessage = new NotificationMessage();
   timesheetDetails: any[] = [];
@@ -92,10 +93,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild('updateInfo')
   private updateInfoTempRef: TemplateRef<any>;
 
+  @ViewChild('consent_notification_template')
+  private consentNotificationTemplate: TemplateRef<any>;
+
   // TOP BAR
   @ViewChild("change_password")
   changePasswordTemplate: TemplateRef<any>;
 
+  //Loading login after setting new password
+  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
   fieldTextTypeOldPass: boolean = false;
@@ -107,6 +113,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   newpassword: any;
   errorMsg: any;
   empId: any;
+  consentNotificationMessage: any;
   user: User = new User();
 
   leaveTypes: Leave[] = [];
@@ -118,6 +125,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
     ignoreBackdropClick: true,
     keyboard: false
   };
+
+  consentModalConfig = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard: false,
+    class : 'modal-lg'
+  }
 
   profileCompletedPercentage: any = 0;
 
@@ -154,7 +168,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -198,6 +212,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.currentUser.updateFormCounter = 1;
     }
 
+    if(this.currentUser.isNew == "false"){
+      console.log("this.currentUser : ", this.currentUser);
+      this.openConsentNotificationModal();
+    }
   }
 
   reset() {
@@ -260,7 +278,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveObj.email = leaveApplication.email
     leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
-    leaveApplication.approverEmail = this.currentUser.email;	
+    leaveApplication.approverEmail = this.currentUser.email;
 
     console.log("   leaveObj.email   ", leaveObj.email);
 
@@ -702,7 +720,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Graphs 
+  // Graphs
   renderTimesheetChart(chartName: any, chartId: any, chartData: any, labelName: any) {
     let chartTitle = document.getElementById('timesheet-title');
     chartTitle.innerText = chartName;
@@ -750,20 +768,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
           '#ffe2f8', '#00a0da', '#ffb380', '#f697c1', '#4ca2f9', '#ffa2bc', '#96e591', '#f1ae16', '#2f7b99',
           '#b259ab', '#ff8473', '#0086b3', '#00861f', '#00696c', '#d36647', '#c6f5e4', '#e7dbce', '#ccfeff', '#f5f3e9', '#f0f7f7'
         ],
-    });
-  }
-
-  /* Notification */
-  getAllNotifications() {
-    this.eventImages = [];
-    this.notificationService.getAllNotifications().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let notificationList: any[] = response.serviceResponse;
-        console.log("notificationList : ", notificationList);
-        if (notificationList) this.notificationObj = notificationList[0];
-      } else {
-        console.error(response.serviceResponse);
-      }
     });
   }
 
@@ -945,7 +949,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
             newTimesheetObj = checkedTimesheet;
             newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
 
-            // For Chart Data 
+            // For Chart Data
             if (newTimesheetObj.status == "Pending") pendingCount++;
             else if (newTimesheetObj.status == "Approved") approvedCount++;
             else if (newTimesheetObj.status == "Rejected") rejectedCount++;
@@ -998,7 +1002,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.cancelRequest();
   }
 
-  // Employee Proile Completed Percentage 
+  // Employee Proile Completed Percentage
   getEmployeeProfileCompletion() {
     this.profileCompletedPercentage = 0;
 
@@ -1074,7 +1078,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
@@ -1220,14 +1224,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   openBulkApprovalModal(nightShiftTemplate:TemplateRef<any>, alertTemplate:TemplateRef<any>){
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
     console.log(isNightShiftFound, " : isNightShiftFound");
-    
+
     if(isNightShiftFound.length != 0){
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
     }else{
       this.onBulkApproval(alertTemplate);
     }
   }
-  
+
   bulkApproveWithoutNightShiftRequest(template:TemplateRef<any>){
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
     if(this.bulkApprove.length !== 0){
@@ -1241,14 +1245,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
     console.log(isNightShiftFound, " : isNightShiftFound");
-    
+
     if(isNightShiftFound.length != 0){
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
     }else{
       this.OnBulkReject(bulkRejectTimesheet);
     }
   }
-  
+
   bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet:TemplateRef<any>){
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
@@ -1266,7 +1270,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
-    
+
     timesheetObj.status = "Approved"
     console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
@@ -1331,7 +1335,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList = this.bulkLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
-    leaveObj.approverEmail = this.currentUser.email;	
+    leaveObj.approverEmail = this.currentUser.email;
 
     leaveObj.leaveStatusId = 2;
 
@@ -1365,7 +1369,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
-    leaveObj.approverEmail = this.currentUser.email;	
+    leaveObj.approverEmail = this.currentUser.email;
     leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
     leaveObj.bulkLeaveRejectList.forEach((y) => {
       y.employeementId = y.employeementId;
@@ -1403,37 +1407,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
 
-  // TOP BAR
-  userLogout() {
-
-    let user = new User();
-    user.empId = this.currentUser.empId;
-    this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.authenticationService.stopUserSessionCheck();
-        console.log(response.serviceResponse);
-        sessionStorage.removeItem('currentUser');
-        // delete method call for cookies
-        this.authenticationService.deleteCookies();
-        this.authenticationService.setcurrentUserSubject(null);
-        this.router.navigate(['/login']);
-        location.reload();
-      } else {
-        if (response.serviceResponse == "Session already destroyed") {
-          this.authenticationService.stopUserSessionCheck();
-          sessionStorage.removeItem('currentUser');
-          // delete method call for cookies
-          this.authenticationService.deleteCookies();
-          this.authenticationService.setcurrentUserSubject(null);
-          this.router.navigate(['/login']);
-          location.reload();
-        }
-        console.error(response.serviceResponse);
-      }
-    });
-
-
-  }
 
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;
@@ -1511,6 +1484,43 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.openChangePassword(this.changePasswordTemplate);
   }
 
+  // setTimeout(() => {
+  //   // Redirect to the desired location
+  //   location.reload();
+  // }, 5000);
+
+
+ // TOP BAR
+ userLogout(template?: TemplateRef<any>) {
+  let user = new User();
+  user.empId = this.currentUser.empId;
+  this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.authenticationService.stopUserSessionCheck();
+      console.log(response.serviceResponse);
+      sessionStorage.removeItem('currentUser');
+      // delete method call for cookies
+      this.authenticationService.deleteCookies();
+      this.authenticationService.setcurrentUserSubject(null);
+
+      this.router.navigate(['/login']);
+      location.reload();
+
+    } else {
+      if (response.serviceResponse == "Session already destroyed") {
+        this.authenticationService.stopUserSessionCheck();
+        sessionStorage.removeItem('currentUser');
+        // delete method call for cookies
+        this.authenticationService.deleteCookies();
+        this.authenticationService.setcurrentUserSubject(null);
+        this.router.navigate(['/login']);
+        location.reload();
+      }
+      console.error(response.serviceResponse);
+    }
+  });
+
+}
 
   updateEmployeePassword(template: TemplateRef<any>) {
     this.isError = false;
@@ -1556,13 +1566,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.userLogout();
-          this.openAlertMod(template, response.serviceResponse);
-          if (this.currentUser.isNew == "true") {
-            this.userLogout();
-          }
+          this.cancelRequest();
           this.passreset();
-        } else {
+
+          this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
+          setTimeout(() => {
+            this.cancelRequest();
+            this.userLogout();
+          }, 2000);
+
+        }
+        else {
           this.isError = true;
           this.errorMsg = response.serviceResponse;
         }
@@ -1574,13 +1588,63 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
-  sortData(sort: Sort){	
+  //Notification Consent
+
+  getAllNotifications(){
+    this.notificationObj = new NotificationMessage();
+
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.allNotification =  response.serviceResponse;
+
+        this.allNotification.forEach((notification) => {
+          notification.createdOn = (notification.createdOn)? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.allNotification = this.allNotification.filter(x => x.isActive == 'true');
+
+        console.log("notificationList : ", this.allNotification);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  openConsentNotificationModal(){
+    console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
+
+    if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
+      this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
+      this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+    }
+  }
+
+  submitNotificationConsent(){
+    this.cancelRequest();
+
+    let notificationObj = new NotificationMessage();
+
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.notificationConsent = dtoResponse.notificationConsent;
+
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.openConsentNotificationModal();
+      }
+    });
+  }
+
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 

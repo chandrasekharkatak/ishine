@@ -52,4 +52,10 @@ export class User{
     reportingManagerEmail:any;
 
     revokeReporteeLeaveValidity:any;
+    notificationConsent:any;
+    policyReadConsent:any;
+    
+    poPortalAllProjectApi:any;
+
+    probationPeriod: any;
 }
