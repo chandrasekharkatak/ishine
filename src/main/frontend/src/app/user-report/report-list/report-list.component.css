@@ -132,7 +132,7 @@
     font-weight: bold;
 }
 
-.acl-header {
+.acl-header{
     position: sticky;
     top: 0;
     z-index: 2;
@@ -153,5 +153,7 @@
 
 .acl-table{
     cursor: move;
+    border-collapse: separate;
+    border-spacing: 0;
 }
   

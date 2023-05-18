@@ -2,7 +2,7 @@
 <div class="row ">
     <div class="card updateInfoTab">
         <div class="card-header text-center text-uppercase">
-            <strong>Employee Information</strong>  
+            <strong>Employee Information</strong>
           </div>
           <div class="card-body">
             <div class="row">
@@ -88,7 +88,7 @@
                             </div>
                         </div>
                     </app-accordion-item>
-            
+
                     <app-accordion-item class="acc-content" title="Personal Information">
                         <div class="container-fluid">
                             <div class="row">
@@ -191,7 +191,7 @@
                                     </div>
                                 </div>
                                 <hr>
-                                
+
                                 </div>
                                 <div *ngFor="let child of allChildList;let i = index" class="row" >
                                     <div class="col-md-4 mb-0">
@@ -209,7 +209,7 @@
                             </div>
                         </div>
                     </app-accordion-item>
-    
+
                     <app-accordion-item class="acc-content" title="Contact Information">
                         <div class="container-fluid">
                             <div class="row">
@@ -273,7 +273,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Alternate Mobile Number</label>
-                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo">
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo" (blur)="validateValidEmptyNullUndefinedalternateMobileNo($event,employeeObj.alternateMobileNo)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -313,7 +313,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Emergency Contact Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (blur)="validateValidEmptyNullUndefinedalternateMobileNo($event,employeeObj.emergencyContactMobile)">
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)">
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>
@@ -321,7 +321,7 @@
                             </div>
                         </div>
                     </app-accordion-item>
-    
+
                     <app-accordion-item class="acc-content" title="Educational Information">
                         <div class="container-fluid">
                             <div class="row">
@@ -374,7 +374,7 @@
                                 </div>
                             </div>
                             <hr>
-                            <h4 class="info-label" >Certifications</h4> 
+                            <h4 class="info-label" >Certifications</h4>
                             <div class="alert alert-primary" role="alert">
                                 <p>Certification(s) are not mandatory, but if added all fields for certificate are mandatory with document in Upload Document section</p>
                             </div>
@@ -525,7 +525,7 @@
                             </div>
                         </div>
                     </app-accordion-item>
-    
+
                     <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div class="alert alert-primary" role="alert">
@@ -546,7 +546,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label "><span class="text-danger">*</span>Date Of Joining</label>
-                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" >
+                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfJoining" (keydown)="disableMannualDateInput()" (change)="resetExperienceOnDOJChange(previousEmployer);setExperienceForPrevEmployer(previousEmployer)">
                                         </div>
                                     </div>
                                 </div>
@@ -554,7 +554,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Date of Relieving</label>
-                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()">
+                                            <input type="date" class="form-control date-input"  OnClick="this.showPicker()" autocomplete="none" [(ngModel)]="previousEmployer.dateOfRelieving" (keydown)="disableMannualDateInput()" [disabled]="!previousEmployer.dateOfJoining" (change)="setExperienceForPrevEmployer(previousEmployer)" [min]="previousEmployer.dateOfJoining">
                                         </div>
                                     </div>
                                 </div>
@@ -562,7 +562,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Years of Experience</label>
-                                            <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" (blur)="validatYearsOfExperience($event,previousEmployer.yearsOfExperience)">
+                                            <input id="YOE-{{i+1}}" type="number" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.yearsOfExperience" disabled>
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -612,7 +612,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>HR Name</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName" (blur)="validaeHrName($event,previousEmployer.hrName)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="previousEmployer.hrName" (blur)="validateHrName($event,previousEmployer.hrName)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -696,11 +696,11 @@
                                         <p class="info-text info-highlight">{{previousEmployer.hrContactNumber}}</p>
                                     </div>
                                 </div>
-                                
+
                             </div>
                         </div>
                     </app-accordion-item> -->
-    
+
                     <app-accordion-item class="acc-content" title="Bank/PF Account Information">
                         <div class="container-fluid">
                             <div class="row">

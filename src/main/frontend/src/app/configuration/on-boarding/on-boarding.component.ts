@@ -93,7 +93,7 @@ export class OnBoardingComponent implements OnInit {
     this.cancelRequest();
 
     let assetObj = {...this.assetObj};
-
+    
     if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
       this.alertMessage = "Please enter Employee ID !!"
       this.openAlertMod(template, this.alertMessage);
@@ -107,7 +107,7 @@ export class OnBoardingComponent implements OnInit {
     }
 
     if (!this.validationService.validateEmployeementId(assetObj.employeementId)) {
-      this.alertMessage = "Please enter Employee ID !!";
+      this.alertMessage = "Please enter valid Employee ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

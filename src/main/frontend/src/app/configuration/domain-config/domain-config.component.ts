@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -13,6 +13,7 @@ import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
+
 @Component({
   selector: 'app-domain-config',
   templateUrl: './domain-config.component.html',
@@ -25,7 +26,7 @@ export class DomainConfigComponent implements OnInit {
 
   feature = 'Domain Config';
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   all:any;
@@ -55,6 +56,12 @@ export class DomainConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
 
+  SpecializationInput: any =document.getElementById('input1');
+  //@ViewChild('myInput', { static: false }) myInput: ElementRef<HTMLInputElement>;
+
+  //excel
+  domainDataForExcel: any[];
+  name = 'Domain.xlsx';
 
   constructor(
     private domainService:DomainService,
@@ -66,7 +73,7 @@ export class DomainConfigComponent implements OnInit {
 
   ngOnInit(): void {
 
-     // Dynamic Subfeature Flags 
+     // Dynamic Subfeature Flags
      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -83,14 +90,14 @@ export class DomainConfigComponent implements OnInit {
     this.isDomainCreation = false;
     this.isDomainUpdation = false;
     this.isDomainForm = false;
-    
+
     this.getAllDomain(this.alertTemplate);
   }
 
   showCreateDomainForm(){
     this.isDomainCreation = true;
     this.isDomainForm = true;
-    
+
     this.isDomain = false;
     this.isDomainTable = false;
     this.isDomainUpdation = false;
@@ -109,7 +116,7 @@ export class DomainConfigComponent implements OnInit {
   showUpdateDomainForm(domain:any){
     this.isDomainForm = true;
     this.isDomainUpdation = true;
-    
+
     this.isDomainCreation = false;
     this.isDomain = false;
     this.isDomainTable = false;
@@ -127,8 +134,31 @@ export class DomainConfigComponent implements OnInit {
     });
   }
 
-  // Manage Domain / Specialization
-  addInputSpecializationField(){
+  ValidateInput(targetValue,SpecializationName)
+  {
+       if(!this.validationService.validateTeamActivity(SpecializationName))
+       {
+           targetValue.value = '';
+       }
+  }
+
+  addInputSpecializationField(template?: TemplateRef<any>, currentSpecializationName?:any)
+  {
+     if(this.allSpecializationList.length!=0)
+     {
+      console.log("spec: ", currentSpecializationName);
+      if(!this.validationService.validateTeamActivity(currentSpecializationName))
+      {
+        let selectedSpec = this.allSpecializationList.find(currentSpecialization => currentSpecialization.specializationName == currentSpecializationName);
+        if(selectedSpec) selectedSpec.specializationName = '';
+
+        //this.SpecializationInput.value = '';
+
+        this.alertMessage = "Please Enter Valid Specialization Name !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+     }
     let domainObj = new Domain();
     this.allSpecializationList.push(domainObj);
     console.log(this.allSpecializationList, " : this.allSpecializationList");
@@ -160,7 +190,7 @@ export class DomainConfigComponent implements OnInit {
       }
     });
   }
-  
+
   getDomainSpecialization(){
     this.specializationList = [];
 
@@ -170,14 +200,14 @@ export class DomainConfigComponent implements OnInit {
     console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.specializationList = response.serviceResponse;        
+        this.specializationList = response.serviceResponse;
         this.specializationList = this.specializationList.sort((a, b) => a.specializationName.localeCompare(b.specializationName));
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
-  
+
   validateDomainObj(domainObj, template: TemplateRef<any>) {
     let flag = true;
 
@@ -193,14 +223,9 @@ export class DomainConfigComponent implements OnInit {
       return false;
     }
 
-    const uniqueSpecialization = new Set(this.allSpecializationList.map(x => x.specializationName));
-    if (uniqueSpecialization.size < this.allSpecializationList.length) {
-      this.alertMessage = "Duplicate Specialization Name are not allowed !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
 
     this.allSpecializationList.forEach((spec, index) => {
+      if(!flag) return;
 
       spec.specializationName = spec.specializationName?.trim();
       if (!this.validationService.validateNullUndefinedEmptyString(spec.specializationName)) {
@@ -214,13 +239,19 @@ export class DomainConfigComponent implements OnInit {
         return;
       }
     });
-
     if (!flag) {
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else{
-      return true;
     }
+
+    const uniqueSpecialization = new Set(this.allSpecializationList.map(x => x.specializationName));
+    if (uniqueSpecialization.size < this.allSpecializationList.length) {
+      this.alertMessage = "Duplicate Specialization Name are not allowed !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    return true;
   }
 
   createDomain(template: TemplateRef<any>){
@@ -246,7 +277,7 @@ export class DomainConfigComponent implements OnInit {
 
     this.domainObj.allSpecializationList = this.allSpecializationList;
     this.domainObj.updatedBy = this.currentUser.empId;
-    
+
     this.domainService.updateDomain(this.domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -302,25 +333,40 @@ export class DomainConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template);
   }
 
-  //pagination 	
+  //pagination
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  //Export
+  //Export -- download excel
   exportToExcel(): void {
-  }
+  this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.domainDataForExcel = response.serviceResponse;
+    }
+    const onlySpecificDataArr = this.domainDataForExcel.map(
+      x => ({
+        "Domain Name": x.domainName,
+        "Created by": x.createdByName,
+        "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  });
+}
+
+
 
   //sort & searching
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
-    }  	
+      this.sortDirection = sort.direction;
+    }
   }
 
   toggleSearch(){

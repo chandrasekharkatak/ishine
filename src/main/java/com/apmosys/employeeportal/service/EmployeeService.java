@@ -389,9 +389,14 @@ public class EmployeeService {
 			employee.setChild3(employeedto.getChild3());
 			employee.setBillable(employeedto.getBillable());
 			employee.setIsTimesheetLockCheckEnable("true");
-			employee.setReportingManagerId(employeedto.getReportingManagerId());
-			employee.setApprovalsTo(employeedto.getApprovalsTo());
 			employee.setDesignationId(employeedto.getDesignationId());
+
+			employee.setReportingManagerId(employeedto.getReportingManagerId());
+			if(employeedto.getReportingManagerId() == null) {
+				employee.setApprovalsTo(null);
+			}else {
+				employee.setApprovalsTo(employeedto.getApprovalsTo());
+			}
 
 			Employee newEmployee = employeeRepository.save(employee);
 
@@ -1254,9 +1259,13 @@ public class EmployeeService {
 				employee.setSpouse(employeedto.getSpouse());
 				employee.setTotalExperience(employeedto.getTotalExperience());
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				employee.setReportingManagerId(employeedto.getReportingManagerId());
-				employee.setApprovalsTo(employeedto.getApprovalsTo());
 				employee.setDesignationId(employeedto.getDesignationId());
+				
+				if(employeedto.getReportingManagerId() == null) {
+					employee.setApprovalsTo(null);
+				}else {
+					employee.setApprovalsTo(employeedto.getApprovalsTo());
+				}
 				
 				// Certification
 				// Case 1 : Updating Existing certification
@@ -1416,9 +1425,14 @@ public class EmployeeService {
 						draftEmployee.setBillable(dbResponse.getBillable());
 						draftEmployee.setTotalExperience(dbResponse.getTotalExperience());
 						draftEmployee.setUpdatedOn(dbResponse.getUpdatedOn());
-						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
-						draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
 						draftEmployee.setDesignationId(dbResponse.getDesignationId());
+						
+						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
+						if(dbResponse.getReportingManagerId() == null){
+							draftEmployee.setApprovalsTo(null);
+						}else {							
+							draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
+						}
 						
 						draftEmployeeRepository.save(draftEmployee);
 					}

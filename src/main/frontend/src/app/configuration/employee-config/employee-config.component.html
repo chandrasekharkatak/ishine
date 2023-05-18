@@ -15,7 +15,7 @@
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Employee</strong>
             <strong *ngIf="isUpdation">Update Employee</strong>
-            <strong *ngIf="isDraft">Update Employee Draft</strong>  
+            <strong *ngIf="isDraft">Update Employee Draft</strong>
           </div>
           <div class="card-body">
             <div class="row">
@@ -120,7 +120,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-    
+
                         <!-- <app-accordion-item *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content" title="Family Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -132,7 +132,7 @@
                                             </div>
                                         </div>
                                     </div>
-    
+
                                     <div class="col-md-4 mb-0" *ngIf="employeeObj.child1 != null">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -141,7 +141,7 @@
                                             </div>
                                         </div>
                                     </div>
-    
+
                                     <div class="col-md-4 mb-0" *ngIf="employeeObj.child2 != null">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -150,7 +150,7 @@
                                             </div>
                                         </div>
                                     </div>
-    
+
                                     <div class="col-md-4 mb-0" *ngIf="employeeObj.child3 != null">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -162,7 +162,7 @@
                                 </div>
                             </div>
                         </app-accordion-item> -->
-                
+
                         <!-- <app-accordion-item class="acc-content" title="Personal Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -225,7 +225,7 @@
                                 </div>
                             </div>
                         </app-accordion-item> -->
-        
+
                         <!-- <app-accordion-item class="acc-content" title="Contact Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -236,7 +236,7 @@
                                                 <input type="number" maxlength="10" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo">
                                             </div>
                                         </div>
-                                    </div> 
+                                    </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -326,7 +326,7 @@
                                 </div>
                             </div>
                         </app-accordion-item> -->
-        
+
                         <!-- <app-accordion-item class="acc-content" title="Educational Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -446,7 +446,7 @@
                                 </div>
                             </div>
                         </app-accordion-item> -->
-        
+
                         <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
                             <div class="container-fluid">
                                 <div class="row">
@@ -456,11 +456,11 @@
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of Joining</label>
                                                 <!-- <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()"> -->
                                                 <div class="d-flex">
-                                                    <input class="form-control" matInput id="DOJ" #input (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
+                                                    <input class="form-control" matInput id="DOJ" #input1 (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
                                                       [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DOJPicker (closed)="input.blur()" disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DOJPicker (closed)="input1.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>
@@ -499,24 +499,27 @@
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of Resign</label>
                                                 <div class="d-flex">
-                                                    <input class="form-control static-input" matInput id="DOR" [matDatepicker]="DORePicker" #input (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)" [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
+                                                 <!--  <input matInput [min]="minDate" (click)="setMinDate(); [startAt]="minDate"> -->
+                                                    <input class="form-control static-input" matInput id="DOR"  [matDatepicker]="DORePicker" #input2
+                                                    (click)="DORePicker.open()" (dateChange)="estimateDateOfReleiving(employeeObj)"
+                                                    [matDatepickerFilter]="DateFilterForDOR" placeholder="Choose date of Resign" [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
-                                                <mat-datepicker  #DORePicker (closed)="input.blur()" disabled="false"></mat-datepicker>
+                                                <mat-datepicker  #DORePicker (closed)="input2.blur()" disabled="false"></mat-datepicker>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">	
-                                        <div class="info-wrapper">	
-                                            <div class="form-group">	
-                                                <label class="info-label"><span class="text-danger">*</span>Date Of Releiving</label>	
-                                                <div class="d-flex">	
-                                                    <input class="form-control static-input" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="relievingDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >	
-                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>	
-                                                </div>	
-                                                <mat-datepicker  #DORPicker (closed)="input.blur()" [disabled]="!employeeObj.dateOfResign" ></mat-datepicker>	
-                                            </div>	
-                                        </div>	
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of Releiving</label>
+                                                <div class="d-flex">
+                                                    <input class="form-control static-input" matInput id="DOR" [matDatepicker]="DORPicker" #input (click)="DORPicker.open()" (dateChange)="updateNoticePeriod(employeeObj)" [matDatepickerFilter]="relievingDateFilter" placeholder="Choose date of Releiving" [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off" >
+                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker"  style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker  #DORPicker (closed)="input.blur()" [disabled]="!employeeObj.dateOfResign" ></mat-datepicker>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
@@ -557,7 +560,7 @@
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Department</label>
                                                 <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId)">
-                                                    <option selected="selected" value="" >Select</option>
+                                                    <option selected="selected" value="" disabled>Select</option>
                                                     <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                                                 </select>
                                             </div>
@@ -568,7 +571,7 @@
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Designation</label>
                                                 <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId">
-                                                    <option selected="selected" value="" >Select</option>
+                                                    <option selected="selected" value="" disabled>Select</option>
                                                     <option *ngFor="let designation of allDesignationList" value="{{designation.designationId}}">{{designation.designationName}}</option>
                                                 </select>
                                             </div>
@@ -674,7 +677,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-    
+
                         <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
                                 <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
@@ -759,7 +762,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-        
+
                         <app-accordion-item class="acc-content" title="Bank/PF Account Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -851,7 +854,7 @@
             <div class="row">
                 <div class="col-md-6 ml-auto d-flex justify-content-end align-items-start mb-1 px-0">
                     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_employee && isTable" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()"><em class="fa-solid fa-plus"></em>&nbsp; Add New Employee</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="unlockAllTimesheet(alert_message)"><i class="fa-solid fa-lock-open"></i>&nbsp; Unlock All Timesheet</button> 
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="unlockAllTimesheet(alert_message)"><i class="fa-solid fa-lock-open"></i>&nbsp; Unlock All Timesheet</button>
                 </div>
             </div>
         </div>
@@ -917,7 +920,7 @@
                     <table class="table table-responsive" id="employeeInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="employeeInfoTHead">
                             <tr id="employeeInfoTHeadTr">
-                                <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>	
+                                <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
                             <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
                                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string" >Full Name</th>
@@ -987,7 +990,7 @@
                                         (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>  
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
                                 </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
@@ -1025,7 +1028,7 @@
     </div>
     <div class="modal-body">
         <!-- <div class="form-group ml-auto col-md-3">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">	
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="datas" (keyup)="page=1">
         </div> -->
         <div class="container history-table">
             <div class="selector-toggle" (click)="toggleWorkHistorySearch()">
@@ -1051,19 +1054,19 @@
                     <th scope="col" class="info-label" >Job Role</th>
                     <th scope="col" class="info-label" >Client Location</th>
                     <th scope="col" class="info-label" >Client Name</th>
-                    
+
                  </tr>
                  <tr app-column-filter-bar *ngIf="isTable && isworkHistorySearchEnabled" [columnList]="employeeWorkhistoryColumns" (onSearch)="onWorkHistorySearch($event);page=1" ></tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory| colFilter:filters:false).length == 0"> 
+                    <tr *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory| colFilter:filters:false).length == 0">
                        <th colspan="11" class="text-center info-label">No details to display...</th>
-                   </tr> 
+                   </tr>
                    <tr *ngFor="let empHistory of employeeWorkingHistory| colFilter:filters:false | paginate: { id: 'workingHistory' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                     <td>{{i+1}}</td>
                     <!-- <td>{{empHistory.employeementId}}</td> -->
                     <!-- <td>{{empHistory.name}}</td> -->
-                   
+
                     <td>{{empHistory.teamName}}</td>
                     <td>{{empHistory.projectName}}</td>
                     <td>{{empHistory.startDate | date:'dd-MM-yyyy hh:mm:ss'}}</td>
@@ -1279,28 +1282,28 @@
                                                 <p class="info-text">{{previewObj.spouse}}</p>
                                             </div>
                                         </div>
-    
+
                                         <div class="col-md-4 mb-0" *ngIf="previewObj.child1 != null">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Child1</p>
                                                 <p class="info-text">{{previewObj.child1}}</p>
                                             </div>
                                         </div>
-    
+
                                         <div class="col-md-4 mb-0" *ngIf="previewObj.child2 != null">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Child2</p>
                                                 <p class="info-text">{{previewObj.child2}}</p>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-md-4 mb-0" *ngIf="previewObj.child3 != null">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Child3</p>
                                                 <p class="info-text">{{previewObj.child3}}</p>
                                             </div>
                                         </div>
-    
+
                                     </div>
                                 </div>
                             </app-accordion-item>
@@ -1808,28 +1811,28 @@
                                                 <p class="info-text">{{previewEmployeeObj.spouse}}</p>
                                             </div>
                                         </div>
-    
+
                                         <div class="col-md-4 mb-0" *ngIf="previewObj.child1 != null">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Child1</p>
                                                 <p class="info-text">{{previewEmployeeObj.child1}}</p>
                                             </div>
                                         </div>
-    
+
                                         <div class="col-md-4 mb-0" *ngIf="previewObj.child2 != null">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Child2</p>
                                                 <p class="info-text">{{previewEmployeeObj.child2}}</p>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-md-4 mb-0" *ngIf="previewObj.child3 != null">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Child3</p>
                                                 <p class="info-text">{{previewEmployeeObj.child3}}</p>
                                             </div>
                                         </div>
-    
+
                                     </div>
                                 </div>
                             </app-accordion-item>
@@ -2223,7 +2226,7 @@
         </button>
     </div>
     <div class="modal-body">
-    
+
         <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" title="Full Journey" [showBody]="isFullJourneyAccordianBody">
             <div class="container-fluid">
                 <div class="row">
@@ -2249,7 +2252,7 @@
                                     <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled" [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1" ></tr>
                                 </thead>
                                 <tbody>
-                                    <tr *ngIf="filteredEmployeeAuditHistory.length == 0 || (filteredEmployeeAuditHistory | colFilter:auditFilter:false).length == 0"> 
+                                    <tr *ngIf="filteredEmployeeAuditHistory.length == 0 || (filteredEmployeeAuditHistory | colFilter:auditFilter:false).length == 0">
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
                                     <tr *ngFor="let audit of filteredEmployeeAuditHistory | colFilter:auditFilter:false | paginate: { id: 'fullJourney' , itemsPerPage: 20, currentPage: pageNo };let i = index">

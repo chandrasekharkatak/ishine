@@ -341,7 +341,7 @@ export class MyResignationComponent implements OnInit {
           }
         });
 
-        if(this.exitEmployeeId != null){
+        if(this.exitEmployeeId != null && this.currentUser.employeementId !== this.exitEmployeeId){
           this.router.navigate(['/user-exit/my-resignation', this.exitEmployeeId]);
         }
         console.log(this.exitAssetDetailList, " : exitAssetDetailList");

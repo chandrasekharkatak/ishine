@@ -399,6 +399,11 @@ export class LoginComponent implements OnInit{
       this.errorMsg='Please enter otp !!';
       return;
     }
+    if(!this.validationService.validateLoginRegex(this.userOTP)){
+      this.isError=true;
+      this.errorMsg='Please enter valid otp !!';
+      return;
+    }
 
     let user = new User();
     user.email = this.userEmailIdForOtpVerification;

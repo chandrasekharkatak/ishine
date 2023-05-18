@@ -8,7 +8,7 @@
                 <h1 class="table-header-title">All Domain</h1>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
                 <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isDomainCreation}" (click)="showCreateDomainForm()"><em class="fa-solid fa-plus"></em>Add New Domain</button>
@@ -25,9 +25,9 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'domainInfo'" [tableTHeadId]="'domainInfoTHead'"
                 [tableTHeadTrId]="'domainInfoTHeadTr'">
-                <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">	
-                    <thead class="thead-light" id="domainInfoTHead">	
-                      <tr id="domainInfoTHeadTr">	
+                <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+                    <thead class="thead-light" id="domainInfoTHead">
+                      <tr id="domainInfoTHeadTr">
                         <th scope="col" class="info-label">Sr No.</th>
                         <th scope="col" class="info-label" mat-sort-header="domainName|string">Domain Name</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
@@ -53,7 +53,7 @@
                     </tbody>
                   </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="allDomainList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <pagination-controls class="my-pagination" [hidden]="allDomainList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allDomainList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
@@ -85,17 +85,19 @@
                 <div class="col-md-4 mb-0">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Specialization - {{i+1}}</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="spec.specializationName">
-                        </div>
+                            <input #myInput type="text" class="form-control" autocomplete="none" [(ngModel)]="spec.specializationName">
+                            <!-- (blur)="ValidateInput($event.target,spec.specializationName)" -->
+                          </div>
                 </div>
                 <div class="col-md-2 d-flex align-items-center">
                     <div class="form-group m-0 mt-3 mb-1">
-                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputSpecializationField()" [disabled]="(allSpecializationList.length > 1 && i !== allSpecializationList.length-1)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputSpecializationField(alert_message,spec.specializationName)" [disabled]="(i !== allSpecializationList.length-1 || spec.specializationName == ''|| spec.specializationName == null )"><i class="fa fa-plus" aria-hidden="true"></i></button>
                         <button type="button" *ngIf="allSpecializationList.length > 1" class="btn btn-outline-primary mx-1" (click)="removeInputSpecializationField(spec)"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                    </div>
+                      </div>
                 </div>
             </div>
-            <div class="row mt-3">
+
+             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" *ngIf="userMapping.create_domain && isDomainCreation" class="btn btn-primary btn-sm mx-1" (click)="createDomain(alert_message)">Create Domain</button>
                     <button type="submit" *ngIf="userMapping.update_domain && isDomainUpdation" class="btn btn-primary btn-sm mx-1" (click)="updateDomain(alert_message)">Update Domain</button>
