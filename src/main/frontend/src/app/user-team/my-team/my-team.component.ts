@@ -498,7 +498,10 @@ export class MyTeamComponent implements OnInit {
     console.log("template: ", this.alertTemplate );
 
     compOffObj.leaveStatusId = updatedCompOffStatusId;
-    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    compOffObj.hodEmail = this.currentUser.email;
+    compOffObj.hodName = this.currentUser.name;
+    compOffObj.employeeName = compOffObj.createdByName;
 
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {

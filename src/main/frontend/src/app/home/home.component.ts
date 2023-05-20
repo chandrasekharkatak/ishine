@@ -363,8 +363,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     compOff = Object.assign({},compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
-    compOff.managerEmail = this.currentUser.email;
-    compOff.managerName = this.currentUser.name;
+    compOff.hodEmail = this.currentUser.email;
+    compOff.hodName = this.currentUser.name;
     compOff.employeeName = compOff.createdByName;
     console.log("Update Comp off : ", compOff);
 

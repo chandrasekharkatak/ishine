@@ -113,6 +113,9 @@ public class EmployeeLeaveService {
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
 	
+	@Autowired
+	CompOffLeaveService compOffLeaveService;
+	
 	
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -147,6 +150,19 @@ public class EmployeeLeaveService {
 					empDto.setManagerName(object[4] != null ? object[4].toString() : null);
 					});
 				
+			Float availableCompOffBalance = 0.0F;
+			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO")) {
+				ServiceResponse compOffResponse = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);
+				
+				if(compOffResponse.getServiceStatus().equals("Success")) {
+					List<LeaveDTO> availableCompOffList = (List<LeaveDTO>)compOffResponse.getServiceResponse();
+					
+					for(LeaveDTO compOff: availableCompOffList){
+						availableCompOffBalance = availableCompOffBalance + compOff.getNoOfDays();
+					};
+				}
+			}
+				
 			
 			// HERE : Effective Leave Balance = employeeLeavesMap.getBalance()
 			if (!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP") && (employeeLeavesMap.getBalance() == 0
@@ -154,7 +170,11 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Your available balance of " + employeeLeavesMap.getBalance()
 						+ " day(s) is not sufficient for this Leave Application.");
-
+				return response;
+			}else if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO") && availableCompOffBalance < leaveDTO.getNoOfDays()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Your available Compensatory off balance of " + availableCompOffBalance
+						+ " day(s) before "+ leaveDTO.getFromDate() +" is not sufficient for this Leave Application.");
 				return response;
 			}
 
@@ -167,17 +187,46 @@ public class EmployeeLeaveService {
 			leaveApplication.setToDate(stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd"));
 			leaveApplication.setNoOfDays((Float) leaveDTO.getNoOfDays());
 			leaveApplication.setReason(leaveDTO.getReason());
-			leaveApplication.setManagerId(leaveDTO.getManagerId());
 			leaveApplication.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
 			leaveApplication.setFromDateDayType(leaveDTO.getFromDateDayType());
-			leaveApplication.setToDateDayType(leaveDTO.getToDateDayType());			
+			leaveApplication.setToDateDayType(leaveDTO.getToDateDayType());	
+			
+			/* ----------- Multi-Level Approval ---------- */
+			// Approval Status : NA - Pending - Approved - Rejected
+			leaveApplication.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
+			
+			// By Default Current Approval level will be 1 i.e. Manager Approval
+			leaveApplication.setCurrentApprovalLevel(1);
+			leaveApplication.setManagerId(leaveDTO.getManagerId());
+			leaveApplication.setManagerApprovalStatus("Pending");
+			
+			if(leaveApplication.getFinalApprovalLevel() == 2) {
+				leaveApplication.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+				leaveApplication.setLevel2ApprovalStatus("Pendiing");
+				
+				leaveApplication.setLevel3ApproverId(null);
+				leaveApplication.setLevel3ApprovalStatus("NA");
+				
+			}else if(leaveApplication.getFinalApprovalLevel() == 3) {
+				leaveApplication.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+				leaveApplication.setLevel2ApprovalStatus("Pendiing");
+				
+				leaveApplication.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
+				leaveApplication.setLevel3ApprovalStatus("Pending");
+			}else {
+				leaveApplication.setLevel2ApproverId(null);
+				leaveApplication.setLevel2ApprovalStatus("NA");
+				
+				leaveApplication.setLevel3ApproverId(null);
+				leaveApplication.setLevel3ApprovalStatus("NA");
+			}
 
 			// Leave deduction from balance leaves
 			Float balance = employeeLeavesMap.getBalance();
 			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
-				balance = balance ;
+				balance = 0F;
 			}else {
-			balance = balance - leaveDTO.getNoOfDays();
+				balance = balance - leaveDTO.getNoOfDays();
 			}
 			Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 			pendingForApproval = pendingForApproval + leaveDTO.getNoOfDays();
@@ -235,9 +284,9 @@ public class EmployeeLeaveService {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				
 				if(LocalDate.parse(leaveDTO.getFromDate()).isBefore(LocalDate.now())) {
-					response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". If you already filled the timesheet,that will be automatically updated by system");
+					response.setServiceResponse("Leave application submitted. If you already filled the timesheet,that will be automatically updated by system");
 				}else {
-					response.setServiceResponse("Leave application submitted. Your leave will be approved by "+ leaveDTO.getApproverName() + ". Your timesheet will be automatically added by system");
+					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
 				}
 				
 				LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
@@ -245,6 +294,13 @@ public class EmployeeLeaveService {
 				String managerEmail = "";
 				if(!leaveDTO.getApproverEmail().equals(empDto.getManagerEmail())) {
 					managerEmail = ","+ empDto.getManagerEmail();
+				}
+				
+				if(leaveApplication.getFinalApprovalLevel() == 2) {
+					managerEmail = ","+ leaveDTO.getLevel2ApproverEmail();
+					
+				}else if(leaveApplication.getFinalApprovalLevel() == 3) {
+					managerEmail = ","+ leaveDTO.getLevel2ApproverEmail() + ","+ leaveDTO.getLevel3ApproverEmail();
 				}
 				
 				if(leaveDTO.getCreatedBy().equals(leaveDTO.getEmpId())){
@@ -661,6 +717,20 @@ public class EmployeeLeaveService {
 						difference = dbDateDifference.getDays() - newDateDifference.getDays();
 					}
 					
+					// For CompOff
+					Float availableCompOffBalance = 0.0F;
+					if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO")) {
+						ServiceResponse compOffResponse = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);
+						
+						if(compOffResponse.getServiceStatus().equals("Success")) {
+							List<LeaveDTO> availableCompOffList = (List<LeaveDTO>)compOffResponse.getServiceResponse();
+							
+							for(LeaveDTO compOff: availableCompOffList){
+								availableCompOffBalance = availableCompOffBalance + compOff.getNoOfDays();
+							};
+						}
+					}
+					
 					// HERE : Effective Leave Balance = employeeLeavesMap.getBalance()
 					if (!leavetype.get().getLeaveTypeCode().equalsIgnoreCase("LWP") && (employeeLeavesMap.getBalance() == 0
 							|| employeeLeavesMap.getBalance() < difference)) {
@@ -668,6 +738,11 @@ public class EmployeeLeaveService {
 						response.setServiceResponse("Your available balance of " + employeeLeavesMap.getBalance()
 								+ " day(s) is not sufficient for this Leave Application.");
 
+						return response;
+					}else if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO") && availableCompOffBalance < difference) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Your available Compensatory off balance of " + availableCompOffBalance
+								+ " day(s) before "+ leaveDTO.getFromDate() +" is not sufficient for this Leave Application.");
 						return response;
 					}
 					
@@ -698,6 +773,36 @@ public class EmployeeLeaveService {
 					leaveToBeUpdated.setReason(leaveDTO.getReason());
 					leaveToBeUpdated.setNoOfDays(leaveDTO.getNoOfDays());
 					leaveToBeUpdated.setLeaveStatusId((short) 1);
+					
+					/* ----------- Multi-Level Approval ---------- */
+					// Approval Status : NA - Pending - Approved - Rejected
+					leaveToBeUpdated.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
+					
+					// By Default Current Approval level will be 1 i.e. Manager Approval
+					leaveToBeUpdated.setCurrentApprovalLevel(1);
+					leaveToBeUpdated.setManagerId(leaveDTO.getManagerId());
+					leaveToBeUpdated.setManagerApprovalStatus("Pending");
+					
+					if(leaveToBeUpdated.getFinalApprovalLevel() == 2) {
+						leaveToBeUpdated.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+						leaveToBeUpdated.setLevel2ApprovalStatus("Pendiing");
+						
+						leaveToBeUpdated.setLevel3ApproverId(null);
+						leaveToBeUpdated.setLevel3ApprovalStatus("NA");
+						
+					}else if(leaveToBeUpdated.getFinalApprovalLevel() == 3) {
+						leaveToBeUpdated.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+						leaveToBeUpdated.setLevel2ApprovalStatus("Pendiing");
+						
+						leaveToBeUpdated.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
+						leaveToBeUpdated.setLevel3ApprovalStatus("Pending");
+					}else {
+						leaveToBeUpdated.setLevel2ApproverId(null);
+						leaveToBeUpdated.setLevel2ApprovalStatus("NA");
+						
+						leaveToBeUpdated.setLevel3ApproverId(null);
+						leaveToBeUpdated.setLevel3ApprovalStatus("NA");
+					}
 					
 					EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveToBeUpdated);
 					EmployeeLeavesMap dbResponse1 = employeeLeavesMapRepository.save(employeeLeavesMap);
@@ -735,26 +840,65 @@ public class EmployeeLeaveService {
 							managerEmail = ","+ empDto.getManagerEmail();
 						}
 						
-						mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
-								"Regarding Leave Application Update",
-								"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
-								+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been applied by "+ leaveDTO.getName() +" "+"for "+leaveDTO.getNoOfDays()+" day(s), Please take necessary action."+
-								"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
-								"<br>"+
-								"EmpID :"+" "+ leaveDTO.getEmployeementId()+
-								"<br>"+
-								"Name :"+" "+ leaveDTO.getName()+
-								"<br>"+
-								" From :"+" "+ leaveDTO.getFromDate()+
-								"<br>"+
-								" To :"+" "+ leaveDTO.getToDate() +
-								"<br>"+
-								" No. Of Days : "+ leaveDTO.getNoOfDays() + " day(s)" 
-								+"<br>"+
-								" Leave Type :"+" "+leavetype.get().getLeaveType()+
-								"<br>"+
-								"leave Reason :"+" "+leaveDTO.getReason());
+						if(leaveToBeUpdated.getFinalApprovalLevel() == 2) {
+							managerEmail = ","+ leaveDTO.getLevel2ApproverEmail();
+							
+						}else if(leaveToBeUpdated.getFinalApprovalLevel() == 3) {
+							managerEmail = ","+ leaveDTO.getLevel2ApproverEmail() + ","+ leaveDTO.getLevel3ApproverEmail();
+						}
+
 						
+						
+						if(leaveDTO.getUpdatedBy().equals(leaveDTO.getEmpId())){
+							//Leave Applied for self
+							
+							mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
+									"Regarding Leave Application Update",
+									"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
+									+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been updated by "+ leaveDTO.getName() +" "+"for "+leaveDTO.getNoOfDays()+" day(s), Please take necessary action."+
+									"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+									"<br>"+
+									"EmpID :"+" "+ leaveDTO.getEmployeementId()+
+									"<br>"+
+									"Name :"+" "+ leaveDTO.getName()+
+									"<br>"+
+									" From :"+" "+ leaveDTO.getFromDate()+
+									"<br>"+
+									" To :"+" "+ leaveDTO.getToDate() +
+									"<br>"+
+									" No. Of Days : "+ leaveDTO.getNoOfDays() + " day(s)" 
+									+"<br>"+
+									" Leave Type :"+" "+leavetype.get().getLeaveType()+
+									"<br>"+
+									"leave Reason :"+" "+leaveDTO.getReason());
+							
+						}else {
+							//Leave Applied for team
+							Optional<Employee> updatedByEmp = employeeRepository.findById(Long.parseLong(leaveDTO.getUpdatedBy().toString()));
+							if(!updatedByEmp.isEmpty()) {
+								Employee updatedByObj = updatedByEmp.get();
+								
+								mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
+										"Regarding Leave Application Update",
+										"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
+										+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been updated for "+ leaveDTO.getName() +" "+"for "+leaveDTO.getNoOfDays()+" day(s) by "+ updatedByObj.getName() + ", Please take necessary action."+
+										"<br>"+"<br>"+"<b>"+"Leave Details"+"<b>"+
+										"<br>"+
+										"EmpID :"+" "+ leaveDTO.getEmployeementId()+
+										"<br>"+
+										"Name :"+" "+ leaveDTO.getName()+
+										"<br>"+
+										" From :"+" "+ leaveDTO.getFromDate()+
+										"<br>"+
+										" To :"+" "+ leaveDTO.getToDate() +
+										"<br>"+
+										" No. Of Days : "+ leaveDTO.getNoOfDays() + " day(s)" 
+										+"<br>"+
+										" Leave Type :"+" "+leavetype.get().getLeaveType()+
+										"<br>"+
+										"leave Reason :"+" "+leaveDTO.getReason());
+							}
+						}
 						
 						//Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
@@ -913,6 +1057,21 @@ public class EmployeeLeaveService {
 					dto.setApproverName(object[13] != null ? object[13].toString() : null);
 					dto.setApproverEmail(object[14] != null ? object[14].toString() : null);
 
+					dto.setManagerApprovalStatus(object[15] != null ? object[15].toString() : null);
+					dto.setLevel2ApproverId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+					dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
+					dto.setLevel2ApproverEmail(object[18] != null ? object[18].toString() : null);
+					dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
+					
+					dto.setLevel3ApproverId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					dto.setLevel3ApproverName(object[21] != null ? object[21].toString() : null);
+					dto.setLevel3ApproverEmail(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApprovalStatus(object[23] != null ? object[23].toString() : null);
+					
+					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					
+					
 					dtoList.add(dto);
 				});
 
@@ -973,6 +1132,23 @@ public class EmployeeLeaveService {
 					dto.setEmployeeName(object[11] != null ? object[11].toString() : null);
 					dto.setEmail(object[12] != null ? object[12].toString() : null);
 					dto.setEmployeementId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+					
+					dto.setApproverName(object[14] != null ? object[14].toString() : null);
+					dto.setApproverEmail(object[15] != null ? object[15].toString() : null);
+					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);
+					dto.setLevel2ApproverId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					dto.setLevel2ApproverName(object[18] != null ? object[18].toString() : null);
+					dto.setLevel2ApproverEmail(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApprovalStatus(object[20] != null ? object[20].toString() : null);
+					
+					dto.setLevel3ApproverId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
+					dto.setLevel3ApproverName(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApproverEmail(object[23] != null ? object[23].toString() : null);
+					dto.setLevel3ApprovalStatus(object[24] != null ? object[24].toString() : null);
+					
+					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
+					
 					dtoList.add(dto);
 				});
 

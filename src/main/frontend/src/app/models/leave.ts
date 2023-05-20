@@ -10,7 +10,6 @@ export class Leave{
 	createdBy:any;
 	createdOn:any;
 	createdByName:any;
-	managerId:any;
 	status:any;
 	leaveStatusId:any;
 	leaveTypeCode:any;
@@ -103,4 +102,23 @@ export class Leave{
 	managerEmail:any;
 	
 	isWeekOffsExcluded:any;
+
+	hodId:any;
+	hodEmail:any;
+
+	currentApprovalLevel:any;
+	finalApprovalLevel:any;
+	
+	managerId:any;
+	managerApprovalStatus:any;
+	
+	level2ApproverId:any;
+	level2ApproverName:any;
+	level2ApproverEmail:any;
+	level2ApprovalStatus:any;
+	
+	level3ApproverId:any;
+	level3ApproverName:any;
+	level3ApproverEmail:any;
+	level3ApprovalStatus:any;
 }

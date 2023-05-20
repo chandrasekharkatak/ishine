@@ -73,6 +73,13 @@ public class CompOffLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getCompOffBalanceDetailsByEmpIdAndFromDate" ,method = RequestMethod.POST)
+	public ServiceResponse getCompOffBalanceDetailsByEmpIdAndFromDate (@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);
+		return response;
+	}
+	
 	/* CompOff reconsilation */
 	
 	@RequestMapping(value = "/getCompOffBalanceMigratedFromOldLeavePortal" ,method = RequestMethod.GET)
@@ -93,6 +100,13 @@ public class CompOffLeaveController {
 	public ServiceResponse convertSingleCompOffApplicationToken() {
 		
 		ServiceResponse response = compOffLeaveService.convertSingleCompOffApplicationToken();
+		return response;
+	}
+	
+	@RequestMapping(value = "/lapseAndReconcileCompOffBalance" ,method = RequestMethod.GET)
+	public ServiceResponse lapseAndReconcileCompOffBalance() {
+		
+		ServiceResponse response = compOffLeaveService.lapseAndReconcileCompOffBalance();
 		return response;
 	}
 

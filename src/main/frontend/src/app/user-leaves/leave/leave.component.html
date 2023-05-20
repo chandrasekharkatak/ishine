@@ -84,7 +84,7 @@
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" > -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter"
-                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate()" (keydown)="disableMannualDateInput()" autocomplete="off">
+                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate();getAvailableCompOffDetails(leaveObj)" (keydown)="disableMannualDateInput()" autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" style="margin-left: -40px;"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker (closed)="input.blur()" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" disabled="false"></mat-datepicker>

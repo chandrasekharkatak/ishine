@@ -282,6 +282,10 @@ export class CompOffComponent implements OnInit {
         this.compOffObj.managerEmail = this.currentUser.managerEmail;
         this.compOffObj.managerName = this.currentUser.managerName;
       }
+
+      this.compOffObj.hodId = this.currentUser.hodId;
+      this.compOffObj.hodEmail = this.currentUser.hodEmail;
+      this.compOffObj.hodName = this.currentUser.hodName;
   
       console.log("Apply Comp off : ", this.compOffObj);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
@@ -353,6 +357,10 @@ export class CompOffComponent implements OnInit {
       compOff.managerId = this.currentUser.managerId;	
       compOff.managerEmail = this.currentUser.managerEmail;
       compOff.managerName = this.currentUser.managerName;
+
+      compOff.hodId = this.currentUser.hodId;
+      compOff.hodEmail = this.currentUser.hodEmail;
+      compOff.hodName = this.currentUser.hodName;
 
       console.log("Delete compOff ",compOff)
       this.leaveService.deleteCompOff(compOff).pipe(first()).subscribe((response: any) => {	

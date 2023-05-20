@@ -205,4 +205,8 @@ public class EmployeeDTO {
 	private String unlockTimesheetFor;
 	private String isTimesheetFilledByMember;
 	private String isDateOfRelievingToday;
+	
+	private Float newBalance;
+	private Float oldBalance;
+	private Integer previouseCompOffExpiredCount;
 }
