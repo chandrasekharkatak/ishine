@@ -728,7 +728,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>IFSC</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankIFSCCode" (blur)="validatebankIFSCCode($event,employeeObj.bankIFSCCode)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankIFSCCode" (blur)="validatebankIFSCCode($event,employeeObj.bankIFSCCode);validateIfscCode(alert_message,employeeObj.bankIFSCCode)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>

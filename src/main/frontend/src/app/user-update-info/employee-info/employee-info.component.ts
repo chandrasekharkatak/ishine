@@ -604,7 +604,7 @@ export class EmployeeInfoComponent implements OnInit{
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.employerName)){
+            }else   if(!this.validationService.validateOrgName(previousEmployer.employerName)){
               this.alertMessage = `Please Enter valid Employer Name - ${index+1}!!`;
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
@@ -711,7 +711,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.alertMessage = "Please enter Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaWithSpace(employeeObj.bankName)){
+    }if(!this.validationService.validateOrgName(employeeObj.bankName)){
       this.alertMessage = "Please enter Valid Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -906,6 +906,27 @@ export class EmployeeInfoComponent implements OnInit{
     });
   }
 
+  validateIfscCode(template: TemplateRef<any>, ifscCode:any){
+    this.employeeObj.bankName = this.employeeObj.bankName.trim();
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode.trim();
+
+    if(this.employeeObj.bankIFSCCode){
+      fetch('https://ifsc.razorpay.com/'+ifscCode).then(res => res.json()).then(data => {
+        
+        if(data == "Not Found"){
+          this.openAlertMod(template, 'Please enter valid IFSC code');
+          this.employeeObj.bankIFSCCode = "";
+        }else if(data && this.employeeObj.bankName){
+          let name = data.BANK;
+          
+          if(this.employeeObj.bankName.localeCompare(name, undefined, { sensitivity: 'accent' }) !== 0){
+            this.openAlertMod(template,  `Please enter valid IFSC code, entered IFSC Code belongs to ${name}`);
+            this.employeeObj.bankIFSCCode = "";
+          }
+        }
+      });
+    }
+  }
 
   // Validations
 
@@ -1229,7 +1250,7 @@ if(this.errorMsg == ""){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter bank name !!"
   }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateOrgName(data)) {
     this.errorMsg = "Please enter valid bank name !!"
 }
   else{
@@ -1373,7 +1394,7 @@ if(this.errorMsg == ""){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter Employer name !!"
     }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateOrgName(data)) {
     this.errorMsg = "Please enter valid Employer name !!"
 }
   else{
