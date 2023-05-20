@@ -11,7 +11,7 @@
     color: var(--raisin-black);
 }
 
-.req-card:hover{
+.req-card:hover, .notification_icon:hover{
     cursor: pointer;
 }
 
