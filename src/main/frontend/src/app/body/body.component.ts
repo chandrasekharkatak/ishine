@@ -18,6 +18,7 @@ export class BodyComponent implements OnInit {
   @Input() collapsed = false;
   @Input() screenWidth = 0;
   currentUser:User = new User();
+  currentUserName = "";
 
   @ViewChild("change_password")
   changePasswordTemplate: TemplateRef<any>;
@@ -67,6 +68,7 @@ export class BodyComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
   }
 
   getBodyClass(): string{
