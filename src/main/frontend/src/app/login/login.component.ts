@@ -378,7 +378,9 @@ export class LoginComponent implements OnInit{
       if(response.serviceStatus == "Success")
       {
         this.isLoginOTP=false;
-        this.showOtpForm();
+        setTimeout(() => {
+          this.showOtpForm();
+        });
       }
       else{
       this.isError=true;
