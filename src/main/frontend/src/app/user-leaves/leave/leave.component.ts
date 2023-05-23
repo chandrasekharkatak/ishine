@@ -980,8 +980,8 @@ export class LeaveComponent implements OnInit {
             }
           }else{
             this.leaveObj.level2ApproverId = this.currentUser.hodId;
-            this.leaveObj.level2ApproverEmail = this.currentUser.hodName
-            this.leaveObj.level2ApproverName = this.currentUser.hodEmail
+            this.leaveObj.level2ApproverEmail = this.currentUser.hodEmail; 
+            this.leaveObj.level2ApproverName = this.currentUser.hodName;
           }
         }
         
@@ -998,14 +998,14 @@ export class LeaveComponent implements OnInit {
               this.leaveObj.level3ApproverName = this.currentUser.managerName;
             }
           }else{
-            this.leaveObj.level3ApproverId = this.currentUser.hodId;
-            this.leaveObj.level3ApproverEmail = this.currentUser.hodName
-            this.leaveObj.level3ApproverName = this.currentUser.hodEmail
+            this.leaveObj.level3ApproverId = this.level2ApprovalTo;
+            this.leaveObj.level3ApproverEmail = this.level2ApproverEmail; 
+            this.leaveObj.level3ApproverName = this.level2ApproverName;
           }
         }
 
-
       }else{
+        // Approvers for Team Member
         let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
         
         // Level 1
@@ -1015,8 +1015,8 @@ export class LeaveComponent implements OnInit {
           this.leaveObj.approverName = teamMember.reportingManagerName;
         }else{
           this.leaveObj.managerId = teamMember.managerId;
+          this.leaveObj.approverEmail = teamMember.managerEmail;
           this.leaveObj.approverName = teamMember.managerName;
-          this.leaveObj.approverEmail = teamMember.managerEmail
         }
 
         // Level 2
@@ -1028,32 +1028,32 @@ export class LeaveComponent implements OnInit {
               this.leaveObj.level2ApproverName = teamMember.reportingManagerName;
             }else{
               this.leaveObj.level2ApproverId = teamMember.managerId;
-              this.leaveObj.level2ApproverEmail = teamMember.managerName;
-              this.leaveObj.level2ApproverName = teamMember.managerEmail
+              this.leaveObj.level2ApproverEmail = teamMember.managerEmail;
+              this.leaveObj.level2ApproverName = teamMember.managerName;
             }
           }else{
             this.leaveObj.level2ApproverId = teamMember.hodId;
-            this.leaveObj.level2ApproverEmail = teamMember.hodName
-            this.leaveObj.level2ApproverName = teamMember.hodEmail
+            this.leaveObj.level2ApproverEmail = teamMember.hodEmail;
+            this.leaveObj.level2ApproverName = teamMember.hodName; 
           }
         }
         
         // Level 3
         if(this.leaveObj.finalApprovalLevel == 3){
-            if(this.leaveObj.empId == teamMember.hodId){
+            if(this.leaveObj.empId == this.level2ApprovalTo){
               if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
                 this.leaveObj.level3ApproverId = teamMember.reportingManagerId;
                 this.leaveObj.level3ApproverEmail = teamMember.reportingManagerEmail;
                 this.leaveObj.level3ApproverName = teamMember.reportingManagerName;
               }else{
                 this.leaveObj.level3ApproverId = teamMember.managerId;
-                this.leaveObj.level3ApproverEmail = teamMember.managerName;
-                this.leaveObj.level3ApproverName = teamMember.managerEmail
+                this.leaveObj.level3ApproverEmail = teamMember.managerEmail;
+                this.leaveObj.level3ApproverName = teamMember.managerName; 
               }
             }else{
-              this.leaveObj.level3ApproverId = teamMember.hodId;
-              this.leaveObj.level3ApproverEmail = teamMember.hodName
-              this.leaveObj.level3ApproverName = teamMember.hodEmail
+              this.leaveObj.level3ApproverId =    this.level2ApprovalTo;
+              this.leaveObj.level3ApproverEmail = this.level2ApproverEmail;
+              this.leaveObj.level3ApproverName =  this.level2ApproverName; 
             }
         }
       }
@@ -1122,8 +1122,8 @@ export class LeaveComponent implements OnInit {
           }
         }else{
           this.leaveObj.level2ApproverId = this.currentUser.hodId;
-          this.leaveObj.level2ApproverEmail = this.currentUser.hodName
-          this.leaveObj.level2ApproverName = this.currentUser.hodEmail
+          this.leaveObj.level2ApproverEmail = this.currentUser.hodEmail;
+          this.leaveObj.level2ApproverName = this.currentUser.hodName;
         }
       }
       
@@ -1141,8 +1141,8 @@ export class LeaveComponent implements OnInit {
           }
         }else{
           this.leaveObj.level3ApproverId = this.currentUser.hodId;
-          this.leaveObj.level3ApproverEmail = this.currentUser.hodName
-          this.leaveObj.level3ApproverName = this.currentUser.hodEmail
+          this.leaveObj.level3ApproverEmail = this.currentUser.hodEmail;
+          this.leaveObj.level3ApproverName = this.currentUser.hodName; 
         }
       }
 
@@ -1170,13 +1170,13 @@ export class LeaveComponent implements OnInit {
             this.leaveObj.level2ApproverName = teamMember.reportingManagerName;
           }else{
             this.leaveObj.level2ApproverId = teamMember.managerId;
-            this.leaveObj.level2ApproverEmail = teamMember.managerName;
-            this.leaveObj.level2ApproverName = teamMember.managerEmail
+            this.leaveObj.level2ApproverEmail = teamMember.managerEmail;
+            this.leaveObj.level2ApproverName = teamMember.managerName;
           }
         }else{
           this.leaveObj.level2ApproverId = teamMember.hodId;
-          this.leaveObj.level2ApproverEmail = teamMember.hodName
-          this.leaveObj.level2ApproverName = teamMember.hodEmail
+          this.leaveObj.level2ApproverEmail = teamMember.hodEmail;
+          this.leaveObj.level2ApproverName = teamMember.hodName;
         }
       }
       
@@ -1189,13 +1189,13 @@ export class LeaveComponent implements OnInit {
               this.leaveObj.level3ApproverName = teamMember.reportingManagerName;
             }else{
               this.leaveObj.level3ApproverId = teamMember.managerId;
-              this.leaveObj.level3ApproverEmail = teamMember.managerName;
-              this.leaveObj.level3ApproverName = teamMember.managerEmail
+              this.leaveObj.level3ApproverEmail = teamMember.managerEmail;
+              this.leaveObj.level3ApproverName = teamMember.managerName; 
             }
           }else{
             this.leaveObj.level3ApproverId = teamMember.hodId;
-            this.leaveObj.level3ApproverEmail = teamMember.hodName
-            this.leaveObj.level3ApproverName = teamMember.hodEmail
+            this.leaveObj.level3ApproverEmail = teamMember.hodEmail;
+            this.leaveObj.level3ApproverName = teamMember.hodName; 
           }
       }
     }
@@ -1344,6 +1344,10 @@ export class LeaveComponent implements OnInit {
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+            leave.currentApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
 
@@ -1378,6 +1382,10 @@ export class LeaveComponent implements OnInit {
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           leave.checkDate = new Date(leave.fromDate);
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+            leave.currentApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveHistoryList : ", this.leaveHistoryList);
       } else {
