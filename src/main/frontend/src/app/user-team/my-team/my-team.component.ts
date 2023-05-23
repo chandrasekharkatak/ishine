@@ -430,9 +430,13 @@ export class MyTeamComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
         this.leaveApplicationList.forEach(leaveApp => {
-          leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
-          leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null,
-          leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+          leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if(!leaveApp.currentApprovalLevel && !leaveApp.finalApprovalLevel){
+            leaveApp.currentApprovalLevel = 1;
+            leaveApp.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
@@ -444,8 +448,8 @@ export class MyTeamComponent implements OnInit {
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
-    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
-    leaveApplication.approverEmail = this.currentUser.email;	
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim()	
 
     console.log("leaveApplication : ", leaveApplication);
 
@@ -498,7 +502,10 @@ export class MyTeamComponent implements OnInit {
     console.log("template: ", this.alertTemplate );
 
     compOffObj.leaveStatusId = updatedCompOffStatusId;
-    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    compOffObj.hodEmail = this.currentUser.email;
+    compOffObj.hodName = this.currentUser.name;
+    compOffObj.employeeName = compOffObj.createdByName;
 
     console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {

@@ -45,6 +45,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployeesBirthDayToday();
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllEmployeesBirthDayTomorrow();
+	
 	public Long countByJobRoleId(Long jobRoleId);
 
 	public Employee findByEmployeementId(Long employeementId);
@@ -169,4 +172,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeDetailForDSRCron(LocalDate startDate, LocalDate endDate);
+
+	public List<Employee> findByEmploymentstatusIsNot(String string);
 }

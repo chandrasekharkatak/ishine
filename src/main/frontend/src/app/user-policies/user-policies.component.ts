@@ -75,7 +75,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   policyColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
- 
+  isDocumentScrolledToBottom:boolean = false;
 
   ngOnInit(): void {
 
@@ -160,6 +160,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   previewPolicyDocument(template: TemplateRef<any>,doc: any) {
     this.src = null;
     this.fileName = doc.policyName;
+    this.isDocumentScrolledToBottom = false;
 
     this.currentDoc = doc;
 
@@ -185,6 +186,20 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   openPreviewDocument(template: TemplateRef<any>){
     this.modalRef = this.modalService.show(template, this.policyModalConfiguration);
+    setTimeout(()=>{
+      if(this.currentDoc.readEnabled == 'true' && !this.currentDoc.isRead){
+        let scrollElement = document.querySelector('.ng2-pdf-viewer-container');
+      if(scrollElement){
+        scrollElement.addEventListener("scroll", (event:any)=>{
+          if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
+            this.isDocumentScrolledToBottom = true;
+          }else{
+            this.isDocumentScrolledToBottom = false;
+          }
+        });
+      } 
+      }
+    }, 100)
   }
 
   cancelRequest() {

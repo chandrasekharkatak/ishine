@@ -148,6 +148,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/deleteCompOff`, compOffObj);
   }
 
+  getCompOffBalanceDetailsByEmpIdAndFromDate(compOffObj:Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getCompOffBalanceDetailsByEmpIdAndFromDate`, compOffObj);
+  }
+
   /* Leave Policy */
   addLeavePolicy(leavePolicyObj:Leave) {
     return this.http.post(`${this.baseUrl}` + `api/addLeavePolicy`, leavePolicyObj);

@@ -29,7 +29,6 @@ public class LeaveDTO {
 	private Long createdBy;
 	private String createdOn;
 	private String createdByName;
-	private Integer managerId;
 	private String status;
 	private Short leaveStatusId;
 	private String leaveTypeCode;
@@ -91,6 +90,8 @@ public class LeaveDTO {
 	private String employeeName;
 	
 	private String hodName;
+	private Integer hodId;
+	private String hodEmail;
 	List<CustomFilterDTO> queryList;
 	
 	private String startDate;
@@ -129,4 +130,20 @@ public class LeaveDTO {
 	
 	private Float compOffAppliedOnIshine;
 	private Float balanceFromOldPortal;
+	
+	private Integer currentApprovalLevel;
+	private Integer finalApprovalLevel;
+	
+	private Integer managerId;
+	private String managerApprovalStatus;
+	
+	private Long level2ApproverId;
+	private String level2ApproverName;
+	private String level2ApproverEmail;
+	private String level2ApprovalStatus;
+	
+	private Long level3ApproverId;
+	private String level3ApproverName;
+	private String level3ApproverEmail;
+	private String level3ApprovalStatus;
 }

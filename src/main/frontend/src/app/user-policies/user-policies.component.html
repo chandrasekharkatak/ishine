@@ -121,7 +121,7 @@
           </div>
       </div>
 
-      <button  class="btn btn-sm btn-outline-primary mt-1" *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, currentDoc)" >Mark As Read</button>
+      <button  class="btn btn-sm btn-outline-primary mt-1" *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, currentDoc)"  [disabled]="!isDocumentScrolledToBottom">Mark As Read</button>
       <button type="button" class="btn btn-outline-primary" *ngIf="(currentDoc.readEnabled == 'true' && currentDoc.isRead) || currentDoc.readEnabled == 'false'"  (click)="cancelRequest()">Cancel</button>&nbsp;
   </div>
 </ng-template>

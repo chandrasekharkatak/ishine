@@ -84,7 +84,7 @@
                             <!-- <input id="fromDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.fromDate" (change)="setMinToDate(alert_message);setNoOfDays(alert_message)" > -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter"
-                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate()" (keydown)="disableMannualDateInput()" autocomplete="off">
+                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate();getAvailableCompOffDetails(leaveObj)" (keydown)="disableMannualDateInput()" autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" style="margin-left: -40px;"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker (closed)="input.blur()" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" disabled="false"></mat-datepicker>
@@ -216,7 +216,13 @@
                             <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
                             <th scope="col" class="wide-col" mat-sort-header="reason|string">Reason</th>
-                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
                             <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                             <th scope="col" class="info-label">Action</th>
                             <!-- <th scope="col" class="info-label">Comments</th> -->
@@ -239,7 +245,18 @@
                                 <td *ngIf="isSelfLeaveHistory">{{leaveHistory.createdByName}}</td>
                                 <td>{{leaveHistory.createdOn}}</td>
                                 <td>{{leaveHistory.reason}}</td>
+                                <td>{{leaveHistory.currentApprovalLevel}}
+                                    <br>
+                                    <h6 class="badge badge-pill primary-pill" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Pending'">Final</h6>
+                                    <!-- <h6 class="badge badge-pill badge-success" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Approved'">Approved</h6>
+                                    <h6 class="badge badge-pill badge-danger" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Rejected'">Rejected</h6> -->
+                                </td>
                                 <td>{{leaveHistory.approverName}}</td>
+                                <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
+                                <td>{{leaveHistory.level2ApproverName}}</td>
+                                <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
+                                <td>{{leaveHistory.level3ApproverName}}</td>
+                                <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                                 <td>{{leaveHistory.remark}}</td>
                                 <!-- <td>{{leaveHistory.description}}</td> -->
                                 <td>	

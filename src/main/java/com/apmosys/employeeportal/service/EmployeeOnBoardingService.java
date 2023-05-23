@@ -423,9 +423,10 @@ public class EmployeeOnBoardingService {
 			
 			List<Employee> employee = employeeRepository.findAll();
 			List<Asset> asset = employeeOnboardingRepository.findAll();
-			List<EmployeeAssetMap> assetMappingObj = new ArrayList<>();
 			
 			for(Employee obj : employee) {
+				List<EmployeeAssetMap> assetMappingObj = new ArrayList<>();
+				
 				for(Asset assetObj : asset) {
 					EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
 					employeeAssetMap.setAssetId(assetObj.getAssetId());
@@ -433,11 +434,18 @@ public class EmployeeOnBoardingService {
 					employeeAssetMap.setIsAssigned("false");
 					assetMappingObj.add(employeeAssetMap);
 				}
+				
+				employeeOnboardingMapRepository.saveAll(assetMappingObj);
+				
+				// After creating Blank Mapping Checking for Assets in OTRS
+				AssetDTO currentEmployee = new AssetDTO();
+				currentEmployee.setEmployeementId(obj.getEmployeementId());
+				
+				ServiceResponse snipitAssetApiResponse =  getAssetDataFromSnipitPortal(currentEmployee);
 			}
-			employeeOnboardingMapRepository.saveAll(assetMappingObj);
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Employee Asset mapping generated Successful.");
+			response.setServiceResponse("Employee Asset mapping generated Successfully.");
 			
 		}catch(Exception e) {
 			e.printStackTrace();

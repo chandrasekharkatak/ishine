@@ -42,6 +42,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   feature = "Home";
   currentUser: User;
+  currentUserName = "";
   userMapping: any = {};
   log: Log;
 
@@ -166,6 +167,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
@@ -243,6 +245,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+            leave.currentApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
@@ -272,15 +278,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     this.cancelRequest();
-    let leaveObj = new Leave();
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
-    leaveObj.email = leaveApplication.email
-    leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
-    leaveApplication.approverEmail = this.currentUser.email;
-
-    console.log("   leaveObj.email   ", leaveObj.email);
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
 
     console.log("leaveApplication : ", leaveApplication);
 
@@ -363,8 +364,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     compOff = Object.assign({},compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
-    compOff.managerEmail = this.currentUser.email;
-    compOff.managerName = this.currentUser.name;
+    compOff.hodEmail = this.currentUser.email;
+    compOff.hodName = this.currentUser.name;
     compOff.employeeName = compOff.createdByName;
     console.log("Update Comp off : ", compOff);
 
