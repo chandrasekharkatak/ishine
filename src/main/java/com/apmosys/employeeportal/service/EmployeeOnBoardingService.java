@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -279,7 +280,7 @@ public class EmployeeOnBoardingService {
 					        id = snipitResponse.getJSONObject(i).getInt("id");
 					    }
 						
-						List<String> assetDetailList = new ArrayList<>();
+//						List<String> assetDetailList = new ArrayList<>();
 						
 						// SNIPIT API call to get asset details by user Id
 						JSONArray snipitAssetResponse = snipitAssetAPICall(id);
@@ -310,13 +311,13 @@ public class EmployeeOnBoardingService {
 												String updatedAssetDetail = modalName+"("+assetTag+")";
 												
 												if(empAsset.getAssetDetail() != null) {
+													List<String> assetDetailList = new ArrayList<>();
+													assetDetailList = Arrays.asList(empAsset.getAssetDetail().split(",", -1));
+													
 													if(!assetDetailList.isEmpty() && !assetDetailList.contains(updatedAssetDetail)) {
-														
-														empAsset.setAssetDetail(String.join(",", assetDetailList));
-														assetDetailList.add(updatedAssetDetail);
+														empAsset.setAssetDetail(String.join(",", assetDetailList).concat(","+ updatedAssetDetail));
 													}
 												}else {
-													assetDetailList.add(updatedAssetDetail);
 													empAsset.setAssetDetail(updatedAssetDetail);
 												}
 											}
@@ -347,8 +348,9 @@ public class EmployeeOnBoardingService {
 										}else {
 											Asset asset = new Asset();
 											asset.setAssetName(category);
-											// by-default dept will be IT 
+											// by-default dept will be IT  & Asset Type will be "both"
 											asset.setDeptId(10l);
+											asset.setAssetType("both");
 											dbResponse = employeeOnboardingRepository.save(asset);
 										}
 										
@@ -421,27 +423,45 @@ public class EmployeeOnBoardingService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
-			List<Employee> employee = employeeRepository.findAll();
 			List<Asset> asset = employeeOnboardingRepository.findAll();
+
+			// Getting All Active Employees
+			List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
 			
-			for(Employee obj : employee) {
-				List<EmployeeAssetMap> assetMappingObj = new ArrayList<>();
+			// Deleting existing Asset Mapping 
+			List<EmployeeAssetMap> existingAssetMap = employeeOnboardingMapRepository.findAll();
+			
+			if(!existingAssetMap.isEmpty()) {
+				existingAssetMap.forEach(assetMap -> {
+					employeeOnboardingMapRepository.deleteById(assetMap.getEmployeeAssetMapId());
+				});
+			}
+			
+			
+			// Generating New Blank Asset Mappings
+			for(Object[] employeeList: allEmployee) {
+				Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+				Long employmentId = employeeList[3] != null ? Long.parseLong(employeeList[3].toString()) : null;
 				
-				for(Asset assetObj : asset) {
-					EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
-					employeeAssetMap.setAssetId(assetObj.getAssetId());
-					employeeAssetMap.setEmpId(obj.getEmpId());
-					employeeAssetMap.setIsAssigned("false");
-					assetMappingObj.add(employeeAssetMap);
+				if(empId != null && employmentId != null) {
+					List<EmployeeAssetMap> assetMappingObj = new ArrayList<>();
+					
+					for(Asset assetObj : asset) {
+						EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
+						employeeAssetMap.setAssetId(assetObj.getAssetId());
+						employeeAssetMap.setEmpId(empId);
+						employeeAssetMap.setIsAssigned("false");
+						assetMappingObj.add(employeeAssetMap);
+					}
+					
+					employeeOnboardingMapRepository.saveAll(assetMappingObj);
+					
+					// After creating Blank Mapping Checking for Assets in OTRS & Updating them into Assets
+					AssetDTO currentEmployee = new AssetDTO();
+					currentEmployee.setEmployeementId(employmentId);
+					
+					ServiceResponse snipitAssetApiResponse =  getAssetDataFromSnipitPortal(currentEmployee);
 				}
-				
-				employeeOnboardingMapRepository.saveAll(assetMappingObj);
-				
-				// After creating Blank Mapping Checking for Assets in OTRS
-				AssetDTO currentEmployee = new AssetDTO();
-				currentEmployee.setEmployeementId(obj.getEmployeementId());
-				
-				ServiceResponse snipitAssetApiResponse =  getAssetDataFromSnipitPortal(currentEmployee);
 			}
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
