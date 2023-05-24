@@ -511,7 +511,12 @@ public class EmployeeLeaveService {
 							leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
 					
 					Float balance = employeeLeavesMap.getBalance();
-					balance = balance + leaveDTO.getNoOfDays();
+					if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+						balance = 0F;
+					}else {					
+						balance = balance + leaveDTO.getNoOfDays();
+					}
+					
 					Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 					pendingForApproval = pendingForApproval - leaveDTO.getNoOfDays();
 					
@@ -527,7 +532,12 @@ public class EmployeeLeaveService {
 						log.setBalance(balance);
 						log.setEmpId(leaveToBeDeleted.getEmpId());
 						log.setLeaveTypeMasterId(leaveToBeDeleted.getLeaveTypeMasterId());
-						log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
+						if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+							log.setMessage(LeaveLogMessage.deleteLeave);
+						}else {					
+							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
+						}
+						
 						log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 						
 						leaveBalanceLogRepository.save(log);
@@ -1397,15 +1407,25 @@ public class EmployeeLeaveService {
 					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")) {
 						pendingLeaveApplication.setLeaveStatusId((short) 3);
 						pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
-						employeeLeavesMap
-								.setBalance(employeeLeavesMap.getBalance() + pendingLeaveApplication.getNoOfDays());
+						
+						Float balance = employeeLeavesMap.getBalance();
+						if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+							balance = 0F;
+						}else {					
+							balance = balance + pendingLeaveApplication.getNoOfDays();
+						}
+						
+						employeeLeavesMap.setBalance(balance);
 
 						LeaveBalanceLog log = new LeaveBalanceLog();
 						log.setBalance(employeeLeavesMap.getBalance());
 						log.setEmpId(leaveDTO.getEmpId());
 						log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-						log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0",
-								pendingLeaveApplication.getNoOfDays().toString()));
+						if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+							log.setMessage(LeaveLogMessage.deleteLeave);
+						}else {					
+							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
+						}
 						log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 						leaveBalanceLogRepository.save(log);
 						response.setServiceResponse("Leave application rejected.");
