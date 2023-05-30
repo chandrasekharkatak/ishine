@@ -1,3 +1,11 @@
+<div *ngIf="isShowReleaseNote" class="alert alert-light alert-dismissible fade show release-notification pr-4" role="alert">
+    <h4 class="alert-heading text-dark">Ishine Portal Release Note</h4>
+    <button type="button" class="close" aria-label="Close" (click)="submitReleaseNoteNotificationConsent()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <div class="releaseNoteText" [innerHTML]="releaseNoteText"></div>
+</div>
+
 <div class="home-container">
     <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
         <ul class="navbar-nav">

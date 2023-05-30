@@ -142,6 +142,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
   compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
   timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
 
+
+  isShowReleaseNote:boolean = false;
+  releaseNoteText = "";
+
   constructor(
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
@@ -217,6 +221,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if(this.currentUser.isNew == "false"){
       console.log("this.currentUser : ", this.currentUser);
       this.openConsentNotificationModal();
+      this.setReleaseNote();
     }
   }
 
@@ -1102,7 +1107,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   openNotificationMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   openReqMod(template: TemplateRef<any>) {
@@ -1603,7 +1608,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        this.allNotification = this.allNotification.filter(x => x.isActive == 'true');
+        this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
 
         console.log("notificationList : ", this.allNotification);
       } else {
@@ -1628,6 +1633,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     notificationObj.empId = this.currentUser.empId;
     notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
+    notificationObj.notificationType = this.currentUser.notificationConsent.notificationType;
     this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let dtoResponse = response.serviceResponse;
@@ -1635,6 +1641,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openConsentNotificationModal();
+      }
+    });
+  }
+
+
+  // Release Note Consent 
+  setReleaseNote(){
+    this.isShowReleaseNote = false;
+
+    console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
+
+    if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
+      this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
+      this.isShowReleaseNote = true;
+    }
+  }
+
+  submitReleaseNoteNotificationConsent(){
+    let notificationObj = new NotificationMessage();
+
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.currentUser.releaseNoteNotification.notificationId;
+    notificationObj.notificationType = this.currentUser.releaseNoteNotification.notificationType;
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.releaseNoteNotification = dtoResponse.releaseNoteNotification;
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.setReleaseNote()
       }
     });
   }
