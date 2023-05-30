@@ -1162,6 +1162,9 @@ export class ReportListComponent implements OnInit {
   
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
   }
 
   onSearch(searchData){

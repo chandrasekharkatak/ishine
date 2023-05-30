@@ -123,6 +123,9 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
   }
 
   onSearch(searchData){
