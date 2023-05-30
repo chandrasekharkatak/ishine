@@ -55,7 +55,14 @@ export class BodyComponent implements OnInit {
     private employeeService: EmployeeService,
     private router: Router,
   ){
-    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.authenticationService.currentUser.subscribe(x => {
+      this.currentUser = x;
+
+      if(this.currentUser){
+        this.currentUserName = this.currentUser.name.split(" ")[0];
+      this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+      }
+    });
     this.router.events.subscribe((e) => {
       if (e instanceof NavigationEnd) {
         if(e.url == "/home"){
@@ -68,7 +75,6 @@ export class BodyComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
   }
 
   getBodyClass(): string{
@@ -239,7 +245,7 @@ export class BodyComponent implements OnInit {
     if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
       !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
       this.isError = true;
-      this.errorMsg = 'Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are @#$%!+*÷=/_-\'":;,()^{}~[]';
       return;
     }
 
