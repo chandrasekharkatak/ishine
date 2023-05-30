@@ -159,7 +159,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Aadhar Number</label>
-                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar" (blur)="checkEmployeeAadharNumber(alert_message);validateAadhar($event,employeeObj.aadhar)">
+                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar" (blur)="validateAadhar($event,employeeObj.aadhar)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -169,7 +169,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>PAN Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber" (blur)="checkEmployeePanNumber(alert_message);validatePan($event,employeeObj.panNumber)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber" (blur)="validatePan($event,employeeObj.panNumber)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
