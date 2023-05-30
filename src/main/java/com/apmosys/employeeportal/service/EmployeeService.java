@@ -2589,6 +2589,23 @@ public class EmployeeService {
 					}
 				}
 				
+				
+				//Check if all Notification consent given.
+				List<Notification> allReleaseNotes = notificationRepository
+						.findByNotificationTypeAndIsActive("releaseNotes", "true");
+				
+				if(!allReleaseNotes.isEmpty()) {
+					for(Notification object: allReleaseNotes) {
+						EmployeeNotificationConsent releaseConsentObj = employeeNotificationConsentRepository
+								.findByEmpIdAndNotificationId(employee.getEmpId(), object.getNotificationId());
+						
+						if(releaseConsentObj == null) {
+							employee.setReleaseNoteNotification(object);
+							break;
+						}
+					}
+				}
+				
 				return employee;
 			}
 

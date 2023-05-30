@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.dto;
 
 import java.util.List;
+
+import com.apmosys.employeeportal.model.Notification;
+
 import java.time.LocalDate;	
 
 import lombok.Getter;
@@ -200,6 +203,7 @@ public class EmployeeDTO {
 	private Object policyReadConsent;
 	
 	private Object notificationConsent;
+	private Notification releaseNoteNotification;
 	private String poPortalAllProjectApi;
 	
 	private String unlockTimesheetFor;

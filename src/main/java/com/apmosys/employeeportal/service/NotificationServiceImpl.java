@@ -236,6 +236,20 @@ public class NotificationServiceImpl implements NotificationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Notification deleted Successfully.");
+				}else if(notificationObj.getNotificationType().equals("releaseNotes")) {
+					
+					notificationObj.setIsActive("false");
+					notificationObj.setUpdatedBy(notificationDTO.getUpdatedBy());
+					
+					Notification dbResponse = notificationRepository.save(notificationObj);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Notification deleted Successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Unable to delete notification.");
+					}
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -267,17 +281,34 @@ public class NotificationServiceImpl implements NotificationService {
 				
 				EmployeeDTO dto = new EmployeeDTO();
 				
-				List<Notification> allConsentNotification = notificationRepository
-						.findByNotificationTypeAndIsActive("consentNotification", "true");
-				
-				if(!allConsentNotification.isEmpty()) {
-					for(Notification object: allConsentNotification) {
-						EmployeeNotificationConsent consentObject = employeeNotificationConsentRepository
-								.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
-						
-						if(consentObject == null) {
-							dto.setNotificationConsent(object);
-							break;
+				if(notificationDTO.getNotificationType().equals("consentNotification")) {
+					List<Notification> allConsentNotification = notificationRepository
+							.findByNotificationTypeAndIsActive("consentNotification", "true");
+					
+					if(!allConsentNotification.isEmpty()) {
+						for(Notification object: allConsentNotification) {
+							EmployeeNotificationConsent consentObject = employeeNotificationConsentRepository
+									.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
+							
+							if(consentObject == null) {
+								dto.setNotificationConsent(object);
+								break;
+							}
+						}
+					}
+				}else {
+					List<Notification> allReleaseNotes = notificationRepository
+							.findByNotificationTypeAndIsActive("releaseNotes", "true");
+					
+					if(!allReleaseNotes.isEmpty()) {
+						for(Notification object: allReleaseNotes) {
+							EmployeeNotificationConsent releaseConsentObj = employeeNotificationConsentRepository
+									.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
+							
+							if(releaseConsentObj == null) {
+								dto.setReleaseNoteNotification(object);
+								break;
+							}
 						}
 					}
 				}
