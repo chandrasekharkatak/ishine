@@ -138,7 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
   compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
   timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
 
@@ -162,7 +162,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private logService: LogService,
     private locationStrategy: LocationStrategy
   ) {
-    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.authenticationService.currentUser.subscribe(x => {
+      this.currentUser = x;
+      this.currentUserName = this.currentUser.name.split(" ")[0];
+      this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+    });
     this.logService.log.subscribe(x => {
       this.log = x;
       this.log.tabName = this.feature;
@@ -171,7 +175,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
@@ -1561,7 +1564,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
       !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
       this.isError = true;
-      this.errorMsg = 'Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are @#$%!+*÷=/_-\'":;,()^{}~[]';
       return;
     }
 

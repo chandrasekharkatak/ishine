@@ -122,8 +122,8 @@ export class LeaveComponent implements OnInit {
   
   filters:any = {};
   isSearchEnabled:boolean = false;
-  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','approverName','remark'];
-  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','reason','approverName','remark'];
+  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
+  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
   leaveBalColumns:any[] = ['leaveType','totalLeaveBalance','pendingForApproval','balance'];
   leaveLogColumns:any[] = ['rowNumber','leaveType','updateBalanceBy','balance','message','createdOn'];
   selfLeaveRevokeHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','approverName','remark'];
@@ -551,8 +551,16 @@ export class LeaveComponent implements OnInit {
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
 
+    // resetting Data for previously selected leave Type
     this.leaveObj.fromDate = '';
+    this.leaveObj.fromDateDayType = '';
     this.leaveObj.toDate = '';
+    this.leaveObj.toDateDayType = '';
+    this.leaveObj.noOfDays = '';
+    this.leaveObj.reason = '';
+    
+    this.isOverlapsedLeaveTable = false;
+    this.overLappingTeamMemberList = [];
   }
 
   setPolicyObj(leaveTypeMasterId:any){
@@ -1201,6 +1209,7 @@ export class LeaveComponent implements OnInit {
     }
 
     this.leaveObj.updatedBy = this.currentUser.empId;
+    this.leaveObj.isWeekOffsExcluded = this.isWeekOffsExcluded;
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
     console.log(" this.leaveObj : ", this.leaveObj);
@@ -1335,12 +1344,9 @@ export class LeaveComponent implements OnInit {
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
-
-        this.leaveHistoryList.forEach(leave => {
-          leave.checkDate = new Date(leave.fromDate);
-        });
-
+  
         this.leaveHistoryListForTable.forEach(leave => {
+          leave.checkDate = new Date(leave.fromDate);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1378,10 +1384,10 @@ export class LeaveComponent implements OnInit {
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
 
         this.leaveHistoryList.forEach(leave => {
+          leave.checkDate = new Date(leave.fromDate);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          leave.checkDate = new Date(leave.fromDate);
           if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1; 
@@ -1582,7 +1588,7 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllLeaveBalanceByEmpId(leaveObj:Leave){	
+  getAllLeaveBalanceByEmpId(leaveObj:Leave){
     console.log("employyid:  ", leaveObj.empId )	
     console.log("leaveTypeMasterId:  ", leaveObj.leaveTypeMasterId )	
     this.leaveService.getAllLeaveBalanceByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {	

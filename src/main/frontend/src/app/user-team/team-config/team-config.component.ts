@@ -548,7 +548,13 @@ export class TeamConfigComponent implements OnInit {
     });
   }
 
+  resetSelectSearch(matSelect:any){
+    matSelect.searchValue = '';
+    matSelect.filteredSource = matSelect.source;
+  }
+
   addTeamMember(){
+    
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
     if(newTeamMember){
       newTeamMember.employeeRole = this.newteamMember.employeeRole;

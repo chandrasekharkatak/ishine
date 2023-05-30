@@ -1135,26 +1135,22 @@ if(this.errorMsg == ""){
   validateValidEmptyNullUndefinedalternateMobileNo(event, data:any)
   {
     this.employeeObj.emergencyContactMobile = this.employeeObj.emergencyContactMobile?.trim();
-//     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-//       this.errorMsg = "Please enter Mobile number !!"
-//   }
-//   else  if (!this.validationService.validateMobileNumber(data)) {
-//     this.errorMsg = "Please enter valid  Mobile Number !!"
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-if (!this.validationService.validateMobileNumber(this.employeeObj.alternateMobileNo)) {
-this.errorMsg = "Please Enter Valid Mobile Number!!"
-}
-else{
-this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    if (this.validationService.validateNullUndefinedEmptyString(data)) {
+      if (!this.validationService.validateMobileNumber(data)) {
+        this.errorMsg = "Please enter valid  Mobile Number !!"
+      }else{
+        this.errorMsg = ""
+      }
+    }
+    else{
+      this.errorMsg = ""
+    }
+
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
 
   }
 

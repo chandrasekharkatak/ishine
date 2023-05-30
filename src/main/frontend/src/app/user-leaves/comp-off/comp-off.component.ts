@@ -237,13 +237,11 @@ export class CompOffComponent implements OnInit {
         return false;
       }
   
-      // if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.toDate)){
-      //   this.alertMessage = "Please select To Date !!"
-      //   this.openAlertMod(template, this.alertMessage);
-      //   return false;
-      // }
-
-      if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
+      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.description?.trim())){
+        this.alertMessage = "Please enter description !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
         this.alertMessage = "Please enter valid description !!"
         this.openAlertMod(template, this.alertMessage);
         return false;

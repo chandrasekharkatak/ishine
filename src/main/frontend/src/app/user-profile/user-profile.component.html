@@ -606,7 +606,8 @@
                                 <div class="row flex-column px-4" *ngFor="let asset of allAssetList;let i = index">
                                     <div class="info-wrapper">
                                         <p class="info-label">{{asset.assestName}}</p>
-                                        <p class="info-text">{{asset.assetDetail}}</p>
+                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{asset.assetDetail}}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
+                                        <p *ngIf="asset.isAssigned == 'false'" class="info-text">Not Assigned</p>
                                     </div>
                                 </div>
                             </div>

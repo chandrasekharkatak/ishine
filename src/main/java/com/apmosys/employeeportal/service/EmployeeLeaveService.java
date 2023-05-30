@@ -744,7 +744,7 @@ public class EmployeeLeaveService {
 					
 					// For CompOff
 					Float availableCompOffBalance = 0.0F;
-					if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO")) {
+					if(leavetype.get().getLeaveTypeCode().equalsIgnoreCase("CO")) {
 						ServiceResponse compOffResponse = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);
 						
 						if(compOffResponse.getServiceStatus().equals("Success")) {
@@ -764,7 +764,7 @@ public class EmployeeLeaveService {
 								+ " day(s) is not sufficient for this Leave Application.");
 
 						return response;
-					}else if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO") && availableCompOffBalance < difference) {
+					}else if(leavetype.get().getLeaveTypeCode().equalsIgnoreCase("CO") && availableCompOffBalance < difference) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Your available Compensatory off balance of " + availableCompOffBalance
 								+ " day(s) before "+ leaveDTO.getFromDate() +" is not sufficient for this Leave Application.");
@@ -810,14 +810,14 @@ public class EmployeeLeaveService {
 					
 					if(leaveToBeUpdated.getFinalApprovalLevel() == 2) {
 						leaveToBeUpdated.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
-						leaveToBeUpdated.setLevel2ApprovalStatus("Pendiing");
+						leaveToBeUpdated.setLevel2ApprovalStatus("Pending");
 						
 						leaveToBeUpdated.setLevel3ApproverId(null);
 						leaveToBeUpdated.setLevel3ApprovalStatus("NA");
 						
 					}else if(leaveToBeUpdated.getFinalApprovalLevel() == 3) {
 						leaveToBeUpdated.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
-						leaveToBeUpdated.setLevel2ApprovalStatus("Pendiing");
+						leaveToBeUpdated.setLevel2ApprovalStatus("Pending");
 						
 						leaveToBeUpdated.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
 						leaveToBeUpdated.setLevel3ApprovalStatus("Pending");
@@ -1409,7 +1409,7 @@ public class EmployeeLeaveService {
 						pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 						
 						Float balance = employeeLeavesMap.getBalance();
-						if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+						if(leaveTypeObj.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
 							balance = 0F;
 						}else {					
 							balance = balance + pendingLeaveApplication.getNoOfDays();
@@ -1421,7 +1421,7 @@ public class EmployeeLeaveService {
 						log.setBalance(employeeLeavesMap.getBalance());
 						log.setEmpId(leaveDTO.getEmpId());
 						log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-						if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+						if(leaveTypeObj.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
 							log.setMessage(LeaveLogMessage.deleteLeave);
 						}else {					
 							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));

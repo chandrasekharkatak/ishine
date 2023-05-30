@@ -74,7 +74,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  policyColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
+  policyColumns:any[] = ['blank','policyName','createdByName','createdOn'];
   isDocumentScrolledToBottom:boolean = false;
 
   ngOnInit(): void {
@@ -239,6 +239,9 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
   }
 
   onSearch(searchData){
