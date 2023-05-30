@@ -54,6 +54,7 @@ export class User{
     revokeReporteeLeaveValidity:any;
     notificationConsent:any;
     policyReadConsent:any;
+    releaseNoteNotification:any;
     
     poPortalAllProjectApi:any;
 

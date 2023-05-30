@@ -286,6 +286,7 @@ export class LoginComponent implements OnInit{
       this.user.notificationConsent = user.notificationConsent;
       this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
       this.user.probationPeriod = user.probationPeriod;
+      this.user.releaseNoteNotification = user.releaseNoteNotification;
       
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
@@ -456,7 +457,7 @@ export class LoginComponent implements OnInit{
     !this.validationService.validateAlphaNumericSpecialCharacters(this.userConfirmNewPass)){
       this.isError=true;
       //Password should not be set  less than 8 characters and it should accept special, alphanumeric characters
-      this.errorMsg='Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      this.errorMsg='Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are @#$%!+*÷=/_-\'":;,()^{}~[]';
       return;
     }
 
