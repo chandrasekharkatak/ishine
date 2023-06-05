@@ -12,7 +12,6 @@ export class NotificationService {
 
   constructor(private http: HttpClient) { }
 
-  /* Leave */
   addNotification(notificationObj:NotificationMessage) {
     return this.http.post(`${this.baseUrl}` + `api/addNotification`, notificationObj);
   }
@@ -37,11 +36,19 @@ export class NotificationService {
     return this.http.post(`${this.baseUrl}` + `api/onDeleteNotification`, notificationObj);
   }
 
+  onInActivateNotification(notificationObj: NotificationMessage) {
+    return this.http.post(`${this.baseUrl}` + `api/onInActivateNotification`, notificationObj);
+  }
+
   submitNotificationConsent(notificationObj: NotificationMessage) {
     return this.http.post(`${this.baseUrl}` + `api/submitNotificationConsent`, notificationObj);
   }
 
   getConsentNotificationResponse(notificationObj: NotificationMessage) {
     return this.http.post(`${this.baseUrl}` + `api/getConsentNotificationResponse`, notificationObj);
+  }
+
+  getAllNotificationsByNotificationTypeAndEmpId(notificationObj: NotificationMessage) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllNotificationsByNotificationTypeAndEmpId`, notificationObj);
   }
 }
