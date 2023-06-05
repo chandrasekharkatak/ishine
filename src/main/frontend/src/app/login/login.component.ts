@@ -240,7 +240,9 @@ export class LoginComponent implements OnInit{
       this.enableAppreciation = responseObj[7];	
       console.log("enableAppreciation",enableAppreciation);	
       console.log("checking"+sessionStorage.maxFileSize);
-      this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
+      this.authenticationService.setCookie({name:"SESSIONID",value:this.authenticationService.sessionString,session:true});
+      sessionStorage.setItem('token', this.authenticationService.sessionString);
+      
 
       let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
       if (getAllSubFeaturesResp.serviceStatus == "Success") {

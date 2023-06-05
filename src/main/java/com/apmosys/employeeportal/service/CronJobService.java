@@ -85,6 +85,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
@@ -102,6 +103,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -170,6 +172,9 @@ public class CronJobService {
 	ClientsRepository clientsRepository;
 	
 	@Autowired
+	AuthenticationService authenticationService;
+	
+	@Autowired
 	private LogService logService;
 	
 	@Autowired
@@ -180,6 +185,9 @@ public class CronJobService {
 	
 	@Autowired
 	MailService mailService;
+	
+	@Autowired
+	private UserSessionRepository userSessionRepository;
 
 	@Value("${po.db.url}")
 	private String url;
@@ -210,6 +218,7 @@ public class CronJobService {
 	
 	@Value("${resignation.consent.link}")
 	private String resignationConsentLink;
+	
 		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
@@ -3732,62 +3741,61 @@ public class CronJobService {
 		}
 		
 		
-		// To Remove any InActive / Blocked / LoggedIn user with 6hrs^
-		// "0 0 0/6 ? * *" - Run at every 6Hrs
+		// To Remove any InActive / Blocked / Check Idle user within 1hr
+		// "0 0 0/6 ? * *" - Run at every 1 Hr
 		// "0 0/1 * ? * *" - Run at every 1 min
 		
-		@Scheduled(cron = "0 0 0/6 ? * *")
+		@Async
+		@Scheduled(cron = "0 0 0/1 ? * *")
 		public void loggedInUserAudit() {
 			
 			System.out.println("Running LoggedIn User Audit ... ");
 			
 			try {
-				ConcurrentHashMap<Long, String> userSessionList = AuthenticationService.userSessionList;
+				List<UserSession> userSessionList = userSessionRepository.findAll();
 				List<String> loggedOutUsers = new ArrayList<String>();
 				
-				for (Entry<Long, String> entry : userSessionList.entrySet()) {
-				      Long key = entry.getKey();
-				      String value = entry.getValue();
-				      String timeStr = value.substring(0, 29);
-				      String userEmail = value.substring(29);
-				      String user = null;
-				      
-				      LocalDateTime loginTime = LocalDateTime.parse(timeStr);
-				      LocalDateTime today = LocalDateTime.now();
-				      Long elapsedHours = ChronoUnit.HOURS.between(loginTime, today);
-				      Long elapsedMins = ChronoUnit.MINUTES.between(loginTime, today);
-				      
-//				      System.out.println("key: " + key + " value: " + value + " loginTime : "+ loginTime+ " currentDateTime : "+ today + " elapsedHours : "+ elapsedHours);
-				      
-				      if(key != null) {
-				    	  List<Object[]> employeeData =  employeeRepository.getEmploymentStatusAndInvalidAccessAttemptByEmpId(key);
-				    	  
-				    	  EmployeeDTO employee = new EmployeeDTO();
-				    	  
-				    	  if (!employeeData.isEmpty()) {
-				    		  employeeData.forEach((data) -> {
-				    			  employee.setEmpId((data[0] != null) ? Long.parseLong(data[0].toString()) : null);
-				    			  employee.setEmploymentstatus((data[1] != null) ? data[1].toString() : null);
-				    			  employee.setInvalidAccessAttempt((data[0] != null) ? Integer.parseInt(data[2].toString()) : null);
-								});
-				    	  };
-				    	  
-				    	  
-				    	  final long INVALID_ATTEMPT_LIMIT = 5;
-				    	  final long LOGGEDIN_HOURS_LIMIT = 6;
-				    	  
-				    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > INVALID_ATTEMPT_LIMIT)) {
-				    		  user = userEmail + " - "+ "InActive/Blocked";
-				    		  AuthenticationService.userSessionList.remove(key);
-				    	  }else if(elapsedHours >= LOGGEDIN_HOURS_LIMIT){
-				    		  user = userEmail + " - "+ "Logged In for "+ elapsedHours + " Hrs.";
-				    		  AuthenticationService.userSessionList.remove(key);
-				    	  }
-				    	  
-				    	  if(user != null) {
-				    		  loggedOutUsers.add(user);				    		  
-				    	  } 
-				      }
+				if(!userSessionList.isEmpty()){
+					for (UserSession session : userSessionList) {
+					      String user = null;
+					      
+					      LocalDateTime loginTime = session.getLoginTime();
+					      LocalDateTime lastCheckedTime = session.getLastCheckTime();
+					      LocalDateTime today = LocalDateTime.now();
+					      Long elapsedMinsAfterLastCheck = ChronoUnit.MINUTES.between(lastCheckedTime, today);
+					      
+//					      System.out.println("key: " + key + " value: " + value + " loginTime : "+ loginTime+ " currentDateTime : "+ today + " elapsedHours : "+ elapsedHours);
+					      
+					      if(session.getSessionKey() != null) {
+					    	  List<Object[]> employeeData =  employeeRepository.getEmploymentStatusAndInvalidAccessAttemptByEmpId(session.getEmpId());
+					    	  
+					    	  EmployeeDTO employee = new EmployeeDTO();
+					    	  
+					    	  if (!employeeData.isEmpty()) {
+					    		  employeeData.forEach((data) -> {
+					    			  employee.setEmpId((data[0] != null) ? Long.parseLong(data[0].toString()) : null);
+					    			  employee.setEmploymentstatus((data[1] != null) ? data[1].toString() : null);
+					    			  employee.setInvalidAccessAttempt((data[2] != null) ? Integer.parseInt(data[2].toString()) : null);
+									});
+					    	  };
+					    	  
+					    	  
+					    	  final long INVALID_ATTEMPT_LIMIT = 5;
+					    	  final long SESSION_CHECK_IDLE_LIMIT = 5; // 5 Minutes
+					    	  
+					    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > INVALID_ATTEMPT_LIMIT)) {
+					    		  user = session.getEmpId() + " - "+ "InActive/Blocked";
+					    		  userSessionRepository.deleteById(session.getUserSessionId());
+					    	  }else if(elapsedMinsAfterLastCheck >= SESSION_CHECK_IDLE_LIMIT){
+					    		  user = session.getEmpId() + " - "+ " Time elapsed After Last Check : "+ elapsedMinsAfterLastCheck + " min.";
+					    		  userSessionRepository.deleteById(session.getUserSessionId());
+					    	  }
+					    	  
+					    	  if(user != null) {
+					    		  loggedOutUsers.add(user);				    		  
+					    	  } 
+					      }
+					}
 				}
 				
 				System.out.println("LoggedOutusers : "+ loggedOutUsers.toString());

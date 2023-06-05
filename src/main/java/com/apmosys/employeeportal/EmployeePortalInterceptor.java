@@ -1,0 +1,86 @@
+package com.apmosys.employeeportal;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
+import com.apmosys.employeeportal.service.AuthenticationService;
+
+@Component
+public class EmployeePortalInterceptor implements HandlerInterceptor{
+	
+	@Autowired
+	AuthenticationService authenticationService;
+	
+	
+	private final List<String> WHITELISTED_APIS = Arrays.asList(
+				"/employeeportal/api/authenticateUser",
+				"/employeeportal/api/authenticateUserWithOTP",
+				"/employeeportal/api/checkEmailWhenForgotPassword",
+				"/employeeportal/api/checkOTPWhenForgotPassword",
+				"/employeeportal/api/resendOTP",
+				"/employeeportal/api/checkUserSession",
+				"/employeeportal/api/logoutUser"
+			);
+			
+	
+	
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
+		
+		// white-listed APIs
+		for (String api : WHITELISTED_APIS){
+			if (api.equals(request.getRequestURI())) {
+				return true;
+			}
+		};
+		
+
+		// For Pre-flight methods
+		if("OPTIONS".equals(request.getMethod())) {
+			return true;
+		}
+		
+		
+		final String requestTokenHeader = request.getHeader("Authorization");
+
+		if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+			
+			final String SESSION_TOKEN = requestTokenHeader.substring(7);
+			
+			boolean isUserAuthenticated = authenticationService.checkUserToken(SESSION_TOKEN);
+
+			if (isUserAuthenticated) {
+				return true;
+			}else {
+				response.setStatus(401);
+				return false;
+			}
+
+		} else {
+			response.setStatus(401);
+			return false;
+
+		}
+
+	}
+
+	
+}
