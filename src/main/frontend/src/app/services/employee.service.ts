@@ -4,12 +4,13 @@ import { Subject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { User } from '../models/user';
 import { Query } from '../models/query';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmployeeService {
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
   
   constructor(private http: HttpClient) { }
 

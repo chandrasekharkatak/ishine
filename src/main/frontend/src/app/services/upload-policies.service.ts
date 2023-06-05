@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Portal } from 'src/app/models/portal';
 import { UploadPolicy } from '../models/UploadPolicy';
 import { Observable} from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 
 
@@ -17,7 +18,7 @@ import { Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class UploadPoliciesService {
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
 
   constructor(private http: HttpClient) { }

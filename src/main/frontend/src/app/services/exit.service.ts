@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Employee } from '../models/employee';
 import { Survey } from '../models/survey';
 import { EmployeeExit } from '../models/employeeExit';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExitService {
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 

@@ -10,10 +10,11 @@ import { User } from "../models/user";
 import { AuthenticationService } from "./authentication.service";
 import { EmployeeService } from "./employee.service";
 import { ValidationService } from "./validation.service";
+import { environment } from "src/environments/environment";
 
 @Injectable({providedIn: 'root'})
 export class UpdateUserInfoService {
-    private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+    private baseUrl:any = environment.baseUrl;
   
     //modal 
     alertMessage: any;
