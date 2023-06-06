@@ -45,18 +45,22 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		
-		// white-listed APIs
-		for (String api : WHITELISTED_APIS){
-			if (api.equals(request.getRequestURI())) {
-				return true;
-			}
-		};
-		
+		// For Application Start-up and assets
+		if(!request.getRequestURI().contains("/employeeportal/api/")) {
+			return true;
+		}
 
 		// For Pre-flight methods
 		if("OPTIONS".equals(request.getMethod())) {
 			return true;
 		}
+		
+		// white-listed APIs
+		for (String api : WHITELISTED_APIS){
+			if (api.equals(request.getRequestURI())) {
+					return true;
+				}
+		};
 		
 		
 		final String requestTokenHeader = request.getHeader("Authorization");

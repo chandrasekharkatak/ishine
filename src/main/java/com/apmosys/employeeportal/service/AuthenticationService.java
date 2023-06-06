@@ -249,6 +249,7 @@ public class AuthenticationService {
 					UserSession newSession  = new UserSession();
 					newSession.setEmpId(employee.getEmpId());
 					newSession.setLoginTime(LocalDateTime.now());
+					newSession.setLastCheckTime(LocalDateTime.now());
 					newSession.setSessionKey(encSessionString);
 					
 					userSessionRepository.save(newSession);

@@ -3762,7 +3762,8 @@ public class CronJobService {
 					      LocalDateTime loginTime = session.getLoginTime();
 					      LocalDateTime lastCheckedTime = session.getLastCheckTime();
 					      LocalDateTime today = LocalDateTime.now();
-					      Long elapsedMinsAfterLastCheck = ChronoUnit.MINUTES.between(lastCheckedTime, today);
+					      Long elapsedMinsAfterLastCheck = 0L;
+					      if(lastCheckedTime != null) elapsedMinsAfterLastCheck = ChronoUnit.MINUTES.between(lastCheckedTime, today);
 					      
 //					      System.out.println("key: " + key + " value: " + value + " loginTime : "+ loginTime+ " currentDateTime : "+ today + " elapsedHours : "+ elapsedHours);
 					      
