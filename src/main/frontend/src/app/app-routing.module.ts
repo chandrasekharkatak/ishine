@@ -49,6 +49,7 @@ import { DesignationConfigComponent } from './configuration/designation-config/d
 import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
 import { ResignationComponent } from './user-exit/resignation/resignation.component';
 import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
+import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -137,8 +138,9 @@ const routes: Routes = [
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
   {path:'user-performance', component: UserPerformanceComponent, canActivate: [AuthGuard]},
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},
-  {path:'helpdesk', component: HelpdeskComponent, canActivate: [AuthGuard]},
+  {path:'helpdesk', component: HelpdeskComponent},
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
+  {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 

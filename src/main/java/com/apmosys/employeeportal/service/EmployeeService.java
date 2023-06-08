@@ -1999,7 +1999,13 @@ public class EmployeeService {
 			List<String> jobRoles = new ArrayList<String>(Arrays.asList("Employee", "HR"));
 			if (employeedto.getRole().equals("Manager")) {
 				jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
-			} else {
+			} 
+			else if(employeedto.getRole().equals("HOD")){
+				// HoD should include directors (SuperAdmins)
+				jobRoles = new ArrayList<String>(Arrays.asList("Employee", "HR", "Manager"));
+				jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
+			}
+			else {
 				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
 			}
 			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();

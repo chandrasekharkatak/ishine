@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Designation } from '../models/designation';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DestinationService {
 
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 

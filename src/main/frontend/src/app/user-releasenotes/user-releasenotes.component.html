@@ -1,0 +1,25 @@
+<div class="row" style="margin-top: 50px;">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 table-header">
+                        <h1 class="table-header-title">Release Notes</h1>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 px-5">
+                            <div class="row my-3" *ngFor="let releaseNote of allReleaseNotes;">
+                                <div class="col-md-12 card p-0">
+                                    <div class="alert alert-light fade show release-notification pr-4 m-0" role="alert">
+                                        <div class="releaseNoteText text-dark" [innerHTML]="releaseNote.notificationMessage"></div>
+                                        <small>Created On : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

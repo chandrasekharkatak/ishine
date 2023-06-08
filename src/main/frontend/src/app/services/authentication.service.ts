@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User } from '../models/user';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
 
-  private baseUrl: any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl: any = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
   public currentUser: Observable<User>;
   sessionItem: string | null;
@@ -23,6 +24,7 @@ export class AuthenticationService {
     this.sessionItem = sessionStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
     this.currentUser = this.currentUserSubject.asObservable();
+    this.sessionString = sessionStorage.getItem('token');
   }
 
   public get currentUserValue(): User {
@@ -63,7 +65,7 @@ export class AuthenticationService {
   }
 
   /* 
-  *  Cron to check if user session exists.
+  *  Cron to check if user session exists. every 20 seconds
   *  Added by suraj 12/08/2022
   */
   startUserSessionCheck() {
@@ -89,6 +91,7 @@ export class AuthenticationService {
 
   userLogout(){
     sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('token');
     location.reload();
     this.router.navigate(['/login']);    
   }

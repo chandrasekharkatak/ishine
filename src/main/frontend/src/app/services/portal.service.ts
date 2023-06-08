@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Portal } from 'src/app/models/portal';
 import { enableAppreciation } from '../models/enableAppreciation';
 import { Timesheet } from '../models/timesheet';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PortalService {
 
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 

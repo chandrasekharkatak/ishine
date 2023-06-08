@@ -511,7 +511,7 @@ public class EmployeeLeaveService {
 							leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
 					
 					Float balance = employeeLeavesMap.getBalance();
-					if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+					if("LWP".equalsIgnoreCase(leaveTypeObj.getLeaveTypeCode())) {
 						balance = 0F;
 					}else {					
 						balance = balance + leaveDTO.getNoOfDays();
@@ -532,7 +532,7 @@ public class EmployeeLeaveService {
 						log.setBalance(balance);
 						log.setEmpId(leaveToBeDeleted.getEmpId());
 						log.setLeaveTypeMasterId(leaveToBeDeleted.getLeaveTypeMasterId());
-						if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+						if("LWP".equalsIgnoreCase(leaveTypeObj.getLeaveTypeCode())) {
 							log.setMessage(LeaveLogMessage.deleteLeave);
 						}else {					
 							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));

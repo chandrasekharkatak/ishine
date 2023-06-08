@@ -257,7 +257,7 @@ export class ValidationService {
   validateViewsOnOrganisation(text: string): boolean {
 
     // const regex = /^[a-zA-Z.,& ]+$/;
-    const regex = /^[a-zA-Z0-9+\-\(\).,&\s]+$/
+    const regex = /^[a-zA-Z0-9+\-\(\)'"\?.,&\s]+$/
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
