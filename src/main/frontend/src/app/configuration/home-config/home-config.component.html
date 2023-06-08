@@ -200,7 +200,7 @@
                           <tr *ngFor="let notification of allNotification | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <th class="info-label">{{20*(page-1)+i+1}}</th>
                             <td [innerHTML]="notification.notificationMessage"></td>
-                            <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : 'Notification'}}</td>
+                            <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : notification.notificationType == 'releaseNotes' ? 'Release Notes' : 'Notification'}}</td>
                             <td>{{notification.isActive == 'true' ? 'Yes' : 'No'}}</td>
                             <td>{{notification.createdByName}}</td>
                             <td>{{notification.createdOn}}</td>
@@ -208,6 +208,7 @@
                             <td>{{notification.updatedOn}}</td>
                             <td>
                                 <button *ngIf="userMapping.update_notification && notification.isActive == 'true'" class="btn btn-sm btn-outline-primary" type="submit" title="Update Notification" (click)="showUpdateNotificationForm(notification)"><em class="fa fa-edit"></em></button>&nbsp;
+                                <button *ngIf="userMapping.delete_notification && notification.isActive == 'true' && notification.notificationType == 'releaseNotes'" class="btn btn-sm btn-outline-danger" type="submit" title="InActivate Notification" (click)="openInactivateNotificationModal(notification,inactivate_notification_template)"><em>InActivate</em></button>&nbsp;
                                 <button *ngIf="userMapping.delete_notification && notification.isActive == 'true'" class="btn btn-sm btn-outline-danger" type="submit" title="Delete Notification" (click)="openDeleteNotificationModal(notification,delete_notification_template)"><em class="fa fa-trash"></em></button>&nbsp;
                                 <button *ngIf="userMapping.view_notification_response && notification.notificationType == 'consentNotification'" class="btn btn-sm btn-outline-primary" type="submit" title="View Response" (click)="getConsentNotificationResponse(notification, consent_notification_response_template, alert_message)"><em class="fa fa-eye"></em></button>
                             </td>
@@ -259,6 +260,14 @@
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Notification?</p>
         <button type="button" class="btn btn-success" (click)="onDeleteNotification(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #inactivate_notification_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to inactivate the Notification?</p>
+        <button type="button" class="btn btn-success" (click)="onInactivateNotification(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

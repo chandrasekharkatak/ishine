@@ -14,4 +14,6 @@ public interface EmployeeNotificationConsentRepository extends JpaRepository<Emp
 	@Query(nativeQuery = true)
 	List<Object[]> getNotificationResponse(Integer notificationId);
 
+	List<EmployeeNotificationConsent> findByNotificationId(Integer notificationId);
+
 }

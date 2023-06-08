@@ -25,4 +25,5 @@ public class NotificationDTO {
 	private String name;
 	private String consentOn;
 
+	private String isNotificationViewed;
 }

@@ -393,6 +393,19 @@ export class HomeConfigComponent implements OnInit {
     });
   }
 
+  onInactivateNotification(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    this.notificationToBeDeleted.updatedBy = this.currentUser.empId;
+    this.notificationService.onInActivateNotification(this.notificationToBeDeleted).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showNotificationTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
   /* Notifications */
   getAllNotifications(){
@@ -462,6 +475,12 @@ export class HomeConfigComponent implements OnInit {
   }
 
   openDeleteNotificationModal(notificationObj:any, template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.notificationToBeDeleted = notificationObj;
+    console.log(this.notificationObj);
+  }
+
+  openInactivateNotificationModal(notificationObj:any, template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
     console.log(this.notificationObj);

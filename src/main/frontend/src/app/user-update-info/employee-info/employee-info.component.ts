@@ -323,7 +323,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.viewsOnOrganisation)){
-      this.alertMessage = "Please enter valid view on organisation !!";
+      this.alertMessage = `Please enter valid view on organisation. Alphabets, Number and allowed Special Character are +-()'"?,&.`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -333,7 +333,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.aboutMe)){
-      this.alertMessage = "Please enter valid in  About me !!";
+      this.alertMessage = `Please enter valid in  About me. Alphabets, Number and allowed Special Character are +-()'"?,&.`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -460,6 +460,15 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo)){
+      if(!this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)){
+        this.alertMessage = "Please enter Valid Alternate Number !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)){
       this.alertMessage = "Please enter permanent address !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1118,26 +1127,26 @@ if(this.errorMsg == ""){
     this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter About me !!"
-  }
-//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-//     this.errorMsg = "Please enter valid About me !!"
-// }
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    }
+    else  if (!this.validationService.validateViewsOnOrganisation(data)) {
+      this.errorMsg = `Please enter valid About me. Alphabets, Number and allowed Special Character are +-()'"?,&.`
+    }
+    else{
+    this.errorMsg = ""
+    }
+
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
   }
 
   validateValidEmptyNullUndefinedalternateMobileNo(event, data:any)
   {
-    this.employeeObj.emergencyContactMobile = this.employeeObj.emergencyContactMobile?.trim();
     if (this.validationService.validateNullUndefinedEmptyString(data)) {
       if (!this.validationService.validateMobileNumber(data)) {
-        this.errorMsg = "Please enter valid  Mobile Number !!"
+        this.errorMsg = "Please enter valid Alternate Mobile Number !!"
       }else{
         this.errorMsg = ""
       }

@@ -1508,6 +1508,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.authenticationService.stopUserSessionCheck();
       console.log(response.serviceResponse);
       sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem('token');
       // delete method call for cookies
       this.authenticationService.deleteCookies();
       this.authenticationService.setcurrentUserSubject(null);
@@ -1519,6 +1520,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if (response.serviceResponse == "Session already destroyed") {
         this.authenticationService.stopUserSessionCheck();
         sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('token');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);

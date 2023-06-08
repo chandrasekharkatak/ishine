@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { Activity } from '../models/activity';
 import { Employee } from '../models/employee';
 import { Team } from '../models/team';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeamService {
 
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 

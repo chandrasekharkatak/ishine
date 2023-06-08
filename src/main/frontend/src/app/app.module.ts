@@ -88,6 +88,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
 import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
 import { ResignationComponent } from './user-exit/resignation/resignation.component';
 import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
+import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
 
 @NgModule({
   declarations: [
@@ -149,7 +150,8 @@ import { DomainConfigComponent } from './configuration/domain-config/domain-conf
     DesignationConfigComponent,
     MyResignationComponent,
     ResignationComponent,
-    DomainConfigComponent
+    DomainConfigComponent,
+    UserReleasenotesComponent
   ],
   imports: [
     BrowserModule,
