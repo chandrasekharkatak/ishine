@@ -219,6 +219,12 @@ public class CronJobService {
 	@Value("${resignation.consent.link}")
 	private String resignationConsentLink;
 	
+	@Value("${usersession.inactive.timeout:1}")
+	private Long userSessionInactiveTimeout;
+	
+	@Value("${valid.attempt:5}")
+	private Long validAttempt;
+	
 		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
@@ -3781,13 +3787,13 @@ public class CronJobService {
 					    	  };
 					    	  
 					    	  
-					    	  final long INVALID_ATTEMPT_LIMIT = 5;
-					    	  final long SESSION_CHECK_IDLE_LIMIT = 5; // 5 Minutes
+					    	  final long VALID_ATTEMPT_LIMIT = validAttempt;
+					    	  final long SESSION_CHECK_INACTIVE_LIMIT = userSessionInactiveTimeout;
 					    	  
-					    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > INVALID_ATTEMPT_LIMIT)) {
+					    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > VALID_ATTEMPT_LIMIT)) {
 					    		  user = session.getEmpId() + " - "+ "InActive/Blocked";
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
-					    	  }else if(elapsedMinsAfterLastCheck >= SESSION_CHECK_IDLE_LIMIT){
+					    	  }else if(elapsedMinsAfterLastCheck >= SESSION_CHECK_INACTIVE_LIMIT){
 					    		  user = session.getEmpId() + " - "+ " Time elapsed After Last Check : "+ elapsedMinsAfterLastCheck + " min.";
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }
