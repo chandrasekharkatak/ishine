@@ -7,7 +7,7 @@
     </div>
 </div>
 
-<div class="row" *ngIf="isEmployeeResigned">
+<div class="row" *ngIf="isEmployeeResigned">    
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
@@ -197,6 +197,12 @@
     </div>
     <div class="modal-body d-flex">
     <div class="row col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
         <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
@@ -210,13 +216,13 @@
                     <th scope="col" class="info-label wide-col" mat-sort-header="toDateDayType|string">To Date Day Type</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="status|string">Status</th>
                 </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveSummaryTableColumns" (onSearch)="onSearch($event); page=1"></tr>
             </thead>
             <tbody>
-                <tr *ngIf="modalSummaryList.length == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
+                    <th colspan="8" class="text-center info-label">No Surveys to display...</th>
                 </tr>
-                <tr
-                    *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                <tr *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>A-{{leave.employeementId}}</td>
                     <td>{{leave.employeeName}}</td>
@@ -247,6 +253,12 @@
     </div>
     <div class="modal-body d-flex">
         <div class="row col-md-12">
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
             <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
@@ -265,13 +277,13 @@
                         <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count|number">Count</th>	
 
                     </tr>
+                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryTableColumns" (onSearch)="onSearch($event); page=1"></tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="modalSummaryList.length == 0">
-                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
+                        <th colspan="8" class="text-center info-label">No Surveys to display...</th>
                     </tr>
-                    <tr
-                        *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                    <tr *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
@@ -306,6 +318,12 @@
     </div>
     <div class="modal-body d-flex">
         <div class="row col-md-12">
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
             <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
@@ -320,13 +338,14 @@
                         <th scope="col" class="info-label wide-col wide-col" mat-sort-header="dayType|string">Day Type</th>
                         <th scope="col" class="info-label wide-col wide-col" mat-sort-header="totalWorkingHours|number">Total Working Hour</th>
                     </tr>
+                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="eodSegregationTableColumns" (onSearch)="onSearch($event); page=1"></tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="modalSummaryList.length == 0">
-                        <th colspan="8" class="text-center info-label">No details to display...</th>
+                    <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
+                        <th colspan="8" class="text-center info-label">No Surveys to display...</th>
                     </tr>
                     <tr
-                        *ngFor="let leave of modalSummaryList | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeName}}</td>
@@ -435,7 +454,9 @@
                     <th colspan="8" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                    *ngFor="let emp of modalSummaryList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                    *ngFor="let emp ofMaharashtra
+
+                    modalSummaryList | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>A-{{emp.employeementId}}</td>
                     <td class="text-capitalize">{{emp.employeeName}}</td>
