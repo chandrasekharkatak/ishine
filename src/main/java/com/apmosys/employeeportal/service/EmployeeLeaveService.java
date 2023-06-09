@@ -1381,12 +1381,17 @@ public class EmployeeLeaveService {
 					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
 					
+					pendingLeaveApplication.setLeaveStatusId((short) 3);
+					
 					if(leaveDTO.getCurrentApprovalLevel() == 2) {
-						pendingLeaveApplication.setLevel2ApprovalStatus("Rejected");				
+						pendingLeaveApplication.setLevel2ApprovalStatus("Rejected");
+						pendingLeaveApplication.setLevel3ApprovalStatus("NA");
 					}else if(leaveDTO.getCurrentApprovalLevel() == 3) {
 						pendingLeaveApplication.setLevel3ApprovalStatus("Rejected");
 					}else {
 						pendingLeaveApplication.setManagerApprovalStatus("Rejected");
+						pendingLeaveApplication.setLevel2ApprovalStatus("NA");
+						pendingLeaveApplication.setLevel3ApprovalStatus("NA");
 					}
 					
 					//Get Expiration Period of CompOff
@@ -1405,7 +1410,6 @@ public class EmployeeLeaveService {
 					}
 					
 					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")) {
-						pendingLeaveApplication.setLeaveStatusId((short) 3);
 						pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 						
 						Float balance = employeeLeavesMap.getBalance();
@@ -1422,9 +1426,9 @@ public class EmployeeLeaveService {
 						log.setEmpId(leaveDTO.getEmpId());
 						log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 						if(leaveTypeObj.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
-							log.setMessage(LeaveLogMessage.deleteLeave);
+							log.setMessage(LeaveLogMessage.requestAddLeave);
 						}else {					
-							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
+							log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
 						}
 						log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 						leaveBalanceLogRepository.save(log);
@@ -1503,7 +1507,6 @@ public class EmployeeLeaveService {
 									
 									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod);
 									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
-										pendingLeaveApplication.setLeaveStatusId((short) 3);
 										pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 										
 										leave.setCompOffStatus("Expired");
@@ -1515,8 +1518,6 @@ public class EmployeeLeaveService {
 									}else {
 										
 										//Update Leave Balance
-										
-										pendingLeaveApplication.setLeaveStatusId((short) 3);
 										pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 										employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + leave.getNoOfDays());
 
@@ -2893,7 +2894,7 @@ public class EmployeeLeaveService {
 												log.setBalance(balance);
 												log.setEmpId(leaveObj.getEmpId());
 												log.setLeaveTypeMasterId(leaveObj.getLeaveTypeMasterId());
-												log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leave.getNoOfDays().toString()));
+												log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", leave.getNoOfDays().toString()));
 												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
 												
 												leaveBalanceLogRepository.save(log);
