@@ -4086,8 +4086,10 @@ public class CronJobService {
 		
 //		0 0 2 ? * * : At 02:00:00am every day
 //      0 0/1 * ? * * - Run at every 1 min
-		@Async
-		@Scheduled(cron = "0 0 2 ? * *")
+//		@Async
+//		@Scheduled(cron = "0 0 2 ? * *")
+		
+// Currently Disabled to sysnc stataus from PO Portal to ishine
 		public void updateProjectStatus() {
 			LogDTO apiLogInfo = new LogDTO();
 			apiLogInfo.setSubFeatureName("Update Project Status CronJob");

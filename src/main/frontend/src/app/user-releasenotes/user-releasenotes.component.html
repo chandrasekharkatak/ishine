@@ -8,14 +8,21 @@
                     </div>
                     <div class="row">
                         <div class="col-md-12 px-5">
-                            <div class="row my-3" *ngFor="let releaseNote of allReleaseNotes;">
-                                <div class="col-md-12 card p-0">
-                                    <div class="alert alert-light fade show release-notification pr-4 m-0" role="alert">
-                                        <div class="releaseNoteText text-dark" [innerHTML]="releaseNote.notificationMessage"></div>
-                                        <small>Created On : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
-                                    </div>
+                            <div *ngIf="allReleaseNotes.length == 0" class="row">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">No Release Notes to display ...</h6>
                                 </div>
                             </div>
+                            <ng-container *ngIf="allReleaseNotes.length != 0">
+                                <div class="row my-3" *ngFor="let releaseNote of allReleaseNotes;">
+                                    <div class="col-md-12 card p-0">
+                                        <div class="alert alert-light fade show release-notification pr-4 m-0" role="alert">
+                                            <div class="releaseNoteText text-dark" [innerHTML]="releaseNote.notificationMessage"></div>
+                                            <small>Created On : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-container>
                         </div>
                     </div>
                 </div>
