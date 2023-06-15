@@ -526,7 +526,7 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    else  if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason?.trim())){
+    else if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason?.trim())){
       this.alertMessage = "Please enter valid Leave reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -545,6 +545,17 @@ export class LeaveComponent implements OnInit {
     }
 
     return true;
+  }
+
+  resetLeaveObj(){
+    this.leaveDetails = [];
+    this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.fromDate = '';
+    this.leaveObj.fromDateDayType = '';
+    this.leaveObj.toDate = '';
+    this.leaveObj.toDateDayType = '';
+    this.leaveObj.noOfDays = '';
+    this.leaveObj.reason = '';
   }
 
   setLeaveTypeCode(leaveTypeMasterId:any){
@@ -1310,15 +1321,16 @@ export class LeaveComponent implements OnInit {
   }
 
   getAllTeamMemberList(){
-    this.teamMemberList = []
-    this.leaveDetails = []
-    this.leaveObj.leaveTypeMasterId = ''
-    this.leaveObj.fromDate = ''
-    this.leaveObj.toDate = ''
-    this.leaveObj.noOfDays = ''
-    this.leaveObj.reason = ''
-    this.leaveObj.fromDateDayType = ''
-    this.leaveObj.toDateDayType = ''
+    this.teamMemberList = [];
+    this.leaveDetails = [];
+    this.leaveObj.empId = '';
+    this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.fromDate = '';
+    this.leaveObj.toDate = '';
+    this.leaveObj.noOfDays = '';
+    this.leaveObj.reason = '';
+    this.leaveObj.fromDateDayType = '';
+    this.leaveObj.toDateDayType = '';
 
     let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
