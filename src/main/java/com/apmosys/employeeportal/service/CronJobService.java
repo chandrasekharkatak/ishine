@@ -219,7 +219,7 @@ public class CronJobService {
 	@Value("${resignation.consent.link}")
 	private String resignationConsentLink;
 	
-	@Value("${usersession.inactive.timeout:1}")
+	@Value("${usersession.inactive.timeout:10}")
 	private Long userSessionInactiveTimeout;
 	
 	@Value("${valid.attempt:5}")
@@ -3748,14 +3748,15 @@ public class CronJobService {
 		
 		
 		// To Remove any InActive / Blocked / Check Idle user within 1hr
-		// "0 0 0/6 ? * *" - Run at every 1 Hr
+		// "0 0 0/1 ? * *" - Run at every 1 Hr
 		// "0 0/1 * ? * *" - Run at every 1 min
+		// "0 0/30 * ? * *" - Run at evry 30 mins
 		
 		@Async
-		@Scheduled(cron = "0 0 0/1 ? * *")
+		@Scheduled(cron = "0 0/30 * ? * *")
 		public void loggedInUserAudit() {
 			
-			System.out.println("Running LoggedIn User Audit ... ");
+			System.out.println(new Date() + " Running LoggedIn User Audit ... ");
 			
 			try {
 				List<UserSession> userSessionList = userSessionRepository.findAll();

@@ -1509,23 +1509,31 @@ export class HomeComponent implements OnInit, AfterViewInit {
       console.log(response.serviceResponse);
       sessionStorage.removeItem('currentUser');
       sessionStorage.removeItem('token');
+      sessionStorage.removeItem('logInfo');
+      sessionStorage.removeItem('maxFileSize');
+      sessionStorage.removeItem('maxRequestSize');
+      sessionStorage.removeItem('sessioncheck');
       // delete method call for cookies
       this.authenticationService.deleteCookies();
       this.authenticationService.setcurrentUserSubject(null);
 
       this.router.navigate(['/login']);
-      location.reload();
+      setTimeout(() => {location.reload();});
 
     } else {
       if (response.serviceResponse == "Session already destroyed") {
         this.authenticationService.stopUserSessionCheck();
         sessionStorage.removeItem('currentUser');
         sessionStorage.removeItem('token');
+        sessionStorage.removeItem('logInfo');
+        sessionStorage.removeItem('maxFileSize');
+        sessionStorage.removeItem('maxRequestSize');
+        sessionStorage.removeItem('sessioncheck');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
         this.router.navigate(['/login']);
-        location.reload();
+        setTimeout(() => {location.reload();});
       }
       console.error(response.serviceResponse);
     }
