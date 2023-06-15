@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +58,7 @@ import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.UploadPolicy;
+import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
@@ -76,6 +78,7 @@ import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
@@ -178,6 +181,9 @@ public class EmployeeService {
 	
 	@Autowired
 	AuditCustomRepository auditCustomRepository;
+	
+	@Autowired
+	UserSessionRepository userSessionRepository;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -2210,6 +2216,44 @@ public class EmployeeService {
 //		logService.logMyInfo(httpRequest, apiLogInfo);
 //		return response;
 //	}
+	
+	public ServiceResponse updateEmployeeForgotPassword(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/updateEmployeeForgotPassword");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("email : " + employeedto.getEmail());
+
+		try {
+			response = updateEmployeePassword(employeedto);
+			
+			if(ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())){
+				Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+				UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+				boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
+				
+				if (isUserLoggedIn) {
+					userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+				}
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 
 	public ServiceResponse updateEmployeePassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();

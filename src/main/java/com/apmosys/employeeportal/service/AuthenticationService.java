@@ -485,8 +485,29 @@ public class AuthenticationService {
 			
 			if(otpDiff < otpTimeoutPeriod) {
 				if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
+					
+					String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+					String encSessionString  = EncryptDecrypt.encrypt(sessionString);
+					
+					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
+					
+					if (isUserLoggedIn) {
+						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+					}
+					
+					UserSession newSession  = new UserSession();
+					newSession.setEmpId(employee.getEmpId());
+					newSession.setLoginTime(LocalDateTime.now());
+					newSession.setLastCheckTime(LocalDateTime.now());
+					newSession.setSessionKey(encSessionString);
+					
+					userSessionRepository.save(newSession);
+					
+					
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("OTP verified successfully.");
+					response.setServiceResponse(encSessionString);
 					
 					apiLogInfo.setApiResponse("OTP verified successfully.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
