@@ -783,6 +783,12 @@ public class JobRoleService {
 	@Transactional
 	public ServiceResponse updateJobRoleSubFeatureMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("update JobRole SubFeature");
+		apiLogInfo.setApiUrl("api/updateJobRoleSubFeatureMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("updated Role SubFeature :" + jobRoleDTO.getUpdatedJobRoleFeatureMapping().size());
 		try {
 			
 			List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
@@ -808,12 +814,21 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Role ACL Updated");
 			
+			apiLogInfo.setApiResponse("Job Role SubFeature updated!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -59,9 +62,20 @@ public class LeaveTypeMasterService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimePasParser;
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 	
 	public ServiceResponse getAllLeaveTypes(LeaveDTO leaveDto) {
 		ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("api/getAllLeaveTypes");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("LeaveTypeList :" + leaveTypeMasterRepository.findByLeaveTypeMasterId(leaveDto.getLeaveTypeMasterId()).size());
 		try {
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
@@ -88,21 +102,35 @@ public class LeaveTypeMasterService {
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllLeaveTypeList fetched Successfully!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave List is null.");
+                apiLogInfo.setApiResponse("leave list is empty !");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse updateLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		 LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("Update Leave Type");
+	        apiLogInfo.setApiUrl("api/updateLeaveType");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("LeaveType : " + leaveDTO.getLeaveType()+", LeaveTypeCode : " + leaveDTO.getLeaveTypeCode() + " , UpdatedBy : " + leaveDTO.getUpdatedBy());
 		try {
 			Optional<LeaveTypeMaster> leaveTypeMaster = leaveTypeMasterRepository
 					.findById(leaveDTO.getLeaveTypeMasterId());
@@ -125,13 +153,19 @@ public class LeaveTypeMasterService {
 				if (updatedLeaveType != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave type updated.");
+					apiLogInfo.setApiResponse("LeaveType Updated Successfully!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Leave type updation failed.");
+                    apiLogInfo.setApiResponse("Leave Type Updation Failed!");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Type Not Found.");
+                apiLogInfo.setApiResponse("Leave Type Not Found");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -139,12 +173,23 @@ public class LeaveTypeMasterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse createLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Create Leave Type");
+		apiLogInfo.setApiUrl("/api/createLeaveType");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Leave Type Code: " + leaveDTO.getLeaveTypeCode() + ", LeaveType :" + leaveDTO.getLeaveType());
+
 		try {
 			
 			LeaveTypeMaster existingLeaveType = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());
@@ -183,25 +228,44 @@ public class LeaveTypeMasterService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave type created.");
+					apiLogInfo.setApiResponse("Leave type Created");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Leave type creation failed.");
+                    apiLogInfo.setApiResponse("Leave Type Creation failed");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave type against "+ leaveDTO.getLeaveTypeCode() +" Already Exist.");
+                apiLogInfo.setApiResponse("Leave type against "+ leaveDTO.getLeaveTypeCode() + " Already Exist.!");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllLeaveTypesByLeavePolicies(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getAllLeaveTypesByLeavePolicies");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("EmploymentStatus : " + leaveDTO.getEmploymentStatus() + " ,Gender : " + leaveDTO.getGender() + " ,leaveTypeList :" + leaveTypeMasterRepository
+				.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender()).size());
 		try {
 			List<Object[]> list = leaveTypeMasterRepository
 					.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender());
@@ -211,6 +275,8 @@ public class LeaveTypeMasterService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Type list is empty.");
+                apiLogInfo.setApiResponse("Leave Type List is Empty!");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				for (Object[] object : list) {
 
@@ -250,6 +316,8 @@ public class LeaveTypeMasterService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("Leave Type By Leave Policy List Fetched!");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -257,12 +325,23 @@ public class LeaveTypeMasterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse deleteLeaveType(LeaveDTO leaveDTO) {
+    
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Delete Leave Type");
+	    apiLogInfo.setApiUrl("/api/deleteLeaveType");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("LeaveMasterId : " + leaveDTO.getLeaveTypeMasterId());
 		try {
 			Optional<LeaveTypeMaster> leaveTypeObject = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
 			if (leaveTypeObject.isPresent()) {
@@ -276,14 +355,21 @@ public class LeaveTypeMasterService {
 					leaveTypeMasterRepository.deleteById(leaveTypeToBeDeleted.getLeaveTypeMasterId());
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Leave Type deleted.");
+					apiLogInfo.setApiResponse("Leave Type Deleted!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Leave Type cannot be deleted as it is mapped to employee(s) & Leave Policy.");
+                    apiLogInfo.setApiResponse("Leave Type cannot be deleted as it is mapped to employee(s) & Leave Policy.");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 					
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Job Role Not Found.");
+                apiLogInfo.setApiResponse("Job Role Not Found");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch (Exception e) {
@@ -291,12 +377,24 @@ public class LeaveTypeMasterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse changeLeaveTypeMapping(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("ChangeLeaveTypeMapping");
+        apiLogInfo.setApiUrl("/api/getAllLeaveTypesByLeavePolicies");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("OldLeaveTypeMasterId :" + leaveDTO.getOldLeaveTypeMasterId() + " ,LeaveTypeMasterId : " + leaveDTO.getLeaveTypeMasterId() + ", EmployeeLeaveMapId: " + leaveDTO.getEmployeeLeavesMapId());
+
 		try {
 			
 			Optional<LeaveTypeMaster> leaveTypeObject = leaveTypeMasterRepository.findById(leaveDTO.getOldLeaveTypeMasterId());
@@ -330,10 +428,16 @@ public class LeaveTypeMasterService {
 								employeeLeavesMapRepository.deleteById(oldLeaveType.getEmployeeLeavesMapId());
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Deleted successfully");
+                                apiLogInfo.setApiResponse("Deleted successfully!");
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 								
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Balance Mapping Failed.");
+
+                                apiLogInfo.setApiResponse("Balance mapping Failed");
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+								
 							}
 							
 						}
@@ -354,6 +458,8 @@ public class LeaveTypeMasterService {
 						if(leavePolicyDbResponse != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Leave Policy mapping changed.");
+							apiLogInfo.setApiResponse("Leave Policy mapping changed!");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						}
 					}
 					
@@ -372,9 +478,13 @@ public class LeaveTypeMasterService {
 							if(compOffApplicationResponse != null) {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("CompOff leave application mapping changed.");
+								apiLogInfo.setApiResponse("CompOff leave application mapping changed!");
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("CompOff leave application mapping changes failed.");
+								apiLogInfo.setApiResponse("CompOff leave application mapping changes failed.!");			
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 							}
 						}
 						
@@ -390,9 +500,13 @@ public class LeaveTypeMasterService {
 							if(leaveApplicationDbResponse != null) {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Leave application mapping changed.");
+                                apiLogInfo.setApiResponse("Leave application mapping changed.");
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Leave application mapping change failed.");
+                                apiLogInfo.setApiResponse("Leave application mapping change failed.");			
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 							}
 							
 						}
@@ -401,11 +515,15 @@ public class LeaveTypeMasterService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("No Leave Policy Found.");
+					apiLogInfo.setApiResponse("No Leave Policy Found.!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Type Found.");
+                apiLogInfo.setApiResponse("No Leave Type Found.!");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch (Exception e) {
@@ -413,13 +531,24 @@ public class LeaveTypeMasterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse checkLeaveType(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LeaveTypeMaster existingLeaveType = null;
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("CheckLeaveType");
+        apiLogInfo.setApiUrl("/api/checkLeaveType");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("LeaveType : " + leaveDTO.getLeaveType() + " ,LeaveTypeMasterId : " + leaveDTO.getLeaveTypeMasterId());
 		try {
 			
 			if(leaveDTO.getLeaveTypeMasterId() == null) {
@@ -432,9 +561,14 @@ public class LeaveTypeMasterService {
 			
 			if ( existingLeaveType == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("LeaveType dont exist!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Type already exist!");
+				apiLogInfo.setApiResponse("Leave Type already exist!");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -442,7 +576,12 @@ public class LeaveTypeMasterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
