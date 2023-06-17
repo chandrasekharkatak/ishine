@@ -255,7 +255,7 @@ export class BodyComponent implements OnInit {
     if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
       !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
       this.isError = true;
-      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are @#$%!+*÷=/_-\'":;,()^{}~[]';
+      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
       return;
     }
 

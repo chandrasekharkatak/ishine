@@ -471,7 +471,7 @@ export class LoginComponent implements OnInit{
     !this.validationService.validateAlphaNumericSpecialCharacters(this.userConfirmNewPass)){
       this.isError=true;
       //Password should not be set  less than 8 characters and it should accept special, alphanumeric characters
-      this.errorMsg='Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are @#$%!+*÷=/_-\'":;,()^{}~[]';
+      this.errorMsg='Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
       return;
     }
 

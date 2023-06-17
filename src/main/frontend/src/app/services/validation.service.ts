@@ -472,7 +472,8 @@ export class ValidationService {
 
 
     // const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
-    const regex = /(?=^.{8,}$)(?=.*\d)(?=.*[!@#$%^&*]+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+    // const regex = /(?=^.{8,}$)(?=.*\d)(?=.*[!@#$%^&*]+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+    const regex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,16}$/;
 
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
@@ -774,7 +775,7 @@ export class ValidationService {
   }
 
   validatePassingGrade(text:string): boolean {
-    const regex = /^[^.\s][a-zA-Z0-9.\s%]*$/gm;
+    const regex = /^[a-zA-Z0-9][a-zA-Z0-9.\s%]*$/gm;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
