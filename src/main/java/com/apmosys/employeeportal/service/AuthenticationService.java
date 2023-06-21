@@ -149,8 +149,9 @@ public class AuthenticationService {
 								} else {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL_1);
 									response.setServiceResponse(
-											"User already logged in.Do you want to logout of existing session ?");
-								}
+											"User already logged in. Do you want to logout of existing session ?");
+									apiLogInfo.setApiResponse("User already logged in. Do you want to logout of existing session ?");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);								}
 							} else {
 
 								count = employee.getInvalidAccessAttempt() + 1;
@@ -369,6 +370,11 @@ public class AuthenticationService {
 
 	public ServiceResponse checkUserSession(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/checkUserSession");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+employeedto.getEmpId());
 		try {
 //			String sessionString = userSessionList.get(employeedto.getEmpId());
 			
@@ -383,21 +389,31 @@ public class AuthenticationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Session exists.");
+					apiLogInfo.setApiResponse("Session exists.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Sessionstring is different. Logging out of application.");
+					apiLogInfo.setApiResponse("Sessionstring is different. Logging out of application.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Session not found. Logging out of application.");
+				apiLogInfo.setApiResponse("Session not found. Logging out of application.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -584,7 +600,27 @@ public class AuthenticationService {
 	}
 	
 	public boolean checkUserToken(String token) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/checkUserToken");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("session key :"+userSessionRepository.findBySessionKey(token));
 		UserSession existingUserSession = userSessionRepository.findBySessionKey(token);
+		if(existingUserSession != null) {
+			response.setServiceResponse("Token exists.");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Token exists.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}else {
+			response.setServiceResponse("Token not found.");
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Token not found.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return (existingUserSession != null) ? true : false;
 
 	}

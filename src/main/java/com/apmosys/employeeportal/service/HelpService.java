@@ -20,11 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.HelpDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Help;
-import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HelpRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -144,6 +142,12 @@ public class HelpService {
 
 	public ServiceResponse getAllHelpDocument() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_AllHelpDocument");
+		apiLogInfo.setApiUrl("/api/getAllHelpDocument");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getAllHelpDocument size : "+helpRepository.getAllHelpDocument().size());
 		try {
 			List<Object[]> documentList = helpRepository.getAllHelpDocument();
 			
@@ -151,6 +155,8 @@ public class HelpService {
 				if(list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No Document found. Document list is empty");
+					apiLogInfo.setApiResponse("No Document found. Document list is empty");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {
 					List<HelpDTO> dtoList = new ArrayList<HelpDTO>();
 					
@@ -170,23 +176,29 @@ public class HelpService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
 				}
 			}, ()->{
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Document list is empty.");
-				
+				apiLogInfo.setApiResponse("Document list is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiResponse("Something Went Wrong.");
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());		
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse deleteHelpDocument(HelpDTO helpDTO) {
-ServiceResponse response = new ServiceResponse();
+		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Delete Help Document");
@@ -255,6 +267,13 @@ ServiceResponse response = new ServiceResponse();
 	}
 
 	public Resource getTemplateFile(long helpDocId) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getTemplateFile");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("helpDocId : "+helpRepository.findByHelpDocId(helpDocId));
 		Resource resource=null;
 		String filename=null;
 		try {
@@ -262,6 +281,11 @@ ServiceResponse response = new ServiceResponse();
 		
 		if(object != null) {
 			filename= object.getFileName();
+			response.setServiceResponse("file fetched successfully.");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("file fetched successfully.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
 		}
 		
 		String Location = helpDocumentationLocation + File.separator + filename;
@@ -270,9 +294,13 @@ ServiceResponse response = new ServiceResponse();
 			resource = new FileSystemResource(Location);
 		}
 		} catch (Exception e) {
+			response.setServiceResponse("File not found.");
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			e.printStackTrace();
 		// throw new FileNotFoundException("File not found ");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return resource;
 	}
 
