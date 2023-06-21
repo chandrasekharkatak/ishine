@@ -56,6 +56,8 @@ public class ActivitiesService {
 			for(String deptId: activityDTO.getDepartmentList()) {
 				department.append(deptId).append(",");
 			}
+		
+			logBuilder.append(", Departments : " + department + ", Activity : "+ activityDTO.getActivity());
 			
 				Activity newActivity = new Activity();
 				
