@@ -424,9 +424,13 @@ public class AuthenticationService {
 				    apiLogInfo.setApiResponse("Forgot Password feature is not for New User.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {	
-					if(employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt()>= failedAttempt) {
+					if(employee.getEmploymentstatus().equals("InActive")) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-						response.setServiceResponse("This user is not authorized for this activity ");
+						response.setServiceResponse("This user is not authorized for this activity");
+					}
+					else if (employee.getInvalidAccessAttempt() > failedAttempt) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+						response.setServiceResponse("This user is not authorized for this activity due to account blocked, please contact HR Team.");
 					}
 					else {
 						Random random = new Random();	
