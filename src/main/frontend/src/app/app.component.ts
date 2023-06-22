@@ -47,22 +47,24 @@ export class AppComponent {
   //   this.logout();
   // }
 
+  //! unable to Identify Window close defer to Window Reload
 
-  @HostListener('window:unload', [ '$event' ])
-  logout(event) {
-    event.preventDefault();
+  // @HostListener('window:unload', [ '$event' ])
+  // logout(event) {
+  //   event.preventDefault();
 
-    let user = new User();
-    user.empId = this.currentUser.empId;
-    this.authenticationService.logoutUser(user).subscribe((response:any)=>{
-      this.authenticationService.stopUserSessionCheck();
-      console.log(response.serviceResponse);
-      sessionStorage.removeItem('currentUser');
-      // delete method call for cookies
-      this.authenticationService.deleteCookies();
-      this.authenticationService.setcurrentUserSubject(null);
-    })
-  }
+  //   let user = new User();
+  //   user.empId = this.currentUser.empId;
+  //   this.authenticationService.logoutUser(user).subscribe((response:any)=>{
+  //     this.authenticationService.stopUserSessionCheck();
+  //     console.log(response.serviceResponse);
+  //     sessionStorage.removeItem('currentUser');
+  //     sessionStorage.removeItem('token');
+  //     // delete method call for cookies
+  //     this.authenticationService.deleteCookies();
+  //     this.authenticationService.setcurrentUserSubject(null);
+  //   })
+  // }
 
   //implementing cookies
   

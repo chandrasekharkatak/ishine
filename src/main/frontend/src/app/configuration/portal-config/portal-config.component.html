@@ -83,7 +83,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 1) : Min. No. of Days </label>
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 2) : Min. No. of Days </label>
                             <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.level1MinNoOfDays">
                         </div>
                     </div>
@@ -91,7 +91,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 1) : Approval To</label>
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 2) : Approval To</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="portalObj.level1ApprovalTo">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Reporting Manager">Reporting Manager</option>
@@ -105,7 +105,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 2) : Min. No. of Days </label>
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 3) : Min. No. of Days </label>
                             <input type="number" class="form-control" autocomplete="none" [(ngModel)]="portalObj.level2MinNoOfDays">
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 2) : Approval To</label>
+                            <label><span class="text-danger">*</span>Leave Approval Escalation (Level 3) : Approval To</label>
                             <mat-select ngxMatSelect class="form-control"
                                   #approvalSelect="ngxMatSelect"
                                   [displayMember]="'name'"

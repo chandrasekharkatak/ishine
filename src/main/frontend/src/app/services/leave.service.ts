@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Leave } from '../models/leave';
 import { Query } from '../models/query';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LeaveService {
 
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -146,6 +147,10 @@ export class LeaveService {
 
   deleteCompOff(compOffObj:Leave) {
     return this.http.post(`${this.baseUrl}` + `api/deleteCompOff`, compOffObj);
+  }
+
+  getCompOffBalanceDetailsByEmpIdAndFromDate(compOffObj:Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getCompOffBalanceDetailsByEmpIdAndFromDate`, compOffObj);
   }
 
   /* Leave Policy */

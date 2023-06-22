@@ -795,6 +795,7 @@ public class DraftEmployeeService {
 					empDTO.setReportingManagerName(object[59] != null ? object[59].toString() : null);
 					empDTO.setDesignationId(object[60] != null ? Long.parseLong(object[60].toString()) : null);
 					empDTO.setDesignationName(object[61] != null ? object[61].toString() : null);
+					empDTO.setCreatedOn(object[62] != null ? object[62].toString() : null);
 
 //					if (object[42] != null) {
 //

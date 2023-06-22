@@ -1491,13 +1491,13 @@
                                                 <p class="info-text">{{previewObj.noticePeriod}} Days</p>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-0">
+                                        <div *ngIf="previewObj.employmentstatus == 'Resigned' || previewObj.employmentstatus == 'InActive'" class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date Of Resign</p>
                                                 <p class="info-text">{{previewObj.dateOfResign | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-0">
+                                        <div *ngIf="previewObj.employmentstatus == 'Resigned' || previewObj.employmentstatus == 'InActive'" class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Date Of Relieving</p>
                                                 <p class="info-text">{{previewObj.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
@@ -1707,8 +1707,30 @@
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Your views on our Organisation</p>
-                                                <p class="info-text">{{previewEmployeeObj.viewsOnOrganisation}}</p>
+                                                <p class="info-label">Employee Id</p>
+                                                <p class="info-text info-highlight">
+                                                    A-{{previewEmployeeObj.employeementId}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Name</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewEmployeeObj.name}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Email</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewEmployeeObj.email}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Secondary Email</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewEmployeeObj.email}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -1725,21 +1747,20 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
+                                                <p class="info-label">Blood group</p>
+                                                <p class="info-text">{{previewEmployeeObj.bloodGroup}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
                                                 <p class="info-label">About me</p>
                                                 <p class="info-text">{{previewEmployeeObj.aboutMe}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Employee Id</p>
-                                                <p class="info-text info-highlight">
-                                                    A-{{previewEmployeeObj.employeementId}}</p>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4 mb-0">
-                                            <div class="info-wrapper">
-                                                <p class="info-label">Blood group</p>
-                                                <p class="info-text">{{previewEmployeeObj.bloodGroup}}</p>
+                                                <p class="info-label">Your views on our Organisation</p>
+                                                <p class="info-text">{{previewEmployeeObj.viewsOnOrganisation}}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -2012,6 +2033,18 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Notice Period</p>
                                                 <p class="info-text">{{previewEmployeeObj.noticePeriod}} Days</p>
+                                            </div>
+                                        </div>
+                                        <div *ngIf="previewEmployeeObj.employmentstatus == 'Resigned' || previewEmployeeObj.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date Of Resign</p>
+                                                <p class="info-text">{{previewEmployeeObj.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                            </div>
+                                        </div>
+                                        <div *ngIf="previewEmployeeObj.employmentstatus == 'Resigned' || previewEmployeeObj.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Date Of Relieving</p>
+                                                <p class="info-text">{{previewEmployeeObj.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">

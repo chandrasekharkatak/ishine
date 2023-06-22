@@ -30,7 +30,8 @@ public class NotificationServiceImpl implements NotificationService {
 	
 	@Autowired
 	EmployeeNotificationConsentRepository employeeNotificationConsentRepository;
-
+	
+	
 	public ServiceResponse addNotification(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -79,6 +80,17 @@ public class NotificationServiceImpl implements NotificationService {
 				notification.setIsActive("true");
 
 				Notification updatedNotification = notificationRepository.save(notification);
+				
+				// Delete existing consents when notification is updated.
+				if(updatedNotification != null && "releaseNotes".equals(updatedNotification.getNotificationType())) {
+					List<EmployeeNotificationConsent> existingConsents =  employeeNotificationConsentRepository.findByNotificationId(updatedNotification.getNotificationId());
+					if(!existingConsents.isEmpty()) {
+						for(EmployeeNotificationConsent consent : existingConsents) {
+							employeeNotificationConsentRepository.deleteById(consent.getEmployeeNotificationConsentId());
+						}
+					}
+				}
+				
 
 				if (updatedNotification.getNotificationId() != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -134,6 +146,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	public ServiceResponse getAllNotifications() {
 		ServiceResponse response = new ServiceResponse();
+		
 		try {
 
 			List<Object[]> objectList = notificationRepository.getAllNotications();
@@ -236,6 +249,20 @@ public class NotificationServiceImpl implements NotificationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Notification deleted Successfully.");
+				}else if(notificationObj.getNotificationType().equals("releaseNotes")) {
+					
+					// Delete existing consents.
+					List<EmployeeNotificationConsent> existingConsents =  employeeNotificationConsentRepository.findByNotificationId(notificationObj.getNotificationId());
+					if(!existingConsents.isEmpty()) {
+						for(EmployeeNotificationConsent consent : existingConsents) {
+							employeeNotificationConsentRepository.deleteById(consent.getEmployeeNotificationConsentId());
+						}
+					}
+					
+					notificationRepository.deleteById(notificationObj.getNotificationId());
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Notification deleted Successfully.");
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -251,6 +278,55 @@ public class NotificationServiceImpl implements NotificationService {
 		return response;
 	}
 
+	public ServiceResponse onInActivateNotification(NotificationDTO notificationDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Notification notificationObj = notificationRepository.findByNotificationId(notificationDTO.getNotificationId());
+			
+			if(notificationObj != null) {
+				if(notificationObj.getNotificationType().equals("consentNotification")) {
+					notificationObj.setIsActive("false");
+					notificationObj.setUpdatedBy(notificationDTO.getUpdatedBy());
+					
+					Notification dbResponse = notificationRepository.save(notificationObj);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Notification InActivated Successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Unable to InActivate notification.");
+					}
+				}else if(notificationObj.getNotificationType().equals("releaseNotes")) {
+					
+					notificationObj.setIsActive("false");
+					notificationObj.setUpdatedBy(notificationDTO.getUpdatedBy());
+					
+					Notification dbResponse = notificationRepository.save(notificationObj);
+					
+					if(dbResponse != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Notification InActivated Successfully.");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Unable to InActivate notification.");
+					}
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unable to find notification.");
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
 	@Override
 	public ServiceResponse submitNotificationConsent(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -267,17 +343,34 @@ public class NotificationServiceImpl implements NotificationService {
 				
 				EmployeeDTO dto = new EmployeeDTO();
 				
-				List<Notification> allConsentNotification = notificationRepository
-						.findByNotificationTypeAndIsActive("consentNotification", "true");
-				
-				if(!allConsentNotification.isEmpty()) {
-					for(Notification object: allConsentNotification) {
-						EmployeeNotificationConsent consentObject = employeeNotificationConsentRepository
-								.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
-						
-						if(consentObject == null) {
-							dto.setNotificationConsent(object);
-							break;
+				if(notificationDTO.getNotificationType().equals("consentNotification")) {
+					List<Notification> allConsentNotification = notificationRepository
+							.findByNotificationTypeAndIsActive("consentNotification", "true");
+					
+					if(!allConsentNotification.isEmpty()) {
+						for(Notification object: allConsentNotification) {
+							EmployeeNotificationConsent consentObject = employeeNotificationConsentRepository
+									.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
+							
+							if(consentObject == null) {
+								dto.setNotificationConsent(object);
+								break;
+							}
+						}
+					}
+				}else {
+					List<Notification> allReleaseNotes = notificationRepository
+							.findByNotificationTypeAndIsActive("releaseNotes", "true");
+					
+					if(!allReleaseNotes.isEmpty()) {
+						for(Notification object: allReleaseNotes) {
+							EmployeeNotificationConsent releaseConsentObj = employeeNotificationConsentRepository
+									.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
+							
+							if(releaseConsentObj == null) {
+								dto.setReleaseNoteNotification(object);
+								break;
+							}
 						}
 					}
 				}
@@ -326,6 +419,61 @@ public class NotificationServiceImpl implements NotificationService {
 			}
 			
 		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
+	@Override
+	public ServiceResponse getAllNotificationsByNotificationTypeAndEmpId(NotificationDTO notificationDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> objectList = notificationRepository.getAllNotificationsByNotificationTypeAndEmpId(notificationDTO.getNotificationType(), notificationDTO.getEmpId());
+			
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No notifications found. List is empty.");
+				} else {
+					List<NotificationDTO> dtoList = new ArrayList<NotificationDTO>();
+
+					list.forEach((object) -> {
+
+						NotificationDTO dto = new NotificationDTO();
+
+						dto.setNotificationId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+						dto.setNotificationMessage(object[1] != null ? object[1].toString() : null);
+						dto.setCreatedByName(object[2] != null ? object[2].toString() : null);
+						dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+						dto.setUpdatedByName(object[4] != null ? object[4].toString() : null);
+						dto.setUpdatedOn(object[5] != null ? object[5].toString() : null);
+						dto.setNotificationType(object[6] != null ? object[6].toString() : null);
+						dto.setIsActive(object[7] != null ? object[7].toString() : null);
+						
+						if(object[8] != null) {
+							dto.setIsNotificationViewed("true");
+						}else {
+							dto.setIsNotificationViewed("false");
+						}
+						
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No  notifications found. List is null.");
+			});
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

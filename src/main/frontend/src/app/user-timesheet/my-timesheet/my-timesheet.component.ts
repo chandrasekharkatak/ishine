@@ -537,7 +537,7 @@ export class MyTimesheetComponent implements OnInit {
         // }
 
 
-        if (activity.description != '') {
+        if (activity.description != null && activity.description != '') {
 
           if (!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
             this.alertMessage = `Please enter valid Activity Description  - ${index + 1}!!`
@@ -1410,6 +1410,9 @@ export class MyTimesheetComponent implements OnInit {
 
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+    this.filters = {};
+  }
   }
 
   onSearch(searchData){

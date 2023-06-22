@@ -2,12 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Employee } from '../models/employee';
 import { EventPhoto } from '../models/EventPhoto';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageService {
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
   
   constructor(private http: HttpClient) { }
 

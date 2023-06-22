@@ -28,7 +28,6 @@ public class EmployeeLeave {
 	private Long leaveId;
 
 	private Long empId;
-	private Integer managerId;
 	private Short leaveTypeMasterId;
 	private Float noOfDays;	
 	private Short leaveStatusId;
@@ -48,5 +47,18 @@ public class EmployeeLeave {
 	
 	private Float fromDateDayType;
 	private Float toDateDayType;
+	
+	private Integer currentApprovalLevel;
+	private Integer finalApprovalLevel;
+
+	private Integer managerId;
+	private String managerApprovalStatus;
+	
+	private Long level2ApproverId;
+	private String level2ApprovalStatus;
+	
+	private Long level3ApproverId;
+	private String level3ApprovalStatus;;
+	
 	
 }

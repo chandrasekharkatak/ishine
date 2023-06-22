@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UploadPolicy } from '../models/UploadPolicy';
+import { environment } from 'src/environments/environment';
 
 
 @Injectable({
@@ -8,7 +9,7 @@ import { UploadPolicy } from '../models/UploadPolicy';
 })
 export class PoliciesService {
 
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 

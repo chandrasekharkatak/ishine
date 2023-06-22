@@ -404,7 +404,7 @@ export class InformationPreviewComponent implements OnInit {
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.employerName)){
+            }else   if(!this.validationService.validateOrgName(previousEmployer.employerName)){
               this.alertMessage = `Please Enter valid Employer Name - ${index+1}!!`;
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
@@ -511,7 +511,7 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaWithSpace(employeeObj.bankName)){
+    }if(!this.validationService.validateOrgName(employeeObj.bankName)){
       this.alertMessage = "Please enter Valid Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

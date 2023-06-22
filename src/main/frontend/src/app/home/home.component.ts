@@ -42,6 +42,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   feature = "Home";
   currentUser: User;
+  currentUserName = "";
   userMapping: any = {};
   log: Log;
 
@@ -137,9 +138,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
+  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
   compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
   timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
+
+
+  isShowReleaseNote:boolean = false;
+  releaseNoteText = "";
 
   constructor(
     private modalService: BsModalService,
@@ -157,7 +162,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private logService: LogService,
     private locationStrategy: LocationStrategy
   ) {
-    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.authenticationService.currentUser.subscribe(x => {
+      this.currentUser = x;
+      this.currentUserName = this.currentUser.name.split(" ")[0];
+      this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+    });
     this.logService.log.subscribe(x => {
       this.log = x;
       this.log.tabName = this.feature;
@@ -215,6 +224,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if(this.currentUser.isNew == "false"){
       console.log("this.currentUser : ", this.currentUser);
       this.openConsentNotificationModal();
+      this.setReleaseNote();
     }
   }
 
@@ -243,6 +253,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+            leave.currentApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
@@ -272,15 +286,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     this.cancelRequest();
-    let leaveObj = new Leave();
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
-    leaveObj.email = leaveApplication.email
-    leaveObj.rejectReason = leaveApplication.rejectReason?.trim();
-    leaveApplication.approverEmail = this.currentUser.email;
-
-    console.log("   leaveObj.email   ", leaveObj.email);
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
 
     console.log("leaveApplication : ", leaveApplication);
 
@@ -363,8 +372,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     compOff = Object.assign({},compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
-    compOff.managerEmail = this.currentUser.email;
-    compOff.managerName = this.currentUser.name;
+    compOff.hodEmail = this.currentUser.email;
+    compOff.hodName = this.currentUser.name;
     compOff.employeeName = compOff.createdByName;
     console.log("Update Comp off : ", compOff);
 
@@ -1101,7 +1110,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   openNotificationMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   openReqMod(template: TemplateRef<any>) {
@@ -1499,22 +1508,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.authenticationService.stopUserSessionCheck();
       console.log(response.serviceResponse);
       sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('logInfo');
+      sessionStorage.removeItem('maxFileSize');
+      sessionStorage.removeItem('maxRequestSize');
+      sessionStorage.removeItem('sessioncheck');
       // delete method call for cookies
       this.authenticationService.deleteCookies();
       this.authenticationService.setcurrentUserSubject(null);
 
       this.router.navigate(['/login']);
-      location.reload();
+      setTimeout(() => {location.reload();});
 
     } else {
       if (response.serviceResponse == "Session already destroyed") {
         this.authenticationService.stopUserSessionCheck();
         sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('logInfo');
+        sessionStorage.removeItem('maxFileSize');
+        sessionStorage.removeItem('maxRequestSize');
+        sessionStorage.removeItem('sessioncheck');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
         this.router.navigate(['/login']);
-        location.reload();
+        setTimeout(() => {location.reload();});
       }
       console.error(response.serviceResponse);
     }
@@ -1555,7 +1574,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
       !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
       this.isError = true;
-      this.errorMsg = 'Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
       return;
     }
 
@@ -1602,7 +1621,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        this.allNotification = this.allNotification.filter(x => x.isActive == 'true');
+        this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
 
         console.log("notificationList : ", this.allNotification);
       } else {
@@ -1627,6 +1646,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     notificationObj.empId = this.currentUser.empId;
     notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
+    notificationObj.notificationType = this.currentUser.notificationConsent.notificationType;
     this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let dtoResponse = response.serviceResponse;
@@ -1634,6 +1654,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openConsentNotificationModal();
+      }
+    });
+  }
+
+
+  // Release Note Consent 
+  setReleaseNote(){
+    this.isShowReleaseNote = false;
+
+    console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
+
+    if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
+      this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
+      this.isShowReleaseNote = true;
+    }
+  }
+
+  submitReleaseNoteNotificationConsent(){
+    let notificationObj = new NotificationMessage();
+
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.currentUser.releaseNoteNotification.notificationId;
+    notificationObj.notificationType = this.currentUser.releaseNoteNotification.notificationType;
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.releaseNoteNotification = dtoResponse.releaseNoteNotification;
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.setReleaseNote()
       }
     });
   }
@@ -1650,6 +1699,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+    this.filters = {};
+    }
   }
 
   onSearch(searchData){

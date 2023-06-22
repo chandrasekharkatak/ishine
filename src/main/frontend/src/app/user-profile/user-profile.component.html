@@ -29,27 +29,27 @@
                                 </div>
                             </div>
                             <div class="row user-card__profile-info__container mt-4 mr-0">
-                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee ID</p>
                                     <p class="user-card__profile-info__text">A-{{currentEmployeeInfo.employeementId}}</p>
                                 </div>
-                                <div class="col-sm-5 col-md-4 user-card__profile-info__container-blocks">
+                                <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Email ID</p>
                                     <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.email}}</p>
                                 </div>
-                                <div class="col-sm-5 col-md-2 user-card__profile-info__container-blocks">
+                                <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Contact No.</p>
                                     <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.mobileNo}}</p>
                                 </div>
-                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee Status</p>
                                     <p class="user-card__profile-info__text">{{currentEmployeeInfo.employmentstatus}}</p>
                                 </div>
-                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Department</p>
                                     <p class="user-card__profile-info__text">{{currentEmployeeInfo.departmentName}}</p>
                                 </div>
-                                <div class="col-sm-5 col-md-3 user-card__profile-info__container-blocks">
+                                <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Reports To</p>
                                     <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
                                 </div>
@@ -606,7 +606,8 @@
                                 <div class="row flex-column px-4" *ngFor="let asset of allAssetList;let i = index">
                                     <div class="info-wrapper">
                                         <p class="info-label">{{asset.assestName}}</p>
-                                        <p class="info-text">{{asset.assetDetail}}</p>
+                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{asset.assetDetail}}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
+                                        <p *ngIf="asset.isAssigned == 'false'" class="info-text">Not Assigned</p>
                                     </div>
                                 </div>
                             </div>

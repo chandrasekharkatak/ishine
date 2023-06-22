@@ -1,44 +1,54 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { Log } from '../models/log';
-import { User } from '../models/user';
+import { Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
-import { LogService } from '../services/log.service';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class EmployeePortalInterceptor implements HttpInterceptor {
 
-    currentUser:User;
-    log:Log;
-
     constructor(
-        private authenticationService: AuthenticationService,
-        private logService:LogService
-    ) { 
-        this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-        this.logService.log.subscribe(x => this.log = x);
-    }
+        private authenticationService : AuthenticationService,
+        private router: Router
+    ) { }
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        // if(this.currentUser){
-        //     let body = {};
-        //     const regex = /\/api\/[a-zA-Z]+/gm
-        //     const match = request.url.match(regex);
-        //     console.log("API URL : ", match);
-        //     console.log("Log INFO ", this.log);
-        //     if (match) this.log.apiUrl = match[0];
-        //     if (body) request.body;
-        //     body['log'] = this.log;
+        const token: string = sessionStorage.getItem('token');
+        
+        if (token) {
+            request = request.clone({
+                setHeaders: { 
+                    Authorization : `Bearer ${token}`
+                }
+            });
+        }
 
-        //     console.log("Updated Request Body : ", body);
-
-        //     request = request.clone({
-        //         body: body
-        //     });
-        // }
-
-        return next.handle(request);
+        return next.handle(request).pipe(
+            tap(evt => {
+                // Do Nothing
+            }),
+            catchError((err: any) => {
+                if(err instanceof HttpErrorResponse) {
+                    if(err.status == 401)
+                        this.userLogout();
+                }
+                return of(err);
+            }));;
     }
     
+    userLogout(){
+        this.authenticationService.stopUserSessionCheck();
+          sessionStorage.removeItem('currentUser');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('logInfo');
+          sessionStorage.removeItem('maxFileSize');
+          sessionStorage.removeItem('maxRequestSize');
+          sessionStorage.removeItem('sessioncheck');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
+          this.router.navigate(['/login']);
+          setTimeout(() => {location.reload();});   
+      }
 }
