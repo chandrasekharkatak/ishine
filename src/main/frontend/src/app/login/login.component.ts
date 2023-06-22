@@ -30,10 +30,10 @@ export class LoginComponent implements OnInit{
   //flags 
   isLoginForm:boolean=true;
   isOtpForm:boolean=false;
+  isForgotPassOtpForm:boolean=false;
   isForgotPassForm:boolean=false;
   isChangePassForm:boolean=false;
   isError:boolean=false;
-  isLoginOTP:boolean=false;
 
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
@@ -95,8 +95,21 @@ export class LoginComponent implements OnInit{
   }
 
   showOtpForm(){
-    this.isLoginForm=false;
     this.isOtpForm=true;
+
+    this.isForgotPassOtpForm=false;
+    this.isLoginForm=false;
+    this.isForgotPassForm=false;
+    this.isChangePassForm=false;
+
+    this.reset();
+  }
+
+  showForgotPassOtpForm(){
+    this.isForgotPassOtpForm=true;
+    
+    this.isOtpForm=false;
+    this.isLoginForm=false;
     this.isForgotPassForm=false;
     this.isChangePassForm=false;
 
@@ -104,9 +117,11 @@ export class LoginComponent implements OnInit{
   }
 
   showForgotPassForm(){
+    this.isForgotPassForm=true;
+
     this.isLoginForm=false;
     this.isOtpForm=false;
-    this.isForgotPassForm=true;
+    this.isForgotPassOtpForm=false;
     this.isChangePassForm=false;
 
     this.reset();
@@ -114,7 +129,9 @@ export class LoginComponent implements OnInit{
 
   showLoginForm(){
     this.isLoginForm=true;
+    
     this.isOtpForm=false;
+    this.isForgotPassOtpForm=false;
     this.isForgotPassForm=false;
     this.isChangePassForm=false;
 
@@ -122,10 +139,12 @@ export class LoginComponent implements OnInit{
   }
 
   showChangePassForm(){
+    this.isChangePassForm=true;
+
     this.isLoginForm=false;
     this.isOtpForm=false;
+    this.isForgotPassOtpForm = false;
     this.isForgotPassForm=false;
-    this.isChangePassForm=true;
   }
 
   reset(){
@@ -182,7 +201,6 @@ export class LoginComponent implements OnInit{
 
     this.authenticationService.authenticateUser(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.isLoginOTP=true;
         this.user.password = null;
         this.showOtpForm();
       }
@@ -201,7 +219,6 @@ export class LoginComponent implements OnInit{
   *  Added by suraj 12/08/2022
   */
   onReLogin(){
-    this.isLoginOTP=true;
     this.user.password = null;
     this.showOtpForm();
     this.resendOTP(); // used to send otp
@@ -240,7 +257,9 @@ export class LoginComponent implements OnInit{
       this.enableAppreciation = responseObj[7];	
       console.log("enableAppreciation",enableAppreciation);	
       console.log("checking"+sessionStorage.maxFileSize);
-      this.authenticationService.setCookie({name:user.name,value:user.empId,session:true})
+      this.authenticationService.setCookie({name:"SESSIONID",value:this.authenticationService.sessionString,session:true});
+      sessionStorage.setItem('token', this.authenticationService.sessionString);
+      
 
       let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
       if (getAllSubFeaturesResp.serviceStatus == "Success") {
@@ -286,6 +305,7 @@ export class LoginComponent implements OnInit{
       this.user.notificationConsent = user.notificationConsent;
       this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
       this.user.probationPeriod = user.probationPeriod;
+      this.user.releaseNoteNotification = user.releaseNoteNotification;
       
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
@@ -359,7 +379,7 @@ export class LoginComponent implements OnInit{
   onSendOTP(){
     this.isError=false;
     this.errorMsg='';
-    
+
     if(!this.validationService.validateNullUndefinedEmptyString(this.userEmailId)){
       this.isError=true;
       this.errorMsg='Please enter email id !!';
@@ -375,15 +395,11 @@ export class LoginComponent implements OnInit{
     this.userEmailIdForOtpVerification = this.userEmailId;
 
     this.authenticationService.checkEmailWhenForgotPassword(user).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus == "Success")
-      {
-        this.isLoginOTP=false;
-        this.showOtpForm();
-      }
-      else{
-      this.isError=true;
-      this.errorMsg=response.serviceResponse;
-      return;
+      if(response.serviceStatus == "Success"){
+        this.showForgotPassOtpForm();
+      }else{
+        this.isError=true;
+        this.errorMsg=response.serviceResponse;
       }
     });
 
@@ -410,8 +426,9 @@ export class LoginComponent implements OnInit{
     user.otp = this.userOTP;
 
     this.authenticationService.checkOTPWhenForgotPassword(user).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus == "Success")
-      {        
+      if(response.serviceStatus == "Success"){
+        let sessionToken = response.serviceResponse;
+        sessionStorage.setItem('token', sessionToken);     
         this.showChangePassForm();
       }
       else{
@@ -454,7 +471,7 @@ export class LoginComponent implements OnInit{
     !this.validationService.validateAlphaNumericSpecialCharacters(this.userConfirmNewPass)){
       this.isError=true;
       //Password should not be set  less than 8 characters and it should accept special, alphanumeric characters
-      this.errorMsg='Password should not be set  less than 8 characters. Only alphanumeric and @#$%!+*÷=/_-\'":;,()^{}~[] are allowed !!';
+      this.errorMsg='Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
       return;
     }
 
@@ -462,9 +479,11 @@ export class LoginComponent implements OnInit{
     user.email = this.userEmailIdForOtpVerification;
     user.newPassword = this.setEncryption("PkdtRsJidheGitvS",this.userNewPass);
 
-    this.employeeService.updateEmployeePassword(user).pipe(first()).subscribe((response: any) => {
+    this.employeeService.updateEmployeeForgotPassword(user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        sessionStorage.removeItem('token');
         this.openAlertMod(template, "Password changed successfully.");
+
         this.showLoginForm();
       } else {
         this.isError=true;
@@ -531,7 +550,7 @@ export class LoginComponent implements OnInit{
 
     this.userOTP = ''
     this.errorMsg = ''
-    if(!this.isLoginOTP){	
+    if(this.isForgotPassOtpForm){	
       this.user.email = this.userEmailIdForOtpVerification;	
     }	
     	

@@ -34,7 +34,6 @@
                     <thead class="thead-light" id="policyInfoTHead">	
                       <tr id="policyInfoTHeadTr">
                         <th scope="col" class="info-label">Sr No.</th>	
-                        <th scope="col" class="info-label" mat-sort-header="fileName|string">File Name</th>	
                         <th scope="col" class="info-label" mat-sort-header="policyName|string">Policy Name</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
                         <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
@@ -48,7 +47,6 @@
                       </tr>
                       <tr *ngFor="let doc of document | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
                         <th class="info-label">{{10*(page-1)+i+1}}</th>
-                        <td>{{doc.fileName}}</td>
                         <td>{{doc.policyName}}</td>
                         <td>{{doc.createdByName}}</td>
                         <td>{{doc.createdOn}}</td>
@@ -121,7 +119,7 @@
           </div>
       </div>
 
-      <button  class="btn btn-sm btn-outline-primary mt-1" *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, currentDoc)" >Mark As Read</button>
+      <button  class="btn btn-sm btn-outline-primary mt-1" *ngIf="currentDoc.readEnabled == 'true' && !currentDoc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, currentDoc)">Mark As Read</button>
       <button type="button" class="btn btn-outline-primary" *ngIf="(currentDoc.readEnabled == 'true' && currentDoc.isRead) || currentDoc.readEnabled == 'false'"  (click)="cancelRequest()">Cancel</button>&nbsp;
   </div>
 </ng-template>

@@ -122,13 +122,16 @@ export class LeaveComponent implements OnInit {
   
   filters:any = {};
   isSearchEnabled:boolean = false;
-  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','approverName','remark'];
-  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','reason','approverName','remark'];
+  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
+  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
   leaveBalColumns:any[] = ['leaveType','totalLeaveBalance','pendingForApproval','balance'];
   leaveLogColumns:any[] = ['rowNumber','leaveType','updateBalanceBy','balance','message','createdOn'];
   selfLeaveRevokeHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','approverName','remark'];
   teamLeaveRevokeHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','revokeReason','approverName','remark'];
   overlapsedLeaveColumns:any[] = ['employeementId', 'name', 'fromDate', 'toDate'];
+
+
+  availableCompOffDetails:any[] = [];
 
   constructor(
     public validationService:ValidationService,
@@ -523,7 +526,7 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    else  if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason?.trim())){
+    else if(!this.validationService.validateActivityTimesheetDiscription(leaveObj.reason?.trim())){
       this.alertMessage = "Please enter valid Leave reason !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -544,12 +547,31 @@ export class LeaveComponent implements OnInit {
     return true;
   }
 
+  resetLeaveObj(){
+    this.leaveDetails = [];
+    this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.fromDate = '';
+    this.leaveObj.fromDateDayType = '';
+    this.leaveObj.toDate = '';
+    this.leaveObj.toDateDayType = '';
+    this.leaveObj.noOfDays = '';
+    this.leaveObj.reason = '';
+  }
+
   setLeaveTypeCode(leaveTypeMasterId:any){
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
 
+    // resetting Data for previously selected leave Type
     this.leaveObj.fromDate = '';
+    this.leaveObj.fromDateDayType = '';
     this.leaveObj.toDate = '';
+    this.leaveObj.toDateDayType = '';
+    this.leaveObj.noOfDays = '';
+    this.leaveObj.reason = '';
+    
+    this.isOverlapsedLeaveTable = false;
+    this.overLappingTeamMemberList = [];
   }
 
   setPolicyObj(leaveTypeMasterId:any){
@@ -944,116 +966,114 @@ export class LeaveComponent implements OnInit {
       if (!response) return;
 
       if(this.leaveObj.noOfDays >= this.level1MinNoOfDays && this.leaveObj.noOfDays < this.level2MinNoOfDays){
-        if(this.level1ApprovalTo == 'HOD'){
-          if(this.leaveObj.leaveAppliedFor == 'self'){
-            if(this.leaveObj.empId == this.currentUser.hodId){
-              if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
-                this.leaveObj.managerId = this.currentUser.reportingManagerId;
-                this.leaveObj.approverEmail = this.currentUser.reportingManagerEmail;
-                this.leaveObj.approverName = this.currentUser.reportingManagerName;
-              }else{
-                this.leaveObj.managerId = this.currentUser.managerId;
-                this.leaveObj.approverEmail = this.currentUser.managerEmail;
-                this.leaveObj.approverName = this.currentUser.managerName;
-              }
-            }else{
-              this.leaveObj.managerId = this.currentUser.hodId;
-              this.leaveObj.approverName = this.currentUser.hodName
-              this.leaveObj.approverEmail = this.currentUser.hodEmail
-            }
-          }else{
-            let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId);
-            if(this.leaveObj.empId == teamMember.hodId){
-              if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
-                this.leaveObj.managerId = teamMember.reportingManagerId;
-                this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
-                this.leaveObj.approverName = teamMember.reportingManagerName;
-              }else{
-                this.leaveObj.managerId = teamMember.managerId;
-                this.leaveObj.approverName = teamMember.managerName;
-                this.leaveObj.approverEmail = teamMember.managerEmail
-              }
-            }else{
-              this.leaveObj.managerId = teamMember.hodId;
-              this.leaveObj.approverName = teamMember.hodName
-              this.leaveObj.approverEmail = teamMember.hodEmail
-            }
-          }
-        }else {
-          if(this.leaveObj.leaveAppliedFor == 'self'){
+        this.leaveObj.finalApprovalLevel = 2;
+      }else if(this.leaveObj.noOfDays >= this.level2MinNoOfDays){
+        this.leaveObj.finalApprovalLevel = 3;
+      }else{
+        this.leaveObj.finalApprovalLevel = 1;
+      }
+
+      if(this.leaveObj.leaveAppliedFor == 'self'){
+        // Level 1
+        if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+          this.leaveObj.managerId = this.currentUser.reportingManagerId;
+          this.leaveObj.approverEmail = this.currentUser.reportingManagerEmail;
+          this.leaveObj.approverName = this.currentUser.reportingManagerName;
+        }else{
+          this.leaveObj.managerId = this.currentUser.managerId;
+          this.leaveObj.approverEmail = this.currentUser.managerEmail;
+          this.leaveObj.approverName = this.currentUser.managerName;
+        }
+
+        // Level 2 
+        if(this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3){
+          if(this.leaveObj.empId == this.currentUser.hodId || this.level1ApprovalTo == "Reporting Manager"){
             if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
-              this.leaveObj.managerId = this.currentUser.reportingManagerId;
-              this.leaveObj.approverEmail = this.currentUser.reportingManagerEmail;
-              this.leaveObj.approverName = this.currentUser.reportingManagerName;
+              this.leaveObj.level2ApproverId = this.currentUser.reportingManagerId;
+              this.leaveObj.level2ApproverEmail = this.currentUser.reportingManagerEmail;
+              this.leaveObj.level2ApproverName = this.currentUser.reportingManagerName;
             }else{
-              this.leaveObj.managerId = this.currentUser.managerId;
-              this.leaveObj.approverEmail = this.currentUser.managerEmail;
-              this.leaveObj.approverName = this.currentUser.managerName;
+              this.leaveObj.level2ApproverId = this.currentUser.managerId;
+              this.leaveObj.level2ApproverEmail = this.currentUser.managerEmail;
+              this.leaveObj.level2ApproverName = this.currentUser.managerName;
             }
           }else{
-            let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-            if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
-              this.leaveObj.managerId = teamMember.reportingManagerId;
-              this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
-              this.leaveObj.approverName = teamMember.reportingManagerName;
-            }else{
-              this.leaveObj.managerId = teamMember.managerId;
-              this.leaveObj.approverName = teamMember.managerName;
-              this.leaveObj.approverEmail = teamMember.managerEmail
-            }
+            this.leaveObj.level2ApproverId = this.currentUser.hodId;
+            this.leaveObj.level2ApproverEmail = this.currentUser.hodEmail; 
+            this.leaveObj.level2ApproverName = this.currentUser.hodName;
           }
         }
-      }else if(this.leaveObj.noOfDays >= this.level2MinNoOfDays){
+        
+        // Level 3
+        if(this.leaveObj.finalApprovalLevel == 3){
           if(this.leaveObj.empId == this.level2ApprovalTo){
-            if(this.leaveObj.leaveAppliedFor == 'self'){
-              if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
-                this.leaveObj.managerId = this.currentUser.reportingManagerId;
-                this.leaveObj.approverEmail = this.currentUser.reportingManagerEmail;
-                this.leaveObj.approverName = this.currentUser.reportingManagerName;
-              }else{
-                this.leaveObj.managerId = this.currentUser.managerId;
-                this.leaveObj.approverEmail = this.currentUser.managerEmail;
-                this.leaveObj.approverName = this.currentUser.managerName;
-              }
+            if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+              this.leaveObj.level3ApproverId = this.currentUser.reportingManagerId;
+              this.leaveObj.level3ApproverEmail = this.currentUser.reportingManagerEmail;
+              this.leaveObj.level3ApproverName = this.currentUser.reportingManagerName;
             }else{
-              let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-              if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
-                this.leaveObj.managerId = teamMember.reportingManagerId;
-                this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
-                this.leaveObj.approverName = teamMember.reportingManagerName;
-              }else{
-                this.leaveObj.managerId = teamMember.managerId;
-                this.leaveObj.approverName = teamMember.managerName;
-                this.leaveObj.approverEmail = teamMember.managerEmail
-              }
+              this.leaveObj.level3ApproverId = this.currentUser.managerId;
+              this.leaveObj.level3ApproverEmail = this.currentUser.managerEmail;
+              this.leaveObj.level3ApproverName = this.currentUser.managerName;
             }
           }else{
-            this.leaveObj.managerId = this.level2ApprovalTo;
-            this.leaveObj.approverName = this.level2ApproverName;
-            this.leaveObj.approverEmail = this.level2ApproverEmail;
+            this.leaveObj.level3ApproverId = this.level2ApprovalTo;
+            this.leaveObj.level3ApproverEmail = this.level2ApproverEmail; 
+            this.leaveObj.level3ApproverName = this.level2ApproverName;
           }
+        }
+
       }else{
-        if(this.leaveObj.leaveAppliedFor == 'self'){
-          if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
-            this.leaveObj.managerId = this.currentUser.reportingManagerId;
-            this.leaveObj.approverEmail = this.currentUser.reportingManagerEmail;
-            this.leaveObj.approverName = this.currentUser.reportingManagerName;
-          }else{
-            this.leaveObj.managerId = this.currentUser.managerId;
-            this.leaveObj.approverEmail = this.currentUser.managerEmail;
-            this.leaveObj.approverName = this.currentUser.managerName;
-          }
+        // Approvers for Team Member
+        let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+        
+        // Level 1
+        if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
+          this.leaveObj.managerId = teamMember.reportingManagerId;
+          this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
+          this.leaveObj.approverName = teamMember.reportingManagerName;
         }else{
-          let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-          if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
-            this.leaveObj.managerId = teamMember.reportingManagerId;
-            this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
-            this.leaveObj.approverName = teamMember.reportingManagerName;
+          this.leaveObj.managerId = teamMember.managerId;
+          this.leaveObj.approverEmail = teamMember.managerEmail;
+          this.leaveObj.approverName = teamMember.managerName;
+        }
+
+        // Level 2
+        if(this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3){
+          if(this.leaveObj.empId == teamMember.hodId || this.level1ApprovalTo == "Reporting Manager"){
+            if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
+              this.leaveObj.level2ApproverId = teamMember.reportingManagerId;
+              this.leaveObj.level2ApproverEmail = teamMember.reportingManagerEmail;
+              this.leaveObj.level2ApproverName = teamMember.reportingManagerName;
+            }else{
+              this.leaveObj.level2ApproverId = teamMember.managerId;
+              this.leaveObj.level2ApproverEmail = teamMember.managerEmail;
+              this.leaveObj.level2ApproverName = teamMember.managerName;
+            }
           }else{
-            this.leaveObj.managerId = teamMember.managerId;
-            this.leaveObj.approverName = teamMember.managerName;
-            this.leaveObj.approverEmail = teamMember.managerEmail
+            this.leaveObj.level2ApproverId = teamMember.hodId;
+            this.leaveObj.level2ApproverEmail = teamMember.hodEmail;
+            this.leaveObj.level2ApproverName = teamMember.hodName; 
           }
+        }
+        
+        // Level 3
+        if(this.leaveObj.finalApprovalLevel == 3){
+            if(this.leaveObj.empId == this.level2ApprovalTo){
+              if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
+                this.leaveObj.level3ApproverId = teamMember.reportingManagerId;
+                this.leaveObj.level3ApproverEmail = teamMember.reportingManagerEmail;
+                this.leaveObj.level3ApproverName = teamMember.reportingManagerName;
+              }else{
+                this.leaveObj.level3ApproverId = teamMember.managerId;
+                this.leaveObj.level3ApproverEmail = teamMember.managerEmail;
+                this.leaveObj.level3ApproverName = teamMember.managerName; 
+              }
+            }else{
+              this.leaveObj.level3ApproverId =    this.level2ApprovalTo;
+              this.leaveObj.level3ApproverEmail = this.level2ApproverEmail;
+              this.leaveObj.level3ApproverName =  this.level2ApproverName; 
+            }
         }
       }
 
@@ -1087,7 +1107,120 @@ export class LeaveComponent implements OnInit {
     let inputValidated:boolean  = this.validateLeavetObj(this.leaveObj, template)
     if(!inputValidated) return;
 
+    if(this.leaveObj.noOfDays >= this.level1MinNoOfDays && this.leaveObj.noOfDays < this.level2MinNoOfDays){
+      this.leaveObj.finalApprovalLevel = 2;
+    }else if(this.leaveObj.noOfDays >= this.level2MinNoOfDays){
+      this.leaveObj.finalApprovalLevel = 3;
+    }else{
+      this.leaveObj.finalApprovalLevel = 1;
+    }
+
+    if(this.leaveObj.leaveAppliedFor == 'self'){
+      // Level 1
+      if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+        this.leaveObj.managerId = this.currentUser.reportingManagerId;
+        this.leaveObj.approverEmail = this.currentUser.reportingManagerEmail;
+        this.leaveObj.approverName = this.currentUser.reportingManagerName;
+      }else{
+        this.leaveObj.managerId = this.currentUser.managerId;
+        this.leaveObj.approverEmail = this.currentUser.managerEmail;
+        this.leaveObj.approverName = this.currentUser.managerName;
+      }
+
+      // Level 2 
+      if(this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3){
+        if(this.leaveObj.empId == this.currentUser.hodId){
+          if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+            this.leaveObj.level2ApproverId = this.currentUser.reportingManagerId;
+            this.leaveObj.level2ApproverEmail = this.currentUser.reportingManagerEmail;
+            this.leaveObj.level2ApproverName = this.currentUser.reportingManagerName;
+          }else{
+            this.leaveObj.level2ApproverId = this.currentUser.managerId;
+            this.leaveObj.level2ApproverEmail = this.currentUser.managerEmail;
+            this.leaveObj.level2ApproverName = this.currentUser.managerName;
+          }
+        }else{
+          this.leaveObj.level2ApproverId = this.currentUser.hodId;
+          this.leaveObj.level2ApproverEmail = this.currentUser.hodEmail;
+          this.leaveObj.level2ApproverName = this.currentUser.hodName;
+        }
+      }
+      
+      // Level 3
+      if(this.leaveObj.finalApprovalLevel == 3){
+        if(this.leaveObj.empId == this.level2ApprovalTo){
+          if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+            this.leaveObj.level3ApproverId = this.currentUser.reportingManagerId;
+            this.leaveObj.level3ApproverEmail = this.currentUser.reportingManagerEmail;
+            this.leaveObj.level3ApproverName = this.currentUser.reportingManagerName;
+          }else{
+            this.leaveObj.level3ApproverId = this.currentUser.managerId;
+            this.leaveObj.level3ApproverEmail = this.currentUser.managerEmail;
+            this.leaveObj.level3ApproverName = this.currentUser.managerName;
+          }
+        }else{
+          this.leaveObj.level3ApproverId = this.currentUser.hodId;
+          this.leaveObj.level3ApproverEmail = this.currentUser.hodEmail;
+          this.leaveObj.level3ApproverName = this.currentUser.hodName; 
+        }
+      }
+
+
+    }else{
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      
+      // Level 1
+      if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
+        this.leaveObj.managerId = teamMember.reportingManagerId;
+        this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
+        this.leaveObj.approverName = teamMember.reportingManagerName;
+      }else{
+        this.leaveObj.managerId = teamMember.managerId;
+        this.leaveObj.approverName = teamMember.managerName;
+        this.leaveObj.approverEmail = teamMember.managerEmail
+      }
+
+      // Level 2
+      if(this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3){
+        if(this.leaveObj.empId == teamMember.hodId){
+          if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
+            this.leaveObj.level2ApproverId = teamMember.reportingManagerId;
+            this.leaveObj.level2ApproverEmail = teamMember.reportingManagerEmail;
+            this.leaveObj.level2ApproverName = teamMember.reportingManagerName;
+          }else{
+            this.leaveObj.level2ApproverId = teamMember.managerId;
+            this.leaveObj.level2ApproverEmail = teamMember.managerEmail;
+            this.leaveObj.level2ApproverName = teamMember.managerName;
+          }
+        }else{
+          this.leaveObj.level2ApproverId = teamMember.hodId;
+          this.leaveObj.level2ApproverEmail = teamMember.hodEmail;
+          this.leaveObj.level2ApproverName = teamMember.hodName;
+        }
+      }
+      
+      // Level 3
+      if(this.leaveObj.finalApprovalLevel == 3){
+          if(this.leaveObj.empId == teamMember.hodId){
+            if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
+              this.leaveObj.level3ApproverId = teamMember.reportingManagerId;
+              this.leaveObj.level3ApproverEmail = teamMember.reportingManagerEmail;
+              this.leaveObj.level3ApproverName = teamMember.reportingManagerName;
+            }else{
+              this.leaveObj.level3ApproverId = teamMember.managerId;
+              this.leaveObj.level3ApproverEmail = teamMember.managerEmail;
+              this.leaveObj.level3ApproverName = teamMember.managerName; 
+            }
+          }else{
+            this.leaveObj.level3ApproverId = teamMember.hodId;
+            this.leaveObj.level3ApproverEmail = teamMember.hodEmail;
+            this.leaveObj.level3ApproverName = teamMember.hodName; 
+          }
+      }
+    }
+
     this.leaveObj.updatedBy = this.currentUser.empId;
+    this.leaveObj.isWeekOffsExcluded = this.isWeekOffsExcluded;
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
     console.log(" this.leaveObj : ", this.leaveObj);
@@ -1188,15 +1321,16 @@ export class LeaveComponent implements OnInit {
   }
 
   getAllTeamMemberList(){
-    this.teamMemberList = []
-    this.leaveDetails = []
-    this.leaveObj.leaveTypeMasterId = ''
-    this.leaveObj.fromDate = ''
-    this.leaveObj.toDate = ''
-    this.leaveObj.noOfDays = ''
-    this.leaveObj.reason = ''
-    this.leaveObj.fromDateDayType = ''
-    this.leaveObj.toDateDayType = ''
+    this.teamMemberList = [];
+    this.leaveDetails = [];
+    this.leaveObj.empId = '';
+    this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.fromDate = '';
+    this.leaveObj.toDate = '';
+    this.leaveObj.noOfDays = '';
+    this.leaveObj.reason = '';
+    this.leaveObj.fromDateDayType = '';
+    this.leaveObj.toDateDayType = '';
 
     let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
@@ -1222,15 +1356,16 @@ export class LeaveComponent implements OnInit {
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
-
-        this.leaveHistoryList.forEach(leave => {
-          leave.checkDate = new Date(leave.fromDate);
-        });
-
+  
         this.leaveHistoryListForTable.forEach(leave => {
+          leave.checkDate = new Date(leave.fromDate);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+            leave.currentApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
 
@@ -1261,10 +1396,14 @@ export class LeaveComponent implements OnInit {
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
 
         this.leaveHistoryList.forEach(leave => {
+          leave.checkDate = new Date(leave.fromDate);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          leave.checkDate = new Date(leave.fromDate);
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+            leave.currentApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
+          }
         });
         console.log("leaveHistoryList : ", this.leaveHistoryList);
       } else {
@@ -1461,7 +1600,7 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  getAllLeaveBalanceByEmpId(leaveObj:Leave){	
+  getAllLeaveBalanceByEmpId(leaveObj:Leave){
     console.log("employyid:  ", leaveObj.empId )	
     console.log("leaveTypeMasterId:  ", leaveObj.leaveTypeMasterId )	
     this.leaveService.getAllLeaveBalanceByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {	
@@ -1477,6 +1616,37 @@ export class LeaveComponent implements OnInit {
       }	
     });	
   }	
+
+  // CompOff Details 
+  getAvailableCompOffDetails(leaveObj:Leave){
+    const dateFormat = 'YYYY-MM-DD';
+
+    if(leaveObj.leaveTypeCode == "CO"){
+      let compOffObj = new Leave();
+      compOffObj.empId = leaveObj.empId;
+      compOffObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
+  
+      this.leaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(compOffObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.availableCompOffDetails = response.serviceResponse;
+          console.log("this.availableCompOffDetails : ", this.availableCompOffDetails);
+          let balanceAvailable = 0;
+
+          this.availableCompOffDetails.forEach(compOff => {
+            balanceAvailable = balanceAvailable + compOff.noOfDays;
+          });
+
+          this.leaveBalance.forEach(leave => {
+            leave.balance = balanceAvailable;
+          });
+
+          this.leaveDetails = this.leaveBalance.map(user => `${user.leaveType} : ${user.balance} before ${compOffObj.fromDate}`);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
+  }
 
   exportToExcel(): void {	
     
@@ -1555,6 +1725,9 @@ export class LeaveComponent implements OnInit {
 
     toggleSearch(){
       this.isSearchEnabled = !this.isSearchEnabled;
+      if(!this.isSearchEnabled){
+        this.filters = {};
+      }
     }
 
     onSearch(searchData){

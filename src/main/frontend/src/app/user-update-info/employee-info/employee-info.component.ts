@@ -152,6 +152,12 @@ export class EmployeeInfoComponent implements OnInit{
     return false;
   }
 
+  preventDecimalOnNumberInput(event:any){
+    if(event.key==='.'){
+      event.preventDefault();
+    }
+  }
+
   setCalenderMaxDate() {
     const dateFormat = 'YYYY-MM-DD';
     const today = moment(new Date()).format(dateFormat);
@@ -323,7 +329,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.viewsOnOrganisation)){
-      this.alertMessage = "Please enter valid view on organisation !!";
+      this.alertMessage = `Please enter valid view on organisation. Alphabets, Number and allowed Special Character are +-()'"?,&.`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -333,7 +339,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.aboutMe)){
-      this.alertMessage = "Please enter valid in  About me !!";
+      this.alertMessage = `Please enter valid in  About me. Alphabets, Number and allowed Special Character are +-()'"?,&.`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -426,6 +432,15 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber)){
+      if(!this.validationService.validateAlphaNumeric(employeeObj.passportNumber)){
+        this.alertMessage = "Please enter Valid Passport number !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)){
       this.alertMessage = "Please enter aadhar card number !!"
       this.openAlertMod(template, this.alertMessage);
@@ -460,6 +475,15 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.alternateMobileNo)){
+      if(!this.validationService.validateMobileNumber(employeeObj.alternateMobileNo)){
+        this.alertMessage = "Please enter Valid Alternate Number !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)){
       this.alertMessage = "Please enter permanent address !!"
       this.openAlertMod(template, this.alertMessage);
@@ -516,13 +540,15 @@ export class EmployeeInfoComponent implements OnInit{
       }
     }
 
-
-
-      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
-        this.alertMessage = "Please Enter Passing Grade !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
+      this.alertMessage = "Please Enter Passing Grade !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validatePassingGrade(employeeObj.passingGrade)){
+      this.alertMessage = "Please Enter Valid Passing Grade !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
 
 
@@ -604,7 +630,7 @@ export class EmployeeInfoComponent implements OnInit{
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else   if(!this.validationService.validateAlphabeticCharacters(previousEmployer.employerName)){
+            }else   if(!this.validationService.validateEmployerName(previousEmployer.employerName)){
               this.alertMessage = `Please Enter valid Employer Name - ${index+1}!!`;
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
@@ -711,7 +737,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.alertMessage = "Please enter Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if(!this.validationService.validateAlphaWithSpace(employeeObj.bankName)){
+    }if(!this.validationService.validateOrgName(employeeObj.bankName)){
       this.alertMessage = "Please enter Valid Bank Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -773,10 +799,6 @@ export class EmployeeInfoComponent implements OnInit{
 
   async onSave(template : TemplateRef<any>){
 
-
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
-    if (!inputValidated) return;
-
     this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
     this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
     this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
@@ -814,6 +836,8 @@ export class EmployeeInfoComponent implements OnInit{
       y.certificationNumber = y.certificationNumber?.trim();
     })
 
+    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    if (!inputValidated) return;
 
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
     const dateFormat = 'YYYY-MM-DD';
@@ -906,6 +930,27 @@ export class EmployeeInfoComponent implements OnInit{
     });
   }
 
+  validateIfscCode(template: TemplateRef<any>, ifscCode:any){
+    this.employeeObj.bankName = this.employeeObj.bankName.trim();
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode.trim();
+
+    if(this.employeeObj.bankIFSCCode){
+      fetch('https://ifsc.razorpay.com/'+ifscCode).then(res => res.json()).then(data => {
+        
+        if(data == "Not Found"){
+          this.openAlertMod(template, 'Please enter valid IFSC code');
+          this.employeeObj.bankIFSCCode = "";
+        }else if(data && this.employeeObj.bankName){
+          let name = data.BANK;
+          
+          if(this.employeeObj.bankName.localeCompare(name, undefined, { sensitivity: 'accent' }) !== 0){
+            this.openAlertMod(template,  `Please enter valid IFSC code, entered IFSC Code belongs to ${name}`);
+            this.employeeObj.bankIFSCCode = "";
+          }
+        }
+      });
+    }
+  }
 
   // Validations
 
@@ -1021,8 +1066,6 @@ if(this.errorMsg == ""){
 //   }
 
   validateAadhar(event, data:any){
-    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
-
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter aadhar card number !!"
     }
@@ -1040,20 +1083,22 @@ if(this.errorMsg == ""){
   }
 
   validatePan(event, data:any){
+    data = data?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter pan number !!"
-  }
-   else if (!this.validationService.validatePancardNumber(data)) {
-    this.errorMsg = "Please enter valid pan number !!"
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    }
+    else if (!this.validationService.validatePancardNumber(data)) {
+      this.errorMsg = "Please enter valid pan number !!"
+    }
+      else{
+      this.errorMsg = ""
+    }
+    
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
   }
 
 
@@ -1097,43 +1142,39 @@ if(this.errorMsg == ""){
     this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter About me !!"
-  }
-//   else  if (!this.validationService.validateAlphabeticCharacters(data)) {
-//     this.errorMsg = "Please enter valid About me !!"
-// }
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    }
+    else  if (!this.validationService.validateViewsOnOrganisation(data)) {
+      this.errorMsg = `Please enter valid About me. Alphabets, Number and allowed Special Character are +-()'"?,&.`
+    }
+    else{
+    this.errorMsg = ""
+    }
+
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
   }
 
   validateValidEmptyNullUndefinedalternateMobileNo(event, data:any)
   {
-    this.employeeObj.emergencyContactMobile = this.employeeObj.emergencyContactMobile?.trim();
-//     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-//       this.errorMsg = "Please enter Mobile number !!"
-//   }
-//   else  if (!this.validationService.validateMobileNumber(data)) {
-//     this.errorMsg = "Please enter valid  Mobile Number !!"
-// }
-//   else{
-//   this.errorMsg = ""
-// }
-if (!this.validationService.validateMobileNumber(this.employeeObj.alternateMobileNo)) {
-this.errorMsg = "Please Enter Valid Mobile Number!!"
-}
-else{
-this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    if (this.validationService.validateNullUndefinedEmptyString(data)) {
+      if (!this.validationService.validateMobileNumber(data)) {
+        this.errorMsg = "Please enter valid Alternate Mobile Number !!"
+      }else{
+        this.errorMsg = ""
+      }
+    }
+    else{
+      this.errorMsg = ""
+    }
+
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
 
   }
 
@@ -1229,7 +1270,7 @@ if(this.errorMsg == ""){
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter bank name !!"
   }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateOrgName(data)) {
     this.errorMsg = "Please enter valid bank name !!"
 }
   else{
@@ -1373,7 +1414,7 @@ if(this.errorMsg == ""){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter Employer name !!"
     }
- else  if (!this.validationService.validateAlphaWithSpace(data)) {
+ else  if (!this.validationService.validateEmployerName(data)) {
     this.errorMsg = "Please enter valid Employer name !!"
 }
   else{

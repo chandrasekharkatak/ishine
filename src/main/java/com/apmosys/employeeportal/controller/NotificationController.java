@@ -41,6 +41,7 @@ public class NotificationController {
 	@RequestMapping(value = "/getAllNotifications", method = RequestMethod.GET)
 	public ServiceResponse getAllNotifications() {
 
+		
 		ServiceResponse response = notificationService.getAllNotifications();
 		return response;
 	}
@@ -59,6 +60,14 @@ public class NotificationController {
 		return response;
 	}
 	
+
+	@RequestMapping(value = "/onInActivateNotification", method = RequestMethod.POST)
+	public ServiceResponse onInActivateNotification(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.onInActivateNotification(notificationDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/submitNotificationConsent", method = RequestMethod.POST)
 	public ServiceResponse submitNotificationConsent(@RequestBody NotificationDTO notificationDTO) {
 
@@ -70,6 +79,13 @@ public class NotificationController {
 	public ServiceResponse getConsentNotificationResponse(@RequestBody NotificationDTO notificationDTO) {
 
 		ServiceResponse response = notificationService.getConsentNotificationResponse(notificationDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllNotificationsByNotificationTypeAndEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllNotificationsByNotificationTypeAndEmpId(@RequestBody NotificationDTO notificationDTO) {
+
+		ServiceResponse response = notificationService.getAllNotificationsByNotificationTypeAndEmpId(notificationDTO);
 		return response;
 	}
 

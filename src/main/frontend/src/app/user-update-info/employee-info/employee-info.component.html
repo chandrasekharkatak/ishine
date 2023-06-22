@@ -159,7 +159,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Aadhar Number</label>
-                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar" (blur)="checkEmployeeAadharNumber(alert_message);validateAadhar($event,employeeObj.aadhar)">
+                                            <input type="number" maxlength="12" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.aadhar" (blur)="validateAadhar($event,employeeObj.aadhar)" (keydown)="preventDecimalOnNumberInput($event)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -169,7 +169,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>PAN Number</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber" (blur)="checkEmployeePanNumber(alert_message);validatePan($event,employeeObj.panNumber)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.panNumber" (blur)="validatePan($event,employeeObj.panNumber)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -223,7 +223,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Landline Number</label>
-                                            <input type="number"  maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.landline">
+                                            <input type="number"  maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.landline" (keydown)="preventDecimalOnNumberInput($event)">
                                         </div>
                                     </div>
                                 </div>
@@ -273,7 +273,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Alternate Mobile Number</label>
-                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo" (blur)="validateValidEmptyNullUndefinedalternateMobileNo($event,employeeObj.alternateMobileNo)">
+                                            <input type="number" maxlength="10" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.alternateMobileNo" (keydown)="preventDecimalOnNumberInput($event)" (blur)="validateValidEmptyNullUndefinedalternateMobileNo($event,employeeObj.alternateMobileNo)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -313,7 +313,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Emergency Contact Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)">
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (keydown)="preventDecimalOnNumberInput($event)" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)">
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>
@@ -728,7 +728,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>IFSC</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankIFSCCode" (blur)="validatebankIFSCCode($event,employeeObj.bankIFSCCode)">
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bankIFSCCode" (blur)="validatebankIFSCCode($event,employeeObj.bankIFSCCode);validateIfscCode(alert_message,employeeObj.bankIFSCCode)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>

@@ -10,13 +10,14 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoaderService } from '../services/loader.service';
+import { environment } from 'src/environments/environment';
 
 
 
 @Injectable()
 export class LoaderInterceptor implements HttpInterceptor {
 
-  private baseUrl:any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl:any = environment.baseUrl;
 
   URL_whiteList = [
 
@@ -169,7 +170,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateEmployeePassword`,
 
     `${this.baseUrl}`+`api/updateDefaultFeatureMapping`,
-    `${this.baseUrl}`+`api/getDefaultMapping`
+    `${this.baseUrl}`+`api/getDefaultMapping`,
+
+    `${this.baseUrl}`+`api/checkEmailWhenForgotPassword`,
+    `${this.baseUrl}`+`api/updateEmployeeForgotPassword`
   ]
 
   constructor(private loaderService: LoaderService) { }

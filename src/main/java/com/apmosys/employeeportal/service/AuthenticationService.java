@@ -21,7 +21,9 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -58,6 +60,9 @@ public class AuthenticationService {
 	private LogService logService;
 	
 	@Autowired
+	private UserSessionRepository userSessionRepository;
+	
+	@Autowired
 	private HttpServletRequest httpRequest;
 	
 	@Value("${spring.servlet.multipart.max-file-size}")
@@ -87,7 +92,7 @@ public class AuthenticationService {
 	@Value("${poPortal.api.allProjects}")
 	private String poPortalAllProjectApi;
 	
-	static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
+//	private static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
 
 	public ServiceResponse authenticateUser(EmployeeDTO employeedto) {
@@ -103,7 +108,9 @@ public class AuthenticationService {
 		try {	
 				Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 				if (employee != null) {
-					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+//					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
 					
 					logBuilder.append(", InvalidAccessAttempt : "+employee.getInvalidAccessAttempt()+ ", isUserLoggedIn : "+isUserLoggedIn);
 					if(employee.getInvalidAccessAttempt()>failedAttempt) {
@@ -208,6 +215,8 @@ public class AuthenticationService {
 		try {
 			
 			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+			String encSessionString  = EncryptDecrypt.encrypt(sessionString);
+			
 			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
 			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
@@ -219,28 +228,38 @@ public class AuthenticationService {
 					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
 
-				currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
-				currentEmployeeDto.setCompOffLockDays(compOffLockDays);
-				currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
-				currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
-				currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
-				currentEmployeeDto.setPoPortalAllProjectApi(poPortalAllProjectApi);
-				
-				logInfo.setLoginTime(df.format(new Date()));
-				boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
-
-					if (!isUserLoggedIn) {
-						userSessionList.put(employee.getEmpId(), sessionString);
-						userLogInfoList.put(employee.getEmpId(), logInfo);
-					} else {
-						userSessionList.put(employee.getEmpId(), sessionString);
-						userLogInfoList.put(employee.getEmpId(), logInfo);
+					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+					currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+					currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+					currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
+					currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
+					currentEmployeeDto.setPoPortalAllProjectApi(poPortalAllProjectApi);
+					
+					logInfo.setLoginTime(df.format(new Date()));
+//					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+	
+					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
+					
+					if (isUserLoggedIn) {
+						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 					}
+					
+//					userSessionList.put(employee.getEmpId(), sessionString);
+					UserSession newSession  = new UserSession();
+					newSession.setEmpId(employee.getEmpId());
+					newSession.setLoginTime(LocalDateTime.now());
+					newSession.setLastCheckTime(LocalDateTime.now());
+					newSession.setSessionKey(encSessionString);
+					
+					userSessionRepository.save(newSession);
+					
+					userLogInfoList.put(employee.getEmpId(), logInfo);
 
-					Object[] object = new Object[8];
+					Object[] object = new Object[9];
 					object[0] = currentEmployeeDto;
 					object[1] = serviceResponse.getServiceResponse();
-					object[2] = sessionString;
+					object[2] = encSessionString;
 					object[3] = sessionTimeout;
 					object[4] = maxFileSize.replace("MB","");
 					object[5] = maxRequestSize.replace("MB","");
@@ -279,14 +298,6 @@ public class AuthenticationService {
 			apiLogInfo.setLogLevel("ERROR");
 		}
 		
-		if(employeedto.getEmail().equals("admin3@apmosys.com") || employeedto.getEmail().equals("admin2@apmosys.com")) {
-			System.out.println("\n ================== userSessionList ================== \n");
-			System.out.println(userSessionList);
-			System.out.println("\n ================== userSessionList ================== \n");
-			
-			logBuilder.append("userSessionList : "+ userSessionList);
-		}
-		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
@@ -304,7 +315,9 @@ public class AuthenticationService {
 		
 		try {
 
-			boolean isUserLoggedIn = userSessionList.containsKey(employeedto.getEmpId());
+//			boolean isUserLoggedIn = userSessionList.containsKey(employeedto.getEmpId());
+			UserSession existingUserSession = userSessionRepository.findByEmpId(employeedto.getEmpId());
+			boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
 			boolean isUserLogInfoAvailable = userLogInfoList.containsKey(employeedto.getEmpId());
 			
 			
@@ -323,7 +336,8 @@ public class AuthenticationService {
 					userLogInfoList.remove(employeedto.getEmpId());
 				}
 				
-				userSessionList.remove(employeedto.getEmpId());
+//				userSessionList.remove(employeedto.getEmpId());
+				userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Session destroyed. User Logout successfull");
@@ -356,10 +370,17 @@ public class AuthenticationService {
 	public ServiceResponse checkUserSession(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			String sessionString = userSessionList.get(employeedto.getEmpId());
+//			String sessionString = userSessionList.get(employeedto.getEmpId());
+			
+			UserSession existingUserSession = userSessionRepository.findByEmpId(employeedto.getEmpId());
+			boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
 
-			if (sessionString != null) {
-				if (sessionString.equals(employeedto.getSessionString())) {
+			if (isUserLoggedIn) {
+				if (existingUserSession.getSessionKey().equals(employeedto.getSessionString())) {
+					
+					existingUserSession.setLastCheckTime(LocalDateTime.now());
+					userSessionRepository.save(existingUserSession);
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Session exists.");
 				} else {
@@ -464,8 +485,29 @@ public class AuthenticationService {
 			
 			if(otpDiff < otpTimeoutPeriod) {
 				if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
+					
+					String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+					String encSessionString  = EncryptDecrypt.encrypt(sessionString);
+					
+					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
+					
+					if (isUserLoggedIn) {
+						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+					}
+					
+					UserSession newSession  = new UserSession();
+					newSession.setEmpId(employee.getEmpId());
+					newSession.setLoginTime(LocalDateTime.now());
+					newSession.setLastCheckTime(LocalDateTime.now());
+					newSession.setSessionKey(encSessionString);
+					
+					userSessionRepository.save(newSession);
+					
+					
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("OTP verified successfully.");
+					response.setServiceResponse(encSessionString);
 					
 					apiLogInfo.setApiResponse("OTP verified successfully.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -560,6 +602,12 @@ public class AuthenticationService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	public boolean checkUserToken(String token) {
+		UserSession existingUserSession = userSessionRepository.findBySessionKey(token);
+		return (existingUserSession != null) ? true : false;
+
 	}
 
 }

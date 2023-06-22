@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, interval, observable, timer } from 'rxjs';
 import { User } from '../models/user';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
 
-  private baseUrl: any = (window as { [key: string]: any })["__proxyConfigIp"] as string + "/";
+  private baseUrl: any = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
   public currentUser: Observable<User>;
   sessionItem: string | null;
@@ -17,12 +18,20 @@ export class AuthenticationService {
   sessionString: string;
   sessionTimeout:number;
 
+  sessionSubscription:Subscription;
+
   constructor(private http: HttpClient, private router: Router) {
     // this.sessionItem = sessionStorage.getItem('currentUser');
     // this.currentUserSubject = new BehaviorSubject<User>( this.sessionItem !== null ? JSON.parse(this.sessionItem): {});
     this.sessionItem = sessionStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
     this.currentUser = this.currentUserSubject.asObservable();
+    this.sessionString = sessionStorage.getItem('token');
+    let sessionCheck = sessionStorage.getItem('sessioncheck');
+
+    if(sessionCheck){
+      this.startUserSessionCheck();
+    }
   }
 
   public get currentUserValue(): User {
@@ -63,14 +72,17 @@ export class AuthenticationService {
   }
 
   /* 
-  *  Cron to check if user session exists.
+  *  Cron to check if user session exists. every 20 seconds
   *  Added by suraj 12/08/2022
   */
-  startUserSessionCheck() {
-    this.timerId = setInterval(() => {
-      let user = new User();
-      user.empId = this.currentUserValue.empId;
-      user.sessionString = this.sessionString;
+
+  checkSession(){
+    let user = new User();
+    user.empId = this.currentUserValue.empId;
+    user.sessionString = this.sessionString;
+
+    console.log("checking session ..", new Date().toTimeString());
+    
       this.checkUserSession(user).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           //do nothing
@@ -80,17 +92,33 @@ export class AuthenticationService {
         this.userLogout();   
         }
       });
-    }, 20000);
+  }
+
+  startUserSessionCheck() {
+    sessionStorage.setItem('sessioncheck', 'true');
+    this.sessionSubscription = timer(0,20000).subscribe(() =>  {
+      this.checkSession();
+    });
   }
 
   stopUserSessionCheck() {
-    clearInterval(this.timerId);
+    if(this.sessionSubscription)
+      this.sessionSubscription.unsubscribe();
   }
 
   userLogout(){
+    this.stopUserSessionCheck();
     sessionStorage.removeItem('currentUser');
-    location.reload();
-    this.router.navigate(['/login']);    
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('logInfo');
+    sessionStorage.removeItem('maxFileSize');
+    sessionStorage.removeItem('maxRequestSize');
+    sessionStorage.removeItem('sessioncheck');
+    // delete method call for cookies
+    this.deleteCookies();
+    this.setcurrentUserSubject(null);
+    this.router.navigate(['/login']);
+    setTimeout(() => {location.reload();});   
   }
 
  
