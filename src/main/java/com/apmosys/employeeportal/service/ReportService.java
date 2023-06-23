@@ -40,6 +40,12 @@ public class ReportService {
 
 	public ServiceResponse leaveReport() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/leaveReport");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveReport :" + employeeLeaveRepository.getLeaveReport().size());
 		try {
 			List<Object[]> allLeaveData = employeeLeaveRepository.getLeaveReport();
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
@@ -68,9 +74,14 @@ public class ReportService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("LeaveReport :" + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("leave Application list is empty.");
+				apiLogInfo.setApiResponse("leave Application List is Empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -78,12 +89,22 @@ public class ReportService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse timesheetReport() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/timesheetReport");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("TimeSheetReport:" + timesheetsRepository.getAllTimesheetData().size());
 		try {
 			List<Object[]> allTimeSheetData = timesheetsRepository.getAllTimesheetData();
 			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
@@ -112,21 +133,36 @@ public class ReportService {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 				System.out.println("DTOList :" +dtoList);
+                apiLogInfo.setApiResponse("TimeSheetReport: " + dtoList.size());			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet list is empty.");
+                apiLogInfo.setApiResponse("Timesheet list is empty");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getMappedSubFeatureList(EmployeeDTO employeeDto) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getMappedSubFeatureList");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleId());
 		try {
 			
 			List<Object[]> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
@@ -152,22 +188,38 @@ public class ReportService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("MappedRoleList : " + dtoList.size());			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Mapped Role List is Empty.");
+                apiLogInfo.setApiResponse("Mapped Role is Empty");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllSubFeatureList() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getAllSubFeatureList");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("AllSubFeatureList:" + employeeRoleMasterRepository.getAllSubFeatureList().size());
+
 		try {
 			
 			List<Object[]> accessControlList = employeeRoleMasterRepository
@@ -189,22 +241,36 @@ public class ReportService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("Dtolist :" + dtoList.size());
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("ACL (Access control list) is empty.");
+                apiLogInfo.setApiResponse("ACL (Access Control List) is empty ");
+              apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getDefaultMapping() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getDefaultMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		//logBuilder.append("");
 		try {
 			
 			List<Object[]> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList();
@@ -240,9 +306,15 @@ public class ReportService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("Sub-Feature & Feature list: " + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Sub-Feature & Feature list is empty.");
+				apiLogInfo.setApiResponse("Sub-Feature & Feature list is empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 			
 		}catch(Exception e) {
@@ -250,7 +322,12 @@ public class ReportService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

@@ -10,11 +10,14 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -43,6 +46,12 @@ public class PortalConfigService {
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
 	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
+	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
@@ -54,13 +63,22 @@ public class PortalConfigService {
 	
 	public ServiceResponse getPortalConfig() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getPortalConfig");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		
+
 		try {
 			List<PortalConfig> allPortalConfig = portalConfigRepository.findAll();
 			List<ProtalConfigDTO> dtoList = new ArrayList<ProtalConfigDTO>();
-
+			logBuilder.append("AllPortalConfigList : " + allPortalConfig.size());
 			if (allPortalConfig.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("PortalConfig list is empty.");
+                apiLogInfo.setApiResponse("PortalConfig list is Empty!");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			} else {
 				allPortalConfig.forEach((portal) -> {
 					
@@ -75,6 +93,9 @@ public class PortalConfigService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("dtoList:" + dtoList.size());			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}
 			
 		}catch(Exception e){
@@ -82,12 +103,23 @@ public class PortalConfigService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse updatePortalConfig(ProtalConfigDTO protalConfigDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Portal Config");
+		apiLogInfo.setApiUrl("/api/updatePortalConfig");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("PortalConfigId : " + protalConfigDTO.getPortalConfigId());
+
 		try {
 			
 			protalConfigDTO.getAllPortalConfigData().forEach((dto) -> {
@@ -107,13 +139,19 @@ public class PortalConfigService {
 					if(dbResponse!=null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Portal Global Configuration Updated Successfully.");
+                        apiLogInfo.setApiResponse("Portal Global Configuration Updated!");			
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Portal Global Configuration Updation Failed.");
+                        apiLogInfo.setApiResponse("Portal Global Configuration Updation Failed");			
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Portal Global Configuration not Found.");
+                    apiLogInfo.setApiResponse("Portal Global Configuration Not Found");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			});
 		}catch(Exception e) {
@@ -121,12 +159,23 @@ public class PortalConfigService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse generatePerviousMonthDSR() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("GeneratePreviousMonthDSR");
+        apiLogInfo.setApiUrl("/api/generatePerviousMonthDSR");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        //logBuilder.append(" : ");
 		try {
 			
 			ServiceResponse monthlyTimesheetExcelGeneratorResponse = cronJobService.monthlyTimesheetExcelGenerator();
@@ -134,9 +183,14 @@ public class PortalConfigService {
 			if(monthlyTimesheetExcelGeneratorResponse.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(monthlyTimesheetExcelGeneratorResponse.getServiceResponse());
+                apiLogInfo.setApiResponse("PreviousMonthDSR Generated!");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(monthlyTimesheetExcelGeneratorResponse.getServiceResponse());
+                apiLogInfo.setApiResponse("PreviousMonthDSR Generation Failed!");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 			
 		}catch(Exception e) {
@@ -144,12 +198,22 @@ public class PortalConfigService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse generateAllEmployeeDSR(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		 LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("GenerateAllEmployeeDSR");
+	        apiLogInfo.setApiUrl("/api/generateAllEmployeeDSR");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        //logBuilder.append(" : ");
 		try {
 			
 			ServiceResponse dsrResponse = cronJobService.allEmployeeDsrReport(timesheetDTO);
@@ -157,9 +221,13 @@ public class PortalConfigService {
 			if(dsrResponse.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dsrResponse.getServiceResponse());
+                apiLogInfo.setApiResponse("AllEmployeeDSR Generated!");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(dsrResponse.getServiceResponse());
+                apiLogInfo.setApiResponse("AllEmployeeDSR generation Failed!");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -167,7 +235,11 @@ public class PortalConfigService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
