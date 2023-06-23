@@ -121,9 +121,20 @@
                     <label class="d-inline-block mr-2 mt-2"><strong>State</strong></label>
                     <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState" (ngModelChange)="onSelect()">
                         <option selected="selected" value="" disabled>Select</option>
-                        <option value="all state">All state</option>
+                        <option value=""></option>
                         <option value="all">All (common)</option>
                         <option *ngFor="let state of allStates" value="{{state}}">{{state}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3  mb-0">
+                <div class="form-inline input-group">
+                    <label class="d-inline-block mr-2 mt-2"><strong>Holiday Type</strong></label>
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedHolidayType" (ngModelChange)="onHolidayTypeSelected()">
+                        <option selected="selected" value="">Select</option>
+                        <option value="Festival">Festival</option>
+                        <option value="WeekOff">Week-Off</option>
+                        <option value="nonWorking">Non-Working</option>
                     </select>
                 </div>
             </div>
@@ -147,7 +158,8 @@
                             <th scope="col" class="info-label" >Sr. No</th>	
                             <th scope="col" class="info-label"  mat-sort-header="occasion|string">Occasion</th>	
                             <th scope="col" class="info-label" mat-sort-header="dayOfTheWeek|string">Day</th>	
-                            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday|date">Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="dateOfHoliday|date">Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="holidayType|string">Holiday Type</th>	
                             <th scope="col" class="info-label" mat-sort-header="state|string">State</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                             <th scope="col" class="info-label" mat-sort-header="createdbyName|string">Created By</th>
@@ -166,6 +178,7 @@
                                 <td>{{holiday.occasion}}&nbsp;&nbsp;<small class="text-highlight "><strong>{{(holiday.optionalHoliday == 'true')? 'optional' : ''}}</strong></small></td>
                                 <td>{{holiday.dayOfTheWeek}}</td>
                                 <td>{{holiday.dateOfHoliday}}</td>
+                                <td>{{holiday.holidayType}}</td>
                                 <td>{{holiday.state}}</td>
                                  <td>{{holiday.createdOn}}</td>
                                 <td>{{holiday.createdbyName}}</td>
