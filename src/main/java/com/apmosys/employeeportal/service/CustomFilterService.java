@@ -15,7 +15,9 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.LogBuilder;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
@@ -94,6 +97,11 @@ public class CustomFilterService {
 	@Autowired
 	DesignationRepository designationRepository;
 	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 	
 	@Value("${spring.datasource.url}")
 	private String dbURL;
@@ -1303,6 +1311,10 @@ public class CustomFilterService {
 
 	public ServiceResponse getValueOptionData(CustomFilterDTO customFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getValueOptionData");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
 		try {
 			
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
@@ -1318,6 +1330,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1330,6 +1344,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1343,6 +1359,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1356,6 +1374,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1369,6 +1389,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1382,6 +1404,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1395,6 +1419,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1408,6 +1434,8 @@ public class CustomFilterService {
             	}
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
             case "Manager Name": {
@@ -1420,6 +1448,8 @@ public class CustomFilterService {
  					});
  					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
  					response.setServiceResponse(dtoList);
+ 					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
  				}
 				break;
 			}
@@ -1433,6 +1463,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1446,6 +1478,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1458,6 +1492,8 @@ public class CustomFilterService {
             	}
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
             case "Gender": {
@@ -1469,6 +1505,8 @@ public class CustomFilterService {
             	}
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
             case "Day Type": {
@@ -1480,10 +1518,12 @@ public class CustomFilterService {
             	}
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
             case "Work Location": {
-            	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
+            	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","BiNohar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
             	                                "Haryana","Himachal Pradesh","Jammu & Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
             	                                "Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"};
             	for(String object: state) {
@@ -1493,6 +1533,8 @@ public class CustomFilterService {
             	}
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
             }
             case "State": {
             	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
@@ -1505,6 +1547,8 @@ public class CustomFilterService {
             	}
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dto list fetched.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
             }
             case "Specialization": {
 				List<Specialization> allSpecialization = specializationRepository.findByIsActive("true");
@@ -1516,6 +1560,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1529,6 +1575,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1542,6 +1590,8 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
@@ -1551,14 +1601,23 @@ public class CustomFilterService {
 		}catch(Exception e) {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	
 	public ServiceResponse getCustomQueryData(CustomFilterDTO customFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getCustomQueryData");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		
 		List<Object[]> list = new ArrayList<Object[]>();
 		Connection con = null;
 		PreparedStatement stmt = null;
@@ -1570,7 +1629,8 @@ public class CustomFilterService {
 //				Session session = entityManager.unwrap(Session.class);
 				try {				
 					String q= customFilterDTO.getCustomQuery();
-//
+					logBuilder.append("custom query : "+q);
+					
 //					Query query = session.createSQLQuery(q);
 //					System.out.println("\n\n query : "+ query);
 //					System.out.println("\n\n Result Set : "+ query.getResultList());
@@ -1611,24 +1671,34 @@ public class CustomFilterService {
 						if (!list.isEmpty()){
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(list);
+							apiLogInfo.setApiResponse("list size : "+list.size());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						} else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Result set is empty.");
+							apiLogInfo.setApiResponse("Result set is empty.");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Invalid Query.");
+						apiLogInfo.setApiResponse("Invalid Query.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 					
 				}catch(SQLException e) {
 					e.printStackTrace();
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Query, Please Check entered query.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setLogLevel("ERROR");
 					response.setServiceError(e.getMessage());
 				}catch(Exception e) {
 					e.printStackTrace();
 					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 					response.setServiceResponse("Something Went Wrong.");
+					apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					apiLogInfo.setLogLevel("ERROR");
 					response.setServiceError(e.getMessage());
 				}finally {
 					try {
@@ -1643,13 +1713,19 @@ public class CustomFilterService {
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Custom Query Not Found.");
+				apiLogInfo.setApiResponse("Custom Query Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 }

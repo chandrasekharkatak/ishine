@@ -2,13 +2,13 @@ package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.LogBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,6 @@ import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -77,6 +76,13 @@ public class CompOffLeaveService {
 
 	public ServiceResponse getAllCompOffReasons() {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Apply Comp off req");
+		apiLogInfo.setApiUrl("/api/getAllCompOffReasons");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder=new StringBuilder();
+		logBuilder.append("compOffLeaveRepository size : "+compOffLeaveRepository.findAll().size());		
 		try {
 			List<CompOffMaster> compOffReasonsList = compOffMasterRepository.findAll();
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
@@ -84,6 +90,8 @@ public class CompOffLeaveService {
 			if (compOffReasonsList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Comp off reasons list is empty.");
+				apiLogInfo.setApiResponse("Comp off reasons list is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				compOffReasonsList.forEach((reason) -> {
 					LeaveDTO dto = new LeaveDTO();
@@ -93,14 +101,20 @@ public class CompOffLeaveService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -111,7 +125,7 @@ public class CompOffLeaveService {
 		apiLogInfo.setApiUrl("/api/applyForCompOff");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : " + leaveDTO.getEmpId()+ "managerId : " +leaveDTO.getManagerId()+ "hodId : " +leaveDTO.getHodId()+ "createdBy : " +leaveDTO.getCreatedBy());
+		logBuilder.append("empId : " + leaveDTO.getEmpId()+ "managerId : " +leaveDTO.getManagerId()+ "hodId : " +leaveDTO.getHodId()+ "createdBy : " +leaveDTO.getCreatedBy()+", ompOffReasons : "+leaveDTO.getCompOffReasons());
 		try {
 
 			CompOffLeave leave = new CompOffLeave();
@@ -677,6 +691,10 @@ public class CompOffLeaveService {
 	
 	public ServiceResponse getCompOffBalanceMigratedFromOldLeavePortal() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getCompOffBalanceMigratedFromOldLeavePortal");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
 		try {
 			
 			List<Employee> employeeList = employeeRepository.findAll();
@@ -685,12 +703,13 @@ public class CompOffLeaveService {
 			if(!employeeList.isEmpty()) {
 				employeeList.forEach((object) -> {
 					List<CompOffLeave> compOffList = compOffLeaveRepository.findByEmpId(object.getEmpId());
-					
 					Float compOffAppliedOnIShine = 0f;
+					logBuilder.append("empId : "+compOffLeaveRepository.findByEmpId(object.getEmpId()));
 					
 					if(!compOffList.isEmpty()) {
 						for(CompOffLeave application: compOffList) {
 							compOffAppliedOnIShine = compOffAppliedOnIShine + application.getNoOfDays();
+							logBuilder.append("compOffAppliedOnIShine : "+compOffAppliedOnIShine);
 						}
 					}
 					
@@ -714,18 +733,28 @@ public class CompOffLeaveService {
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
-			
+			apiLogInfo.setApiResponse("dtoList fetched of size : "+dtoList);
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse setCompOffStatusAndLeaveId() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/setCompOffStatusAndLeaveId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		
 		try {
 			//set correct compOff balance 
 			
@@ -769,13 +798,14 @@ public class CompOffLeaveService {
 										object.setCompOffStatus("Pending");
 									}
 									object.setLeaveId(compOffLeave.getLeaveId());
-									
+									logBuilder.append("leaveId : "+compOffLeave.getLeaveId());								
 									compOffLeaveRepository.save(object);
 								}
 						}else {
 							object.setCompOffStatus("Pending");
 							compOffLeaveRepository.save(object);
 						}
+						logBuilder.append(object.getCompOffStatus());
 					}
 				});
 			}
@@ -783,13 +813,22 @@ public class CompOffLeaveService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse convertSingleCompOffApplicationToken() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/convertSingleCompOffApplicationToken");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		
 		try {
 			
 			List<CompOffLeave> allCompOffApplication = compOffLeaveRepository.findAll();
@@ -835,17 +874,27 @@ public class CompOffLeaveService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse lapseAndReconcileCompOffBalance() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/lapseAndReconcileCompOffBalance");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+
 		List<EmployeeDTO> reconcileResponses = new ArrayList<EmployeeDTO>();
 		try {
 			
 			List<Employee> activeEmployeeList = employeeRepository.findByEmploymentstatusIsNot("InActive");
+			logBuilder.append("employement status inactive size : "+employeeRepository.findByEmploymentstatusIsNot("InActive").size());
 			
 			if(!activeEmployeeList.isEmpty()) {
 				activeEmployeeList.forEach(employee -> {
@@ -923,8 +972,12 @@ public class CompOffLeaveService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
