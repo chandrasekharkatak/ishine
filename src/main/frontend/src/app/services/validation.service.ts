@@ -106,7 +106,7 @@ export class ValidationService {
   }
 
 
-  
+
   validateOrgName(text: string): boolean {
     const regex = /^[a-zA-Z-.,&()\s]+$/; // eg. NKGSB Co-operative & scheduled Bank Ltd. (Ghansoli, Navi Mumbai)
     if (text !== "" || text !== undefined || text !== null) {
@@ -231,7 +231,7 @@ export class ValidationService {
 
   validateNullUndefinedEmptyString(text: any): boolean {
 
-    if (text === undefined || text === null || text === "") {
+    if (text === undefined || text === null || text === "" || text.trim() === "") {
       return false;
     }
     return true;
