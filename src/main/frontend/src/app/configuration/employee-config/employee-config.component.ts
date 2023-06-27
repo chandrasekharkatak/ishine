@@ -1373,6 +1373,13 @@ export class EmployeeConfigComponent implements OnInit {
       }
     });
   }
+  updateDesignationDropdown() {
+    this.employeeObj.designationId = ''; // Set designation to 'Select' option
+  }
+  
+  isDesignationDisabled() {
+    return !this.employeeObj.departmentId || this.employeeObj.designationId ;
+  }
 
   checkEmployeePanNumber(template: TemplateRef<any>) {
     this.employeeService.checkEmployeePanNumber(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -1383,8 +1390,13 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  clearAfterChange(){
-    this.employeeObj.totalExperience = ''
+  clearAfterChange(field, fieldname){
+    let element:any = document.getElementById(field);
+    if(element) element.value = '';
+
+    console.log("value : ", element.value);
+  
+    this.employeeObj[fieldname] = '';
   }
 
   onUpdateEmployee(template: TemplateRef<any>) {
