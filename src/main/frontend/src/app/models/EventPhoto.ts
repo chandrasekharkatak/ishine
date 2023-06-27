@@ -9,4 +9,6 @@ export class EventPhoto{
 	createdBy: any;
 	createdByName: any;
 	createdOn: any;
+
+	eventPhotoList:any;
 }

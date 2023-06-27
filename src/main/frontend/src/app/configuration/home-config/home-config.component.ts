@@ -17,6 +17,7 @@ import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-home-config',
@@ -40,6 +41,7 @@ export class HomeConfigComponent implements OnInit {
   isPhotoForm: boolean = false;
   isNotificationForm: boolean = false;
   isTable: boolean = false;
+  isPhotosOrderPage:boolean = false;
   isNotificationTable: boolean = false;
   isNotificationCreate: boolean = false;
   isNotificationUpdate: boolean = false;
@@ -53,6 +55,9 @@ export class HomeConfigComponent implements OnInit {
   imageObj:EventPhoto = new EventPhoto();
   files:any[] = [];
   eventName:any;
+  eventCaption:any;
+  isExternalLink:any = "false";
+  externalLink:any;
 
   eventImages:any[] = [];
   isPreviewLoaded:boolean = false;
@@ -158,6 +163,7 @@ export class HomeConfigComponent implements OnInit {
     this.isPhotoForm = true;
 
     this.isTable = false;
+    this.isPhotosOrderPage=false;
     this.isNotificationForm = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
@@ -171,6 +177,7 @@ export class HomeConfigComponent implements OnInit {
     this.isNotificationUpdate = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
+    this.isPhotosOrderPage=false;
     this.isPhotoForm = false;
     this.isTable = false;
     this.reset();
@@ -181,6 +188,7 @@ export class HomeConfigComponent implements OnInit {
     this.isNotificationForm = false;
 
     this.isPhotoForm = false;
+    this.isPhotosOrderPage=false;
     this.isConsentNotificationResponseTable = false;
     this.isTable = false;
 
@@ -194,6 +202,7 @@ export class HomeConfigComponent implements OnInit {
     this.isNotificationCreate = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
+    this.isPhotosOrderPage=false;
     this.isPhotoForm = false;
     this.isTable = false;
 
@@ -204,18 +213,72 @@ export class HomeConfigComponent implements OnInit {
     this.isTable = true;
 
     this.isPhotoForm = false;
+    this.isPhotosOrderPage=false;
     this.isNotificationForm = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
     this.getAllEventPhotos();
   }
 
+  showPhotosOrderpage() {
+    this.isPhotosOrderPage=true;
+    
+    this.isTable = false;
+    this.isPhotoForm = false;
+    this.isNotificationForm = false;
+    this.isNotificationTable = false;
+    this.isConsentNotificationResponseTable = false;
+    this.getAllEventPhotosInOrder();
+  }
+
   reset() {
     this.eventName = null;
+    this.eventCaption = null;
+    this.isExternalLink = "false";
+    this.externalLink = null;
     this.files = [];
 
     this.notificationObj = new NotificationMessage();
   }
+
+  isValidHttpUrl(string:string) {
+    let url;
+    
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;  
+    }
+  
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+
+  drop(event: CdkDragDrop<EventPhoto[]>) {
+    moveItemInArray(this.eventImages, event.previousIndex, event.currentIndex);
+  }
+
+  onUpdatePhotoOrder(template: TemplateRef<any>){
+    this.eventImages.forEach((image, index) => {
+      image.photoOrder = index+1;
+    });
+
+    console.log("Updated Order : ", this.eventImages);
+
+    let updatedPhotoList = new EventPhoto();
+    updatedPhotoList.eventPhotoList = this.eventImages;
+    updatedPhotoList.updatedBy = this.currentUser.empId;
+
+    this.imageService.updatePhotoOrder(updatedPhotoList).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.openAlertMod(template, response.serviceResponse);
+        this.reset();
+        this.showPhotosOrderpage();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
 
   onImageSelect(event:any,template: TemplateRef<any>){
     let isSizeInRange:boolean = false;
@@ -254,14 +317,40 @@ export class HomeConfigComponent implements OnInit {
       this.alertMessage = "Please enter Event Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateAlphaNumericWithSpace(this.eventName)){
-      this.alertMessage = "Please enter Valid Event Name, Alphabets, Numericals & space allowed !!"
+    }else if(!this.validationService.validateViewsOnOrganisation(this.eventName)){
+      this.alertMessage = `Please enter Valid Event Name, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
+    if(this.validationService.validateNullUndefinedEmptyString(this.eventCaption)){
+      if(!this.validationService.validateViewsOnOrganisation(this.eventCaption)){
+        this.alertMessage = `Please enter Valid Caption, Please enter Valid Caption, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.isExternalLink)){
+      this.alertMessage = "Please select Add External Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.isExternalLink == "true"){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.externalLink)){
+        this.alertMessage = "Please enter external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(!this.isValidHttpUrl(this.externalLink)){
+        this.alertMessage = "Please enter valid external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if (this.files.length == 0) {
-      this.alertMessage = "Kindly Select Images !!"
+      this.alertMessage = "Kindly Select Image !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -271,6 +360,9 @@ export class HomeConfigComponent implements OnInit {
       formData.append(`image`, file.image, file.imageName);
     });
     formData.append("eventName", this.eventName);
+    formData.append("eventCaption", this.eventCaption);
+    formData.append("isExternalLink", this.isExternalLink);
+    formData.append("externalLink", this.externalLink);
     formData.append("uploadedBy", this.currentUser.empId);
     formData.append("employeementId", this.currentUser.employeementId);
     formData.append("empId", this.currentUser.empId);
@@ -298,6 +390,23 @@ export class HomeConfigComponent implements OnInit {
         this.showTable();
       } else {
         this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getAllEventPhotosInOrder(){
+    this.eventImages = [];
+    this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.eventImages =  response.serviceResponse;
+        this.eventImages.forEach(img => {
+          img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.eventImages.sort((a,b) => a.photoOrder - b.photoOrder);
+        console.log("eventImages : ", this.eventImages);
+      } else {
+        console.error(response.serviceResponse);
       }
     });
   }
@@ -493,6 +602,10 @@ export class HomeConfigComponent implements OnInit {
     this.isPreviewLoaded = false;
     document.getElementById(`photoPreview`).style.display = 'none';
     setTimeout(()=>{this.loadPreviewImage(imageObj);}, 1000);
+  }
+
+  openOrderPhotosModal(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

@@ -11,5 +11,16 @@ public interface EventPhotosRepository extends JpaRepository<EventPhoto, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllImagePhotos();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllImagePhotosForHome();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getFirstImagePhotosForHome();
+
+	public EventPhoto findFirstByOrderByPhotoOrderDesc();
+
+	public EventPhoto findByEventPhotoId(Long eventPhotoId);
+
 
 }

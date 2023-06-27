@@ -59,6 +59,19 @@ img{
     color: var(--cultured);
 }
 
+.carousel-item > .carousel-caption{
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.carousel-item:hover > .carousel-caption{
+    display: block;
+}
+
 /* overriding html default css */
 
 /* up-down arrows removed for input:number */

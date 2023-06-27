@@ -27,6 +27,7 @@ import { Employee } from '../models/employee';
 import { LocationStrategy } from '@angular/common';
 import { Sort } from '@angular/material/sort';
 import { AppComponent } from '../app.component';
+import { EventPhoto } from '../models/EventPhoto';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -821,15 +822,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.isImagesLoaded = false;
     // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
-    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
+    this.imageService.getFirstEventPhotoForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages = response.serviceResponse;
-        console.log("eventImages : ", this.eventImages);
-        setTimeout(() => { this.loadImages(this.eventImages); }, 1000)
+        console.log("First image : ", this.eventImages);
+        setTimeout(() => { 
+          this.loadImages(this.eventImages);
+        }, 1000);
+        this.getPhotosForHome();
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  getPhotosForHome(){
+    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let images = response.serviceResponse;
+        this.eventImages.push(...images);
+        this.eventImages.sort((a, b) => a.photoOrder - b.photoOrder)
+        console.log("eventImages : ", this.eventImages);
+        setTimeout(() => { this.loadImages(this.eventImages); }, 1000);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    }); 
   }
 
   loadImages(eventImages) {
