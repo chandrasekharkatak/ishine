@@ -162,12 +162,21 @@ public class UploadPolicyService {
 
 	public ServiceResponse  getAllDocuments() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllDocument");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("AllDocumentList size : " + UploadPolicyRepository.getAllDocuments().size());
 		try {
 			List<Object[]> documentList = UploadPolicyRepository.getAllDocuments();
 			Optional.ofNullable(documentList).ifPresentOrElse((list)->{
 				if(list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No Document found.Document list is empty");
+					apiLogInfo.setApiResponse("No Document found,Document List is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}else {
 					List<UploadPolicyDTO> dtoList = new ArrayList<UploadPolicyDTO>();
 					list.forEach((object)->{
@@ -183,10 +192,16 @@ public class UploadPolicyService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("All Documents Fetched");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				}
 			}, ()->{
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Document list is empty.");
+				apiLogInfo.setApiResponse("Document list is empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				
 			});
 		} catch (Exception e) {
@@ -194,8 +209,13 @@ public class UploadPolicyService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());		
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -549,6 +569,12 @@ public class UploadPolicyService {
 
 	public ServiceResponse isAllPolicyRead(UploadPolicyDTO uploadPolicyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("IsALLPolicyRead");
+		apiLogInfo.setApiUrl("/api/isAllPolicyRead");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+ uploadPolicyDTO.getEmpId());
 		try {
 			UploadPolicyDTO policyDto = new UploadPolicyDTO();
 			
@@ -563,12 +589,19 @@ public class UploadPolicyService {
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(policyDto);
+			apiLogInfo.setApiResponse("PolicyDto:" + policyDto);			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	

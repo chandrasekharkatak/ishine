@@ -70,7 +70,7 @@ export class HomeConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name', 'notificationMessage', 'consentDate'];
-
+  eventTableColumns:any[] = ['imageName','eventName','createdByName','createdOn'];
   notificationObj: NotificationMessage = new NotificationMessage();
 
   //Angular Editor

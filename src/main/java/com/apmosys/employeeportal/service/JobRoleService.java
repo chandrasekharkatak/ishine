@@ -85,6 +85,7 @@ public class JobRoleService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("createdBy : " + jobRoleDTO.getCreatedById() + "name : " +jobRoleDTO.getName()+ "employeeRole :" +jobRoleDTO.getEmployeeRole()+ "departmentId : " +jobRoleDTO.getDepartmentId());
+		System.out.println(jobRoleDTO);
 		try {
 			JobRole newJobRole = new JobRole();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
@@ -783,6 +784,12 @@ public class JobRoleService {
 	@Transactional
 	public ServiceResponse updateJobRoleSubFeatureMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("update JobRole SubFeature");
+		apiLogInfo.setApiUrl("api/updateJobRoleSubFeatureMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("JobroleId :" + jobRoleDTO.getJobRoleId());
 		try {
 			
 			List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
@@ -808,12 +815,21 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Role ACL Updated");
 			
+			apiLogInfo.setApiResponse("Role ACL updated!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

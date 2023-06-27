@@ -63,7 +63,7 @@ export class ReportDashboardComponent implements OnInit {
 
   modalTitle:any;
   modalSummaryList:any[] = [];
-  countByLegend:any[] = [];	
+  countByLegend:any[] = [];
   storedDataList:any[] = [];
 
   zeroToFive:any;
@@ -88,8 +88,9 @@ export class ReportDashboardComponent implements OnInit {
   leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
-
-  // Column Filter
+  employeeSummaryColumns:any[] = ['blank','employeementId','name','departmentName','email','managerName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','age'];
+  workLocationSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','clientName','teamName','clientLocation','date'];
+  LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
   filters:any = {};
   isSearchEnabled:boolean = false;
   leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
@@ -151,7 +152,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   getAllResignedEmployees() {
-    
+
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allResignEmployee = response.serviceResponse;
@@ -159,7 +160,7 @@ export class ReportDashboardComponent implements OnInit {
         this.allResignEmployee.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
           employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
-          
+
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
           employee.dateOfRelieving = (employee.dateOfRelieving)? moment(employee.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
 
@@ -245,7 +246,7 @@ export class ReportDashboardComponent implements OnInit {
     }else{
       this.renderPlaceholderChart('Leave Summary Chart', 'leaveSummaryChart');
     }
-        
+
   }
 
   getCustomLeaveReport(queryObjList:any , template:TemplateRef<any>) {
@@ -274,7 +275,7 @@ export class ReportDashboardComponent implements OnInit {
         } else {
           this.openAlertMod(template,response.serviceResponse);
         }
-      });  
+      });
     }
   }
 
@@ -343,7 +344,7 @@ export class ReportDashboardComponent implements OnInit {
         let leaveObj = this.allLeaveTypes.forEach(obj => {
           leaveTypes.push(obj.leaveType);
         });
-        
+
         let data = leaveTypes.map(leaveType => {
           chartData.push({ type: 'line', name: leaveType, data: [] });
           let leaveData = this.leaveTrendAnalysisList.filter(leaveTrendAnalysis => leaveTrendAnalysis.leaveType == leaveType)
@@ -395,7 +396,7 @@ export class ReportDashboardComponent implements OnInit {
           let leaveObj = new Leave();
           leaveObj.startDate = tempFrom;
           leaveObj.endDate = tempTo;
-          
+
           if(leaveObj.startDate == "" && leaveObj.endDate == ""){
             this.openAlertMod(template,"Please Select Date Range.");
             this.getLeaveTrendAnalysisReport();
@@ -405,7 +406,7 @@ export class ReportDashboardComponent implements OnInit {
         } else {
           this.openAlertMod(template,response.serviceResponse);
         }
-      });  
+      });
     }
   }
 
@@ -536,23 +537,23 @@ export class ReportDashboardComponent implements OnInit {
         return;
       }
 
-      let _tempQueryList = JSON.parse(JSON.stringify(queryObj.queryList));	
-      console.log(_tempQueryList, "_tempQueryList");	
-      let _filteredQueryList = _tempQueryList.filter((query)=> {	
-        if(query.column == 'Employee Id' || query.column == 'Department' || query.column == 'Full Name' || query.column == 'Team Name' || query.column == 'Project Name' || query.column == 'Client Name'){	
-          return Object.assign({}, query);	
-        }	
-      });	
-        	
-      _filteredQueryList.forEach((query:Query, index, queries) => {	
-        if(index == (queries.length-1)){	
-          query.conjunction = "";	
-        }	
-      });	
-      queryObj.queryList1 = _filteredQueryList;	
-      console.log( queryObj.queryList1," queryObj.queryList1");	
-      console.log(queryObj.queryList, "queryObj.queryList")	
-      
+      let _tempQueryList = JSON.parse(JSON.stringify(queryObj.queryList));
+      console.log(_tempQueryList, "_tempQueryList");
+      let _filteredQueryList = _tempQueryList.filter((query)=> {
+        if(query.column == 'Employee Id' || query.column == 'Department' || query.column == 'Full Name' || query.column == 'Team Name' || query.column == 'Project Name' || query.column == 'Client Name'){
+          return Object.assign({}, query);
+        }
+      });
+
+      _filteredQueryList.forEach((query:Query, index, queries) => {
+        if(index == (queries.length-1)){
+          query.conjunction = "";
+        }
+      });
+      queryObj.queryList1 = _filteredQueryList;
+      console.log( queryObj.queryList1," queryObj.queryList1");
+      console.log(queryObj.queryList, "queryObj.queryList")
+
       this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.timsheetSummaryList = response.serviceResponse;
@@ -561,7 +562,7 @@ export class ReportDashboardComponent implements OnInit {
         } else {
           this.openAlertMod(template,response.serviceResponse);
         }
-      });  
+      });
     }
   }
 
@@ -602,7 +603,7 @@ export class ReportDashboardComponent implements OnInit {
     this.allEmployeeList = [];
     this.queryList=[];
     this.employeeInProbationAfter6MonthsCount = 0;
-      
+
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -616,7 +617,7 @@ export class ReportDashboardComponent implements OnInit {
             this.extractData();
       } else {
         alert(response.serviceResponse)
-      } 
+      }
     });
   }
 
@@ -661,7 +662,7 @@ export class ReportDashboardComponent implements OnInit {
   extractData() {
     //Total Count
     this.countOfAllEmployees = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive').length;
-    console.log("Count of all employees : ",this.countOfAllEmployees);    
+    console.log("Count of all employees : ",this.countOfAllEmployees);
 
     //Fresher / Lateral Graph (Fresher/Experienced)
     //Graph Based Employment Status(Probation/Confirmed/Resigned/In-Active)
@@ -729,13 +730,13 @@ export class ReportDashboardComponent implements OnInit {
           else if (employee.employmentstatus == "Confirmed") confirmedCount++;
           else if (employee.employmentstatus == "Resigned") resignedCount++;
           else if (employee.employmentstatus == "InActive") inActiveCount++;
-      
+
       if(employee.gender == 'male' && employee.employmentstatus != 'InActive') maleCount++;
       else if(employee.gender == 'female' && employee.employmentstatus != 'InActive') femaleCount++;
       else if(employee.gender == 'other' && employee.employmentstatus != 'InActive') otherCount++;
- 
+
       if(employee.dateOfBirth != null && employee.employmentstatus != 'InActive'){
-       let age = this.getAge(employee.dateOfBirth);       
+       let age = this.getAge(employee.dateOfBirth);
        employee.age = age;
        console.log(age);
        if(age>= 18 && age <=25)countBetween18and25++;
@@ -754,7 +755,7 @@ export class ReportDashboardComponent implements OnInit {
         else if(employee.totalExperience > 5 && employee.totalExperience <= 10)experienceCountBetween5and10++;
         else if(employee.totalExperience > 10)experienceCountAbove10++;
       }
-      
+
       if(employee.joiningMonth == 'January' && moment(employee.dateOfJoining).year() == currentYear)joiningJanCount++;
       else if(employee.joiningMonth == 'February' && moment(employee.dateOfJoining).year() == currentYear)joiningFebCount++;
       else if(employee.joiningMonth == 'March' && moment(employee.dateOfJoining).year() == currentYear)joiningMarCount++;
@@ -785,11 +786,11 @@ export class ReportDashboardComponent implements OnInit {
         if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
       }
     });
-  
+
     //Department wise Employee Count
     let departmentList = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive'),'departmentName');
     let employeeByDepartment = [];
-      for (let department in departmentList) {        
+      for (let department in departmentList) {
          employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
       }
 
@@ -806,9 +807,9 @@ export class ReportDashboardComponent implements OnInit {
     console.log("Male employees: ",maleCount);
     console.log("Female employees: ",femaleCount);
     console.log("Other employees: ", otherCount);
-    console.log("----------------------------------------------------") 
+    console.log("----------------------------------------------------")
     console.log(employeeByDepartment);
-    console.log("----------------------------------------------------") 
+    console.log("----------------------------------------------------")
     console.log("Age 18-25: ",countBetween18and25);
     console.log("Age 26-35: ",countBetween25and35);
     console.log("Age 36-45: ",countBetween35and45);
@@ -881,9 +882,9 @@ export class ReportDashboardComponent implements OnInit {
           name: "female",
           y: femaleCount
         },
-        {	
-          name: "other",	
-            y: otherCount	
+        {
+          name: "other",
+            y: otherCount
         }];
 
         console.log("genderData : ", genderData);
@@ -1005,8 +1006,8 @@ export class ReportDashboardComponent implements OnInit {
         })
         console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
-  
-  
+
+
          /*
           Chart Data for - Employee KYC by Department
        */
@@ -1029,7 +1030,7 @@ export class ReportDashboardComponent implements OnInit {
         let departmentKycData = Object.entries(departmentList).map(entry => {
           console.log("entry : ", entry);
           const name = entry[0];
-          const employeeList:any = entry[1];          
+          const employeeList:any = entry[1];
 
           let pendingCount = 0;
           let completedCount = 0;
@@ -1058,7 +1059,7 @@ export class ReportDashboardComponent implements OnInit {
         console.log("kycChartData : ", kycChartData);
 
         this.renderStackBarChart('Employee KYC Summary','employeeKycSummary',kycChartData,departmentCategories,'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
-        
+
   }
 
   groupBy(objectArray, property) {
@@ -1127,11 +1128,11 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
-        style:{	
-          fontWeight: 'bold',	
-          color: '#000000'	
+        style:{
+          fontWeight: 'bold',
+          color: '#000000'
         }
-        
+
       },
       tooltip: {
         pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -1216,20 +1217,20 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
-        style:{	
-          fontWeight: 'bold',	
-          color:'#000000'	
+        style:{
+          fontWeight: 'bold',
+          color:'#000000'
         }
       },
       xAxis: {
         categories: categories,
-        labels: {	
-          overflow: 'justify',	
-          style:{	
-            fontWeight: 'bold',	
+        labels: {
+          overflow: 'justify',
+          style:{
+            fontWeight: 'bold',
             color:'#000000',
-            fontSize:'12'	
-          }	
+            fontSize:'12'
+          }
         },
       },
       yAxis: {
@@ -1237,16 +1238,16 @@ export class ReportDashboardComponent implements OnInit {
         title: {
           text: 'No. Of Employees',
           align: 'high',
-          style:{	
-            fontWeight: 'bold',	
-            color:'#000000',	
+          style:{
+            fontWeight: 'bold',
+            color:'#000000',
           }
         },
         labels: {
           overflow: 'justify',
-          style:{	
-            fontWeight: 'bold',	
-            color:'#000000',	
+          style:{
+            fontWeight: 'bold',
+            color:'#000000',
             fontSize:'12'
           }
         },
@@ -1304,9 +1305,9 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
-        style:{	
-          fontWeight: 'bold',	
-          color: '#000000'	
+        style:{
+          fontWeight: 'bold',
+          color: '#000000'
         }
       },
       xAxis: {
@@ -1324,22 +1325,22 @@ export class ReportDashboardComponent implements OnInit {
           "November",
           "December"
         ],
-        labels:{	
-          style:{	
-            fontWeight: 'bold',	
-            color: '#000000'	
-          }	
+        labels:{
+          style:{
+            fontWeight: 'bold',
+            color: '#000000'
+          }
         }
-        
+
       },
       yAxis: {
         min: 0,
         title: {
           text: 'No. Of Employees',
           align: 'high',
-          style:{	
-            fontWeight: 'bold',	
-            color: '#000000'	
+          style:{
+            fontWeight: 'bold',
+            color: '#000000'
           }
         },
         labels: {
@@ -1451,20 +1452,20 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
-        style:{	
-          fontWeight: 'bold',	
-          color:'#000000'	
+        style:{
+          fontWeight: 'bold',
+          color:'#000000'
         }
       },
       xAxis: {
         categories: categories,
-        labels: {	
-          overflow: 'justify',	
-          style:{	
-            fontWeight: 'bold',	
+        labels: {
+          overflow: 'justify',
+          style:{
+            fontWeight: 'bold',
             color:'#000000',
-            fontSize:'12'	
-          }	
+            fontSize:'12'
+          }
         },
       },
       yAxis: {
@@ -1472,16 +1473,16 @@ export class ReportDashboardComponent implements OnInit {
         title: {
           text: 'No. Of Employees',
           align: 'high',
-          style:{	
-            fontWeight: 'bold',	
-            color:'#000000',	
+          style:{
+            fontWeight: 'bold',
+            color:'#000000',
           }
         },
         labels: {
           overflow: 'justify',
-          style:{	
-            fontWeight: 'bold',	
-            color:'#000000',	
+          style:{
+            fontWeight: 'bold',
+            color:'#000000',
             fontSize:'12'
           }
         },
@@ -1534,9 +1535,9 @@ export class ReportDashboardComponent implements OnInit {
       },
       title: {
         text: chartName,
-        style:{	
-          fontWeight: 'bold',	
-          color: '#000000'	
+        style:{
+          fontWeight: 'bold',
+          color: '#000000'
         }
       },
       tooltip: {
@@ -1578,7 +1579,7 @@ export class ReportDashboardComponent implements OnInit {
       console.log("columns : ", columns);
       this.queryList = [];
       let dateFormat = 'DD-MM-YYYY';
-      
+
       this.filterData.title  = title;
       this.filterData.columns = columns;
 
@@ -1610,11 +1611,11 @@ export class ReportDashboardComponent implements OnInit {
       });
 
       this.filterData.queryList = JSON.stringify(this.queryList);
-  
+
       console.log("filterData : ", this.filterData);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
-  
+
     onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
       if (emittedArray[0].length != 0) {
         console.log("queryList : ", emittedArray[0]);
@@ -1857,25 +1858,25 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
-      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")	
+      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
       	console.log(this.countByLegend);
-      this.modalSummaryList.forEach(x=>{	
-        if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){	
-          this.countByLegend.push({	
-            employeementId : x.employeementId,	
-            employeeName : x.employeeName,	
-            departmentName : x.departmentName,	
-            email : x.email,	
-            mobileNo : x.mobileNo,	
-            managerName : x.managerName,	
-            pendingEodCount : x.pendingEodCount,	
-            legend : x.legend,	
-            count : this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length	
-          });	
-        }	
-      });	
-      console.log(this.countByLegend,"Data");	
-      this.modalSummaryList = this.countByLegend;	
+      this.modalSummaryList.forEach(x=>{
+        if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
+          this.countByLegend.push({
+            employeementId : x.employeementId,
+            employeeName : x.employeeName,
+            departmentName : x.departmentName,
+            email : x.email,
+            mobileNo : x.mobileNo,
+            managerName : x.managerName,
+            pendingEodCount : x.pendingEodCount,
+            legend : x.legend,
+            count : this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length
+          });
+        }
+      });
+      console.log(this.countByLegend,"Data");
+      this.modalSummaryList = this.countByLegend;
 
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
       if(legendName == 'Pending By User'){
@@ -1918,7 +1919,7 @@ export class ReportDashboardComponent implements OnInit {
     this.modalTitle = gender + " Employee Data";
     this.modalSummaryList = modalTableList.filter(x => x.gender == gender);
     this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-  }    
+  }
 
   openAgeSummayModalTable(age:any){
     this.data = ''
@@ -1963,7 +1964,7 @@ export class ReportDashboardComponent implements OnInit {
       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
 
-  openEmployeeExperienceModalTable(pointName:any){ 
+  openEmployeeExperienceModalTable(pointName:any){
     this.data = ''
     this.modalSummaryList = [];
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
@@ -2078,13 +2079,13 @@ export class ReportDashboardComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -2098,10 +2099,10 @@ export class ReportDashboardComponent implements OnInit {
   onSearch(searchData){
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
-  }	
+  }
 
 }
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

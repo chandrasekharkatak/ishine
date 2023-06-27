@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.model.Survey;
@@ -37,16 +40,33 @@ public class SurveyServiceImpl implements SurveyService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 
 	@Override
 	@Transactional
 	public ServiceResponse createSurvey(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("CreateSurvey");
+        apiLogInfo.setApiUrl("/api/createSurvey");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("CreatedBy : " + surveyDTO.getCreatedBy() + " ,SurveyName :"+ surveyDTO.getSurveyName() 
+         + " ,EmpId :" + surveyDTO.getEmpId());
+
+		
 		try {
 
 			if (!validationService.validateEmpId(surveyDTO.getCreatedBy())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Id does not exists.");
+				apiLogInfo.setApiResponse("Employee Id does not exists");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
 
@@ -81,14 +101,20 @@ public class SurveyServiceImpl implements SurveyService {
 				if (listSaved.size() > 0) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Survey created successfully.");
+					apiLogInfo.setApiResponse("Survey Created Successfully");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Survey created but no questions were added to survey.");
+					apiLogInfo.setApiResponse("Survey created but no questions were added to survey");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Failed to create survey.");
+				apiLogInfo.setApiResponse("Failed to create survey");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -96,7 +122,11 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -104,6 +134,13 @@ public class SurveyServiceImpl implements SurveyService {
 	public ServiceResponse getAllSurveys() {
 
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllSurveys");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("AllSurveyList size : " + surveyRepository.getAllSurveys().size());
+
 		try {
 
 			List<Object[]> objectList = surveyRepository.getAllSurveys();
@@ -134,11 +171,15 @@ public class SurveyServiceImpl implements SurveyService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("All Survey List Fetched");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No survey found. List is null.");
+				apiLogInfo.setApiResponse("No survey found. List is null");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -146,18 +187,31 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllQuestionsBySurveyId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("SureyId : " + surveyDTO.getSurveyId());
 		try {
 
 			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Id does not exists.");
+				apiLogInfo.setApiResponse("survey Id does not exists");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				return response;
 			}
 
@@ -167,6 +221,9 @@ public class SurveyServiceImpl implements SurveyService {
 				if (questionList.size() == 0) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No survey questions found. List is empty.");
+					apiLogInfo.setApiResponse("No survey questions found. list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				} else {
 					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
 
@@ -186,10 +243,16 @@ public class SurveyServiceImpl implements SurveyService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("All Questions By SurveyId Fetched");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No survey questions found. List is null.");
+				apiLogInfo.setApiResponse("NO survey questions found.List is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -197,18 +260,31 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse setSurveyResponseByEmpId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("setSurveyResponseByEmpId");
+		apiLogInfo.setApiUrl("/api/setSurveyResponseByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + surveyDTO.getEmpId() + " , SurveyQuestionList :" + surveyDTO.getSurveyQuestionList().size());
 		try {
 
 			if (!validationService.validateEmpId(surveyDTO.getEmpId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Id does not exists.");
+				apiLogInfo.setApiResponse("Employee Id does not Exists.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				return response;
 			}
 
@@ -229,22 +305,39 @@ public class SurveyServiceImpl implements SurveyService {
 			if (responseList.size() > 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Responses stored successfully.");
+				apiLogInfo.setApiResponse("Responses stored successfully");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No responses were stored.");
+				apiLogInfo.setApiResponse("No responses were stored");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getAnsweredSurveysByEmpId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAnsweredSurveysByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Empid : " + surveyDTO.getEmpId());
 		try {
 			List<Object[]> objectList = surveyQuestionRepository.getAnsweredSurveysByEmpId(surveyDTO.getEmpId());
 
@@ -253,6 +346,8 @@ public class SurveyServiceImpl implements SurveyService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No survey found. List is empty.");
+					apiLogInfo.setApiResponse("No survey found. List is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<SurveyDTO> dtoList = new ArrayList<SurveyDTO>();
 
@@ -265,11 +360,15 @@ public class SurveyServiceImpl implements SurveyService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("AnsweredSurvey List fetched"+dtoList.size());			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No survey found. List is null.");
+				apiLogInfo.setApiResponse("no survey found. list is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -277,13 +376,25 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse changeSurveyStatus(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Change Survey Status");
+		apiLogInfo.setApiUrl("/api/changeSurveyStatus");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("SurveyId : " + surveyDTO.getSurveyId());
+
 		try {
 
 			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
@@ -299,15 +410,24 @@ public class SurveyServiceImpl implements SurveyService {
 				if (surveyupdated.getSurveyId() != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Survey status changed.");
+					apiLogInfo.setApiResponse("Survey status changed");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to change status.");
+					apiLogInfo.setApiResponse("Failed to change status");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Not Found.");
+				apiLogInfo.setApiResponse("Survey not found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -315,22 +435,36 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getSurveyResponseByEmpIdAndSurveyId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("SurveyId :" + surveyDTO.getSurveyId() + " , EmpId: " + surveyDTO.getEmpId());
 		try {
 			if (!validationService.validateEmpId(surveyDTO.getEmpId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Id does not exists.");
+				apiLogInfo.setApiResponse("Employee Id does not exists");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
 			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Id does not exists.");
+				apiLogInfo.setApiResponse("Survey Id does not exists");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
 
@@ -342,6 +476,8 @@ public class SurveyServiceImpl implements SurveyService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No responses found for survey. List is empty.");
+					apiLogInfo.setApiResponse("No responses found for survey. list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
 
@@ -357,11 +493,15 @@ public class SurveyServiceImpl implements SurveyService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("SurveyResponse By EmpId and SurveyId fetched");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No responses found for survey. List is null.");
+				apiLogInfo.setApiResponse("No responses found for survey.List is  null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -369,18 +509,30 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getSurveyAllResponsesBySurveyId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getSurveyAllResponsesBySurveyId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("SurveyId : "+ surveyDTO.getSurveyId());
 		try {
 
 			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Id does not exists.");
+				apiLogInfo.setApiResponse("Survey Id does not exists");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
 
@@ -392,6 +544,8 @@ public class SurveyServiceImpl implements SurveyService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No responses found for survey. List is empty.");
+					apiLogInfo.setApiResponse("No responses found for survey. List is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
 
@@ -411,11 +565,15 @@ public class SurveyServiceImpl implements SurveyService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("All Survey Response list fetched");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No responses found for survey. List is null.");
+				apiLogInfo.setApiResponse("No responses found for survey.list is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -423,13 +581,23 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse deleteSurvey(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("DeleteSurvey");
+        apiLogInfo.setApiUrl("/api/deleteSurvey");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("SurveyId : "+ surveyDTO.getSurveyId());
 		try {
 
 			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
@@ -442,14 +610,23 @@ public class SurveyServiceImpl implements SurveyService {
 					surveyRepository.deleteById(survey.getSurveyId());
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Survey Deleted.");
+					apiLogInfo.setApiResponse("Survey Deleted");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Active/Completed survey cannot be deleted.");
+					apiLogInfo.setApiResponse("Active/Completed survey cannot be deleted");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Not Found.");
+				apiLogInfo.setApiResponse("Survey not Found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -457,13 +634,23 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse updateSurvey(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("UpdateSurvey");
+		apiLogInfo.setApiUrl("/api/updateSurvey");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("SurveyId : "+ surveyDTO.getSurveyId() + " ,SurveyName:" + surveyDTO.getSurveyName());
 		try {
 
 			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
@@ -512,23 +699,38 @@ public class SurveyServiceImpl implements SurveyService {
 						if (listSaved.size() > 0) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Survey updated successfully.");
+							apiLogInfo.setApiResponse("Survey updated successfully");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 						} else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Survey updated but no questions were added to survey.");
+							apiLogInfo.setApiResponse("Survey updated but no questions were added to survey");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 						}
 
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Failed to update survey.");
+						apiLogInfo.setApiResponse("Failed to update survey");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					}
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Active/Completed survey cannot be updated.");
+					apiLogInfo.setApiResponse("Active/Completed survey cannot be updated");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Not Found.");
+				apiLogInfo.setApiResponse("Survey Not Found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -536,7 +738,13 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 }

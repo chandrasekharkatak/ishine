@@ -17,13 +17,13 @@ export class SortPipe implements PipeTransform {
     }
 
     console.log("Sort Data : ", value);
-    
+
 
     value.sort((a: any, b: any) => {
       if (sortFieldType == "string") {
-        if (a[sortField]?.toLowerCase() < b[sortField]?.toLowerCase()) {
+        if ((a[sortField]+"")?.toLowerCase() < (b[sortField]+"")?.toLowerCase()) {
           return -1 * multiplier;
-        } else if (a[sortField]?.toLowerCase() > b[sortField]?.toLowerCase()) {
+        } else if ((a[sortField]+"")?.toLowerCase() > (b[sortField]+"")?.toLowerCase()) {
           return 1 * multiplier;
         } else {
           return 0;

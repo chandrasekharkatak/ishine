@@ -39,7 +39,7 @@
                                   [source]="allProjectListByManagerId"
                                   [useInfiniteScroll]="true"
                                   [multiple]="false"
-                                  [(ngModel)]="teamObj.projectId" 
+                                  [(ngModel)]="teamObj.projectId"
                                   [disabled]="isUpdation"
                                   >
                                   <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
@@ -238,7 +238,7 @@
                     </div>
                 </div>
             </div>
-        <!-- 
+        <!--
             <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -278,9 +278,9 @@
         <div class="row">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">All Teams</h1>
-            </div>    
+            </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-4">
                 <div class="info-wrapper">
@@ -321,7 +321,7 @@
                 </div>
             </div>
             <!-- <div class="col-md-3 mt-4 pt-2 mb-2">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div> -->
         </div>
         <div class="row">
@@ -334,15 +334,15 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamInfo'" [tableTHeadId]="'teamInfoTHead'"
                     [tableTHeadTrId]="'teamInfoTHeadTr'">
-                    <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortData($event)">	
-                        <thead class="thead-light" id="teamInfoTHead">	
-                          <tr id="teamInfoTHeadTr">	
+                    <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="teamInfoTHead">
+                          <tr id="teamInfoTHeadTr">
                             <th scope="col" class="info-label">Sr No.</th>
-                            <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>	
+                            <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
                             <th scope="col" class="info-label" mat-sort-header="teamLeadName|string">Team Lead</th>
-                            <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project Manager</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>	
+                            <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project Manager</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
@@ -367,11 +367,11 @@
                             </tr>
                         </tbody>
                       </table>
-                      <pagination-controls class="my-pagination" [hidden]="allTeamList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                      <pagination-controls class="my-pagination" [hidden]="allTeamList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                       <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-            </div>  
-        </div>  
+            </div>
+        </div>
     </div>
 </div>
 <!-- end :: View Teams -->
@@ -509,7 +509,7 @@
                 <h1 class="table-header-title">All Activities</h1>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-3">
                 <div class="info-wrapper">
@@ -532,7 +532,7 @@
                         <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let project of employeeSpecificProjectList" value="{{project.projectId}}">{{project.projectName}}</option>
-    
+
                         </select> -->
                     </div>
                 </div>
@@ -552,7 +552,7 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()"><em class="fa-solid fa-plus"></em>Add New Activity</button>
             </div>
             <!-- <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div> -->
         </div>
         <div class="row">
@@ -565,14 +565,14 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
                 [tableTHeadTrId]="'activityInfoTHeadTr'">
-                <table class="table table-responsive" id="activities-table" matSort (matSortChange)="sortData($event)">	
-                    <thead class="thead-light">	
-                      <tr>	
-                        <th scope="col" class="info-label">Sr No.</th>	
-                        <th scope="col" class="info-label" mat-sort-header="activity|string">Activity</th>	
-                        <th scope="col" class="info-label" mat-sort-header="eta|number">ETA</th>	
+                <table class="table table-responsive" id="activities-table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="activity|string">Activity</th>
+                        <th scope="col" class="info-label" mat-sort-header="eta|number">ETA</th>
                         <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Activity Role</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>	
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
                         <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
@@ -597,7 +597,7 @@
                     </tbody>
                   </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="allActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <pagination-controls class="my-pagination" [hidden]="allActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
@@ -694,9 +694,9 @@
                 </div>
             </div>
             <!-- <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div> -->
-        </div>        
+        </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="selector-toggle" (click)="toggleSearch()">
@@ -707,16 +707,16 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
                 [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
-                <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">	
-                    <thead class="thead-light" id="activityTemplateInfoTHead">	
-                      <tr id="activityTemplateInfoTHeadTr">	
+                <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">
+                    <thead class="thead-light" id="activityTemplateInfoTHead">
+                      <tr id="activityTemplateInfoTHeadTr">
                         <th scope="col" class="info-label">Sr No.</th>
                         <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Employee Role</th>
                         <th scope="col" class="info-label" mat-sort-header="activityDescription|string">Activities</th>
                         <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
-                      <tr app-column-filter-bar *ngIf="isActivityTemplate && isSearchEnabled" [columnList]="activityTemplateColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                      <tr app-column-filter-bar *ngIf="isActivityTemplateTable && isSearchEnabled" [columnList]="activityTemplateColumns" (onSearch)="onSearch($event);page=1" ></tr>
                     </thead>
                     <tbody>
                         <tr *ngIf="templateActivityList.length == 0 || (templateActivityList| colFilter:filters:false).length == 0">
@@ -735,11 +735,11 @@
                     </tbody>
                   </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="templateActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <pagination-controls class="my-pagination" [hidden]="templateActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="templateActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
-    </div>      
+    </div>
 </div>
 
 

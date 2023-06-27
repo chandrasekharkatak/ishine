@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -28,6 +29,7 @@ import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -139,6 +141,13 @@ public class TeamsService {
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
 	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
+	 
+	
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
 	
@@ -147,7 +156,13 @@ public class TeamsService {
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
-
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName(""); 
+        apiLogInfo.setApiUrl("/api/getAllProjectListByProjectManagerId");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ProjectManagerId : "+ timesheetDTO.getProjectManagerId());
+        
 		try {
 
 			List<Object[]> projectList = projectRepository.getAllProject();
@@ -171,9 +186,15 @@ public class TeamsService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("Project List Fetched :" + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Projects found.");
+				apiLogInfo.setApiResponse("No projects found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -181,13 +202,24 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse createTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("createTeam");
+        apiLogInfo.setApiUrl("/api/createTeam");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("TeamId : " + teamDTO.getTeamId() + "  ,TeamName : " + teamDTO.getTeamName()
+         + " ,TeamLeadName :" + teamDTO.getTeamLeadName());
 		try {
 
 			String teamLeadName = null;
@@ -232,7 +264,11 @@ public class TeamsService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse(
 								"Team created but no team members added.Reason: Team members list was empty.");
-					} else {
+						apiLogInfo.setApiResponse("Team Created but no team members added Reason: team members list was empty.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+					} 
+					else {
 						Project projectObj = projectRepository.getById(teamDTO.getProjectId());
 						List<EmployeeTeamMap> mapList = new ArrayList<>();
 						List<Long> deptIds = new ArrayList<>();
@@ -353,12 +389,18 @@ public class TeamsService {
 									: "Team created successfully.";
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(message);
+							apiLogInfo.setApiResponse(message);
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 						}else {
 							String message = employeeTeamMapRepository.saveAll(mapList).isEmpty()
 									? "Team created but no team members added."
 									: "Team created successfully. But unable to map activities";
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(message);
+							apiLogInfo.setApiResponse(message);
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 						}
 					}
 
@@ -366,11 +408,17 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(
 							"Team created but no team members added.Reason: Team members list was null");
+					apiLogInfo.setApiResponse("team created but no team members added.Reason: team members list was null");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				});
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team creation failed.");
+				apiLogInfo.setApiResponse("Team creation failed");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -378,12 +426,23 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllTeamsByProjectId(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
+
+     LogDTO apiLogInfo = new LogDTO();
+     //apiLogInfo.setSubFeatureName("");
+     apiLogInfo.setApiUrl("/api/getAllTeamsByProjectId");
+     apiLogInfo.setLogLevel("INFO");
+     StringBuilder logBuilder = new StringBuilder();
+     logBuilder.append("ProjectId : " + teamDTO.getProjectId());
 		try {
 
 			List<Object[]> objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
@@ -393,6 +452,9 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
+					apiLogInfo.setApiResponse("No teams found. Teams list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
 				} else {
 					
 					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
@@ -419,6 +481,8 @@ public class TeamsService {
 						
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("All Teams By ProjectId fetched" + dtoList.size());			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
@@ -431,12 +495,23 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse deleteTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("DeleteTeam");
+		apiLogInfo.setApiUrl("/api/deleteTeam");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamId : " + teamDTO.getTeamId() + " ,teamName:" + teamDTO.getTeamName());
 		try {
 			
 			Optional<Team> team = teamRepository.findById(teamDTO.getTeamId());
@@ -446,6 +521,8 @@ public class TeamsService {
 				teamRepository.deleteById(teamDTO.getTeamId());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Team deleted successfully.");
+				apiLogInfo.setApiResponse("team deleted successfully");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				team.ifPresent((teamFound) -> {
 					teamFound.setIsActive("N");
@@ -453,18 +530,31 @@ public class TeamsService {
 					});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Team Status changed to InActive");
+				apiLogInfo.setApiResponse("Team Status Changed to InActive");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getTeamMembersByTeamId(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamId"); 
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamId : " +  teamDTO.getTeamId());
+
 		try {
 
 			List<Object[]> objectList = employeeTeamMapRepository.getTeamMembersByTeamId(teamDTO.getTeamId());
@@ -474,6 +564,8 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No team members found. Team members list is empty");
+                    apiLogInfo.setApiResponse("No team members found.team members list is empty");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<EmployeeTeamMapDTO> dtoList = new ArrayList<EmployeeTeamMapDTO>();
 
@@ -494,11 +586,15 @@ public class TeamsService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No team members found. Team members list is null");
+                apiLogInfo.setApiResponse("No team members found. team members list is null");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -506,12 +602,26 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse updateTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("UpdateTeam");
+		apiLogInfo.setApiUrl("/api/updateTeam");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamId :" + teamDTO.getTeamId() + " ,TeamName :" + teamDTO.getTeamName()
+		 + " ,TeamMemberList :" + teamDTO.getTeamMemberList().size());
+
 		try {
 			List<EmployeeTeamMapDTO> allTeamMemberList = teamDTO.getAllTeamMemberList();
 			List<EmployeeTeamMapDTO> updatedTeamMemberList = teamDTO.getUpdatedTeamMemberList();
@@ -599,15 +709,24 @@ public class TeamsService {
 						
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Team updated.");
+						apiLogInfo.setApiResponse("Team updated");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Team updation failed.");
+						apiLogInfo.setApiResponse("Team updation failed");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					}
 
 				}, () -> {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team not found.");
+					apiLogInfo.setApiResponse("Team not Found");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				});
 
 			} else {
@@ -631,14 +750,23 @@ public class TeamsService {
 					if (teamUpdated.getTeamId() != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Team updated.");
+						apiLogInfo.setApiResponse("Team updated");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Team updation failed.");
+						apiLogInfo.setApiResponse("Team updation failed");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					}
 
 				}, () -> {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team not found.");
+					apiLogInfo.setApiResponse("Team not found");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				});
 			}
 			
@@ -714,7 +842,12 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -724,6 +857,12 @@ public class TeamsService {
 	
 	public ServiceResponse getAllMyTeamsByEmpId(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllMyTeamsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + employeeDTO.getEmpId());
 		String customQuery = "";
 		try {
 			
@@ -745,6 +884,8 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
+					apiLogInfo.setApiResponse("No teams found. teams list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					
 					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
@@ -772,11 +913,15 @@ public class TeamsService {
 						
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("All my teams by EmpId fetched :" + dtoList.size());			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found.Teams list is null");
+				apiLogInfo.setApiResponse("No teams found. Teams List is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -784,7 +929,11 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -826,6 +975,13 @@ public class TeamsService {
 	 
 		public ServiceResponse getMappedActivityPreview(TeamDTO teamDTO) {
 			ServiceResponse response = new ServiceResponse();
+			LogDTO apiLogInfo = new LogDTO();
+			//apiLogInfo.setSubFeatureName("");
+			apiLogInfo.setApiUrl("/api/getMappedActivityPreview");
+			apiLogInfo.setLogLevel("INFO");
+			StringBuilder logBuilder = new StringBuilder();
+			logBuilder.append("EmpId : " + teamDTO.getEmpId() + " ,DeptId" + teamDTO.getDeptId()
+			 + " ,EmployeeRole :" + teamDTO.getEmployeeRole());
 			try {
 				
 				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
@@ -838,6 +994,8 @@ public class TeamsService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("User Info not found.");
+					apiLogInfo.setApiResponse("User Info not found");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 				
 				List<ActivityTemplate> activityObj = activityTemplateRepository
@@ -855,9 +1013,13 @@ public class TeamsService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("MappedActivityPreview fetched:" + dtoList.size());			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No activity found.");
+					apiLogInfo.setApiResponse("No activity found");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 				
 			}catch(Exception e) {
@@ -865,12 +1027,26 @@ public class TeamsService {
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 				response.setServiceResponse("Something Went Wrong.");
 				response.setServiceError(e.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+
 			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 		
 		public ServiceResponse getMappedActivityInUpdateTeam(TeamDTO teamDTO) {
 			ServiceResponse response = new ServiceResponse();
+            LogDTO apiLogInfo = new LogDTO();
+            //apiLogInfo.setSubFeatureName("");
+            apiLogInfo.setApiUrl("/api/getMappedActivityInUpdateTeam");
+            apiLogInfo.setLogLevel("INFO");
+            StringBuilder logBuilder = new StringBuilder();
+            logBuilder.append("EmpId : " + teamDTO.getEmpId() + " ,TeamId :" + teamDTO.getTeamId() 
+             + " ,EmployeeRole :" + teamDTO.getEmployeeTeamRole());
+
+			
 			try {
 				
 				String deptId = null;
@@ -901,9 +1077,13 @@ public class TeamsService {
 					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("Mapped Activity List Fetched" + dtoList.size());			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Activity List is empty");
+					apiLogInfo.setApiResponse("Activity List is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 				
 			}catch(Exception e) {
@@ -911,7 +1091,12 @@ public class TeamsService {
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 				response.setServiceResponse("Something Went Wrong.");
 				response.setServiceError(e.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+
 			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 	 
@@ -920,12 +1105,22 @@ public class TeamsService {
 	
 	public ServiceResponse getAllTeamView(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllTeamView");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append(" ,EmpId : " + employeedto.getEmpId());
+
+
 		try {
 			List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
+				apiLogInfo.setApiResponse("No teams found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				
 				// Date Range to Check Timesheet
@@ -986,6 +1181,8 @@ public class TeamsService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamView fetched:" + dtoList.size() );			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -993,12 +1190,23 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllTeamMemberView(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllTeamMemberView");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+employeedto.getEmpId());
+
 		try {
 
 			LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
@@ -1007,6 +1215,8 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
+				apiLogInfo.setApiResponse("No teams found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -1047,6 +1257,8 @@ public class TeamsService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamMemberView Fetched:" + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -1054,12 +1266,23 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllTeamLeaveHistoryView(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllTeamLeaveHistoryView");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+ leaveDTO.getEmpId() + " ,FromDate :" + leaveDTO.getFromDate()
+		 + " ,ToDate :" + leaveDTO.getToDate());		
 		try {
 			
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
@@ -1071,6 +1294,8 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams leave history found");
+				apiLogInfo.setApiResponse("No teams leave history found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -1108,6 +1333,8 @@ public class TeamsService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamLeaveHistoryView fetched:" + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -1115,12 +1342,24 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllTeamCompOffHistoryView(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllTeamCompOffHistoryView");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + leaveDTO.getEmpId() + " ,FromDate :" + leaveDTO.getFromDate() + 
+				" ,ToDate :" + leaveDTO.getToDate());
+
 		try {
 			
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
@@ -1132,6 +1371,8 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams leave history found");
+				apiLogInfo.setApiResponse("NO teams leave history found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -1150,6 +1391,8 @@ public class TeamsService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamCompoff History View Fetched:" + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -1157,13 +1400,25 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse checkTeamName(TeamDTO teamdto) {
 		
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Check Team Name");
+		apiLogInfo.setApiUrl("/api/checkTeamName");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamName : "+ teamdto.getTeamName() + " ,TeamId :" + teamdto.getTeamId()
+		 + " ,ProjectId :" + teamdto.getProjectId() + " ,ProjectName : " + teamdto.getProjectName());
 		try {
 			
 			if(teamdto.getTeamId() != null && teamdto.getProjectId() != null) {
@@ -1179,6 +1434,8 @@ public class TeamsService {
 					if(checkTeamNameByName != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Team Name already exist!");
+						apiLogInfo.setApiResponse("Team Name already exist!");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 					System.out.println("   checkTeamNameByName = "+checkTeamNameByName);    
 				}
@@ -1194,6 +1451,8 @@ public class TeamsService {
 						if(checkTeamNameByName != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Team Name already exist!");
+							apiLogInfo.setApiResponse("Team Name already exist!");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 						System.out.println("   checkTeamNameByName - "+checkTeamNameByName);
 					}
@@ -1204,8 +1463,12 @@ public class TeamsService {
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
+					apiLogInfo.setApiResponse("Team Name already exist!");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("TeamName  Does Not Exist!");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				System.out.println("   checkTeamNameByName : "+checkTeamNameByName);
 			}
@@ -1215,7 +1478,11 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -1718,6 +1985,14 @@ public class TeamsService {
 
 	public ServiceResponse getDepartmentLeaveHistory(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getDepartmentLeaveHistory");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("DeptId : "+ leaveDTO.getDeptId() + "  ,FromDate : " + leaveDTO.getFromDate()
+		 + " ,ToDate : " + leaveDTO.getToDate());
+
 		try {
 			
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
@@ -1728,6 +2003,9 @@ public class TeamsService {
 			if (objectList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No department leave history found");
+				apiLogInfo.setApiResponse("No department leave history found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			} else {
 
 				objectList.forEach((object) -> {
@@ -1748,18 +2026,26 @@ public class TeamsService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("Department leave History fetched");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse addDeptIdsInActivities() {
 		ServiceResponse response = new ServiceResponse();
+		
 		try {
 			
 			List<Team> allTeamList = teamRepository.findAll();
@@ -1896,6 +2182,13 @@ public class TeamsService {
 
 	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("RevokeReporteeLeave");
+		apiLogInfo.setApiUrl("/api/revokeReporteeLeave");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("LeaveId : "+ leaveDTO.getLeaveId() + " , EmpId :" + leaveDTO.getEmpId() + 
+				 " ,LeaveType :" + leaveDTO.getLeaveType() + " ,leaveRevokeId :"+ leaveDTO.getLeaveRevokeId());
 		try {
 			
 			EmployeeLeave leaveApplication = employeeLeaveRepository.findByLeaveId(leaveDTO.getLeaveId());
@@ -1987,15 +2280,24 @@ public class TeamsService {
 									}
 									
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-									response.setServiceResponse("Leave revoked successfully.");								
+									response.setServiceResponse("Leave revoked successfully.");	
+									apiLogInfo.setApiResponse("Leave revoked successfully");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 								}else {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 									response.setServiceResponse("Unable to revoke leave.");
+									apiLogInfo.setApiResponse("Unable to revoke leave");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 								}
 							}
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Employee Leave Balance details not found.");
+							apiLogInfo.setApiResponse("Employee leave balance details not found");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 						}
 					}
 					
@@ -2052,10 +2354,16 @@ public class TeamsService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to revoke Leave Application.");
+					apiLogInfo.setApiResponse("Unable to revoke leave Application");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Application not found.");
+				apiLogInfo.setApiResponse("Leave Application not found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 			
 		}catch(Exception e) {
@@ -2063,13 +2371,24 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	
 	public ServiceResponse getAllTeams() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllTeams");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("AllTeamList : " + teamRepository.getAllTeams().size());
 		try {
 			
 			List<Object[]> objectList = teamRepository.getAllTeams();
@@ -2079,6 +2398,8 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
+					apiLogInfo.setApiResponse("No teams found. Teams list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					
 					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
@@ -2106,11 +2427,15 @@ public class TeamsService {
 						
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("All Team List Fetched");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found.Teams list is null");
+				apiLogInfo.setApiResponse("No teams found.Teams List is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -2118,7 +2443,11 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 }

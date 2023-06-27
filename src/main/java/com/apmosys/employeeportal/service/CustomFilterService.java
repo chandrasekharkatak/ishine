@@ -103,6 +103,7 @@ public class CustomFilterService {
 	@Autowired
 	private LogService logService;
 	
+	
 	@Value("${spring.datasource.url}")
 	private String dbURL;
 	
@@ -256,6 +257,14 @@ public class CustomFilterService {
 	
 	public ServiceResponse customQueryForLeaveReport(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+
+       LogDTO apiLogInfo = new LogDTO();
+       apiLogInfo.setSubFeatureName("customQueryForLeaveReport");
+       apiLogInfo.setApiUrl("/api/customQueryForLeaveReport");
+       apiLogInfo.setLogLevel("INFO");
+       StringBuilder logBuilder = new StringBuilder();
+       logBuilder.append("QueryList : "+ leaveDTO.getQueryList().size());
+		
 		try {
 			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
 			List<Object[]> list = getCustomLeaveReport(subQuery.toString());
@@ -287,21 +296,37 @@ public class CustomFilterService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse(" dtoList :" + dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("leave Application list is empty.");
+				apiLogInfo.setApiResponse("leave Application list is empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse customQueryForLeaveTrendAnalysisReport(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("CustomQueryForLeaveTrendAnalysisReport");
+		apiLogInfo.setApiUrl("/api/customQueryForLeaveTrendAnalysisReport");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("FromDate : " + leaveDTO.getFromDate() + " ,ToDate : " + leaveDTO.getToDate());
 		try {
 			ServiceResponse customQueryForLeaveReportResponse = customQueryForLeaveReport(leaveDTO);	
 			
@@ -333,6 +358,9 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 					response.setServiceResponse(newLeaveData);	
+					apiLogInfo.setApiResponse("NewLeaveData" + newLeaveData);			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				}	
 			}		
 		}catch(Exception e){
@@ -340,7 +368,12 @@ public class CustomFilterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -558,6 +591,13 @@ public class CustomFilterService {
 
 	public ServiceResponse customQueryForEmployeeReport(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("CustomQueryForEmployeeReport");
+		apiLogInfo.setApiUrl("/api/customQueryForEmployeeReport");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("QueryList : "+ employeeDTO.getQueryList().size());
+
 		try {
 			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
 			List<Object[]> list = getCustomEmployeeReport(subQuery.toString());
@@ -648,9 +688,16 @@ public class CustomFilterService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+				
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee list is empty.");
+				apiLogInfo.setApiResponse("Employee List is empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 			
 		}catch(Exception e) {
@@ -658,7 +705,11 @@ public class CustomFilterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -798,6 +849,12 @@ public class CustomFilterService {
 
 	public ServiceResponse customTimesheetApplicationReport(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("CustomTimeSheetApplicationReport");
+		apiLogInfo.setApiUrl("/api/customTimesheetApplicationReport");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("QueryList : " + timesheetDTO.getQueryList().size());
 		try {
 			
 			StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
@@ -827,9 +884,13 @@ public class CustomFilterService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet list is empty.");
+				apiLogInfo.setApiResponse("TimeSheet list is empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -837,7 +898,11 @@ public class CustomFilterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -1161,6 +1226,14 @@ public class CustomFilterService {
 
 	public ServiceResponse customQueryForTimesheetSummaryChart(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("CustomQueryForTimesheetSummaryChart");
+		apiLogInfo.setApiUrl("/api/customQueryForTimesheetSummaryChart");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("QueryList : "+ timesheetDTO.getQueryList().size() + 
+				"  ,QueryList1 :" + timesheetDTO.getQueryList().size());
+
 		try {
 			
 			StringBuilder subQuery = createQueryForTimesheetSummaryChart(timesheetDTO.getQueryList());
@@ -1172,9 +1245,14 @@ public class CustomFilterService {
 			if(timesheetSummaryLeaveResposne.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
+				apiLogInfo.setApiResponse("Service_reponse :" + timesheetSummaryLeaveResposne.getServiceResponse());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
+				apiLogInfo.setApiResponse("Service_reponse :" + timesheetSummaryLeaveResposne.getServiceResponse());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -1182,7 +1260,11 @@ public class CustomFilterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -1267,6 +1349,13 @@ public class CustomFilterService {
 
 	public ServiceResponse getCustomFilteredTimesheet(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getCustomFilteredTimesheet");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + timesheetDTO.getEmpId() + " , QueryList: " + timesheetDTO.getQueryList().size());
+
 		try {
 			
 			StringBuilder subQuery = createQueryForViewTimesheet(timesheetDTO.getQueryList());
@@ -1295,9 +1384,15 @@ public class CustomFilterService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet list is empty.");
+				apiLogInfo.setApiResponse("Timesheet list is empty");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 			
 		}catch(Exception e) {
@@ -1305,7 +1400,11 @@ public class CustomFilterService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

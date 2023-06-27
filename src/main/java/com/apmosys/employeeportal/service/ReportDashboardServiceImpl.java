@@ -13,12 +13,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Timesheet;
@@ -47,10 +50,22 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	
 	@Autowired
 	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 
 	@Override
 	public ServiceResponse getLast8DaysLeaveReport(LeaveDTO leaveDto) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+       // apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getLast8DaysLeaveReport");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("StartDate : " + leaveDto.getStartDate() + " , EndDate : " + leaveDto.getEndDate());
 		try {
 			List<Object[]> list = employeeLeaveRepository.getLast8DaysLeaveReport(stringToDateTimeParser.getDate(leaveDto.getStartDate(), "yyyy-MM-dd"), stringToDateTimeParser.getDate(leaveDto.getEndDate(), "yyyy-MM-dd"));
 
@@ -58,6 +73,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave history not found. Kindly check date range.");
+                apiLogInfo.setApiResponse("Leave history not found. kindly check date range");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
 				list.forEach((object) -> {
@@ -76,6 +93,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("dtoList" + dtoList.size());
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
@@ -83,13 +102,24 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getLast9DaysTimesheetReport() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getLast9DaysTimesheetReport");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("StartDate : " + LocalDate.now().minusDays(8)  + " ,EndDate :" + LocalDate.now().minusDays(1));
+
 		try {
 			LocalDate start = LocalDate.now().minusDays(8);
 
@@ -158,9 +188,13 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("TimeSheetReport :" + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet not found. Kindly check date range.");
+                apiLogInfo.setApiResponse("Timesheet not found.Kindly check data range.");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
@@ -168,14 +202,25 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	
 	@Override	
 	public ServiceResponse getLeaveTrendAnalysisReport(LeaveDTO leaveDto) {	
-		ServiceResponse response = new ServiceResponse();	
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getLeaveTrendAnalysisReport");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("FromDate : " + leaveDto.getFromDate() + " ,ToDate : " + leaveDto.getToDate());
 		try {	
 			ServiceResponse lastEightDayResponse = getLast8DaysLeaveReport(leaveDto);	
 				
@@ -206,21 +251,34 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 						}	
 					});	
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-					response.setServiceResponse(newLeaveData);	
+					response.setServiceResponse(newLeaveData);
+					apiLogInfo.setApiResponse("newLeaveData :"+ newLeaveData.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}	
 			}		
 		}catch(Exception e) {	
 			e.printStackTrace();	
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
 			response.setServiceResponse("Something Went Wrong.");	
-			response.setServiceError(e.getMessage());	
-		}	
+			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;	
 	}
 
 	@Override
 	public ServiceResponse getEmployeeWorkLocationForSummary() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+       // apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getEmployeeWorkLocationForSummary");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+       
+
 		try {
 			
 			List<TimesheetDTO> dtoList = new ArrayList<>();
@@ -236,6 +294,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
 			
 			List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
+			 
 			for(Object[] empObj : employeeList) {
 				
 				Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
@@ -264,20 +323,32 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 									
 									dtoList.add(dto);
 								}
+								logBuilder.append("EmpId: " + empId);
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse("Timesheet Activities not found.");
+                                apiLogInfo.setApiResponse("Timesheet Activities not found");			
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 							}
 						}
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 			response.setServiceResponse(dtoList);
+
+            apiLogInfo.setApiResponse("dtoList: " + dtoList.size());			
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            
 		}catch(Exception e) {
 			e.printStackTrace();	
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
 			response.setServiceResponse("Something Went Wrong.");	
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}	
 }

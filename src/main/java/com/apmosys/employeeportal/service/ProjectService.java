@@ -90,6 +90,13 @@ public class ProjectService {
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getAllClients");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ClientInfoList : "  + clientsRepository.getClientInfo().size());
+
 		try {
 			
 			List<Object[]> clientInfo = clientsRepository.getClientInfo();
@@ -110,9 +117,13 @@ public class ProjectService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("ClientInfoList: " + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Client Info not found.");
+				apiLogInfo.setApiResponse("Client Info not Found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -120,12 +131,22 @@ public class ProjectService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllProjects() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getAllProjects");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("AllProjectList : " + projectRepository.getAllProject().size());
 		try {
 			
 			List<Object[]> projects = projectRepository.getAllProject();
@@ -152,9 +173,13 @@ public class ProjectService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("All Project fetched!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Projects found.");
+				apiLogInfo.setApiResponse("No Projects Found!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -162,12 +187,22 @@ public class ProjectService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse createProject(PoProjectSyncDTO poProjectSyncDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("Create Project");
+        apiLogInfo.setApiUrl("/api/createProject");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("Project Name : " + poProjectSyncDTO.getProjectName() + " , ProjectManagerId :" + poProjectSyncDTO.getProjectManagerId());
 		try {
 			//Find client (Inhouse : Apmosys)
 			String internalClient = "Apmosys";
@@ -195,26 +230,42 @@ public class ProjectService {
 					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project created successfully.");
+                    apiLogInfo.setApiResponse("Project Created Successfully!");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to create project.");
+                    apiLogInfo.setApiResponse("Unable to create project!");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			    
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to find ApMoSys as internal client.");
+                apiLogInfo.setApiResponse("Unable to find ApMoSys as internal client");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse getProjectByProjectId(PoProjectSyncDTO poProjectSyncDto) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getProjectByProjectId");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ProjectId : " + poProjectSyncDto.getProjectId());
 		try {
 			
 			Optional<Project> project = projectRepository.findById(poProjectSyncDto.getProjectId());
@@ -249,9 +300,15 @@ public class ProjectService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("ProjectList :" + dtoList.size());
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found.");
+				apiLogInfo.setApiResponse("Project not Found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				
 			}
 			
 		}catch(Exception e) {
@@ -259,12 +316,24 @@ public class ProjectService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse updateProject(PoProjectSyncDTO poProjectSyncDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Project");
+		apiLogInfo.setApiUrl("/api/updateProject");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ProjectId : " + poProjectSyncDTO.getProjectId() + " , ProjectName :" + poProjectSyncDTO.getProjectName() 
+		 + " , ProjectManagerId : " + poProjectSyncDTO.getProjectManagerId());
 		try {
 			
 			Project project = projectRepository.getById(poProjectSyncDTO.getProjectId());
@@ -292,25 +361,41 @@ public class ProjectService {
 					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project updated successfully.");
+                    apiLogInfo.setApiResponse("Project updated successfully!");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Project updation failed.");
+                    apiLogInfo.setApiResponse("Project Updation failed!");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found.");
+                apiLogInfo.setApiResponse("Project Not Found");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse deleteProject(PoProjectSyncDTO poProjectSyncDto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Delete Project");
+		apiLogInfo.setApiUrl("/api/deleteProject");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ProjectId : " + poProjectSyncDto.getProjectId());
 		try {
 			
 			Optional<Project> projectObj = projectRepository.findById(poProjectSyncDto.getProjectId());
@@ -334,13 +419,19 @@ public class ProjectService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project deleted.");
+					apiLogInfo.setApiResponse("Project deleted");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Project deletion Failed.");
+					apiLogInfo.setApiResponse("Project deletion failed");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found.");
+				apiLogInfo.setApiResponse("Project not found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -348,7 +439,11 @@ public class ProjectService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -1220,6 +1315,7 @@ public class ProjectService {
 
 	public ServiceResponse getSyncableProject() {
 		ServiceResponse response = new ServiceResponse();
+		
 		try {
 			
 			List<Project> syncableProject = projectRepository.findBySyncProject("false");
@@ -1252,6 +1348,12 @@ public class ProjectService {
 
 	public ServiceResponse checkProjectName(ProjectDTO projectDto) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("CheckProjectName");
+        apiLogInfo.setApiUrl("/api/checkProjectName");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ProjectName : " + projectDto.getProjectName());
 		try {
 			
 			Project checkProjectName = projectRepository.findByProjectName(projectDto.getProjectName());
@@ -1260,8 +1362,12 @@ public class ProjectService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Name already exist.");
 				System.out.println(" Project  exist"+checkProjectName);
+                apiLogInfo.setApiResponse("Project Name already Exists ");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}else if(checkProjectName == null){
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                apiLogInfo.setApiResponse("Project Exists");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 			
 		}catch(Exception e) {
@@ -1269,12 +1375,22 @@ public class ProjectService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllMyProjectByEmpId(ProjectDTO projectDto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllMyProjectByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + projectDto.getEmpId());
 		try {
 			
             List<Object[]> projectList = projectRepository.getAllMyProjectByEmpId(projectDto.getEmpId());
@@ -1295,9 +1411,13 @@ public class ProjectService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("ProjectList:" + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Projects found.");
+				apiLogInfo.setApiResponse("No Projects found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -1305,7 +1425,13 @@ public class ProjectService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	

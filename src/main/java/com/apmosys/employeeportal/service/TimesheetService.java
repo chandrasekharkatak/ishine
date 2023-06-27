@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,21 +9,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.cache.spi.support.AbstractReadWriteAccess.Item;
-import org.hibernate.internal.build.AllowSysOut;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
-import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -388,7 +380,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/getAllMyTimesheetsByEmpId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate() );
+		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
 		try {
 
 			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
@@ -490,7 +482,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/getAllMyTeamTimesheets");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate() );
+		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
 		try {
 
 			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
@@ -555,7 +547,7 @@ public class TimesheetService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+					apiLogInfo.setApiResponse("dtoList size: " +dtoList.size());			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					
 
@@ -672,7 +664,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/getMyReporteesTimesheetRequests");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ "status : " +timesheetDTO.getStatus());
+		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,status : " +timesheetDTO.getStatus());
 		try {
 
 			List<Object[]> objectList = timesheetsRepository
@@ -894,7 +886,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/updateTimesheet");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("timeSheetId : " +timesheetDTO.getTimesheetId()+ "dayType : " +timesheetDTO.getDayType());
+		logBuilder.append("timeSheetId : " +timesheetDTO.getTimesheetId()+ " ,dayType : " +timesheetDTO.getDayType());
 		
 		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -1018,14 +1010,23 @@ public class TimesheetService {
 				if (updatedTimesheet.getTimesheetId() != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Timesheet updated.");
+					apiLogInfo.setApiResponse("Timesheet updated");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Timesheet updation failed.");
+					apiLogInfo.setApiResponse("timesheet updation failed");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet not found.");
+				apiLogInfo.setApiResponse("timesheet not found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -1033,7 +1034,12 @@ public class TimesheetService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -1045,7 +1051,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/getMyReporteesApprovedTimesheets");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ "startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate());
+		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate());
 		try {
 			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
 
@@ -1157,7 +1163,7 @@ public class TimesheetService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+					apiLogInfo.setApiResponse("dtoList size : " +dtoList.size());			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
@@ -1193,7 +1199,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/addClientAndProjectByList");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("managerId : " +projectDTO.getProjectManagerId()+ "projectId : " +projectDTO.getProjectId() );
+		logBuilder.append("managerId : " +projectDTO.getProjectManagerId()+ " ,projectId : " +projectDTO.getProjectId() );
 		try {
 
 			Optional<Employee> EmpId = Optional
@@ -1255,7 +1261,7 @@ public class TimesheetService {
 		apiLogInfo.setApiUrl("/api/getTimesheetsForHomePageByEmpId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate() );
+		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
 		try {
 
 			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
@@ -1270,6 +1276,8 @@ public class TimesheetService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No timesheets found. List is empty.");
+					apiLogInfo.setApiResponse("No timesheets found. List is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					
 					
 				} else {
@@ -1292,7 +1300,7 @@ public class TimesheetService {
 					response.setServiceResponse(dtoList);
 					
 					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					
 				}
 
@@ -1370,6 +1378,12 @@ public class TimesheetService {
 	
 	public ServiceResponse bulkApproveTimesheetRequest(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("BulkApproveTimesheetRequest");
+		apiLogInfo.setApiUrl("/api/bulkApproveTimesheetRequest");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("BulkApprovedList : " + timesheetDTO.getBulkApprovedList().size());
 	
 		try {
 			
@@ -1386,14 +1400,23 @@ public class TimesheetService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 		
 	}
 	
 	public ServiceResponse bulkRejectTimesheetRequest(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
-	
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("BulkRejectTimesheetRequest");
+		apiLogInfo.setApiUrl("/api/bulkRejectTimesheetRequest");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("BulkRejectList : " + timesheetDTO.getBulkRejectList().size());
 		try {
 			
 			for (TimesheetDTO timesheet : timesheetDTO.getBulkRejectList()) {
@@ -1410,7 +1433,11 @@ public class TimesheetService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 		
 	}
@@ -1467,7 +1494,7 @@ public class TimesheetService {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+					apiLogInfo.setApiResponse("dtoList size : " +dtoList.size());			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 				}

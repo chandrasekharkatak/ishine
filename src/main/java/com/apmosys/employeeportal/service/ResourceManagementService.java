@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,6 +26,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -97,6 +99,13 @@ public class ResourceManagementService {
 	@Autowired
 	MailService mailService;
 	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
+	 
+	
 	@Value("${rmg.mail}")
 	private String rmgMail;
 	
@@ -105,6 +114,15 @@ public class ResourceManagementService {
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("createDraftProjectInfo");
+        apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
+        + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
+        resourceManagementDTO.getClientState());
+
 		try {
 			Project projObj = null;
 			if(resourceManagementDTO.getProjectType().equals("Internal")) {
@@ -266,6 +284,8 @@ public class ResourceManagementService {
 							
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Team updated successfully.");
+                            apiLogInfo.setApiResponse("Team Updated!");
+                            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						}
 					}else {
 						//Add Team
@@ -337,14 +357,21 @@ public class ResourceManagementService {
 								
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully.");
+                                apiLogInfo.setApiResponse("Team Created! ");
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 								
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully, but default activities are not mapped");
+                                apiLogInfo.setApiResponse("Team created successfully, but default activities are not mapped");
+                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 							}
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Unable to create new team.");
+							 apiLogInfo.setApiResponse("Unable to Create new team");
+                             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							
 						}
 					}
 				});
@@ -384,13 +411,19 @@ public class ResourceManagementService {
 					if(poPortalResponse.getServiceStatus().equals("Success")) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Project updated successfully");
+						 apiLogInfo.setApiResponse("Project updated successfully");
+                         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
+						 apiLogInfo.setApiResponse("Project & Team created successfully,but unable to sync with PoPortal");
+                         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}	
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project updated successfully");
+					apiLogInfo.setApiResponse("Project updated successfully");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				
 			}else {
@@ -431,15 +464,23 @@ public class ResourceManagementService {
 						if(!clientLocationDbResponse.isEmpty()) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Client Location added");
+							apiLogInfo.setApiResponse("Client Location added");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Failed to add client Location");
+							apiLogInfo.setApiResponse("Failed to add client Location");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 							return response;
 						}
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Failed to add client");
-						return response;
+						apiLogInfo.setApiResponse("Failed to add client");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+                        return response;
 					}
 				}
 				
@@ -569,13 +610,20 @@ public class ResourceManagementService {
 							if(newActivityCreated != null) {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully.");
+								apiLogInfo.setApiResponse("Team created successfully");
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 							}else {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("Team created successfully, but default activities are not mapped");
+								apiLogInfo.setApiResponse("Team created successfully, but default activities are not mapped");
+								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 							}
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Unable to create new team.");
+							apiLogInfo.setApiResponse("Unable to create new team.");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 					});	
 					
@@ -600,13 +648,22 @@ public class ResourceManagementService {
 						if(poPortalResponse.getServiceStatus().equals("Success")) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Project updated successfully");
+							apiLogInfo.setApiResponse("Project updated successfully");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+							
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
+							apiLogInfo.setApiResponse("Project & Team created successfully ,but unable to sync with PoPortal");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 						}	
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Project updated successfully");
+						apiLogInfo.setApiResponse("Project updated successfully");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 				}
 			}
@@ -615,12 +672,22 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getTeamListByProjectName(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getTeamListByProjectName");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ProjectId : " + resourceManagementDTO.getProjectId()+ " ,ProjectName :" + resourceManagementDTO.getName() + " ,Id : " + resourceManagementDTO.getId() + " ,TeamList size :" + resourceManagementDTO.getTeamList().size() );
+
 		try {
 			
 			Project projectObj = null;
@@ -677,19 +744,27 @@ public class ResourceManagementService {
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("No teamMember(s) found in the Team.");
+                            apiLogInfo.setApiResponse("No teamMember(s) Found in the Team");			
+                            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 						teamListdto.add(teamdto);
 					});
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(teamListdto);
+                    apiLogInfo.setApiResponse("teamListDto :" + teamListdto.size());			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No team(s) found in the project.");
+                    apiLogInfo.setApiResponse("No team(s) found in the project.");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found.");
+                apiLogInfo.setApiResponse("Project not found");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -697,12 +772,23 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse alreadyCreatedTeam() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("alreadyCreatedTeam");
+        apiLogInfo.setApiUrl("/api/alreadyCreatedTeam");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+       // logBuilder.append("");
 		try {
 			
 			List<Project> allProjectList = projectRepository.findAll();
@@ -723,21 +809,34 @@ public class ResourceManagementService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("dtolist size :" + dtoList.size());
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Projects found.");
+				 apiLogInfo.setApiResponse("No Projects found");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse getPendingForApprovalProject() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getPendingForApprovalProject");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
 		try {
 			
 			List<Object[]> pendingPRoject = projectRepository.findProjectByIsDraftProject();
@@ -779,21 +878,39 @@ public class ResourceManagementService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("Pending Project Fetched:" + dtoList.size());			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Pending Project found.");
+                apiLogInfo.setApiResponse("No Pending Project Found");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                
+
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse approvePendingProject(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("ApprovePendingProject");
+        apiLogInfo.setApiUrl("/api/approvePendingProject");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ProjectId : " + resourceManagementDTO.getId() + ", EmpId : " + resourceManagementDTO.getEmpId());
+
 		try {
 			
 			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());;
@@ -818,10 +935,16 @@ public class ResourceManagementService {
 									+ "The above Project Info with Team & Team Member details will be shared with PoPortal.");
 						} catch (Exception e) {
 							e.printStackTrace();
+                            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                            apiLogInfo.setLogLevel("ERROR");
+
 						}
 						
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Project Approved successfully.");
+						apiLogInfo.setApiResponse("Project Approved successfully.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 						
 						// Send Project/Team detail JSON to PoPotal
 						
@@ -830,18 +953,30 @@ public class ResourceManagementService {
 						if(poPortalResponse.getServiceStatus().equals("Success")) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Project Approved.");
+							apiLogInfo.setApiResponse("Project Approved");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+poPortalResponse.getServiceResponse());
+							apiLogInfo.setApiResponse("Project & Team created successfully,but unable to sync with PoPortal" +poPortalResponse.getServiceResponse());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 						}				
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("User's mail address not found.");
+                        apiLogInfo.setApiResponse("User's mail address not found");			
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					}
 					
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to approve project.");
+                    apiLogInfo.setApiResponse("Unable to approve project");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 			}
 			
@@ -850,12 +985,22 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse rejectPendingProject(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("Reject Pending Project");
+        apiLogInfo.setApiUrl("/api/rejectPendingProject");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("Project Id : "+ resourceManagementDTO.getId() + " ,EmployeeId :" + resourceManagementDTO.getEmpId());
 		try {
 			
 			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -882,15 +1027,24 @@ public class ResourceManagementService {
 							e.printStackTrace();
 						}
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Project Rejected.");						
+						response.setServiceResponse("Project Rejected.");
+                        apiLogInfo.setApiResponse("Project Rejected");
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("User's mail address not found.");
+                        apiLogInfo.setApiResponse("User's Mail address not Found.");
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					}
 					
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to reject project.");
+                    apiLogInfo.setApiResponse("Unable to reject Project");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				}
 			}
 			
@@ -899,12 +1053,23 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse sendProjectApproval(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("sendProjectApproval");
+		apiLogInfo.setApiUrl("/api/sendProjectApproval");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ProjectId : " + resourceManagementDTO.getId() + "ProjectName : " + resourceManagementDTO.getName() + " ,ProjectManagerName : " 
+		+ resourceManagementDTO.getProjectManagerName() + " ,ClientName : " + resourceManagementDTO.getClientName());
 		try {
 			
 			StringBuilder html = new StringBuilder();
@@ -1002,9 +1167,15 @@ public class ResourceManagementService {
 					if(mailSent) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Project Approval mail sent to HOD's");
+                        apiLogInfo.setApiResponse("Project Approval mail sent to HOD's");
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unable to send Approval mail to HOD's");
+						apiLogInfo.setApiResponse("Unable to send Approval mail to HOD's");
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 					}
 				}
 			
@@ -1013,7 +1184,12 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -1028,6 +1204,7 @@ public class ResourceManagementService {
 	
 	public ServiceResponse sendProjectInfoToPoPortal(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
 		try {
 			
 			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -1158,7 +1335,15 @@ public class ResourceManagementService {
 	}
 
 	public ServiceResponse bulkSyncProject(ProjectDTO projectDTO) {
+
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("BulkSyncProject");
+        apiLogInfo.setApiUrl("/api/bulkSyncProject");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("BulkSyncList : " + projectDTO.getBulkSyncList().size());
+
 		try {
 			
 			for(ResourceManagementDTO rmg :projectDTO.getBulkSyncList()) {
@@ -1168,9 +1353,13 @@ public class ResourceManagementService {
 				if(syncResponse.getServiceStatus().equals("Success")) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project Synced successfully.");
+					apiLogInfo.setApiResponse("Project Synced Successfully");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+syncResponse.getServiceResponse());
+					apiLogInfo.setApiResponse("Project & Team created successfully,but unable to sync with PoPortal");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}	
 			}
 			
@@ -1179,12 +1368,23 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getInternalProject() {
 		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getInternalProject");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("InternalProjectList : "+ projectRepository.getAllInternalProject().size());
+
 		try {
 			
 			List<Object[]> allInternalProject = projectRepository.getAllInternalProject();
@@ -1250,9 +1450,13 @@ public class ResourceManagementService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(projectInfo);
+				apiLogInfo.setApiResponse("InternalProjectList fetched");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Internal project found.");
+				apiLogInfo.setApiResponse("No Internal Project Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -1260,7 +1464,11 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
