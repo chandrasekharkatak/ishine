@@ -204,7 +204,7 @@ export class RoleConfigComponent implements OnInit {
 
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
-    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name.trim())) {
       this.alertMessage = "Please enter Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

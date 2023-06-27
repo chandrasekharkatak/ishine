@@ -151,7 +151,7 @@ export class DeptConfigComponent implements OnInit {
 
   validateDepartmentObj(deptObj: Department, template: TemplateRef<any>) {
 
-    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name.trim())) {
       this.alertMessage = "Please enter Department Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;

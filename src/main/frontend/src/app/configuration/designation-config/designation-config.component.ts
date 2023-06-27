@@ -26,7 +26,7 @@ export class DesignationConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
@@ -61,7 +61,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -99,7 +99,7 @@ export class DesignationConfigComponent implements OnInit {
   showUpdateForm(designation:any){
     this.isUpdation = true;
     this.isForm = true;
-    
+
     this.isCreation = false;
     this.isTable = false;
     this.getAllDepartmentList();
@@ -140,7 +140,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   validateDesignationObj(designationObj : Designation, template: TemplateRef<any>){
-    if (!this.validationService.validateNullUndefinedEmptyString(designationObj.designationName)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(designationObj.designationName.trim())) {
       this.alertMessage = "Please enter Designation name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -169,7 +169,7 @@ export class DesignationConfigComponent implements OnInit {
     this.designationObj.createdBy = this.currentUser.empId;
 
     console.log(this.designationObj, " : this.designationObj");
-    
+
     this.destinationService.createDesignation(this.designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -202,7 +202,7 @@ export class DesignationConfigComponent implements OnInit {
     this.designationObj.updatedBy = this.currentUser.empId;
 
     console.log(this.designationObj, " : this.designationObj");
-    
+
     this.destinationService.updateDesignation(this.designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -215,7 +215,7 @@ export class DesignationConfigComponent implements OnInit {
 
   onDeleteDesignation(deleteDesignation: TemplateRef<any>, template: TemplateRef<any>){
     this.cancelRequest();
-    
+
     this.destinationService.deleteDesignation(this.designationToBeDeleted).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showTable();
@@ -272,9 +272,9 @@ export class DesignationConfigComponent implements OnInit {
         const onlySpecificDataArr = this.allDesignationListForExcel.map(
           x => ({
             "Designation Name": x.designationName,
-            "Created By": x.createdByName,		
-            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATE_FORMAT) : null,		
-            "Updated By": x.updatedByName,		
+            "Created By": x.createdByName,
+            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATE_FORMAT) : null,
+            "Updated By": x.updatedByName,
             "Updated On": (x.updatedOn)? moment(x.updatedOn).format(AppComponent.DATE_FORMAT) : null
           })
         )
@@ -283,20 +283,20 @@ export class DesignationConfigComponent implements OnInit {
     });
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
