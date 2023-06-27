@@ -151,7 +151,7 @@ export class DeptConfigComponent implements OnInit {
 
   validateDepartmentObj(deptObj: Department, template: TemplateRef<any>) {
 
-    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name.trim())) {
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name)) {
       this.alertMessage = "Please enter Department Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -172,6 +172,7 @@ export class DeptConfigComponent implements OnInit {
 
   // CRUD
   onCreateDepartment(template: TemplateRef<any>) {
+    this.deptObj.name = this.deptObj.name.trim();
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
 
@@ -189,6 +190,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   onUpdateDepartment(template: TemplateRef<any>) {
+    this.deptObj.name = this.deptObj.name.trim();
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
 

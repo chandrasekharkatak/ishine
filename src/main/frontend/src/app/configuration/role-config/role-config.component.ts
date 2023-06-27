@@ -204,7 +204,7 @@ export class RoleConfigComponent implements OnInit {
 
   validateJobRoleObj(jobRole: JobRole, template: TemplateRef<any>) {
 
-    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name.trim())) {
+    if (!this.validationService.validateNullUndefinedEmptyString(jobRole.name)) {
       this.alertMessage = "Please enter Job Role Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -232,6 +232,7 @@ export class RoleConfigComponent implements OnInit {
 
   // CRUD
   onCreateJobRole(template: TemplateRef<any>) {
+    this.jobRoleObj.name = this.jobRoleObj.name.trim();
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;
     // console.log("  :::::  ",this.sameRoleFound)
@@ -267,6 +268,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   onUpdateJobRole(template: TemplateRef<any>) {
+    this.jobRoleObj.name = this.jobRoleObj.name.trim();
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;
 

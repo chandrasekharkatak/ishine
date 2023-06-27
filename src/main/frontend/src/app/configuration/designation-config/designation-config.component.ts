@@ -140,7 +140,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   validateDesignationObj(designationObj : Designation, template: TemplateRef<any>){
-    if (!this.validationService.validateNullUndefinedEmptyString(designationObj.designationName.trim())) {
+    if (!this.validationService.validateNullUndefinedEmptyString(designationObj.designationName)) {
       this.alertMessage = "Please enter Designation name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -163,6 +163,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   onCreateDesignation(template: TemplateRef<any>){
+    this.designationObj.designationName = this.designationObj.designationName.trim();
     let inputValidated: boolean = this.validateDesignationObj(this.designationObj, template)
     if (!inputValidated) return;
 
@@ -196,6 +197,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   onUpdateDesignation(template: TemplateRef<any>){
+    this.designationObj.designationName = this.designationObj.designationName.trim();
     let inputValidated: boolean = this.validateDesignationObj(this.designationObj, template)
     if (!inputValidated) return;
 
