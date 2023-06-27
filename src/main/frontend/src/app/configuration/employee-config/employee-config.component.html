@@ -1531,7 +1531,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Exprience</p>
+                                                <p class="info-label">Experience</p>
                                                 <p class="info-text">{{previewObj.experience}}</p>
                                             </div>
                                         </div>
@@ -1546,7 +1546,7 @@
                                 </div>
                             </app-accordion-item>
 
-                            <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                            <!-- Previous Employer details will be diplayed only if experience is "Experienced" -->
                             <app-accordion-item *ngIf="previewObj.experience == 'Experienced'"
                                 class="acc-content" title="Previous Employment Information" [showBody]="true">
                                 <div class="container-fluid">
@@ -2075,10 +2075,17 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Exprience</p>
+                                                <p class="info-label">Experience</p>
                                                 <p class="info-text">{{previewEmployeeObj.experience}}</p>
                                             </div>
                                         </div>
+                                        <div *ngIf="previewEmployeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Total Experience</p>
+                                                <p class="info-text">{{previewEmployeeObj.totalExperience}}</p>
+                                            </div>
+                                        </div>
+
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Work Location <small>(State)</small></p>

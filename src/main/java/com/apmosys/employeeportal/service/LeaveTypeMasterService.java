@@ -316,7 +316,7 @@ public class LeaveTypeMasterService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-                apiLogInfo.setApiResponse("Leave Type By Leave Policy List Fetched!");
+                apiLogInfo.setApiResponse("dtoList :" + dtoList);
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 

@@ -85,6 +85,7 @@ public class JobRoleService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("createdBy : " + jobRoleDTO.getCreatedById() + "name : " +jobRoleDTO.getName()+ "employeeRole :" +jobRoleDTO.getEmployeeRole()+ "departmentId : " +jobRoleDTO.getDepartmentId());
+		System.out.println(jobRoleDTO);
 		try {
 			JobRole newJobRole = new JobRole();
 			newJobRole.setCreatedBy(jobRoleDTO.getCreatedById());
@@ -788,7 +789,7 @@ public class JobRoleService {
 		apiLogInfo.setApiUrl("api/updateJobRoleSubFeatureMapping");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("updated Role SubFeature :" + jobRoleDTO.getUpdatedJobRoleFeatureMapping().size());
+		logBuilder.append("JobroleId :" + jobRoleDTO.getJobRoleId());
 		try {
 			
 			List<RoleFeatureMap> roleFeatureMapList = new ArrayList<>();
@@ -814,7 +815,7 @@ public class JobRoleService {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Role ACL Updated");
 			
-			apiLogInfo.setApiResponse("Job Role SubFeature updated!");
+			apiLogInfo.setApiResponse("Role ACL updated!");
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			
 		}catch(Exception e) {

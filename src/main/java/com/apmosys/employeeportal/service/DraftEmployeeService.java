@@ -137,7 +137,7 @@ public class DraftEmployeeService {
 			employee.setReportingManagerId(employeedto.getReportingManagerId());
 			employee.setApprovalsTo(employeedto.getApprovalsTo());
 			employee.setDesignationId(employeedto.getDesignationId());
-			
+			employee.setProbationPeriod(employeedto.getProbationPeriod());
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -295,8 +295,7 @@ public class DraftEmployeeService {
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 					empDTO.setReportingManagerName(object[60] != null ? object[60].toString() : null);
-					
-//					if (object[42] != null) {
+					empDTO.setProbationPeriod(object[61] != null ? Short.parseShort(object[61].toString()) : null );//					if (object[42] != null) {
 //
 //						File actualFile = new File(
 //								Paths.get(imageFileLocation + File.separator + object[42].toString()).toString());
@@ -796,7 +795,8 @@ public class DraftEmployeeService {
 					empDTO.setDesignationId(object[60] != null ? Long.parseLong(object[60].toString()) : null);
 					empDTO.setDesignationName(object[61] != null ? object[61].toString() : null);
 					empDTO.setCreatedOn(object[62] != null ? object[62].toString() : null);
-
+                    empDTO.setProbationPeriod(object[63] != null ? Short.parseShort(object[63].toString()): null);
+                    empDTO.setTotalExperience(object[64] !=null ? Float.parseFloat(object[64].toString()): null);
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
