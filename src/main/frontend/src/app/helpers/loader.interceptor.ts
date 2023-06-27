@@ -170,7 +170,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateEmployeePassword`,
 
     `${this.baseUrl}`+`api/updateDefaultFeatureMapping`,
-    `${this.baseUrl}`+`api/getDefaultMapping`
+    `${this.baseUrl}`+`api/getDefaultMapping`,
+
+    `${this.baseUrl}`+`api/checkEmailWhenForgotPassword`,
+    `${this.baseUrl}`+`api/updateEmployeeForgotPassword`
   ]
 
   constructor(private loaderService: LoaderService) { }

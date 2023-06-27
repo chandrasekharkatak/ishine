@@ -27,12 +27,40 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="info-label mb-0">Caption</label>
+                    <textarea class="form-control" id="eventCaption" rows="3" [(ngModel)]="eventCaption"></textarea>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label mb-0"><span class="text-danger">*</span>Select Images</label>
+                            <label class="info-label"><span class="text-danger">*</span>Add External Link</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="isExternalLink">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="isExternalLink == 'true'" class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>External Link</label>
+                            <input type="text" class="form-control" maxlength="50" autocomplete="none" [(ngModel)]="externalLink">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label mb-0"><span class="text-danger">*</span>Select Image</label>
                             <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 10MB</small>
-                            <input type="file" accept="image/x-png,image/jpeg,image/jpg" multiple class="form-control p-1" (change)="onImageSelect($event,alert_message)">
+                            <input type="file" accept="image/x-png,image/jpeg,image/jpg" class="form-control p-1" (change)="onImageSelect($event,alert_message)">
                         </div>
                     </div>
                 </div>
@@ -56,8 +84,9 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
+            <div class="col-lg-6 col-md-6 mb-2 ml-auto d-flex justify-content-end align-items-start">
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()"><em class="fa-solid fa-plus"></em>&nbsp;Upload Event Photos</button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showPhotosOrderpage()"><em class="fa-solid fa-list-ol"></em>&nbsp;Set Order</button>
             </div>
         </div>
         <div class="row">
@@ -73,8 +102,9 @@
                     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
-                            <th scope="col" class="info-label" mat-sort-header="imageName|string">Image Name</th>
                             <th scope="col" class="info-label" mat-sort-header="eventName|string">Event Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="imageName|string">caption</th>
+                            <th scope="col" class="info-label" mat-sort-header="eventName|string">Image Name</th>
                             <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
@@ -85,9 +115,10 @@
                             <tr *ngIf="eventImages.length == 0|| (eventImages| colFilter:filters:false).length == 0">
                                 <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
                             </tr>
-                          <tr *ngFor="let image of eventImages | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                            <td>{{image.imageName}}</td>
+                          <tr *ngFor="let image of eventImages | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td>{{image.eventName}}</td>
+                            <td>{{image.eventCaption}}</td>
+                            <td>{{image.imageName}}</td>
                             <td>{{image.createdByName}}</td>
                             <td>{{image.createdOn}}</td>
                             <td>
@@ -105,6 +136,45 @@
     </div>
 </div>
 <!-- end :: see all Photos table -->
+
+<!-- start :: Order Photos -->
+<div class="row" *ngIf="isPhotosOrderPage">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Event Photos Order</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-primary p-0 m-0" role="alert">
+                    <p class="p-1 m-0">Please select and drag event photo to re-arrange the order.</p>
+                  </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div cdkDropList class="photo-order-list" (cdkDropListDropped)="drop($event)">
+                    <div class="photo-order-box" *ngFor="let image of eventImages; let i = index" cdkDrag>
+                        <div class="w-100 d-flex justify-content-between">
+                            <h5>{{i+1}} - {{image.eventName}}</h5>
+                            <small>{{image.createdOn}}</small>
+                        </div>
+                        <p class="text-secondary">{{image.eventCaption}}</p>
+                        <div class="photo-order-list-placeholder" *cdkDragPlaceholder></div>
+                      <img class="drag-image-Preview" *cdkDragPreview src="data:image/png;base64,{{image.imageBytes}}" [alt]="image.eventName">
+                    </div>
+                  </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdatePhotoOrder(alert_message)">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: Order Photos -->
 
 <!-- start :: Set Notification -->
 <div class="row">

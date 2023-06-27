@@ -94,7 +94,7 @@
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
                     <td class="info-label">{{teamView.employeementId}}</td>
-                    <td class="info-label myTeam-hierarchy" (click)="myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
+                    <td class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
                     <td class="info-label">{{teamView.email}}</td>
                     <td class="info-label">{{teamView.jobRoleName}}</td>
                     <td class="info-label">{{teamView.mobileNo}}</td>

@@ -27,6 +27,14 @@ public class EventPhoto  {
 	
 	private String imageName;
 	
+	private String eventCaption;
+	
+	private Integer photoOrder;
+	
+	private String isExternalLink;
+	
+	private String externalLink;
+	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 

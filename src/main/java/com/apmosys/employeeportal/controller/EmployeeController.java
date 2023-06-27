@@ -130,6 +130,13 @@ public class EmployeeController {
 //		return response;
 //	}
 
+	@RequestMapping(value = "/updateEmployeeForgotPassword", method = RequestMethod.POST)
+	public ServiceResponse updateEmployeeForgotPassword(@RequestBody EmployeeDTO employeedto) {
+
+		ServiceResponse response = employeeService.updateEmployeeForgotPassword(employeedto);
+		return response;
+	}
+	
 	@RequestMapping(value = "/updateEmployeePassword", method = RequestMethod.POST)
 	public ServiceResponse updatePassword(@RequestBody EmployeeDTO employeedto) {
 

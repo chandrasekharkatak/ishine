@@ -93,6 +93,10 @@ export class ReportDashboardComponent implements OnInit {
   LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
   filters:any = {};
   isSearchEnabled:boolean = false;
+  leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
+  timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
+  eodSegregationTableColumns:any[]=['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
+
   resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
 
   constructor(

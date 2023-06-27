@@ -38,7 +38,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();resetLeaveObj();">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">{{teamMember.name}}</option>
                             </select>

@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -69,9 +73,22 @@ public class DraftEmployeeService {
 
 	@Autowired
 	private EmployeeDocumentRepository employeeDocumentRepository;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 
+	@Autowired
+	private LogService logService;
+
+	
 	public ServiceResponse createDraftEmployee(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("create_DraftEmployee");
+		apiLogInfo.setApiUrl("/api/createDraftEmployee");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("draftEmployeeId : "+employeedto.getDraftEmpId());
 		try {
 
 			DraftEmployee employee = new DraftEmployee();
@@ -176,16 +193,24 @@ public class DraftEmployeeService {
 			if (dbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dbResponse);
+				apiLogInfo.setApiResponse("dbResponse : " +dbResponse);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Profile Creation Failed.");
+				apiLogInfo.setApiResponse("Draft Employee Profile Creation Failed.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -214,6 +239,12 @@ public class DraftEmployeeService {
 
 	public ServiceResponse getDraftEmployeeById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getDraftEmployeeById");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("draftEmployeeId : "+employeedto.getDraftEmpId()+""+employeedto.getEmployeementId());
+		
 		EmployeeDTO empDTO = new EmployeeDTO();
 		List<EmployeeCertificateDTO> certificationDTOlist = new ArrayList<EmployeeCertificateDTO>();
 		List<PreviousEmploymentDTO> previousEmploymentDTOList = new ArrayList<PreviousEmploymentDTO>();
@@ -348,22 +379,35 @@ public class DraftEmployeeService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
+				apiLogInfo.setApiResponse("Employee draft found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Profile Not Found");
+				apiLogInfo.setApiResponse("Employee Profile Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setApiResponse("Something went wrong.");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse deleteDraftEmployeeById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/deleteDraftEmployeeById");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("draftEmpId : "+employeedto.getDraftEmpId());
 		List<EmployeeCertificate> certificationlist = new ArrayList<EmployeeCertificate>();
 		List<PreviousEmployment> previousEmploymentList = new ArrayList<PreviousEmployment>();
 		List<EmployeeDocument> documentList = new ArrayList<EmployeeDocument>();
@@ -417,22 +461,35 @@ public class DraftEmployeeService {
 				draftEmployeeRepository.deleteById(employeeToBeDeleted.getDraftEmpId());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Draft Employee Profile Deleted");
+				apiLogInfo.setApiResponse("Draft Employee Profile Deleted");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Profile Not Found");
+				apiLogInfo.setApiResponse("Draft Employee Profile Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse updateDraftEmployeeById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/updateDraftEmployeeById");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("draftEmpId : "+employeedto.getDraftEmpId());
 		List<EmployeeCertificateDTO> newCertificationlist = new ArrayList<EmployeeCertificateDTO>();
 		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
 
@@ -638,20 +695,30 @@ public class DraftEmployeeService {
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dbResponse);
+					apiLogInfo.setApiResponse("dbResponse");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Draft Employee Profile Updation Failed.");
+					apiLogInfo.setApiResponse("Draft Employee Profile Updation Failed.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Profile Not Found");
+				apiLogInfo.setApiResponse("Draft Employee Profile Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -682,6 +749,13 @@ public class DraftEmployeeService {
 
 	public ServiceResponse getAllDraftEmployees(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_AllDraftEmployees");
+		apiLogInfo.setApiUrl("/api/getAllDraftEmployees");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("List fetched of size : "+draftEmployeeRepository.findAll().size());
+
 		try {
 			List<Object[]> allEmployeeList = draftEmployeeRepository
 					.getAllDraftEmployees(employeedto.getUpdateApplicationStatus());
@@ -703,22 +777,35 @@ public class DraftEmployeeService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee List is null.");
+				apiLogInfo.setApiResponse("Employee List is null.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getDraftEmployeeByEmploymentId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getDraftEmployeeByEmploymentId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeementId"+employeedto.getEmployeementId());
 		EmployeeDTO empDTO = new EmployeeDTO();
 		List<EmployeeCertificateDTO> certificationDTOlist = new ArrayList<EmployeeCertificateDTO>();
 		List<PreviousEmploymentDTO> previousEmploymentDTOList = new ArrayList<PreviousEmploymentDTO>();
@@ -874,22 +961,36 @@ public class DraftEmployeeService {
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
+				apiLogInfo.setApiResponse("empDto object fetched.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Profile Not Found");
+				apiLogInfo.setApiResponse("Employee Profile Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse rejectDraftEmployeeApplication(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/rejectDraftEmployeeApplication");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId());
+
 		try {
 
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
@@ -919,22 +1020,36 @@ public class DraftEmployeeService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Draft Employee Application Rejected");
+				apiLogInfo.setApiResponse("Draft Employee Application Rejected");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Application Not Found");
+				apiLogInfo.setApiResponse("Draft Employee Application Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse revokeDraftEmployeeApplication(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/revokeDraftEmployeeApplication");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId());
+
 		try {
 
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
@@ -961,23 +1076,37 @@ public class DraftEmployeeService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Draft employee application revoked");
+				apiLogInfo.setApiResponse("Draft employee application revoked");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Application Not Found");
+				apiLogInfo.setApiResponse("Draft Employee Application Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Transactional
 	public ServiceResponse approveDraftEmployeeApplication(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/approveDraftEmployeeApplication");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId());
+
 		try {
 			// System.out.println(employeedto);
 			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
@@ -1129,6 +1258,8 @@ public class DraftEmployeeService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee profile approved.");
+					apiLogInfo.setApiResponse("Employee profile approved.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					
 					mailService.sendMail(employeedto.getEmail()+","+hrMailAddress, "Regarding Employee KYC Updation Request Approval", 
 							"Dear"+" "+employeedto.getName()+","
@@ -1137,24 +1268,37 @@ public class DraftEmployeeService {
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee profile updation failed.");
+					apiLogInfo.setApiResponse("Employee profile updation failed.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee profile not found.");
+				apiLogInfo.setApiResponse("Employee profile not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse updateDraftStatusById(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/updateDraftStatusById");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId()+", isDraft : "+employeedto.getIsDraft());
 
 		try {
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
@@ -1179,20 +1323,30 @@ public class DraftEmployeeService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dbResponse);
+					apiLogInfo.setApiResponse("dbResponse");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee Profile Updation Submit Failed.");
+					apiLogInfo.setApiResponse("Employee Profile Updation Submit Failed.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Draft Employee Profile Not Found");
+				apiLogInfo.setApiResponse("Draft Employee Profile Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 }

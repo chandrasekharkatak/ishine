@@ -48,6 +48,11 @@ export class UserSurveyComponent implements OnInit {
 
   isSurveyLoaded: boolean = false;
 
+  // Column Filter
+  isSearchEnabled:boolean=false;
+  filters:any = {};
+  surveyColumns:any[] = ['surveyName','description'];
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -360,7 +365,22 @@ export class UserSurveyComponent implements OnInit {
     }
   }
 
+  // advance search
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
+  }
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
+  
+  //end
+
 }
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

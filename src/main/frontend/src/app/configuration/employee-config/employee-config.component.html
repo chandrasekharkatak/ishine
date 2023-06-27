@@ -559,7 +559,8 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Department</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId)">
+                                                <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);clearAfterChange('empDesg','designationName')"> -->
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);updateDesignationDropdown()">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                                                 </select>
@@ -570,8 +571,9 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Designation</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId">
-                                                    <option selected="selected" value="" disabled>Select</option>
+                                                <!-- <select id="empDesg" class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId"> -->
+                                                <select id="empDesg" class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId">
+                                                    <option selected="selected" value="" [disabled]="isDesignationDisabled()">Select</option>
                                                     <option *ngFor="let designation of allDesignationList" value="{{designation.designationId}}">{{designation.designationName}}</option>
                                                 </select>
                                             </div>
@@ -592,7 +594,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Experience</label>
-                                                <select class="form-control" aria-hidden="true" (change)="clearAfterChange()" [(ngModel)]="employeeObj.experience">
+                                                <select class="form-control" aria-hidden="true" (change)="clearAfterChange('totalExp','totalExperience')" [(ngModel)]="employeeObj.experience">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Fresher">Fresher</option>
                                                     <option value="Experienced">Experienced</option>
@@ -604,7 +606,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Total Experience</label>
-                                                <input type="number" class="form-control" maxlength="2" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
+                                                <input type="number" id="totalExp" class="form-control" maxlength="2" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
                                             </div>
                                         </div>
                                     </div>
@@ -1716,21 +1718,21 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Name</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{previewEmployeeObj.name}}</p>
+                                                    {{previewEmployeeObj.name}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Email</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{previewEmployeeObj.email}}</p>
+                                                    {{previewEmployeeObj.email}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Secondary Email</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{previewEmployeeObj.email}}</p>
+                                                    {{previewEmployeeObj.email}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">

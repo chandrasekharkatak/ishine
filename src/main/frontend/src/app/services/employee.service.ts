@@ -170,6 +170,10 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeePassword`, user);
    }
 
+   updateEmployeeForgotPassword(user: User){
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeForgotPassword`, user);
+   }
+
    /* check Employee old Password */
 
    checkEmployeeOldPassword(user: User){

@@ -27,6 +27,7 @@ import { Employee } from '../models/employee';
 import { LocationStrategy } from '@angular/common';
 import { Sort } from '@angular/material/sort';
 import { AppComponent } from '../app.component';
+import { EventPhoto } from '../models/EventPhoto';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -821,15 +822,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.isImagesLoaded = false;
     // document.getElementById('eventPhotosCarousel').style.display = 'none';
 
-    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
+    this.imageService.getFirstEventPhotoForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages = response.serviceResponse;
-        console.log("eventImages : ", this.eventImages);
-        setTimeout(() => { this.loadImages(this.eventImages); }, 1000)
+        console.log("First image : ", this.eventImages);
+        setTimeout(() => { 
+          this.loadImages(this.eventImages);
+        }, 1000);
+        this.getPhotosForHome();
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  getPhotosForHome(){
+    this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let images = response.serviceResponse;
+        this.eventImages.push(...images);
+        this.eventImages.sort((a, b) => a.photoOrder - b.photoOrder)
+        console.log("eventImages : ", this.eventImages);
+        setTimeout(() => { this.loadImages(this.eventImages); }, 1000);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    }); 
   }
 
   loadImages(eventImages) {
@@ -1509,23 +1527,31 @@ export class HomeComponent implements OnInit, AfterViewInit {
       console.log(response.serviceResponse);
       sessionStorage.removeItem('currentUser');
       sessionStorage.removeItem('token');
+      sessionStorage.removeItem('logInfo');
+      sessionStorage.removeItem('maxFileSize');
+      sessionStorage.removeItem('maxRequestSize');
+      sessionStorage.removeItem('sessioncheck');
       // delete method call for cookies
       this.authenticationService.deleteCookies();
       this.authenticationService.setcurrentUserSubject(null);
 
       this.router.navigate(['/login']);
-      location.reload();
+      setTimeout(() => {location.reload();});
 
     } else {
       if (response.serviceResponse == "Session already destroyed") {
         this.authenticationService.stopUserSessionCheck();
         sessionStorage.removeItem('currentUser');
         sessionStorage.removeItem('token');
+        sessionStorage.removeItem('logInfo');
+        sessionStorage.removeItem('maxFileSize');
+        sessionStorage.removeItem('maxRequestSize');
+        sessionStorage.removeItem('sessioncheck');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
         this.router.navigate(['/login']);
-        location.reload();
+        setTimeout(() => {location.reload();});
       }
       console.error(response.serviceResponse);
     }
@@ -1566,7 +1592,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
       !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
       this.isError = true;
-      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are @#$%!+*÷=/_-\'":;,()^{}~[]';
+      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
       return;
     }
 

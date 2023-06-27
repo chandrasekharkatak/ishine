@@ -152,6 +152,12 @@ export class EmployeeInfoComponent implements OnInit{
     return false;
   }
 
+  preventDecimalOnNumberInput(event:any){
+    if(event.key==='.'){
+      event.preventDefault();
+    }
+  }
+
   setCalenderMaxDate() {
     const dateFormat = 'YYYY-MM-DD';
     const today = moment(new Date()).format(dateFormat);
@@ -323,7 +329,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.viewsOnOrganisation)){
-      this.alertMessage = `Please enter valid view on organisation. Alphabets, Number and allowed Special Character are +-()'"?,&.`;
+      this.alertMessage = `Please enter valid view on organisation. Alphabets, Numbers and allowed Special Character are +-()'"?,&.!`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -333,7 +339,7 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.aboutMe)){
-      this.alertMessage = `Please enter valid in  About me. Alphabets, Number and allowed Special Character are +-()'"?,&.`;
+      this.alertMessage = `Please enter valid in  About me. Alphabets, Numbers and allowed Special Character are +-()'"?,&.!`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -426,6 +432,15 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.validationService.validateNullUndefinedEmptyString(employeeObj.passportNumber)){
+      if(!this.validationService.validateAlphaNumeric(employeeObj.passportNumber)){
+        this.alertMessage = "Please enter Valid Passport number !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aadhar)){
       this.alertMessage = "Please enter aadhar card number !!"
       this.openAlertMod(template, this.alertMessage);
@@ -525,13 +540,15 @@ export class EmployeeInfoComponent implements OnInit{
       }
     }
 
-
-
-      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
-        this.alertMessage = "Please Enter Passing Grade !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
+      this.alertMessage = "Please Enter Passing Grade !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }else if(!this.validationService.validatePassingGrade(employeeObj.passingGrade)){
+      this.alertMessage = "Please Enter Valid Passing Grade !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
 
 
 
@@ -613,7 +630,7 @@ export class EmployeeInfoComponent implements OnInit{
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else   if(!this.validationService.validateOrgName(previousEmployer.employerName)){
+            }else   if(!this.validationService.validateEmployerName(previousEmployer.employerName)){
               this.alertMessage = `Please Enter valid Employer Name - ${index+1}!!`;
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
@@ -782,10 +799,6 @@ export class EmployeeInfoComponent implements OnInit{
 
   async onSave(template : TemplateRef<any>){
 
-
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
-    if (!inputValidated) return;
-
     this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
     this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
     this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
@@ -823,6 +836,8 @@ export class EmployeeInfoComponent implements OnInit{
       y.certificationNumber = y.certificationNumber?.trim();
     })
 
+    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    if (!inputValidated) return;
 
     // this.router.navigate(['../document-upload'], {relativeTo:this.route});
     const dateFormat = 'YYYY-MM-DD';
@@ -1051,8 +1066,6 @@ if(this.errorMsg == ""){
 //   }
 
   validateAadhar(event, data:any){
-    this.employeeObj.aadhar = this.employeeObj.aadhar?.trim();
-
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter aadhar card number !!"
     }
@@ -1070,20 +1083,22 @@ if(this.errorMsg == ""){
   }
 
   validatePan(event, data:any){
+    data = data?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter pan number !!"
-  }
-   else if (!this.validationService.validatePancardNumber(data)) {
-    this.errorMsg = "Please enter valid pan number !!"
-}
-  else{
-  this.errorMsg = ""
-}
-if(this.errorMsg == ""){
-  event.target.nextElementSibling.textContent = ""
-}else{
-  event.target.nextElementSibling.textContent =  this.errorMsg
-}
+    }
+    else if (!this.validationService.validatePancardNumber(data)) {
+      this.errorMsg = "Please enter valid pan number !!"
+    }
+      else{
+      this.errorMsg = ""
+    }
+    
+    if(this.errorMsg == ""){
+      event.target.nextElementSibling.textContent = ""
+    }else{
+      event.target.nextElementSibling.textContent =  this.errorMsg
+    }
   }
 
 
@@ -1129,7 +1144,7 @@ if(this.errorMsg == ""){
       this.errorMsg = "Please enter About me !!"
     }
     else  if (!this.validationService.validateViewsOnOrganisation(data)) {
-      this.errorMsg = `Please enter valid About me. Alphabets, Number and allowed Special Character are +-()'"?,&.`
+      this.errorMsg = `Please enter valid About me. Alphabets, Number and allowed Special Character are +-()'"?,&.!`
     }
     else{
     this.errorMsg = ""
@@ -1399,7 +1414,7 @@ if(this.errorMsg == ""){
     if(!this.validationService.validateNullUndefinedEmptyString(data)){
       this.errorMsg = "Please enter Employer name !!"
     }
- else  if (!this.validationService.validateOrgName(data)) {
+ else  if (!this.validationService.validateEmployerName(data)) {
     this.errorMsg = "Please enter valid Employer name !!"
 }
   else{

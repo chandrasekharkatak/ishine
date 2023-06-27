@@ -31,10 +31,23 @@ public class ImageController {
 	ImageService imageService;
 		
 	@RequestMapping(value="/uploadMultipleImages" , method = RequestMethod.POST)
-	public ServiceResponse uploadMultipleImages(HttpServletRequest request, @RequestParam("image")List<MultipartFile> images,
-			@RequestParam("eventName")String eventName, @RequestParam("uploadedBy")Long uploadedBy) {
-		ServiceResponse serviceResponse = imageService.uploadMultipleImages(images,eventName,uploadedBy);
+	public ServiceResponse uploadMultipleImages(HttpServletRequest request, 
+			@RequestParam("image")List<MultipartFile> images,
+			@RequestParam("eventName")String eventName,
+			@RequestParam("eventCaption")String eventCaption,
+			@RequestParam("isExternalLink")String isExternalLink,
+			@RequestParam("externalLink")String externalLink,
+			@RequestParam("uploadedBy")Long uploadedBy) {
+		ServiceResponse serviceResponse = imageService.uploadMultipleImages(images,eventName,eventCaption,isExternalLink,externalLink,uploadedBy);
 		return serviceResponse;
+	}
+	
+	
+	@RequestMapping(value = "/getFirstEventPhotoForHome", method = RequestMethod.GET)
+	public ServiceResponse getFirstEventPhotoForHome() {
+
+		ServiceResponse response = imageService.getFirstEventPhotoForHome();
+		return response;
 	}
 	
 	@RequestMapping(value = "/getAllEventPhotosForHome", method = RequestMethod.GET)
@@ -58,6 +71,15 @@ public class ImageController {
 		return response;
 	}
 	
+	@RequestMapping(value="/updatePhotoOrder" , method = RequestMethod.POST)
+	public ServiceResponse updatePhotoOrder(@RequestBody EventPhotoDTO eventPhotoDTO) {		
+		
+		ServiceResponse response =	imageService.updatePhotoOrder(eventPhotoDTO);		
+		return response;
+	}
+	
+	// Documents
+	
 	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)
 	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")MultipartFile images,
 			@RequestParam("uploadedBy")Long uploadedBy, @RequestParam("employeementId")Long employeementId,
@@ -80,6 +102,7 @@ public class ImageController {
 		ServiceResponse response =	imageService.getEmployeeDocuments(employeeDTO);		
 		return response;
 	}
+	
 	
 	/*
 	 upload employee document - part of data migration.

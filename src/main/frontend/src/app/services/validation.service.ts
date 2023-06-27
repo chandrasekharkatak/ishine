@@ -124,6 +124,21 @@ export class ValidationService {
 
   }
 
+  validateEmployerName(text: string): boolean {
+    const regex = /^[a-zA-Z0-9-.,&()\s]+$/; 
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
   // /^(?:[0-9]{11}|[0-9]{2}-[0-9]{3}-[0-9]{6})$/
   validateAccountNumber(text: string): boolean {
 
@@ -257,7 +272,7 @@ export class ValidationService {
   validateViewsOnOrganisation(text: string): boolean {
 
     // const regex = /^[a-zA-Z.,& ]+$/;
-    const regex = /^[a-zA-Z0-9+\-\(\)'"\?.,&\s]+$/
+    const regex = /^[a-zA-Z0-9+\-\(\)'"\?.,&!\s]+$/
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -376,7 +391,7 @@ export class ValidationService {
   }
 
   validatePancardNumber(text: string): boolean {
-    const regex = /[A-Z]{5}[0-9]{4}[A-Z]{1}/;
+    const regex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -457,7 +472,8 @@ export class ValidationService {
 
 
     // const regex = /^[A-Za-z0-9@#$%!+*÷=\/_\-'":;,()^{}~\[\]]{8,}$/;
-    const regex = /(?=^.{8,}$)(?=.*\d)(?=.*[!@#$%^&*]+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+    // const regex = /(?=^.{8,}$)(?=.*\d)(?=.*[!@#$%^&*]+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+    const regex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,16}$/;
 
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
@@ -557,7 +573,8 @@ export class ValidationService {
   // }
 
   validateActivityTimesheetDiscription(text:string): boolean {
-    const regex = /^(?=.*\s).{2,}$/gm;
+    // const regex = /^(?=.*\s).{2,}$/gm;
+    const regex = /^[^.\s].{1,}$/gm;
     //  /^[#-@{}!()\/_'",.a-z?]|[A-Za-z0-9]{2}[#-@{}!()\/_'",.a-z\s?]*$/ ;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
@@ -744,6 +761,21 @@ export class ValidationService {
 
   validateESICNumber(text:string): boolean {
     const regex = /^(\d{2})[-–\s]?(\d{2})[-–\s]?(\d{1,6})[-–\s]?(\d{3})[-–\s]?(\d{4})$/gm;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  validatePassingGrade(text:string): boolean {
+    const regex = /^[a-zA-Z0-9][a-zA-Z0-9.\s%]*$/gm;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

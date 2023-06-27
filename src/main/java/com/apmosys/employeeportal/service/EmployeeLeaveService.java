@@ -5,9 +5,7 @@ import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +26,6 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
@@ -39,7 +36,6 @@ import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
-import com.apmosys.employeeportal.projections.Leave;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -126,7 +122,7 @@ public class EmployeeLeaveService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : "+leaveDTO.getEmpId()+ ", leaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", leaveTypeCode : "+ leaveDTO.getLeaveTypeCode() +", noOfDays : "+ leaveDTO.getNoOfDays());
-		
+		System.out.println(leaveDTO);
 		try {
 
 //			LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
@@ -1381,12 +1377,17 @@ public class EmployeeLeaveService {
 					
 				} else if (leaveDTO.getLeaveStatusId() == 3) {
 					
+					pendingLeaveApplication.setLeaveStatusId((short) 3);
+					
 					if(leaveDTO.getCurrentApprovalLevel() == 2) {
-						pendingLeaveApplication.setLevel2ApprovalStatus("Rejected");				
+						pendingLeaveApplication.setLevel2ApprovalStatus("Rejected");
+						pendingLeaveApplication.setLevel3ApprovalStatus("NA");
 					}else if(leaveDTO.getCurrentApprovalLevel() == 3) {
 						pendingLeaveApplication.setLevel3ApprovalStatus("Rejected");
 					}else {
 						pendingLeaveApplication.setManagerApprovalStatus("Rejected");
+						pendingLeaveApplication.setLevel2ApprovalStatus("NA");
+						pendingLeaveApplication.setLevel3ApprovalStatus("NA");
 					}
 					
 					//Get Expiration Period of CompOff
@@ -1405,7 +1406,6 @@ public class EmployeeLeaveService {
 					}
 					
 					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")) {
-						pendingLeaveApplication.setLeaveStatusId((short) 3);
 						pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 						
 						Float balance = employeeLeavesMap.getBalance();
@@ -1422,9 +1422,9 @@ public class EmployeeLeaveService {
 						log.setEmpId(leaveDTO.getEmpId());
 						log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 						if(leaveTypeObj.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
-							log.setMessage(LeaveLogMessage.deleteLeave);
+							log.setMessage(LeaveLogMessage.requestAddLeave);
 						}else {					
-							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
+							log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
 						}
 						log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 						leaveBalanceLogRepository.save(log);
@@ -1503,7 +1503,6 @@ public class EmployeeLeaveService {
 									
 									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod);
 									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
-										pendingLeaveApplication.setLeaveStatusId((short) 3);
 										pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 										
 										leave.setCompOffStatus("Expired");
@@ -1515,8 +1514,6 @@ public class EmployeeLeaveService {
 									}else {
 										
 										//Update Leave Balance
-										
-										pendingLeaveApplication.setLeaveStatusId((short) 3);
 										pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 										employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + leave.getNoOfDays());
 
@@ -1884,7 +1881,12 @@ public class EmployeeLeaveService {
 	}	
 		
 	public ServiceResponse addOldLeaveApplicationByList(LeaveDTO leaveDTO) {			
-		ServiceResponse response = new ServiceResponse();			
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/addOldLeaveApplicationByList");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("");
 		try {			
 						
 			Optional<Employee> EmpId = Optional.ofNullable(employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId()));			
@@ -1956,20 +1958,27 @@ public class EmployeeLeaveService {
 			System.out.println("db response=============================================");			
 			if(dbResponse != null) {			
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);					
-				response.setServiceResponse("Application created");			
+				response.setServiceResponse("Application created");
+				apiLogInfo.setApiResponse("Application created");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {			
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);					
-				response.setServiceResponse("Application creation Failed.");			
-			}			
-							
+				response.setServiceResponse("Application creation Failed.");
+				apiLogInfo.setApiResponse("Application creation Failed.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}							
 			}			
 						
 		}catch (Exception e) {			
 			e.printStackTrace();			
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);			
 			response.setServiceResponse("Something Went Wrong.");			
-			response.setServiceError(e.getMessage());			
-		}			
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;			
 	}					
 	
@@ -2365,6 +2374,11 @@ public class EmployeeLeaveService {
 	
 	public ServiceResponse bulkApproveLeaveRequest(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/bulkApproveLeaveRequest");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("");
 		try {
 
 			for (LeaveDTO leave : leaveDTO.getBulkLeaveApprovedList()) {
@@ -2378,8 +2392,11 @@ public class EmployeeLeaveService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 		}
-
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -2893,7 +2910,7 @@ public class EmployeeLeaveService {
 												log.setBalance(balance);
 												log.setEmpId(leaveObj.getEmpId());
 												log.setLeaveTypeMasterId(leaveObj.getLeaveTypeMasterId());
-												log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leave.getNoOfDays().toString()));
+												log.setMessage(LeaveLogMessage.leaveRevoked.replace("0.0", leave.getNoOfDays().toString()));
 												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
 												
 												leaveBalanceLogRepository.save(log);
@@ -3194,6 +3211,11 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 
 	public ServiceResponse getOverlappedTeamMemberLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getOverlappedTeamMemberLeave");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("");
 		try {
 			
 			List<Object[]> overLappedTeamMember = employeeLeaveRepository
@@ -3214,9 +3236,12 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Overlapped Leave found.");
+				apiLogInfo.setApiResponse("No Overlapped Leave found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -3224,7 +3249,11 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -3361,6 +3390,11 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 
 	public ServiceResponse fillTimesheetForOldLeaves() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/fillTimesheetForOldLeaves");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("");
 		try {
 			
 			LocalDate leaveFromDate = LocalDate.parse("2022-12-01");
@@ -3430,10 +3464,13 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 									
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 									response.setServiceResponse("timesheet Added successfully");
+									apiLogInfo.setApiResponse("timesheet Added successfully");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 								}else {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 									response.setServiceResponse("Unable to add timesheet.");
-								}
+									apiLogInfo.setApiResponse("Unable to add timesheet.");
+									apiLogInfo.setApiResponse(ServiceResponse.STATUS_FAIL);								}
 							}
 						}
 						// If leave is of multiple days
@@ -3511,12 +3548,21 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");	
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse pendingForApprovalReconsilation() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/pendingForApprovalReconsilation");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("");
 		try {
 			
 			List<Employee> allEmployeeList = employeeRepository.findAll();
@@ -3571,18 +3617,28 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
-			
+			apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse reconsileCasualBalance() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/reconsileCasualBalance");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("leaveBalanceLogRepository size : "+leaveBalanceLogRepository.findAll().size());
 		try {
 			
 			List<Employee> allEmployee = employeeRepository.findAll();
@@ -3649,13 +3705,19 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse1(json);
+			apiLogInfo.setApiResponse("json");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
